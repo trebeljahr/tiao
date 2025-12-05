@@ -3,7 +3,7 @@ import { useState } from "react";
 export default function Page() {
   return (
     <div className="w-screen h-screen bg-orange-300">
-      <h1 className="text-black">Tiao 天高</h1>
+      <h1 className="text-black">Tiao 条</h1>
       <TiaoBoard />
     </div>
   );
