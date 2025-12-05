@@ -1,4 +1,14 @@
-import { useState } from "react";
+import {
+  DndContext,
+  DragEndEvent,
+  PointerSensor,
+  UniqueIdentifier,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { useCallback, useEffect, useState } from "react";
 
 export default function Page() {
   return (
@@ -9,14 +19,14 @@ export default function Page() {
   );
 }
 
-type PieceState = "black" | "white" | null;
+type TileState = "black" | "white" | null;
 
 type History = {
   moves: { x: number; y: number; color: "black" | "white" }[];
 };
 
 type BoardState = {
-  positions: PieceState[][];
+  positions: TileState[][];
   highlightedCluster: { x: number; y: number }[] | null;
   currentTurn: "black" | "white";
   selectedPiece: { x: number; y: number } | null;
@@ -126,99 +136,261 @@ const TiaoBoard = () => {
         boardState.positions[newY][newX] === null
       ) {
         paths.push({ x: newX, y: newY });
-        const tempPiece = boardState.positions[y][x];
-        const tempMidPiece = boardState.positions[midY][midX];
-        boardState.positions[y][x] = null;
-        boardState.positions[midY][midX] = null;
-        const furtherPaths = findJumpingPaths(newX, newY, color);
-        boardState.positions[y][x] = tempPiece;
-        boardState.positions[midY][midX] = tempMidPiece;
 
-        for (const path of furtherPaths) {
-          if (!paths.find((p) => p.x === path.x && p.y === path.y)) {
-            paths.push(path);
-          }
-        }
+        // const tempPiece = boardState.positions[y][x];
+        // const tempMidPiece = boardState.positions[midY][midX];
+        // boardState.positions[y][x] = null;
+        // boardState.positions[midY][midX] = null;
+        // const furtherPaths = findJumpingPaths(newX, newY, color);
+        // boardState.positions[y][x] = tempPiece;
+        // boardState.positions[midY][midX] = tempMidPiece;
+
+        // for (const path of furtherPaths) {
+        //   if (!paths.find((p) => p.x === path.x && p.y === path.y)) {
+        //     paths.push(path);
+        //   }
+        // }
       }
     }
 
     return paths;
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      console.log(event);
+
+      setBoardState((state) => {
+        if (!over) return state;
+
+        const movingStone = active.data.current as {
+          position: {
+            x: number;
+            y: number;
+          };
+          color: TileState;
+        };
+        const pieceColor: TileState = active.data.current?.color;
+        const { x, y } = over.data.current?.position as {
+          x: number;
+          y: number;
+        };
+
+        const dropOffPosition = state.positions[y][x];
+        if (dropOffPosition !== null) {
+          return state;
+        }
+
+        console.log(boardState.selectedPiecePaths);
+        console.log(`Dropped on (${x}, ${y})`);
+
+        const possiblePathMatches = boardState.selectedPiecePaths?.filter(
+          ({ x: x2, y: y2 }) => x === x2 && y === y2
+        );
+
+        console.log(possiblePathMatches);
+
+        const droppedOnPossiblePath = possiblePathMatches?.length === 1;
+
+        if (!droppedOnPossiblePath) {
+          return state;
+        }
+
+        console.log(
+          `Moving piece from (${movingStone.position.x}, ${movingStone.position.y}) to (${x}, ${y})`
+        );
+
+        state.positions[movingStone.position.y][movingStone.position.x] = null;
+        state.positions[y][x] = pieceColor;
+
+        return {
+          positions: state.positions,
+          highlightedCluster: null,
+          currentTurn: state.currentTurn === "white" ? "black" : "white",
+          selectedPiece: null,
+          selectedPiecePaths: null,
+          history: {
+            moves: [...state.history.moves, { x, y, color: state.currentTurn }],
+          },
+        };
+      });
+    },
+    [boardState.selectedPiecePaths]
+  );
+
+  return (
+    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+      <div
+        style={{
+          gridTemplateRows: "repeat(19, 1fr)",
+          gridTemplateColumns: "repeat(19, 1fr)",
+          width: "90vmin",
+          height: "90vmin",
+        }}
+      >
+        {boardState.positions.map((row, rowIndex) => (
+          <div
+            key={rowIndex}
+            style={{
+              display: "flex",
+            }}
+          >
+            {row.map((color, colIndex) => (
+              <GameBoardSlot
+                colIndex={colIndex}
+                rowIndex={rowIndex}
+                boardState={boardState}
+                setBoardState={setBoardState}
+                hoverPosition={hoverPosition}
+                clickPosition={clickPosition}
+                color={color}
+                key={colIndex}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+
+      <h2>Current Turn: {boardState.currentTurn}</h2>
+      <p>{boardState.history.moves.length} moves made.</p>
+    </DndContext>
+  );
+};
+
+const GameBoardSlot = ({
+  colIndex,
+  rowIndex,
+  setBoardState,
+  boardState,
+  hoverPosition,
+  clickPosition,
+  color,
+}: {
+  colIndex: number;
+  rowIndex: number;
+  setBoardState: React.Dispatch<React.SetStateAction<BoardState>>;
+  boardState: BoardState;
+  hoverPosition: (colIndex: number, rowIndex: number) => () => void;
+  clickPosition: (colIndex: number, rowIndex: number) => () => void;
+  color: TileState;
+}) => {
+  const { setNodeRef: setDroppableRef } = useDroppable({
+    id: `slot-${rowIndex}-${colIndex}`,
+    data: { position: { x: colIndex, y: rowIndex } },
+  });
+
   return (
     <div
+      ref={setDroppableRef}
+      key={colIndex}
       style={{
-        gridTemplateRows: "repeat(19, 1fr)",
-        gridTemplateColumns: "repeat(19, 1fr)",
-        width: "90vmin",
-        height: "90vmin",
+        width: "100%",
+        height: "100%",
+        position: "relative",
+        // pointerEvents: "none",
       }}
+      onClick={clickPosition(colIndex, rowIndex)}
     >
-      {boardState.positions.map((row, rowIndex) => (
-        <div
-          key={rowIndex}
-          style={{
-            display: "flex",
-          }}
-        >
-          {row.map((cell, colIndex) => (
-            <div
-              key={colIndex}
-              style={{
-                width: "100%",
-                height: "100%",
-                position: "relative",
-              }}
-              onClick={clickPosition(colIndex, rowIndex)}
-              onMouseEnter={hoverPosition(colIndex, rowIndex)}
-              onMouseLeave={() => {
-                setBoardState((prevState) => ({
-                  positions: prevState.positions,
-                  highlightedCluster: null,
-                  currentTurn: prevState.currentTurn,
-                  selectedPiece: null,
-                  selectedPiecePaths: null,
-                  history: prevState.history,
-                }));
-              }}
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  borderRadius: 50,
-                  width: "90%",
-                  height: "90%",
-
-                  border:
-                    boardState.selectedPiece?.x === colIndex &&
-                    boardState.selectedPiece?.y === rowIndex
-                      ? "3px solid blue"
-                      : boardState.highlightedCluster?.filter(
-                          ({ x, y }) => x === colIndex && y === rowIndex
-                        ).length
-                      ? "3px solid green"
-                      : boardState.selectedPiecePaths?.filter(
-                          ({ x, y }) => x === colIndex && y === rowIndex
-                        ).length
-                      ? "3px solid orange"
-                      : "none",
-                  backgroundColor:
-                    cell === "black"
-                      ? "black"
-                      : cell === "white"
-                      ? "white"
-                      : "transparent",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              />
-              <SvgCross position={{ x: colIndex, y: rowIndex }} />
-            </div>
-          ))}
-        </div>
-      ))}
+      <GamePiece
+        colIndex={colIndex}
+        rowIndex={rowIndex}
+        boardState={boardState}
+        color={color}
+        setBoardState={setBoardState}
+        hoverPosition={hoverPosition}
+      />
+      <SvgCross position={{ x: colIndex, y: rowIndex }} />
     </div>
+  );
+};
+
+const GamePiece = ({
+  colIndex,
+  rowIndex,
+  boardState,
+  hoverPosition,
+  setBoardState,
+  color,
+}: {
+  colIndex: number;
+  rowIndex: number;
+  boardState: BoardState;
+  setBoardState: React.Dispatch<React.SetStateAction<BoardState>>;
+  hoverPosition: (colIndex: number, rowIndex: number) => () => void;
+
+  color: TileState;
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDraggableRef,
+    transform,
+    active,
+  } = useDraggable({
+    id: `piece-${rowIndex}-${colIndex}`,
+    data: { position: { x: colIndex, y: rowIndex }, color },
+    disabled: color !== boardState.currentTurn,
+  });
+
+  const style = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+        zIndex: 20,
+      }
+    : undefined;
+
+  return (
+    <div
+      ref={setDraggableRef}
+      onMouseEnter={hoverPosition(colIndex, rowIndex)}
+      style={{
+        cursor: active
+          ? "grabbing"
+          : color === boardState.currentTurn
+          ? "grab"
+          : "default",
+        position: "absolute",
+        zIndex: 20,
+        borderRadius: 50,
+        width: "100%",
+        height: "100%",
+
+        border:
+          boardState.selectedPiece?.x === colIndex &&
+          boardState.selectedPiece?.y === rowIndex
+            ? "3px solid blue"
+            : boardState.highlightedCluster?.filter(
+                ({ x, y }) => x === colIndex && y === rowIndex
+              ).length
+            ? "3px solid green"
+            : boardState.selectedPiecePaths?.filter(
+                ({ x, y }) => x === colIndex && y === rowIndex
+              ).length
+            ? "3px solid orange"
+            : "none",
+        backgroundColor:
+          color === "black"
+            ? "black"
+            : color === "white"
+            ? "white"
+            : "transparent",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        ...style,
+      }}
+      {...attributes}
+      {...listeners}
+    />
   );
 };
 
@@ -226,7 +398,7 @@ const findConnectedCluster = (
   x: number,
   y: number,
   boardState: BoardState,
-  targetColor: PieceState = boardState.positions[y][x]
+  targetColor: TileState = boardState.positions[y][x]
 ) => {
   if (targetColor === null) return [];
 
