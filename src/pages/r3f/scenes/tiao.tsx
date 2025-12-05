@@ -212,6 +212,16 @@ const TiaoBoard = () => {
         state.positions[movingStone.position.y][movingStone.position.x] = null;
         state.positions[y][x] = pieceColor;
 
+        const movementDirection = {
+          dx: x - movingStone.position.x,
+          dy: y - movingStone.position.y,
+        };
+
+        const middleX = movingStone.position.x + movementDirection.dx / 2;
+        const middleY = movingStone.position.y + movementDirection.dy / 2;
+
+        state.positions[middleY][middleX] = null;
+
         return {
           positions: state.positions,
           highlightedCluster: null,
@@ -296,7 +306,6 @@ const GameBoardSlot = ({
         width: "100%",
         height: "100%",
         position: "relative",
-        // pointerEvents: "none",
       }}
       onClick={clickPosition(colIndex, rowIndex)}
     >
@@ -305,7 +314,6 @@ const GameBoardSlot = ({
         rowIndex={rowIndex}
         boardState={boardState}
         color={color}
-        setBoardState={setBoardState}
         hoverPosition={hoverPosition}
       />
       <SvgCross position={{ x: colIndex, y: rowIndex }} />
@@ -318,13 +326,11 @@ const GamePiece = ({
   rowIndex,
   boardState,
   hoverPosition,
-  setBoardState,
   color,
 }: {
   colIndex: number;
   rowIndex: number;
   boardState: BoardState;
-  setBoardState: React.Dispatch<React.SetStateAction<BoardState>>;
   hoverPosition: (colIndex: number, rowIndex: number) => () => void;
 
   color: TileState;
@@ -368,10 +374,6 @@ const GamePiece = ({
           boardState.selectedPiece?.x === colIndex &&
           boardState.selectedPiece?.y === rowIndex
             ? "3px solid blue"
-            : boardState.highlightedCluster?.filter(
-                ({ x, y }) => x === colIndex && y === rowIndex
-              ).length
-            ? "3px solid green"
             : boardState.selectedPiecePaths?.filter(
                 ({ x, y }) => x === colIndex && y === rowIndex
               ).length
