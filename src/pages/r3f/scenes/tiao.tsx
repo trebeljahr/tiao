@@ -44,7 +44,8 @@ const TiaoBoard = () => {
       return;
     }
 
-    const connectedCluster = findConnectedCluster(x, y);
+    const connectedCluster = findConnectedCluster(x, y, boardState);
+
     setBoardState((prevState) => ({
       positions: prevState.positions,
       highlightedCluster: connectedCluster,
@@ -62,9 +63,18 @@ const TiaoBoard = () => {
 
     setBoardState((state) => {
       const newPositions = state.positions.map((row) => row.slice());
+
+      const cluster = findConnectedCluster(x, y, state, state.currentTurn);
+
+      if (cluster.length > 10) {
+        console.log("cluster too big, cannot place piece");
+        return state;
+      }
+
       if (newPositions[y][x] === null) {
         newPositions[y][x] = state.currentTurn;
       }
+
       return {
         positions: newPositions,
         highlightedCluster: null,
@@ -135,45 +145,6 @@ const TiaoBoard = () => {
     return paths;
   };
 
-  const findConnectedCluster = (x: number, y: number) => {
-    const targetColor = boardState.positions[y][x];
-    if (targetColor === null) return [];
-
-    const visited = new Set<string>();
-    const cluster: { x: number; y: number }[] = [];
-    const stack = [{ x, y }];
-
-    while (stack.length > 0) {
-      const { x: currX, y: currY } = stack.pop()!;
-      const key = `${currX},${currY}`;
-      if (visited.has(key)) continue;
-      visited.add(key);
-      cluster.push({ x: currX, y: currY });
-      const directions = [
-        { dx: 1, dy: 0 },
-        { dx: -1, dy: 0 },
-        { dx: 0, dy: 1 },
-        { dx: 0, dy: -1 },
-      ];
-      for (const { dx, dy } of directions) {
-        const newX = currX + dx;
-        const newY = currY + dy;
-        if (
-          newX >= 0 &&
-          newX < 19 &&
-          newY >= 0 &&
-          newY < 19 &&
-          boardState.positions[newY][newX] === targetColor &&
-          !visited.has(`${newX},${newY}`)
-        ) {
-          stack.push({ x: newX, y: newY });
-        }
-      }
-    }
-
-    return cluster;
-  };
-
   return (
     <div
       style={{
@@ -194,8 +165,8 @@ const TiaoBoard = () => {
             <div
               key={colIndex}
               style={{
-                width: 35,
-                height: 35,
+                width: "100%",
+                height: "100%",
                 position: "relative",
               }}
               onClick={clickPosition(colIndex, rowIndex)}
@@ -215,8 +186,8 @@ const TiaoBoard = () => {
                 style={{
                   position: "absolute",
                   borderRadius: 50,
-                  width: "100%",
-                  height: "100%",
+                  width: "90%",
+                  height: "90%",
 
                   border:
                     boardState.selectedPiece?.x === colIndex &&
@@ -249,6 +220,49 @@ const TiaoBoard = () => {
       ))}
     </div>
   );
+};
+
+const findConnectedCluster = (
+  x: number,
+  y: number,
+  boardState: BoardState,
+  targetColor: PieceState = boardState.positions[y][x]
+) => {
+  if (targetColor === null) return [];
+
+  const visited = new Set<string>();
+  const cluster: { x: number; y: number }[] = [];
+  const stack = [{ x, y }];
+
+  while (stack.length > 0) {
+    const { x: currX, y: currY } = stack.pop()!;
+    const key = `${currX},${currY}`;
+    if (visited.has(key)) continue;
+    visited.add(key);
+    cluster.push({ x: currX, y: currY });
+    const directions = [
+      { dx: 1, dy: 0 },
+      { dx: -1, dy: 0 },
+      { dx: 0, dy: 1 },
+      { dx: 0, dy: -1 },
+    ];
+    for (const { dx, dy } of directions) {
+      const newX = currX + dx;
+      const newY = currY + dy;
+      if (
+        newX >= 0 &&
+        newX < 19 &&
+        newY >= 0 &&
+        newY < 19 &&
+        boardState.positions[newY][newX] === targetColor &&
+        !visited.has(`${newX},${newY}`)
+      ) {
+        stack.push({ x: newX, y: newY });
+      }
+    }
+  }
+
+  return cluster;
 };
 
 const positionOnTopEdge = (x: number, y: number) => {
