@@ -27,19 +27,22 @@ type Jump = {
   color: "black" | "white";
 };
 
-type Move = {
+type Put = {
   position: { x: number; y: number };
   color: "black" | "white";
 };
 
+type Move = Jump | Put | Jump[];
+
 type History = {
-  moves: { x: number; y: number; color: "black" | "white" }[];
+  moves: Move[];
 };
 
 type BoardState = {
   positions: TileState[][];
   highlightedCluster: { x: number; y: number }[] | null;
   currentTurn: "black" | "white";
+  ongoingJump: Jump[];
   selectedPiece: { x: number; y: number } | null;
   selectedPiecePaths: { x: number; y: number }[];
   markedForRemoval: { x: number; y: number }[];
@@ -51,6 +54,7 @@ type BoardState = {
 };
 
 const initialBoardState: BoardState = {
+  ongoingJump: [],
   positions: Array(19).fill(Array(19).fill(null)),
   highlightedCluster: null,
   currentTurn: "white",
@@ -65,9 +69,12 @@ const TiaoBoard = () => {
   const [boardState, setBoardState] = useState(initialBoardState);
 
   const hoverPosition = (x: number, y: number) => () => {
+    const { jumpIsInProgress, lastJumpedPositionIsThisTile } =
+      getCurrentJumpInfo(boardState);
     if (
       boardState.positions[y][x] === null ||
-      boardState.currentTurn !== boardState.positions[y][x]
+      boardState.currentTurn !== boardState.positions[y][x] ||
+      (jumpIsInProgress && !lastJumpedPositionIsThisTile)
     ) {
       return;
     }
@@ -92,6 +99,10 @@ const TiaoBoard = () => {
       return;
     }
 
+    if (boardState.ongoingJump.length > 0) {
+      return;
+    }
+
     setBoardState((state) => {
       const newPositions = state.positions.map((row) => row.slice());
 
@@ -106,6 +117,7 @@ const TiaoBoard = () => {
         newPositions[y][x] = state.currentTurn;
       }
 
+      const putMove: Put = { position: { x, y }, color: state.currentTurn };
       return {
         ...state,
         positions: newPositions,
@@ -113,8 +125,10 @@ const TiaoBoard = () => {
         currentTurn: state.currentTurn === "white" ? "black" : "white",
         selectedPiece: null,
         selectedPiecePaths: [],
+        ongoingJump: [],
+        markedForRemoval: [],
         history: {
-          moves: [...state.history.moves, { x, y, color: state.currentTurn }],
+          moves: [...state.history.moves, putMove],
         },
       };
     });
@@ -129,6 +143,10 @@ const TiaoBoard = () => {
   );
 
   const confirmJump = () => {
+    if (boardState.ongoingJump.length === 0) {
+      return;
+    }
+
     setBoardState((state) => {
       const newPositions = state.positions.map((row) => row.slice());
 
@@ -140,6 +158,9 @@ const TiaoBoard = () => {
         positions: newPositions,
         markedForRemoval: [],
         currentTurn: state.currentTurn === "white" ? "black" : "white",
+        ongoingJump: [],
+        selectedPiece: null,
+        selectedPiecePaths: [],
       };
     });
   };
@@ -160,6 +181,10 @@ const TiaoBoard = () => {
           color: TileState;
         };
         const pieceColor: TileState = active.data.current?.color;
+        if (pieceColor === null) {
+          return state;
+        }
+
         const { x, y } = over.data.current?.position as {
           x: number;
           y: number;
@@ -207,13 +232,18 @@ const TiaoBoard = () => {
           { x: middleX, y: middleY },
         ];
 
+        const jump: Jump = {
+          from: { x: movingStone.position.x, y: movingStone.position.y },
+          to: { x, y },
+          over: { x: middleX, y: middleY },
+          color: pieceColor,
+        };
+
         return {
           ...state,
           selectedPiece: { x, y },
           selectedPiecePaths: findJumpingPaths(x, y, state, state.currentTurn),
-          history: {
-            moves: [...state.history.moves, { x, y, color: state.currentTurn }],
-          },
+          ongoingJump: [...state.ongoingJump, jump],
         };
       });
     },
@@ -253,7 +283,9 @@ const TiaoBoard = () => {
         ))}
       </div>
 
-      {<button onClick={confirmJump}>Confirm Jump?</button>}
+      {boardState.ongoingJump.length > 0 && (
+        <button onClick={confirmJump}>Confirm Jump?</button>
+      )}
 
       <h2>Current Turn: {boardState.currentTurn}</h2>
       <p>{boardState.history.moves.length} moves made.</p>
@@ -358,6 +390,16 @@ const GameBoardSlot = ({
   );
 };
 
+const getCurrentJumpInfo = (boardState: BoardState, x?: number, y?: number) => {
+  const jumpIsInProgress = boardState.ongoingJump.length > 0;
+  const lastJumpTarget =
+    boardState.ongoingJump[boardState.ongoingJump.length - 1]?.to;
+  const lastJumpedPositionIsThisTile =
+    lastJumpTarget?.x === x && lastJumpTarget?.y === y;
+
+  return { lastJumpedPositionIsThisTile, jumpIsInProgress };
+};
+
 const GamePiece = ({
   colIndex,
   rowIndex,
@@ -372,6 +414,17 @@ const GamePiece = ({
 
   color: TileState;
 }) => {
+  const { lastJumpedPositionIsThisTile, jumpIsInProgress } = getCurrentJumpInfo(
+    boardState,
+    colIndex,
+    rowIndex
+  );
+
+  const isDisabled =
+    color !== boardState.currentTurn ||
+    color === null ||
+    (jumpIsInProgress && !lastJumpedPositionIsThisTile);
+
   const {
     attributes,
     listeners,
@@ -381,11 +434,7 @@ const GamePiece = ({
   } = useDraggable({
     id: `piece-${rowIndex}-${colIndex}`,
     data: { position: { x: colIndex, y: rowIndex }, color },
-    disabled:
-      color !== boardState.currentTurn ||
-      color === null ||
-      boardState.selectedPiece?.x !== colIndex ||
-      boardState.selectedPiece?.y !== rowIndex,
+    disabled: isDisabled,
   });
 
   const style = transform
@@ -400,11 +449,7 @@ const GamePiece = ({
       ref={setDraggableRef}
       onMouseEnter={hoverPosition(colIndex, rowIndex)}
       style={{
-        cursor: active
-          ? "grabbing"
-          : color === boardState.currentTurn
-          ? "grab"
-          : "default",
+        cursor: active ? "grabbing" : isDisabled ? "default" : "grab",
         position: "absolute",
         zIndex: 20,
         borderRadius: 50,
