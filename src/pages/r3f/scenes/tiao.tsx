@@ -58,6 +58,35 @@ type BoardState = {
   history: Move[];
 };
 
+const checkForClusterRule = (state: BoardState, x: number, y: number) => {
+  for (const dir of xyDirections) {
+    const adjX = x + dir.dx;
+    const adjY = y + dir.dy;
+    if (adjX >= 0 && adjX < 19 && adjY >= 0 && adjY < 19) {
+      if (
+        state.positions[adjY][adjX] === null ||
+        state.positions[adjY][adjX] !== state.currentTurn
+      ) {
+        continue;
+      }
+
+      const adjacentCluster = findConnectedCluster(
+        adjX,
+        adjY,
+        state,
+        state.currentTurn
+      );
+
+      if (adjacentCluster.length >= 10) {
+        console.log("cluster too big, cannot place piece");
+        return true;
+      }
+    }
+
+    return false;
+  }
+};
+
 const initialBoardState: BoardState = {
   ongoingJump: [],
   positions: Array(19).fill(Array(19).fill(null)),
@@ -109,50 +138,31 @@ const TiaoBoard = () => {
     }
 
     setBoardState((state) => {
-      const newPositions = state.positions.map((row) => row.slice());
-
-      for (const dir of xyDirections) {
-        const adjX = x + dir.dx;
-        const adjY = y + dir.dy;
-        if (adjX >= 0 && adjX < 19 && adjY >= 0 && adjY < 19) {
-          if (
-            newPositions[adjY][adjX] === null ||
-            newPositions[adjY][adjX] !== state.currentTurn
-          ) {
-            continue;
-          }
-
-          const adjacentCluster = findConnectedCluster(
-            adjX,
-            adjY,
-            state,
-            state.currentTurn
-          );
-
-          if (adjacentCluster.length >= 10) {
-            console.log("adjacentCluster", adjacentCluster.length);
-
-            console.log("cluster too big, cannot place piece");
-            return state;
-          }
-        }
+      if (checkForClusterRule(state, x, y)) {
+        return state;
       }
 
-      if (newPositions[y][x] === null) {
-        newPositions[y][x] = state.currentTurn;
+      if (state.positions[y][x] !== null) {
+        return state;
       }
 
-      const putMove: Put = { position: { x, y }, color: state.currentTurn };
+      state.positions[y][x] = state.currentTurn;
+
+      const moveRecord: Put = {
+        position: { x, y },
+        color: state.currentTurn,
+      };
+
       return {
         ...state,
-        positions: newPositions,
+        positions: [...state.positions],
         highlightedCluster: null,
         currentTurn: state.currentTurn === "white" ? "black" : "white",
         selectedPiece: null,
         selectedPiecePaths: [],
         ongoingJump: [],
         markedForRemoval: [],
-        history: [...state.history, putMove],
+        history: [...state.history, moveRecord],
       };
     });
   };
@@ -204,7 +214,6 @@ const TiaoBoard = () => {
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
-      console.log(event);
 
       setBoardState((state) => {
         if (!over) return state;
@@ -231,24 +240,15 @@ const TiaoBoard = () => {
           return state;
         }
 
-        console.log(boardState.selectedPiecePaths);
-        console.log(`Dropped on (${x}, ${y})`);
-
         const possiblePathMatches = boardState.selectedPiecePaths?.filter(
           ({ x: x2, y: y2 }) => x === x2 && y === y2
         );
-
-        console.log(possiblePathMatches);
 
         const droppedOnPossiblePath = possiblePathMatches?.length === 1;
 
         if (!droppedOnPossiblePath) {
           return state;
         }
-
-        console.log(
-          `Moving piece from (${movingStone.position.x}, ${movingStone.position.y}) to (${x}, ${y})`
-        );
 
         state.positions[movingStone.position.y][movingStone.position.x] = null;
         state.positions[y][x] = pieceColor;
@@ -260,8 +260,6 @@ const TiaoBoard = () => {
 
         const middleX = movingStone.position.x + movementDirection.dx / 2;
         const middleY = movingStone.position.y + movementDirection.dy / 2;
-
-        // state.positions[middleY][middleX] = null;
 
         state.markedForRemoval = [
           ...state.markedForRemoval,
@@ -337,7 +335,6 @@ const TiaoBoard = () => {
                 colIndex={colIndex}
                 rowIndex={rowIndex}
                 boardState={boardState}
-                setBoardState={setBoardState}
                 hoverPosition={hoverPosition}
                 clickPosition={clickPosition}
                 color={color}
@@ -383,8 +380,6 @@ const findJumpingPaths = (
     { dx: -2, dy: 0 },
     { dx: 0, dy: 2 },
     { dx: 0, dy: -2 },
-
-    // diagonals
     { dx: 2, dy: 2 },
     { dx: -2, dy: -2 },
     { dx: 2, dy: -2 },
@@ -427,7 +422,6 @@ const findJumpingPaths = (
 const GameBoardSlot = ({
   colIndex,
   rowIndex,
-  setBoardState,
   boardState,
   hoverPosition,
   clickPosition,
@@ -435,7 +429,6 @@ const GameBoardSlot = ({
 }: {
   colIndex: number;
   rowIndex: number;
-  setBoardState: React.Dispatch<React.SetStateAction<BoardState>>;
   boardState: BoardState;
   hoverPosition: (colIndex: number, rowIndex: number) => () => void;
   clickPosition: (colIndex: number, rowIndex: number) => () => void;
