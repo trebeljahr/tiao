@@ -142,6 +142,13 @@ const posIsInBounds = (x: number, y: number) => {
   return x >= 0 && x < boardSize && y >= 0 && y < boardSize;
 };
 
+const gameIsOver = (boardState: BoardState) => {
+  return (
+    boardState.score.black >= scoreNecessaryToWin ||
+    boardState.score.white >= scoreNecessaryToWin
+  );
+};
+
 const posCouldBeJumpedByEnemy = (
   x: number,
   y: number,
@@ -199,6 +206,10 @@ const TiaoBoard = () => {
   const [boardState, setBoardState] = useState(initialBoardState);
 
   const hoverPosition = (x: number, y: number) => () => {
+    if (gameIsOver(boardState)) {
+      return;
+    }
+
     const { jumpIsInProgress, lastJumpedPositionIsThisTile } =
       getCurrentJumpInfo(boardState);
     if (
@@ -241,6 +252,10 @@ const TiaoBoard = () => {
       return;
     }
 
+    if (gameIsOver(boardState)) {
+      return;
+    }
+
     setBoardState((state) => {
       const newPositions = state.positions.map((row) => row.slice());
       newPositions[y][x] = state.currentTurn;
@@ -274,6 +289,10 @@ const TiaoBoard = () => {
 
   const confirmJump = () => {
     if (boardState.ongoingJump.length === 0) {
+      return;
+    }
+
+    if (gameIsOver(boardState)) {
       return;
     }
 
@@ -312,6 +331,10 @@ const TiaoBoard = () => {
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
+
+      if (gameIsOver(boardState)) {
+        return;
+      }
 
       setBoardState((state) => {
         if (!over) return state;
@@ -411,6 +434,10 @@ const TiaoBoard = () => {
     });
   };
 
+  const resetGame = () => {
+    setBoardState(initialBoardState);
+  };
+
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="flex w-screen min-h-screen flex-col sm:flex-row sm:items-center bg-orange-300">
@@ -465,6 +492,16 @@ const TiaoBoard = () => {
               ? "White wins!"
               : ""}
           </p>
+
+          {gameIsOver(boardState) && (
+            <button
+              className="p-2 border-zinc-950 border border-solid"
+              onClick={resetGame}
+            >
+              Reset Game
+            </button>
+          )}
+
           <p>{boardState.history.length} moves made.</p>
 
           {boardState.ongoingJump.length > 0 && (
@@ -604,7 +641,8 @@ const GamePiece = ({
   const isDisabled =
     color !== boardState.currentTurn ||
     color === null ||
-    (jumpIsInProgress && !lastJumpedPositionIsThisTile);
+    (jumpIsInProgress && !lastJumpedPositionIsThisTile) ||
+    gameIsOver(boardState);
 
   const {
     attributes,
