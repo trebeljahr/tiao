@@ -405,6 +405,12 @@ const TiaoBoard = () => {
     [boardState]
   );
 
+  const handleUndo = () => {
+    setBoardState((state) => {
+      return undoLastMove(state);
+    });
+  };
+
   const undoLastJump = () => {
     setBoardState((state) => {
       if (state.ongoingJump.length === 0) {
@@ -439,7 +445,7 @@ const TiaoBoard = () => {
   };
 
   return (
-    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} onDragEnd={handleDragEnd} id={"tiao-dnd"}>
       <div className="flex w-screen min-h-screen flex-col sm:flex-row sm:items-center bg-orange-300">
         <div
           className="h-[90vmin] w-[90vmin]"
@@ -479,11 +485,22 @@ const TiaoBoard = () => {
           <p>White: {boardState.score.white}</p>
           <p>
             Current Turn: {boardState.currentTurn}{" "}
-            <div
+            <span
               className="w-3 h-3 rounded-full inline-block"
               style={{ backgroundColor: boardState.currentTurn }}
             />
           </p>
+
+          {boardState.history.length > 0 &&
+            boardState.ongoingJump.length === 0 &&
+            !gameIsOver(boardState) && (
+              <button
+                className="p-2 border-zinc-950 border border-solid"
+                onClick={handleUndo}
+              >
+                Undo Last Move
+              </button>
+            )}
 
           <p>
             {boardState.score.black >= scoreNecessaryToWin
@@ -616,6 +633,61 @@ const getCurrentJumpInfo = (boardState: BoardState, x?: number, y?: number) => {
     lastJumpTarget?.x === x && lastJumpTarget?.y === y;
 
   return { lastJumpedPositionIsThisTile, jumpIsInProgress };
+};
+
+const undoLastMove = (boardState: BoardState) => {
+  const lastMove = boardState.history.pop();
+
+  if (!lastMove) {
+    return { ...boardState };
+  }
+
+  if (boardState.ongoingJump.length > 0) {
+    boardState.history.push(lastMove);
+    return { ...boardState };
+  }
+
+  if (Array.isArray(lastMove)) {
+    for (const jump of lastMove.reverse()) {
+      boardState.positions[jump.from.y][jump.from.x] = jump.color;
+      boardState.positions[jump.over.y][jump.over.x] =
+        jump.color === "black" ? "white" : "black";
+      boardState.positions[jump.to.y][jump.to.x] = null;
+
+      boardState.score[jump.color] -= 1;
+      boardState.currentTurn = jump.color;
+      boardState.selectedPiece = null;
+      boardState.selectedPiecePaths = [];
+    }
+    return { ...boardState };
+  }
+
+  if ("position" in lastMove) {
+    boardState.positions[lastMove.position.y][lastMove.position.x] = null;
+    boardState.currentTurn = lastMove.color;
+    boardState.selectedPiece = null;
+    boardState.selectedPiecePaths = [];
+
+    return { ...boardState };
+  }
+
+  if ("from" in lastMove) {
+    boardState.positions[lastMove.from.y][lastMove.from.x] = lastMove.color;
+    boardState.positions[lastMove.over.y][lastMove.over.x] =
+      lastMove.color === "black" ? "white" : "black";
+    boardState.positions[lastMove.to.y][lastMove.to.x] = null;
+
+    boardState.score[lastMove.color === "black" ? "white" : "black"] -= 1;
+    boardState.currentTurn = lastMove.color;
+    boardState.selectedPiece = null;
+    boardState.selectedPiecePaths = [];
+
+    return { ...boardState };
+  }
+
+  return {
+    ...boardState,
+  };
 };
 
 const GamePiece = ({
