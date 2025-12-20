@@ -1,0 +1,20 @@
+node_modules/
+npm-debug.log
+.env
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+*.lnk
+
+.vscode/*
+
+dist/*
+
+public/uploads/profile_pictures/*
