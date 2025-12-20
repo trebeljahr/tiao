@@ -1,33 +1,35 @@
+/** @type {import('tailwindcss').Config} */
 module.exports = {
-  purge: ['./components/**/*.tsx', './pages/**/*.tsx'],
+  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
+  darkMode: "class",
   theme: {
+    screens: {
+      xs: "320px",
+      sm: "640px",
+      md: "768px",
+      lg: "1024px",
+      xl: "1280px",
+      "2xl": "1536px",
+      "3xl": "1920px",
+    },
     extend: {
       colors: {
-        'accent-1': '#FAFAFA',
-        'accent-2': '#EAEAEA',
-        'accent-7': '#333',
-        success: '#0070f3',
-        cyan: '#79FFE1',
-      },
-      spacing: {
-        28: '7rem',
-      },
-      letterSpacing: {
-        tighter: '-.04em',
-      },
-      lineHeight: {
-        tight: 1.2,
-      },
-      fontSize: {
-        '5xl': '2.5rem',
-        '6xl': '2.75rem',
-        '7xl': '4.5rem',
-        '8xl': '6.25rem',
-      },
-      boxShadow: {
-        small: '0 5px 10px rgba(0, 0, 0, 0.12)',
-        medium: '0 8px 30px rgba(0, 0, 0, 0.12)',
+        darkRed: "rgb(204, 9, 9)",
+        // red: "rgb(232, 83, 83)",
+        lightRed: "rgb(242, 145, 145)",
+        lightGreyBlue: "rgb(233, 241, 249)",
+        ultraLightBlue: "rgb(184, 216, 249)",
+        lightBlue: "rgb(153, 204, 255)",
+        myBlue: "rgb(68, 160, 255)",
+        darkBlue: "rgb(15, 76, 229)",
+        successGreen: "rgb(31, 214, 85)",
+        grey: "rgb(51,51,51)",
+        "leva-white": "#fefefe",
+        "leva-dark": "#181c20",
+        "leva-medium": "#535760",
+        "leva-light-grey": "#8c92a4",
       },
     },
   },
-}
+  plugins: [require("@tailwindcss/typography")],
+};
