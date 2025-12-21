@@ -9,7 +9,7 @@ import {
 } from "@dnd-kit/core";
 import { useCallback, useState } from "react";
 
-export default function Page() {
+export function HomePage() {
   return <TiaoBoard />;
 }
 
