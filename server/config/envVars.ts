@@ -1,5 +1,3 @@
-import path from "path";
-
 const TOKEN_SECRET = process.env.TOKEN_SECRET as string;
 const MONGODB_URI = process.env.MONGODB_URI as string;
 const PORT = process.env.PORT as string;
@@ -37,10 +35,7 @@ if (!BUCKET_NAME) {
   process.exit(1);
 }
 
-const CORRECT_PATH =
-  process.env.NODE_ENV === "production"
-    ? path.resolve(__dirname, "../..")
-    : path.resolve(__dirname, "..");
+const CORRECT_PATH = process.cwd();
 
 const FRONTEND_URL = process.env.FRONTEND_URL;
 

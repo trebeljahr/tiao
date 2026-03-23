@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "scripts": {
     "build": "npx tsc",
-    "start": "NODE_ENV=production node dist/index.js",
-    "dev": "NODE_ENV=development nodemon index.ts",
+    "start": "NODE_ENV=production node dist/server/index.js",
+    "dev": "NODE_ENV=development nodemon --watch . --watch ../shared --ext ts index.ts",
     "prod": "pm2 restart ecosystem.config.js"
   },
   "dependencies": {
@@ -21,7 +21,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.6.3",
     "morgan": "^1.10.0",
-    "multer": "^1.4.5-lts.1"
+    "multer": "^1.4.5-lts.1",
+    "ws": "^8.20.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
@@ -32,6 +33,7 @@
     "@types/morgan": "^1.9.9",
     "@types/multer": "^1.4.12",
     "@types/node": "^22.5.5",
+    "@types/ws": "^8.18.1",
     "express": "^4.21.0",
     "nodemon": "^3.1.6",
     "ts-node": "^10.9.2",

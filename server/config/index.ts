@@ -7,13 +7,11 @@ import { FRONTEND_URL } from "./envVars";
 
 export const configureApp = (app: Express): void => {
   app.set("trust proxy", 1);
-  if (FRONTEND_URL) {
-    app.use(
-      cors({
-        origin: [FRONTEND_URL],
-      })
-    );
-  }
+  app.use(
+    cors({
+      origin: FRONTEND_URL ? [FRONTEND_URL] : true,
+    })
+  );
 
   app.use(logger("dev"));
   app.use(express.json());

@@ -1,33 +1,55 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
-  darkMode: "class",
   theme: {
-    screens: {
-      xs: "320px",
-      sm: "640px",
-      md: "768px",
-      lg: "1024px",
-      xl: "1280px",
-      "2xl": "1536px",
-      "3xl": "1920px",
-    },
     extend: {
       colors: {
-        darkRed: "rgb(204, 9, 9)",
-        // red: "rgb(232, 83, 83)",
-        lightRed: "rgb(242, 145, 145)",
-        lightGreyBlue: "rgb(233, 241, 249)",
-        ultraLightBlue: "rgb(184, 216, 249)",
-        lightBlue: "rgb(153, 204, 255)",
-        myBlue: "rgb(68, 160, 255)",
-        darkBlue: "rgb(15, 76, 229)",
-        successGreen: "rgb(31, 214, 85)",
-        grey: "rgb(51,51,51)",
-        "leva-white": "#fefefe",
-        "leva-dark": "#181c20",
-        "leva-medium": "#535760",
-        "leva-light-grey": "#8c92a4",
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+      },
+      fontFamily: {
+        sans: ['"Zen Kaku Gothic New"', "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ['"Zen Old Mincho"', "ui-serif", "serif"],
+      },
+      animation: {
+        float: "float 10s ease-in-out infinite",
+      },
+      keyframes: {
+        float: {
+          "0%, 100%": {
+            transform: "translateY(0px)",
+          },
+          "50%": {
+            transform: "translateY(-10px)",
+          },
+        },
       },
     },
   },

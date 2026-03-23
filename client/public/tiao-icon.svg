@@ -1,0 +1,34 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="112" fill="#1E1611"/>
+  <rect x="44" y="44" width="424" height="424" rx="92" fill="url(#board)" />
+  <rect x="80" y="80" width="352" height="352" rx="70" fill="url(#sheen)" fill-opacity="0.28" />
+  <circle cx="126" cy="126" r="9" fill="#6D4927"/>
+  <circle cx="256" cy="126" r="9" fill="#6D4927"/>
+  <circle cx="386" cy="126" r="9" fill="#6D4927"/>
+  <circle cx="126" cy="256" r="9" fill="#6D4927"/>
+  <circle cx="256" cy="256" r="9" fill="#6D4927"/>
+  <circle cx="386" cy="256" r="9" fill="#6D4927"/>
+  <circle cx="126" cy="386" r="9" fill="#6D4927"/>
+  <circle cx="256" cy="386" r="9" fill="#6D4927"/>
+  <circle cx="386" cy="386" r="9" fill="#6D4927"/>
+  <text
+    x="256"
+    y="292"
+    text-anchor="middle"
+    font-size="182"
+    font-family="'Songti SC', 'Noto Serif CJK SC', serif"
+    fill="#20150D"
+  >
+    跳
+  </text>
+  <defs>
+    <linearGradient id="board" x1="256" y1="44" x2="256" y2="468" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F6E5BC" />
+      <stop offset="1" stop-color="#DCAA5D" />
+    </linearGradient>
+    <linearGradient id="sheen" x1="134" y1="80" x2="378" y2="432" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF8E8" />
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+</svg>
