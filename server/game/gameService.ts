@@ -1,29 +1,28 @@
 import WebSocket from "ws";
 import {
   ClientToServerMessage,
-  GameState,
+  MultiplayerGameSummary,
+  MultiplayerGamesIndex,
+  MultiplayerSeatAssignments,
   MultiplayerSnapshot,
   MultiplayerStatus,
   PlayerColor,
   PlayerIdentity,
   PlayerSlot,
-  cloneGameState,
   confirmPendingJump,
   createInitialGameState,
+  getWinner,
   isGameOver,
   jumpPiece,
   placePiece,
   undoPendingJumpStep,
 } from "../../shared/src";
-
-type Room = {
-  id: string;
-  state: GameState;
-  seats: Record<PlayerColor, PlayerIdentity | null>;
-  connections: Map<WebSocket, string>;
-  createdAt: Date;
-  updatedAt: Date;
-};
+import {
+  GameRoomStore,
+  MongoGameRoomStore,
+  StoredMultiplayerRoom,
+  getPlayerColorForRoom,
+} from "./gameStore";
 
 export class GameServiceError extends Error {
   status: number;
@@ -36,87 +35,165 @@ export class GameServiceError extends Error {
   }
 }
 
-class GameService {
-  private rooms = new Map<string, Room>();
+type RoomConnections = Map<WebSocket, string>;
 
-  createGame(creator: PlayerIdentity): MultiplayerSnapshot {
-    const id = this.generateRoomId();
-    const now = new Date();
+export class GameService {
+  private readonly connections = new Map<string, RoomConnections>();
+  private readonly socketRooms = new Map<WebSocket, string>();
+  private readonly locks = new Map<string, Promise<void>>();
 
-    const room: Room = {
-      id,
-      state: createInitialGameState(),
-      seats: {
-        white: creator,
-        black: null,
-      },
-      connections: new Map(),
-      createdAt: now,
-      updatedAt: now,
-    };
+  constructor(private readonly store: GameRoomStore = new MongoGameRoomStore()) {}
 
-    this.rooms.set(id, room);
-    return this.toSnapshot(room);
-  }
+  async createGame(creator: PlayerIdentity): Promise<MultiplayerSnapshot> {
+    return this.withLocks([this.playerLockKey(creator.playerId)], async () => {
+      await this.ensureGuestPlayerHasSingleOpenGame(creator);
 
-  joinGame(gameId: string, player: PlayerIdentity): MultiplayerSnapshot {
-    const room = this.getRoom(gameId);
-    const existingSeat = this.getPlayerColor(room, player.playerId);
+      for (let attempt = 0; attempt < 12; attempt += 1) {
+        const room = this.deriveRoomStatus({
+          id: this.generateRoomId(),
+          status: "waiting",
+          state: createInitialGameState(),
+          seats: {
+            white: creator,
+            black: null,
+          },
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
 
-    if (!existingSeat) {
-      if (!room.seats.white) {
-        room.seats.white = player;
-      } else if (!room.seats.black) {
-        room.seats.black = player;
-      } else {
-        throw new GameServiceError(
-          409,
-          "ROOM_FULL",
-          "That game already has two players."
-        );
+        try {
+          const savedRoom = await this.store.createRoom({
+            id: room.id,
+            status: room.status,
+            state: room.state,
+            seats: room.seats,
+          });
+
+          return this.toSnapshot(savedRoom);
+        } catch (error) {
+          if (this.isDuplicateRoomError(error)) {
+            continue;
+          }
+
+          throw error;
+        }
       }
-    }
 
-    room.updatedAt = new Date();
-    this.broadcastSnapshot(room);
-
-    return this.toSnapshot(room);
+      throw new GameServiceError(
+        500,
+        "ROOM_CREATE_FAILED",
+        "Unable to create a multiplayer room right now."
+      );
+    });
   }
 
-  getSnapshot(gameId: string): MultiplayerSnapshot {
-    return this.toSnapshot(this.getRoom(gameId));
+  async joinGame(
+    gameId: string,
+    player: PlayerIdentity
+  ): Promise<MultiplayerSnapshot> {
+    return this.withLocks(
+      [this.roomLockKey(gameId), this.playerLockKey(player.playerId)],
+      async () => {
+        const room = await this.getRoom(gameId);
+        const existingSeat = getPlayerColorForRoom(room, player.playerId);
+
+        await this.ensureGuestPlayerHasSingleOpenGame(player, room.id);
+
+        if (!existingSeat) {
+          if (!room.seats.white) {
+            room.seats.white = player;
+          } else if (!room.seats.black) {
+            room.seats.black = player;
+          } else {
+            throw new GameServiceError(
+              409,
+              "ROOM_FULL",
+              "That game already has two players."
+            );
+          }
+        }
+
+        const savedRoom = existingSeat
+          ? room
+          : await this.saveRoom({
+              ...room,
+              seats: {
+                white: room.seats.white,
+                black: room.seats.black,
+              },
+            });
+
+        this.broadcastSnapshot(savedRoom);
+        return this.toSnapshot(savedRoom);
+      }
+    );
   }
 
-  resetGame(gameId: string, player: PlayerIdentity): MultiplayerSnapshot {
-    const room = this.getRoom(gameId);
-    const playerColor = this.getPlayerColor(room, player.playerId);
+  async getSnapshot(gameId: string): Promise<MultiplayerSnapshot> {
+    return this.toSnapshot(await this.getRoom(gameId));
+  }
 
-    if (!playerColor) {
+  async listGames(player: PlayerIdentity): Promise<MultiplayerGamesIndex> {
+    if (player.kind !== "account") {
       throw new GameServiceError(
         403,
-        "NOT_IN_GAME",
-        "You are not seated in this game."
+        "ACCOUNT_REQUIRED",
+        "Sign in to browse ongoing games and match history."
       );
     }
 
-    if (!isGameOver(room.state)) {
-      throw new GameServiceError(
-        409,
-        "GAME_NOT_FINISHED",
-        "You can only restart the board once the game is over."
-      );
-    }
+    const rooms = await this.store.listRoomsForPlayer(player.playerId);
+    const summaries = rooms.map((room) =>
+      this.toSummary(this.deriveRoomStatus(room), player.playerId)
+    );
 
-    room.state = createInitialGameState();
-    room.updatedAt = new Date();
-    this.broadcastSnapshot(room);
-
-    return this.toSnapshot(room);
+    return {
+      active: summaries.filter((game) => game.status !== "finished"),
+      finished: summaries.filter((game) => game.status === "finished"),
+    };
   }
 
-  connect(gameId: string, player: PlayerIdentity, socket: WebSocket): void {
-    const room = this.getRoom(gameId);
-    if (!this.getPlayerColor(room, player.playerId)) {
+  async resetGame(
+    gameId: string,
+    player: PlayerIdentity
+  ): Promise<MultiplayerSnapshot> {
+    return this.withLock(this.roomLockKey(gameId), async () => {
+      const room = await this.getRoom(gameId);
+      const playerColor = getPlayerColorForRoom(room, player.playerId);
+
+      if (!playerColor) {
+        throw new GameServiceError(
+          403,
+          "NOT_IN_GAME",
+          "You are not seated in this game."
+        );
+      }
+
+      if (!isGameOver(room.state)) {
+        throw new GameServiceError(
+          409,
+          "GAME_NOT_FINISHED",
+          "You can only restart the board once the game is over."
+        );
+      }
+
+      const savedRoom = await this.saveRoom({
+        ...room,
+        state: createInitialGameState(),
+      });
+
+      this.broadcastSnapshot(savedRoom);
+      return this.toSnapshot(savedRoom);
+    });
+  }
+
+  async connect(
+    gameId: string,
+    player: PlayerIdentity,
+    socket: WebSocket
+  ): Promise<void> {
+    const room = await this.getRoom(gameId);
+    if (!getPlayerColorForRoom(room, player.playerId)) {
       throw new GameServiceError(
         403,
         "NOT_IN_GAME",
@@ -124,144 +201,158 @@ class GameService {
       );
     }
 
-    room.connections.set(socket, player.playerId);
-    room.updatedAt = new Date();
+    const connections = this.getConnections(room.id);
+    connections.set(socket, player.playerId);
+    this.socketRooms.set(socket, room.id);
     this.broadcastSnapshot(room);
   }
 
-  disconnect(socket: WebSocket): void {
-    for (const room of this.rooms.values()) {
-      if (!room.connections.has(socket)) {
-        continue;
-      }
+  async disconnect(socket: WebSocket): Promise<void> {
+    const roomId = this.socketRooms.get(socket);
+    this.socketRooms.delete(socket);
 
-      room.connections.delete(socket);
-      room.updatedAt = new Date();
-      this.broadcastSnapshot(room);
+    if (!roomId) {
       return;
+    }
+
+    const connections = this.connections.get(roomId);
+    if (!connections) {
+      return;
+    }
+
+    connections.delete(socket);
+    if (connections.size === 0) {
+      this.connections.delete(roomId);
+      return;
+    }
+
+    const room = await this.store.getRoom(roomId);
+    if (room) {
+      this.broadcastSnapshot(room);
     }
   }
 
-  applyAction(
+  async applyAction(
     gameId: string,
     player: PlayerIdentity,
     message: ClientToServerMessage
-  ): MultiplayerSnapshot {
-    const room = this.getRoom(gameId);
-    const playerColor = this.getPlayerColor(room, player.playerId);
+  ): Promise<MultiplayerSnapshot> {
+    return this.withLock(this.roomLockKey(gameId), async () => {
+      const room = await this.getRoom(gameId);
+      const playerColor = getPlayerColorForRoom(room, player.playerId);
 
-    if (!playerColor) {
-      throw new GameServiceError(
-        403,
-        "NOT_IN_GAME",
-        "You are not seated in this game."
-      );
-    }
-
-    if (!room.seats.white || !room.seats.black) {
-      throw new GameServiceError(
-        409,
-        "WAITING_FOR_OPPONENT",
-        "The game cannot start until both players have joined."
-      );
-    }
-
-    if (room.state.currentTurn !== playerColor) {
-      throw new GameServiceError(
-        409,
-        "NOT_YOUR_TURN",
-        "It is not your turn."
-      );
-    }
-
-    let result;
-    switch (message.type) {
-      case "place-piece":
-        result = placePiece(room.state, message.position);
-        break;
-      case "jump-piece":
-        result = jumpPiece(room.state, message.from, message.to);
-        break;
-      case "confirm-jump":
-        result = confirmPendingJump(room.state);
-        break;
-      case "undo-pending-jump-step":
-        result = undoPendingJumpStep(room.state);
-        break;
-      default:
+      if (!playerColor) {
         throw new GameServiceError(
-          400,
-          "UNKNOWN_ACTION",
-          "That message type is not supported."
+          403,
+          "NOT_IN_GAME",
+          "You are not seated in this game."
         );
-    }
-
-    if (!result.ok) {
-      throw new GameServiceError(409, result.code, result.reason);
-    }
-
-    room.state = result.value;
-    room.updatedAt = new Date();
-    this.broadcastSnapshot(room);
-
-    return this.toSnapshot(room);
-  }
-
-  pruneInactiveRooms(maxIdleMs: number): void {
-    const now = Date.now();
-
-    for (const [roomId, room] of this.rooms.entries()) {
-      if (room.connections.size > 0) {
-        continue;
       }
 
-      if (now - room.updatedAt.getTime() > maxIdleMs) {
-        this.rooms.delete(roomId);
+      if (!room.seats.white || !room.seats.black) {
+        throw new GameServiceError(
+          409,
+          "WAITING_FOR_OPPONENT",
+          "The game cannot start until both players have joined."
+        );
       }
-    }
+
+      if (room.state.currentTurn !== playerColor) {
+        throw new GameServiceError(
+          409,
+          "NOT_YOUR_TURN",
+          "It is not your turn."
+        );
+      }
+
+      let result;
+      switch (message.type) {
+        case "place-piece":
+          result = placePiece(room.state, message.position);
+          break;
+        case "jump-piece":
+          result = jumpPiece(room.state, message.from, message.to);
+          break;
+        case "confirm-jump":
+          result = confirmPendingJump(room.state);
+          break;
+        case "undo-pending-jump-step":
+          result = undoPendingJumpStep(room.state);
+          break;
+        default:
+          throw new GameServiceError(
+            400,
+            "UNKNOWN_ACTION",
+            "That message type is not supported."
+          );
+      }
+
+      if (!result.ok) {
+        throw new GameServiceError(409, result.code, result.reason);
+      }
+
+      const savedRoom = await this.saveRoom({
+        ...room,
+        state: result.value,
+      });
+
+      this.broadcastSnapshot(savedRoom);
+      return this.toSnapshot(savedRoom);
+    });
   }
 
-  private getRoom(gameId: string): Room {
-    const normalizedId = gameId.trim().toUpperCase();
-    const room = this.rooms.get(normalizedId);
+  pruneInactiveRooms(_maxIdleMs: number): void {
+    // Multiplayer history is persisted, so rooms are intentionally retained.
+  }
+
+  private async getRoom(gameId: string): Promise<StoredMultiplayerRoom> {
+    const room = await this.store.getRoom(gameId);
 
     if (!room) {
       throw new GameServiceError(404, "ROOM_NOT_FOUND", "Game not found.");
     }
 
-    return room;
+    return this.deriveRoomStatus(room);
   }
 
-  private generateRoomId(): string {
-    const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    let roomId = "";
-
-    do {
-      roomId = Array.from({ length: 6 }, () => {
-        const index = Math.floor(Math.random() * alphabet.length);
-        return alphabet[index];
-      }).join("");
-    } while (this.rooms.has(roomId));
-
-    return roomId;
+  private async saveRoom(
+    room: StoredMultiplayerRoom
+  ): Promise<StoredMultiplayerRoom> {
+    return this.deriveRoomStatus(await this.store.saveRoom(this.deriveRoomStatus(room)));
   }
 
-  private getPlayerColor(
-    room: Room,
-    playerId: string
-  ): PlayerColor | null {
-    if (room.seats.white?.playerId === playerId) {
-      return "white";
+  private async ensureGuestPlayerHasSingleOpenGame(
+    player: PlayerIdentity,
+    allowedRoomId?: string
+  ): Promise<void> {
+    if (player.kind !== "guest") {
+      return;
     }
 
-    if (room.seats.black?.playerId === playerId) {
-      return "black";
-    }
+    const unfinishedRoom = await this.store.findUnfinishedRoomByPlayer(
+      player.playerId
+    );
 
-    return null;
+    if (unfinishedRoom && unfinishedRoom.id !== allowedRoomId) {
+      throw new GameServiceError(
+        409,
+        "GUEST_ACTIVE_GAME_LIMIT",
+        "Guest players can only keep one unfinished multiplayer game at a time. Sign in to juggle multiple tables and unlock match history."
+      );
+    }
   }
 
-  private getStatus(room: Room): MultiplayerStatus {
+  private deriveRoomStatus(room: StoredMultiplayerRoom): StoredMultiplayerRoom {
+    return {
+      ...room,
+      status: this.getStatus(room),
+    };
+  }
+
+  private getStatus(room: {
+    state: StoredMultiplayerRoom["state"];
+    seats: MultiplayerSeatAssignments;
+  }): MultiplayerStatus {
     if (isGameOver(room.state)) {
       return "finished";
     }
@@ -273,7 +364,10 @@ class GameService {
     return "waiting";
   }
 
-  private toSlot(room: Room, color: PlayerColor): PlayerSlot | null {
+  private toSlot(
+    room: StoredMultiplayerRoom,
+    color: PlayerColor
+  ): PlayerSlot | null {
     const player = room.seats[color];
     if (!player) {
       return null;
@@ -281,17 +375,19 @@ class GameService {
 
     return {
       player,
-      online: Array.from(room.connections.values()).includes(player.playerId),
+      online: Array.from(this.getConnections(room.id).values()).includes(
+        player.playerId
+      ),
     };
   }
 
-  private toSnapshot(room: Room): MultiplayerSnapshot {
+  private toSnapshot(room: StoredMultiplayerRoom): MultiplayerSnapshot {
     return {
       gameId: room.id,
-      status: this.getStatus(room),
+      status: room.status,
       createdAt: room.createdAt.toISOString(),
       updatedAt: room.updatedAt.toISOString(),
-      state: cloneGameState(room.state),
+      state: room.state,
       seats: {
         white: this.toSlot(room, "white"),
         black: this.toSlot(room, "black"),
@@ -299,20 +395,132 @@ class GameService {
     };
   }
 
-  private broadcastSnapshot(room: Room): void {
+  private toSummary(
+    room: StoredMultiplayerRoom,
+    playerId: string
+  ): MultiplayerGameSummary {
+    return {
+      gameId: room.id,
+      status: room.status,
+      createdAt: room.createdAt.toISOString(),
+      updatedAt: room.updatedAt.toISOString(),
+      currentTurn: room.state.currentTurn,
+      historyLength: room.state.history.length,
+      winner: getWinner(room.state),
+      yourSeat: getPlayerColorForRoom(room, playerId),
+      score: {
+        black: room.state.score.black,
+        white: room.state.score.white,
+      },
+      seats: {
+        white: this.toSlot(room, "white"),
+        black: this.toSlot(room, "black"),
+      },
+    };
+  }
+
+  private broadcastSnapshot(room: StoredMultiplayerRoom): void {
+    const connections = this.connections.get(room.id);
+    if (!connections || connections.size === 0) {
+      return;
+    }
+
     const snapshot = this.toSnapshot(room);
     const message = JSON.stringify({
       type: "snapshot",
       snapshot,
     });
 
-    for (const [socket] of room.connections.entries()) {
+    for (const [socket] of connections.entries()) {
       if (socket.readyState !== WebSocket.OPEN) {
-        room.connections.delete(socket);
+        connections.delete(socket);
+        this.socketRooms.delete(socket);
         continue;
       }
 
       socket.send(message);
+    }
+
+    if (connections.size === 0) {
+      this.connections.delete(room.id);
+    }
+  }
+
+  private getConnections(roomId: string): RoomConnections {
+    let connections = this.connections.get(roomId);
+    if (!connections) {
+      connections = new Map();
+      this.connections.set(roomId, connections);
+    }
+
+    return connections;
+  }
+
+  private generateRoomId(): string {
+    const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    return Array.from({ length: 6 }, () => {
+      const index = Math.floor(Math.random() * alphabet.length);
+      return alphabet[index];
+    }).join("");
+  }
+
+  private isDuplicateRoomError(error: unknown): boolean {
+    return (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === 11000
+    );
+  }
+
+  private playerLockKey(playerId: string): string {
+    return `player:${playerId}`;
+  }
+
+  private roomLockKey(gameId: string): string {
+    return `room:${gameId.trim().toUpperCase()}`;
+  }
+
+  private async withLocks<T>(
+    keys: string[],
+    operation: () => Promise<T>
+  ): Promise<T> {
+    const uniqueKeys = Array.from(new Set(keys)).sort();
+
+    async function run(
+      service: GameService,
+      index: number
+    ): Promise<T> {
+      if (index >= uniqueKeys.length) {
+        return operation();
+      }
+
+      return service.withLock(uniqueKeys[index], () => run(service, index + 1));
+    }
+
+    return run(this, 0);
+  }
+
+  private async withLock<T>(
+    key: string,
+    operation: () => Promise<T>
+  ): Promise<T> {
+    const previous = this.locks.get(key) ?? Promise.resolve();
+    let release: () => void = () => {};
+    const current = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+
+    this.locks.set(key, current);
+    await previous.catch(() => undefined);
+
+    try {
+      return await operation();
+    } finally {
+      release();
+      if (this.locks.get(key) === current) {
+        this.locks.delete(key);
+      }
     }
   }
 }

@@ -1,4 +1,9 @@
-import type { AuthResponse, MultiplayerSnapshot, PlayerIdentity } from "@shared";
+import type {
+  AuthResponse,
+  MultiplayerGamesIndex,
+  MultiplayerSnapshot,
+  PlayerIdentity,
+} from "@shared";
 
 type JsonBody = Record<string, unknown> | undefined;
 
@@ -165,9 +170,21 @@ export function joinMultiplayerGame(token: string, gameId: string) {
   );
 }
 
+export function getMultiplayerGame(token: string, gameId: string) {
+  return request<{ snapshot: MultiplayerSnapshot }>(`/api/games/${gameId}`, {
+    token,
+  });
+}
+
 export function resetMultiplayerGame(token: string, gameId: string) {
   return request<{ snapshot: MultiplayerSnapshot }>(`/api/games/${gameId}/reset`, {
     method: "POST",
+    token,
+  });
+}
+
+export function listMultiplayerGames(token: string) {
+  return request<{ games: MultiplayerGamesIndex }>("/api/games", {
     token,
   });
 }

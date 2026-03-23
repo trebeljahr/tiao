@@ -42,9 +42,7 @@ websocketServer.on("connection", (socket, request) => {
     return;
   }
 
-  try {
-    gameService.connect(gameId, player, socket);
-  } catch (error) {
+  void gameService.connect(gameId, player, socket).catch((error) => {
     const serviceError =
       error instanceof GameServiceError
         ? error
@@ -60,37 +58,38 @@ websocketServer.on("connection", (socket, request) => {
       message: serviceError.message,
     });
     socket.close();
-    return;
-  }
+  });
 
   socket.on("message", (rawMessage) => {
-    try {
-      const message = JSON.parse(rawMessage.toString()) as ClientToServerMessage;
-      gameService.applyAction(gameId, player, message);
-    } catch (error) {
-      const serviceError =
-        error instanceof GameServiceError
-          ? error
-          : new GameServiceError(
-              400,
-              "INVALID_MESSAGE",
-              "That move update could not be processed."
-            );
+    void (async () => {
+      try {
+        const message = JSON.parse(rawMessage.toString()) as ClientToServerMessage;
+        await gameService.applyAction(gameId, player, message);
+      } catch (error) {
+        const serviceError =
+          error instanceof GameServiceError
+            ? error
+            : new GameServiceError(
+                400,
+                "INVALID_MESSAGE",
+                "That move update could not be processed."
+              );
 
-      sendJson(socket, {
-        type: "error",
-        code: serviceError.code,
-        message: serviceError.message,
-      });
-    }
+        sendJson(socket, {
+          type: "error",
+          code: serviceError.code,
+          message: serviceError.message,
+        });
+      }
+    })();
   });
 
   socket.on("close", () => {
-    gameService.disconnect(socket);
+    void gameService.disconnect(socket);
   });
 
   socket.on("error", () => {
-    gameService.disconnect(socket);
+    void gameService.disconnect(socket);
   });
 });
 

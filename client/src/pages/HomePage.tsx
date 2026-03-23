@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useAnimationControls } from "framer-motion";
+import { toast } from "sonner";
 import type { AuthResponse } from "@shared";
 import {
   buildWebSocketUrl,
   createMultiplayerGame,
+  getMultiplayerGame,
   joinMultiplayerGame,
+  listMultiplayerGames,
   resetMultiplayerGame,
 } from "@/lib/api";
 import { isNetworkError, readableError, toastError } from "@/lib/errors";
@@ -26,6 +29,8 @@ import {
   BOARD_SIZE,
   ClientToServerMessage,
   GameState,
+  MultiplayerGameSummary,
+  MultiplayerGamesIndex,
   MultiplayerSnapshot,
   PlayerColor,
   Position,
@@ -107,6 +112,65 @@ function formatPlayerColor(color: PlayerColor | null) {
   }
 
   return color.slice(0, 1).toUpperCase() + color.slice(1);
+}
+
+function formatGameTimestamp(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+function isSummaryYourTurn(summary: MultiplayerGameSummary) {
+  return summary.status === "active" && !!summary.yourSeat && summary.currentTurn === summary.yourSeat;
+}
+
+function getOpponentLabel(summary: MultiplayerGameSummary) {
+  if (!summary.yourSeat) {
+    return "Spectator";
+  }
+
+  const opponentColor = summary.yourSeat === "white" ? "black" : "white";
+  return summary.seats[opponentColor]?.player.displayName || "Open seat";
+}
+
+function getSummaryStatusLabel(summary: MultiplayerGameSummary) {
+  if (summary.status === "finished") {
+    return `${formatPlayerColor(summary.winner)} won`;
+  }
+
+  if (summary.status === "waiting") {
+    return "Waiting for player two";
+  }
+
+  return isSummaryYourTurn(summary) ? "Your move" : "Opponent to move";
+}
+
+function HourglassSpinner({ className }: { className?: string }) {
+  return (
+    <motion.svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={cn("h-4 w-4", className)}
+      animate={{ rotate: [0, 0, 180, 180, 360] }}
+      transition={{
+        duration: 2.2,
+        ease: "easeInOut",
+        repeat: Infinity,
+      }}
+      fill="none"
+    >
+      <path
+        d="M7 3H17M7 21H17M8 3C8 8 11.5 8.5 12 12C11.5 15.5 8 16 8 21M16 3C16 8 12.5 8.5 12 12C12.5 15.5 16 16 16 21"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </motion.svg>
+  );
 }
 
 function GamePanelBrand() {
@@ -378,6 +442,12 @@ export function HomePage({
     useState<Position | null>(null);
   const [multiplayerError, setMultiplayerError] = useState<string | null>(null);
   const [multiplayerBusy, setMultiplayerBusy] = useState(false);
+  const [multiplayerGames, setMultiplayerGames] = useState<MultiplayerGamesIndex>({
+    active: [],
+    finished: [],
+  });
+  const [multiplayerGamesLoading, setMultiplayerGamesLoading] = useState(false);
+  const [multiplayerGamesLoaded, setMultiplayerGamesLoaded] = useState(false);
   const [connectionState, setConnectionState] =
     useState<ConnectionState>("idle");
   const [joinGameId, setJoinGameId] = useState("");
@@ -401,20 +471,128 @@ export function HomePage({
     gameId: null,
     length: 0,
   });
+  const multiplayerTurnMetaRef = useRef<{
+    gameId: string | null;
+    status: MultiplayerSnapshot["status"] | null;
+    historyLength: number;
+    isYourTurn: boolean;
+  }>({
+    gameId: null,
+    status: null,
+    historyLength: 0,
+    isYourTurn: false,
+  });
+  const multiplayerLibraryTurnRef = useRef<
+    Map<string, { updatedAt: string; isYourTurn: boolean }>
+  >(new Map());
 
   const localBoardMode = mode === "local" || mode === "computer";
   const computerMode = mode === "computer";
+  const accountPlayer = auth?.player.kind === "account";
 
   useStonePlacementSound(localBoardMode ? localGame : null);
   useStonePlacementSound(
     mode === "multiplayer" ? multiplayerSnapshot?.state ?? null : null
   );
 
+  function applyMultiplayerGamesIndex(
+    nextGames: MultiplayerGamesIndex,
+    allowTurnToast: boolean
+  ) {
+    if (allowTurnToast) {
+      for (const game of nextGames.active) {
+        const previous = multiplayerLibraryTurnRef.current.get(game.gameId);
+        const nextIsYourTurn = isSummaryYourTurn(game);
+
+        if (
+          previous &&
+          !previous.isYourTurn &&
+          nextIsYourTurn &&
+          multiplayerSnapshot?.gameId !== game.gameId &&
+          previous.updatedAt !== game.updatedAt
+        ) {
+          toast.success(`Your move in room ${game.gameId}`);
+        }
+      }
+    }
+
+    multiplayerLibraryTurnRef.current = new Map(
+      nextGames.active.map((game) => [
+        game.gameId,
+        {
+          updatedAt: game.updatedAt,
+          isYourTurn: isSummaryYourTurn(game),
+        },
+      ])
+    );
+
+    setMultiplayerGames(nextGames);
+    setMultiplayerGamesLoaded(true);
+  }
+
+  async function refreshMultiplayerGames(options: {
+    silent?: boolean;
+    allowTurnToast?: boolean;
+  } = {}) {
+    if (!auth || auth.player.kind !== "account") {
+      setMultiplayerGames({
+        active: [],
+        finished: [],
+      });
+      setMultiplayerGamesLoaded(false);
+      setMultiplayerGamesLoading(false);
+      multiplayerLibraryTurnRef.current.clear();
+      return;
+    }
+
+    setMultiplayerGamesLoading(true);
+
+    try {
+      const response = await listMultiplayerGames(auth.token);
+      applyMultiplayerGamesIndex(response.games, options.allowTurnToast ?? false);
+    } catch (error) {
+      if (!options.silent) {
+        toastError(error);
+      }
+    } finally {
+      setMultiplayerGamesLoading(false);
+    }
+  }
+
   useEffect(() => {
     return () => {
       socketRef.current?.close();
     };
   }, []);
+
+  useEffect(() => {
+    if (!auth || auth.player.kind !== "account") {
+      setMultiplayerGames({
+        active: [],
+        finished: [],
+      });
+      setMultiplayerGamesLoaded(false);
+      setMultiplayerGamesLoading(false);
+      multiplayerLibraryTurnRef.current.clear();
+      return;
+    }
+
+    void refreshMultiplayerGames({
+      silent: true,
+      allowTurnToast: false,
+    });
+
+    const interval = window.setInterval(() => {
+      void refreshMultiplayerGames({
+        silent: true,
+        allowTurnToast: true,
+      });
+    }, 25000);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [auth?.player.kind, auth?.player.playerId, auth?.token]);
 
   useEffect(() => {
     if (!multiplayerSnapshot) {
@@ -603,9 +781,61 @@ export function HomePage({
         ? "Computer to move"
         : "Your turn"
       : `${localTurnLabel} to move`;
+  const multiplayerYourTurn =
+    !!multiplayerSnapshot &&
+    !!playerSeat &&
+    multiplayerSnapshot.status === "active" &&
+    multiplayerSnapshot.state.currentTurn === playerSeat &&
+    connectionState === "connected";
+  const multiplayerWaitingOnOpponent =
+    !!multiplayerSnapshot &&
+    !!playerSeat &&
+    multiplayerSnapshot.status === "active" &&
+    multiplayerSnapshot.state.currentTurn !== playerSeat &&
+    connectionState === "connected";
+  const multiplayerWaitingForOpponentSeat =
+    multiplayerSnapshot?.status === "waiting";
+  const multiplayerReconnectAvailable =
+    !!multiplayerSnapshot && connectionState === "disconnected";
+  const multiplayerStatusTitle = !multiplayerSnapshot
+    ? "Room"
+    : multiplayerGameOver
+      ? `${multiplayerWinnerLabel} wins`
+      : multiplayerWaitingForOpponentSeat
+        ? "Waiting for player two"
+        : multiplayerYourTurn
+          ? "Your move"
+          : multiplayerWaitingOnOpponent
+            ? "Opponent to move"
+            : connectionState === "disconnected"
+              ? "Reconnecting needed"
+              : "Live match";
 
   useWinConfetti(localBoardMode ? localWinner : null);
   useWinConfetti(mode === "multiplayer" ? multiplayerWinner : null);
+
+  useEffect(() => {
+    const nextMeta = {
+      gameId: multiplayerSnapshot?.gameId ?? null,
+      status: multiplayerSnapshot?.status ?? null,
+      historyLength: multiplayerSnapshot?.state.history.length ?? 0,
+      isYourTurn: multiplayerYourTurn,
+    };
+    const previousMeta = multiplayerTurnMetaRef.current;
+
+    if (
+      nextMeta.gameId &&
+      nextMeta.isYourTurn &&
+      previousMeta.gameId === nextMeta.gameId &&
+      !previousMeta.isYourTurn &&
+      (nextMeta.historyLength > previousMeta.historyLength ||
+        (previousMeta.status === "waiting" && nextMeta.status === "active"))
+    ) {
+      toast.success(`Your move in room ${nextMeta.gameId}`);
+    }
+
+    multiplayerTurnMetaRef.current = nextMeta;
+  }, [multiplayerSnapshot, multiplayerYourTurn]);
 
   useEffect(() => {
     if (
@@ -670,6 +900,12 @@ export function HomePage({
     setCopyFeedback(null);
     setMultiplayerScorePulse({ black: 0, white: 0 });
     multiplayerHistoryMetaRef.current = { gameId: null, length: 0 };
+    multiplayerTurnMetaRef.current = {
+      gameId: null,
+      status: null,
+      historyLength: 0,
+      isYourTurn: false,
+    };
   }
 
   function resetLocalGame() {
@@ -967,6 +1203,34 @@ export function HomePage({
     });
   }
 
+  async function openExistingMultiplayerGame(gameId: string) {
+    if (!auth) {
+      setMultiplayerError("Player session unavailable.");
+      return;
+    }
+
+    setMultiplayerBusy(true);
+    setMultiplayerError(null);
+
+    try {
+      const response = await getMultiplayerGame(auth.token, gameId);
+      setMode("multiplayer");
+      setMultiplayerSelection(null);
+      connectToRoom(response.snapshot, auth);
+      if (accountPlayer) {
+        void refreshMultiplayerGames({ silent: true });
+      }
+    } catch (error) {
+      if (isNetworkError(error)) {
+        toastError(error);
+      } else {
+        setMultiplayerError(readableError(error));
+      }
+    } finally {
+      setMultiplayerBusy(false);
+    }
+  }
+
   async function handleCreateRoom() {
     if (!auth) {
       setMultiplayerError("Player session unavailable.");
@@ -981,6 +1245,9 @@ export function HomePage({
       setMode("multiplayer");
       setMultiplayerSelection(null);
       connectToRoom(response.snapshot, auth);
+      if (accountPlayer) {
+        void refreshMultiplayerGames({ silent: true });
+      }
     } catch (error) {
       if (isNetworkError(error)) {
         toastError(error);
@@ -1011,6 +1278,9 @@ export function HomePage({
       setMode("multiplayer");
       setMultiplayerSelection(null);
       connectToRoom(response.snapshot, auth);
+      if (accountPlayer) {
+        void refreshMultiplayerGames({ silent: true });
+      }
     } catch (error) {
       if (isNetworkError(error)) {
         toastError(error);
@@ -1046,6 +1316,9 @@ export function HomePage({
       const response = await resetMultiplayerGame(auth.token, multiplayerSnapshot.gameId);
       setMultiplayerSnapshot(response.snapshot);
       setMultiplayerSelection(null);
+      if (accountPlayer) {
+        void refreshMultiplayerGames({ silent: true });
+      }
     } catch (error) {
       if (isNetworkError(error)) {
         toastError(error);
@@ -1059,6 +1332,14 @@ export function HomePage({
 
   function handleMultiplayerUndoPendingJump() {
     sendMultiplayerMessage({ type: "undo-pending-jump-step" });
+  }
+
+  async function handleReconnectMultiplayerRoom() {
+    if (!multiplayerSnapshot) {
+      return;
+    }
+
+    await openExistingMultiplayerGame(multiplayerSnapshot.gameId);
   }
 
   return (
@@ -1089,7 +1370,8 @@ export function HomePage({
         )}
       >
         {mode === "menu" ? (
-          <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+          <>
+            <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             <div className="grid gap-5">
               <motion.div
                 ref={localCardRef}
@@ -1207,10 +1489,187 @@ export function HomePage({
                     </Button>
                   </div>
 
+                  <div className="rounded-3xl border border-dashed border-[#d9c4a0] bg-[#fffbf3] px-4 py-3 text-sm text-[#6e5b48]">
+                    {accountPlayer ? (
+                      <p>
+                        Account players can keep multiple live tables, reopen them from the
+                        lobby, and browse finished matches later.
+                      </p>
+                    ) : (
+                      <p>
+                        Guest players can keep one unfinished multiplayer game at a time.
+                        Sign in to juggle multiple tables and unlock match history.
+                      </p>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
-          </section>
+            </section>
+
+            {accountPlayer ? (
+              <section className="grid gap-5 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
+                <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+                  <Card className={cn("overflow-hidden", paperCard)}>
+                    <div className="h-2 bg-[linear-gradient(90deg,#6e4f29,#d2a661)]" />
+                    <CardHeader className="gap-3">
+                      <Badge className="w-fit bg-[#f5ead8] text-[#6e5437]">
+                        Ongoing games
+                      </Badge>
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <CardTitle className="text-3xl text-[#2b1e14]">
+                            Active tables
+                          </CardTitle>
+                          <CardDescription className="text-[#6e5b48]">
+                            Jump between your live rooms and spot where it is your move.
+                          </CardDescription>
+                        </div>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => void refreshMultiplayerGames()}
+                          disabled={multiplayerGamesLoading}
+                        >
+                          {multiplayerGamesLoading ? "Refreshing..." : "Refresh"}
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {!multiplayerGamesLoaded && multiplayerGamesLoading ? (
+                        <div className="rounded-3xl border border-[#dbc59f] bg-[#fff9ef] px-4 py-5 text-sm text-[#6e5b48]">
+                          Loading your active tables...
+                        </div>
+                      ) : multiplayerGames.active.length === 0 ? (
+                        <div className="rounded-3xl border border-[#dbc59f] bg-[#fff9ef] px-4 py-5 text-sm text-[#6e5b48]">
+                          No active games yet. Create a room or join a friend to start building
+                          your table list.
+                        </div>
+                      ) : (
+                        multiplayerGames.active.map((game) => (
+                          <div
+                            key={game.gameId}
+                            className={cn(
+                              "rounded-[1.65rem] border px-4 py-4 shadow-[0_18px_36px_-30px_rgba(56,36,20,0.4)]",
+                              isSummaryYourTurn(game)
+                                ? "border-[#a7c07b] bg-[linear-gradient(180deg,#fbfff4,#eef6df)]"
+                                : game.status === "waiting"
+                                  ? "border-[#dcc59f] bg-[linear-gradient(180deg,#fffaf2,#f7eddc)]"
+                                  : "border-[#d7c39e] bg-[linear-gradient(180deg,#fffaf3,#f5eee2)]"
+                            )}
+                          >
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <p className="font-mono text-lg font-semibold tracking-[0.08em] text-[#2b1e14]">
+                                    {game.gameId}
+                                  </p>
+                                  <Badge
+                                    className={cn(
+                                      isSummaryYourTurn(game)
+                                        ? "bg-[#e8f2d8] text-[#4b6537]"
+                                        : game.status === "waiting"
+                                          ? "bg-[#f3e7d5] text-[#6b563e]"
+                                          : "bg-[#efe3cf] text-[#5f4932]"
+                                    )}
+                                  >
+                                    {getSummaryStatusLabel(game)}
+                                  </Badge>
+                                </div>
+                                <p className="mt-2 text-sm text-[#6e5b48]">
+                                  Opponent:{" "}
+                                  <span className="font-semibold text-[#2b1e14]">
+                                    {getOpponentLabel(game)}
+                                  </span>
+                                </p>
+                                <p className="mt-1 text-sm text-[#7a6656]">
+                                  Score {game.score.white}-{game.score.black} • Updated{" "}
+                                  {formatGameTimestamp(game.updatedAt)}
+                                </p>
+                              </div>
+                              <Button
+                                size="sm"
+                                onClick={() => void openExistingMultiplayerGame(game.gameId)}
+                                disabled={multiplayerBusy}
+                              >
+                                Open
+                              </Button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+
+                <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+                  <Card className={cn("overflow-hidden", paperCard)}>
+                    <div className="h-2 bg-[linear-gradient(90deg,#45311f,#af7b4a)]" />
+                    <CardHeader>
+                      <Badge className="w-fit bg-[#f2e6d4] text-[#72533a]">
+                        Match history
+                      </Badge>
+                      <CardTitle className="text-3xl text-[#2b1e14]">
+                        Finished games
+                      </CardTitle>
+                      <CardDescription className="text-[#6e5b48]">
+                        Reopen completed boards and keep a running archive of your tables.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {!multiplayerGamesLoaded && multiplayerGamesLoading ? (
+                        <div className="rounded-3xl border border-[#dbc59f] bg-[#fff9ef] px-4 py-5 text-sm text-[#6e5b48]">
+                          Loading your archive...
+                        </div>
+                      ) : multiplayerGames.finished.length === 0 ? (
+                        <div className="rounded-3xl border border-[#dbc59f] bg-[#fff9ef] px-4 py-5 text-sm text-[#6e5b48]">
+                          Finished matches will land here once a room reaches the win score.
+                        </div>
+                      ) : (
+                        multiplayerGames.finished.map((game) => (
+                          <div
+                            key={game.gameId}
+                            className="rounded-[1.65rem] border border-[#d7c39e] bg-[linear-gradient(180deg,#fffaf3,#f4ece0)] px-4 py-4 shadow-[0_18px_36px_-30px_rgba(56,36,20,0.4)]"
+                          >
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <p className="font-mono text-lg font-semibold tracking-[0.08em] text-[#2b1e14]">
+                                    {game.gameId}
+                                  </p>
+                                  <Badge className="bg-[#efe3cf] text-[#5f4932]">
+                                    {getSummaryStatusLabel(game)}
+                                  </Badge>
+                                </div>
+                                <p className="mt-2 text-sm text-[#6e5b48]">
+                                  Opponent:{" "}
+                                  <span className="font-semibold text-[#2b1e14]">
+                                    {getOpponentLabel(game)}
+                                  </span>
+                                </p>
+                                <p className="mt-1 text-sm text-[#7a6656]">
+                                  {game.historyLength} turns • Finished{" "}
+                                  {formatGameTimestamp(game.updatedAt)}
+                                </p>
+                              </div>
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => void openExistingMultiplayerGame(game.gameId)}
+                                disabled={multiplayerBusy}
+                              >
+                                View board
+                              </Button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </section>
+            ) : null}
+          </>
         ) : null}
 
         {localBoardMode ? (
@@ -1308,7 +1767,13 @@ export function HomePage({
         {mode === "multiplayer" ? (
           <section className="grid gap-3 xl:gap-1.5 xl:grid-cols-[minmax(0,1fr)_17.75rem] xl:items-start">
             <div className="flex justify-center xl:min-h-[calc(100dvh-1.5rem)]">
-              <div className="relative mx-auto w-full" style={boardWrapStyle}>
+              <div
+                className={cn(
+                  "relative mx-auto w-full",
+                  multiplayerYourTurn ? "cursor-default" : "cursor-wait"
+                )}
+                style={boardWrapStyle}
+              >
                 {multiplayerSnapshot ? (
                   <TiaoBoard
                     state={multiplayerSnapshot.state}
@@ -1321,9 +1786,23 @@ export function HomePage({
                   />
                 ) : null}
 
+                {multiplayerWaitingOnOpponent ? (
+                  <div className="pointer-events-none absolute right-3 top-3 z-[96] flex items-center gap-2 rounded-full border border-[#d8c29c] bg-[#fff8ee]/96 px-3 py-2 text-sm font-semibold text-[#5d4732] shadow-[0_16px_28px_-22px_rgba(67,45,24,0.5)] backdrop-blur">
+                    <HourglassSpinner className="text-[#7b5f3f]" />
+                    Waiting for opponent
+                  </div>
+                ) : null}
+
+                {multiplayerYourTurn ? (
+                  <div className="pointer-events-none absolute right-3 top-3 z-[96] rounded-full border border-[#b8cc8f] bg-[#f7fce9]/96 px-3 py-2 text-sm font-semibold text-[#56703f] shadow-[0_16px_28px_-22px_rgba(63,92,32,0.42)] backdrop-blur">
+                    Your move
+                  </div>
+                ) : null}
+
                 {multiplayerSnapshot?.status === "waiting" ? (
                   <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                    <div className="rounded-3xl border border-[#dcc7a2] bg-[#fff7ec]/92 px-5 py-3 text-sm font-semibold text-[#5d4732] shadow-lg backdrop-blur">
+                    <div className="flex items-center gap-3 rounded-3xl border border-[#dcc7a2] bg-[#fff7ec]/92 px-5 py-3 text-sm font-semibold text-[#5d4732] shadow-lg backdrop-blur">
+                      <HourglassSpinner className="text-[#7b5f3f]" />
                       Waiting for player two
                     </div>
                   </div>
@@ -1333,7 +1812,15 @@ export function HomePage({
 
             <div className="space-y-4 xl:max-h-[calc(100dvh-1.5rem)] xl:overflow-auto">
               <div className="mx-auto w-full xl:mx-0" style={boardWrapStyle}>
-                <Card className={paperCard}>
+                <Card
+                  className={cn(
+                    paperCard,
+                    multiplayerYourTurn &&
+                      "border-[#b7cb8d] bg-[linear-gradient(180deg,rgba(251,255,243,0.98),rgba(240,248,224,0.96))]",
+                    multiplayerWaitingOnOpponent &&
+                      "border-[#d5c19f] bg-[linear-gradient(180deg,rgba(255,251,244,0.98),rgba(247,236,214,0.95))]"
+                  )}
+                >
                   <CardHeader>
                     <GamePanelBrand />
                     <Badge className="w-fit bg-[#eee3cf] text-[#5f4932]">
@@ -1344,6 +1831,15 @@ export function HomePage({
                         ? `Room ${multiplayerSnapshot.gameId}`
                         : "Room"}
                     </CardTitle>
+                    <CardDescription
+                      className={cn(
+                        multiplayerYourTurn
+                          ? "font-semibold text-[#56703f]"
+                          : "text-[#6e5b48]"
+                      )}
+                    >
+                      {multiplayerStatusTitle}
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {multiplayerSnapshot ? (
@@ -1409,7 +1905,16 @@ export function HomePage({
                           />
                         </div>
 
-                        <div className="rounded-3xl border border-[#d8c29c] bg-[#fffaf1] px-4 py-3 text-sm text-[#6e5b48]">
+                        <div
+                          className={cn(
+                            "rounded-3xl border px-4 py-3 text-sm",
+                            multiplayerYourTurn
+                              ? "border-[#bdd297] bg-[#f6fde8] text-[#5a7242]"
+                              : multiplayerWaitingOnOpponent
+                                ? "border-[#dcc59f] bg-[#fff7ea] text-[#6a553d]"
+                                : "border-[#d8c29c] bg-[#fffaf1] text-[#6e5b48]"
+                          )}
+                        >
                           <p>
                             You:{" "}
                             <span className="font-semibold text-[#2b1e14]">
@@ -1427,11 +1932,22 @@ export function HomePage({
                               ? "Room open."
                               : multiplayerSnapshot.status === "finished"
                               ? `${multiplayerWinnerLabel} won.`
-                              : `${multiplayerSnapshot.state.currentTurn} to move.`}
+                              : multiplayerYourTurn
+                                ? "The board is yours."
+                                : `${formatPlayerColor(multiplayerSnapshot.state.currentTurn)} to move.`}
                           </p>
                         </div>
 
                         <div className="grid gap-2">
+                          {multiplayerReconnectAvailable ? (
+                            <Button
+                              variant="secondary"
+                              onClick={() => void handleReconnectMultiplayerRoom()}
+                              disabled={multiplayerBusy}
+                            >
+                              {multiplayerBusy ? "Reconnecting..." : "Reconnect room"}
+                            </Button>
+                          ) : null}
                           {multiplayerSnapshot.state.pendingJump.length > 0 ? (
                             <Button
                               onClick={() =>
