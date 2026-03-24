@@ -1,9 +1,11 @@
 const TOKEN_SECRET = process.env.TOKEN_SECRET as string;
 const MONGODB_URI = process.env.MONGODB_URI as string;
-const PORT = process.env.PORT as string;
+const PORT = (process.env.PORT || "3000") as string;
 const ALTCHA_HMAC_KEY = process.env.ALTCHA_HMAC_KEY as string;
 const BUCKET_NAME = process.env.S3_BUCKET_NAME as string;
-const CLOUDFRONT_URL = process.env.CLOUDFRONT_URL as string;
+const CLOUDFRONT_URL = (process.env.S3_PUBLIC_URL || process.env.CLOUDFRONT_URL) as string;
+const S3_ENDPOINT = process.env.S3_ENDPOINT;
+const S3_FORCE_PATH_STYLE = process.env.S3_FORCE_PATH_STYLE === "true";
 
 if (!process.env.TOKEN_SECRET) {
   console.error("TOKEN_SECRET not provided in the environment");
@@ -11,12 +13,7 @@ if (!process.env.TOKEN_SECRET) {
 }
 
 if (!CLOUDFRONT_URL) {
-  console.error("No CLOUDFRONT_URL provided in the environment");
-  process.exit(1);
-}
-
-if (!PORT) {
-  console.error("No PORT provided in the environment");
+  console.error("No S3_PUBLIC_URL or CLOUDFRONT_URL provided in the environment");
   process.exit(1);
 }
 
@@ -48,4 +45,6 @@ export {
   ALTCHA_HMAC_KEY,
   BUCKET_NAME,
   CLOUDFRONT_URL,
+  S3_ENDPOINT,
+  S3_FORCE_PATH_STYLE,
 };

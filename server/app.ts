@@ -3,7 +3,6 @@ import { existsSync } from "fs";
 import express from "express";
 import path from "path";
 import { configureApp } from "./config";
-import { connectToDB } from "./db";
 import addErrorHandlingToApp from "./error-handling";
 import authRoutes from "./routes/auth.routes";
 import gameAuthRoutes from "./routes/game-auth.routes";
@@ -11,8 +10,6 @@ import gameRoutes from "./routes/game.routes";
 import indexRoutes from "./routes/index.routes";
 import userRoutes from "./routes/user.routes";
 import { CORRECT_PATH } from "./config/envVars";
-
-connectToDB();
 
 const app = express();
 
