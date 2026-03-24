@@ -73,6 +73,15 @@ No special client websocket URL configuration is needed if the browser loads the
 4. GitHub Actions calls the Coolify deploy API for the app UUID
 5. Coolify pulls the updated image and replaces the running container
 
+## Recommended Workflow For This Repo
+
+For now, the recommended setup is:
+- GitHub Actions builds the Docker image
+- GHCR stores the image
+- Coolify deploys the image on the VPS
+
+That keeps build load off the VPS while still using Coolify for domains, env vars, health checks, logs, and app lifecycle.
+
 ## Coolify API Setup
 
 To use the documented API deployment flow:

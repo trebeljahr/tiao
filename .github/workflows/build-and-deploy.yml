@@ -76,7 +76,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Trigger Coolify deployment webhook
+      - name: Trigger Coolify deployment via API
         if: ${{ secrets.COOLIFY_BASE_URL != '' && secrets.COOLIFY_API_TOKEN != '' && secrets.COOLIFY_RESOURCE_UUID != '' }}
         env:
           COOLIFY_BASE_URL: ${{ secrets.COOLIFY_BASE_URL }}
