@@ -10,7 +10,7 @@ import { ClientToServerMessage } from "../shared/src";
 const server = createServer(app);
 const websocketServer = new WebSocketServer({ server });
 const WEBSOCKET_PATHS = new Set(["/ws", "/api/ws"]);
-const SOCKET_PING_INTERVAL_MS = 1000 * 25;
+const SOCKET_PING_INTERVAL_MS = 1000 * 10;
 
 function sendJson(socket: WebSocket, payload: unknown): void {
   if (socket.readyState === WebSocket.OPEN) {
@@ -19,15 +19,47 @@ function sendJson(socket: WebSocket, payload: unknown): void {
 }
 
 websocketServer.on("connection", (socket, request) => {
+  let isAlive = true;
+  const baseUrl = `http://${request.headers.host || "localhost"}`;
+  const url = new URL(request.url || "/ws", baseUrl);
+  const gameId = url.searchParams.get("gameId")?.trim().toUpperCase();
+
+  console.info(`[ws] incoming connection: ${url.pathname}${gameId ? `?gameId=${gameId}` : ""}`);
+
+  const pingInterval = setInterval(() => {
+    if (!isAlive) {
+      console.warn(`[ws] client ${gameId} failed to respond to ping, terminating.`);
+      return socket.terminate();
+    }
+
+    isAlive = false;
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.ping();
+    }
+  }, SOCKET_PING_INTERVAL_MS);
+
+  socket.on("pong", () => {
+    isAlive = true;
+  });
+
+  socket.on("close", (code, reason) => {
+    clearInterval(pingInterval);
+    console.info(`[ws] closed ${gameId}: code=${code}, reason=${reason.toString() || "none"}`);
+    void gameService.disconnect(socket);
+  });
+
+  socket.on("error", (error) => {
+    clearInterval(pingInterval);
+    console.error(`[ws] error ${gameId}:`, error);
+    void gameService.disconnect(socket);
+  });
+
   void (async () => {
-    const baseUrl = `http://${request.headers.host || "localhost"}`;
-    const url = new URL(request.url || "/ws", baseUrl);
     if (!WEBSOCKET_PATHS.has(url.pathname)) {
+      console.warn(`[ws] invalid path: ${url.pathname}`);
       socket.close();
       return;
     }
-
-    const gameId = url.searchParams.get("gameId")?.trim().toUpperCase();
 
     if (!gameId) {
       sendJson(socket, {
@@ -41,6 +73,7 @@ websocketServer.on("connection", (socket, request) => {
 
     const player = await getPlayerFromUpgradeRequest(request);
     if (!player) {
+      console.warn(`[ws] unauthorized connection attempt for ${gameId}`);
       sendJson(socket, {
         type: "error",
         code: "UNAUTHORIZED",
@@ -50,7 +83,7 @@ websocketServer.on("connection", (socket, request) => {
       return;
     }
 
-    void gameService.connect(gameId, player, socket).catch((error) => {
+    await gameService.connect(gameId, player, socket).catch((error) => {
       const serviceError =
         error instanceof GameServiceError
           ? error
@@ -60,6 +93,7 @@ websocketServer.on("connection", (socket, request) => {
               "Unable to connect to that multiplayer room."
             );
 
+      console.error(`[ws] gameService.connect failed for ${gameId}:`, serviceError);
       sendJson(socket, {
         type: "error",
         code: serviceError.code,
@@ -67,13 +101,6 @@ websocketServer.on("connection", (socket, request) => {
       });
       socket.close();
     });
-
-    const pingInterval = setInterval(() => {
-      if (socket.readyState === WebSocket.OPEN) {
-        socket.ping();
-      }
-    }, SOCKET_PING_INTERVAL_MS);
-    pingInterval.unref();
 
     socket.on("message", (rawMessage) => {
       void (async () => {
@@ -98,17 +125,8 @@ websocketServer.on("connection", (socket, request) => {
         }
       })();
     });
-
-    socket.on("close", () => {
-      clearInterval(pingInterval);
-      void gameService.disconnect(socket);
-    });
-
-    socket.on("error", () => {
-      clearInterval(pingInterval);
-      void gameService.disconnect(socket);
-    });
-  })().catch(() => {
+  })().catch((error) => {
+    console.error(`[ws] fatal error in connection handler for ${gameId}:`, error);
     sendJson(socket, {
       type: "error",
       code: "UNAUTHORIZED",

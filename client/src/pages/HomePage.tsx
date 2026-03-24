@@ -233,7 +233,7 @@ function PlayerOverviewAvatar({
   className,
 }: {
   player: {
-    displayName: string;
+    displayName?: string;
     profilePicture?: string;
   };
   className?: string;
@@ -242,11 +242,13 @@ function PlayerOverviewAvatar({
     return (
       <img
         src={player.profilePicture}
-        alt={player.displayName}
+        alt={player.displayName ?? "Player"}
         className={cn("h-8 w-8 rounded-full object-cover", className)}
       />
     );
   }
+
+  const initial = (player.displayName || "?").slice(0, 1).toUpperCase();
 
   return (
     <div
@@ -255,7 +257,7 @@ function PlayerOverviewAvatar({
         className
       )}
     >
-      {player.displayName.slice(0, 1).toUpperCase()}
+      {initial}
     </div>
   );
 }
