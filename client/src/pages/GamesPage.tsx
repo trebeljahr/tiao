@@ -15,9 +15,11 @@ import { Navbar } from "@/components/Navbar";
 import {
   getOpponentLabel,
   getSummaryStatusLabel,
+  isSummaryYourTurn,
   formatGameTimestamp,
 } from "@/components/game/GameShared";
 import { useGamesIndex } from "@/lib/hooks/useGamesIndex";
+import { useLobbySocket } from "@/lib/hooks/useLobbySocket";
 import { cn } from "@/lib/utils";
 
 type GamesPageProps = {
@@ -35,6 +37,13 @@ export function GamesPage({ auth, onOpenAuth, onLogout }: GamesPageProps) {
     multiplayerGamesLoading,
     refreshMultiplayerGames,
   } = useGamesIndex(auth);
+
+  // Real-time updates for games page
+  useLobbySocket(
+    auth,
+    () => void refreshMultiplayerGames({ silent: true }),
+    () => {},
+  );
 
   const paperCard =
     "border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]";
@@ -87,16 +96,26 @@ export function GamesPage({ auth, onOpenAuth, onLogout }: GamesPageProps) {
               <CardDescription>Ongoing matches waiting for a move.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3 sm:grid-cols-2">
-              {multiplayerGames.active.map(game => (
-                <div key={game.gameId} className="flex items-center justify-between p-4 rounded-2xl border border-[#d7c39e] bg-white/40">
-                  <div>
-                    <p className="font-mono font-bold text-lg">{game.gameId}</p>
-                    <p className="text-sm text-[#6e5b48]">vs {getOpponentLabel(game, auth.player.playerId)}</p>
-                    <Badge className="mt-2">{getSummaryStatusLabel(game)}</Badge>
+              {multiplayerGames.active.map(game => {
+                const isYourTurn = isSummaryYourTurn(game);
+                return (
+                  <div key={game.gameId} className="flex items-center justify-between p-4 rounded-2xl border border-[#d7c39e] bg-white/40">
+                    <div>
+                      <p className="font-mono font-bold text-lg">{game.gameId}</p>
+                      <p className="text-sm text-[#6e5b48]">vs {getOpponentLabel(game, auth.player.playerId)}</p>
+                      <Badge className={cn(
+                        "mt-2",
+                        isYourTurn
+                          ? "bg-[#e8f2d8] text-[#4b6537] animate-pulse"
+                          : "bg-[#f3e7d5] text-[#6b563e]",
+                      )}>
+                        {getSummaryStatusLabel(game)}
+                      </Badge>
+                    </div>
+                    <Button onClick={() => navigate(`/game/${game.gameId}`)}>Resume</Button>
                   </div>
-                  <Button onClick={() => navigate(`/game/${game.gameId}`)}>Resume</Button>
-                </div>
-              ))}
+                );
+              })}
               {multiplayerGames.active.length === 0 && <p className="col-span-full py-8 text-center text-sm text-[#6e5b48]">No active games.</p>}
             </CardContent>
           </Card>

@@ -9,7 +9,7 @@ import { ClientToServerMessage } from "../shared/src";
 
 const server = createServer(app);
 const websocketServer = new WebSocketServer({ server });
-const WEBSOCKET_PATHS = new Set(["/", "/ws", "/api/ws"]);
+const WEBSOCKET_PATHS = new Set(["/", "/ws", "/api/ws", "/api/ws/lobby"]);
 const SOCKET_PING_INTERVAL_MS = 1000 * 10;
 
 function sendJson(socket: WebSocket, payload: unknown): void {

@@ -24,7 +24,7 @@ const TOKEN_SECRET = getRequiredEnv("TOKEN_SECRET", {
 const MONGODB_URI = getRequiredEnv("MONGODB_URI", {
   testDefault: "mongodb://127.0.0.1:27017/tiao-test",
 });
-const PORT = (process.env.PORT || "3000") as string;
+const PORT = (process.env.PORT || "5005") as string;
 const BUCKET_NAME = getRequiredEnv("S3_BUCKET_NAME", {
   testDefault: "tiao-test-assets",
 });

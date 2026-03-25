@@ -14,6 +14,9 @@ function silenceProxyErrors(proxy: import("http-proxy").Server) {
   });
 }
 
+const devPort = parseInt(process.env.PORT || "3000", 10);
+const apiPort = process.env.API_PORT || "5005";
+
 export default defineConfig({
   resolve: {
     alias: {
@@ -28,25 +31,24 @@ export default defineConfig({
   },
   server: {
     host: "127.0.0.1",
-    port: 3000,
-    strictPort: true,
+    port: devPort,
     fs: {
       allow: [path.resolve(__dirname, "..")],
     },
     proxy: {
       "/api/ws": {
-        target: "ws://localhost:5005",
+        target: `ws://localhost:${apiPort}`,
         changeOrigin: true,
         ws: true,
         configure: silenceProxyErrors,
       },
       "/api": {
-        target: "http://localhost:5005",
+        target: `http://localhost:${apiPort}`,
         changeOrigin: true,
         configure: silenceProxyErrors,
       },
       "/ws": {
-        target: "ws://localhost:5005",
+        target: `ws://localhost:${apiPort}`,
         changeOrigin: true,
         ws: true,
         configure: silenceProxyErrors,
