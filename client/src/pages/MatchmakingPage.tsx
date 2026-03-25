@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import type { AuthResponse, MultiplayerSnapshot } from "@shared";
+import type { AuthResponse, MultiplayerSnapshot, TimeControl } from "@shared";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,6 +22,8 @@ type MatchmakingPageProps = {
 
 export function MatchmakingPage({ auth, onOpenAuth, onLogout }: MatchmakingPageProps) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const locationTimeControl = (location.state as { timeControl?: TimeControl })?.timeControl ?? null;
   const [navOpen, setNavOpen] = useState(false);
 
   const onMatched = (snapshot: MultiplayerSnapshot) => {
@@ -37,9 +39,9 @@ export function MatchmakingPage({ auth, onOpenAuth, onLogout }: MatchmakingPageP
 
   useEffect(() => {
     if (auth && matchmaking.status === "idle" && !matchmakingBusy) {
-      void handleEnterMatchmaking();
+      void handleEnterMatchmaking(locationTimeControl);
     }
-  }, [auth, matchmaking.status, matchmakingBusy, handleEnterMatchmaking]);
+  }, [auth, matchmaking.status, matchmakingBusy, handleEnterMatchmaking, locationTimeControl]);
 
   const paperCard =
     "border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]";
@@ -92,6 +94,11 @@ export function MatchmakingPage({ auth, onOpenAuth, onLogout }: MatchmakingPageP
                     />
                   </div>
                   <p className="text-lg font-semibold text-[#5d4732]">Searching for opponent...</p>
+                  {locationTimeControl && (
+                    <p className="text-sm text-[#7a6656]">
+                      {Math.floor(locationTimeControl.initialMs / 60000)}+{Math.floor(locationTimeControl.incrementMs / 1000)}
+                    </p>
+                  )}
                   <Button
                     variant="outline"
                     onClick={handleCancelMatchmaking}

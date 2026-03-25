@@ -123,6 +123,8 @@ function createMockSnapshot(
         online: true,
       },
     },
+    timeControl: null,
+    clock: null,
     ...overrides,
   };
 }

@@ -33,6 +33,17 @@ export type MultiplayerTakebackState = {
   declinedCount: Record<PlayerColor, number>;
 };
 
+export type TimeControl = {
+  initialMs: number;
+  incrementMs: number;
+} | null;
+
+export type ClockState = {
+  white: number;
+  black: number;
+  lastMoveAt: string;
+};
+
 export type MultiplayerSnapshot = {
   gameId: string;
   roomType: MultiplayerRoomType;
@@ -44,6 +55,8 @@ export type MultiplayerSnapshot = {
   rematch: MultiplayerRematchState | null;
   takeback: MultiplayerTakebackState | null;
   seats: Record<PlayerColor, PlayerSlot | null>;
+  timeControl: TimeControl;
+  clock: ClockState | null;
 };
 
 export type MultiplayerGameSummary = {
@@ -73,6 +86,7 @@ export type MatchmakingState =
   | {
       status: "searching";
       queuedAt: string;
+      timeControl?: TimeControl;
     }
   | {
       status: "matched";
@@ -174,6 +188,10 @@ export type ServerToClientMessage =
   | {
       type: "rematch-started";
       gameId: string;
+    }
+  | {
+      type: "flag";
+      flaggedColor: PlayerColor;
     };
 
 export type AuthResponse = {

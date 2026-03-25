@@ -49,6 +49,9 @@ export interface IGameRoom extends Document {
   rematch: MultiplayerRematchState | null;
   takeback: MultiplayerTakebackState | null;
   seats: MultiplayerSeatAssignments;
+  timeControl: { initialMs: number; incrementMs: number } | null;
+  clockMs: { white: number; black: number } | null;
+  lastMoveAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -122,6 +125,30 @@ const GameRoomSchema = new Schema<IGameRoom>(
         type: PlayerIdentitySchema,
         default: null,
       },
+    },
+    timeControl: {
+      type: new Schema(
+        {
+          initialMs: { type: Number, required: true },
+          incrementMs: { type: Number, required: true },
+        },
+        { _id: false }
+      ),
+      default: null,
+    },
+    clockMs: {
+      type: new Schema(
+        {
+          white: { type: Number, required: true },
+          black: { type: Number, required: true },
+        },
+        { _id: false }
+      ),
+      default: null,
+    },
+    lastMoveAt: {
+      type: Date,
+      default: null,
     },
   },
   {

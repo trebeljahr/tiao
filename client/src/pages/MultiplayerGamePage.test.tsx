@@ -72,6 +72,8 @@ function makeMatchmakingSnapshot(overrides?: Partial<MultiplayerSnapshot>): Mult
     gameId: "ABC123",
     roomType: "matchmaking",
     status: "active",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     state: createInitialGameState(),
     players: [
       { player: { playerId: "guest-aaa", displayName: "Anonymous", kind: "guest" }, online: true },
@@ -83,6 +85,8 @@ function makeMatchmakingSnapshot(overrides?: Partial<MultiplayerSnapshot>): Mult
     },
     rematch: null,
     takeback: null,
+    timeControl: null,
+    clock: null,
     ...overrides,
   };
 }

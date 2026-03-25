@@ -326,7 +326,8 @@ router.post("/matchmaking", async (req: Request, res: Response) => {
   }
 
   try {
-    const matchmaking = await gameService.enterMatchmaking(player);
+    const timeControl = req.body?.timeControl ?? null;
+    const matchmaking = await gameService.enterMatchmaking(player, timeControl);
     return res.status(200).json({ matchmaking });
   } catch (error) {
     return respondWithGameServiceError(

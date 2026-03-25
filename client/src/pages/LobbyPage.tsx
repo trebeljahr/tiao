@@ -29,6 +29,18 @@ import { cn } from "@/lib/utils";
 import { createMultiplayerGame, joinMultiplayerGame } from "@/lib/api";
 import { toastError } from "@/lib/errors";
 
+const TIME_CONTROL_PRESETS = [
+  { label: "1+0", category: "Bullet", timeControl: { initialMs: 60_000, incrementMs: 0 } },
+  { label: "2+1", category: "Bullet", timeControl: { initialMs: 120_000, incrementMs: 1_000 } },
+  { label: "3+0", category: "Blitz", timeControl: { initialMs: 180_000, incrementMs: 0 } },
+  { label: "3+2", category: "Blitz", timeControl: { initialMs: 180_000, incrementMs: 2_000 } },
+  { label: "5+0", category: "Blitz", timeControl: { initialMs: 300_000, incrementMs: 0 } },
+  { label: "5+3", category: "Blitz", timeControl: { initialMs: 300_000, incrementMs: 3_000 } },
+  { label: "10+0", category: "Rapid", timeControl: { initialMs: 600_000, incrementMs: 0 } },
+  { label: "15+10", category: "Rapid", timeControl: { initialMs: 900_000, incrementMs: 10_000 } },
+  { label: "30+0", category: "Classical", timeControl: { initialMs: 1_800_000, incrementMs: 0 } },
+] as const;
+
 type LobbyPageProps = {
   auth: AuthResponse | null;
   onOpenAuth: (mode: "login" | "signup") => void;
@@ -251,13 +263,27 @@ export function LobbyPage({ auth, onOpenAuth, onLogout }: LobbyPageProps) {
                 </CardDescription>
               </CardHeader>
               <CardContent className="mt-auto space-y-10 pb-8">
-                <Button
-                  size="lg"
-                  className="w-full h-16 text-xl shadow-lg bg-[linear-gradient(180deg,#4b3726,#2b1e14)] hover:shadow-xl transition-all"
-                  onClick={() => navigate("/matchmaking")}
-                >
-                  Quick match
-                </Button>
+                <div className="grid grid-cols-3 gap-2">
+                  {TIME_CONTROL_PRESETS.map((preset) => (
+                    <Button
+                      key={preset.label}
+                      variant="secondary"
+                      className="flex flex-col items-center gap-0.5 h-auto py-3 border-[#dcc7a2] hover:border-[#b98d49] hover:bg-[#fff8ee] transition-all"
+                      onClick={() =>
+                        navigate("/matchmaking", {
+                          state: { timeControl: preset.timeControl },
+                        })
+                      }
+                    >
+                      <span className="text-base font-bold text-[#2b1e14]">
+                        {preset.label}
+                      </span>
+                      <span className="text-[0.65rem] uppercase tracking-wider text-[#8d7760]">
+                        {preset.category}
+                      </span>
+                    </Button>
+                  ))}
+                </div>
 
                 <div className="space-y-6">
                   <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-[0.25em] text-[#8d7760]">

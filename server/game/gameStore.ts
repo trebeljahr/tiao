@@ -7,6 +7,7 @@ import {
   MultiplayerStatus,
   PlayerColor,
   PlayerIdentity,
+  TimeControl,
   cloneGameState,
 } from "../../shared/src";
 import GameRoom from "../models/GameRoom";
@@ -20,6 +21,9 @@ export type StoredMultiplayerRoom = {
   rematch: MultiplayerRematchState | null;
   takeback: MultiplayerTakebackState | null;
   seats: MultiplayerSeatAssignments;
+  timeControl: TimeControl;
+  clockMs: { white: number; black: number } | null;
+  lastMoveAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -33,6 +37,9 @@ export type CreateStoredMultiplayerRoomInput = {
   rematch: MultiplayerRematchState | null;
   takeback: MultiplayerTakebackState | null;
   seats: MultiplayerSeatAssignments;
+  timeControl: TimeControl;
+  clockMs: { white: number; black: number } | null;
+  lastMoveAt: Date | null;
 };
 
 export interface GameRoomStore {
@@ -95,6 +102,9 @@ export function cloneStoredRoom(room: StoredMultiplayerRoom): StoredMultiplayerR
     rematch: cloneRematch(room.rematch),
     takeback: cloneTakeback(room.takeback),
     seats: cloneSeats(room.seats),
+    timeControl: room.timeControl ? { ...room.timeControl } : null,
+    clockMs: room.clockMs ? { ...room.clockMs } : null,
+    lastMoveAt: room.lastMoveAt ? new Date(room.lastMoveAt) : null,
     createdAt: new Date(room.createdAt),
     updatedAt: new Date(room.updatedAt),
   };
@@ -109,6 +119,9 @@ type PersistedGameRoom = {
   rematch?: MultiplayerRematchState | null;
   takeback?: MultiplayerTakebackState | null;
   seats: MultiplayerSeatAssignments;
+  timeControl?: TimeControl;
+  clockMs?: { white: number; black: number } | null;
+  lastMoveAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -136,6 +149,9 @@ function toStoredRoom(room: PersistedGameRoom): StoredMultiplayerRoom {
     rematch: cloneRematch(room.rematch ?? null),
     takeback: cloneTakeback(room.takeback ?? null),
     seats: cloneSeats(room.seats),
+    timeControl: room.timeControl ?? null,
+    clockMs: room.clockMs ?? null,
+    lastMoveAt: room.lastMoveAt ? new Date(room.lastMoveAt) : null,
     createdAt: new Date(room.createdAt),
     updatedAt: new Date(room.updatedAt),
   };
@@ -154,6 +170,9 @@ export class MongoGameRoomStore implements GameRoomStore {
       rematch: cloneRematch(room.rematch),
       takeback: cloneTakeback(room.takeback),
       seats: cloneSeats(room.seats),
+      timeControl: room.timeControl,
+      clockMs: room.clockMs,
+      lastMoveAt: room.lastMoveAt,
     });
 
     return toStoredRoom({
@@ -165,6 +184,9 @@ export class MongoGameRoomStore implements GameRoomStore {
       rematch: createdRoom.rematch,
       takeback: createdRoom.takeback,
       seats: createdRoom.seats,
+      timeControl: createdRoom.timeControl,
+      clockMs: createdRoom.clockMs,
+      lastMoveAt: createdRoom.lastMoveAt,
       createdAt: createdRoom.createdAt,
       updatedAt: createdRoom.updatedAt,
     });
@@ -194,6 +216,9 @@ export class MongoGameRoomStore implements GameRoomStore {
           rematch: cloneRematch(room.rematch),
           takeback: cloneTakeback(room.takeback),
           seats: cloneSeats(room.seats),
+          timeControl: room.timeControl,
+          clockMs: room.clockMs,
+          lastMoveAt: room.lastMoveAt,
         },
       },
       {
@@ -269,6 +294,9 @@ export class InMemoryGameRoomStore implements GameRoomStore {
       rematch: cloneRematch(room.rematch),
       takeback: cloneTakeback(room.takeback),
       seats: cloneSeats(room.seats),
+      timeControl: room.timeControl ? { ...room.timeControl } : null,
+      clockMs: room.clockMs ? { ...room.clockMs } : null,
+      lastMoveAt: room.lastMoveAt ? new Date(room.lastMoveAt) : null,
       createdAt: now,
       updatedAt: now,
     };
@@ -298,6 +326,9 @@ export class InMemoryGameRoomStore implements GameRoomStore {
       rematch: cloneRematch(room.rematch),
       takeback: cloneTakeback(room.takeback),
       seats: cloneSeats(room.seats),
+      timeControl: room.timeControl ? { ...room.timeControl } : null,
+      clockMs: room.clockMs ? { ...room.clockMs } : null,
+      lastMoveAt: room.lastMoveAt ? new Date(room.lastMoveAt) : null,
       createdAt: new Date(existingRoom.createdAt),
       updatedAt: new Date(),
     };

@@ -13,6 +13,7 @@ import {
   PlayerColor,
   PlayerIdentity,
   PlayerSlot,
+  TimeControl,
   confirmPendingJump,
   createInitialGameState,
   forfeitGame,
@@ -45,6 +46,7 @@ type RoomConnections = Map<WebSocket, string>;
 type MatchmakingQueueEntry = {
   player: PlayerIdentity;
   queuedAt: number;
+  timeControl: TimeControl;
 };
 
 const GUEST_ABANDON_TIMEOUT_MS = 5 * 60 * 1000;
@@ -57,6 +59,7 @@ export class GameService {
   private readonly matchmakingQueue: MatchmakingQueueEntry[] = [];
   private readonly matchmakingMatches = new Map<string, string>();
   private readonly guestAbandonTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private readonly clockTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
   constructor(
     private readonly store: GameRoomStore = new MongoGameRoomStore(),
@@ -321,19 +324,68 @@ export class GameService {
         throw new GameServiceError(409, result.code, result.reason);
       }
 
+      // Clock logic: deduct elapsed time and add increment on turn change
+      let clockMs = room.clockMs ? { ...room.clockMs } : null;
+      let lastMoveAt = room.lastMoveAt;
+
+      if (clockMs && room.timeControl && room.status === "active" && lastMoveAt) {
+        const now = new Date();
+        const elapsed = now.getTime() - lastMoveAt.getTime();
+        const movingColor = room.state.currentTurn;
+
+        clockMs[movingColor] = Math.max(0, clockMs[movingColor] - elapsed);
+
+        // Check for time expiry
+        if (clockMs[movingColor] <= 0) {
+          const flagResult = forfeitGame(room.state, movingColor);
+          if (flagResult.ok) {
+            const flaggedRoom = await this.saveRoom({
+              ...room,
+              state: flagResult.value,
+              clockMs,
+              lastMoveAt: now,
+            });
+            this.clearClockTimer(room.id);
+            this.broadcastSnapshot(flaggedRoom);
+            return this.toSnapshot(flaggedRoom);
+          }
+        }
+
+        // Add increment when turn changes (place-piece or confirm-jump)
+        const turnChanged = result.value.currentTurn !== movingColor;
+        if (turnChanged && room.timeControl.incrementMs > 0) {
+          clockMs[movingColor] += room.timeControl.incrementMs;
+        }
+
+        lastMoveAt = now;
+      }
+
+      // Start the clock on first move if it hasn't been set
+      if (clockMs && room.timeControl && !lastMoveAt && room.status === "active") {
+        lastMoveAt = new Date();
+      }
+
       // Clear any pending takeback when a game action is made
       const savedRoom = await this.saveRoom({
         ...room,
         state: result.value,
         takeback: null,
+        clockMs,
+        lastMoveAt,
       });
+
+      // Schedule flag timer for the next player
+      this.scheduleClockTimer(savedRoom);
 
       this.broadcastSnapshot(savedRoom);
       return this.toSnapshot(savedRoom);
     });
   }
 
-  async enterMatchmaking(player: PlayerIdentity): Promise<MatchmakingState> {
+  async enterMatchmaking(
+    player: PlayerIdentity,
+    timeControl: TimeControl = null,
+  ): Promise<MatchmakingState> {
     return this.withLock(this.matchmakingLockKey(), async () => {
       // Clear any previous match so the player re-enters the queue
       // instead of being reconnected to the same game.
@@ -346,20 +398,21 @@ export class GameService {
         return {
           status: "searching",
           queuedAt: new Date(existingEntry.queuedAt).toISOString(),
+          timeControl: existingEntry.timeControl,
         };
       }
 
       await this.ensureGuestPlayerHasSingleOpenGame(player);
 
-      while (this.matchmakingQueue.length > 0) {
-        const opponentEntry = this.matchmakingQueue.shift();
-        if (!opponentEntry) {
-          break;
-        }
+      // Find a matching opponent with the same time control
+      const matchIndex = this.matchmakingQueue.findIndex(
+        (entry) =>
+          entry.player.playerId !== player.playerId &&
+          this.timeControlsMatch(entry.timeControl, timeControl),
+      );
 
-        if (opponentEntry.player.playerId === player.playerId) {
-          continue;
-        }
+      if (matchIndex >= 0) {
+        const opponentEntry = this.matchmakingQueue.splice(matchIndex, 1)[0];
 
         const snapshot = await this.withLocks(
           [
@@ -374,6 +427,7 @@ export class GameService {
               players: [opponentEntry.player, player],
               roomType: "matchmaking",
               assignSeats: true,
+              timeControl,
             });
 
             this.matchmakingMatches.set(opponentEntry.player.playerId, room.id);
@@ -393,13 +447,21 @@ export class GameService {
       this.matchmakingQueue.push({
         player,
         queuedAt,
+        timeControl,
       });
 
       return {
         status: "searching",
         queuedAt: new Date(queuedAt).toISOString(),
+        timeControl,
       };
     });
+  }
+
+  private timeControlsMatch(a: TimeControl, b: TimeControl): boolean {
+    if (a === null && b === null) return true;
+    if (a === null || b === null) return false;
+    return a.initialMs === b.initialMs && a.incrementMs === b.incrementMs;
   }
 
   async getMatchmakingState(player: PlayerIdentity): Promise<MatchmakingState> {
@@ -462,7 +524,11 @@ export class GameService {
     players: PlayerIdentity[];
     roomType: MultiplayerRoomType;
     assignSeats: boolean;
+    timeControl?: TimeControl;
   }): Promise<StoredMultiplayerRoom> {
+    const tc = options.timeControl ?? null;
+    const clockMs = tc ? { white: tc.initialMs, black: tc.initialMs } : null;
+
     for (let attempt = 0; attempt < 12; attempt += 1) {
       const room = this.deriveRoomStatus({
         id: this.generateRoomId(),
@@ -478,6 +544,9 @@ export class GameService {
               white: null,
               black: null,
             },
+        timeControl: tc,
+        clockMs,
+        lastMoveAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -492,6 +561,9 @@ export class GameService {
           rematch: room.rematch,
           takeback: room.takeback,
           seats: room.seats,
+          timeControl: room.timeControl,
+          clockMs: room.clockMs,
+          lastMoveAt: room.lastMoveAt,
         });
       } catch (error) {
         if (this.isDuplicateRoomError(error)) {
@@ -745,6 +817,36 @@ export class GameService {
         white: this.toSeatSlot(room, "white"),
         black: this.toSeatSlot(room, "black"),
       },
+      timeControl: room.timeControl,
+      clock: this.computeLiveClock(room),
+    };
+  }
+
+  /** Compute live remaining times by subtracting elapsed since lastMoveAt. */
+  private computeLiveClock(
+    room: StoredMultiplayerRoom,
+  ): { white: number; black: number; lastMoveAt: string } | null {
+    if (!room.clockMs || !room.timeControl) return null;
+
+    const white = room.clockMs.white;
+    const black = room.clockMs.black;
+    const lastMoveAt = room.lastMoveAt ?? room.createdAt;
+
+    // If game is active, deduct elapsed time from the current player
+    if (room.status === "active" && room.lastMoveAt) {
+      const elapsed = Date.now() - room.lastMoveAt.getTime();
+      const current = room.state.currentTurn;
+      return {
+        white: current === "white" ? Math.max(0, white - elapsed) : white,
+        black: current === "black" ? Math.max(0, black - elapsed) : black,
+        lastMoveAt: lastMoveAt.toISOString(),
+      };
+    }
+
+    return {
+      white,
+      black,
+      lastMoveAt: lastMoveAt.toISOString(),
     };
   }
 
@@ -1145,6 +1247,69 @@ export class GameService {
       });
     } catch {
       // Best-effort cleanup; don't crash the server.
+    }
+  }
+
+  // ─── Clock Timers ────────────────────────────────────────────────────
+
+  private scheduleClockTimer(room: StoredMultiplayerRoom): void {
+    this.clearClockTimer(room.id);
+
+    if (
+      !room.clockMs ||
+      !room.timeControl ||
+      room.status !== "active" ||
+      !room.lastMoveAt ||
+      isGameOver(room.state)
+    ) {
+      return;
+    }
+
+    const currentPlayer = room.state.currentTurn;
+    const remainingMs = room.clockMs[currentPlayer];
+
+    if (remainingMs <= 0) return;
+
+    const timer = setTimeout(async () => {
+      try {
+        await this.withLock(this.roomLockKey(room.id), async () => {
+          const freshRoom = await this.getRoom(room.id);
+          if (freshRoom.status !== "active" || isGameOver(freshRoom.state)) return;
+          if (!freshRoom.clockMs || !freshRoom.lastMoveAt) return;
+
+          const elapsed = Date.now() - freshRoom.lastMoveAt.getTime();
+          const playerTime = freshRoom.clockMs[freshRoom.state.currentTurn] - elapsed;
+
+          if (playerTime > 0) return; // Not actually expired
+
+          const flagColor = freshRoom.state.currentTurn;
+          const flagResult = forfeitGame(freshRoom.state, flagColor);
+          if (!flagResult.ok) return;
+
+          freshRoom.clockMs[flagColor] = 0;
+          const savedRoom = await this.saveRoom({
+            ...freshRoom,
+            state: flagResult.value,
+            clockMs: freshRoom.clockMs,
+            lastMoveAt: new Date(),
+          });
+
+          this.broadcastSnapshot(savedRoom);
+        });
+      } catch {
+        // Best-effort; don't crash the server.
+      }
+    }, remainingMs + 100); // Small buffer to avoid race conditions
+
+    timer.unref();
+    this.clockTimers.set(room.id, timer);
+  }
+
+  private clearClockTimer(roomId: string): void {
+    const timer = this.clockTimers.get(roomId);
+    if (timer) {
+      clearTimeout(timer);
+      this.clockTimers.delete(roomId);
     }
   }
 

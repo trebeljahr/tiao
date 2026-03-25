@@ -39,6 +39,7 @@ import {
   replayToMove,
 } from "@shared";
 import { MoveList, MoveListNavButtons } from "@/components/game/MoveList";
+import { GameClock } from "@/components/game/GameClock";
 import { cn } from "@/lib/utils";
 import { accessMultiplayerGame } from "@/lib/api";
 
@@ -455,6 +456,39 @@ export function MultiplayerGamePage({
                 <CardContent className="space-y-4">
                   {multiplayerSnapshot ? (
                     <>
+                      <div className="grid grid-cols-2 gap-3">
+                        <AnimatedScoreTile
+                          label="Black"
+                          value={
+                            (displayState ?? multiplayerSnapshot.state).score
+                              .black
+                          }
+                          pulseKey={0}
+                          className="rounded-3xl border border-black/10 bg-[linear-gradient(180deg,#39312b,#14100d)] p-4 text-[#f9f2e8]"
+                          labelClassName="text-xs uppercase tracking-wider"
+                        />
+                        <AnimatedScoreTile
+                          label="White"
+                          value={
+                            (displayState ?? multiplayerSnapshot.state).score
+                              .white
+                          }
+                          pulseKey={0}
+                          className="rounded-3xl border border-[#d3c3ad] bg-[linear-gradient(180deg,#fffef8,#efe4d1)] p-4 text-[#2b1e14]"
+                          labelClassName="text-xs uppercase tracking-wider"
+                        />
+                      </div>
+
+                      {multiplayerSnapshot.timeControl && (
+                        <GameClock
+                          clock={multiplayerSnapshot.clock}
+                          timeControl={multiplayerSnapshot.timeControl}
+                          currentTurn={multiplayerSnapshot.state.currentTurn}
+                          status={multiplayerSnapshot.status}
+                          playerSeat={playerSeat ?? null}
+                        />
+                      )}
+
                       {multiplayerSnapshot.status === "waiting" ? (
                         <>
                           <div className="grid grid-cols-2 gap-3">

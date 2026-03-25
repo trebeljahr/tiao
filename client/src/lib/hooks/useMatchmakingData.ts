@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { AuthResponse, MatchmakingState, MultiplayerSnapshot } from "@shared";
+import { AuthResponse, MatchmakingState, MultiplayerSnapshot, TimeControl } from "@shared";
 import { enterMatchmaking, leaveMatchmaking, getMatchmakingState } from "../api";
 import { toastError } from "../errors";
 
@@ -55,7 +55,7 @@ export function useMatchmakingData(
     pollTimerRef.current = window.setInterval(pollMatchmakingStatus, 2000);
   }, [pollMatchmakingStatus]);
 
-  const handleEnterMatchmaking = useCallback(async () => {
+  const handleEnterMatchmaking = useCallback(async (timeControl?: TimeControl) => {
     if (!auth) {
       return;
     }
@@ -63,7 +63,9 @@ export function useMatchmakingData(
     setMatchmakingBusy(true);
 
     try {
-      const response = await enterMatchmaking();
+      const response = await enterMatchmaking(
+        timeControl ? { timeControl } : undefined,
+      );
       setMatchmaking(response.matchmaking);
 
       if (response.matchmaking.status === "matched") {
