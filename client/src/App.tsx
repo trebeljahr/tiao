@@ -480,9 +480,14 @@ export function App() {
         position="top-right"
         toastOptions={{
           style: {
-            background: "rgba(54, 37, 21, 0.96)",
-            color: "#fff7ec",
-            border: "1px solid rgba(246, 228, 197, 0.2)",
+            background: "#f5e6d0",
+            color: "#4a3728",
+            border: "1px solid #dbc6a2",
+            boxShadow: "0 4px 16px rgba(74, 55, 40, 0.15)",
+          },
+          cancelButtonStyle: {
+            background: "rgba(74, 55, 40, 0.1)",
+            color: "#6e5b48",
           },
         }}
       />
