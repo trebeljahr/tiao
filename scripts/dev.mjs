@@ -27,9 +27,7 @@ async function findRandomFreePort(min, max, maxAttempts = 20) {
       return port;
     }
   }
-  throw new Error(
-    `Could not find a free port in range ${min}-${max} after ${maxAttempts} attempts`,
-  );
+  throw new Error(`Could not find a free port in range ${min}-${max} after ${maxAttempts} attempts`);
 }
 
 const clientPort = await findRandomFreePort(3000, 4000);
@@ -41,8 +39,8 @@ console.log(`  Server: http://127.0.0.1:${apiPort}\n`);
 try {
   execSync(
     `npx concurrently -k -n client,server -c yellow,cyan` +
-      ` "PORT=${clientPort} API_PORT=${apiPort} npm --prefix client run dev"` +
-      ` "PORT=${apiPort} npm --prefix server run dev"`,
+    ` "PORT=${clientPort} API_PORT=${apiPort} npm --prefix client run dev"` +
+    ` "PORT=${apiPort} npm --prefix server run dev"`,
     { stdio: "inherit" },
   );
 } catch {
