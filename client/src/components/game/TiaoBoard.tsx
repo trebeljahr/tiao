@@ -494,11 +494,11 @@ export function TiaoBoard({
               ) : isSelected ? (
                 <span className="pointer-events-none absolute inset-[6.5%] rounded-full border-[2.5px] border-[#72572e]/95 shadow-[0_0_0_4px_rgba(114,87,46,0.2)]" />
               ) : isLastMove && piece ? (
-                <span className="pointer-events-none absolute inset-[3%] rounded-full border-[2.5px] border-[#c4963c]/70 shadow-[0_0_0_3px_rgba(196,150,60,0.18)]" />
+                <span className="pointer-events-none absolute inset-[3%] rounded-full border-[2.5px] border-[#4a8ac4]/70 shadow-[0_0_0_3px_rgba(74,138,196,0.18)]" />
               ) : null}
 
               {isLastMove && !piece ? (
-                <span className="pointer-events-none absolute inset-[35%] rounded-full bg-[#c4963c]/30" />
+                <span className="pointer-events-none absolute inset-[35%] rounded-full bg-[#4a8ac4]/30" />
               ) : null}
 
               {piece ? (
@@ -592,7 +592,7 @@ export function TiaoBoard({
               orient="auto"
               markerUnits="strokeWidth"
             >
-              <path d="M0 0L8 4L0 8L2.15 4Z" fill="#c4963c" fillOpacity="0.85" />
+              <path d="M0 0L8 4L0 8L2.15 4Z" fill="#4a8ac4" fillOpacity="0.85" />
             </marker>
           </defs>
 
@@ -670,7 +670,7 @@ export function TiaoBoard({
                   y1={segment.startY}
                   x2={segment.endX}
                   y2={segment.endY}
-                  stroke="#a07930"
+                  stroke="#365f8a"
                   strokeOpacity="0.5"
                   strokeWidth="3.15"
                   strokeLinecap="round"
@@ -681,7 +681,7 @@ export function TiaoBoard({
                   y1={segment.startY}
                   x2={segment.endX}
                   y2={segment.endY}
-                  stroke="#c4963c"
+                  stroke="#4a8ac4"
                   strokeOpacity="0.7"
                   strokeWidth="2.45"
                   strokeLinecap="round"
