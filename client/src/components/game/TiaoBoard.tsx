@@ -4,6 +4,7 @@ import {
   BOARD_SIZE,
   GameState,
   Position,
+  TurnRecord,
   arePositionsEqual,
   getPendingJumpDestination,
   getSelectableJumpOrigins,
@@ -11,12 +12,15 @@ import {
 } from "@shared";
 import { cn } from "@/lib/utils";
 
+export type LastMoveHighlight = TurnRecord | null;
+
 type TiaoBoardProps = {
   state: GameState;
   selectedPiece: Position | null;
   jumpTargets: Position[];
   disabled?: boolean;
   confirmReady?: boolean;
+  lastMove?: LastMoveHighlight;
   onPointClick: (position: Position) => void;
   onUndoLastJump?: () => void;
 };
@@ -285,10 +289,26 @@ export function TiaoBoard({
   jumpTargets,
   disabled = false,
   confirmReady = true,
+  lastMove,
   onPointClick,
   onUndoLastJump,
 }: TiaoBoardProps) {
   const jumpTrailMarkerId = "tiao-jump-trail-arrow";
+
+  // Compute last-move highlight positions
+  const lastMovePositions = new Set<string>();
+  if (lastMove) {
+    if (lastMove.type === "put") {
+      lastMovePositions.add(getPositionKey(lastMove.position));
+    } else if (lastMove.type === "jump") {
+      for (const step of lastMove.jumps) {
+        lastMovePositions.add(getPositionKey(step.to));
+      }
+      if (lastMove.jumps.length > 0) {
+        lastMovePositions.add(getPositionKey(lastMove.jumps[0].from));
+      }
+    }
+  }
   const forcedJumpOrigin = getPendingJumpDestination(state);
   const activeOrigin = forcedJumpOrigin ?? selectedPiece;
   const hasPendingJump = state.pendingJump.length > 0;
@@ -601,6 +621,7 @@ export function TiaoBoard({
           const isMarkedForCapture = isPositionMarkedForCapture(state, position);
           const isSelectableOrigin = selectableOrigins.includes(pieceKey);
           const isHoveredEmpty = !piece && hoveredEmptyKey === pieceKey && !disabled && !activeOrigin && !IS_TOUCH_DEVICE;
+          const isLastMove = lastMovePositions.has(pieceKey);
 
           return (
             <button
@@ -682,6 +703,12 @@ export function TiaoBoard({
                 <span className="pointer-events-none absolute inset-[4.5%] rounded-full border-[3px] border-[#8c6326] shadow-[0_0_0_2.5px_rgba(214,176,112,0.84)]" />
               ) : isSelected ? (
                 <span className="pointer-events-none absolute inset-[6.5%] rounded-full border-[2.5px] border-[#72572e]/95 shadow-[0_0_0_4px_rgba(114,87,46,0.2)]" />
+              ) : isLastMove && piece ? (
+                <span className="pointer-events-none absolute inset-[3%] rounded-full border-[2.5px] border-[#c4963c]/70 shadow-[0_0_0_3px_rgba(196,150,60,0.18)]" />
+              ) : null}
+
+              {isLastMove && !piece ? (
+                <span className="pointer-events-none absolute inset-[35%] rounded-full bg-[#c4963c]/30" />
               ) : null}
 
               {piece ? (
