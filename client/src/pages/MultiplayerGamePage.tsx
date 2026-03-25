@@ -880,17 +880,11 @@ export function MultiplayerGamePage({
                                     variant="outline"
                                     onClick={() => navigate("/")}
                                   >
-                                    Leave
+                                    Lobby
                                   </Button>
                                 )}
                               </div>
                             )}
-                            <Button
-                              variant="ghost"
-                              onClick={() => navigate("/")}
-                            >
-                              Back to lobby
-                            </Button>
                           </div>
                         )}
 
