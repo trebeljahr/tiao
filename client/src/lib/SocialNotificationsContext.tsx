@@ -79,7 +79,13 @@ export function SocialNotificationsProvider({
 
   // Subscribe to lobby socket for social-update messages
   useLobbyMessage((payload) => {
-    if (payload.type !== "social-update" || !payload.overview) return;
+    if (payload.type !== "social-update") return;
+
+    // If no overview is included, re-fetch from the server
+    if (!payload.overview) {
+      void fetchOverview();
+      return;
+    }
 
     const nextOverview = payload.overview as SocialOverview;
 

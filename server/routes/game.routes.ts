@@ -61,6 +61,49 @@ async function acceptPendingInvitationsForPlayer(
 }
 
 /**
+ * When a second player joins a game, revoke ALL remaining pending invitations
+ * for that gameId and notify affected players so their UIs update in real time.
+ */
+async function revokeAllPendingInvitationsForGame(gameId: string) {
+  if (mongoose.connection.readyState !== 1) {
+    return;
+  }
+
+  const normalizedGameId = gameId.trim().toUpperCase();
+
+  const pendingInvitations = await GameInvitation.find({
+    gameId: normalizedGameId,
+    status: "pending",
+    expiresAt: { $gt: new Date() },
+  });
+
+  if (pendingInvitations.length === 0) return;
+
+  await GameInvitation.updateMany(
+    {
+      gameId: normalizedGameId,
+      status: "pending",
+      expiresAt: { $gt: new Date() },
+    },
+    { $set: { status: "revoked" } }
+  );
+
+  // Collect unique player IDs that need a social-update notification
+  const affectedPlayerIds = new Set<string>();
+  for (const inv of pendingInvitations) {
+    affectedPlayerIds.add(inv.senderId.toString());
+    affectedPlayerIds.add(inv.recipientId.toString());
+  }
+
+  // Notify each affected player via lobby websocket
+  for (const playerId of affectedPlayerIds) {
+    gameService["broadcastLobby"](playerId, {
+      type: "social-update",
+    });
+  }
+}
+
+/**
  * @openapi
  * /api/games:
  *   get:
@@ -184,6 +227,12 @@ router.post("/games/:gameId/join", async (req: Request, res: Response) => {
 
   try {
     const snapshot = await gameService.joinGame(req.params.gameId, player);
+
+    // When the game is now active (2 players joined), revoke all remaining invites
+    if (snapshot.status === "active") {
+      void revokeAllPendingInvitationsForGame(snapshot.gameId);
+    }
+
     return res.status(200).json({ snapshot });
   } catch (error) {
     return respondWithGameServiceError(
@@ -235,6 +284,11 @@ router.post("/games/:gameId/access", async (req: Request, res: Response) => {
 
     if (player.kind === "account") {
       await acceptPendingInvitationsForPlayer(snapshot.gameId, player.playerId);
+    }
+
+    // When the game is now active (2 players joined), revoke all remaining invites
+    if (snapshot.status === "active") {
+      void revokeAllPendingInvitationsForGame(snapshot.gameId);
     }
 
     return res.status(200).json({ snapshot });
