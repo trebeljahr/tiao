@@ -32,3 +32,6 @@
 
 # vercel
 **/.vercel
+
+# claude code
+.claude/worktrees/
