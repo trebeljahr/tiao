@@ -556,7 +556,7 @@ export function AnimatedScoreTile({
         </>
       )}
       <p className={labelClassName}>{label}</p>
-      <div className="flex items-baseline gap-2">
+      <div className="flex items-baseline justify-between gap-2">
         <motion.p
           initial={{ scale: 1, y: 0 }}
           animate={valueControls}
@@ -567,7 +567,7 @@ export function AnimatedScoreTile({
         {clockMs != null && (
           <span
             className={cn(
-              "font-mono text-sm tabular-nums opacity-70",
+              "font-mono text-xl tabular-nums opacity-70",
               clockActive && "opacity-100",
               clockMs < 10_000 && clockMs > 0 && "text-red-400 font-bold opacity-100",
               clockMs < 30_000 && clockMs >= 10_000 && "text-amber-400 font-semibold opacity-100",

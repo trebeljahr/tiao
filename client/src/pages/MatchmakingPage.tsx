@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import type { AuthResponse, MultiplayerSnapshot, TimeControl } from "@shared";
@@ -25,10 +25,11 @@ export function MatchmakingPage({ auth, onOpenAuth, onLogout }: MatchmakingPageP
   const location = useLocation();
   const locationTimeControl = (location.state as { timeControl?: TimeControl })?.timeControl ?? null;
   const [navOpen, setNavOpen] = useState(false);
+  const cancelledRef = useRef(false);
 
-  const onMatched = (snapshot: MultiplayerSnapshot) => {
+  const onMatched = useCallback((snapshot: MultiplayerSnapshot) => {
     navigate(`/game/${snapshot.gameId}`);
-  };
+  }, [navigate]);
 
   const {
     matchmaking,
@@ -38,7 +39,7 @@ export function MatchmakingPage({ auth, onOpenAuth, onLogout }: MatchmakingPageP
   } = useMatchmakingData(auth, onMatched);
 
   useEffect(() => {
-    if (auth && matchmaking.status === "idle" && !matchmakingBusy) {
+    if (auth && matchmaking.status === "idle" && !matchmakingBusy && !cancelledRef.current) {
       void handleEnterMatchmaking(locationTimeControl);
     }
   }, [auth, matchmaking.status, matchmakingBusy, handleEnterMatchmaking, locationTimeControl]);
@@ -101,7 +102,7 @@ export function MatchmakingPage({ auth, onOpenAuth, onLogout }: MatchmakingPageP
                   </p>
                   <Button
                     variant="outline"
-                    onClick={handleCancelMatchmaking}
+                    onClick={async () => { cancelledRef.current = true; await handleCancelMatchmaking(); navigate("/"); }}
                     disabled={matchmakingBusy}
                   >
                     Cancel Search

@@ -70,7 +70,6 @@ export function useMatchmakingData(
 
       if (response.matchmaking.status === "matched") {
         onMatched(response.matchmaking.snapshot);
-        await stopMatchmaking({ silent: true });
       } else if (response.matchmaking.status === "searching") {
         startPolling();
       }

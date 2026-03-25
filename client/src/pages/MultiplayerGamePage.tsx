@@ -199,6 +199,7 @@ export function MultiplayerGamePage({
     multiplayerSnapshot?.status ?? "waiting",
   );
   const yourClockMs = playerSeat ? (playerSeat === "white" ? whiteTime : blackTime) : null;
+  const activeClockMs = multiplayerSnapshot?.state.currentTurn === "white" ? whiteTime : blackTime;
   const hasClock = !!multiplayerSnapshot?.timeControl;
 
   const isMultiplayerParticipant = !!playerSeat;
@@ -490,25 +491,32 @@ export function MultiplayerGamePage({
                             : "Reconnecting"}
                         </motion.div>
                       ) : multiplayerYourTurn ? (
-                        <motion.div
-                          initial={{ opacity: 0, y: -8, scale: 0.96 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          className="flex items-center rounded-full border border-[#b8cc8f] bg-[#f7fce9]/96 px-3 py-2 text-sm font-semibold text-[#56703f] shadow-[0_16px_28px_-22px_rgba(63,92,32,0.42)] backdrop-blur"
-                        >
-                          Your move
-                          {hasClock && yourClockMs != null && (
-                            <InlineClockBadge timeMs={yourClockMs} />
+                        <div className="flex items-center gap-2">
+                          {hasClock && (
+                            <InlineClockBadge timeMs={activeClockMs} className="ml-0 text-base" />
                           )}
-                        </motion.div>
+                          <motion.div
+                            initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            className="flex items-center rounded-full border border-[#b8cc8f] bg-[#f7fce9]/96 px-3 py-2 text-sm font-semibold text-[#56703f] shadow-[0_16px_28px_-22px_rgba(63,92,32,0.42)] backdrop-blur"
+                          >
+                            Your move
+                          </motion.div>
+                        </div>
                       ) : multiplayerWaitingOnOpponent ? (
-                        <motion.div
-                          initial={{ opacity: 0, y: -8, scale: 0.96 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          className="flex items-center gap-2 rounded-full border border-[#d8c29c] bg-[#fff8ee]/96 px-3 py-2 text-sm font-semibold text-[#5d4732] shadow-[0_16px_28px_-22px_rgba(67,45,24,0.5)] backdrop-blur"
-                        >
-                          <HourglassSpinner className="text-[#7b5f3f]" />
-                          Waiting For Opponent To Move
-                        </motion.div>
+                        <div className="flex items-center gap-2">
+                          {hasClock && (
+                            <InlineClockBadge timeMs={activeClockMs} className="ml-0 text-base" />
+                          )}
+                          <motion.div
+                            initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            className="flex items-center gap-2 rounded-full border border-[#d8c29c] bg-[#fff8ee]/96 px-3 py-2 text-sm font-semibold text-[#5d4732] shadow-[0_16px_28px_-22px_rgba(67,45,24,0.5)] backdrop-blur"
+                          >
+                            <HourglassSpinner className="text-[#7b5f3f]" />
+                            Waiting For Opponent To Move
+                          </motion.div>
+                        </div>
                       ) : null}
                     </div>
                   </div>
