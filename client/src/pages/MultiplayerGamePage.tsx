@@ -244,11 +244,6 @@ export function MultiplayerGamePage({ auth, onOpenAuth, onLogout }: MultiplayerG
         navOpen={navOpen}
         onToggleNav={() => setNavOpen((v) => !v)}
         onCloseNav={() => setNavOpen(false)}
-        onGoLobby={() => navigate("/")}
-        onGoOverTheBoard={() => navigate("/local")}
-        onGoMultiplayer={() => {}}
-        onGoComputer={() => navigate("/computer")}
-        onGoProfile={() => navigate("/profile")}
         onOpenAuth={onOpenAuth}
         onLogout={onLogout}
       />

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { useSocialNotifications } from "@/lib/SocialNotificationsContext";
 
 export type AuthDialogMode = "login" | "signup";
-export type NavbarMode = "lobby" | "local" | "computer" | "multiplayer" | "profile";
+export type NavbarMode = "lobby" | "local" | "computer" | "multiplayer";
 
 type NavbarProps = {
   mode: NavbarMode;

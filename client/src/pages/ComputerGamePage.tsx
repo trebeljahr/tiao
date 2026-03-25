@@ -63,11 +63,6 @@ export function ComputerGamePage({
         navOpen={navOpen}
         onToggleNav={() => setNavOpen((v) => !v)}
         onCloseNav={() => setNavOpen(false)}
-        onGoLobby={() => navigate("/")}
-        onGoOverTheBoard={() => navigate("/local")}
-        onGoMultiplayer={() => navigate("/multiplayer")}
-        onGoComputer={() => {}}
-        onGoProfile={() => navigate("/profile")}
         onOpenAuth={onOpenAuth}
         onLogout={onLogout}
       />

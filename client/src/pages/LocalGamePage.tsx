@@ -59,11 +59,6 @@ export function LocalGamePage({ auth, onOpenAuth, onLogout }: LocalGamePageProps
         navOpen={navOpen}
         onToggleNav={() => setNavOpen((v) => !v)}
         onCloseNav={() => setNavOpen(false)}
-        onGoLobby={() => navigate("/")}
-        onGoOverTheBoard={() => {}}
-        onGoMultiplayer={() => navigate("/multiplayer")}
-        onGoComputer={() => navigate("/computer")}
-        onGoProfile={() => navigate("/profile")}
         onOpenAuth={onOpenAuth}
         onLogout={onLogout}
       />
