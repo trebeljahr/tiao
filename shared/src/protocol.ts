@@ -162,6 +162,9 @@ export type GameActionMessage =
       type: "decline-rematch";
     }
   | {
+      type: "cancel-rematch";
+    }
+  | {
       type: "request-takeback";
     }
   | {

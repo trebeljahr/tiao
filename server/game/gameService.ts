@@ -223,7 +223,21 @@ export class GameService {
       return;
     }
 
-    const derivedRoom = this.deriveRoomStatus(room);
+    let derivedRoom = this.deriveRoomStatus(room);
+
+    // Auto-revoke rematch request when the requester disconnects from a finished game
+    if (
+      disconnectedPlayerId &&
+      derivedRoom.status === "finished" &&
+      derivedRoom.rematch?.requestedBy.length &&
+      !this.isPlayerOnline(roomId, disconnectedPlayerId)
+    ) {
+      const playerColor = getPlayerColorForRoom(derivedRoom, disconnectedPlayerId);
+      if (playerColor && derivedRoom.rematch.requestedBy.includes(playerColor)) {
+        derivedRoom = await this.saveRoom({ ...derivedRoom, rematch: null });
+      }
+    }
+
     this.broadcastSnapshot(derivedRoom);
 
     // Start abandon timer for guest players who fully disconnect from an active game
@@ -267,6 +281,11 @@ export class GameService {
         }
         case "decline-rematch": {
           const savedRoom = await this.declineRematch(room, playerColor);
+          this.broadcastSnapshot(savedRoom);
+          return this.toSnapshot(savedRoom);
+        }
+        case "cancel-rematch": {
+          const savedRoom = await this.cancelRematch(room, playerColor);
           this.broadcastSnapshot(savedRoom);
           return this.toSnapshot(savedRoom);
         }
@@ -930,6 +949,7 @@ export class GameService {
         players: [whitePlayer, blackPlayer],
         roomType: room.roomType,
         assignSeats: true,
+        timeControl: room.timeControl ?? undefined,
       });
 
       // Notify all connections on the OLD room about the new game
@@ -993,6 +1013,30 @@ export class GameService {
         "NO_REMATCH_REQUEST",
         "There is no incoming rematch request to decline."
       );
+    }
+
+    return this.saveRoom({
+      ...room,
+      rematch: null,
+    });
+  }
+
+  private async cancelRematch(
+    room: StoredMultiplayerRoom,
+    playerColor: PlayerColor
+  ): Promise<StoredMultiplayerRoom> {
+    if (room.status !== "finished") {
+      throw new GameServiceError(
+        409,
+        "GAME_NOT_FINISHED",
+        "Cannot cancel a rematch on a game that is not finished."
+      );
+    }
+
+    const myRequestExists = (room.rematch?.requestedBy ?? []).includes(playerColor);
+    if (!myRequestExists) {
+      // Nothing to cancel — no-op, just return current state
+      return room;
     }
 
     return this.saveRoom({

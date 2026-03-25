@@ -240,13 +240,42 @@ export function MultiplayerGamePage({
     if (opponentRequested && !weAlreadyRequested && !lastRematchToastRef.current) {
       lastRematchToastRef.current = true;
       toast("Opponent wants a rematch!", {
-        description: "Accept or decline in the game panel.",
+        action: {
+          label: "Accept",
+          onClick: () => sendMultiplayerMessage({ type: "request-rematch" }),
+        },
+        cancel: {
+          label: "Decline",
+          onClick: () => sendMultiplayerMessage({ type: "decline-rematch" }),
+        },
+        duration: Infinity,
       });
     }
     if (!opponentRequested) {
+      if (lastRematchToastRef.current) {
+        toast.dismiss();
+      }
       lastRematchToastRef.current = false;
     }
-  }, [multiplayerSnapshot?.rematch?.requestedBy, playerSeat]);
+  }, [multiplayerSnapshot?.rematch?.requestedBy, playerSeat, sendMultiplayerMessage]);
+
+  // Cancel our outgoing rematch request when navigating away or unmounting
+  const weRequestedRematchRef = useRef(false);
+  useEffect(() => {
+    weRequestedRematchRef.current = !!(
+      playerSeat &&
+      multiplayerSnapshot?.status === "finished" &&
+      multiplayerSnapshot.rematch?.requestedBy.includes(playerSeat as PlayerColor)
+    );
+  }, [multiplayerSnapshot?.rematch?.requestedBy, multiplayerSnapshot?.status, playerSeat]);
+
+  useEffect(() => {
+    return () => {
+      if (weRequestedRematchRef.current) {
+        sendMultiplayerMessage({ type: "cancel-rematch" });
+      }
+    };
+  }, [sendMultiplayerMessage]);
 
   const multiplayerYourTurn =
     multiplayerSnapshot?.status === "active" &&
@@ -788,7 +817,8 @@ export function MultiplayerGamePage({
 
                       {winner &&
                         isMultiplayerParticipant &&
-                        connectionState === "connected" && (
+                        connectionState === "connected" &&
+                        multiplayerSnapshot.seats[playerSeat === "white" ? "black" : "white"]?.online && (
                           <div className="grid gap-2 border-t border-[#dbc6a2] pt-4">
                             {multiplayerSnapshot.rematch?.requestedBy.includes(
                               playerSeat as PlayerColor,

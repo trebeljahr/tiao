@@ -359,6 +359,23 @@ export function useMultiplayerGame(
 
   reconnectToCurrentRoomRef.current = reconnectToCurrentRoom;
 
+  // When gameId changes (e.g. rematch navigation), close old socket and reset state
+  // so the page's load effect can connect to the new game.
+  const prevGameIdRef = useRef(gameId);
+  useEffect(() => {
+    if (prevGameIdRef.current !== gameId && prevGameIdRef.current !== null) {
+      reconnectRef.current.clear();
+      const socket = socketRef.current;
+      socketRef.current = null;
+      socket?.close();
+      setConnectionState("idle");
+      setMultiplayerSnapshot(null);
+      setMultiplayerSelection(null);
+      setMultiplayerError(null);
+    }
+    prevGameIdRef.current = gameId;
+  }, [gameId]);
+
   useEffect(() => {
     return () => {
       reconnectRef.current.clear();
