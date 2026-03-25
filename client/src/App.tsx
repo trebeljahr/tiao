@@ -14,6 +14,7 @@ import {
   signUpWithEmail,
 } from "@/lib/api";
 import { isNetworkError, readableError, toastError } from "@/lib/errors";
+import { SocialNotificationsProvider } from "@/lib/SocialNotificationsContext";
 import { LobbyPage } from "./pages/LobbyPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { LocalGamePage } from "./pages/LocalGamePage";
@@ -210,6 +211,7 @@ export function App() {
   }
 
   return (
+    <SocialNotificationsProvider auth={auth}>
     <div className="min-h-screen bg-background text-foreground">
       <main className="min-h-screen">
         <Routes>
@@ -461,5 +463,6 @@ export function App() {
         }}
       />
     </div>
+    </SocialNotificationsProvider>
   );
 }

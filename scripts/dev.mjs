@@ -1,6 +1,8 @@
 #!/usr/bin/env node
-// Finds free ports for both client and server, then starts both via concurrently.
-// Handles port collisions automatically so multiple worktrees can run simultaneously.
+// Starts both client and server for preview/worktree environments.
+// Finds truly free ports by probing 127.0.0.1 (matching Vite and Express).
+// Accepts PORT from the preview system as a starting preference but will
+// search upward if it's already taken.
 
 import { createServer } from "net";
 import { execSync } from "child_process";
@@ -8,19 +10,15 @@ import { execSync } from "child_process";
 function findFreePort(preferred) {
   return new Promise((resolve) => {
     const server = createServer();
-    // Listen without specifying a host (binds to ::) to match how the
-    // Express server binds — avoids false positives from 127.0.0.1-only checks.
-    server.listen(preferred, () => {
+    server.listen(preferred, "127.0.0.1", () => {
       server.close(() => resolve(preferred));
     });
     server.on("error", () => resolve(findFreePort(preferred + 1)));
   });
 }
 
-const preferredClient = parseInt(process.env.PORT || "3000", 10);
-const clientPort = await findFreePort(preferredClient);
-// Start searching for API port above the client port to avoid overlap
-const apiPort = await findFreePort(clientPort === preferredClient ? 5005 : clientPort + 1);
+const clientPort = await findFreePort(parseInt(process.env.PORT || "3000", 10));
+const apiPort = await findFreePort(clientPort + 1);
 
 console.log(`\n  Client: http://127.0.0.1:${clientPort}`);
 console.log(`  Server: http://127.0.0.1:${apiPort}\n`);

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import type { AuthResponse } from "@shared";
@@ -48,18 +48,14 @@ export function GamesPage({ auth, onOpenAuth, onLogout }: GamesPageProps) {
   const paperCard =
     "border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]";
 
+  useEffect(() => {
+    if (!auth || auth.player.kind !== "account") {
+      navigate("/", { replace: true });
+    }
+  }, [auth, navigate]);
+
   if (!auth || auth.player.kind !== "account") {
-    return (
-      <div className="relative min-h-screen overflow-hidden">
-        <Navbar mode="lobby" auth={auth} navOpen={navOpen} onToggleNav={() => setNavOpen(!navOpen)} onCloseNav={() => setNavOpen(false)} onGoLobby={() => navigate("/")} onGoOverTheBoard={() => navigate("/local")} onGoMultiplayer={() => navigate("/multiplayer")} onGoComputer={() => navigate("/computer")} onGoProfile={() => navigate("/profile")} onOpenAuth={onOpenAuth} onLogout={onLogout} />
-        <main className="mx-auto max-w-2xl px-4 pt-32">
-          <Card className={paperCard}>
-            <CardHeader><CardTitle>Account Required</CardTitle></CardHeader>
-            <CardContent><p>Please sign in to view your games.</p><Button className="mt-4" onClick={() => onOpenAuth("login")}>Sign In</Button></CardContent>
-          </Card>
-        </main>
-      </div>
-    );
+    return null;
   }
 
   return (

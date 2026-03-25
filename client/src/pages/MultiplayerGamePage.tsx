@@ -347,6 +347,20 @@ export function MultiplayerGamePage({ auth, onOpenAuth, onLogout }: MultiplayerG
                             const seat = multiplayerSnapshot.seats[color];
                             const isYourSeat = seat?.player.playerId === auth?.player.playerId;
                             const isCurrentTurn = multiplayerSnapshot.state.currentTurn === color;
+                            const isAccount = auth?.player.kind === "account";
+                            const opponentId = seat?.player.playerId;
+
+                            // Determine friend relationship for non-self seats
+                            const isFriend = !isYourSeat && opponentId
+                              ? social.socialOverview.friends.some(f => f.playerId === opponentId)
+                              : false;
+                            const hasPendingOutgoing = !isYourSeat && opponentId
+                              ? social.socialOverview.outgoingFriendRequests.some(f => f.playerId === opponentId)
+                              : false;
+                            const hasPendingIncoming = !isYourSeat && opponentId
+                              ? social.socialOverview.incomingFriendRequests.some(f => f.playerId === opponentId)
+                              : false;
+                            const canBefriend = isAccount && !isYourSeat && seat && seat.player.kind === "account" && !isFriend && !hasPendingOutgoing && !hasPendingIncoming;
 
                             return (
                               <div key={color} className={cn("flex items-center justify-between gap-3 rounded-3xl border px-4 py-3", isCurrentTurn ? "border-[#b8cc8f] bg-[#f7fce9]" : "border-[#d8c29c] bg-[#fffaf1]")}>
@@ -357,7 +371,26 @@ export function MultiplayerGamePage({ auth, onOpenAuth, onLogout }: MultiplayerG
                                     <p className="text-sm text-[#7a6656]">{seat ? formatPlayerName(seat.player, auth?.player.playerId) : "Empty"}</p>
                                   </div>
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex items-center gap-2">
+                                  {canBefriend && (
+                                    <button
+                                      type="button"
+                                      title={`Send friend request to ${seat.player.displayName}`}
+                                      className="flex h-7 w-7 items-center justify-center rounded-full border border-[#d0bb94] bg-[#fff8ee] text-[#7b6550] transition-colors hover:bg-[#f4e8d2] hover:text-[#3a2818]"
+                                      onClick={() => social.handleSendFriendRequest(seat.player.playerId)}
+                                      disabled={social.socialActionBusyKey === `friend-send:${seat.player.playerId}`}
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+                                        <path d="M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM2.046 15.253c-.058.468.172.92.57 1.175A9.953 9.953 0 0 0 8 18c1.982 0 3.83-.578 5.384-1.573.398-.254.628-.707.57-1.175a6.001 6.001 0 0 0-11.908 0ZM15.75 6.5a.75.75 0 0 0-1.5 0v2h-2a.75.75 0 0 0 0 1.5h2v2a.75.75 0 0 0 1.5 0v-2h2a.75.75 0 0 0 0-1.5h-2v-2Z" />
+                                      </svg>
+                                    </button>
+                                  )}
+                                  {!isYourSeat && hasPendingOutgoing && (
+                                    <Badge variant="outline" className="text-[#8d7760] text-xs">Pending</Badge>
+                                  )}
+                                  {!isYourSeat && isFriend && (
+                                    <Badge variant="outline" className="text-[#43513f] text-xs">Friend</Badge>
+                                  )}
                                   {isYourSeat && (
                                     <Badge className="bg-[#eee3cf] text-[#5f4932]">
                                       You

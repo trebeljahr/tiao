@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import type { AuthResponse } from "@shared";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useSocialNotifications } from "@/lib/SocialNotificationsContext";
 
 export type AuthDialogMode = "login" | "signup";
 export type NavbarMode = "lobby" | "local" | "computer" | "multiplayer" | "profile";
@@ -156,6 +157,8 @@ export function Navbar({
 }: NavbarProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { pendingFriendRequestCount } = useSocialNotifications();
+  const isAccount = auth?.player.kind === "account";
   const gameMode =
     mode === "local" || mode === "computer" || mode === "multiplayer";
   const minimalMode = gameMode || mode === "lobby";
@@ -174,11 +177,13 @@ export function Navbar({
       label: "Lobby",
       active: location.pathname === "/",
       onClick: () => handleNav("/"),
+      badge: 0,
     },
     {
       label: "Over the Board",
       active: location.pathname === "/local",
       onClick: () => handleNav("/local"),
+      badge: 0,
     },
     ...(location.pathname.startsWith("/game/")
       ? [
@@ -186,6 +191,7 @@ export function Navbar({
             label: "Multiplayer",
             active: true,
             onClick: () => {},
+            badge: 0,
           },
         ]
       : []),
@@ -193,17 +199,24 @@ export function Navbar({
       label: "Against computer",
       active: location.pathname === "/computer",
       onClick: () => handleNav("/computer"),
+      badge: 0,
     },
-    {
-      label: "Friends",
-      active: location.pathname === "/friends",
-      onClick: () => handleNav("/friends"),
-    },
-    {
-      label: "My Games",
-      active: location.pathname === "/games",
-      onClick: () => handleNav("/games"),
-    },
+    ...(isAccount
+      ? [
+          {
+            label: "Friends",
+            active: location.pathname === "/friends",
+            onClick: () => handleNav("/friends"),
+            badge: pendingFriendRequestCount,
+          },
+          {
+            label: "My Games",
+            active: location.pathname === "/games",
+            onClick: () => handleNav("/games"),
+            badge: 0,
+          },
+        ]
+      : []),
   ];
 
   const desktopNav = (
@@ -215,12 +228,17 @@ export function Navbar({
           size="sm"
           disabled={item.active}
           className={cn(
-            "justify-start px-3 text-[#28170e] disabled:opacity-100",
+            "relative justify-start px-3 text-[#28170e] disabled:opacity-100",
             item.active ? activeNavItemClasses : navItemClasses
           )}
           onClick={item.onClick}
         >
           {item.label}
+          {item.badge > 0 && (
+            <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#c0542e] px-1 text-[0.65rem] font-bold leading-none text-white">
+              {item.badge}
+            </span>
+          )}
         </Button>
       ))}
     </div>
@@ -294,6 +312,11 @@ export function Navbar({
             onClick={item.onClick}
           >
             {item.label}
+            {item.badge > 0 && (
+              <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#c0542e] px-1 text-[0.65rem] font-bold leading-none text-white">
+                {item.badge}
+              </span>
+            )}
           </Button>
         ))}
       </div>

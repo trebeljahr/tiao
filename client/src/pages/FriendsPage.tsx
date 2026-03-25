@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import type { AuthResponse } from "@shared";
@@ -32,18 +32,14 @@ export function FriendsPage({ auth, onOpenAuth, onLogout }: FriendsPageProps) {
   const paperCard =
     "border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]";
 
+  useEffect(() => {
+    if (!auth || auth.player.kind !== "account") {
+      navigate("/", { replace: true });
+    }
+  }, [auth, navigate]);
+
   if (!auth || auth.player.kind !== "account") {
-    return (
-      <div className="relative min-h-screen overflow-hidden">
-        <Navbar mode="lobby" auth={auth} navOpen={navOpen} onToggleNav={() => setNavOpen(!navOpen)} onCloseNav={() => setNavOpen(false)} onGoLobby={() => navigate("/")} onGoOverTheBoard={() => navigate("/local")} onGoMultiplayer={() => navigate("/multiplayer")} onGoComputer={() => navigate("/computer")} onGoProfile={() => navigate("/profile")} onOpenAuth={onOpenAuth} onLogout={onLogout} />
-        <main className="mx-auto max-w-2xl px-4 pt-32">
-          <Card className={paperCard}>
-            <CardHeader><CardTitle>Account Required</CardTitle></CardHeader>
-            <CardContent><p>Please sign in to manage friends.</p><Button className="mt-4" onClick={() => onOpenAuth("login")}>Sign In</Button></CardContent>
-          </Card>
-        </main>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -84,15 +80,19 @@ export function FriendsPage({ auth, onOpenAuth, onLogout }: FriendsPageProps) {
               </div>
               <div className="space-y-2">
                 {social.friendSearchResults.map((result) => (
-                  <div key={result.playerId} className="flex items-center justify-between p-2 rounded-xl bg-white/40">
+                  <div key={result.player.playerId} className="flex items-center justify-between p-2 rounded-xl bg-white/40">
                     <div className="flex items-center gap-2">
-                      <PlayerOverviewAvatar player={result} />
-                      <span className="text-sm font-medium">{result.displayName}</span>
+                      <PlayerOverviewAvatar player={result.player} />
+                      <span className="text-sm font-medium">{result.player.displayName}</span>
                     </div>
-                    {result.isFriend ? (
+                    {result.relationship === "friend" ? (
                       <Badge variant="outline">Friend</Badge>
+                    ) : result.relationship === "outgoing-request" ? (
+                      <Badge variant="outline" className="text-[#8d7760]">Pending</Badge>
+                    ) : result.relationship === "incoming-request" ? (
+                      <Button size="sm" onClick={() => social.handleAcceptFriendRequest(result.player.playerId)}>Accept</Button>
                     ) : (
-                      <Button size="sm" onClick={() => social.handleSendFriendRequest(result.playerId)}>Add</Button>
+                      <Button size="sm" onClick={() => social.handleSendFriendRequest(result.player.playerId)}>Add</Button>
                     )}
                   </div>
                 ))}
@@ -102,7 +102,7 @@ export function FriendsPage({ auth, onOpenAuth, onLogout }: FriendsPageProps) {
 
           <div className="space-y-5">
             <Card className={paperCard}>
-              <CardHeader><CardTitle>Incoming Requests</CardTitle></CardHeader>
+              <CardHeader><CardTitle>Pending</CardTitle></CardHeader>
               <CardContent className="space-y-2">
                 {social.socialOverview.incomingFriendRequests.map(req => (
                   <div key={req.playerId} className="flex items-center justify-between p-3 rounded-xl bg-white/40">
