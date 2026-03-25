@@ -206,6 +206,26 @@ export function createOptimisticSnapshot(
 
 // --- Components ---
 
+export function ConnectionDot({
+  online,
+  className,
+}: {
+  online: boolean;
+  className?: string;
+}) {
+  return (
+    <span
+      role="status"
+      aria-label={online ? "Player is online" : "Player is offline"}
+      className={cn(
+        "inline-block h-2.5 w-2.5 shrink-0 rounded-full",
+        online ? "bg-emerald-500" : "bg-stone-300",
+        className,
+      )}
+    />
+  );
+}
+
 export function PlayerOverviewAvatar({
   player,
   className,
@@ -379,6 +399,17 @@ export function GamePanelBrand() {
   );
 }
 
+type AnimatedScoreTilePlayerInfo = {
+  player: { displayName?: string; profilePicture?: string; playerId: string };
+  online: boolean;
+  isYou?: boolean;
+  isFriend?: boolean;
+  hasPendingOutgoing?: boolean;
+  canBefriend?: boolean;
+  onAddFriend?: () => void;
+  addFriendBusy?: boolean;
+};
+
 type AnimatedScoreTileProps = {
   label: string;
   value: number;
@@ -386,7 +417,7 @@ type AnimatedScoreTileProps = {
   className: string;
   labelClassName: string;
   valueClassName?: string;
-  avatar?: React.ReactNode;
+  playerInfo?: AnimatedScoreTilePlayerInfo;
 };
 
 export function AnimatedScoreTile({
@@ -396,7 +427,7 @@ export function AnimatedScoreTile({
   className,
   labelClassName,
   valueClassName = "mt-2 text-3xl font-semibold tabular-nums",
-  avatar,
+  playerInfo,
 }: AnimatedScoreTileProps) {
   const tileControls = useAnimationControls();
   const valueControls = useAnimationControls();
@@ -437,10 +468,52 @@ export function AnimatedScoreTile({
       className={className}
       style={{ transformOrigin: "center bottom" }}
     >
-      <div className="flex items-center gap-2">
-        {avatar}
-        <p className={labelClassName}>{label}</p>
-      </div>
+      {playerInfo && (
+        <div className="mb-2 flex items-center gap-2">
+          <ConnectionDot online={playerInfo.online} />
+          <PlayerOverviewAvatar
+            player={playerInfo.player}
+            className="h-6 w-6"
+          />
+          <span className="truncate text-xs font-semibold opacity-80">
+            {playerInfo.player.displayName ?? "Player"}
+          </span>
+          {playerInfo.isYou && (
+            <span className="shrink-0 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+              You
+            </span>
+          )}
+          {playerInfo.isFriend && (
+            <span className="shrink-0 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+              Friend
+            </span>
+          )}
+          {playerInfo.hasPendingOutgoing && (
+            <span className="shrink-0 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide opacity-70">
+              Pending
+            </span>
+          )}
+          {playerInfo.canBefriend && playerInfo.onAddFriend && (
+            <button
+              type="button"
+              title={`Send friend request to ${playerInfo.player.displayName}`}
+              className="ml-auto flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20 transition-colors hover:bg-white/35"
+              onClick={playerInfo.onAddFriend}
+              disabled={playerInfo.addFriendBusy}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                className="h-3 w-3"
+              >
+                <path d="M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM2.046 15.253c-.058.468.172.92.57 1.175A9.953 9.953 0 0 0 8 18c1.982 0 3.83-.578 5.384-1.573.398-.254.628-.707.57-1.175a6.001 6.001 0 0 0-11.908 0ZM15.75 6.5a.75.75 0 0 0-1.5 0v2h-2a.75.75 0 0 0 0 1.5h2v2a.75.75 0 0 0 1.5 0v-2h2a.75.75 0 0 0 0-1.5h-2v-2Z" />
+              </svg>
+            </button>
+          )}
+        </div>
+      )}
+      <p className={labelClassName}>{label}</p>
       <motion.p
         initial={{ scale: 1, y: 0 }}
         animate={valueControls}

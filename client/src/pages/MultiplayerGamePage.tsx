@@ -455,123 +455,109 @@ export function MultiplayerGamePage({
                 <CardContent className="space-y-4">
                   {multiplayerSnapshot ? (
                     <>
-                      <div className="grid grid-cols-2 gap-3">
-                        <AnimatedScoreTile
-                          label="Black"
-                          value={
-                            (displayState ?? multiplayerSnapshot.state).score
-                              .black
-                          }
-                          pulseKey={0}
-                          className="rounded-3xl border border-black/10 bg-[linear-gradient(180deg,#39312b,#14100d)] p-4 text-[#f9f2e8]"
-                          labelClassName="text-xs uppercase tracking-wider"
-                          avatar={multiplayerSnapshot.seats.black ? (
-                            <PlayerOverviewAvatar
-                              player={multiplayerSnapshot.seats.black.player}
-                              className="h-6 w-6"
-                            />
-                          ) : undefined}
-                        />
-                        <AnimatedScoreTile
-                          label="White"
-                          value={
-                            (displayState ?? multiplayerSnapshot.state).score
-                              .white
-                          }
-                          pulseKey={0}
-                          className="rounded-3xl border border-[#d3c3ad] bg-[linear-gradient(180deg,#fffef8,#efe4d1)] p-4 text-[#2b1e14]"
-                          labelClassName="text-xs uppercase tracking-wider"
-                          avatar={multiplayerSnapshot.seats.white ? (
-                            <PlayerOverviewAvatar
-                              player={multiplayerSnapshot.seats.white.player}
-                              className="h-6 w-6"
-                            />
-                          ) : undefined}
-                        />
-                      </div>
-
                       {multiplayerSnapshot.status === "waiting" ? (
-                        <div className="space-y-2">
-                          {Array.from({ length: 2 }, (_, index) => {
-                            const slot =
-                              multiplayerSnapshot.players[index] ?? null;
-                            return (
-                              <div
-                                key={`lobby-player-${index}`}
-                                className="flex items-center justify-between gap-3 rounded-3xl border border-[#d8c29c] bg-[#fffaf1] px-4 py-3"
-                              >
-                                <div className="flex items-center gap-3">
-                                  {slot ? (
-                                    <PlayerOverviewAvatar
-                                      player={slot.player}
-                                    />
-                                  ) : (
-                                    <EmptySeatAvatar />
-                                  )}
-                                  <div>
-                                    <p className="text-sm font-semibold text-[#2b1e14]">
-                                      {index === 0
-                                        ? "Lobby host"
-                                        : "Second player"}
-                                    </p>
-                                    <p className="text-sm text-[#7a6656]">
-                                      {slot
-                                        ? formatPlayerName(
-                                            slot.player,
-                                            auth?.player.playerId,
-                                          )
-                                        : "Waiting to join"}
-                                    </p>
+                        <>
+                          <div className="grid grid-cols-2 gap-3">
+                            <AnimatedScoreTile
+                              label="Black"
+                              value={
+                                (displayState ?? multiplayerSnapshot.state)
+                                  .score.black
+                              }
+                              pulseKey={0}
+                              className="rounded-3xl border border-black/10 bg-[linear-gradient(180deg,#39312b,#14100d)] p-4 text-[#f9f2e8]"
+                              labelClassName="text-xs uppercase tracking-wider"
+                            />
+                            <AnimatedScoreTile
+                              label="White"
+                              value={
+                                (displayState ?? multiplayerSnapshot.state)
+                                  .score.white
+                              }
+                              pulseKey={0}
+                              className="rounded-3xl border border-[#d3c3ad] bg-[linear-gradient(180deg,#fffef8,#efe4d1)] p-4 text-[#2b1e14]"
+                              labelClassName="text-xs uppercase tracking-wider"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            {Array.from({ length: 2 }, (_, index) => {
+                              const slot =
+                                multiplayerSnapshot.players[index] ?? null;
+                              return (
+                                <div
+                                  key={`lobby-player-${index}`}
+                                  className="flex items-center justify-between gap-3 rounded-3xl border border-[#d8c29c] bg-[#fffaf1] px-4 py-3"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    {slot ? (
+                                      <PlayerOverviewAvatar
+                                        player={slot.player}
+                                      />
+                                    ) : (
+                                      <EmptySeatAvatar />
+                                    )}
+                                    <div>
+                                      <p className="text-sm font-semibold text-[#2b1e14]">
+                                        {index === 0
+                                          ? "Lobby host"
+                                          : "Second player"}
+                                      </p>
+                                      <p className="text-sm text-[#7a6656]">
+                                        {slot
+                                          ? formatPlayerName(
+                                              slot.player,
+                                              auth?.player.playerId,
+                                            )
+                                          : "Waiting to join"}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    {!slot &&
+                                      auth?.player.kind === "account" &&
+                                      isMultiplayerParticipant && (
+                                        <Button
+                                          size="sm"
+                                          variant="secondary"
+                                          className="text-xs border-[#dcc7a2]"
+                                          onClick={() =>
+                                            setInviteDialogOpen(true)
+                                          }
+                                        >
+                                          Invite a Friend
+                                        </Button>
+                                      )}
+                                    <Badge
+                                      className={cn(
+                                        slot?.online
+                                          ? "bg-[#eef2e8] text-[#43513f]"
+                                          : "bg-[#f2e8d9] text-[#6e5b48]",
+                                      )}
+                                    >
+                                      {slot?.online ? "Online" : "Offline"}
+                                    </Badge>
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  {!slot &&
-                                    auth?.player.kind === "account" &&
-                                    isMultiplayerParticipant && (
-                                      <Button
-                                        size="sm"
-                                        variant="secondary"
-                                        className="text-xs border-[#dcc7a2]"
-                                        onClick={() =>
-                                          setInviteDialogOpen(true)
-                                        }
-                                      >
-                                        Invite a Friend
-                                      </Button>
-                                    )}
-                                  <Badge
-                                    className={cn(
-                                      slot?.online
-                                        ? "bg-[#eef2e8] text-[#43513f]"
-                                        : "bg-[#f2e8d9] text-[#6e5b48]",
-                                    )}
-                                  >
-                                    {slot?.online ? "Online" : "Offline"}
-                                  </Badge>
-                                </div>
-                              </div>
-                            );
-                          })}
-                          <p className="mt-4 text-xs leading-relaxed text-[#7a6656]">
-                            Share the Game ID or use the share link above to
-                            invite a friend. White still starts. The colors are
-                            assigned randomly the moment player two joins the
-                            lobby.
-                          </p>
-                        </div>
+                              );
+                            })}
+                            <p className="mt-4 text-xs leading-relaxed text-[#7a6656]">
+                              Share the Game ID or use the share link above to
+                              invite a friend. White still starts. The colors are
+                              assigned randomly the moment player two joins the
+                              lobby.
+                            </p>
+                          </div>
+                        </>
                       ) : (
-                        <div className="grid gap-2">
-                          {(["white", "black"] as PlayerColor[]).map(
+                        <div className="grid grid-cols-2 gap-3">
+                          {(["black", "white"] as PlayerColor[]).map(
                             (color) => {
                               const seat = multiplayerSnapshot.seats[color];
                               const isYourSeat =
                                 seat?.player.playerId === auth?.player.playerId;
-                              const isCurrentTurn =
-                                multiplayerSnapshot.state.currentTurn === color;
                               const isAccount = auth?.player.kind === "account";
                               const opponentId = seat?.player.playerId;
 
-                              // Determine friend relationship for non-self seats
                               const isFriend =
                                 !isYourSeat && opponentId
                                   ? liveSocialOverview.friends.some(
@@ -599,98 +585,47 @@ export function MultiplayerGamePage({
                                 !hasPendingOutgoing &&
                                 !hasPendingIncoming;
 
+                              const tileStyle =
+                                color === "black"
+                                  ? "rounded-3xl border border-black/10 bg-[linear-gradient(180deg,#39312b,#14100d)] p-4 text-[#f9f2e8]"
+                                  : "rounded-3xl border border-[#d3c3ad] bg-[linear-gradient(180deg,#fffef8,#efe4d1)] p-4 text-[#2b1e14]";
+
                               return (
-                                <div
+                                <AnimatedScoreTile
                                   key={color}
-                                  className={cn(
-                                    "flex items-center justify-between gap-3 rounded-3xl border px-4 py-3",
-                                    isCurrentTurn
-                                      ? "border-[#b8cc8f] bg-[#f7fce9]"
-                                      : "border-[#d8c29c] bg-[#fffaf1]",
-                                  )}
-                                >
-                                  <div className="flex items-center gap-3">
-                                    {seat ? (
-                                      <PlayerOverviewAvatar
-                                        player={seat.player}
-                                      />
-                                    ) : (
-                                      <EmptySeatAvatar />
-                                    )}
-                                    <div>
-                                      <p className="text-sm font-semibold capitalize text-[#2b1e14]">
-                                        {color}
-                                      </p>
-                                      <p className="text-sm text-[#7a6656]">
-                                        {seat
-                                          ? formatPlayerName(
-                                              seat.player,
-                                              auth?.player.playerId,
-                                            )
-                                          : "Empty"}
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    {canBefriend && (
-                                      <button
-                                        type="button"
-                                        title={`Send friend request to ${seat.player.displayName}`}
-                                        className="flex h-7 w-7 items-center justify-center rounded-full border border-[#d0bb94] bg-[#fff8ee] text-[#7b6550] transition-colors hover:bg-[#f4e8d2] hover:text-[#3a2818]"
-                                        onClick={() =>
-                                          social.handleSendFriendRequest(
-                                            seat.player.playerId,
-                                          )
+                                  label={
+                                    color.charAt(0).toUpperCase() +
+                                    color.slice(1)
+                                  }
+                                  value={
+                                    (displayState ?? multiplayerSnapshot.state)
+                                      .score[color]
+                                  }
+                                  pulseKey={0}
+                                  className={tileStyle}
+                                  labelClassName="text-xs uppercase tracking-wider"
+                                  playerInfo={
+                                    seat
+                                      ? {
+                                          player: seat.player,
+                                          online: seat.online,
+                                          isYou: isYourSeat,
+                                          isFriend,
+                                          hasPendingOutgoing,
+                                          canBefriend,
+                                          onAddFriend: canBefriend
+                                            ? () =>
+                                                social.handleSendFriendRequest(
+                                                  seat.player.playerId,
+                                                )
+                                            : undefined,
+                                          addFriendBusy:
+                                            social.socialActionBusyKey ===
+                                            `friend-send:${seat.player.playerId}`,
                                         }
-                                        disabled={
-                                          social.socialActionBusyKey ===
-                                          `friend-send:${seat.player.playerId}`
-                                        }
-                                      >
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          viewBox="0 0 20 20"
-                                          fill="currentColor"
-                                          className="h-4 w-4"
-                                        >
-                                          <path d="M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM2.046 15.253c-.058.468.172.92.57 1.175A9.953 9.953 0 0 0 8 18c1.982 0 3.83-.578 5.384-1.573.398-.254.628-.707.57-1.175a6.001 6.001 0 0 0-11.908 0ZM15.75 6.5a.75.75 0 0 0-1.5 0v2h-2a.75.75 0 0 0 0 1.5h2v2a.75.75 0 0 0 1.5 0v-2h2a.75.75 0 0 0 0-1.5h-2v-2Z" />
-                                        </svg>
-                                      </button>
-                                    )}
-                                    {!isYourSeat && hasPendingOutgoing && (
-                                      <Badge
-                                        variant="outline"
-                                        className="text-[#8d7760] text-xs"
-                                      >
-                                        Pending
-                                      </Badge>
-                                    )}
-                                    {!isYourSeat && isFriend && (
-                                      <Badge
-                                        variant="outline"
-                                        className="text-[#43513f] text-xs"
-                                      >
-                                        Friend
-                                      </Badge>
-                                    )}
-                                    {isYourSeat && (
-                                      <Badge className="bg-[#eee3cf] text-[#5f4932]">
-                                        You
-                                      </Badge>
-                                    )}
-                                    {seat && (
-                                      <Badge
-                                        className={cn(
-                                          seat.online
-                                            ? "bg-[#eef2e8] text-[#43513f]"
-                                            : "bg-[#f2e8d9] text-[#6e5b48]",
-                                        )}
-                                      >
-                                        {seat.online ? "Online" : "Offline"}
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </div>
+                                      : undefined
+                                  }
+                                />
                               );
                             },
                           )}
