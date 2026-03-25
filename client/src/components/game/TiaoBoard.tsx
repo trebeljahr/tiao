@@ -283,6 +283,8 @@ export function TiaoBoard({
             <button
               key={pieceKey}
               type="button"
+              data-testid={`cell-${position.x}-${position.y}`}
+              data-piece={piece ?? undefined}
               disabled={disabled}
               onClick={() => onPointClick(position)}
               onPointerEnter={() => {

@@ -66,11 +66,7 @@ export function useLocalGame() {
           return;
         }
 
-        const jumpTargets = getJumpTargets(
-          localGame,
-          localSelection,
-          localGame.currentTurn,
-        );
+        const jumpTargets = getJumpTargets(localGame, localSelection);
 
         if (jumpTargets.some((t) => t.x === position.x && t.y === position.y)) {
           const result = jumpPiece(localGame, localSelection, position);
@@ -96,14 +92,13 @@ export function useLocalGame() {
         return;
       }
 
-      const jumpOrigins = getJumpTargets(
-        localGame,
-        position,
-        localGame.currentTurn,
-      );
-      if (jumpOrigins.length > 0) {
-        setLocalSelection(position);
-        return;
+      const tile = localGame.positions[position.y]?.[position.x];
+      if (tile === localGame.currentTurn) {
+        const jumpOrigins = getJumpTargets(localGame, position);
+        if (jumpOrigins.length > 0) {
+          setLocalSelection(position);
+          return;
+        }
       }
 
       setLocalSelection(null);
@@ -145,7 +140,7 @@ export function useLocalGame() {
   }, [localGame]);
 
   const localJumpTargets = localSelection
-    ? getJumpTargets(localGame, localSelection, localGame.currentTurn)
+    ? getJumpTargets(localGame, localSelection)
     : [];
 
   return {

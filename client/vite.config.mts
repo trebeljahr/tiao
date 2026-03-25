@@ -4,6 +4,16 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "tailwindcss";
 
+function silenceProxyErrors(proxy: import("http-proxy").Server) {
+  proxy.on("error", (err, _req, res) => {
+    console.warn(`[proxy] ${(err as NodeJS.ErrnoException).code ?? err.message}`);
+    if (res && "writeHead" in res && !res.headersSent) {
+      (res as import("http").ServerResponse).writeHead(502);
+      (res as import("http").ServerResponse).end();
+    }
+  });
+}
+
 export default defineConfig({
   resolve: {
     alias: {
@@ -28,15 +38,18 @@ export default defineConfig({
         target: "ws://localhost:5005",
         changeOrigin: true,
         ws: true,
+        configure: silenceProxyErrors,
       },
       "/api": {
         target: "http://localhost:5005",
         changeOrigin: true,
+        configure: silenceProxyErrors,
       },
       "/ws": {
         target: "ws://localhost:5005",
         changeOrigin: true,
         ws: true,
+        configure: silenceProxyErrors,
       },
     },
   },

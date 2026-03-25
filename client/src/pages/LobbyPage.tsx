@@ -51,15 +51,16 @@ export function LobbyPage({ auth, onOpenAuth, onLogout }: LobbyPageProps) {
   const [joinGameId, setJoinGameId] = useState("");
   const [multiplayerBusy, setMultiplayerBusy] = useState(false);
 
+  const activeGames = multiplayerGames.active ?? [];
   const sortedActiveGames = useMemo(() => {
-    return [...multiplayerGames.active].sort((a, b) => {
+    return [...activeGames].sort((a, b) => {
       const aYourTurn = isSummaryYourTurn(a);
       const bYourTurn = isSummaryYourTurn(b);
       if (aYourTurn && !bYourTurn) return -1;
       if (!aYourTurn && bYourTurn) return 1;
       return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
     });
-  }, [multiplayerGames.active]);
+  }, [activeGames]);
 
   async function handleCreateRoom() {
     if (!auth) {

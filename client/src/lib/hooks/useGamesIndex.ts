@@ -13,7 +13,10 @@ export function useGamesIndex(auth: AuthResponse | null) {
   const [multiplayerGamesLoaded, setMultiplayerGamesLoaded] = useState(false);
 
   const applyMultiplayerGamesIndex = useCallback((nextGames: MultiplayerGamesIndex) => {
-    setMultiplayerGames(nextGames);
+    setMultiplayerGames({
+      active: nextGames?.active ?? [],
+      finished: nextGames?.finished ?? [],
+    });
     setMultiplayerGamesLoaded(true);
   }, []);
 
