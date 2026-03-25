@@ -1,0 +1,15 @@
+- [ ] don't show confetti to the player who has lost but something different maybe?
+- [ ] for the player who plays against the computer, implement a popup overlay when the game ends to ask for a rematch and wish the player better luck next time or something like this in the case they lose. 
+- [ ] implement a short animation for the move that the AI is "executing" so that the player can see what is happening, especially with multi jumps instead of "simly update the board state instantaneous" 
+- [ ] make the font of the active link in the navbar the same color as the other links. Check if there is some sort of overlay or other effect that prevents the color from looking the same. Right now the contrast is just bad.
+- [ ] the my games list doesn't need a refresh button but instead should have a websocket connection to update automatically
+- [ ] there should be a functionality in a match to forfeit the game so that it ends
+- [ ] add matchmaking with different time limits and increments similar to what you would have in a chess game with a clock. Common modes should be the same as in lichess, you can look at their UI I find it quite tasteful with the little 3x3 square with the most commonly used options.
+- [ ] when opening the review of a game, don't play confetti
+- [ ] when in the review of a game, don't show the rematch buttons nor the copy link or copy game ID buttons
+- [ ] when in the review of a game put the "move backward/forward through the moves of the game" buttons right underneath the board. 
+- [ ] invitations on the lobby page don't need a refresh button, they should use the lobby websocket instead
+- [ ] when rematching, create a new game lobby with new ID and everything and connect the players to this new lobby and then mark their own lobby as completed and move it into their histories
+- [ ] get rid of the "confirm jump" and "undo jump" buttons in the score card across everywhere this part of the UI is not needed anymore with the hover for cancel/undo and the click again to "confirm" 
+- [ ] don't immediately display a "it's your move" toast whenever leaving a multiplayer game to go back to the lobby. Only display this when the other player actually moved while I am in the lobby and this triggered the change
+- [ ] in the active games list in the lobby show when a player is currently waiting in the game somehow, maybe add a touch of color and bring the game up higher in the list too
