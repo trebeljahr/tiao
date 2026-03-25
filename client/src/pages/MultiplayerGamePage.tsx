@@ -31,7 +31,8 @@ import { useSocialData } from "@/lib/hooks/useSocialData";
 import { useLobbyMessage } from "@/lib/LobbySocketContext";
 import { useStonePlacementSound } from "@/lib/useStonePlacementSound";
 import { useWinConfetti } from "@/lib/useWinConfetti";
-import { isGameOver, getWinner, getJumpTargets, arePositionsEqual } from "@shared";
+import { isGameOver, getWinner, getJumpTargets, arePositionsEqual, replayToMove } from "@shared";
+import { MoveList } from "@/components/game/MoveList";
 import { cn } from "@/lib/utils";
 import { accessMultiplayerGame } from "@/lib/api";
 
@@ -122,6 +123,26 @@ export function MultiplayerGamePage({ auth, onOpenAuth, onLogout }: MultiplayerG
   const winner = multiplayerSnapshot ? (isGameOver(multiplayerSnapshot.state) ? getWinner(multiplayerSnapshot.state) : null) : null;
   useWinConfetti(winner);
 
+  const isReviewMode = multiplayerSnapshot?.status === "finished";
+  const [reviewMoveIndex, setReviewMoveIndex] = useState<number | null>(null);
+
+  // Initialize review index when entering review mode
+  useEffect(() => {
+    if (isReviewMode && multiplayerSnapshot && reviewMoveIndex === null) {
+      setReviewMoveIndex(multiplayerSnapshot.state.history.length - 1);
+    }
+    if (!isReviewMode && reviewMoveIndex !== null) {
+      setReviewMoveIndex(null);
+    }
+  }, [isReviewMode, multiplayerSnapshot, reviewMoveIndex]);
+
+  const reviewBoardState =
+    isReviewMode && multiplayerSnapshot && reviewMoveIndex !== null
+      ? replayToMove(multiplayerSnapshot.state.history, reviewMoveIndex)
+      : null;
+
+  const displayState = reviewBoardState ?? multiplayerSnapshot?.state ?? null;
+
   const playerSeat = multiplayerSnapshot && auth
     ? (Object.entries(multiplayerSnapshot.seats).find(
         ([, seat]) => seat?.player.playerId === auth.player.playerId
@@ -182,8 +203,8 @@ export function MultiplayerGamePage({ auth, onOpenAuth, onLogout }: MultiplayerG
     } catch { toast.error("Failed to copy"); }
   }
 
-  const multiplayerJumpTargets = multiplayerSelection && multiplayerSnapshot
-    ? getJumpTargets(multiplayerSnapshot.state, multiplayerSelection, multiplayerSnapshot.state.currentTurn)
+  const multiplayerJumpTargets = multiplayerSelection && displayState && !isReviewMode
+    ? getJumpTargets(displayState, multiplayerSelection, displayState.currentTurn)
     : [];
 
   const handleBoardClick = (position: any) => {
@@ -252,15 +273,15 @@ export function MultiplayerGamePage({ auth, onOpenAuth, onLogout }: MultiplayerG
         <section className="grid gap-3 xl:gap-1.5 xl:grid-cols-[minmax(0,1fr)_17.75rem] xl:items-start">
           <div className="flex items-center justify-center xl:min-h-[calc(100dvh-1.5rem)]">
             <div className="relative mx-auto w-full" style={boardWrapStyle}>
-              {multiplayerSnapshot && (
+              {displayState && (
                 <TiaoBoard
-                  state={multiplayerSnapshot.state}
-                  selectedPiece={multiplayerSelection}
+                  state={displayState}
+                  selectedPiece={isReviewMode ? null : multiplayerSelection}
                   jumpTargets={multiplayerJumpTargets}
                   confirmReady={true}
-                  onPointClick={handleBoardClick}
-                  disabled={!multiplayerYourTurn}
-                  onUndoLastJump={() => sendMultiplayerMessage({ type: "undo-pending-jump-step" })}
+                  onPointClick={isReviewMode ? undefined : handleBoardClick}
+                  disabled={isReviewMode || !multiplayerYourTurn}
+                  onUndoLastJump={isReviewMode ? undefined : () => sendMultiplayerMessage({ type: "undo-pending-jump-step" })}
                 />
               )}
               {multiplayerSnapshot?.status === "waiting" && (
@@ -333,8 +354,8 @@ export function MultiplayerGamePage({ auth, onOpenAuth, onLogout }: MultiplayerG
                   {multiplayerSnapshot ? (
                     <>
                       <div className="grid grid-cols-2 gap-3">
-                        <AnimatedScoreTile label="Black" value={multiplayerSnapshot.state.score.black} pulseKey={0} className="rounded-3xl border border-black/10 bg-[linear-gradient(180deg,#39312b,#14100d)] p-4 text-[#f9f2e8]" labelClassName="text-xs uppercase tracking-wider" />
-                        <AnimatedScoreTile label="White" value={multiplayerSnapshot.state.score.white} pulseKey={0} className="rounded-3xl border border-[#d3c3ad] bg-[linear-gradient(180deg,#fffef8,#efe4d1)] p-4 text-[#2b1e14]" labelClassName="text-xs uppercase tracking-wider" />
+                        <AnimatedScoreTile label="Black" value={(displayState ?? multiplayerSnapshot.state).score.black} pulseKey={0} className="rounded-3xl border border-black/10 bg-[linear-gradient(180deg,#39312b,#14100d)] p-4 text-[#f9f2e8]" labelClassName="text-xs uppercase tracking-wider" />
+                        <AnimatedScoreTile label="White" value={(displayState ?? multiplayerSnapshot.state).score.white} pulseKey={0} className="rounded-3xl border border-[#d3c3ad] bg-[linear-gradient(180deg,#fffef8,#efe4d1)] p-4 text-[#2b1e14]" labelClassName="text-xs uppercase tracking-wider" />
                       </div>
 
                       {multiplayerSnapshot.status === "waiting" ? (
@@ -454,7 +475,7 @@ export function MultiplayerGamePage({ auth, onOpenAuth, onLogout }: MultiplayerG
                         </div>
                       )}
 
-                      {winner && (
+                      {winner && isMultiplayerParticipant && connectionState === "connected" && (
                         <div className="grid gap-2 border-t border-[#dbc6a2] pt-4">
                           {multiplayerSnapshot.rematch?.requestedBy.includes(playerSeat as PlayerColor) ? (
                             <div className="space-y-2">
@@ -493,6 +514,24 @@ export function MultiplayerGamePage({ auth, onOpenAuth, onLogout }: MultiplayerG
                             </div>
                           )}
                           <Button variant="ghost" onClick={() => navigate("/")}>Back to lobby</Button>
+                        </div>
+                      )}
+
+                      {isReviewMode && !(isMultiplayerParticipant && connectionState === "connected") && (
+                        <div className="grid gap-2 border-t border-[#dbc6a2] pt-4">
+                          <Button variant="ghost" onClick={() => navigate("/")}>Back to lobby</Button>
+                        </div>
+                      )}
+
+                      {multiplayerSnapshot.state.history.length > 0 && (
+                        <div className="border-t border-[#dbc6a2] pt-4">
+                          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#7b6550]">Move History</p>
+                          <MoveList
+                            history={multiplayerSnapshot.state.history}
+                            currentMoveIndex={isReviewMode ? reviewMoveIndex : multiplayerSnapshot.state.history.length - 1}
+                            onSelectMove={isReviewMode ? setReviewMoveIndex : undefined}
+                            interactive={isReviewMode}
+                          />
                         </div>
                       )}
 

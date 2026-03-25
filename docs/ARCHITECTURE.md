@@ -327,6 +327,18 @@ Key properties:
 
 Both containers are deployed as Docker images. The client container runs Nginx, which serves the static frontend bundle and reverse-proxies all `/api` requests to the server container. This same-origin setup avoids cross-origin cookie issues with the session cookie.
 
+### Game Review & Move History
+
+When a game is finished, players can review it from the "My Games" page. The review mode provides:
+
+- **Move history panel** — A scrollable list of all moves in algebraic notation (see [GAME_RULES.md](GAME_RULES.md#move-notation)), displayed as a two-column table (White/Black)
+- **Board navigation** — Step forward/backward through the game using navigation buttons or by clicking individual moves in the history
+- **Board reconstruction** — The `replayToMove(history, moveIndex)` function in `shared/src/tiao.ts` replays `TurnRecord[]` entries up to a given index, producing the exact `GameState` at that point
+- **Friend requests** — The same friend request button from live games appears in review mode for logged-in opponents
+- **No rematch in review** — Rematch buttons only appear when the player has an active WebSocket connection (i.e., they're still in the game session, not reviewing later)
+
+Move history is stored as part of `GameState.history` in the `GameRoom.state` field (MongoDB). No separate collection is needed — the history grows as moves are made and persists with the game record.
+
 ### CI/CD Pipeline
 
 The GitHub Actions pipeline runs on every push:

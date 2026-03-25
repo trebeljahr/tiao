@@ -110,6 +110,28 @@ The first player to capture **10 enemy pieces** wins the game. Once a player's s
 | Border limit | Edge placements must be reachable by an enemy jump |
 | Win condition | First to capture 10 enemy pieces |
 
+## Move Notation
+
+Tiao uses a coordinate-based notation system for recording moves:
+
+### Position Format
+
+Each intersection is identified by a letter (column) and number (row):
+- **Columns**: `a` through `t` (left to right, skipping `i` to avoid confusion with `1`)
+- **Rows**: `1` through `19` (bottom to top)
+
+Examples: `a1` (bottom-left corner), `t19` (top-right corner), `j10` (center)
+
+### Move Format
+
+Each move is recorded as: `<number>. <color> <notation>`
+
+- **Placement**: `1. W j10` — White places a piece at j10
+- **Jump**: `2. B d4×f6` — Black jumps from d4, capturing to land at f6
+- **Chain jump**: `3. W d4×f6×h8` — White chain-jumps through two captures
+
+The move history is stored in the database for all multiplayer games and can be replayed step-by-step in the game review interface.
+
 ## Error Codes
 
 When a move is illegal, the game engine returns one of these codes:

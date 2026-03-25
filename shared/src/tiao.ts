@@ -744,3 +744,58 @@ export function getSelectableJumpOrigins(
   return origins;
 }
 
+const POSITION_LETTERS = "abcdefghjklmnopqrst";
+
+export function formatPosition(pos: Position): string {
+  const letter = POSITION_LETTERS[pos.x] ?? "?";
+  const number = pos.y + 1;
+  return `${letter}${number}`;
+}
+
+export function formatTurnRecord(record: TurnRecord, index: number): string {
+  const moveNumber = index + 1;
+  const colorInitial = record.color === "white" ? "W" : "B";
+
+  if (record.type === "put") {
+    return `${moveNumber}. ${colorInitial} ${formatPosition(record.position)}`;
+  }
+
+  const positions = [
+    formatPosition(record.jumps[0].from),
+    ...record.jumps.map((j) => formatPosition(j.to)),
+  ];
+  return `${moveNumber}. ${colorInitial} ${positions.join("×")}`;
+}
+
+export function replayToMove(
+  history: TurnRecord[],
+  moveIndex: number,
+): GameState {
+  let state = createInitialGameState();
+  const end = Math.min(moveIndex + 1, history.length);
+
+  for (let i = 0; i < end; i++) {
+    const record = history[i];
+
+    if (record.type === "put") {
+      const result = placePiece(state, record.position);
+      if (result.ok) {
+        state = result.value;
+      }
+    } else {
+      for (const jump of record.jumps) {
+        const jumpResult = jumpPiece(state, jump.from, jump.to);
+        if (jumpResult.ok) {
+          state = jumpResult.value;
+        }
+      }
+      const confirmResult = confirmPendingJump(state);
+      if (confirmResult.ok) {
+        state = confirmResult.value;
+      }
+    }
+  }
+
+  return state;
+}
+

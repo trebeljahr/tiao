@@ -384,3 +384,54 @@ test("account player disconnect does not trigger abandon timer", async () => {
 
   mock.timers.reset();
 });
+
+test("finished games include full move history in snapshots", async () => {
+  const store = new InMemoryGameRoomStore();
+  const service = new GameService(store, () => 0);
+  const alice = createPlayer("alice");
+  const bob = createPlayer("bob");
+
+  const game = await service.createGame(alice);
+  await service.joinGame(game.gameId, bob);
+
+  // Make moves (alice is white with seatRandom=0)
+  await service.applyAction(game.gameId, alice, {
+    type: "place-piece",
+    position: { x: 9, y: 9 },
+  });
+
+  await service.applyAction(game.gameId, bob, {
+    type: "place-piece",
+    position: { x: 10, y: 10 },
+  });
+
+  await finishRoom(store, game.gameId, "white");
+
+  const snapshot = await service.getSnapshot(game.gameId);
+  assert.equal(snapshot.status, "finished");
+  assert.equal(snapshot.state.history.length, 2);
+  assert.equal(snapshot.state.history[0].type, "put");
+  assert.equal(snapshot.state.history[1].type, "put");
+});
+
+test("accessGame on a finished game returns complete move history", async () => {
+  const store = new InMemoryGameRoomStore();
+  const service = new GameService(store, () => 0);
+  const alice = createPlayer("alice");
+  const bob = createPlayer("bob");
+  const reviewer = createPlayer("reviewer");
+
+  const game = await service.createGame(alice);
+  await service.joinGame(game.gameId, bob);
+
+  await service.applyAction(game.gameId, alice, {
+    type: "place-piece",
+    position: { x: 9, y: 9 },
+  });
+
+  await finishRoom(store, game.gameId, "white");
+
+  const snapshot = await service.accessGame(game.gameId, reviewer);
+  assert.equal(snapshot.state.history.length, 1);
+  assert.deepEqual(snapshot.state.history[0].type, "put");
+});

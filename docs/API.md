@@ -867,7 +867,7 @@ Account authentication required.
   status: "waiting" | "active" | "finished";
   createdAt: string;          // ISO 8601
   updatedAt: string;          // ISO 8601
-  state: GameState;           // Full board state
+  state: GameState;           // Full board state (includes history: TurnRecord[])
   players: PlayerSlot[];
   rematch: { requestedBy: ("white" | "black")[] } | null;
   seats: {
@@ -927,3 +927,26 @@ Account authentication required.
 | { status: "searching"; queuedAt: string }
 | { status: "matched"; snapshot: MultiplayerSnapshot }
 ```
+
+### TurnRecord (Move History)
+
+The `GameState.history` array contains every move made in the game. Each entry is one of:
+
+```typescript
+// Piece placement
+{ type: "put"; color: "white" | "black"; position: { x: number; y: number } }
+
+// Jump sequence (one or more captures)
+{
+  type: "jump";
+  color: "white" | "black";
+  jumps: Array<{
+    from: { x: number; y: number };
+    over: { x: number; y: number };   // captured piece position
+    to: { x: number; y: number };
+    color: "white" | "black";
+  }>;
+}
+```
+
+Move history is persisted for all multiplayer games and returned in `MultiplayerSnapshot.state.history`. Use the `replayToMove(history, moveIndex)` utility from the shared package to reconstruct the board state at any point in the game.

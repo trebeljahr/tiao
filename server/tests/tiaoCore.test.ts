@@ -6,11 +6,14 @@ import {
   canPlacePiece,
   confirmPendingJump,
   createInitialGameState,
+  formatPosition,
+  formatTurnRecord,
   getSelectableJumpOrigins,
   getWinner,
   isGameOver,
   jumpPiece,
   placePiece,
+  replayToMove,
   undoLastTurn,
   undoPendingJumpStep,
 } from "../../shared/src";
@@ -339,6 +342,92 @@ describe("Tiao core rules", () => {
       `,
       { origin }
     );
+  });
+
+  test("formatPosition converts coordinates to algebraic notation", () => {
+    assert.equal(formatPosition({ x: 0, y: 0 }), "a1");
+    assert.equal(formatPosition({ x: 18, y: 18 }), "t19");
+    assert.equal(formatPosition({ x: 3, y: 5 }), "d6");
+    assert.equal(formatPosition({ x: 8, y: 0 }), "j1"); // 'i' is skipped, so h=7, j=8
+  });
+
+  test("formatTurnRecord formats put and jump moves", () => {
+    const putRecord = formatTurnRecord(
+      { type: "put", color: "white", position: { x: 0, y: 0 } },
+      0,
+    );
+    assert.equal(putRecord, "1. W a1");
+
+    const jumpRecord = formatTurnRecord(
+      {
+        type: "jump",
+        color: "black",
+        jumps: [
+          { from: { x: 3, y: 3 }, over: { x: 4, y: 4 }, to: { x: 5, y: 5 }, color: "black" },
+          { from: { x: 5, y: 5 }, over: { x: 6, y: 6 }, to: { x: 7, y: 7 }, color: "black" },
+        ],
+      },
+      1,
+    );
+    assert.equal(jumpRecord, "2. B d4×f6×h8");
+  });
+
+  test("replayToMove reconstructs board state at each move", () => {
+    let state = createInitialGameState();
+
+    // White places at (9,9)
+    const r1 = placePiece(state, { x: 9, y: 9 });
+    assert.equal(r1.ok, true);
+    if (!r1.ok) return;
+    state = r1.value;
+
+    // Black places at (10,10)
+    const r2 = placePiece(state, { x: 10, y: 10 });
+    assert.equal(r2.ok, true);
+    if (!r2.ok) return;
+    state = r2.value;
+
+    // White places at (11,11)
+    const r3 = placePiece(state, { x: 11, y: 11 });
+    assert.equal(r3.ok, true);
+    if (!r3.ok) return;
+    state = r3.value;
+
+    const history = state.history;
+    assert.equal(history.length, 3);
+
+    // Replay to move 0 — only first placement
+    const atMove0 = replayToMove(history, 0);
+    assert.equal(atMove0.positions[9][9], "white");
+    assert.equal(atMove0.positions[10][10], null);
+    assert.equal(atMove0.currentTurn, "black");
+
+    // Replay to move 1
+    const atMove1 = replayToMove(history, 1);
+    assert.equal(atMove1.positions[9][9], "white");
+    assert.equal(atMove1.positions[10][10], "black");
+    assert.equal(atMove1.positions[11][11], null);
+    assert.equal(atMove1.currentTurn, "white");
+
+    // Replay to last move
+    const atMove2 = replayToMove(history, 2);
+    assert.equal(atMove2.positions[11][11], "white");
+    assert.equal(atMove2.currentTurn, "black");
+  });
+
+  test("replayToMove with empty history returns initial state", () => {
+    const state = replayToMove([], 0);
+    assert.equal(state.currentTurn, "white");
+    assert.equal(state.history.length, 0);
+  });
+
+  test("replayToMove with negative index returns initial state", () => {
+    const history = [
+      { type: "put" as const, color: "white" as const, position: { x: 9, y: 9 } },
+    ];
+    const state = replayToMove(history, -1);
+    assert.equal(state.positions[9][9], null);
+    assert.equal(state.currentTurn, "white");
   });
 
   test("game over and illegal jump targets are rejected", () => {
