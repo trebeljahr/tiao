@@ -289,7 +289,7 @@ export function LobbyPage({ auth, onOpenAuth, onLogout }: LobbyPageProps) {
           </motion.div>
         </section>
 
-        {auth?.player.kind === "account" && (
+        {auth?.player?.kind === "account" && (
           <section className="grid gap-8 lg:grid-cols-2 mt-4">
             <motion.div
               initial={{ opacity: 0, y: 16 }}
