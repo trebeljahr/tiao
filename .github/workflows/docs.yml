@@ -42,6 +42,8 @@ jobs:
 
       - name: Install docs-site dependencies
         run: npm --prefix docs-site ci
+        env:
+          COREPACK_ENABLE_STRICT: "0"
 
       - name: Generate OpenAPI spec
         run: npx tsx server/scripts/generate-openapi.ts

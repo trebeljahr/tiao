@@ -206,13 +206,18 @@ test("the old room rematch state is cleared after both players accept", async ()
     type: "request-rematch",
   });
 
-  const oldRoomSnapshot = await service.applyAction(created.gameId, bob, {
+  const newRoomSnapshot = await service.applyAction(created.gameId, bob, {
     type: "request-rematch",
   });
 
-  // The returned snapshot is from the OLD room — rematch should be null
-  assert.equal(oldRoomSnapshot.rematch, null);
-  assert.equal(oldRoomSnapshot.status, "finished");
+  // The returned snapshot is the NEW room
+  assert.equal(newRoomSnapshot.status, "active");
+  assert.equal(newRoomSnapshot.rematch, null);
+
+  // The OLD room should have its rematch state cleared
+  const oldRoom = await store.getRoom(created.gameId);
+  assert.equal(oldRoom!.status, "finished");
+  assert.equal(oldRoom!.rematch, null);
 });
 
 test("the new rematch room has fresh game state with score 0-0", async () => {

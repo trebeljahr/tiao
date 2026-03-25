@@ -975,12 +975,13 @@ export class GameService {
       }
 
       // Mark old room rematch as null (completed)
-      return this.saveRoom({
+      await this.saveRoom({
         ...room,
         rematch: null,
         takeback: null,
-        seats: this.assignSeats(room.seats.white, room.seats.black),
       });
+
+      return newRoom;
     }
 
     return this.saveRoom({
