@@ -30,15 +30,51 @@ import { createMultiplayerGame, joinMultiplayerGame } from "@/lib/api";
 import { toastError } from "@/lib/errors";
 
 const TIME_CONTROL_PRESETS = [
-  { label: "1+0", category: "Bullet", timeControl: { initialMs: 60_000, incrementMs: 0 } },
-  { label: "2+1", category: "Bullet", timeControl: { initialMs: 120_000, incrementMs: 1_000 } },
-  { label: "3+0", category: "Blitz", timeControl: { initialMs: 180_000, incrementMs: 0 } },
-  { label: "3+2", category: "Blitz", timeControl: { initialMs: 180_000, incrementMs: 2_000 } },
-  { label: "5+0", category: "Blitz", timeControl: { initialMs: 300_000, incrementMs: 0 } },
-  { label: "5+3", category: "Blitz", timeControl: { initialMs: 300_000, incrementMs: 3_000 } },
-  { label: "10+0", category: "Rapid", timeControl: { initialMs: 600_000, incrementMs: 0 } },
-  { label: "15+10", category: "Rapid", timeControl: { initialMs: 900_000, incrementMs: 10_000 } },
-  { label: "30+0", category: "Classical", timeControl: { initialMs: 1_800_000, incrementMs: 0 } },
+  {
+    label: "1+0",
+    category: "Bullet",
+    timeControl: { initialMs: 60_000, incrementMs: 0 },
+  },
+  {
+    label: "2+1",
+    category: "Bullet",
+    timeControl: { initialMs: 120_000, incrementMs: 1_000 },
+  },
+  {
+    label: "3+0",
+    category: "Blitz",
+    timeControl: { initialMs: 180_000, incrementMs: 0 },
+  },
+  {
+    label: "3+2",
+    category: "Blitz",
+    timeControl: { initialMs: 180_000, incrementMs: 2_000 },
+  },
+  {
+    label: "5+0",
+    category: "Blitz",
+    timeControl: { initialMs: 300_000, incrementMs: 0 },
+  },
+  {
+    label: "5+3",
+    category: "Blitz",
+    timeControl: { initialMs: 300_000, incrementMs: 3_000 },
+  },
+  {
+    label: "10+0",
+    category: "Rapid",
+    timeControl: { initialMs: 600_000, incrementMs: 0 },
+  },
+  {
+    label: "15+10",
+    category: "Rapid",
+    timeControl: { initialMs: 900_000, incrementMs: 10_000 },
+  },
+  {
+    label: "30+0",
+    category: "Classical",
+    timeControl: { initialMs: 1_800_000, incrementMs: 0 },
+  },
 ] as const;
 
 type LobbyPageProps = {
@@ -51,7 +87,8 @@ export function LobbyPage({ auth, onOpenAuth, onLogout }: LobbyPageProps) {
   const navigate = useNavigate();
   const { multiplayerGames, refreshMultiplayerGames } = useGamesIndex(auth);
 
-  const { socialOverview, refreshSocialOverview, handleDeclineGameInvitation } = useSocialData(auth, true);
+  const { socialOverview, refreshSocialOverview, handleDeclineGameInvitation } =
+    useSocialData(auth, true);
 
   // Track the last seen history length per game to avoid spurious "your move" toasts
   // (e.g. when leaving a game, the departure triggers a game-update but no new move).
@@ -75,7 +112,8 @@ export function LobbyPage({ auth, onOpenAuth, onLogout }: LobbyPageProps) {
         newMoveOccurred
       ) {
         const opponentSeat = summary.yourSeat === "white" ? "black" : "white";
-        const opponentName = summary.seats[opponentSeat]?.player.displayName || "your opponent";
+        const opponentName =
+          summary.seats[opponentSeat]?.player.displayName || "your opponent";
         toast.info(`Your move in ${summary.gameId}`, {
           id: `your-turn-${summary.gameId}`,
           description: `It's your turn against ${opponentName}.`,
@@ -95,7 +133,8 @@ export function LobbyPage({ auth, onOpenAuth, onLogout }: LobbyPageProps) {
         !inGame
       ) {
         const opponentSeat = summary.yourSeat === "white" ? "black" : "white";
-        const opponentName = summary.seats[opponentSeat]?.player.displayName || "your opponent";
+        const opponentName =
+          summary.seats[opponentSeat]?.player.displayName || "your opponent";
         toast(`${opponentName} wants a rematch!`, {
           id: `rematch-${summary.gameId}`,
           description: `Game ${summary.gameId}`,
@@ -119,15 +158,20 @@ export function LobbyPage({ auth, onOpenAuth, onLogout }: LobbyPageProps) {
   const finishedGames = multiplayerGames.finished ?? [];
   const rematchGames = useMemo(() => {
     return finishedGames.filter(
-      (g) => g.rematch?.requestedBy.length && g.yourSeat && !g.rematch.requestedBy.includes(g.yourSeat),
+      (g) =>
+        g.rematch?.requestedBy.length &&
+        g.yourSeat &&
+        !g.rematch.requestedBy.includes(g.yourSeat),
     );
   }, [finishedGames]);
   const sortedActiveGames = useMemo(() => {
     const combined = [...activeGames, ...rematchGames];
     return combined.sort((a, b) => {
       // Rematch requests at the top
-      const aRematch = a.status === "finished" && !!a.rematch?.requestedBy.length;
-      const bRematch = b.status === "finished" && !!b.rematch?.requestedBy.length;
+      const aRematch =
+        a.status === "finished" && !!a.rematch?.requestedBy.length;
+      const bRematch =
+        b.status === "finished" && !!b.rematch?.requestedBy.length;
       if (aRematch && !bRematch) return -1;
       if (!aRematch && bRematch) return 1;
       const aYourTurn = isSummaryYourTurn(a);
@@ -195,160 +239,174 @@ export function LobbyPage({ auth, onOpenAuth, onLogout }: LobbyPageProps) {
         onLogout={onLogout}
       />
 
-      <main className="mx-auto flex max-w-7xl flex-col gap-8 px-4 pb-12 pt-20 sm:px-6 lg:px-8 lg:pt-20">
+      <main className="mx-auto flex max-w-7xl flex-col px-4 pb-12 pt-16 sm:px-6 lg:px-8 lg:pt-20">
         {/* Banner Section — hidden for users who completed the tutorial */}
-        {!((auth?.player.kind === "account" && auth.player.hasSeenTutorial) || localStorage.getItem("tiao:tutorialComplete")) && (
-        <section className="relative flex flex-col items-center justify-center py-12 text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col items-center gap-4"
-          >
-            <span className="flex h-24 w-24 items-center justify-center rounded-[2.5rem] border-2 border-[#f6e8cf]/55 bg-[linear-gradient(180deg,#faefd8,#ecd4a6)] font-display text-6xl text-[#25170d] shadow-[0_32px_64px_-24px_rgba(37,23,13,0.85)]">
-              跳
-            </span>
-            <h1 className="font-display text-7xl tracking-tighter text-[#2f2015]">
-              Tiao
-            </h1>
-            <p className="max-w-md text-lg font-medium text-[#6e5b48]/80">
-              A beautiful abstract strategy game. Play online, with friends, or
-              against an AI.
-            </p>
-            <Button
-              variant="ghost"
-              className="mt-2 text-[#b98d49] hover:text-[#8d6a2f] hover:bg-[#f4e8d2] font-semibold"
-              onClick={() => navigate("/tutorial")}
+        {!(
+          (auth?.player.kind === "account" && auth.player.hasSeenTutorial) ||
+          localStorage.getItem("tiao:tutorialComplete")
+        ) && (
+          <section className="relative flex flex-col items-center justify-center py-4 text-center sm:py-12">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex flex-col items-center gap-2 sm:gap-4"
             >
-              New here? Learn to play →
-            </Button>
-          </motion.div>
-        </section>
+              <span className="flex h-16 w-16 items-center justify-center rounded-[1.5rem] border-2 border-[#f6e8cf]/55 bg-[linear-gradient(180deg,#faefd8,#ecd4a6)] font-display text-4xl text-[#25170d] shadow-[0_32px_64px_-24px_rgba(37,23,13,0.85)] sm:h-24 sm:w-24 sm:rounded-[2.5rem] sm:text-6xl">
+                跳
+              </span>
+              <h1 className="font-display text-5xl tracking-tighter text-[#2f2015] sm:text-7xl">
+                Tiao
+              </h1>
+              <p className="max-w-md text-sm font-medium text-[#6e5b48]/80 sm:text-lg">
+                A beautiful abstract strategy game. Play online, with friends,
+                or against an AI.
+              </p>
+              <Button
+                variant="ghost"
+                className="text-[#b98d49] hover:text-[#8d6a2f] hover:bg-[#f4e8d2] font-semibold"
+                onClick={() => navigate("/tutorial")}
+              >
+                New here? Learn to play →
+              </Button>
+            </motion.div>
+          </section>
         )}
 
-        <section className="grid gap-8 lg:grid-cols-2">
-          {/* Local Match Card */}
+        <section className="mt-6 columns-1 gap-6 md:mt-8 md:columns-2 xl:columns-none xl:grid xl:grid-cols-3 [&>*]:mb-6 xl:[&>*]:mb-0">
+          {/* Local — Over the Board */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
+            className="break-inside-avoid xl:flex xl:flex-col"
           >
-            <Card
-              className={cn(
-                "h-full overflow-hidden flex flex-col shadow-xl",
-                paperCard,
-              )}
-            >
+            <Card className={cn("overflow-hidden shadow-xl xl:flex-1", paperCard)}>
               <div className="h-2 bg-[linear-gradient(90deg,#4b3726,#b98d49)]" />
-              <CardHeader className="pb-8">
+              <CardHeader className="pb-6">
                 <Badge className="w-fit bg-[#f4e8d2] text-[#6c543c] mb-2">
                   Local
                 </Badge>
-                <CardTitle className="text-4xl text-[#2b1e14]">
+                <CardTitle className="text-3xl text-[#2b1e14]">
                   Over the Board
                 </CardTitle>
-                <CardDescription className="text-base text-[#6e5b48] mt-2">
-                  Play a match on the same board with a friend or practice
-                  against an AI opponent.
+                <CardDescription className="text-sm text-[#6e5b48] mt-1 md:hidden xl:block">
+                  Share a screen with a friend or sharpen your skills against an
+                  AI.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="mt-auto grid grid-cols-2 gap-4 pb-8">
+              <CardContent className="flex flex-col gap-6 pb-6">
                 <Button
                   size="lg"
-                  variant="secondary"
-                  className="w-full h-14 text-lg border-[#dcc7a2]"
-                  onClick={() => navigate("/computer")}
-                >
-                  Play with a Bot
-                </Button>
-                <Button
-                  size="lg"
-                  className="w-full h-14 text-lg"
+                  className="w-full h-12 text-base"
                   onClick={() => navigate("/local")}
                 >
                   Play with a Friend
+                </Button>
+
+                <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] text-[#8d7760]">
+                  <span className="h-px flex-1 bg-[#dcc7a2]" />
+                  or
+                  <span className="h-px flex-1 bg-[#dcc7a2]" />
+                </div>
+
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="w-full h-12 text-base border-[#dcc7a2]"
+                  onClick={() => navigate("/computer")}
+                >
+                  Play with a Bot
                 </Button>
               </CardContent>
             </Card>
           </motion.div>
 
-          {/* Online Match Card */}
+          {/* Online — Play Against Someone Specific */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="break-inside-avoid xl:flex xl:flex-col"
           >
-            <Card
-              className={cn(
-                "h-full overflow-hidden flex flex-col shadow-xl",
-                paperCard,
-              )}
-            >
+            <Card className={cn("overflow-hidden shadow-xl xl:flex-1", paperCard)}>
               <div className="h-2 bg-[linear-gradient(90deg,#6e4f29,#d2a661)]" />
-              <CardHeader className="pb-8">
+              <CardHeader className="pb-6">
                 <Badge className="w-fit bg-[#f5ead8] text-[#6e5437] mb-2">
                   Online
                 </Badge>
-                <CardTitle className="text-4xl text-[#2b1e14]">
-                  Play Online
+                <CardTitle className="text-3xl text-[#2b1e14]">
+                  Play Someone Specific
                 </CardTitle>
-                <CardDescription className="text-base text-[#6e5b48] mt-2">
-                  Find a quick match or create a private game for a person that
-                  you know or join theirs.
+                <CardDescription className="text-sm text-[#6e5b48] mt-1 md:hidden xl:block">
+                  Create a private game and share the code, or join a friend's
+                  game with theirs.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="mt-auto space-y-10 pb-8">
-                <div className="space-y-6">
-                  <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-[0.25em] text-[#8d7760]">
-                    <span className="h-px flex-1 bg-[#dcc7a2]" />
-                    Against someone specific
-                    <span className="h-px flex-1 bg-[#dcc7a2]" />
-                  </div>
-
-                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
-                    <Button
-                      variant="secondary"
-                      className="flex-1 h-12 text-base border-[#dcc7a2]"
-                      onClick={handleCreateRoom}
-                      disabled={multiplayerBusy}
-                    >
-                      {multiplayerBusy ? "Creating..." : "Create game"}
-                    </Button>
-                    <span className="text-[#8d7760] font-bold italic px-1">
-                      or
-                    </span>
-                    <div className="flex flex-[1.5] gap-1">
-                      <Input
-                        value={joinGameId}
-                        onChange={(e) =>
-                          setJoinGameId(
-                            e.target.value
-                              .toUpperCase()
-                              .replace(/[^A-Z0-9]/g, ""),
-                          )
-                        }
-                        placeholder="Existing Game ID"
-                        maxLength={6}
-                        className="h-12 font-mono bg-white/60 border-[#dcc7a2] focus:ring-[#b98d49]"
-                      />
-                      <Button
-                        variant="outline"
-                        className="h-12 px-6 border-[#dcc7a2] hover:bg-[#faefd8]"
-                        onClick={handleJoinRoom}
-                        disabled={multiplayerBusy || !joinGameId}
-                      >
-                        Join
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-[0.25em] text-[#8d7760]">
-                  <span className="h-px flex-1 bg-[#dcc7a2]" />
-                  Quick match
-                  <span className="h-px flex-1 bg-[#dcc7a2]" />
-                </div>
-
+              <CardContent className="space-y-6 pb-6">
                 <Button
                   size="lg"
-                  className="w-full h-14 text-lg"
+                  className="w-full h-12 text-base"
+                  onClick={handleCreateRoom}
+                  disabled={multiplayerBusy}
+                >
+                  {multiplayerBusy ? "Creating..." : "Create a game"}
+                </Button>
+
+                <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] text-[#8d7760]">
+                  <span className="h-px flex-1 bg-[#dcc7a2]" />
+                  or join one
+                  <span className="h-px flex-1 bg-[#dcc7a2]" />
+                </div>
+
+                <div className="flex gap-2">
+                  <Input
+                    value={joinGameId}
+                    onChange={(e) =>
+                      setJoinGameId(
+                        e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""),
+                      )
+                    }
+                    placeholder="Game ID"
+                    maxLength={6}
+                    className="h-12 font-mono bg-white/60 border-[#dcc7a2] focus:ring-[#b98d49]"
+                  />
+                  <Button
+                    variant="outline"
+                    className="h-12 px-6 border-[#dcc7a2] hover:bg-[#faefd8]"
+                    onClick={handleJoinRoom}
+                    disabled={multiplayerBusy || !joinGameId}
+                  >
+                    Join
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Online — Matchmaking */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="break-inside-avoid"
+          >
+            <Card className={cn("overflow-hidden shadow-xl", paperCard)}>
+              <div className="h-2 bg-[linear-gradient(90deg,#6e4f29,#d2a661)]" />
+              <CardHeader className="pb-6">
+                <Badge className="w-fit bg-[#f5ead8] text-[#6e5437] mb-2">
+                  Online
+                </Badge>
+                <CardTitle className="text-3xl text-[#2b1e14]">
+                  Matchmaking
+                </CardTitle>
+                <CardDescription className="text-sm text-[#6e5b48] mt-1 xl:hidden">
+                  Jump into a game against a random opponent. Pick a time
+                  control or play without one.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 pb-6">
+                <Button
+                  size="lg"
+                  className="w-full h-12 text-base"
                   onClick={() => navigate("/matchmaking")}
                 >
                   Unlimited time game
@@ -359,17 +417,17 @@ export function LobbyPage({ auth, onOpenAuth, onLogout }: LobbyPageProps) {
                     <Button
                       key={preset.label}
                       variant="secondary"
-                      className="flex flex-col items-center gap-0.5 h-auto py-3 border-[#dcc7a2] hover:border-[#b98d49] hover:bg-[#fff8ee] transition-all"
+                      className="flex flex-col items-center gap-0.5 h-auto py-2.5 border-[#dcc7a2] hover:border-[#b98d49] hover:bg-[#fff8ee] transition-all"
                       onClick={() =>
                         navigate("/matchmaking", {
                           state: { timeControl: preset.timeControl },
                         })
                       }
                     >
-                      <span className="text-base font-bold text-[#2b1e14]">
+                      <span className="text-sm font-bold text-[#2b1e14]">
                         {preset.label}
                       </span>
-                      <span className="text-[0.65rem] uppercase tracking-wider text-[#8d7760]">
+                      <span className="text-[0.6rem] uppercase tracking-wider text-[#8d7760]">
                         {preset.category}
                       </span>
                     </Button>
@@ -381,15 +439,16 @@ export function LobbyPage({ auth, onOpenAuth, onLogout }: LobbyPageProps) {
         </section>
 
         {auth?.player?.kind === "account" && (
-          <section className="grid gap-8 lg:grid-cols-2 mt-4">
+          <section className="grid grid-cols-1 gap-6 md:mt-8 md:grid-cols-2">
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col"
             >
-              <Card className={cn("overflow-hidden shadow-lg", paperCard)}>
-                <CardHeader className="flex-row items-center justify-between border-b border-black/5 bg-black/2 py-4">
+              <Card className={cn("overflow-hidden shadow-lg flex-1", paperCard)}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-black/5 bg-black/2 py-4">
                   <CardTitle className="text-2xl text-[#2b1e14]">
-                    Active games
+                    Active Games
                   </CardTitle>
                   <Button
                     variant="secondary"
@@ -403,9 +462,13 @@ export function LobbyPage({ auth, onOpenAuth, onLogout }: LobbyPageProps) {
                 <CardContent className="space-y-3 pt-6">
                   {sortedActiveGames.slice(0, 3).map((game) => {
                     const isYourTurn = isSummaryYourTurn(game);
-                    const opponentSeat = game.yourSeat === "white" ? "black" : "white";
-                    const opponentOnline = game.seats[opponentSeat]?.online ?? false;
-                    const hasRematchRequest = game.status === "finished" && !!game.rematch?.requestedBy.length;
+                    const opponentSeat =
+                      game.yourSeat === "white" ? "black" : "white";
+                    const opponentOnline =
+                      game.seats[opponentSeat]?.online ?? false;
+                    const hasRematchRequest =
+                      game.status === "finished" &&
+                      !!game.rematch?.requestedBy.length;
                     return (
                       <div
                         key={game.gameId}
@@ -427,7 +490,10 @@ export function LobbyPage({ auth, onOpenAuth, onLogout }: LobbyPageProps) {
                             <p className="text-sm text-[#6e5b48]">
                               vs {getOpponentLabel(game, auth.player.playerId)}
                               {opponentOnline && (
-                                <span className="ml-1.5 inline-block h-2 w-2 rounded-full bg-[#6ba34a]" title="Opponent is online" />
+                                <span
+                                  className="ml-1.5 inline-block h-2 w-2 rounded-full bg-[#6ba34a]"
+                                  title="Opponent is online"
+                                />
                               )}
                             </p>
                           </div>
@@ -441,7 +507,11 @@ export function LobbyPage({ auth, onOpenAuth, onLogout }: LobbyPageProps) {
                                   : "bg-[#f3e7d5] text-[#6b563e]",
                             )}
                           >
-                            {hasRematchRequest ? "Rematch requested" : isYourTurn ? "Your move" : "Their move"}
+                            {hasRematchRequest
+                              ? "Rematch requested"
+                              : isYourTurn
+                                ? "Your move"
+                                : "Their move"}
                           </Badge>
                         </div>
                         <Button
@@ -466,9 +536,10 @@ export function LobbyPage({ auth, onOpenAuth, onLogout }: LobbyPageProps) {
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col"
             >
-              <Card className={cn("overflow-hidden shadow-lg", paperCard)}>
-                <CardHeader className="flex-row items-center justify-between border-b border-black/5 bg-black/2 py-4">
+              <Card className={cn("overflow-hidden shadow-lg flex-1", paperCard)}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-black/5 bg-black/2 py-4">
                   <CardTitle className="text-2xl text-[#2b1e14]">
                     Invitations
                   </CardTitle>
