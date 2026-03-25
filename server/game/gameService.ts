@@ -703,6 +703,7 @@ export class GameService {
       state: room.state,
       players: room.players.map((player) => this.toPlayerSlot(room.id, player)),
       rematch: room.rematch,
+      takeback: null,
       seats: {
         white: this.toSeatSlot(room, "white"),
         black: this.toSeatSlot(room, "black"),
