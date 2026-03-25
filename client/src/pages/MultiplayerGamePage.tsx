@@ -214,7 +214,15 @@ export function MultiplayerGamePage({
     ) {
       lastTakebackToastRef.current = takebackRequester;
       toast("Opponent requested a takeback", {
-        description: "Check the game panel to accept or decline.",
+        action: {
+          label: "Accept",
+          onClick: () => sendMultiplayerMessage({ type: "accept-takeback" }),
+        },
+        cancel: {
+          label: "Decline",
+          onClick: () => sendMultiplayerMessage({ type: "decline-takeback" }),
+        },
+        duration: Infinity,
       });
     }
     if (!takebackRequester) {
