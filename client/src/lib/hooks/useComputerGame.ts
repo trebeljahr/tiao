@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { isGameOver, type TurnRecord } from "@shared";
+import { isGameOver } from "@shared";
 import { useLocalGame } from "./useLocalGame";
 import {
   COMPUTER_COLOR,
@@ -15,7 +15,6 @@ export function useComputerGame(difficulty: AIDifficulty = 3) {
   const local = useLocalGame();
   const [computerThinking, setComputerThinking] = useState(false);
   const [thinkProgress, setThinkProgress] = useState(0);
-  const [lastMove, setLastMove] = useState<TurnRecord | null>(null);
 
   // Track the game history length that triggered the current search.
   // This prevents re-triggering for the same position and handles strict mode:
@@ -69,9 +68,6 @@ export function useComputerGame(difficulty: AIDifficulty = 3) {
 
           const result = applyComputerTurnPlan(gameAtRequest, plan);
           if (result.ok) {
-            const newHistory = result.value.history;
-            const lastTurn = newHistory[newHistory.length - 1] ?? null;
-            setLastMove(lastTurn);
             local.setLocalGame(result.value);
             local.setLocalSelection(null);
             local.setLocalError(null);
@@ -99,8 +95,9 @@ export function useComputerGame(difficulty: AIDifficulty = 3) {
     return () => {
       cancelled = true;
       cancel();
-      // Reset the guard so a fresh effect run can re-trigger for the same position
       searchedForRef.current = -1;
+      setComputerThinking(false);
+      setThinkProgress(0);
     };
   }, [needsMove, local.localGame, difficulty]);
 
@@ -109,7 +106,6 @@ export function useComputerGame(difficulty: AIDifficulty = 3) {
       if (computerThinking || local.localGame.currentTurn === COMPUTER_COLOR) {
         return;
       }
-      setLastMove(null);
       local.handleLocalBoardClick(position);
     },
     [
@@ -123,7 +119,6 @@ export function useComputerGame(difficulty: AIDifficulty = 3) {
     ...local,
     computerThinking,
     thinkProgress,
-    lastMove,
     handleLocalBoardClick: handleBoardClick,
     controlsDisabled:
       computerThinking || local.localGame.currentTurn === COMPUTER_COLOR,

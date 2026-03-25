@@ -4,6 +4,7 @@ import {
   Position,
   GameState,
   PlayerColor,
+  TurnRecord,
   canPlacePiece,
   placePiece,
   getJumpTargets,
@@ -24,16 +25,18 @@ export function useLocalGame() {
     Record<PlayerColor, number>
   >({ black: 0, white: 0 });
 
+  const [lastMove, setLastMove] = useState<TurnRecord | null>(null);
   const localHistoryLengthRef = useRef(localGame.history.length);
 
   useEffect(() => {
     if (localGame.history.length > localHistoryLengthRef.current) {
-      const lastState = localGame.history[localGame.history.length - 1];
-      if (lastState.type === "place" || lastState.type === "confirm-jump") {
+      const lastTurn = localGame.history[localGame.history.length - 1];
+      if (lastTurn.type === "place" || lastTurn.type === "confirm-jump") {
         setLocalScorePulse((prev) => ({
           ...prev,
           [localGame.currentTurn === "white" ? "black" : "white"]: Date.now(),
         }));
+        setLastMove(lastTurn);
       }
     }
     localHistoryLengthRef.current = localGame.history.length;
@@ -43,6 +46,7 @@ export function useLocalGame() {
     setLocalGame(createInitialGameState());
     setLocalSelection(null);
     setLocalError(null);
+    setLastMove(null);
   }, []);
 
   const handleLocalBoardClick = useCallback(
@@ -152,6 +156,8 @@ export function useLocalGame() {
     setLocalError,
     localScorePulse,
     localJumpTargets,
+    lastMove,
+    setLastMove,
     resetLocalGame,
     handleLocalBoardClick,
     handleLocalConfirmPendingJump,

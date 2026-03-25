@@ -58,7 +58,7 @@ if (process.env.PORT) {
 if (process.env.DOCS_PORT) {
   docsPort = parseInt(process.env.DOCS_PORT, 10);
 } else if (fixedMode) {
-  docsPort = 4000;
+  docsPort = 4004;
 } else {
   docsPort = await findRandomFreePort(4100, 4999);
 }
@@ -66,7 +66,7 @@ if (process.env.DOCS_PORT) {
 if (process.env.API_PORT) {
   apiPort = parseInt(process.env.API_PORT, 10);
 } else if (fixedMode) {
-  apiPort = 5000;
+  apiPort = 5005;
 } else {
   apiPort = await findRandomFreePort(5100, 5999);
 }

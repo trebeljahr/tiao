@@ -13,12 +13,17 @@ export type WorkerResponse =
 
 let currentAbort: { aborted: boolean } | null = null;
 let currentId: number | null = null;
+// Track whether the abort was triggered externally (UI cancel) vs internally
+// (engine time budget expired). The engine sets abort.aborted=true when the
+// time budget runs out, but that's a soft stop — the result is still valid.
+let externallyCancelled = false;
 
 self.onmessage = (e: MessageEvent<WorkerRequest>) => {
   const msg = e.data;
 
   if (msg.type === "cancel") {
     if (currentAbort && currentId === msg.id) {
+      externallyCancelled = true;
       currentAbort.aborted = true;
     }
     return;
@@ -27,6 +32,7 @@ self.onmessage = (e: MessageEvent<WorkerRequest>) => {
   if (msg.type === "search") {
     currentAbort = { aborted: false };
     currentId = msg.id;
+    externallyCancelled = false;
 
     const config: EngineConfig = {
       ...msg.config,
@@ -42,7 +48,7 @@ self.onmessage = (e: MessageEvent<WorkerRequest>) => {
     try {
       const result = findBestMove(msg.state, config, currentAbort);
 
-      if (currentAbort.aborted) {
+      if (externallyCancelled) {
         self.postMessage({ type: "cancelled", id: msg.id } satisfies WorkerResponse);
       } else if (result) {
         self.postMessage({ type: "result", id: msg.id, result } satisfies WorkerResponse);
@@ -63,5 +69,6 @@ self.onmessage = (e: MessageEvent<WorkerRequest>) => {
 
     currentAbort = null;
     currentId = null;
+    externallyCancelled = false;
   }
 };

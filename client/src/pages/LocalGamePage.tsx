@@ -72,6 +72,7 @@ export function LocalGamePage({ auth, onOpenAuth, onLogout }: LocalGamePageProps
                 selectedPiece={local.localSelection}
                 jumpTargets={local.localJumpTargets}
                 confirmReady={true}
+                lastMove={local.lastMove}
                 onPointClick={local.handleLocalBoardClick}
                 onUndoLastJump={local.handleLocalUndoPendingJump}
               />
