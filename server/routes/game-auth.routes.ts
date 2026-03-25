@@ -473,6 +473,48 @@ router.get("/me", async (req: Request, res: Response) => {
 
 /**
  * @openapi
+ * /api/player/tutorial-complete:
+ *   post:
+ *     summary: Mark the tutorial as completed for the current account
+ *     tags:
+ *       - Authentication
+ *     security:
+ *       - sessionCookie: []
+ *     responses:
+ *       200:
+ *         description: Tutorial marked as completed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 auth:
+ *                   $ref: '#/components/schemas/AuthResponse'
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Only account players can mark tutorial complete
+ *       404:
+ *         description: Account not found
+ *       503:
+ *         description: Account features unavailable
+ */
+router.post("/tutorial-complete", async (req: Request, res: Response) => {
+  const account = await requireAccount(req, res);
+  if (!account) {
+    return;
+  }
+
+  account.hasSeenTutorial = true;
+  await account.save();
+
+  const auth = buildAccountAuth(account);
+  await refreshPlayerSession(req, res, auth.player);
+  return res.status(200).json({ auth });
+});
+
+/**
+ * @openapi
  * /api/player/profile:
  *   get:
  *     summary: Get the current account profile

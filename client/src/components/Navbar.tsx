@@ -220,6 +220,12 @@ export function Navbar({
           },
         ]
       : []),
+    {
+      label: "Tutorial",
+      active: location.pathname === "/tutorial",
+      onClick: () => handleNav("/tutorial"),
+      badge: 0,
+    },
   ];
 
   const desktopNav = (

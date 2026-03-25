@@ -77,7 +77,7 @@ export function App() {
       setAppError(null);
     }
 
-    async function bootstrapAuth() {
+    async function bootstrapAuth(retries = 5, delayMs = 800) {
       setAuthLoading(true);
       setAppError(null);
 
@@ -101,12 +101,22 @@ export function App() {
       try {
         await ensureGuestAuth();
       } catch (error) {
-        if (!cancelled) {
-          if (isNetworkError(error)) {
-            toastError(error);
-          } else {
-            setAppError(readableError(error));
+        if (cancelled) {
+          return;
+        }
+
+        if (isNetworkError(error) && retries > 0) {
+          await new Promise((r) => setTimeout(r, delayMs));
+          if (!cancelled) {
+            return bootstrapAuth(retries - 1, delayMs * 1.5);
           }
+          return;
+        }
+
+        if (isNetworkError(error)) {
+          toastError(error);
+        } else {
+          setAppError(readableError(error));
         }
       } finally {
         if (!cancelled) {

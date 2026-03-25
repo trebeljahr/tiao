@@ -128,11 +128,13 @@ export function TutorialPage({ auth, onAuthChange }: TutorialPageProps) {
     }, 900);
   }
 
+  const isReplay = auth?.player.kind === "account" && auth.player.hasSeenTutorial;
+
   async function handleFinish() {
     setCompleting(true);
     fireBigConfetti();
 
-    if (auth?.player.kind === "account") {
+    if (auth?.player.kind === "account" && !isReplay) {
       try {
         const result = await markTutorialComplete();
         onAuthChange?.(result.auth);
@@ -146,7 +148,7 @@ export function TutorialPage({ auth, onAuthChange }: TutorialPageProps) {
   }
 
   async function handleSkip() {
-    if (auth?.player.kind === "account") {
+    if (auth?.player.kind === "account" && !isReplay) {
       try {
         const result = await markTutorialComplete();
         onAuthChange?.(result.auth);
