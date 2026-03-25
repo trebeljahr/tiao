@@ -152,6 +152,14 @@ export function MultiplayerGamePage({
       : null
     : null;
   const isReviewMode = multiplayerSnapshot?.status === "finished";
+
+  // Track whether the game was already finished when first loaded (true review mode).
+  // If it ends while we're watching, confetti should still fire.
+  const wasFinishedOnLoadRef = useRef<boolean | null>(null);
+  if (wasFinishedOnLoadRef.current === null && multiplayerSnapshot) {
+    wasFinishedOnLoadRef.current = multiplayerSnapshot.status === "finished";
+  }
+
   const [reviewMoveIndex, setReviewMoveIndex] = useState<number | null>(null);
 
   // Initialize review index when entering review mode
@@ -183,7 +191,7 @@ export function MultiplayerGamePage({
         )?.[0] as PlayerColor | undefined)
       : null;
 
-  useWinConfetti(isReviewMode ? null : winner, { viewerColor: playerSeat ?? null });
+  useWinConfetti(wasFinishedOnLoadRef.current ? null : winner, { viewerColor: playerSeat ?? null });
 
   const isMultiplayerParticipant = !!playerSeat;
 
@@ -464,7 +472,7 @@ export function MultiplayerGamePage({
                           : multiplayerStatusTitle}
                       </CardTitle>
                     </div>
-                    {multiplayerSnapshot && !isReviewMode && (
+                    {multiplayerSnapshot && (
                       <div className="flex items-center gap-2">
                         <RoomCodeCopyPill
                           gameId={multiplayerSnapshot.gameId}
@@ -472,6 +480,7 @@ export function MultiplayerGamePage({
                             copyFeedbackKey === "game-id" && !!copyFeedback
                           }
                           onCopy={handleCopyGameId}
+                          hideCopyIcon={isReviewMode}
                         />
                         <ShareLinkCopyPill
                           copied={

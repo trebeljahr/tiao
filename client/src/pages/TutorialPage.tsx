@@ -138,6 +138,8 @@ export function TutorialPage({ auth, onAuthChange, onOpenAuth, onLogout }: Tutor
     setCompleting(true);
     fireBigConfetti();
 
+    localStorage.setItem("tiao:tutorialComplete", "1");
+
     if (auth?.player.kind === "account" && !isReplay) {
       try {
         const result = await markTutorialComplete();
@@ -148,10 +150,12 @@ export function TutorialPage({ auth, onAuthChange, onOpenAuth, onLogout }: Tutor
     }
 
     await new Promise((r) => setTimeout(r, 1200));
-    navigate("/computer");
+    navigate("/");
   }
 
   async function handleSkip() {
+    localStorage.setItem("tiao:tutorialComplete", "1");
+
     if (auth?.player.kind === "account" && !isReplay) {
       try {
         const result = await markTutorialComplete();
@@ -292,7 +296,7 @@ export function TutorialPage({ auth, onAuthChange, onOpenAuth, onLogout }: Tutor
                 onClick={handleFinish}
                 disabled={completing}
               >
-                {completing ? "Let's go!" : "Play against AI →"}
+                {completing ? "Let's go!" : "Return to lobby →"}
               </Button>
             ) : canAdvance ? (
               <Button

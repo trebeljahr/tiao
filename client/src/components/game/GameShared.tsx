@@ -276,10 +276,12 @@ export function RoomCodeCopyPill({
   gameId,
   copied,
   onCopy,
+  hideCopyIcon,
 }: {
   gameId: string;
   copied: boolean;
   onCopy: () => void;
+  hideCopyIcon?: boolean;
 }) {
   return (
     <motion.button
@@ -304,16 +306,18 @@ export function RoomCodeCopyPill({
       aria-label={`Copy game ID ${gameId}`}
     >
       <span className="font-mono tracking-[0.18em]">{gameId}</span>
-      <span
-        className={cn(
-          "flex h-6 w-6 items-center justify-center rounded-full border text-[#f9f2e8]/90 transition-colors",
-          copied
-            ? "border-[#a7d08e] bg-[#456136] text-[#eef9e8]"
-            : "border-white/15 bg-white/8",
-        )}
-      >
-        {copied ? <CheckIcon /> : <CopyIcon />}
-      </span>
+      {!hideCopyIcon && (
+        <span
+          className={cn(
+            "flex h-6 w-6 items-center justify-center rounded-full border text-[#f9f2e8]/90 transition-colors",
+            copied
+              ? "border-[#a7d08e] bg-[#456136] text-[#eef9e8]"
+              : "border-white/15 bg-white/8",
+          )}
+        >
+          {copied ? <CheckIcon /> : <CopyIcon />}
+        </span>
+      )}
     </motion.button>
   );
 }

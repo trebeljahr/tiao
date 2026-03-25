@@ -196,8 +196,8 @@ export function LobbyPage({ auth, onOpenAuth, onLogout }: LobbyPageProps) {
       />
 
       <main className="mx-auto flex max-w-7xl flex-col gap-8 px-4 pb-12 pt-20 sm:px-6 lg:px-8 lg:pt-20">
-        {/* Banner Section — hidden for returning logged-in users */}
-        {!(auth?.player.kind === "account" && auth.player.hasSeenTutorial) && (
+        {/* Banner Section — hidden for users who completed the tutorial */}
+        {!((auth?.player.kind === "account" && auth.player.hasSeenTutorial) || localStorage.getItem("tiao:tutorialComplete")) && (
         <section className="relative flex flex-col items-center justify-center py-12 text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
