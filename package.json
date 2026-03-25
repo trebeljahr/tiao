@@ -13,6 +13,8 @@
     "build:server": "npm --prefix server run build",
     "dev": "node scripts/dev.mjs",
     "dev:fixed": "node scripts/dev.mjs --fixed",
+    "dev:docs": "node scripts/dev.mjs --docs",
+    "dev:docs:fixed": "node scripts/dev.mjs --fixed --docs",
     "test": "npm --prefix server test",
     "client": "npm --prefix client run dev",
     "server": "npm --prefix server run dev",
