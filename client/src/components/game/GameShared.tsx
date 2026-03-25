@@ -408,6 +408,9 @@ type AnimatedScoreTilePlayerInfo = {
   canBefriend?: boolean;
   onAddFriend?: () => void;
   addFriendBusy?: boolean;
+  onCancelFriendRequest?: () => void;
+  cancelFriendRequestBusy?: boolean;
+  variant?: "dark" | "light";
 };
 
 type AnimatedScoreTileProps = {
@@ -465,53 +468,81 @@ export function AnimatedScoreTile({
     <motion.div
       initial={{ scale: 1, y: 0 }}
       animate={tileControls}
-      className={className}
+      className={cn("relative", className)}
       style={{ transformOrigin: "center bottom" }}
     >
       {playerInfo && (
-        <div className="mb-2 flex items-center gap-2">
-          <ConnectionDot online={playerInfo.online} />
-          <PlayerOverviewAvatar
-            player={playerInfo.player}
-            className="h-6 w-6"
-          />
-          <span className="truncate text-xs font-semibold opacity-80">
-            {playerInfo.player.displayName ?? "Player"}
-          </span>
-          {playerInfo.isYou && (
-            <span className="shrink-0 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
-              You
+        <>
+          <div className="absolute right-3 top-3">
+            <ConnectionDot online={playerInfo.online} />
+          </div>
+          <div className="mb-2 flex items-center gap-2 pr-6">
+            <PlayerOverviewAvatar
+              player={playerInfo.player}
+              className="h-6 w-6"
+            />
+            <span className="truncate text-xs font-semibold opacity-80">
+              {playerInfo.player.displayName ?? "Player"}
+              {playerInfo.isYou && (
+                <span className="opacity-60"> (you)</span>
+              )}
             </span>
-          )}
-          {playerInfo.isFriend && (
-            <span className="shrink-0 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
-              Friend
-            </span>
-          )}
-          {playerInfo.hasPendingOutgoing && (
-            <span className="shrink-0 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide opacity-70">
-              Pending
-            </span>
-          )}
-          {playerInfo.canBefriend && playerInfo.onAddFriend && (
-            <button
-              type="button"
-              title={`Send friend request to ${playerInfo.player.displayName}`}
-              className="ml-auto flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20 transition-colors hover:bg-white/35"
-              onClick={playerInfo.onAddFriend}
-              disabled={playerInfo.addFriendBusy}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="h-3 w-3"
+            {playerInfo.isFriend && (
+              <span
+                className={cn(
+                  "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                  playerInfo.variant === "light"
+                    ? "bg-black/10 text-black/60"
+                    : "bg-white/20",
+                )}
               >
-                <path d="M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM2.046 15.253c-.058.468.172.92.57 1.175A9.953 9.953 0 0 0 8 18c1.982 0 3.83-.578 5.384-1.573.398-.254.628-.707.57-1.175a6.001 6.001 0 0 0-11.908 0ZM15.75 6.5a.75.75 0 0 0-1.5 0v2h-2a.75.75 0 0 0 0 1.5h2v2a.75.75 0 0 0 1.5 0v-2h2a.75.75 0 0 0 0-1.5h-2v-2Z" />
-              </svg>
-            </button>
-          )}
-        </div>
+                Friend
+              </span>
+            )}
+            {playerInfo.hasPendingOutgoing && (
+              <button
+                type="button"
+                title="Cancel friend request"
+                className={cn(
+                  "group flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition-colors",
+                  playerInfo.variant === "light"
+                    ? "bg-black/10 text-black/50 hover:bg-red-100 hover:text-red-600"
+                    : "bg-white/20 opacity-70 hover:bg-red-500/30 hover:text-red-200 hover:opacity-100",
+                )}
+                onClick={playerInfo.onCancelFriendRequest}
+                disabled={playerInfo.cancelFriendRequestBusy}
+              >
+                Pending
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 16 16"
+                  fill="currentColor"
+                  className="h-2.5 w-2.5 opacity-50 group-hover:opacity-100"
+                >
+                  <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" />
+                </svg>
+              </button>
+            )}
+            {playerInfo.canBefriend && playerInfo.onAddFriend && (
+              <button
+                type="button"
+                title={`Send friend request to ${playerInfo.player.displayName}`}
+                className="ml-auto flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20 transition-colors hover:bg-white/35"
+                onClick={playerInfo.onAddFriend}
+                disabled={playerInfo.addFriendBusy}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  className="h-3 w-3"
+                >
+                  <path d="M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM2.046 15.253c-.058.468.172.92.57 1.175A9.953 9.953 0 0 0 8 18c1.982 0 3.83-.578 5.384-1.573.398-.254.628-.707.57-1.175a6.001 6.001 0 0 0-11.908 0ZM15.75 6.5a.75.75 0 0 0-1.5 0v2h-2a.75.75 0 0 0 0 1.5h2v2a.75.75 0 0 0 1.5 0v-2h2a.75.75 0 0 0 0-1.5h-2v-2Z" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </>
       )}
       <p className={labelClassName}>{label}</p>
       <motion.p

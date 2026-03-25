@@ -585,6 +585,8 @@ export function MultiplayerGamePage({
                                 !hasPendingOutgoing &&
                                 !hasPendingIncoming;
 
+                              const tileVariant =
+                                color === "black" ? "dark" : "light";
                               const tileStyle =
                                 color === "black"
                                   ? "rounded-3xl border border-black/10 bg-[linear-gradient(180deg,#39312b,#14100d)] p-4 text-[#f9f2e8]"
@@ -613,6 +615,7 @@ export function MultiplayerGamePage({
                                           isFriend,
                                           hasPendingOutgoing,
                                           canBefriend,
+                                          variant: tileVariant,
                                           onAddFriend: canBefriend
                                             ? () =>
                                                 social.handleSendFriendRequest(
@@ -622,6 +625,16 @@ export function MultiplayerGamePage({
                                           addFriendBusy:
                                             social.socialActionBusyKey ===
                                             `friend-send:${seat.player.playerId}`,
+                                          onCancelFriendRequest:
+                                            hasPendingOutgoing
+                                              ? () =>
+                                                  social.handleCancelFriendRequest(
+                                                    seat.player.playerId,
+                                                  )
+                                              : undefined,
+                                          cancelFriendRequestBusy:
+                                            social.socialActionBusyKey ===
+                                            `friend-cancel:${seat.player.playerId}`,
                                         }
                                       : undefined
                                   }
