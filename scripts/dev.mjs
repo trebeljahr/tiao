@@ -39,11 +39,19 @@ async function findRandomFreePort(min, max, maxAttempts = 20) {
 let clientPort;
 let apiPort;
 
-if (fixedMode) {
+if (process.env.PORT) {
+  clientPort = parseInt(process.env.PORT, 10);
+} else if (fixedMode) {
   clientPort = 3000;
-  apiPort = 5005;
 } else {
   clientPort = await findRandomFreePort(3000, 4000);
+}
+
+if (process.env.API_PORT) {
+  apiPort = parseInt(process.env.API_PORT, 10);
+} else if (fixedMode) {
+  apiPort = 5005;
+} else {
   apiPort = await findRandomFreePort(5000, 6000);
 }
 
