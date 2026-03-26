@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import mongoose from "mongoose";
+import { classifyMongoError } from "../error-handling";
 import { gameService, GameServiceError } from "../game/gameService";
 import { getPlayerFromRequest } from "../game/playerTokens";
 import GameInvitation from "../models/GameInvitation";
@@ -30,7 +31,18 @@ function respondWithGameServiceError(
     });
   }
 
+  const mongoError = classifyMongoError(error);
+  if (mongoError) {
+    console.warn(`[game-routes] MongoDB ${mongoError.code}:`, error);
+    return res.status(mongoError.status).json({
+      code: mongoError.code,
+      message: mongoError.message,
+    });
+  }
+
+  console.error("[game-routes] Unhandled error:", error);
   return res.status(500).json({
+    code: "INTERNAL_ERROR",
     message: fallbackMessage,
   });
 }

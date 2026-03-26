@@ -1,7 +1,7 @@
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import bcrypt from "bcrypt";
 import { randomUUID } from "crypto";
-import express, { Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import { Jimp } from "jimp";
 import mongoose from "mongoose";
 import GameAccount from "../models/GameAccount";
@@ -17,11 +17,37 @@ import {
 } from "../game/playerTokens";
 import { BUCKET_NAME, CLOUDFRONT_URL } from "../config/envVars";
 import { s3Client } from "../config/s3Client";
+import { classifyMongoError } from "../error-handling";
 import { profilePictureUpload } from "../middleware/multerUploadMiddleware";
 import { authRateLimiter } from "../middleware/rateLimiter";
 
 const router = express.Router();
 const saltRounds = 10;
+
+function handleRouteError(
+  error: unknown,
+  req: Request,
+  res: Response,
+  fallbackMessage: string
+) {
+  const mongoError = classifyMongoError(error);
+  if (mongoError) {
+    console.warn(
+      `[${req.method} ${req.path}] MongoDB ${mongoError.code}:`,
+      error
+    );
+    return res.status(mongoError.status).json({
+      code: mongoError.code,
+      message: mongoError.message,
+    });
+  }
+
+  console.error(`[${req.method} ${req.path}] Unhandled error:`, error);
+  return res.status(500).json({
+    code: "INTERNAL_ERROR",
+    message: fallbackMessage,
+  });
+}
 
 /**
  * @openapi
@@ -197,13 +223,17 @@ async function requireAccount(req: Request, res: Response) {
  *               $ref: '#/components/schemas/AuthResponse'
  */
 router.post("/guest", async (req: Request, res: Response) => {
-  const { displayName } = req.body as {
-    displayName?: string;
-  };
+  try {
+    const { displayName } = req.body as {
+      displayName?: string;
+    };
 
-  const auth = createGuestAuth(displayName);
-  await commitPlayerSession(req, res, auth.player);
-  res.status(201).json(auth);
+    const auth = createGuestAuth(displayName);
+    await commitPlayerSession(req, res, auth.player);
+    res.status(201).json(auth);
+  } catch (error) {
+    handleRouteError(error, req, res, "Unable to create a guest session right now.");
+  }
 });
 
 /**
@@ -244,81 +274,85 @@ router.post("/guest", async (req: Request, res: Response) => {
  *         description: Account signup unavailable
  */
 router.post("/signup", authRateLimiter, async (req: Request, res: Response) => {
-  if (!isDatabaseReady()) {
-    return res.status(503).json({
-      message:
-        "Account signup is unavailable right now. You can still keep playing as a guest.",
-    });
-  }
+  try {
+    if (!isDatabaseReady()) {
+      return res.status(503).json({
+        message:
+          "Account signup is unavailable right now. You can still keep playing as a guest.",
+      });
+    }
 
-  const { email, password, displayName } = req.body as {
-    email?: string;
-    password?: string;
-    displayName?: string;
-  };
+    const { email, password, displayName } = req.body as {
+      email?: string;
+      password?: string;
+      displayName?: string;
+    };
 
-  const normalizedEmail = email?.trim().toLowerCase();
-  const trimmedDisplayName = displayName?.trim();
+    const normalizedEmail = email?.trim().toLowerCase();
+    const trimmedDisplayName = displayName?.trim();
 
-  if (!password || (!normalizedEmail && !trimmedDisplayName)) {
-    return res.status(400).json({
-      message: "Provide a username or email address, and a password.",
-    });
-  }
-
-  if (normalizedEmail) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-    if (!emailRegex.test(normalizedEmail)) {
+    if (!password || (!normalizedEmail && !trimmedDisplayName)) {
       return res.status(400).json({
-        message: "Provide a valid email address.",
+        message: "Provide a username or email address, and a password.",
       });
     }
 
-    const existingAccountByEmail = await GameAccount.findOne({
-      email: normalizedEmail,
-    });
+    if (normalizedEmail) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+      if (!emailRegex.test(normalizedEmail)) {
+        return res.status(400).json({
+          message: "Provide a valid email address.",
+        });
+      }
 
-    if (existingAccountByEmail) {
-      return res.status(409).json({
-        message: "An account with that email already exists.",
+      const existingAccountByEmail = await GameAccount.findOne({
+        email: normalizedEmail,
       });
-    }
-  }
 
-  if (trimmedDisplayName) {
-    if (trimmedDisplayName.length < 3) {
+      if (existingAccountByEmail) {
+        return res.status(409).json({
+          message: "An account with that email already exists.",
+        });
+      }
+    }
+
+    if (trimmedDisplayName) {
+      if (trimmedDisplayName.length < 3) {
+        return res.status(400).json({
+          message: "Usernames must be at least 3 characters long.",
+        });
+      }
+
+      const existingAccountByDisplayName = await GameAccount.findOne({
+        displayName: trimmedDisplayName,
+      });
+
+      if (existingAccountByDisplayName) {
+        return res.status(409).json({
+          message: "That username is already taken.",
+        });
+      }
+    }
+
+    if (password.length < 8) {
       return res.status(400).json({
-        message: "Usernames must be at least 3 characters long.",
+        message: "Passwords must be at least 8 characters long.",
       });
     }
 
-    const existingAccountByDisplayName = await GameAccount.findOne({
-      displayName: trimmedDisplayName,
+    const passwordHash = bcrypt.hashSync(password, saltRounds);
+    const account = await GameAccount.create({
+      email: normalizedEmail || undefined,
+      passwordHash,
+      displayName: trimmedDisplayName || (normalizedEmail ? deriveDisplayNameFromEmail(normalizedEmail) : `Player-${randomUUID().slice(0, 8)}`),
     });
 
-    if (existingAccountByDisplayName) {
-      return res.status(409).json({
-        message: "That username is already taken.",
-      });
-    }
+    const auth = buildAccountAuth(account);
+    await commitPlayerSession(req, res, auth.player);
+    return res.status(201).json(auth);
+  } catch (error) {
+    return handleRouteError(error, req, res, "Unable to create that account right now.");
   }
-
-  if (password.length < 8) {
-    return res.status(400).json({
-      message: "Passwords must be at least 8 characters long.",
-    });
-  }
-
-  const passwordHash = bcrypt.hashSync(password, saltRounds);
-  const account = await GameAccount.create({
-    email: normalizedEmail || undefined,
-    passwordHash,
-    displayName: trimmedDisplayName || (normalizedEmail ? deriveDisplayNameFromEmail(normalizedEmail) : `Player-${randomUUID().slice(0, 8)}`),
-  });
-
-  const auth = buildAccountAuth(account);
-  await commitPlayerSession(req, res, auth.player);
-  return res.status(201).json(auth);
 });
 
 /**
@@ -358,50 +392,54 @@ router.post("/signup", authRateLimiter, async (req: Request, res: Response) => {
  *         description: Account login unavailable
  */
 router.post("/login", authRateLimiter, async (req: Request, res: Response) => {
-  if (!isDatabaseReady()) {
-    return res.status(503).json({
-      message:
-        "Account login is unavailable right now. You can still keep playing as a guest.",
+  try {
+    if (!isDatabaseReady()) {
+      return res.status(503).json({
+        message:
+          "Account login is unavailable right now. You can still keep playing as a guest.",
+      });
+    }
+
+    const { identifier, password } = req.body as {
+      identifier?: string;
+      password?: string;
+    };
+
+    if (!identifier || !password) {
+      return res.status(400).json({
+        message: "Provide a username or email address, and a password.",
+      });
+    }
+
+    const trimmedIdentifier = identifier.trim();
+    const lowercaseIdentifier = trimmedIdentifier.toLowerCase();
+
+    const account = await GameAccount.findOne({
+      $or: [
+        { email: lowercaseIdentifier },
+        { displayName: trimmedIdentifier },
+      ],
     });
+
+    if (!account) {
+      return res.status(401).json({
+        message: "Invalid credentials.",
+      });
+    }
+
+    const passwordMatches = bcrypt.compareSync(password, account.passwordHash);
+    if (!passwordMatches) {
+      return res.status(401).json({
+        message: "Invalid credentials.",
+      });
+    }
+
+    const auth = buildAccountAuth(account);
+    await commitPlayerSession(req, res, auth.player);
+    return res.status(200).json(auth);
+  } catch (error) {
+    return handleRouteError(error, req, res, "Unable to log in right now.");
   }
-
-  const { identifier, password } = req.body as {
-    identifier?: string;
-    password?: string;
-  };
-
-  if (!identifier || !password) {
-    return res.status(400).json({
-      message: "Provide a username or email address, and a password.",
-    });
-  }
-
-  const trimmedIdentifier = identifier.trim();
-  const lowercaseIdentifier = trimmedIdentifier.toLowerCase();
-
-  const account = await GameAccount.findOne({
-    $or: [
-      { email: lowercaseIdentifier },
-      { displayName: trimmedIdentifier },
-    ],
-  });
-
-  if (!account) {
-    return res.status(401).json({
-      message: "Invalid credentials.",
-    });
-  }
-
-  const passwordMatches = bcrypt.compareSync(password, account.passwordHash);
-  if (!passwordMatches) {
-    return res.status(401).json({
-      message: "Invalid credentials.",
-    });
-  }
-
-  const auth = buildAccountAuth(account);
-  await commitPlayerSession(req, res, auth.player);
-  return res.status(200).json(auth);
 });
 
 /**
@@ -418,8 +456,12 @@ router.post("/login", authRateLimiter, async (req: Request, res: Response) => {
  *         description: Session destroyed
  */
 router.post("/logout", async (req: Request, res: Response) => {
-  await clearPlayerSession(req, res);
-  return res.status(204).send();
+  try {
+    await clearPlayerSession(req, res);
+    return res.status(204).send();
+  } catch (error) {
+    handleRouteError(error, req, res, "Unable to log out right now.");
+  }
 });
 
 /**
@@ -445,31 +487,35 @@ router.post("/logout", async (req: Request, res: Response) => {
  *         description: Not authenticated or session no longer valid
  */
 router.get("/me", async (req: Request, res: Response) => {
-  const player = await getPlayerFromRequest(req);
-  if (!player) {
-    return res.status(401).json({
-      message: "Not authenticated.",
-    });
-  }
-
-  if (player.kind === "account" && isDatabaseReady()) {
-    const account = await GameAccount.findById(player.playerId);
-    if (account) {
-      const auth = buildAccountAuth(account);
-      await refreshPlayerSession(req, res, auth.player);
-      return res.status(200).json({
-        player: auth.player,
+  try {
+    const player = await getPlayerFromRequest(req);
+    if (!player) {
+      return res.status(401).json({
+        message: "Not authenticated.",
       });
     }
 
-    await clearPlayerSession(req, res);
-    return res.status(401).json({
-      message: "That account session is no longer valid.",
-    });
-  }
+    if (player.kind === "account" && isDatabaseReady()) {
+      const account = await GameAccount.findById(player.playerId);
+      if (account) {
+        const auth = buildAccountAuth(account);
+        await refreshPlayerSession(req, res, auth.player);
+        return res.status(200).json({
+          player: auth.player,
+        });
+      }
 
-  await refreshPlayerSession(req, res, player);
-  return res.status(200).json({ player });
+      await clearPlayerSession(req, res);
+      return res.status(401).json({
+        message: "That account session is no longer valid.",
+      });
+    }
+
+    await refreshPlayerSession(req, res, player);
+    return res.status(200).json({ player });
+  } catch (error) {
+    handleRouteError(error, req, res, "Unable to load player session right now.");
+  }
 });
 
 /**
@@ -501,17 +547,21 @@ router.get("/me", async (req: Request, res: Response) => {
  *         description: Account features unavailable
  */
 router.post("/tutorial-complete", async (req: Request, res: Response) => {
-  const account = await requireAccount(req, res);
-  if (!account) {
-    return;
+  try {
+    const account = await requireAccount(req, res);
+    if (!account) {
+      return;
+    }
+
+    account.hasSeenTutorial = true;
+    await account.save();
+
+    const auth = buildAccountAuth(account);
+    await refreshPlayerSession(req, res, auth.player);
+    return res.status(200).json({ auth });
+  } catch (error) {
+    handleRouteError(error, req, res, "Unable to update tutorial status right now.");
   }
-
-  account.hasSeenTutorial = true;
-  await account.save();
-
-  const auth = buildAccountAuth(account);
-  await refreshPlayerSession(req, res, auth.player);
-  return res.status(200).json({ auth });
 });
 
 /**
@@ -556,14 +606,18 @@ router.post("/tutorial-complete", async (req: Request, res: Response) => {
  *         description: Account features unavailable
  */
 router.get("/profile", async (req: Request, res: Response) => {
-  const account = await requireAccount(req, res);
-  if (!account) {
-    return;
-  }
+  try {
+    const account = await requireAccount(req, res);
+    if (!account) {
+      return;
+    }
 
-  return res.status(200).json({
-    profile: serializeAccountProfile(account),
-  });
+    return res.status(200).json({
+      profile: serializeAccountProfile(account),
+    });
+  } catch (error) {
+    handleRouteError(error, req, res, "Unable to load profile right now.");
+  }
 });
 
 /**
@@ -630,105 +684,109 @@ router.get("/profile", async (req: Request, res: Response) => {
  *         description: Account features unavailable
  */
 router.put("/profile", async (req: Request, res: Response) => {
-  const account = await requireAccount(req, res);
-  if (!account) {
-    return;
-  }
+  try {
+    const account = await requireAccount(req, res);
+    if (!account) {
+      return;
+    }
 
-  const { displayName, email, password, currentPassword } = req.body as {
-    displayName?: string;
-    email?: string;
-    password?: string;
-    currentPassword?: string;
-  };
+    const { displayName, email, password, currentPassword } = req.body as {
+      displayName?: string;
+      email?: string;
+      password?: string;
+      currentPassword?: string;
+    };
 
-  const normalizedEmail = email?.trim().toLowerCase();
-  const sanitizedDisplayName = displayName?.trim();
+    const normalizedEmail = email?.trim().toLowerCase();
+    const sanitizedDisplayName = displayName?.trim();
 
-  if (!normalizedEmail && !sanitizedDisplayName && !password) {
-    return res.status(400).json({
-      message: "Provide a display name, email address, or password to update.",
-    });
-  }
-
-  if (sanitizedDisplayName !== undefined) {
-    if (!sanitizedDisplayName || sanitizedDisplayName.length < 3) {
+    if (!normalizedEmail && !sanitizedDisplayName && !password) {
       return res.status(400).json({
-        message: "Display name must be at least 3 characters long.",
+        message: "Provide a display name, email address, or password to update.",
       });
     }
 
-    const existingAccountByDisplayName = await GameAccount.findOne({
-      displayName: sanitizedDisplayName,
-      _id: { $ne: account._id },
-    });
-
-    if (existingAccountByDisplayName) {
-      return res.status(409).json({
-        message: "That username is already taken.",
-      });
-    }
-
-    account.displayName = sanitizeDisplayName(sanitizedDisplayName);
-  }
-
-  if (normalizedEmail !== undefined) {
-    if (normalizedEmail) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-      if (!emailRegex.test(normalizedEmail)) {
+    if (sanitizedDisplayName !== undefined) {
+      if (!sanitizedDisplayName || sanitizedDisplayName.length < 3) {
         return res.status(400).json({
-          message: "Provide a valid email address.",
+          message: "Display name must be at least 3 characters long.",
         });
       }
 
-      const existingAccount = await GameAccount.findOne({
-        email: normalizedEmail,
+      const existingAccountByDisplayName = await GameAccount.findOne({
+        displayName: sanitizedDisplayName,
         _id: { $ne: account._id },
       });
 
-      if (existingAccount) {
+      if (existingAccountByDisplayName) {
         return res.status(409).json({
-          message: "An account with that email already exists.",
+          message: "That username is already taken.",
         });
       }
 
-      account.email = normalizedEmail;
-    } else {
-      account.email = undefined;
+      account.displayName = sanitizeDisplayName(sanitizedDisplayName);
     }
+
+    if (normalizedEmail !== undefined) {
+      if (normalizedEmail) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+        if (!emailRegex.test(normalizedEmail)) {
+          return res.status(400).json({
+            message: "Provide a valid email address.",
+          });
+        }
+
+        const existingAccount = await GameAccount.findOne({
+          email: normalizedEmail,
+          _id: { $ne: account._id },
+        });
+
+        if (existingAccount) {
+          return res.status(409).json({
+            message: "An account with that email already exists.",
+          });
+        }
+
+        account.email = normalizedEmail;
+      } else {
+        account.email = undefined;
+      }
+    }
+
+    if (password !== undefined) {
+      if (!currentPassword) {
+        return res.status(400).json({
+          message: "Current password is required to set a new password.",
+        });
+      }
+
+      const passwordMatches = bcrypt.compareSync(currentPassword, account.passwordHash);
+      if (!passwordMatches) {
+        return res.status(401).json({
+          message: "Current password is incorrect.",
+        });
+      }
+
+      if (password.length < 8) {
+        return res.status(400).json({
+          message: "Passwords must be at least 8 characters long.",
+        });
+      }
+
+      account.passwordHash = bcrypt.hashSync(password, saltRounds);
+    }
+
+    await account.save();
+
+    const auth = buildAccountAuth(account);
+    await refreshPlayerSession(req, res, auth.player);
+    return res.status(200).json({
+      auth,
+      profile: serializeAccountProfile(account),
+    });
+  } catch (error) {
+    return handleRouteError(error, req, res, "Unable to update profile right now.");
   }
-
-  if (password !== undefined) {
-    if (!currentPassword) {
-      return res.status(400).json({
-        message: "Current password is required to set a new password.",
-      });
-    }
-
-    const passwordMatches = bcrypt.compareSync(currentPassword, account.passwordHash);
-    if (!passwordMatches) {
-      return res.status(401).json({
-        message: "Current password is incorrect.",
-      });
-    }
-
-    if (password.length < 8) {
-      return res.status(400).json({
-        message: "Passwords must be at least 8 characters long.",
-      });
-    }
-
-    account.passwordHash = bcrypt.hashSync(password, saltRounds);
-  }
-
-  await account.save();
-
-  const auth = buildAccountAuth(account);
-  await refreshPlayerSession(req, res, auth.player);
-  return res.status(200).json({
-    auth,
-    profile: serializeAccountProfile(account),
-  });
 });
 
 /**

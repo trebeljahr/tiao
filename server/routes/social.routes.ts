@@ -7,6 +7,7 @@ import {
   SocialSearchRelationship,
   SocialSearchResult,
 } from "../../shared/src";
+import { classifyMongoError } from "../error-handling";
 import { GameServiceError, gameService } from "../game/gameService";
 import { getPlayerFromRequest } from "../game/playerTokens";
 import GameAccount, { IGameAccount } from "../models/GameAccount";
@@ -180,9 +181,10 @@ async function loadInvitationSummaries(
   });
 }
 
-function respondWithGameServiceError(
-  res: Response,
+function handleRouteError(
   error: unknown,
+  req: Request,
+  res: Response,
   fallbackMessage: string
 ) {
   if (error instanceof GameServiceError) {
@@ -192,7 +194,21 @@ function respondWithGameServiceError(
     });
   }
 
+  const mongoError = classifyMongoError(error);
+  if (mongoError) {
+    console.warn(
+      `[${req.method} ${req.path}] MongoDB ${mongoError.code}:`,
+      error
+    );
+    return res.status(mongoError.status).json({
+      code: mongoError.code,
+      message: mongoError.message,
+    });
+  }
+
+  console.error(`[${req.method} ${req.path}] Unhandled error:`, error);
   return res.status(500).json({
+    code: "INTERNAL_ERROR",
     message: fallbackMessage,
   });
 }
@@ -270,46 +286,50 @@ async function notifyLobbyUpdate(playerId: string) {
  *         description: Social features unavailable
  */
 router.get("/player/social/overview", async (req: Request, res: Response) => {
-  const account = await requireAccount(req, res);
-  if (!account) {
-    return;
-  }
+  try {
+    const account = await requireAccount(req, res);
+    if (!account) {
+      return;
+    }
 
-  await expireStaleInvitations();
+    await expireStaleInvitations();
 
-  const [friends, incomingFriendRequests, outgoingFriendRequests] =
-    await Promise.all([
-      loadFriendsWithOnlineStatus(account.friends),
-      loadAccountsById(account.receivedFriendRequests),
-      loadAccountsById(account.sentFriendRequests),
+    const [friends, incomingFriendRequests, outgoingFriendRequests] =
+      await Promise.all([
+        loadFriendsWithOnlineStatus(account.friends),
+        loadAccountsById(account.receivedFriendRequests),
+        loadAccountsById(account.sentFriendRequests),
+      ]);
+
+    const [incomingInvitations, outgoingInvitations] = await Promise.all([
+      loadInvitationSummaries({
+        recipientId: account._id,
+        status: "pending",
+        expiresAt: {
+          $gt: new Date(),
+        },
+      }),
+      loadInvitationSummaries({
+        senderId: account._id,
+        status: "pending",
+        expiresAt: {
+          $gt: new Date(),
+        },
+      }),
     ]);
 
-  const [incomingInvitations, outgoingInvitations] = await Promise.all([
-    loadInvitationSummaries({
-      recipientId: account._id,
-      status: "pending",
-      expiresAt: {
-        $gt: new Date(),
-      },
-    }),
-    loadInvitationSummaries({
-      senderId: account._id,
-      status: "pending",
-      expiresAt: {
-        $gt: new Date(),
-      },
-    }),
-  ]);
+    const overview: SocialOverview = {
+      friends,
+      incomingFriendRequests,
+      outgoingFriendRequests,
+      incomingInvitations,
+      outgoingInvitations,
+    };
 
-  const overview: SocialOverview = {
-    friends,
-    incomingFriendRequests,
-    outgoingFriendRequests,
-    incomingInvitations,
-    outgoingInvitations,
-  };
-
-  return res.status(200).json({ overview });
+    return res.status(200).json({ overview });
+  } catch (error) {
+    return handleRouteError(error, req, res, "Unable to load social overview right now.");
+  }
 });
 
 /**
@@ -368,53 +388,57 @@ router.get("/player/social/overview", async (req: Request, res: Response) => {
  *         description: Social features unavailable
  */
 router.get("/player/social/search", async (req: Request, res: Response) => {
-  const account = await requireAccount(req, res);
-  if (!account) {
-    return;
+  try {
+    const account = await requireAccount(req, res);
+    if (!account) {
+      return;
+    }
+
+    if (typeof req.query.q !== "string") {
+      return res.status(400).json({
+        message: "Provide a single search query.",
+      });
+    }
+
+    const query = req.query.q.trim();
+    if (query.length < 2) {
+      return res.status(400).json({
+        message: "Search with at least 2 characters.",
+      });
+    }
+
+    const normalizedQuery = query.toLowerCase();
+    const matcher = query.includes("@")
+      ? {
+          email: normalizedQuery,
+        }
+      : {
+          displayName: {
+            $regex: escapeRegExp(query),
+            $options: "i",
+          },
+        };
+
+    const accounts = await GameAccount.find({
+      _id: {
+        $ne: account._id,
+      },
+      ...matcher,
+    })
+      .sort({ displayName: 1 })
+      .limit(8)
+      .lean<IGameAccount[]>()
+      .exec();
+
+    const results: SocialSearchResult[] = accounts.map((result) => ({
+      player: toSocialPlayerSummary(result, { includeEmail: true }),
+      relationship: getSearchRelationship(account, String(result._id)),
+    }));
+
+    return res.status(200).json({ results });
+  } catch (error) {
+    return handleRouteError(error, req, res, "Unable to search for players right now.");
   }
-
-  if (typeof req.query.q !== "string") {
-    return res.status(400).json({
-      message: "Provide a single search query.",
-    });
-  }
-
-  const query = req.query.q.trim();
-  if (query.length < 2) {
-    return res.status(400).json({
-      message: "Search with at least 2 characters.",
-    });
-  }
-
-  const normalizedQuery = query.toLowerCase();
-  const matcher = query.includes("@")
-    ? {
-        email: normalizedQuery,
-      }
-    : {
-        displayName: {
-          $regex: escapeRegExp(query),
-          $options: "i",
-        },
-      };
-
-  const accounts = await GameAccount.find({
-    _id: {
-      $ne: account._id,
-    },
-    ...matcher,
-  })
-    .sort({ displayName: 1 })
-    .limit(8)
-    .lean<IGameAccount[]>()
-    .exec();
-
-  const results: SocialSearchResult[] = accounts.map((result) => ({
-    player: toSocialPlayerSummary(result, { includeEmail: true }),
-    relationship: getSearchRelationship(account, String(result._id)),
-  }));
-
-  return res.status(200).json({ results });
 });
 
 /**
@@ -454,63 +478,67 @@ router.get("/player/social/search", async (req: Request, res: Response) => {
  *         description: Social features unavailable
  */
 router.post("/player/social/friend-requests", async (req: Request, res: Response) => {
-  const account = await requireAccount(req, res);
-  if (!account) {
-    return;
-  }
+  try {
+    const account = await requireAccount(req, res);
+    if (!account) {
+      return;
+    }
 
-  const { accountId } = req.body as {
-    accountId?: string;
-  };
+    const { accountId } = req.body as {
+      accountId?: string;
+    };
 
-  if (!accountId) {
-    return res.status(400).json({
-      message: "Choose a player to add.",
+    if (!accountId) {
+      return res.status(400).json({
+        message: "Choose a player to add.",
+      });
+    }
+
+    if (account.id === accountId) {
+      return res.status(400).json({
+        message: "You cannot add yourself as a friend.",
+      });
+    }
+
+    const targetAccount = await GameAccount.findById(accountId);
+    if (!targetAccount) {
+      return res.status(404).json({
+        message: "That player could not be found.",
+      });
+    }
+
+    if (
+      containsAccountId(account.friends, targetAccount.id) ||
+      containsAccountId(targetAccount.friends, account.id)
+    ) {
+      return res.status(409).json({
+        message: "You are already friends.",
+      });
+    }
+
+    if (
+      containsAccountId(account.sentFriendRequests, targetAccount.id) ||
+      containsAccountId(account.receivedFriendRequests, targetAccount.id)
+    ) {
+      return res.status(409).json({
+        message: "There is already a pending request between you.",
+      });
+    }
+
+    account.sentFriendRequests.push(targetAccount._id);
+    targetAccount.receivedFriendRequests.push(account._id);
+
+    await Promise.all([account.save(), targetAccount.save()]);
+
+    void notifyLobbyUpdate(account.id);
+    void notifyLobbyUpdate(targetAccount.id);
+
+    return res.status(200).json({
+      message: "Friend request sent.",
     });
+  } catch (error) {
+    return handleRouteError(error, req, res, "Unable to send friend request right now.");
   }
-
-  if (account.id === accountId) {
-    return res.status(400).json({
-      message: "You cannot add yourself as a friend.",
-    });
-  }
-
-  const targetAccount = await GameAccount.findById(accountId);
-  if (!targetAccount) {
-    return res.status(404).json({
-      message: "That player could not be found.",
-    });
-  }
-
-  if (
-    containsAccountId(account.friends, targetAccount.id) ||
-    containsAccountId(targetAccount.friends, account.id)
-  ) {
-    return res.status(409).json({
-      message: "You are already friends.",
-    });
-  }
-
-  if (
-    containsAccountId(account.sentFriendRequests, targetAccount.id) ||
-    containsAccountId(account.receivedFriendRequests, targetAccount.id)
-  ) {
-    return res.status(409).json({
-      message: "There is already a pending request between you.",
-    });
-  }
-
-  account.sentFriendRequests.push(targetAccount._id);
-  targetAccount.receivedFriendRequests.push(account._id);
-
-  await Promise.all([account.save(), targetAccount.save()]);
-
-  void notifyLobbyUpdate(account.id);
-  void notifyLobbyUpdate(targetAccount.id);
-
-  return res.status(200).json({
-    message: "Friend request sent.",
-  });
 });
 
 /**
@@ -546,51 +574,55 @@ router.post("/player/social/friend-requests", async (req: Request, res: Response
 router.post(
   "/player/social/friend-requests/:accountId/accept",
   async (req: Request, res: Response) => {
-    const account = await requireAccount(req, res);
-    if (!account) {
-      return;
-    }
+    try {
+      const account = await requireAccount(req, res);
+      if (!account) {
+        return;
+      }
 
-    const requesterId = req.params.accountId;
-    const requester = await GameAccount.findById(requesterId);
+      const requesterId = req.params.accountId;
+      const requester = await GameAccount.findById(requesterId);
 
-    if (!requester) {
-      return res.status(404).json({
-        message: "That player could not be found.",
+      if (!requester) {
+        return res.status(404).json({
+          message: "That player could not be found.",
+        });
+      }
+
+      if (!containsAccountId(account.receivedFriendRequests, requester.id)) {
+        return res.status(400).json({
+          message: "No pending friend request from that player.",
+        });
+      }
+
+      account.receivedFriendRequests = removeAccountId(
+        account.receivedFriendRequests,
+        requester.id
+      ) as mongoose.Types.ObjectId[];
+      requester.sentFriendRequests = removeAccountId(
+        requester.sentFriendRequests,
+        account.id
+      ) as mongoose.Types.ObjectId[];
+
+      if (!containsAccountId(account.friends, requester.id)) {
+        account.friends.push(requester._id);
+      }
+
+      if (!containsAccountId(requester.friends, account.id)) {
+        requester.friends.push(account._id);
+      }
+
+      await Promise.all([account.save(), requester.save()]);
+
+      void notifyLobbyUpdate(account.id);
+      void notifyLobbyUpdate(requester.id);
+
+      return res.status(200).json({
+        message: "Friend request accepted.",
       });
+    } catch (error) {
+      return handleRouteError(error, req, res, "Unable to accept friend request right now.");
     }
-
-    if (!containsAccountId(account.receivedFriendRequests, requester.id)) {
-      return res.status(400).json({
-        message: "No pending friend request from that player.",
-      });
-    }
-
-    account.receivedFriendRequests = removeAccountId(
-      account.receivedFriendRequests,
-      requester.id
-    ) as mongoose.Types.ObjectId[];
-    requester.sentFriendRequests = removeAccountId(
-      requester.sentFriendRequests,
-      account.id
-    ) as mongoose.Types.ObjectId[];
-
-    if (!containsAccountId(account.friends, requester.id)) {
-      account.friends.push(requester._id);
-    }
-
-    if (!containsAccountId(requester.friends, account.id)) {
-      requester.friends.push(account._id);
-    }
-
-    await Promise.all([account.save(), requester.save()]);
-
-    void notifyLobbyUpdate(account.id);
-    void notifyLobbyUpdate(requester.id);
-
-    return res.status(200).json({
-      message: "Friend request accepted.",
-    });
   }
 );
 
@@ -627,43 +659,47 @@ router.post(
 router.post(
   "/player/social/friend-requests/:accountId/decline",
   async (req: Request, res: Response) => {
-    const account = await requireAccount(req, res);
-    if (!account) {
-      return;
-    }
+    try {
+      const account = await requireAccount(req, res);
+      if (!account) {
+        return;
+      }
 
-    const requesterId = req.params.accountId;
-    const requester = await GameAccount.findById(requesterId);
+      const requesterId = req.params.accountId;
+      const requester = await GameAccount.findById(requesterId);
 
-    if (!requester) {
-      return res.status(404).json({
-        message: "That player could not be found.",
+      if (!requester) {
+        return res.status(404).json({
+          message: "That player could not be found.",
+        });
+      }
+
+      if (!containsAccountId(account.receivedFriendRequests, requester.id)) {
+        return res.status(400).json({
+          message: "No pending friend request from that player.",
+        });
+      }
+
+      account.receivedFriendRequests = removeAccountId(
+        account.receivedFriendRequests,
+        requester.id
+      ) as mongoose.Types.ObjectId[];
+      requester.sentFriendRequests = removeAccountId(
+        requester.sentFriendRequests,
+        account.id
+      ) as mongoose.Types.ObjectId[];
+
+      await Promise.all([account.save(), requester.save()]);
+
+      void notifyLobbyUpdate(account.id);
+      void notifyLobbyUpdate(requester.id);
+
+      return res.status(200).json({
+        message: "Friend request declined.",
       });
+    } catch (error) {
+      return handleRouteError(error, req, res, "Unable to decline friend request right now.");
     }
-
-    if (!containsAccountId(account.receivedFriendRequests, requester.id)) {
-      return res.status(400).json({
-        message: "No pending friend request from that player.",
-      });
-    }
-
-    account.receivedFriendRequests = removeAccountId(
-      account.receivedFriendRequests,
-      requester.id
-    ) as mongoose.Types.ObjectId[];
-    requester.sentFriendRequests = removeAccountId(
-      requester.sentFriendRequests,
-      account.id
-    ) as mongoose.Types.ObjectId[];
-
-    await Promise.all([account.save(), requester.save()]);
-
-    void notifyLobbyUpdate(account.id);
-    void notifyLobbyUpdate(requester.id);
-
-    return res.status(200).json({
-      message: "Friend request declined.",
-    });
   }
 );
 
@@ -700,43 +736,47 @@ router.post(
 router.post(
   "/player/social/friend-requests/:accountId/cancel",
   async (req: Request, res: Response) => {
-    const account = await requireAccount(req, res);
-    if (!account) {
-      return;
-    }
+    try {
+      const account = await requireAccount(req, res);
+      if (!account) {
+        return;
+      }
 
-    const targetId = req.params.accountId;
-    const targetAccount = await GameAccount.findById(targetId);
+      const targetId = req.params.accountId;
+      const targetAccount = await GameAccount.findById(targetId);
 
-    if (!targetAccount) {
-      return res.status(404).json({
-        message: "That player could not be found.",
+      if (!targetAccount) {
+        return res.status(404).json({
+          message: "That player could not be found.",
+        });
+      }
+
+      if (!containsAccountId(account.sentFriendRequests, targetAccount.id)) {
+        return res.status(400).json({
+          message: "No outgoing request to that player.",
+        });
+      }
+
+      account.sentFriendRequests = removeAccountId(
+        account.sentFriendRequests,
+        targetAccount.id
+      ) as mongoose.Types.ObjectId[];
+      targetAccount.receivedFriendRequests = removeAccountId(
+        targetAccount.receivedFriendRequests,
+        account.id
+      ) as mongoose.Types.ObjectId[];
+
+      await Promise.all([account.save(), targetAccount.save()]);
+
+      void notifyLobbyUpdate(account.id);
+      void notifyLobbyUpdate(targetAccount.id);
+
+      return res.status(200).json({
+        message: "Friend request cancelled.",
       });
+    } catch (error) {
+      return handleRouteError(error, req, res, "Unable to cancel friend request right now.");
     }
-
-    if (!containsAccountId(account.sentFriendRequests, targetAccount.id)) {
-      return res.status(400).json({
-        message: "No outgoing request to that player.",
-      });
-    }
-
-    account.sentFriendRequests = removeAccountId(
-      account.sentFriendRequests,
-      targetAccount.id
-    ) as mongoose.Types.ObjectId[];
-    targetAccount.receivedFriendRequests = removeAccountId(
-      targetAccount.receivedFriendRequests,
-      account.id
-    ) as mongoose.Types.ObjectId[];
-
-    await Promise.all([account.save(), targetAccount.save()]);
-
-    void notifyLobbyUpdate(account.id);
-    void notifyLobbyUpdate(targetAccount.id);
-
-    return res.status(200).json({
-      message: "Friend request cancelled.",
-    });
   }
 );
 
@@ -787,47 +827,47 @@ router.post(
  *         description: Social features unavailable
  */
 router.post("/player/social/game-invitations", async (req: Request, res: Response) => {
-  const account = await requireAccount(req, res);
-  if (!account) {
-    return;
-  }
-
-  const {
-    gameId,
-    recipientId,
-    expiresInMinutes,
-  } = req.body as {
-    gameId?: string;
-    recipientId?: string;
-    expiresInMinutes?: number;
-  };
-
-  if (!gameId || !recipientId) {
-    return res.status(400).json({
-      message: "Choose a game and friend to invite.",
-    });
-  }
-
-  if (!expiresInMinutes || expiresInMinutes < 5 || expiresInMinutes > 10080) {
-    return res.status(400).json({
-      message: "Pick an invitation duration between 5 minutes and 7 days.",
-    });
-  }
-
-  const recipient = await GameAccount.findById(recipientId);
-  if (!recipient) {
-    return res.status(404).json({
-      message: "That friend could not be found.",
-    });
-  }
-
-  if (!containsAccountId(account.friends, recipient.id)) {
-    return res.status(403).json({
-      message: "You can only invite people from your friends list.",
-    });
-  }
-
   try {
+    const account = await requireAccount(req, res);
+    if (!account) {
+      return;
+    }
+
+    const {
+      gameId,
+      recipientId,
+      expiresInMinutes,
+    } = req.body as {
+      gameId?: string;
+      recipientId?: string;
+      expiresInMinutes?: number;
+    };
+
+    if (!gameId || !recipientId) {
+      return res.status(400).json({
+        message: "Choose a game and friend to invite.",
+      });
+    }
+
+    if (!expiresInMinutes || expiresInMinutes < 5 || expiresInMinutes > 10080) {
+      return res.status(400).json({
+        message: "Pick an invitation duration between 5 minutes and 7 days.",
+      });
+    }
+
+    const recipient = await GameAccount.findById(recipientId);
+    if (!recipient) {
+      return res.status(404).json({
+        message: "That friend could not be found.",
+      });
+    }
+
+    if (!containsAccountId(account.friends, recipient.id)) {
+      return res.status(403).json({
+        message: "You can only invite people from your friends list.",
+      });
+    }
+
     const snapshot = await gameService.getSnapshot(gameId);
     const isPlayerInRoom = snapshot.players.some(
       (slot) => slot.player.playerId === account.id
@@ -895,11 +935,7 @@ router.post("/player/social/game-invitations", async (req: Request, res: Respons
       message: "Invitation sent.",
     });
   } catch (error) {
-    return respondWithGameServiceError(
-      res,
-      error,
-      "Unable to create that invitation right now."
-    );
+    return handleRouteError(error, req, res, "Unable to create that invitation right now.");
   }
 });
 
@@ -934,115 +970,127 @@ router.post("/player/social/game-invitations", async (req: Request, res: Respons
 router.post(
   "/player/social/game-invitations/:invitationId/revoke",
   async (req: Request, res: Response) => {
-    const account = await requireAccount(req, res);
-    if (!account) {
-      return;
-    }
+    try {
+      const account = await requireAccount(req, res);
+      if (!account) {
+        return;
+      }
 
-    const invitation = await GameInvitation.findOne({
-      _id: req.params.invitationId,
-      senderId: account._id,
-      status: "pending",
-      expiresAt: {
-        $gt: new Date(),
-      },
-    });
-
-    if (!invitation) {
-      return res.status(404).json({
-        message: "That invitation is no longer active.",
+      const invitation = await GameInvitation.findOne({
+        _id: req.params.invitationId,
+        senderId: account._id,
+        status: "pending",
+        expiresAt: {
+          $gt: new Date(),
+        },
       });
+
+      if (!invitation) {
+        return res.status(404).json({
+          message: "That invitation is no longer active.",
+        });
+      }
+
+      invitation.status = "revoked";
+      await invitation.save();
+
+      void notifyLobbyUpdate(account.id);
+      void notifyLobbyUpdate(invitation.recipientId.toString());
+
+      return res.status(200).json({
+        message: "Invitation revoked.",
+      });
+    } catch (error) {
+      return handleRouteError(error, req, res, "Unable to revoke invitation right now.");
     }
-
-    invitation.status = "revoked";
-    await invitation.save();
-
-    void notifyLobbyUpdate(account.id);
-    void notifyLobbyUpdate(invitation.recipientId.toString());
-
-    return res.status(200).json({
-      message: "Invitation revoked.",
-    });
   }
 );
 
 router.post(
   "/player/social/game-invitations/:invitationId/decline",
   async (req: Request, res: Response) => {
-    const account = await requireAccount(req, res);
-    if (!account) {
-      return;
-    }
+    try {
+      const account = await requireAccount(req, res);
+      if (!account) {
+        return;
+      }
 
-    const invitation = await GameInvitation.findOne({
-      _id: req.params.invitationId,
-      recipientId: account._id,
-      status: "pending",
-      expiresAt: {
-        $gt: new Date(),
-      },
-    });
-
-    if (!invitation) {
-      return res.status(404).json({
-        message: "That invitation is no longer active.",
+      const invitation = await GameInvitation.findOne({
+        _id: req.params.invitationId,
+        recipientId: account._id,
+        status: "pending",
+        expiresAt: {
+          $gt: new Date(),
+        },
       });
+
+      if (!invitation) {
+        return res.status(404).json({
+          message: "That invitation is no longer active.",
+        });
+      }
+
+      invitation.status = "declined";
+      await invitation.save();
+
+      void notifyLobbyUpdate(account.id);
+      void notifyLobbyUpdate(invitation.senderId.toString());
+
+      return res.status(200).json({
+        message: "Invitation declined.",
+      });
+    } catch (error) {
+      return handleRouteError(error, req, res, "Unable to decline invitation right now.");
     }
-
-    invitation.status = "declined";
-    await invitation.save();
-
-    void notifyLobbyUpdate(account.id);
-    void notifyLobbyUpdate(invitation.senderId.toString());
-
-    return res.status(200).json({
-      message: "Invitation declined.",
-    });
   }
 );
 
 router.post(
   "/player/social/friends/:accountId/remove",
   async (req: Request, res: Response) => {
-    const account = await requireAccount(req, res);
-    if (!account) {
-      return;
-    }
+    try {
+      const account = await requireAccount(req, res);
+      if (!account) {
+        return;
+      }
 
-    const targetId = req.params.accountId;
-    if (!targetId) {
-      return res.status(400).json({ message: "Missing accountId." });
-    }
+      const targetId = req.params.accountId;
+      if (!targetId) {
+        return res.status(400).json({ message: "Missing accountId." });
+      }
 
-    if (!containsAccountId(account.friends, targetId)) {
-      return res.status(400).json({
-        message: "That player is not in your friends list.",
+      if (!containsAccountId(account.friends, targetId)) {
+        return res.status(400).json({
+          message: "That player is not in your friends list.",
+        });
+      }
+
+      const targetAccount = await GameAccount.findById(targetId);
+      if (!targetAccount) {
+        return res.status(404).json({ message: "Player not found." });
+      }
+
+      account.friends = removeAccountId(
+        account.friends,
+        targetId
+      ) as mongoose.Types.ObjectId[];
+
+      targetAccount.friends = removeAccountId(
+        targetAccount.friends,
+        account.id
+      ) as mongoose.Types.ObjectId[];
+
+      await Promise.all([account.save(), targetAccount.save()]);
+
+      void notifyLobbyUpdate(account.id);
+      void notifyLobbyUpdate(targetAccount.id);
+
+      return res.status(200).json({
+        message: "Friend removed.",
       });
+    } catch (error) {
+      return handleRouteError(error, req, res, "Unable to remove friend right now.");
     }
-
-    const targetAccount = await GameAccount.findById(targetId);
-    if (!targetAccount) {
-      return res.status(404).json({ message: "Player not found." });
-    }
-
-    account.friends = removeAccountId(
-      account.friends,
-      targetId
-    ) as mongoose.Types.ObjectId[];
-
-    targetAccount.friends = removeAccountId(
-      targetAccount.friends,
-      account.id
-    ) as mongoose.Types.ObjectId[];
-
-    await Promise.all([account.save(), targetAccount.save()]);
-
-    void notifyLobbyUpdate(account.id);
-    void notifyLobbyUpdate(targetAccount.id);
-
-    return res.status(200).json({
-      message: "Friend removed.",
-    });
   }
 );
 
