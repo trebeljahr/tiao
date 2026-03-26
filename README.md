@@ -32,34 +32,34 @@ For the complete rulebook, see [docs/GAME_RULES.md](docs/GAME_RULES.md).
 
 ## Quick Start
 
-**Prerequisites:** Node.js 22.x, MongoDB, npm
+**Prerequisites:** Node.js 22.x, Docker, npm
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/tiao.git
 cd tiao
-
-# Install all dependencies
 npm install
-cd server && npm install && cd ..
-cd client && npm install && cd ..
 
-# Set up environment
-cp server/.env.example server/.env
-# Edit server/.env with your MONGODB_URI and TOKEN_SECRET
+# Start local infrastructure (MongoDB + MinIO for S3-compatible storage)
+npm run dev:infra
 
 # Start development servers
 npm run dev
 ```
 
-Open `http://localhost:3000`. The Vite frontend runs on port 3000 and proxies API/WebSocket requests to the Express backend on port 5005.
+No `.env` file needed -- `server/.env.development` ships with defaults that point at the local Docker containers. If you need custom settings (e.g. real AWS credentials), create `server/.env` and it will take precedence.
+
+Open `http://localhost:3000`. The Vite frontend proxies API/WebSocket requests to the Express backend. Uploaded files go to local MinIO, browsable at `http://localhost:9001` (user: `minioadmin`, password: `minioadmin`).
 
 ### Available Commands
 
 ```bash
-npm run dev          # Start both client and server with hot reload
-npm run client       # Start only the Vite frontend
-npm run server       # Start only the Express backend
-npm test             # Run server unit tests
+npm run dev            # Start both client and server with hot reload
+npm run dev:infra      # Start local MongoDB + MinIO containers
+npm run dev:infra:stop # Stop containers (data preserved)
+npm run dev:infra:reset# Stop containers and wipe all data (clean slate)
+npm run client         # Start only the Vite frontend
+npm run server         # Start only the Express backend
+npm test               # Run server unit tests
 ```
 
 ## Project Structure

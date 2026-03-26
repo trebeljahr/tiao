@@ -1,5 +1,31 @@
 # Tiao On Coolify
 
+## Local Development With Docker Compose
+
+For local development, a `docker-compose.dev.yml` provides MongoDB and MinIO (S3-compatible object storage) so you don't need external services or a custom `.env` file.
+
+```bash
+# Start local infrastructure
+npm run dev:infra
+
+# Start the app (uses server/.env.development defaults automatically)
+npm run dev
+```
+
+The MinIO console is at `http://localhost:9001` (user: `minioadmin`, password: `minioadmin`). Uploaded files are stored in the `tiao-dev` bucket.
+
+Convenience scripts:
+
+| Command | What it does |
+|---------|-------------|
+| `npm run dev:infra` | Start MongoDB + MinIO containers (persists across reboots) |
+| `npm run dev:infra:stop` | Stop containers, keep data |
+| `npm run dev:infra:reset` | Stop containers and delete all data (clean slate) |
+
+If you have a `server/.env` file, those values take precedence over `.env.development`. To use the local Docker setup, either delete `server/.env` or ensure it doesn't set conflicting values.
+
+---
+
 Tiao is now set up to deploy as two applications:
 - a frontend container built from [client/Dockerfile](/Users/rico/projects/tiao/client/Dockerfile)
 - a backend container built from [server/Dockerfile](/Users/rico/projects/tiao/server/Dockerfile)

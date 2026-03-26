@@ -1,3 +1,7 @@
+import dotenv from "dotenv";
+dotenv.config();
+dotenv.config({ path: ".env.development" });
+
 function getRequiredEnv(
   name: string,
   options: {
