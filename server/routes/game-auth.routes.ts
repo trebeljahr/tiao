@@ -1,5 +1,5 @@
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import { randomUUID } from "crypto";
 import express, { Request, Response } from "express";
 import { Jimp } from "jimp";
@@ -17,7 +17,8 @@ import {
 } from "../game/playerTokens";
 import { BUCKET_NAME, CLOUDFRONT_URL } from "../config/envVars";
 import { s3Client } from "../config/s3Client";
-import { multerUploadMiddleware } from "../middleware/multerUploadMiddleware";
+import { profilePictureUpload } from "../middleware/multerUploadMiddleware";
+import { authRateLimiter } from "../middleware/rateLimiter";
 
 const router = express.Router();
 const saltRounds = 10;
@@ -242,7 +243,7 @@ router.post("/guest", async (req: Request, res: Response) => {
  *       503:
  *         description: Account signup unavailable
  */
-router.post("/signup", async (req: Request, res: Response) => {
+router.post("/signup", authRateLimiter, async (req: Request, res: Response) => {
   if (!isDatabaseReady()) {
     return res.status(503).json({
       message:
@@ -356,7 +357,7 @@ router.post("/signup", async (req: Request, res: Response) => {
  *       503:
  *         description: Account login unavailable
  */
-router.post("/login", async (req: Request, res: Response) => {
+router.post("/login", authRateLimiter, async (req: Request, res: Response) => {
   if (!isDatabaseReady()) {
     return res.status(503).json({
       message:
@@ -387,14 +388,14 @@ router.post("/login", async (req: Request, res: Response) => {
 
   if (!account) {
     return res.status(401).json({
-      message: "No account was found with that identifier.",
+      message: "Invalid credentials.",
     });
   }
 
   const passwordMatches = bcrypt.compareSync(password, account.passwordHash);
   if (!passwordMatches) {
     return res.status(401).json({
-      message: "That password was incorrect.",
+      message: "Invalid credentials.",
     });
   }
 
@@ -791,7 +792,7 @@ router.put("/profile", async (req: Request, res: Response) => {
  */
 router.post(
   "/profile-picture",
-  multerUploadMiddleware.single("profilePicture"),
+  profilePictureUpload("profilePicture"),
   async (req: Request, res: Response) => {
     const account = await requireAccount(req, res);
     if (!account) {

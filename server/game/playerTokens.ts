@@ -106,7 +106,7 @@ function serializeCookie(
     `${name}=${encodeURIComponent(value)}`,
     "Path=/",
     "HttpOnly",
-    "SameSite=Lax",
+    "SameSite=Strict",
     `Max-Age=${options.maxAgeSeconds}`,
   ];
 

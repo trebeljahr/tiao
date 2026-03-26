@@ -7,6 +7,14 @@ export const rateLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+export const authRateLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  limit: 10,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { message: "Too many attempts. Please try again later." },
+});
+
 export const userSearchRateLimiter = rateLimit({
   windowMs: 5 * 60 * 1000,
   limit: 50,

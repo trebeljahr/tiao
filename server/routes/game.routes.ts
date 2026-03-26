@@ -510,8 +510,8 @@ router.delete("/matchmaking", async (req: Request, res: Response) => {
  *         description: Failed to finish game
  */
 router.post("/:gameId/test-finish", async (req: Request, res: Response) => {
-  if (process.env.NODE_ENV === "production") {
-    return res.status(403).json({ message: "Not allowed in production." });
+  if (process.env.NODE_ENV !== "test") {
+    return res.status(403).json({ message: "Only available in test environment." });
   }
 
   const { gameId } = req.params;

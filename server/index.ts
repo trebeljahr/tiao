@@ -1,7 +1,7 @@
 import { createServer } from "http";
 import WebSocket, { WebSocketServer } from "ws";
 import app from "./app";
-import { PORT } from "./config/envVars";
+import { FRONTEND_URL, PORT } from "./config/envVars";
 import { connectToDB, disconnectFromDB } from "./db";
 import { gameService, GameServiceError } from "./game/gameService";
 import { getPlayerFromUpgradeRequest } from "./game/playerTokens";
@@ -11,6 +11,16 @@ const server = createServer(app);
 const websocketServer = new WebSocketServer({ server });
 const WEBSOCKET_PATHS = new Set(["/", "/ws", "/api/ws", "/api/ws/lobby"]);
 const SOCKET_PING_INTERVAL_MS = 1000 * 10;
+
+function isAllowedOrigin(origin: string | undefined): boolean {
+  if (!origin) return false;
+  if (!FRONTEND_URL) return true; // dev mode — allow all
+  try {
+    return new URL(origin).origin === new URL(FRONTEND_URL).origin;
+  } catch {
+    return false;
+  }
+}
 
 function sendJson(socket: WebSocket, payload: unknown): void {
   if (socket.readyState === WebSocket.OPEN) {
@@ -55,6 +65,12 @@ websocketServer.on("connection", (socket, request) => {
   });
 
   void (async () => {
+    if (!isAllowedOrigin(request.headers.origin)) {
+      console.warn(`[ws] rejected connection from disallowed origin: ${request.headers.origin}`);
+      socket.close();
+      return;
+    }
+
     if (!WEBSOCKET_PATHS.has(url.pathname)) {
       console.warn(`[ws] invalid path rejected: ${url.pathname} (gameId: ${gameId || "none"})`);
       socket.close();
