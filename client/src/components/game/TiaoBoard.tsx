@@ -183,8 +183,6 @@ export function TiaoBoard({
   const [mobilePreviewVisible, setMobilePreviewVisible] = useState(false);
   const isDraggingPreviewRef = useRef(false);
   const dragOffsetRef = useRef<{ dx: number; dy: number } | null>(null);
-  const lastTapTimeRef = useRef(0);
-  const lastTapPosRef = useRef<Position | null>(null);
 
   // -- Pinch-to-zoom --
   const zoom = usePinchZoom({
@@ -360,24 +358,6 @@ export function TiaoBoard({
           }
         }
       }
-
-      // Double-tap shortcut: place immediately without preview
-      const now = Date.now();
-      if (
-        now - lastTapTimeRef.current < 300 &&
-        lastTapPosRef.current &&
-        arePositionsEqual(lastTapPosRef.current, pos)
-      ) {
-        e.preventDefault();
-        suppressClickRef.current = true;
-        setMobilePreview(null);
-        onPointClick(pos);
-        lastTapTimeRef.current = 0;
-        lastTapPosRef.current = null;
-        return;
-      }
-      lastTapTimeRef.current = now;
-      lastTapPosRef.current = pos;
 
       // Empty intersection with no selection — mobile preview flow
       e.preventDefault();
