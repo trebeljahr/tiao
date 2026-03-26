@@ -13,6 +13,7 @@
     "build:server": "npm --prefix server run build",
     "dev": "node scripts/dev.mjs",
     "dev:fixed": "node scripts/dev.mjs --fixed",
+    "dev:lan": "node scripts/dev.mjs --fixed --lan",
     "dev:docs": "node scripts/dev.mjs --docs",
     "dev:docs:fixed": "node scripts/dev.mjs --fixed --docs",
     "test": "npm run test:unit && npm run test:e2e",

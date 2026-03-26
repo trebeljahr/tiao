@@ -6,8 +6,10 @@
 //   node scripts/dev.mjs --fixed        Fixed ports (client 3000, docs 4000, server 5000)
 //   node scripts/dev.mjs --docs         Include docs site
 //   node scripts/dev.mjs --fixed --docs Fixed ports with docs
+//   node scripts/dev.mjs --fixed --lan  Fixed ports, accessible from LAN
 //   npm run dev                         Random ports (client + server)
 //   npm run dev:fixed                   Fixed ports (client + server)
+//   npm run dev:lan                     Fixed ports, accessible from LAN (for mobile testing)
 //   npm run dev:docs                    Random ports (client + server + docs)
 //   npm run dev:docs:fixed              Fixed ports (client + server + docs)
 
@@ -16,6 +18,7 @@ import { execSync } from "child_process";
 
 const fixedMode = process.argv.includes("--fixed");
 const includeDocs = process.argv.includes("--docs");
+const lanMode = process.argv.includes("--lan");
 
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -71,15 +74,26 @@ if (process.env.API_PORT) {
   apiPort = await findRandomFreePort(5100, 5999);
 }
 
-console.log(`\n  Mode:   ${fixedMode ? "fixed" : "random"}`);
-console.log(`  Client: http://127.0.0.1:${clientPort}`);
+const host = lanMode ? "0.0.0.0" : "127.0.0.1";
+
+console.log(`\n  Mode:   ${fixedMode ? "fixed" : "random"}${lanMode ? " (LAN)" : ""}`);
+console.log(`  Client: http://${host}:${clientPort}`);
 if (includeDocs) {
-  console.log(`  Docs:   http://127.0.0.1:${docsPort}`);
+  console.log(`  Docs:   http://${host}:${docsPort}`);
 }
-console.log(`  Server: http://127.0.0.1:${apiPort}\n`);
+console.log(`  Server: http://${host}:${apiPort}`);
+if (lanMode) {
+  try {
+    const lanIp = execSync("ipconfig getifaddr en0", { encoding: "utf8" }).trim();
+    console.log(`\n  LAN:    http://${lanIp}:${clientPort}`);
+  } catch {
+    console.log(`\n  LAN:    (could not detect LAN IP — check ipconfig getifaddr en0)`);
+  }
+}
+console.log();
 
 const processes = [
-  `"node scripts/wait-for-port.mjs ${apiPort} && PORT=${clientPort} API_PORT=${apiPort} npm --prefix client run dev"`,
+  `"node scripts/wait-for-port.mjs ${apiPort} && PORT=${clientPort} API_PORT=${apiPort} VITE_HOST=${host} npm --prefix client run dev"`,
   `"PORT=${apiPort} npm --prefix server run dev"`,
 ];
 const names = ["client", "server"];

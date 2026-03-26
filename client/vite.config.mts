@@ -30,7 +30,7 @@ export default defineConfig({
     setupFiles: ["./src/test/setup.ts"],
   },
   server: {
-    host: "127.0.0.1",
+    host: process.env.VITE_HOST || "127.0.0.1",
     port: devPort,
     fs: {
       allow: [path.resolve(__dirname, "..")],
