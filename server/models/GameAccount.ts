@@ -67,6 +67,10 @@ const GameAccountSchema = new Schema<IGameAccount>(
   }
 );
 
+GameAccountSchema.index({ friends: 1 });
+GameAccountSchema.index({ receivedFriendRequests: 1 });
+GameAccountSchema.index({ sentFriendRequests: 1 });
+
 const GameAccount =
   models.GameAccount ||
   model<IGameAccount>("GameAccount", GameAccountSchema);
