@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   BOARD_SIZE,
   GameState,
@@ -37,6 +37,7 @@ const IS_TOUCH_DEVICE =
   ("ontouchstart" in window || navigator.maxTouchPoints > 0);
 
 const DRAG_THRESHOLD = 10;
+const DRAG_Y_OFFSET = 3; // grid cells to offset above finger during drag
 
 function isStarPoint(position: Position) {
   const starPointIndices = [3, 9, 15];
@@ -177,6 +178,7 @@ export function TiaoBoard({
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const suppressClickRef = useRef(false);
   const [mobilePreview, setMobilePreview] = useState<Position | null>(null);
+  const [mobilePreviewDragging, setMobilePreviewDragging] = useState(false);
   const isDraggingPreviewRef = useRef(false);
 
   // -- Pinch-to-zoom --
@@ -188,6 +190,7 @@ export function TiaoBoard({
   // Clear preview on state changes (turn switch, new move, disable)
   useEffect(() => {
     setMobilePreview(null);
+    setMobilePreviewDragging(false);
   }, [state.currentTurn, state.history.length, disabled]);
 
   const handleTouchStart = useCallback(
@@ -226,13 +229,16 @@ export function TiaoBoard({
 
         if (isDraggingPreviewRef.current || Math.hypot(dx, dy) > DRAG_THRESHOLD) {
           isDraggingPreviewRef.current = true;
+          setMobilePreviewDragging(true);
           e.preventDefault();
           const rect = boardRef.current.getBoundingClientRect();
           const pos = touchToGridPosition(touch.clientX, touch.clientY, rect);
+          // Offset upward so finger doesn't cover the intersection
+          const offsetPos = { x: pos.x, y: Math.max(0, pos.y - DRAG_Y_OFFSET) };
           // Only move preview to empty intersections
-          const piece = state.positions[pos.y]?.[pos.x];
-          if (!piece && !arePositionsEqual(mobilePreview, pos)) {
-            setMobilePreview(pos);
+          const piece = state.positions[offsetPos.y]?.[offsetPos.x];
+          if (!piece && !arePositionsEqual(mobilePreview, offsetPos)) {
+            setMobilePreview(offsetPos);
           }
         }
       }
@@ -252,19 +258,19 @@ export function TiaoBoard({
         return;
       }
 
-      // Drag-to-adjust: auto-confirm on release
+      // Drag-to-adjust: on release, stop dragging and show confirm/cancel
       if (isDraggingPreviewRef.current && mobilePreview) {
         e.preventDefault();
         suppressClickRef.current = true;
-        const pos = mobilePreview;
-        setMobilePreview(null);
-        onPointClick(pos);
         isDraggingPreviewRef.current = false;
+        setMobilePreviewDragging(false);
         touchStartRef.current = null;
+        // Keep preview in place — confirm/cancel buttons will show
         return;
       }
 
       isDraggingPreviewRef.current = false;
+      setMobilePreviewDragging(false);
       const touch = e.changedTouches[0];
 
       // Check if this was a drag (scrolling), not a tap
@@ -291,19 +297,48 @@ export function TiaoBoard({
         return;
       }
 
-      // Empty intersection with no selection — mobile preview flow
-      if (mobilePreview && arePositionsEqual(mobilePreview, pos)) {
-        // Second tap on same position → confirm placement
-        e.preventDefault();
-        suppressClickRef.current = true;
-        setMobilePreview(null);
-        onPointClick(pos);
-      } else {
-        // First tap → show preview ghost stone
-        e.preventDefault();
-        suppressClickRef.current = true;
-        setMobilePreview(pos);
+      // Fat-finger tolerance: if tapped an empty cell but there's a piece
+      // on an adjacent intersection, let the click handler deal with it
+      // (the button's hit area will catch it)
+      if (!piece && !hasActiveOrigin) {
+        const adjacentOffsets = [[-1,0],[1,0],[0,-1],[0,1]];
+        const hasAdjacentPiece = adjacentOffsets.some(([ox,oy]) => {
+          const nx = pos.x + ox, ny = pos.y + oy;
+          return nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE &&
+            state.positions[ny]?.[nx] != null;
+        });
+        // Check pixel distance to the nearest adjacent piece — if closer to it
+        // than the grid step, skip preview
+        if (hasAdjacentPiece) {
+          const touchPctX = ((touch.clientX - rect.left) / rect.width) * 100;
+          const touchPctY = ((touch.clientY - rect.top) / rect.height) * 100;
+          const snapPctX = pointPercent(pos.x);
+          const snapPctY = pointPercent(pos.y);
+          const distToSnap = Math.hypot(touchPctX - snapPctX, touchPctY - snapPctY);
+          // If tap was far from the snapped cell center (> 60% of grid step),
+          // likely meant to tap the adjacent piece
+          if (distToSnap > GRID_STEP * 0.6) {
+            return; // let onClick handle it
+          }
+        }
       }
+
+      // Empty intersection with no selection — mobile preview flow
+      if (mobilePreview) {
+        // Tap elsewhere dismisses current preview
+        if (!arePositionsEqual(mobilePreview, pos)) {
+          e.preventDefault();
+          suppressClickRef.current = true;
+          setMobilePreview(pos);
+        }
+        // Tap on same position — do nothing, user should use confirm button
+        return;
+      }
+
+      // First tap → show preview ghost stone with confirm/cancel
+      e.preventDefault();
+      suppressClickRef.current = true;
+      setMobilePreview(pos);
     },
     [state.positions, activeOrigin, mobilePreview, onPointClick, zoom.handlers, zoom.gestureActiveRef]
   );
@@ -572,7 +607,7 @@ export function TiaoBoard({
 
               {piece ? (
                 <motion.span
-                  layout
+                  layout={!zoom.isZoomed}
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={
                     celebratingPieceKey === pieceKey
@@ -968,9 +1003,8 @@ export function TiaoBoard({
               strokeOpacity="0.35"
               strokeWidth="1.5"
               vectorEffect="non-scaling-stroke"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.12 }}
+              animate={{ y1: pointPercent(mobilePreview.y), y2: pointPercent(mobilePreview.y) }}
+              transition={{ duration: 0.08, ease: "easeOut" }}
             />
             <motion.line
               x1={pointPercent(mobilePreview.x)}
@@ -981,56 +1015,98 @@ export function TiaoBoard({
               strokeOpacity="0.35"
               strokeWidth="1.5"
               vectorEffect="non-scaling-stroke"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.12 }}
+              animate={{ x1: pointPercent(mobilePreview.x), x2: pointPercent(mobilePreview.x) }}
+              transition={{ duration: 0.08, ease: "easeOut" }}
             />
           </svg>
         )}
 
-        {/* Mobile tap-to-preview ghost stone */}
-        {mobilePreview && !disabled && (
-          <motion.span
-            key={`preview-${mobilePreview.x}-${mobilePreview.y}`}
-            className="pointer-events-none absolute z-30 -translate-x-1/2 -translate-y-1/2"
-            style={{
-              left: `${pointPercent(mobilePreview.x)}%`,
-              top: `${pointPercent(mobilePreview.y)}%`,
-              width: `${100 / BOARD_SIZE * 0.88}%`,
-              aspectRatio: "1",
-            }}
-            initial={{ scale: 0.7, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
-          >
-            <span
-              className={cn(
-                "block h-full w-full rounded-full opacity-60",
-                state.currentTurn === "black"
-                  ? "border border-[#191410] bg-[#1a1210] shadow-[0_2px_6px_rgba(0,0,0,0.4)]"
-                  : "border border-[#ddd2bf] bg-[#f0e8d8] shadow-[0_2px_6px_rgba(0,0,0,0.15)]",
-              )}
-            />
-            {/* Pulsing confirm ring */}
+        {/* Mobile ghost stone preview */}
+        <AnimatePresence>
+          {mobilePreview && !disabled && (
             <motion.span
-              className="pointer-events-none absolute inset-[-20%] rounded-full border-2 border-[#56703f]"
+              key="mobile-preview"
+              className="absolute z-30 -translate-x-1/2 -translate-y-1/2"
+              style={{
+                width: `${100 / BOARD_SIZE * 0.88}%`,
+                aspectRatio: "1",
+              }}
+              initial={{ left: `${pointPercent(mobilePreview.x)}%`, top: `${pointPercent(mobilePreview.y)}%`, scale: 0.7, opacity: 0 }}
               animate={{
-                scale: [1, 1.15, 1],
-                opacity: [0.7, 0.3, 0.7],
+                left: `${pointPercent(mobilePreview.x)}%`,
+                top: `${pointPercent(mobilePreview.y)}%`,
+                scale: 1,
+                opacity: 1,
               }}
-              transition={{
-                duration: 1.2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-            {/* "Tap to place" label */}
-            <span className="absolute left-1/2 top-[calc(100%+4px)] -translate-x-1/2 whitespace-nowrap rounded-full border border-[#d7c39e] bg-[#fffaf3] px-2 py-0.5 text-[9px] font-semibold text-[#6c543c] shadow-sm">
-              Tap to place
-            </span>
-          </motion.span>
-        )}
+              exit={{ scale: 0.7, opacity: 0 }}
+              transition={{ duration: 0.1, ease: "easeOut" }}
+            >
+              <span
+                className={cn(
+                  "pointer-events-none block h-full w-full rounded-full",
+                  mobilePreviewDragging ? "opacity-50" : "opacity-70",
+                  state.currentTurn === "black"
+                    ? "border border-[#191410] bg-[#1a1210] shadow-[0_2px_6px_rgba(0,0,0,0.4)]"
+                    : "border border-[#ddd2bf] bg-[#f0e8d8] shadow-[0_2px_6px_rgba(0,0,0,0.15)]",
+                )}
+              />
+              {/* Confirm/cancel pill — shown when not dragging */}
+              {!mobilePreviewDragging && IS_TOUCH_DEVICE && (
+                <motion.span
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.12, delay: 0.05 }}
+                  className="absolute left-1/2 bottom-[calc(100%+6px)] -translate-x-1/2 flex items-center gap-0 rounded-full border border-[#c4a978]/60 bg-[rgba(255,248,232,0.96)] shadow-[0_6px_16px_-6px_rgba(66,39,11,0.45)]"
+                >
+                  <button
+                    type="button"
+                    className="flex h-7 w-8 items-center justify-center rounded-l-full text-[#9a6e4a] transition-colors hover:bg-[rgba(0,0,0,0.06)] hover:text-[#6e3d1a] active:bg-[rgba(0,0,0,0.1)]"
+                    onClick={(evt) => { evt.stopPropagation(); setMobilePreview(null); }}
+                    aria-label="Cancel placement"
+                  >
+                    <svg viewBox="0 0 14 14" fill="none" className="h-3 w-3">
+                      <path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                  <span className="h-4 w-px bg-[#c4a978]/40" />
+                  <button
+                    type="button"
+                    className="flex h-7 w-8 items-center justify-center rounded-r-full text-[#5e7b4e] transition-colors hover:bg-[rgba(0,0,0,0.06)] hover:text-[#3a5a2a] active:bg-[rgba(0,0,0,0.1)]"
+                    onClick={(evt) => { evt.stopPropagation(); const pos = mobilePreview; setMobilePreview(null); onPointClick(pos); }}
+                    aria-label="Confirm placement"
+                  >
+                    <svg viewBox="0 0 14 14" fill="none" className="h-3.5 w-3.5">
+                      <path d="M3 7.5l2.8 2.8L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                </motion.span>
+              )}
+            </motion.span>
+          )}
+        </AnimatePresence>
       </div>
+
+      {/* Zoom indicator — tap to reset */}
+      <AnimatePresence>
+        {zoom.isZoomed && IS_TOUCH_DEVICE && (
+          <motion.button
+            type="button"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.15 }}
+            onClick={zoom.resetZoom}
+            className="absolute bottom-5 right-5 z-[100] flex h-9 items-center gap-1.5 rounded-full border border-[#af8a56]/50 bg-[rgba(255,248,232,0.92)] px-3 text-[#3a2818] shadow-[0_8px_20px_-8px_rgba(66,39,11,0.5)] backdrop-blur"
+          >
+            <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" aria-hidden="true">
+              <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M11 11l3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="M5 7h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+            <span className="text-xs font-semibold">{Math.round(zoom.scale * 10) / 10}x</span>
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
