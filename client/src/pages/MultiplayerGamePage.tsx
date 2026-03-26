@@ -37,6 +37,7 @@ import {
   getJumpTargets,
   arePositionsEqual,
   replayToMove,
+  isBoardMove,
 } from "@shared";
 import { MoveList, MoveListNavButtons } from "@/components/game/MoveList";
 import { useGameClock, useFirstMoveCountdown, InlineClockBadge, formatClockTime } from "@/components/game/GameClock";
@@ -174,10 +175,15 @@ export function MultiplayerGamePage({
 
   const [reviewMoveIndex, setReviewMoveIndex] = useState<number | null>(null);
 
-  // Initialize review index when entering review mode
+  // Initialize review index when entering review mode (point to last board move, not meta-events)
   useEffect(() => {
     if (isReviewMode && multiplayerSnapshot && reviewMoveIndex === null) {
-      setReviewMoveIndex(multiplayerSnapshot.state.history.length - 1);
+      const history = multiplayerSnapshot.state.history;
+      let lastBoardIdx = history.length - 1;
+      while (lastBoardIdx >= 0 && !isBoardMove(history[lastBoardIdx])) {
+        lastBoardIdx--;
+      }
+      setReviewMoveIndex(lastBoardIdx);
     }
     if (!isReviewMode && reviewMoveIndex !== null) {
       setReviewMoveIndex(null);
@@ -193,7 +199,10 @@ export function MultiplayerGamePage({
 
   const reviewLastMove =
     isReviewMode && multiplayerSnapshot && reviewMoveIndex !== null && reviewMoveIndex >= 0
-      ? multiplayerSnapshot.state.history[reviewMoveIndex] ?? null
+      ? (() => {
+          const rec = multiplayerSnapshot.state.history[reviewMoveIndex];
+          return rec && isBoardMove(rec) ? rec : null;
+        })()
       : null;
 
   const playerSeat =

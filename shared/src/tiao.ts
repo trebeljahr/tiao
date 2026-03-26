@@ -20,20 +20,33 @@ export type PutTurn = {
   type: "put";
   position: Position;
   color: PlayerColor;
+  timestamp?: number;
 };
 
 export type JumpTurn = {
   type: "jump";
   color: PlayerColor;
   jumps: JumpStep[];
+  timestamp?: number;
 };
 
 export type ForfeitTurn = {
   type: "forfeit";
   color: PlayerColor;
+  reason?: "forfeit" | "timeout";
 };
 
-export type TurnRecord = PutTurn | JumpTurn | ForfeitTurn;
+export type WinTurn = {
+  type: "win";
+  color: PlayerColor;
+};
+
+export type TurnRecord = PutTurn | JumpTurn | ForfeitTurn | WinTurn;
+
+/** Records that represent actual board moves (not meta-events like forfeit/win) */
+export function isBoardMove(record: TurnRecord): record is PutTurn | JumpTurn {
+  return record.type === "put" || record.type === "jump";
+}
 
 export type ScoreState = Record<PlayerColor, number>;
 
@@ -114,17 +127,27 @@ function cloneHistoryRecord(record: TurnRecord): TurnRecord {
       type: "put",
       color: record.color,
       position: clonePosition(record.position),
+      ...(record.timestamp != null ? { timestamp: record.timestamp } : {}),
     };
   }
 
   if (record.type === "forfeit") {
-    return { type: "forfeit", color: record.color };
+    return {
+      type: "forfeit",
+      color: record.color,
+      ...(record.reason ? { reason: record.reason } : {}),
+    };
+  }
+
+  if (record.type === "win") {
+    return { type: "win", color: record.color };
   }
 
   return {
     type: "jump",
     color: record.color,
     jumps: record.jumps.map(cloneJumpStep),
+    ...(record.timestamp != null ? { timestamp: record.timestamp } : {}),
   };
 }
 
@@ -179,9 +202,10 @@ export function getTile(state: GameState, position: Position): TileState {
 }
 
 export function isGameOver(state: GameState): boolean {
-  return (
-    state.score.black >= SCORE_TO_WIN || state.score.white >= SCORE_TO_WIN
-  );
+  if (state.score.black >= SCORE_TO_WIN || state.score.white >= SCORE_TO_WIN) {
+    return true;
+  }
+  return state.history.some((r) => r.type === "win");
 }
 
 export function getWinner(state: GameState): PlayerColor | null {
@@ -193,12 +217,18 @@ export function getWinner(state: GameState): PlayerColor | null {
     return "white";
   }
 
+  const winRecord = state.history.find((r) => r.type === "win");
+  if (winRecord) {
+    return winRecord.color;
+  }
+
   return null;
 }
 
 export function forfeitGame(
   state: GameState,
-  forfeitingColor: PlayerColor
+  forfeitingColor: PlayerColor,
+  reason: "forfeit" | "timeout" = "forfeit",
 ): RuleResult<GameState> {
   if (isGameOver(state)) {
     return {
@@ -210,12 +240,16 @@ export function forfeitGame(
 
   const winnerColor = otherColor(forfeitingColor);
   const nextState = cloneGameState(state);
-  nextState.score[winnerColor] = SCORE_TO_WIN;
   nextState.pendingJump = [];
   nextState.pendingCaptures = [];
   nextState.history.push({
     type: "forfeit",
     color: forfeitingColor,
+    reason,
+  });
+  nextState.history.push({
+    type: "win",
+    color: winnerColor,
   });
 
   return { ok: true, value: nextState };
@@ -663,6 +697,15 @@ export function confirmPendingJump(state: GameState): RuleResult<GameState> {
     color: state.currentTurn,
     jumps: nextState.pendingJump.map(cloneJumpStep),
   });
+
+  // Check if this capture wins the game
+  if (nextState.score[state.currentTurn] >= SCORE_TO_WIN) {
+    nextState.history.push({
+      type: "win",
+      color: state.currentTurn,
+    });
+  }
+
   nextState.pendingJump = [];
   nextState.pendingCaptures = [];
   nextState.currentTurn = otherColor(state.currentTurn);
@@ -728,8 +771,21 @@ export function undoLastTurn(state: GameState): RuleResult<GameState> {
     };
   }
 
+  if (lastTurn.type === "win") {
+    return {
+      ok: false,
+      code: "GAME_OVER",
+      reason: "Cannot undo a win.",
+    };
+  }
+
   const nextState = cloneGameState(state);
   nextState.history.pop();
+
+  // Also pop a trailing win record if present (win follows the winning move)
+  if (nextState.history.length > 0 && nextState.history[nextState.history.length - 1].type === "win") {
+    nextState.history.pop();
+  }
 
   if (lastTurn.type === "put") {
     nextState.positions[lastTurn.position.y][lastTurn.position.x] = null;
@@ -799,7 +855,12 @@ export function formatTurnRecord(record: TurnRecord, index: number): string {
   const colorInitial = record.color === "white" ? "W" : "B";
 
   if (record.type === "forfeit") {
-    return `${moveNumber}. ${colorInitial} forfeits`;
+    const label = record.reason === "timeout" ? "timeout" : "forfeit";
+    return `${moveNumber}. ${colorInitial} ${label}`;
+  }
+
+  if (record.type === "win") {
+    return `${moveNumber}. ${colorInitial} wins`;
   }
 
   if (record.type === "put") {
@@ -823,8 +884,11 @@ export function replayToMove(
   for (let i = 0; i < end; i++) {
     const record = history[i];
 
-    if (record.type === "forfeit") {
-      const result = forfeitGame(state, record.color);
+    if (record.type === "win") {
+      // Win records are meta-events; the board state doesn't change
+      continue;
+    } else if (record.type === "forfeit") {
+      const result = forfeitGame(state, record.color, record.reason ?? "forfeit");
       if (result.ok) {
         state = result.value;
       }

@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import type { TurnRecord } from "@shared";
-import { formatTurnRecord } from "@shared";
+import { formatTurnRecord, isBoardMove } from "@shared";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -13,6 +13,28 @@ type MoveListProps = {
   hideNavButtons?: boolean;
 };
 
+/** Find the previous/next board move index, skipping non-move events (forfeit, win, timeout). */
+function findPrevBoardMove(history: TurnRecord[], from: number): number {
+  for (let i = from - 1; i >= 0; i--) {
+    if (isBoardMove(history[i])) return i;
+  }
+  return -1; // before first move = initial state
+}
+
+function findNextBoardMove(history: TurnRecord[], from: number): number {
+  for (let i = from + 1; i < history.length; i++) {
+    if (isBoardMove(history[i])) return i;
+  }
+  return from; // no next board move
+}
+
+function findLastBoardMove(history: TurnRecord[]): number {
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (isBoardMove(history[i])) return i;
+  }
+  return -1;
+}
+
 export function MoveListNavButtons({
   history,
   currentMoveIndex,
@@ -22,6 +44,9 @@ export function MoveListNavButtons({
   currentMoveIndex: number | null;
   onSelectMove: (index: number) => void;
 }) {
+  const lastBoardIdx = findLastBoardMove(history);
+  const isAtOrBeyondEnd = currentMoveIndex !== null && currentMoveIndex >= lastBoardIdx;
+
   return (
     <div className="flex items-center justify-center gap-1">
       <Button
@@ -39,7 +64,7 @@ export function MoveListNavButtons({
         size="sm"
         className="h-7 w-7 p-0 text-xs"
         onClick={() =>
-          onSelectMove(currentMoveIndex !== null ? currentMoveIndex - 1 : -1)
+          onSelectMove(currentMoveIndex !== null ? findPrevBoardMove(history, currentMoveIndex) : -1)
         }
         disabled={currentMoveIndex === null || currentMoveIndex < 0}
         aria-label="Previous move"
@@ -51,12 +76,9 @@ export function MoveListNavButtons({
         size="sm"
         className="h-7 w-7 p-0 text-xs"
         onClick={() =>
-          onSelectMove(currentMoveIndex !== null ? currentMoveIndex + 1 : 0)
+          onSelectMove(currentMoveIndex !== null ? findNextBoardMove(history, currentMoveIndex) : 0)
         }
-        disabled={
-          currentMoveIndex === null ||
-          currentMoveIndex >= history.length - 1
-        }
+        disabled={currentMoveIndex === null || isAtOrBeyondEnd}
         aria-label="Next move"
       >
         ▶
@@ -65,11 +87,8 @@ export function MoveListNavButtons({
         variant="ghost"
         size="sm"
         className="h-7 w-7 p-0 text-xs"
-        onClick={() => onSelectMove(history.length - 1)}
-        disabled={
-          currentMoveIndex === null ||
-          currentMoveIndex >= history.length - 1
-        }
+        onClick={() => onSelectMove(lastBoardIdx)}
+        disabled={currentMoveIndex === null || isAtOrBeyondEnd}
         aria-label="Go to end"
       >
         ⏭

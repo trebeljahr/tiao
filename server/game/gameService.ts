@@ -354,6 +354,15 @@ export class GameService {
         throw new GameServiceError(409, result.code, result.reason);
       }
 
+      // Stamp timestamps on newly added move records (for clock restoration on takeback)
+      const now = Date.now();
+      for (let i = room.state.history.length; i < result.value.history.length; i++) {
+        const rec = result.value.history[i];
+        if (rec.type === "put" || rec.type === "jump") {
+          rec.timestamp = now;
+        }
+      }
+
       // Clock logic: deduct elapsed time and add increment on turn change
       let clockMs = room.clockMs ? { ...room.clockMs } : null;
       let lastMoveAt = room.lastMoveAt;
@@ -367,7 +376,7 @@ export class GameService {
 
         // Check for time expiry
         if (clockMs[movingColor] <= 0) {
-          const flagResult = forfeitGame(room.state, movingColor);
+          const flagResult = forfeitGame(room.state, movingColor, "timeout");
           if (flagResult.ok) {
             const flaggedRoom = await this.saveRoom({
               ...room,
@@ -1137,25 +1146,68 @@ export class GameService {
     // the requester's last move.
     let state = room.state;
     const requester = room.takeback.requestedBy;
+    let clockMs = room.clockMs ? { ...room.clockMs } : null;
+    let lastMoveAt = room.lastMoveAt;
+    const increment = room.timeControl?.incrementMs ?? 0;
+
+    // Helper to reverse clock changes for an undone move
+    const reverseClock = (undoneMove: { color: PlayerColor; timestamp?: number }, prevTimestamp: number | null) => {
+      if (!clockMs || !undoneMove.timestamp) return;
+      // Remove the increment that was added after this move
+      clockMs[undoneMove.color] = Math.max(0, clockMs[undoneMove.color] - increment);
+      // Give back the time that was deducted for this move
+      if (prevTimestamp) {
+        const elapsed = undoneMove.timestamp - prevTimestamp;
+        clockMs[undoneMove.color] += elapsed;
+      }
+    };
+
+    // Find the timestamp of the move before the ones being undone
+    const getPrevTimestamp = (history: typeof state.history, idx: number): number | null => {
+      for (let i = idx - 1; i >= 0; i--) {
+        const rec = history[i];
+        if ((rec.type === "put" || rec.type === "jump") && rec.timestamp) {
+          return rec.timestamp;
+        }
+      }
+      return null;
+    };
 
     if (state.currentTurn !== requester && state.history.length > 0) {
       // It's the accepting player's turn, meaning the requester's move was
       // the one before. Just undo the last move.
+      const lastMove = state.history[state.history.length - 1];
+      const prevTs = getPrevTimestamp(state.history, state.history.length - 1);
       const undo = undoLastTurn(state);
       if (!undo.ok) {
         throw new GameServiceError(409, undo.code, undo.reason);
+      }
+      reverseClock(lastMove, prevTs);
+      if (lastMove.type === "put" || lastMove.type === "jump") {
+        lastMoveAt = prevTs ? new Date(prevTs) : lastMoveAt;
       }
       state = undo.value;
     } else if (state.currentTurn === requester && state.history.length >= 2) {
       // It's the requester's turn, so undo the accepting player's move first,
       // then undo the requester's previous move.
+      const lastMove = state.history[state.history.length - 1];
+      const prevTs1 = getPrevTimestamp(state.history, state.history.length - 1);
       const undo1 = undoLastTurn(state);
       if (!undo1.ok) {
         throw new GameServiceError(409, undo1.code, undo1.reason);
       }
-      const undo2 = undoLastTurn(undo1.value);
+      reverseClock(lastMove, prevTs1);
+      state = undo1.value;
+
+      const secondLastMove = state.history[state.history.length - 1];
+      const prevTs2 = getPrevTimestamp(state.history, state.history.length - 1);
+      const undo2 = undoLastTurn(state);
       if (!undo2.ok) {
         throw new GameServiceError(409, undo2.code, undo2.reason);
+      }
+      reverseClock(secondLastMove, prevTs2);
+      if (secondLastMove.type === "put" || secondLastMove.type === "jump") {
+        lastMoveAt = prevTs2 ? new Date(prevTs2) : lastMoveAt;
       }
       state = undo2.value;
     }
@@ -1163,6 +1215,8 @@ export class GameService {
     return this.saveRoom({
       ...room,
       state,
+      clockMs,
+      lastMoveAt,
       takeback: null,
     });
   }
@@ -1305,8 +1359,9 @@ export class GameService {
         const playerColor = getPlayerColorForRoom(derived, playerId);
         if (!playerColor) return;
 
-        const opponentColor = playerColor === "white" ? "black" : "white";
-        derived.state.score[opponentColor] = 10;
+        const abandonResult = forfeitGame(derived.state, playerColor, "forfeit");
+        if (!abandonResult.ok) return;
+        derived.state = abandonResult.value;
         const savedRoom = await this.saveRoom(derived);
         this.broadcastSnapshot(savedRoom);
       });
@@ -1348,7 +1403,7 @@ export class GameService {
           if (playerTime > 0) return; // Not actually expired
 
           const flagColor = freshRoom.state.currentTurn;
-          const flagResult = forfeitGame(freshRoom.state, flagColor);
+          const flagResult = forfeitGame(freshRoom.state, flagColor, "timeout");
           if (!flagResult.ok) return;
 
           freshRoom.clockMs[flagColor] = 0;
@@ -1430,8 +1485,10 @@ export class GameService {
       const absentColor = derived.state.currentTurn;
       const opponentColor: PlayerColor = absentColor === "white" ? "black" : "white";
 
-      // Mark the game as finished (score opponent to 10 so isGameOver returns true)
-      derived.state.score[opponentColor] = 10;
+      // Mark the game as finished via timeout forfeit
+      const timeoutResult = forfeitGame(derived.state, absentColor, "timeout");
+      if (!timeoutResult.ok) return;
+      derived.state = timeoutResult.value;
       const savedRoom = await this.saveRoom({
         ...derived,
         firstMoveDeadline: null,

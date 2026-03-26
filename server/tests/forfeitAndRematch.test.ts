@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import WebSocket from "ws";
 import type { PlayerIdentity } from "../../shared/src";
-import { SCORE_TO_WIN } from "../../shared/src";
+import { SCORE_TO_WIN, getWinner } from "../../shared/src";
 import { GameService, GameServiceError } from "../game/gameService";
 import { InMemoryGameRoomStore } from "../game/gameStore";
 
@@ -66,8 +66,8 @@ test("a player can forfeit an active game and the opponent wins", async () => {
   });
 
   assert.equal(snapshot.status, "finished");
-  // Bob (black) should be the winner
-  assert.equal(snapshot.state.score.black, SCORE_TO_WIN);
+  // Bob (black) should be the winner (via win record, not score inflation)
+  assert.equal(getWinner(snapshot.state), "black");
 });
 
 test("cannot forfeit a game that is not active (waiting)", async () => {
@@ -106,7 +106,7 @@ test("cannot forfeit a game that is already finished", async () => {
   );
 });
 
-test("forfeit sets the opponent's score to SCORE_TO_WIN", async () => {
+test("forfeit marks the opponent as winner without changing scores", async () => {
   const store = new InMemoryGameRoomStore();
   const service = new GameService(store, () => 0);
   const alice = createPlayer("alice");
@@ -115,12 +115,15 @@ test("forfeit sets the opponent's score to SCORE_TO_WIN", async () => {
   const created = await service.createGame(alice);
   await service.joinGame(created.gameId, bob);
 
-  // Bob (black) forfeits — white (alice) should reach SCORE_TO_WIN
+  // Bob (black) forfeits — white (alice) should win
   const snapshot = await service.applyAction(created.gameId, bob, {
     type: "forfeit",
   });
 
-  assert.equal(snapshot.state.score.white, SCORE_TO_WIN);
+  assert.equal(getWinner(snapshot.state), "white");
+  // Scores should remain at 0 — forfeit doesn't inflate them
+  assert.equal(snapshot.state.score.white, 0);
+  assert.equal(snapshot.state.score.black, 0);
   assert.equal(snapshot.status, "finished");
 });
 
@@ -143,13 +146,17 @@ test("after forfeit the game history includes a forfeit record", async () => {
     type: "forfeit",
   });
 
-  const lastHistoryEntry = snapshot.state.history.at(-1);
-  assert.ok(lastHistoryEntry, "expected at least one history entry");
-  assert.equal(lastHistoryEntry.type, "forfeit");
-  assert.equal(lastHistoryEntry.color, "black");
-  // The earlier move should also be in history
-  assert.equal(snapshot.state.history.length, 2);
+  // History should include: put, forfeit, win
+  assert.equal(snapshot.state.history.length, 3);
   assert.equal(snapshot.state.history[0].type, "put");
+
+  const forfeitEntry = snapshot.state.history[1];
+  assert.equal(forfeitEntry.type, "forfeit");
+  assert.equal(forfeitEntry.color, "black");
+
+  const winEntry = snapshot.state.history[2];
+  assert.equal(winEntry.type, "win");
+  assert.equal(winEntry.color, "white");
 });
 
 // ---------------------------------------------------------------------------
