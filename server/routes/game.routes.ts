@@ -19,6 +19,12 @@ async function getAuthenticatedPlayer(req: Request, res: Response) {
   return player;
 }
 
+const GAME_ID_PATTERN = /^[A-Z2-9]{6}$/;
+
+function isValidGameId(gameId: string): boolean {
+  return GAME_ID_PATTERN.test(gameId.trim().toUpperCase());
+}
+
 function respondWithGameServiceError(
   res: Response,
   error: unknown,
@@ -237,6 +243,10 @@ router.post("/games/:gameId/join", async (req: Request, res: Response) => {
     return;
   }
 
+  if (!isValidGameId(req.params.gameId)) {
+    return res.status(400).json({ message: "Invalid game ID." });
+  }
+
   try {
     const snapshot = await gameService.joinGame(req.params.gameId, player);
 
@@ -289,6 +299,10 @@ router.post("/games/:gameId/access", async (req: Request, res: Response) => {
   const player = await getAuthenticatedPlayer(req, res);
   if (!player) {
     return;
+  }
+
+  if (!isValidGameId(req.params.gameId)) {
+    return res.status(400).json({ message: "Invalid game ID." });
   }
 
   try {
@@ -347,6 +361,10 @@ router.get("/games/:gameId", async (req: Request, res: Response) => {
   const player = await getAuthenticatedPlayer(req, res);
   if (!player) {
     return;
+  }
+
+  if (!isValidGameId(req.params.gameId)) {
+    return res.status(400).json({ message: "Invalid game ID." });
   }
 
   try {
@@ -548,7 +566,11 @@ router.post("/:gameId/test-finish", async (req: Request, res: Response) => {
   }
 
   const { gameId } = req.params;
-  const { winner } = req.body as { winner: "white" | "black" };
+  const { winner } = req.body as { winner: string };
+
+  if (winner !== "white" && winner !== "black") {
+    return res.status(400).json({ message: "Winner must be 'white' or 'black'." });
+  }
 
   try {
     await gameService.testForceFinishGame(gameId, winner);

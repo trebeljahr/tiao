@@ -19,5 +19,5 @@ export const configureApp = (app: Express): void => {
 
   const isProduction = process.env.NODE_ENV === "production";
   app.use(logger(isProduction ? "combined" : "dev"));
-  app.use(express.json());
+  app.use(express.json({ limit: "100kb" }));
 };

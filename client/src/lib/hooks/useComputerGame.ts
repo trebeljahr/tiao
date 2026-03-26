@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import type { PlayerColor } from "@shared";
+import type { PlayerColor, Position } from "@shared";
 import {
   isGameOver,
   undoLastTurn,
@@ -154,7 +154,7 @@ export function useComputerGame(difficulty: AIDifficulty = 3) {
   }, [needsMove, local.localGame, difficulty, computerColor]);
 
   const handleBoardClick = useCallback(
-    (position: any) => {
+    (position: Position) => {
       if (computerThinking || local.localGame.currentTurn === computerColor) {
         return;
       }

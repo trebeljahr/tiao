@@ -10,7 +10,7 @@ import type { AuthResponse } from "@shared";
 import { buildWebSocketUrl } from "./api";
 import { createReconnectScheduler } from "./reconnect";
 
-type LobbyMessageHandler = (payload: any) => void;
+type LobbyMessageHandler = (payload: Record<string, unknown>) => void;
 
 type LobbySocketContextValue = {
   subscribe: (handler: LobbyMessageHandler) => () => void;
@@ -68,7 +68,7 @@ export function LobbySocketProvider({
       };
 
       socket.onmessage = (event) => {
-        let payload: any;
+        let payload: Record<string, unknown>;
         try {
           payload = JSON.parse(event.data);
         } catch {

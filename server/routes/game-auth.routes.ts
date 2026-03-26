@@ -334,9 +334,9 @@ router.post("/signup", authRateLimiter, async (req: Request, res: Response) => {
       }
     }
 
-    if (password.length < 8) {
+    if (password.length < 8 || password.length > 128) {
       return res.status(400).json({
-        message: "Passwords must be at least 8 characters long.",
+        message: "Passwords must be between 8 and 128 characters.",
       });
     }
 

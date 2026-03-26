@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import type { AuthResponse, PlayerColor } from "@shared";
+import type { AuthResponse, PlayerColor, Position } from "@shared";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -373,7 +373,7 @@ export function MultiplayerGamePage({
         )
       : [];
 
-  const handleBoardClick = (position: any) => {
+  const handleBoardClick = (position: Position) => {
     if (!multiplayerSnapshot || !playerSeat || !multiplayerYourTurn) return;
 
     const state = multiplayerSnapshot.state;

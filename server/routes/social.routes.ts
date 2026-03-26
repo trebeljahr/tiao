@@ -12,6 +12,7 @@ import { GameServiceError, gameService } from "../game/gameService";
 import { getPlayerFromRequest } from "../game/playerTokens";
 import GameAccount, { IGameAccount } from "../models/GameAccount";
 import GameInvitation from "../models/GameInvitation";
+import { userSearchRateLimiter } from "../middleware/rateLimiter";
 
 const router = express.Router();
 
@@ -387,7 +388,7 @@ router.get("/player/social/overview", async (req: Request, res: Response) => {
  *       503:
  *         description: Social features unavailable
  */
-router.get("/player/social/search", async (req: Request, res: Response) => {
+router.get("/player/social/search", userSearchRateLimiter, async (req: Request, res: Response) => {
   try {
     const account = await requireAccount(req, res);
     if (!account) {
@@ -400,7 +401,7 @@ router.get("/player/social/search", async (req: Request, res: Response) => {
       });
     }
 
-    const query = req.query.q.trim();
+    const query = req.query.q.slice(0, 100).trim();
     if (query.length < 2) {
       return res.status(400).json({
         message: "Search with at least 2 characters.",
@@ -488,7 +489,7 @@ router.post("/player/social/friend-requests", async (req: Request, res: Response
       accountId?: string;
     };
 
-    if (!accountId) {
+    if (!accountId || !mongoose.Types.ObjectId.isValid(accountId)) {
       return res.status(400).json({
         message: "Choose a player to add.",
       });
@@ -581,6 +582,10 @@ router.post(
       }
 
       const requesterId = req.params.accountId;
+      if (!mongoose.Types.ObjectId.isValid(requesterId)) {
+        return res.status(400).json({ message: "Invalid account ID." });
+      }
+
       const requester = await GameAccount.findById(requesterId);
 
       if (!requester) {
@@ -666,6 +671,10 @@ router.post(
       }
 
       const requesterId = req.params.accountId;
+      if (!mongoose.Types.ObjectId.isValid(requesterId)) {
+        return res.status(400).json({ message: "Invalid account ID." });
+      }
+
       const requester = await GameAccount.findById(requesterId);
 
       if (!requester) {
@@ -743,6 +752,10 @@ router.post(
       }
 
       const targetId = req.params.accountId;
+      if (!mongoose.Types.ObjectId.isValid(targetId)) {
+        return res.status(400).json({ message: "Invalid account ID." });
+      }
+
       const targetAccount = await GameAccount.findById(targetId);
 
       if (!targetAccount) {
@@ -976,6 +989,10 @@ router.post(
         return;
       }
 
+      if (!mongoose.Types.ObjectId.isValid(req.params.invitationId)) {
+        return res.status(400).json({ message: "Invalid invitation ID." });
+      }
+
       const invitation = await GameInvitation.findOne({
         _id: req.params.invitationId,
         senderId: account._id,
@@ -1013,6 +1030,10 @@ router.post(
       const account = await requireAccount(req, res);
       if (!account) {
         return;
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(req.params.invitationId)) {
+        return res.status(400).json({ message: "Invalid invitation ID." });
       }
 
       const invitation = await GameInvitation.findOne({
@@ -1055,8 +1076,8 @@ router.post(
       }
 
       const targetId = req.params.accountId;
-      if (!targetId) {
-        return res.status(400).json({ message: "Missing accountId." });
+      if (!targetId || !mongoose.Types.ObjectId.isValid(targetId)) {
+        return res.status(400).json({ message: "Invalid account ID." });
       }
 
       if (!containsAccountId(account.friends, targetId)) {
