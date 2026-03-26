@@ -11,6 +11,8 @@ import {
   isPositionMarkedForCapture,
 } from "@shared";
 import { cn } from "@/lib/utils";
+import { usePinchZoom } from "@/hooks/usePinchZoom";
+import { GRID_LINE_COLOR } from "./boardStyles";
 
 export type LastMoveHighlight = TurnRecord | null;
 
@@ -175,6 +177,13 @@ export function TiaoBoard({
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const suppressClickRef = useRef(false);
   const [mobilePreview, setMobilePreview] = useState<Position | null>(null);
+  const isDraggingPreviewRef = useRef(false);
+
+  // -- Pinch-to-zoom --
+  const zoom = usePinchZoom({
+    containerRef: boardRef,
+    panDisabled: mobilePreview !== null,
+  });
 
   // Clear preview on state changes (turn switch, new move, disable)
   useEffect(() => {
@@ -184,23 +193,78 @@ export function TiaoBoard({
   const handleTouchStart = useCallback(
     (e: React.TouchEvent) => {
       if (!IS_TOUCH_DEVICE || disabled || !boardRef.current) return;
+
+      // Let zoom hook see all events first
+      zoom.handlers.onTouchStart(e);
+
+      // If multi-touch (pinch), clear preview and bail
+      if (e.touches.length >= 2) {
+        setMobilePreview(null);
+        return;
+      }
+
       const touch = e.touches[0];
       touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+      isDraggingPreviewRef.current = false;
     },
-    [disabled]
+    [disabled, zoom.handlers]
   );
 
   const handleTouchMove = useCallback(
-    (_e: React.TouchEvent) => {
+    (e: React.TouchEvent) => {
       if (!IS_TOUCH_DEVICE || !boardRef.current) return;
-      // No special move handling needed for tap-to-preview
+
+      // Let zoom hook see all events
+      zoom.handlers.onTouchMove(e);
+      if (zoom.gestureActiveRef.current) return;
+
+      // Drag-to-adjust: if preview is active and finger moved enough, snap preview
+      if (mobilePreview && touchStartRef.current && e.touches.length === 1) {
+        const touch = e.touches[0];
+        const dx = touch.clientX - touchStartRef.current.x;
+        const dy = touch.clientY - touchStartRef.current.y;
+
+        if (isDraggingPreviewRef.current || Math.hypot(dx, dy) > DRAG_THRESHOLD) {
+          isDraggingPreviewRef.current = true;
+          e.preventDefault();
+          const rect = boardRef.current.getBoundingClientRect();
+          const pos = touchToGridPosition(touch.clientX, touch.clientY, rect);
+          // Only move preview to empty intersections
+          const piece = state.positions[pos.y]?.[pos.x];
+          if (!piece && !arePositionsEqual(mobilePreview, pos)) {
+            setMobilePreview(pos);
+          }
+        }
+      }
     },
-    []
+    [zoom.handlers, zoom.gestureActiveRef, mobilePreview, state.positions]
   );
 
   const handleTouchEnd = useCallback(
     (e: React.TouchEvent) => {
       if (!IS_TOUCH_DEVICE || !boardRef.current) return;
+
+      // Let zoom hook see all events
+      zoom.handlers.onTouchEnd(e);
+      if (zoom.gestureActiveRef.current) {
+        touchStartRef.current = null;
+        isDraggingPreviewRef.current = false;
+        return;
+      }
+
+      // Drag-to-adjust: auto-confirm on release
+      if (isDraggingPreviewRef.current && mobilePreview) {
+        e.preventDefault();
+        suppressClickRef.current = true;
+        const pos = mobilePreview;
+        setMobilePreview(null);
+        onPointClick(pos);
+        isDraggingPreviewRef.current = false;
+        touchStartRef.current = null;
+        return;
+      }
+
+      isDraggingPreviewRef.current = false;
       const touch = e.changedTouches[0];
 
       // Check if this was a drag (scrolling), not a tap
@@ -241,7 +305,7 @@ export function TiaoBoard({
         setMobilePreview(pos);
       }
     },
-    [state.positions, activeOrigin, mobilePreview, onPointClick]
+    [state.positions, activeOrigin, mobilePreview, onPointClick, zoom.handlers, zoom.gestureActiveRef]
   );
 
   const handleButtonClick = useCallback(
@@ -314,7 +378,12 @@ export function TiaoBoard({
       <div
         ref={boardRef}
         data-testid="tiao-board"
-        className="relative aspect-square w-full rounded-[1.55rem] bg-[linear-gradient(180deg,rgba(255,250,240,0.16),rgba(255,255,255,0.04))]"
+        className={cn(
+          "relative aspect-square w-full rounded-[1.55rem] bg-[linear-gradient(180deg,rgba(255,250,240,0.16),rgba(255,255,255,0.04))]",
+          IS_TOUCH_DEVICE && "touch-none",
+          zoom.isAnimating && "transition-transform duration-[250ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
+        )}
+        style={zoom.transformStyle ? { transform: zoom.transformStyle, transformOrigin: "center center" } : undefined}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -881,6 +950,43 @@ export function TiaoBoard({
             </svg>
           </span>
         ) : null}
+
+        {/* Mobile crosshair overlay */}
+        {mobilePreview && !disabled && IS_TOUCH_DEVICE && (
+          <svg
+            className="pointer-events-none absolute inset-0 z-[35] h-full w-full"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <motion.line
+              x1={GRID_START}
+              y1={pointPercent(mobilePreview.y)}
+              x2={GRID_END}
+              y2={pointPercent(mobilePreview.y)}
+              stroke={GRID_LINE_COLOR}
+              strokeOpacity="0.35"
+              strokeWidth="1.5"
+              vectorEffect="non-scaling-stroke"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.12 }}
+            />
+            <motion.line
+              x1={pointPercent(mobilePreview.x)}
+              y1={GRID_START}
+              x2={pointPercent(mobilePreview.x)}
+              y2={GRID_END}
+              stroke={GRID_LINE_COLOR}
+              strokeOpacity="0.35"
+              strokeWidth="1.5"
+              vectorEffect="non-scaling-stroke"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.12 }}
+            />
+          </svg>
+        )}
 
         {/* Mobile tap-to-preview ghost stone */}
         {mobilePreview && !disabled && (

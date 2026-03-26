@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { createInitialGameState, BOARD_SIZE } from "@shared";
 import { touchToGridPosition } from "./TiaoBoard";
 
@@ -274,5 +274,25 @@ describe("TiaoBoard – last move highlighting", () => {
     // No gold lines should exist
     const goldLines = svgOverlay?.querySelectorAll('line[stroke="#c4963c"]') ?? [];
     expect(goldLines.length).toBe(0);
+  });
+});
+
+describe("TiaoBoard – crosshair overlay", () => {
+  it("does not render crosshair on desktop (non-touch)", async () => {
+    const { TiaoBoard } = await import("./TiaoBoard");
+    const state = createInitialGameState();
+
+    render(
+      <TiaoBoard
+        state={state}
+        selectedPiece={null}
+        jumpTargets={[]}
+        onPointClick={() => {}}
+      />
+    );
+
+    const board = screen.getByTestId("tiao-board");
+    // Crosshair SVG has z-[35] class — should not exist on desktop
+    expect(board.querySelector('[class*="z-[35]"]')).toBeNull();
   });
 });
