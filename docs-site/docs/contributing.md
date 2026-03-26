@@ -63,7 +63,15 @@ tiao/
 
 See [architecture](architecture) for a deeper dive into the system design.
 
-## Development Workflow
+## Git Workflow (Rebase Only)
+
+This project uses a **rebase-only** workflow — no merge commits. The repo is configured with `merge.ff = only` and `pull.rebase = true` to enforce this.
+
+### Why?
+
+A linear history is easier to read, bisect, and reason about. Merge commits add noise without adding information in a project this size.
+
+### How it works
 
 1. Create a branch for your work:
 
@@ -86,7 +94,22 @@ cd client && npx vitest run
 npx playwright test
 ```
 
-4. Push and open a pull request.
+4. Before merging, rebase onto main:
+
+```bash
+git rebase main
+```
+
+5. Merge with fast-forward only:
+
+```bash
+git checkout main
+git merge --ff-only your-feature-name
+```
+
+If the merge fails (branch has diverged), rebase your branch onto main first. The `merge.ff = only` config will refuse to create merge commits, so you'll always know when a rebase is needed.
+
+6. Push and open a pull request (or push main directly if you have access).
 
 ## Code Organization
 

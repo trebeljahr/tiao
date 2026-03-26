@@ -58,7 +58,9 @@ tiao/
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for a deeper dive into the system design.
 
-## Development Workflow
+## Git Workflow (Rebase Only)
+
+This project uses a **rebase-only** workflow — no merge commits. The repo is configured with `merge.ff = only` and `pull.rebase = true` to enforce this.
 
 1. Create a branch for your work:
 
@@ -89,7 +91,22 @@ git commit -m "add matchmaking timeout handling"
 
 The project uses lowercase imperative style for commit messages (e.g., "fix lobby crash", "add friend search", "refactor game service locking").
 
-5. Push and open a pull request.
+5. Before merging, rebase onto main:
+
+```bash
+git rebase main
+```
+
+6. Merge with fast-forward only:
+
+```bash
+git checkout main
+git merge --ff-only your-feature-name
+```
+
+If the merge fails, rebase your branch onto main first. The `merge.ff = only` config will refuse to create merge commits.
+
+7. Push and open a pull request (or push main directly if you have access).
 
 ## Code Organization
 
