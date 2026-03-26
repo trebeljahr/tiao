@@ -6,6 +6,13 @@
       "runtimeExecutable": "node",
       "runtimeArgs": ["scripts/dev.mjs"],
       "autoPort": true
+    },
+    {
+      "name": "docs",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "docs-site", "start", "--", "--port", "4100"],
+      "port": 4100,
+      "autoPort": true
     }
   ]
 }

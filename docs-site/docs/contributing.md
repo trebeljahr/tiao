@@ -22,13 +22,13 @@ git clone https://github.com/YOUR_USERNAME/tiao.git
 cd tiao
 ```
 
-2. Install dependencies for all packages:
+2. Install dependencies:
 
 ```bash
 npm install
-cd server && npm install && cd ..
-cd client && npm install && cd ..
 ```
+
+The root `postinstall` script automatically installs dependencies for `client/`, `server/`, and `docs-site/`.
 
 3. Set up environment variables:
 
@@ -45,9 +45,9 @@ Edit `server/.env` with your MongoDB connection string and a random token secret
 npm run dev
 ```
 
-This runs the Vite frontend on `http://localhost:3000` and the Express backend on `http://localhost:5005`. Vite proxies `/api` and `/ws` to the backend automatically.
+By default this picks random free ports for the client and server to avoid conflicts. The chosen URLs are printed on startup. Use `npm run dev:fixed` for fixed ports (client on `http://localhost:3000`, server on `http://localhost:5005`).
 
-5. Open `http://localhost:3000` in your browser.
+5. Open the URL printed by the dev script in your browser.
 
 ## Project Structure
 
@@ -85,21 +85,13 @@ cd client && npx vitest run
 npx playwright test
 ```
 
-4. Commit your changes with a clear, lowercase message:
-
-```bash
-git commit -m "add matchmaking timeout handling"
-```
-
-The project uses lowercase imperative style for commit messages (e.g., "fix lobby crash", "add friend search", "refactor game service locking").
-
-5. Push and open a pull request.
+4. Push and open a pull request.
 
 ## Code Organization
 
 ### Shared game engine (`shared/src/tiao.ts`)
 
-All game rules live here as pure functions. If you're changing game mechanics, this is where to start. The engine has no side effects and no I/O -- it takes a `GameState` and returns a new one (or a rule violation).
+All game rules live here as pure functions. If you're fixing game mechanics, this is where to start. The engine has no side effects and no I/O -- it takes a `GameState` and returns a new one (or a rule violation).
 
 ### Server (`server/`)
 

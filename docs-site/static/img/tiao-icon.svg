@@ -1,0 +1,44 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="112" fill="#1C1510"/>
+  <rect x="36" y="36" width="440" height="440" rx="98" fill="url(#board)"/>
+  <rect x="58" y="58" width="396" height="396" rx="86" fill="url(#sheen)" fill-opacity="0.34"/>
+  <g opacity="0.26" stroke="#7A542D" stroke-width="5">
+    <line x1="108" y1="132" x2="404" y2="132"/>
+    <line x1="108" y1="206" x2="404" y2="206"/>
+    <line x1="108" y1="280" x2="404" y2="280"/>
+    <line x1="108" y1="354" x2="404" y2="354"/>
+    <line x1="108" y1="132" x2="108" y2="404"/>
+    <line x1="182" y1="132" x2="182" y2="404"/>
+    <line x1="256" y1="132" x2="256" y2="404"/>
+    <line x1="330" y1="132" x2="330" y2="404"/>
+    <line x1="404" y1="132" x2="404" y2="404"/>
+  </g>
+  <circle cx="182" cy="206" r="8.5" fill="#6D4927"/>
+  <circle cx="256" cy="280" r="8.5" fill="#6D4927"/>
+  <circle cx="330" cy="354" r="8.5" fill="#6D4927"/>
+  <text
+    x="256"
+    y="328"
+    text-anchor="middle"
+    font-size="236"
+    font-weight="700"
+    font-family="'Songti SC', 'Noto Serif CJK SC', serif"
+    fill="#18100B"
+    stroke="#FFF7E8"
+    stroke-opacity="0.28"
+    stroke-width="4"
+    paint-order="stroke fill"
+  >
+    跳
+  </text>
+  <defs>
+    <linearGradient id="board" x1="256" y1="36" x2="256" y2="476" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7E7C0"/>
+      <stop offset="1" stop-color="#DAAB61"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="120" y1="58" x2="392" y2="454" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF8E8"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+</svg>

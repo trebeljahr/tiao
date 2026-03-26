@@ -35,5 +35,9 @@ test-results/
 # vercel
 **/.vercel
 
+# docusaurus
+**/.docusaurus
+docs-site/source-links.json
+
 # claude code
 .claude/worktrees/

@@ -5,7 +5,9 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start --port 3001",
-    "build": "docusaurus build",
+    "generate:source-links": "node scripts/generate-source-links.mjs",
+    "validate:source-links": "node scripts/validate-source-links.mjs",
+    "build": "npm run generate:source-links && docusaurus build && npm run validate:source-links",
     "generate:api-docs": "docusaurus gen-api-docs tiao",
     "clean:api-docs": "docusaurus clean-api-docs tiao",
     "swizzle": "docusaurus swizzle",

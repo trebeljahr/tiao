@@ -7,6 +7,10 @@
   },
   "servers": [
     {
+      "url": "https://tiao.ricos.site/api",
+      "description": "Production server"
+    },
+    {
       "url": "http://localhost:5005/api",
       "description": "Local development server"
     }
@@ -220,6 +224,48 @@
           },
           "401": {
             "description": "Not authenticated or session no longer valid"
+          }
+        }
+      }
+    },
+    "/api/player/tutorial-complete": {
+      "post": {
+        "summary": "Mark the tutorial as completed for the current account",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tutorial marked as completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "auth": {
+                      "$ref": "#/components/schemas/AuthResponse"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated"
+          },
+          "403": {
+            "description": "Only account players can mark tutorial complete"
+          },
+          "404": {
+            "description": "Account not found"
+          },
+          "503": {
+            "description": "Account features unavailable"
           }
         }
       }

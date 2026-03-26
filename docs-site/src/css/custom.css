@@ -1,13 +1,41 @@
+@import url("https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@500;600;700&display=swap");
+
 :root {
-  --ifm-color-primary: #8b6914;
-  --ifm-color-primary-dark: #7d5f12;
-  --ifm-color-primary-darker: #765911;
-  --ifm-color-primary-darkest: #61490e;
-  --ifm-color-primary-light: #997316;
-  --ifm-color-primary-lighter: #a07917;
-  --ifm-color-primary-lightest: #b88c1b;
+  --ifm-color-primary: #5c3d1a;
+  --ifm-color-primary-dark: #523617;
+  --ifm-color-primary-darker: #4d3316;
+  --ifm-color-primary-darkest: #3f2a12;
+  --ifm-color-primary-light: #66441d;
+  --ifm-color-primary-lighter: #6b471e;
+  --ifm-color-primary-lightest: #7d5323;
+
+  --ifm-background-color: #f6ecd8;
+  --ifm-background-surface-color: #f0e4cc;
+  --ifm-font-color-base: #2d1f10;
+  --ifm-heading-color: #2d1f10;
+  --ifm-link-color: #8b5e2f;
+  --ifm-link-hover-color: #a0671a;
+
+  --ifm-navbar-background-color: #f0e4cc;
+  --ifm-navbar-link-color: #2d1f10;
+  --ifm-navbar-link-hover-color: #5c3d1a;
+
+  --ifm-footer-background-color: #2d1f10;
+  --ifm-footer-color: #f0e4cc;
+  --ifm-footer-link-color: #dfc69c;
+  --ifm-footer-link-hover-color: #f6ecd8;
+
   --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --ifm-code-background: rgba(139, 105, 20, 0.08);
+  --ifm-code-border-radius: 4px;
+
+  --ifm-font-family-base: "Zen Kaku Gothic New", ui-sans-serif, system-ui,
+    sans-serif;
+  --ifm-heading-font-family: "Zen Old Mincho", ui-serif, serif;
+  --ifm-font-family-monospace: ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, monospace;
+
+  --docusaurus-highlighted-code-line-bg: rgba(139, 105, 20, 0.1);
 }
 
 [data-theme="dark"] {
@@ -18,5 +46,50 @@
   --ifm-color-primary-light: #d9b256;
   --ifm-color-primary-lighter: #dbba63;
   --ifm-color-primary-lightest: #e3c985;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+
+  --ifm-background-color: #1c1510;
+  --ifm-background-surface-color: #2d1f10;
+  --ifm-font-color-base: #f0e4cc;
+  --ifm-heading-color: #f6ecd8;
+  --ifm-link-color: #d4a843;
+  --ifm-link-hover-color: #e3c985;
+
+  --ifm-navbar-background-color: #2d1f10;
+  --ifm-navbar-link-color: #f0e4cc;
+  --ifm-navbar-link-hover-color: #d4a843;
+
+  --ifm-footer-background-color: #18100b;
+  --ifm-footer-color: #f0e4cc;
+  --ifm-footer-link-color: #d4a843;
+  --ifm-footer-link-hover-color: #e3c985;
+
+  --ifm-code-background: rgba(212, 168, 67, 0.1);
+
+  --docusaurus-highlighted-code-line-bg: rgba(212, 168, 67, 0.15);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--ifm-heading-font-family);
+}
+
+.navbar__logo img {
+  border-radius: 6px;
+}
+
+.hero__title {
+  font-family: var(--ifm-heading-font-family);
+}
+
+article a,
+.markdown a {
+  text-decoration: underline;
+  text-decoration-color: rgba(139, 94, 47, 0.4);
+  text-underline-offset: 2px;
+}
+
+article a:hover,
+.markdown a:hover {
+  text-decoration-color: currentColor;
 }

@@ -16,12 +16,12 @@ The recommended production shape still keeps a single browser origin:
 
 ## Recommended production shape
 
-Use two Coolify applications built from this repo:
+Use two [Coolify applications](https://coolify.io/docs/applications) built from this repo:
 - `tiao-client`: public, built from `client/Dockerfile`
 - `tiao-server`: internal or public as needed, built from `server/Dockerfile`
 
 Recommended dependencies:
-- MongoDB: external managed MongoDB, or a Coolify MongoDB resource
+- MongoDB: external managed MongoDB, or a [Coolify MongoDB resource](https://coolify.io/docs/resources/databases)
 - Object storage: S3, Cloudflare R2, Hetzner Object Storage, or MinIO
 
 MongoDB backs more than account metadata here:
@@ -160,6 +160,8 @@ Important:
 
 ## DNS / Proxy Notes
 
+See [Coolify DNS configuration](https://coolify.io/docs/knowledge-base/dns-configuration) for domain setup details.
+
 Tiao expects the frontend domain to receive:
 - normal HTTPS traffic for the SPA
 - API requests at `/api`
@@ -196,6 +198,8 @@ For now, the recommended setup is:
 That keeps build load off the VPS while still using Coolify for domains, env vars, health checks, logs, proxying, and app lifecycle.
 
 ## Coolify API Setup
+
+See the [Coolify API reference](https://coolify.io/docs/api-reference) for full details.
 
 To use the documented API deployment flow:
 1. In Coolify, enable the API.
@@ -271,6 +275,34 @@ These are good candidates for the reusable ops repo later via:
 - env templates
 - secrets bootstrap helpers
 - a standard "new app" checklist
+
+## Documentation Site
+
+The documentation site (this site) is deployed separately from the app via **GitHub Pages**. It does not use Coolify.
+
+### How it works
+
+A GitHub Actions workflow (`.github/workflows/docs.yml`) runs on every push to `main` that touches `docs/`, `docs-site/`, `shared/src/`, or `server/routes/`. The pipeline:
+
+1. Installs server and docs-site dependencies
+2. Generates the OpenAPI spec from server route annotations (`npx tsx server/scripts/generate-openapi.ts`)
+3. Generates API reference pages from the spec (`npm --prefix docs-site run generate:api-docs`)
+4. Builds the Docusaurus site (`npm --prefix docs-site run build`)
+5. Deploys to GitHub Pages via `actions/deploy-pages`
+
+The docs site is available at `https://docs.tiao.ricos.site`.
+
+### When docs are rebuilt
+
+The workflow triggers when any of these paths change:
+- `docs/**` — markdown source
+- `docs-site/**` — Docusaurus config, CSS, plugins
+- `shared/src/**` — game engine (source links may change)
+- `server/routes/**` — API routes (OpenAPI spec may change)
+
+### Custom domain
+
+The docs domain (`docs.tiao.ricos.site`) is configured as a GitHub Pages custom domain. DNS points a CNAME to the GitHub Pages URL.
 
 ## Realtime Limitation
 

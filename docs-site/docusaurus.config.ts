@@ -2,11 +2,13 @@ import { themes as prismThemes } from "prism-react-renderer";
 import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
 import type * as OpenApiPlugin from "docusaurus-plugin-openapi-docs";
+import remarkSourceLinks from "./plugins/remark-source-links.mjs";
 
 const config: Config = {
   title: "Tiao",
-  tagline: "The open-source multiplayer board game platform",
-  favicon: "img/favicon.ico",
+  tagline:
+    'Tiao is an open-source multiplayer board game platform — think "lichess for Tiao."',
+  favicon: "img/favicon.png",
 
   future: {
     v4: true,
@@ -32,8 +34,9 @@ const config: Config = {
       {
         docs: {
           sidebarPath: "./sidebars.ts",
-          editUrl: "https://github.com/your-org/tiao/tree/main/docs-site/",
+          editUrl: "https://github.com/trebeljahr/tiao/tree/main/docs-site/",
           docItemComponent: "@theme/ApiItem",
+          beforeDefaultRemarkPlugins: [remarkSourceLinks],
         },
         blog: false,
         theme: {
@@ -71,6 +74,10 @@ const config: Config = {
     },
     navbar: {
       title: "Tiao",
+      logo: {
+        alt: "Tiao Logo",
+        src: "img/tiao-icon.svg",
+      },
       items: [
         {
           type: "docSidebar",
@@ -85,7 +92,7 @@ const config: Config = {
           label: "API Reference",
         },
         {
-          href: "https://github.com/your-org/tiao",
+          href: "https://github.com/trebeljahr/tiao",
           label: "GitHub",
           position: "right",
         },
@@ -115,7 +122,7 @@ const config: Config = {
           items: [
             {
               label: "GitHub",
-              href: "https://github.com/your-org/tiao",
+              href: "https://github.com/trebeljahr/tiao",
             },
           ],
         },

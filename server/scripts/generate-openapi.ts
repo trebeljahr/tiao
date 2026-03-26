@@ -13,6 +13,10 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
+        url: "https://tiao.ricos.site/api",
+        description: "Production server",
+      },
+      {
         url: "http://localhost:5005/api",
         description: "Local development server",
       },

@@ -5,7 +5,7 @@ title: Architecture
 
 # Tiao Architecture
 
-Tiao is an open-source multiplayer board game platform — think "lichess for Tiao." This document describes the system architecture for contributors.
+This document describes the system architecture for contributors.
 
 ## Table of Contents
 
@@ -64,14 +64,14 @@ type GameState = {
 
 | Function                | Purpose                                      |
 |-------------------------|----------------------------------------------|
-| `placePiece`            | Place a stone on the board                   |
-| `jumpPiece`             | Execute a jump move                          |
-| `confirmPendingJump`    | Finalize a multi-step jump sequence          |
-| `undoPendingJumpStep`   | Roll back one step of a pending jump         |
-| `undoLastTurn`          | Undo the most recent completed turn          |
-| `canPlacePiece`         | Check if a placement is legal                |
-| `getJumpTargets`        | Get valid destinations for a jump            |
-| `getSelectableJumpOrigins` | Get pieces that can initiate a jump      |
+| [`placePiece`][fn-placePiece]            | Place a stone on the board                   |
+| [`jumpPiece`][fn-jumpPiece]             | Execute a jump move                          |
+| [`confirmPendingJump`][fn-confirmPendingJump]    | Finalize a multi-step jump sequence          |
+| [`undoPendingJumpStep`][fn-undoPendingJumpStep]   | Roll back one step of a pending jump         |
+| [`undoLastTurn`][fn-undoLastTurn]          | Undo the most recent completed turn          |
+| [`canPlacePiece`][fn-canPlacePiece]         | Check if a placement is legal                |
+| [`getJumpTargets`][fn-getJumpTargets]        | Get valid destinations for a jump            |
+| [`getSelectableJumpOrigins`][fn-getSelectableJumpOrigins] | Get pieces that can initiate a jump      |
 
 ### Result Type
 
@@ -330,7 +330,7 @@ Key properties:
               +-----------------+
 ```
 
-Both containers are deployed as Docker images. The client container runs Nginx, which serves the static frontend bundle and reverse-proxies all `/api` requests to the server container. This same-origin setup avoids cross-origin cookie issues with the session cookie.
+Both containers are deployed as Docker images. The client container runs Nginx, which serves the static frontend bundle and reverse-proxies all `/api` requests to the server container over the internal Docker network. Although the frontend and backend are separate containers (and separate Coolify applications), the browser only ever talks to a single public domain — all API and WebSocket traffic flows through the Nginx reverse proxy. This single-origin setup avoids cross-origin cookie issues with the `HttpOnly` session cookie.
 
 ### CI/CD Pipeline
 
@@ -343,4 +343,4 @@ build --> test --> push images to GHCR --> deploy via Coolify API
 1. **Build** — compile shared, server, and client packages
 2. **Test** — run unit tests and Playwright E2E tests
 3. **Push** — publish Docker images to GitHub Container Registry
-4. **Deploy** — trigger deployment through the Coolify API
+4. **Deploy** — trigger deployment through [Coolify webhooks](https://coolify.io/docs/knowledge-base/webhooks)
