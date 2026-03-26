@@ -32,6 +32,7 @@ import {
   BOARD_BORDER,
 } from "@/components/game/boardStyles";
 import { cn } from "@/lib/utils";
+import { playMoveSoundIfEnabled } from "@/lib/useStonePlacementSound";
 
 const IS_TOUCH_DEVICE =
   typeof window !== "undefined" &&
@@ -199,6 +200,7 @@ export function InteractiveMiniBoard({
         const next = cloneBoard(board);
         next[pos.y][pos.x] = color;
         setBoard(next);
+        playMoveSoundIfEnabled();
         complete();
       }
       return;
@@ -264,6 +266,7 @@ export function InteractiveMiniBoard({
           const next = cloneBoard(board);
           next[pos.y][pos.x] = color;
           setBoard(next);
+          playMoveSoundIfEnabled();
           if (interaction.type === "free-place") {
             const isBorder = pos.x === 0 || pos.y === 0 || pos.x === size - 1 || pos.y === size - 1;
             if (interaction.completionZone === "border" && !isBorder) {
@@ -310,6 +313,7 @@ export function InteractiveMiniBoard({
     setPendingCaptures(newCaptures);
     setPendingJumps(newJumps);
     setSelected(null);
+    playMoveSoundIfEnabled();
   }
 
   function confirmJump() {
