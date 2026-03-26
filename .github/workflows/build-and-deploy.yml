@@ -41,8 +41,51 @@ jobs:
       - name: Run server tests
         run: npm run test
 
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      mongo-e2e:
+        image: mongo:7
+        ports:
+          - 27018:27017
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            client/package-lock.json
+            server/package-lock.json
+            package-lock.json
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install client dependencies
+        run: npm --prefix client ci
+
+      - name: Install server dependencies
+        run: npm --prefix server ci
+
+      - name: Build repo
+        run: npm run build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run e2e tests
+        run: npx playwright test
+        env:
+          CI: "true"
+          MONGODB_URI: mongodb://127.0.0.1:27018/tiao-e2e
+          TOKEN_SECRET: e2e-secret
+
   build-client:
-    needs: verify
+    needs: [verify, e2e]
     runs-on: ubuntu-latest
     env:
       COOLIFY_BASE_URL: ${{ secrets.COOLIFY_BASE_URL }}
@@ -94,7 +137,7 @@ jobs:
         run: curl -fsS -X POST "$COOLIFY_DEPLOY_WEBHOOK"
 
   build-server:
-    needs: verify
+    needs: [verify, e2e]
     runs-on: ubuntu-latest
     env:
       COOLIFY_BASE_URL: ${{ secrets.COOLIFY_BASE_URL }}

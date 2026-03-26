@@ -25,9 +25,18 @@ test.describe("Desktop – no loupe on click", () => {
 });
 
 // ---------- Mobile tests (iPhone 13 emulation with touch) ----------
+// Note: test.use() must be at the top level of a describe, not nested,
+// when it changes defaultBrowserType. We extract only viewport + touch settings.
 
+const iphone13 = devices["iPhone 13"];
 test.describe("Mobile loupe – stone placement", () => {
-  test.use({ ...devices["iPhone 13"] });
+  test.use({
+    viewport: iphone13.viewport,
+    hasTouch: iphone13.hasTouch,
+    isMobile: iphone13.isMobile,
+    userAgent: iphone13.userAgent,
+    deviceScaleFactor: iphone13.deviceScaleFactor,
+  });
 
   test.beforeEach(async ({ page }) => {
     await page.goto("/local");

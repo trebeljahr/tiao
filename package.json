@@ -16,6 +16,7 @@
     "dev:docs": "node scripts/dev.mjs --docs",
     "dev:docs:fixed": "node scripts/dev.mjs --fixed --docs",
     "test": "npm --prefix server test",
+    "test:e2e": "npx playwright test",
     "client": "npm --prefix client run dev",
     "server": "npm --prefix server run dev",
     "docs": "npm --prefix docs-site start",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "concurrently": "^9.0.1",
-    "@playwright/test": "^1.48.1"
+    "@playwright/test": "^1.48.1",
+    "mongodb": "^6.12.0"
   }
 }

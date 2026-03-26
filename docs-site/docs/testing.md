@@ -24,14 +24,16 @@ cd client && npx vitest run              # single run
 cd client && npx vitest                  # watch mode
 cd client && npx vitest --ui             # interactive browser UI
 
-# E2E tests (requires both servers running)
-npx playwright test                       # all specs
+# E2E tests (Docker required — spins up an isolated MongoDB container)
+npm run test:e2e                          # all specs
 npx playwright test e2e/auth.spec.ts     # single file
 npx playwright test --headed              # visible browser
 npx playwright show-report                # HTML report
 ```
 
-For E2E tests, the Playwright config auto-starts both servers (`npm run server` and `npm run client`). If they're already running, it reuses them.
+E2E tests are fully isolated from your dev environment. Playwright's `globalSetup` starts a dedicated MongoDB container on port 27018, the server connects to it instead of your dev database, and `globalTeardown` stops the container when tests finish. No test data touches your dev MongoDB.
+
+If the servers are already running, Playwright reuses them (locally only). In CI, fresh servers are started automatically.
 
 ## Test File Locations
 
@@ -271,4 +273,17 @@ await page.evaluate(async (gameId) => {
 1. Create `e2e/yourFlow.spec.ts`
 2. Use `@playwright/test` (`test`, `expect`)
 3. Use `browser.newContext()` for multi-player scenarios
-4. Run with `npx playwright test e2e/yourFlow.spec.ts --headed`
+4. Use `e2e/db-utils.ts` to query or clean the test database directly:
+   ```typescript
+   import { getCollection, cleanDatabase } from './db-utils';
+
+   test.beforeAll(async () => { await cleanDatabase(); });
+
+   test('user is persisted', async ({ page }) => {
+     // ... sign up via the UI ...
+     const accounts = await getCollection('gameaccounts');
+     const user = await accounts.findOne({ displayName: 'Alice' });
+     expect(user).toBeTruthy();
+   });
+   ```
+5. Run with `npx playwright test e2e/yourFlow.spec.ts --headed`
