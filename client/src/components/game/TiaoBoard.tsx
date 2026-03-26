@@ -269,9 +269,7 @@ export function TiaoBoard({
             x: Math.max(0, Math.min(BOARD_SIZE - 1, pos.x + off.dx)),
             y: Math.max(0, Math.min(BOARD_SIZE - 1, pos.y + off.dy)),
           };
-          // Only move preview to empty intersections
-          const piece = state.positions[offsetPos.y]?.[offsetPos.x];
-          if (!piece && !arePositionsEqual(mobilePreview, offsetPos)) {
+          if (!arePositionsEqual(mobilePreview, offsetPos)) {
             setMobilePreview(offsetPos);
           }
         }
@@ -431,6 +429,10 @@ export function TiaoBoard({
       setUndoHovered(false);
     }
   }, [canUndoLastJump]);
+
+  const mobilePreviewValid = mobilePreview
+    ? state.positions[mobilePreview.y]?.[mobilePreview.x] == null
+    : false;
 
   return (
     <div className="relative overflow-hidden rounded-[2rem] border border-[#cdb07f] bg-[linear-gradient(180deg,rgba(234,199,131,0.98),rgba(217,177,104,0.98))] p-3 shadow-[0_52px_120px_-42px_rgba(66,39,11,0.92)]">
@@ -1076,12 +1078,14 @@ export function TiaoBoard({
             <span
               className={cn(
                 "relative block h-full w-full rounded-full",
-                state.currentTurn === "black"
-                  ? "border border-[#191410] bg-[radial-gradient(circle_at_30%_28%,#5d554f,#2d2622_58%,#0f0c0b)]"
-                  : "border border-[#ddd2bf] bg-[radial-gradient(circle_at_30%_28%,#fffdfa,#f4eee3_58%,#d9ccb8)]",
+                !mobilePreviewValid
+                  ? "border border-[#c44a3a]/60 bg-[radial-gradient(circle_at_30%_28%,#d4847a,#b85a4e_58%,#8a3028)]"
+                  : state.currentTurn === "black"
+                    ? "border border-[#191410] bg-[radial-gradient(circle_at_30%_28%,#5d554f,#2d2622_58%,#0f0c0b)]"
+                    : "border border-[#ddd2bf] bg-[radial-gradient(circle_at_30%_28%,#fffdfa,#f4eee3_58%,#d9ccb8)]",
               )}
               style={{
-                opacity: mobilePreviewDragging ? 0.6 : 0.8,
+                opacity: !mobilePreviewValid ? 0.45 : mobilePreviewDragging ? 0.6 : 0.8,
                 transform: mobilePreviewDragging ? "translateY(-3px)" : "translateY(-1px)",
                 boxShadow: mobilePreviewDragging
                   ? "0 6px 16px rgba(0,0,0,0.25), inset 0 2px 10px rgba(255,255,255,0.18)"
@@ -1120,8 +1124,14 @@ export function TiaoBoard({
                 </button>
                 <button
                   type="button"
+                  disabled={!mobilePreviewValid}
                   onClick={() => { const pos = mobilePreview; setMobilePreview(null); onPointClick(pos); }}
-                  className="flex h-11 items-center gap-1.5 rounded-full border border-[#8aad6a]/50 bg-[rgba(255,248,232,0.92)] px-3.5 text-[#5e7b4e] shadow-[0_8px_20px_-8px_rgba(66,39,11,0.5)] backdrop-blur transition-colors active:bg-[rgba(200,220,180,0.9)]"
+                  className={cn(
+                    "flex h-11 items-center gap-1.5 rounded-full border px-3.5 shadow-[0_8px_20px_-8px_rgba(66,39,11,0.5)] backdrop-blur transition-colors",
+                    mobilePreviewValid
+                      ? "border-[#8aad6a]/50 bg-[rgba(255,248,232,0.92)] text-[#5e7b4e] active:bg-[rgba(200,220,180,0.9)]"
+                      : "border-[#c4a978]/30 bg-[rgba(255,248,232,0.6)] text-[#b0a08a] cursor-not-allowed",
+                  )}
                   aria-label="Confirm placement"
                 >
                   <svg viewBox="0 0 14 14" fill="none" className="h-4 w-4">
