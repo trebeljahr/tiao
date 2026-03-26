@@ -57,6 +57,8 @@ export type MultiplayerSnapshot = {
   seats: Record<PlayerColor, PlayerSlot | null>;
   timeControl: TimeControl;
   clock: ClockState | null;
+  /** ISO timestamp deadline for the first move in timed games, or null if first move already made / no time control */
+  firstMoveDeadline: string | null;
 };
 
 export type MultiplayerGameSummary = {
@@ -196,6 +198,14 @@ export type ServerToClientMessage =
   | {
       type: "flag";
       flaggedColor: PlayerColor;
+    }
+  | {
+      type: "game-aborted";
+      reason: string;
+      /** If true, the receiving player was automatically re-entered into matchmaking */
+      requeuedForMatchmaking: boolean;
+      /** The time control to use if re-entering matchmaking */
+      timeControl: TimeControl;
     };
 
 export type AuthResponse = {

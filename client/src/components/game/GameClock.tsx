@@ -48,6 +48,31 @@ export function useGameClock(
   };
 }
 
+/** Returns remaining ms until the first-move deadline, or null if not applicable. */
+export function useFirstMoveCountdown(
+  firstMoveDeadline: string | null,
+  status: MultiplayerStatus,
+): number | null {
+  const [, setTick] = useState(0);
+
+  const isActive = status === "active" && firstMoveDeadline !== null;
+
+  useEffect(() => {
+    if (!isActive) return;
+
+    const interval = setInterval(() => {
+      setTick(Date.now());
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [isActive]);
+
+  if (!firstMoveDeadline) return null;
+
+  const deadline = new Date(firstMoveDeadline).getTime();
+  return Math.max(0, deadline - Date.now());
+}
+
 /** Inline clock badge for use in the "Your move" header pill. */
 export function InlineClockBadge({
   timeMs,

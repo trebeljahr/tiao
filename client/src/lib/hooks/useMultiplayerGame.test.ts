@@ -125,6 +125,7 @@ function createMockSnapshot(
     },
     timeControl: null,
     clock: null,
+    firstMoveDeadline: null,
     ...overrides,
   };
 }
@@ -330,5 +331,67 @@ describe("useMultiplayerGame", () => {
 
     unmount();
     expect(closeSpy).toHaveBeenCalled();
+  });
+
+  it("calls onGameAborted callback when game-aborted message received", () => {
+    const onGameAborted = vi.fn();
+    const { result } = renderHook(() =>
+      useMultiplayerGame(mockAuth, "ABC123", { onGameAborted }),
+    );
+
+    const snapshot = createMockSnapshot();
+    act(() => {
+      result.current.connectToRoom(snapshot);
+    });
+
+    act(() => {
+      MockWebSocket.instances[0].simulateOpen();
+    });
+
+    act(() => {
+      MockWebSocket.instances[0].simulateMessage({
+        type: "game-aborted",
+        reason: "Your opponent did not make a move in time.",
+        requeuedForMatchmaking: true,
+        timeControl: { initialMs: 60000, incrementMs: 0 },
+      });
+    });
+
+    expect(onGameAborted).toHaveBeenCalledWith({
+      reason: "Your opponent did not make a move in time.",
+      requeuedForMatchmaking: true,
+      timeControl: { initialMs: 60000, incrementMs: 0 },
+    });
+  });
+
+  it("calls onGameAborted with requeuedForMatchmaking=false for absent player", () => {
+    const onGameAborted = vi.fn();
+    const { result } = renderHook(() =>
+      useMultiplayerGame(mockAuth, "ABC123", { onGameAborted }),
+    );
+
+    const snapshot = createMockSnapshot();
+    act(() => {
+      result.current.connectToRoom(snapshot);
+    });
+
+    act(() => {
+      MockWebSocket.instances[0].simulateOpen();
+    });
+
+    act(() => {
+      MockWebSocket.instances[0].simulateMessage({
+        type: "game-aborted",
+        reason: "You did not make a move within 30 seconds.",
+        requeuedForMatchmaking: false,
+        timeControl: { initialMs: 60000, incrementMs: 0 },
+      });
+    });
+
+    expect(onGameAborted).toHaveBeenCalledWith({
+      reason: "You did not make a move within 30 seconds.",
+      requeuedForMatchmaking: false,
+      timeControl: { initialMs: 60000, incrementMs: 0 },
+    });
   });
 });

@@ -24,6 +24,8 @@ export type StoredMultiplayerRoom = {
   timeControl: TimeControl;
   clockMs: { white: number; black: number } | null;
   lastMoveAt: Date | null;
+  /** Deadline for the first move in timed games; null after first move or in untimed games */
+  firstMoveDeadline: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -40,6 +42,7 @@ export type CreateStoredMultiplayerRoomInput = {
   timeControl: TimeControl;
   clockMs: { white: number; black: number } | null;
   lastMoveAt: Date | null;
+  firstMoveDeadline: Date | null;
 };
 
 export interface GameRoomStore {
@@ -105,6 +108,7 @@ export function cloneStoredRoom(room: StoredMultiplayerRoom): StoredMultiplayerR
     timeControl: room.timeControl ? { ...room.timeControl } : null,
     clockMs: room.clockMs ? { ...room.clockMs } : null,
     lastMoveAt: room.lastMoveAt ? new Date(room.lastMoveAt) : null,
+    firstMoveDeadline: room.firstMoveDeadline ? new Date(room.firstMoveDeadline) : null,
     createdAt: new Date(room.createdAt),
     updatedAt: new Date(room.updatedAt),
   };
@@ -122,6 +126,7 @@ type PersistedGameRoom = {
   timeControl?: TimeControl;
   clockMs?: { white: number; black: number } | null;
   lastMoveAt?: Date | null;
+  firstMoveDeadline?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -152,6 +157,7 @@ function toStoredRoom(room: PersistedGameRoom): StoredMultiplayerRoom {
     timeControl: room.timeControl ?? null,
     clockMs: room.clockMs ?? null,
     lastMoveAt: room.lastMoveAt ? new Date(room.lastMoveAt) : null,
+    firstMoveDeadline: room.firstMoveDeadline ? new Date(room.firstMoveDeadline) : null,
     createdAt: new Date(room.createdAt),
     updatedAt: new Date(room.updatedAt),
   };
@@ -173,6 +179,7 @@ export class MongoGameRoomStore implements GameRoomStore {
       timeControl: room.timeControl,
       clockMs: room.clockMs,
       lastMoveAt: room.lastMoveAt,
+      firstMoveDeadline: room.firstMoveDeadline,
     });
 
     return toStoredRoom({
@@ -187,6 +194,7 @@ export class MongoGameRoomStore implements GameRoomStore {
       timeControl: createdRoom.timeControl,
       clockMs: createdRoom.clockMs,
       lastMoveAt: createdRoom.lastMoveAt,
+      firstMoveDeadline: createdRoom.firstMoveDeadline,
       createdAt: createdRoom.createdAt,
       updatedAt: createdRoom.updatedAt,
     });
@@ -219,6 +227,7 @@ export class MongoGameRoomStore implements GameRoomStore {
           timeControl: room.timeControl,
           clockMs: room.clockMs,
           lastMoveAt: room.lastMoveAt,
+          firstMoveDeadline: room.firstMoveDeadline,
         },
       },
       {
@@ -298,6 +307,7 @@ export class InMemoryGameRoomStore implements GameRoomStore {
       timeControl: room.timeControl ? { ...room.timeControl } : null,
       clockMs: room.clockMs ? { ...room.clockMs } : null,
       lastMoveAt: room.lastMoveAt ? new Date(room.lastMoveAt) : null,
+      firstMoveDeadline: room.firstMoveDeadline ? new Date(room.firstMoveDeadline) : null,
       createdAt: now,
       updatedAt: now,
     };
@@ -330,6 +340,7 @@ export class InMemoryGameRoomStore implements GameRoomStore {
       timeControl: room.timeControl ? { ...room.timeControl } : null,
       clockMs: room.clockMs ? { ...room.clockMs } : null,
       lastMoveAt: room.lastMoveAt ? new Date(room.lastMoveAt) : null,
+      firstMoveDeadline: room.firstMoveDeadline ? new Date(room.firstMoveDeadline) : null,
       createdAt: new Date(existingRoom.createdAt),
       updatedAt: new Date(),
     };

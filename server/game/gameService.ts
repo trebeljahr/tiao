@@ -50,6 +50,7 @@ type MatchmakingQueueEntry = {
 };
 
 const GUEST_ABANDON_TIMEOUT_MS = 5 * 60 * 1000;
+const FIRST_MOVE_TIMEOUT_MS = 30 * 1000;
 
 export class GameService {
   private readonly connections = new Map<string, RoomConnections>();
@@ -60,6 +61,7 @@ export class GameService {
   private readonly matchmakingMatches = new Map<string, string>();
   private readonly guestAbandonTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private readonly clockTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private readonly firstMoveTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
   constructor(
     private readonly store: GameRoomStore = new MongoGameRoomStore(),
@@ -385,15 +387,19 @@ export class GameService {
       // Start the clock on first move if it hasn't been set
       if (clockMs && room.timeControl && !lastMoveAt && room.status === "active") {
         lastMoveAt = new Date();
+        // Clear first-move timer since a move was made in time
+        this.clearFirstMoveTimer(room.id);
       }
 
       // Clear any pending takeback when a game action is made
+      // Clear firstMoveDeadline once the first move is made (lastMoveAt is now set)
       const savedRoom = await this.saveRoom({
         ...room,
         state: result.value,
         takeback: null,
         clockMs,
         lastMoveAt,
+        firstMoveDeadline: lastMoveAt ? null : room.firstMoveDeadline,
       });
 
       // Schedule flag timer for the next player
@@ -551,6 +557,12 @@ export class GameService {
     const tc = options.timeControl ?? null;
     const clockMs = tc ? { white: tc.initialMs, black: tc.initialMs } : null;
 
+    // Set a first-move deadline for timed games that start with both players seated
+    const willBeActive = options.assignSeats && options.players.length >= 2;
+    const firstMoveDeadline = tc && willBeActive
+      ? new Date(Date.now() + FIRST_MOVE_TIMEOUT_MS)
+      : null;
+
     for (let attempt = 0; attempt < 12; attempt += 1) {
       const room = this.deriveRoomStatus({
         id: this.generateRoomId(),
@@ -569,12 +581,13 @@ export class GameService {
         timeControl: tc,
         clockMs,
         lastMoveAt: null,
+        firstMoveDeadline,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
 
       try {
-        return await this.store.createRoom({
+        const createdRoom = await this.store.createRoom({
           id: room.id,
           roomType: room.roomType,
           status: room.status,
@@ -586,7 +599,15 @@ export class GameService {
           timeControl: room.timeControl,
           clockMs: room.clockMs,
           lastMoveAt: room.lastMoveAt,
+          firstMoveDeadline: room.firstMoveDeadline,
         });
+
+        // Schedule first-move timer for timed games
+        if (createdRoom.firstMoveDeadline) {
+          this.scheduleFirstMoveTimer(createdRoom);
+        }
+
+        return createdRoom;
       } catch (error) {
         if (this.isDuplicateRoomError(error)) {
           continue;
@@ -841,6 +862,7 @@ export class GameService {
       },
       timeControl: room.timeControl,
       clock: this.computeLiveClock(room),
+      firstMoveDeadline: room.firstMoveDeadline?.toISOString() ?? null,
     };
   }
 
@@ -852,23 +874,32 @@ export class GameService {
 
     const white = room.clockMs.white;
     const black = room.clockMs.black;
-    const lastMoveAt = room.lastMoveAt ?? room.createdAt;
+
+    // Before first move, clocks are frozen — use current time as lastMoveAt
+    // so the client doesn't count down
+    if (!room.lastMoveAt) {
+      return {
+        white,
+        black,
+        lastMoveAt: new Date().toISOString(),
+      };
+    }
 
     // If game is active, deduct elapsed time from the current player
-    if (room.status === "active" && room.lastMoveAt) {
+    if (room.status === "active") {
       const elapsed = Date.now() - room.lastMoveAt.getTime();
       const current = room.state.currentTurn;
       return {
         white: current === "white" ? Math.max(0, white - elapsed) : white,
         black: current === "black" ? Math.max(0, black - elapsed) : black,
-        lastMoveAt: lastMoveAt.toISOString(),
+        lastMoveAt: room.lastMoveAt.toISOString(),
       };
     }
 
     return {
       white,
       black,
-      lastMoveAt: lastMoveAt.toISOString(),
+      lastMoveAt: room.lastMoveAt.toISOString(),
     };
   }
 
@@ -1360,6 +1391,103 @@ export class GameService {
       clearTimeout(timer);
       this.clockTimers.delete(roomId);
     }
+  }
+
+  // ─── First-Move Timers ──────────────────────────────────────────────
+
+  private scheduleFirstMoveTimer(room: StoredMultiplayerRoom): void {
+    this.clearFirstMoveTimer(room.id);
+
+    if (!room.firstMoveDeadline || !room.timeControl || room.status !== "active") {
+      return;
+    }
+
+    const remainingMs = room.firstMoveDeadline.getTime() - Date.now();
+    if (remainingMs <= 0) return;
+
+    const timer = setTimeout(async () => {
+      try {
+        await this.abortGameForFirstMoveTimeout(room.id);
+      } catch {
+        // Best-effort; don't crash the server.
+      }
+    }, remainingMs + 100);
+
+    timer.unref();
+    this.firstMoveTimers.set(room.id, timer);
+  }
+
+  private clearFirstMoveTimer(roomId: string): void {
+    const timer = this.firstMoveTimers.get(roomId);
+    if (timer) {
+      clearTimeout(timer);
+      this.firstMoveTimers.delete(roomId);
+    }
+  }
+
+  private async abortGameForFirstMoveTimeout(roomId: string): Promise<void> {
+    this.firstMoveTimers.delete(roomId);
+
+    await this.withLock(this.roomLockKey(roomId), async () => {
+      const room = await this.store.getRoom(roomId);
+      if (!room) return;
+
+      const derived = this.deriveRoomStatus(room);
+      if (derived.status !== "active") return;
+
+      // Only abort if the first move still hasn't been made
+      if (derived.lastMoveAt || !derived.firstMoveDeadline) return;
+
+      // Check if deadline actually passed
+      if (derived.firstMoveDeadline.getTime() > Date.now()) return;
+
+      // The player who hasn't moved is currentTurn (white goes first)
+      const absentColor = derived.state.currentTurn;
+      const opponentColor: PlayerColor = absentColor === "white" ? "black" : "white";
+
+      // Mark the game as finished (score opponent to 10 so isGameOver returns true)
+      derived.state.score[opponentColor] = 10;
+      const savedRoom = await this.saveRoom({
+        ...derived,
+        firstMoveDeadline: null,
+      });
+      this.clearClockTimer(roomId);
+
+      // Determine who to requeue: the opponent (they didn't do anything wrong)
+      const opponentPlayer = derived.seats[opponentColor];
+
+      // Send game-aborted message to all connections
+      const connections = this.connections.get(roomId);
+      if (connections) {
+        for (const [socket, playerId] of connections.entries()) {
+          if (socket.readyState !== WebSocket.OPEN) continue;
+
+          const playerColor = getPlayerColorForRoom(derived, playerId);
+          const isAbsentPlayer = playerColor === absentColor;
+
+          socket.send(JSON.stringify({
+            type: "game-aborted",
+            reason: isAbsentPlayer
+              ? "You did not make a move within 30 seconds. The game has been cancelled."
+              : "Your opponent did not make a move in time. Finding you a new match...",
+            requeuedForMatchmaking: !isAbsentPlayer,
+            timeControl: derived.timeControl,
+          }));
+        }
+      }
+
+      // Broadcast updated snapshot so game shows as finished
+      this.broadcastSnapshot(savedRoom);
+
+      // Re-enter the opponent into matchmaking
+      if (opponentPlayer) {
+        try {
+          await this.enterMatchmaking(opponentPlayer, derived.timeControl);
+        } catch {
+          // Best-effort requeue
+        }
+      }
+    });
   }
 
   private validatePosition(position: unknown): asserts position is { x: number; y: number } {

@@ -24,12 +24,19 @@ import { createOptimisticSnapshot } from "../../components/game/GameShared";
 
 export type ConnectionState = "idle" | "connecting" | "connected" | "disconnected";
 
+export type GameAbortedInfo = {
+  reason: string;
+  requeuedForMatchmaking: boolean;
+  timeControl: import("@shared").TimeControl;
+};
+
 export function useMultiplayerGame(
   auth: AuthResponse | null,
   gameId: string | null,
   options: {
     onSync?: () => void;
     onRematchStarted?: (newGameId: string) => void;
+    onGameAborted?: (info: GameAbortedInfo) => void;
     websocketDebugEnabled?: boolean;
   } = {},
 ) {
@@ -44,6 +51,9 @@ export function useMultiplayerGame(
 
   const onRematchStartedRef = useRef(options.onRematchStarted);
   onRematchStartedRef.current = options.onRematchStarted;
+
+  const onGameAbortedRef = useRef(options.onGameAborted);
+  onGameAbortedRef.current = options.onGameAborted;
 
   const socketRef = useRef<WebSocket | null>(null);
   const latestAuthRef = useRef<AuthResponse | null>(auth);
@@ -283,6 +293,19 @@ export function useMultiplayerGame(
         if (payload.type === "rematch-started") {
           logWebSocketDebug("rematch-started", { gameId: payload.gameId });
           onRematchStartedRef.current?.(payload.gameId);
+          return;
+        }
+
+        if (payload.type === "game-aborted") {
+          logWebSocketDebug("game-aborted", {
+            reason: payload.reason,
+            requeuedForMatchmaking: payload.requeuedForMatchmaking,
+          });
+          onGameAbortedRef.current?.({
+            reason: payload.reason,
+            requeuedForMatchmaking: payload.requeuedForMatchmaking,
+            timeControl: payload.timeControl,
+          });
           return;
         }
 

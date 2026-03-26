@@ -39,7 +39,7 @@ import {
   replayToMove,
 } from "@shared";
 import { MoveList, MoveListNavButtons } from "@/components/game/MoveList";
-import { useGameClock, InlineClockBadge } from "@/components/game/GameClock";
+import { useGameClock, useFirstMoveCountdown, InlineClockBadge, formatClockTime } from "@/components/game/GameClock";
 import { cn } from "@/lib/utils";
 import { accessMultiplayerGame } from "@/lib/api";
 
@@ -67,6 +67,18 @@ export function MultiplayerGamePage({
     websocketDebugEnabled,
     onRematchStarted: (newGameId) => {
       navigate(`/game/${newGameId}`, { replace: true });
+    },
+    onGameAborted: (info) => {
+      if (info.requeuedForMatchmaking && info.timeControl) {
+        toast.info(info.reason);
+        navigate("/matchmaking", {
+          replace: true,
+          state: { timeControl: info.timeControl },
+        });
+      } else {
+        toast.error(info.reason);
+        navigate("/", { replace: true });
+      }
     },
   });
 
@@ -231,6 +243,12 @@ export function MultiplayerGamePage({
   const yourClockMs = playerSeat ? (playerSeat === "white" ? whiteTime : blackTime) : null;
   const activeClockMs = multiplayerSnapshot?.state.currentTurn === "white" ? whiteTime : blackTime;
   const hasClock = !!multiplayerSnapshot?.timeControl;
+
+  const firstMoveCountdownMs = useFirstMoveCountdown(
+    multiplayerSnapshot?.firstMoveDeadline ?? null,
+    multiplayerSnapshot?.status ?? "waiting",
+  );
+  const isAwaitingFirstMove = firstMoveCountdownMs !== null && firstMoveCountdownMs > 0;
 
   const isMultiplayerParticipant = !!playerSeat;
 
@@ -519,6 +537,25 @@ export function MultiplayerGamePage({
                           {connectionState === "connecting"
                             ? "Connecting"
                             : "Reconnecting"}
+                        </motion.div>
+                      ) : isAwaitingFirstMove && multiplayerYourTurn ? (
+                        <motion.div
+                          initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          className="flex items-center gap-2 rounded-full border border-[#c9a84c] bg-[#fffbeb]/96 px-3 py-2 text-sm font-semibold text-[#8b6914] shadow-[0_16px_28px_-22px_rgba(139,105,20,0.42)] backdrop-blur"
+                        >
+                          <span className="font-mono tabular-nums text-base">{formatClockTime(firstMoveCountdownMs)}</span>
+                          <span>to make first move</span>
+                        </motion.div>
+                      ) : isAwaitingFirstMove && multiplayerWaitingOnOpponent ? (
+                        <motion.div
+                          initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          className="flex items-center gap-2 rounded-full border border-[#d8c29c] bg-[#fff8ee]/96 px-3 py-2 text-sm font-semibold text-[#5d4732] shadow-[0_16px_28px_-22px_rgba(67,45,24,0.5)] backdrop-blur"
+                        >
+                          <HourglassSpinner className="text-[#7b5f3f]" />
+                          <span className="font-mono tabular-nums">{formatClockTime(firstMoveCountdownMs)}</span>
+                          <span>Opponent&apos;s first move</span>
                         </motion.div>
                       ) : multiplayerYourTurn ? (
                         <div className="flex items-center gap-2">

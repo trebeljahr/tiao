@@ -52,6 +52,7 @@ export interface IGameRoom extends Document {
   timeControl: { initialMs: number; incrementMs: number } | null;
   clockMs: { white: number; black: number } | null;
   lastMoveAt: Date | null;
+  firstMoveDeadline: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -147,6 +148,10 @@ const GameRoomSchema = new Schema<IGameRoom>(
       default: null,
     },
     lastMoveAt: {
+      type: Date,
+      default: null,
+    },
+    firstMoveDeadline: {
       type: Date,
       default: null,
     },

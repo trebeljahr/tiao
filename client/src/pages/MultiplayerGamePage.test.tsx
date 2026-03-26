@@ -87,6 +87,7 @@ function makeMatchmakingSnapshot(overrides?: Partial<MultiplayerSnapshot>): Mult
     takeback: null,
     timeControl: null,
     clock: null,
+    firstMoveDeadline: null,
     ...overrides,
   };
 }
