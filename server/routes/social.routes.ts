@@ -166,20 +166,27 @@ async function loadInvitationSummaries(
     .limit(50)
     .exec();
 
-  return invitations.map((invitation) => {
-    const sender = invitation.senderId as unknown as IGameAccount;
-    const recipient = invitation.recipientId as unknown as IGameAccount;
+  return invitations
+    .filter((invitation) => {
+      // populate() may leave unpopulated refs if accounts were deleted
+      const sender = invitation.senderId as unknown as IGameAccount | null;
+      const recipient = invitation.recipientId as unknown as IGameAccount | null;
+      return sender?.displayName && recipient?.displayName;
+    })
+    .map((invitation) => {
+      const sender = invitation.senderId as unknown as IGameAccount;
+      const recipient = invitation.recipientId as unknown as IGameAccount;
 
-    return {
-      id: invitation.id,
-      gameId: invitation.gameId,
-      roomType: invitation.roomType,
-      createdAt: invitation.createdAt.toISOString(),
-      expiresAt: invitation.expiresAt.toISOString(),
-      sender: toSocialPlayerSummary(sender),
-      recipient: toSocialPlayerSummary(recipient),
-    };
-  });
+      return {
+        id: invitation.id,
+        gameId: invitation.gameId,
+        roomType: invitation.roomType,
+        createdAt: invitation.createdAt.toISOString(),
+        expiresAt: invitation.expiresAt.toISOString(),
+        sender: toSocialPlayerSummary(sender),
+        recipient: toSocialPlayerSummary(recipient),
+      };
+    });
 }
 
 function handleRouteError(

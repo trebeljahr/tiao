@@ -291,7 +291,11 @@ router.post("/signup", authRateLimiter, async (req: Request, res: Response) => {
     const normalizedEmail = email?.trim().toLowerCase();
     const trimmedDisplayName = displayName?.trim();
 
-    if (!password || (!normalizedEmail && !trimmedDisplayName)) {
+    if (
+      !password ||
+      typeof password !== "string" ||
+      (!normalizedEmail && !trimmedDisplayName)
+    ) {
       return res.status(400).json({
         message: "Provide a username or email address, and a password.",
       });
@@ -405,7 +409,12 @@ router.post("/login", authRateLimiter, async (req: Request, res: Response) => {
       password?: string;
     };
 
-    if (!identifier || !password) {
+    if (
+      !identifier ||
+      !password ||
+      typeof identifier !== "string" ||
+      typeof password !== "string"
+    ) {
       return res.status(400).json({
         message: "Provide a username or email address, and a password.",
       });

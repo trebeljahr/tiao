@@ -317,10 +317,13 @@ export class GameService {
         }
         case "place-piece":
           this.ensureActionableRoom(room, playerColor);
+          this.validatePosition(message.position);
           result = placePiece(room.state, message.position);
           break;
         case "jump-piece":
           this.ensureActionableRoom(room, playerColor);
+          this.validatePosition(message.from);
+          this.validatePosition(message.to);
           result = jumpPiece(room.state, message.from, message.to);
           break;
         case "confirm-jump":
@@ -1356,6 +1359,17 @@ export class GameService {
     if (timer) {
       clearTimeout(timer);
       this.clockTimers.delete(roomId);
+    }
+  }
+
+  private validatePosition(position: unknown): asserts position is { x: number; y: number } {
+    if (
+      !position ||
+      typeof position !== "object" ||
+      typeof (position as Record<string, unknown>).x !== "number" ||
+      typeof (position as Record<string, unknown>).y !== "number"
+    ) {
+      throw new GameServiceError(400, "INVALID_POSITION", "Invalid board position.");
     }
   }
 

@@ -568,7 +568,7 @@ router.post("/:gameId/test-finish", async (req: Request, res: Response) => {
   const { gameId } = req.params;
   const { winner } = req.body as { winner: string };
 
-  if (winner !== "white" && winner !== "black") {
+  if (typeof winner !== "string" || (winner !== "white" && winner !== "black")) {
     return res.status(400).json({ message: "Winner must be 'white' or 'black'." });
   }
 
