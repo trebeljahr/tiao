@@ -23,6 +23,7 @@ Use two [Coolify applications](https://coolify.io/docs/applications) built from 
 Recommended dependencies:
 - MongoDB: external managed MongoDB, or a [Coolify MongoDB resource](https://coolify.io/docs/resources/databases)
 - Object storage: S3, Cloudflare R2, Hetzner Object Storage, or MinIO
+- Redis (optional): enables distributed matchmaking, locks, and rate limiting for multi-instance deployments. Not required for single-instance setups — the server falls back to in-memory stores.
 
 MongoDB backs more than account metadata here:
 - multiplayer room persistence
@@ -115,6 +116,9 @@ Notes:
 - `BACKEND_UPSTREAM` is only needed in frontend-proxy mode
 - if you use Coolify path-based routing on the same public domain for `/api` and `/api/ws`, the frontend app can leave `BACKEND_UPSTREAM` unset
 
+Optional:
+- `REDIS_URL=redis://your-redis:6379` — enables distributed matchmaking, locks, and rate limiting. When omitted, the server uses in-memory stores (single-instance only).
+
 Recommended values for a first production deploy:
 - `FRONTEND_URL=https://tiao.your-domain.com`
 - `MONGODB_URI=<Coolify Mongo internal URL or managed Mongo URL>`
@@ -138,7 +142,7 @@ Recommended values for a single-domain Coolify path-routing deploy:
 6. Copy the MongoDB resource's internal connection string.
 7. Create a new backend application of type `Docker Image`.
 8. Point it at `ghcr.io/<owner>/<repo>-server:main`.
-9. Set the backend port to `3000`.
+9. Set the backend port to the same value that you put in the environment variables for `PORT`
 10. Set the backend health check path to `/api/health`.
 11. Add backend runtime environment variables from `server/.env.example`.
 12. Replace `MONGODB_URI` with the Coolify Mongo internal URL, not `localhost`.
@@ -152,11 +156,6 @@ Recommended values for a single-domain Coolify path-routing deploy:
 20. Set `BACKEND_UPSTREAM` to the backend app's internal URL, for example `http://tiao-server:3000`.
 21. Deploy the frontend once and confirm the site loads at the public domain.
 22. After the first successful deploy, keep using the GitHub Actions workflow for ongoing redeploys.
-
-Important:
-- do not copy your local development `PORT=5005` into production
-- the recommended backend port for this image is `3000`
-- the recommended frontend port for this image is `80`
 
 ## DNS / Proxy Notes
 
@@ -308,4 +307,6 @@ The docs domain (`docs.tiao.ricos.site`) is configured as a GitHub Pages custom 
 
 Tiao currently keeps live multiplayer socket state inside one Node.js process. Deploys are graceful, but active multiplayer matches may briefly reconnect while the container is replaced.
 
-That is acceptable for a single-instance hobby deployment, but true zero-downtime realtime play would require shared realtime state outside the process.
+Setting `REDIS_URL` moves matchmaking, distributed locks, and rate limit counters to Redis, which resolves the single-instance limitation for those services. WebSocket connections and game timers remain in-memory — full multi-instance WebSocket support (via Redis Pub/Sub) is a future enhancement.
+
+For a single-instance hobby deployment, the in-memory fallback (no Redis) is sufficient.

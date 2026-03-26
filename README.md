@@ -119,7 +119,8 @@ Production runs as two Docker containers:
 **Optional:**
 - `FRONTEND_URL` -- for cross-origin CORS setups
 - `S3_ENDPOINT`, `S3_FORCE_PATH_STYLE` -- for S3-compatible providers (MinIO, etc.)
-- `PORT` -- server port (defaults to 5005 in dev, 3000 in production)
+- `REDIS_URL` -- enables distributed matchmaking, locks, and rate limiting (falls back to in-memory)
+- `PORT` -- server port (defaults to 5005 in dev)
 
 See `.env.example` files in `server/` and `client/` for templates.
 

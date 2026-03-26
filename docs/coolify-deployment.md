@@ -44,6 +44,7 @@ Use two Coolify applications built from this repo:
 Recommended dependencies:
 - MongoDB: external managed MongoDB, or a Coolify MongoDB resource
 - Object storage: S3, Cloudflare R2, Hetzner Object Storage, or MinIO
+- Redis (optional): enables distributed matchmaking, locks, and rate limiting for multi-instance deployments. Not required for single-instance setups — the server falls back to in-memory stores.
 
 MongoDB backs more than account metadata here:
 - multiplayer room persistence

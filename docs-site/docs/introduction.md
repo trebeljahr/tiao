@@ -38,7 +38,7 @@ Try the [interactive tutorial](https://tiao.ricos.site/tutorial) to learn by pla
 
 ## Quick Start
 
-**Prerequisites:** Node.js 22.x, MongoDB, npm
+**Prerequisites:** Node.js 22.x, MongoDB, npm. Optional: Redis (for distributed matchmaking and rate limiting)
 
 ### 1. MongoDB
 
@@ -73,7 +73,7 @@ Edit `server/.env` and set at least these two variables:
 | `MONGODB_URI` | MongoDB connection string, e.g. `mongodb://localhost:27017/tiao` for a local instance or the connection string from Atlas |
 | `TOKEN_SECRET` | Any random string — used to HMAC session tokens. Generate one with `openssl rand -base64 32` |
 
-The remaining variables (`S3_*`, `AWS_*`) are only needed for profile picture uploads. The app works without them.
+The remaining variables (`S3_*`, `AWS_*`) are only needed for profile picture uploads. `REDIS_URL` is optional — it enables distributed matchmaking, locks, and rate limiting. When omitted, the server falls back to in-memory stores.
 
 See `server/.env.example` for the full list with descriptions.
 

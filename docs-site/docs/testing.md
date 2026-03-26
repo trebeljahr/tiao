@@ -31,7 +31,7 @@ npx playwright test --headed              # visible browser
 npx playwright show-report                # HTML report
 ```
 
-E2E tests are fully isolated from your dev environment. Playwright's `globalSetup` starts a dedicated MongoDB container on port 27018, the server connects to it instead of your dev database, and `globalTeardown` stops the container when tests finish. No test data touches your dev MongoDB.
+E2E tests are fully isolated from your dev environment. The E2E startup script spins up dedicated containers for MongoDB (port 27018), Redis (port 6380), and MinIO (port 9002). The server connects to these instead of your dev infrastructure, and `globalTeardown` stops all containers when tests finish. No test data touches your dev databases.
 
 If the servers are already running, Playwright reuses them (locally only). In CI, fresh servers are started automatically.
 
