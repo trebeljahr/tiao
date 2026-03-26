@@ -379,17 +379,6 @@ export function TiaoBoard({
       lastTapTimeRef.current = now;
       lastTapPosRef.current = pos;
 
-      // Direct placement when zoomed in enough that cells are large
-      // (>= 44px, Apple HIG recommended tap target)
-      const cellPx = rect.width / BOARD_SIZE;
-      if (cellPx >= DIRECT_PLACE_CELL_PX) {
-        e.preventDefault();
-        suppressClickRef.current = true;
-        setMobilePreview(null);
-        onPointClick(pos);
-        return;
-      }
-
       // Empty intersection with no selection — mobile preview flow
       e.preventDefault();
       suppressClickRef.current = true;
