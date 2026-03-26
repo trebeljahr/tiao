@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import type { AuthResponse } from "@shared";
 import { Button } from "@/components/ui/button";
@@ -423,18 +423,20 @@ export function Navbar({
         </nav>
       )}
 
-      <motion.div
-        className={cn(
-          "fixed inset-0 z-50 bg-[rgba(15,11,8,0.5)] backdrop-blur-sm",
-          !navOpen && "pointer-events-none"
+      <AnimatePresence>
+        {navOpen && (
+          <motion.div
+            className="fixed inset-0 z-50 bg-[rgba(15,11,8,0.5)] backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={navMotionTransition}
+            onClick={onCloseNav}
+          >
+            {drawerContent}
+          </motion.div>
         )}
-        initial={false}
-        animate={{ opacity: navOpen ? 1 : 0 }}
-        transition={navMotionTransition}
-        onClick={onCloseNav}
-      >
-        {drawerContent}
-      </motion.div>
+      </AnimatePresence>
     </>
   );
 }

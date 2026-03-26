@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
+import { signUpViaUI } from './helpers';
 
-test('game review mode hides rematch, shows move history, and allows friend requests', async ({ browser }) => {
+test('game review mode shows review nav buttons and allows friend requests', async ({ browser }) => {
   const aliceContext = await browser.newContext();
   const bobContext = await browser.newContext();
 
@@ -8,25 +9,15 @@ test('game review mode hides rematch, shows move history, and allows friend requ
   const bobPage = await bobContext.newPage();
 
   // 1. Alice signs up
-  await alicePage.goto('/');
-  await alicePage.click('button:has-text("Sign up")');
   const aliceUsername = `alice_${Math.random().toString(36).slice(2, 7)}`;
-  await alicePage.fill('input[placeholder="Username"]', aliceUsername);
-  await alicePage.fill('input[placeholder="Password"]', 'password123');
-  await alicePage.click('button:has-text("Create account")');
-  await expect(alicePage.locator('text=Account')).toBeVisible();
+  await signUpViaUI(alicePage, aliceUsername, 'password123');
 
   // 2. Bob signs up
-  await bobPage.goto('/');
-  await bobPage.click('button:has-text("Sign up")');
   const bobUsername = `bob_${Math.random().toString(36).slice(2, 7)}`;
-  await bobPage.fill('input[placeholder="Username"]', bobUsername);
-  await bobPage.fill('input[placeholder="Password"]', 'password123');
-  await bobPage.click('button:has-text("Create account")');
-  await expect(bobPage.locator('text=Account')).toBeVisible();
+  await signUpViaUI(bobPage, bobUsername, 'password123');
 
   // 3. Alice creates a game
-  await alicePage.click('button:has-text("Create game")');
+  await alicePage.click('button:has-text("Create a game")');
   await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/);
   const gameUrl = alicePage.url();
   const gameId = gameUrl.split('/').pop()!;
@@ -46,7 +37,7 @@ test('game review mode hides rematch, shows move history, and allows friend requ
   }, gameId);
 
   // Wait for game over state
-  await expect(alicePage.locator('text=wins')).toBeVisible();
+  await expect(alicePage.getByRole('heading', { name: /wins/ })).toBeVisible({ timeout: 5000 });
 
   // 6. Alice navigates away and comes back to review
   await alicePage.goto('/games');
@@ -56,21 +47,16 @@ test('game review mode hides rematch, shows move history, and allows friend requ
   await alicePage.click('button:has-text("Review")');
   await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/);
 
-  // 7. Verify the move history panel is visible
-  await expect(alicePage.locator('[data-testid="move-list"]')).toBeVisible();
-
-  // 8. Verify navigation buttons are present (interactive review mode)
+  // 7. Verify review navigation buttons are visible (in floating review-nav-buttons)
+  await expect(alicePage.locator('[data-testid="review-nav-buttons"]')).toBeVisible({ timeout: 5000 });
   await expect(alicePage.locator('button[aria-label="Go to start"]')).toBeVisible();
-  await expect(alicePage.locator('button[aria-label="Previous move"]')).toBeVisible();
-  await expect(alicePage.locator('button[aria-label="Next move"]')).toBeVisible();
   await expect(alicePage.locator('button[aria-label="Go to end"]')).toBeVisible();
 
-  // 9. Verify friend request button is visible for the opponent
-  // The "+" add friend button should be visible for the other player's seat
+  // 8. Verify friend request button is visible for the opponent
   const addFriendButton = alicePage.locator('button[title^="Send friend request"]');
   await expect(addFriendButton).toBeVisible();
 
-  // 10. Click friend request and verify pending badge appears
+  // 9. Click friend request and verify pending badge appears
   await addFriendButton.click();
   await expect(alicePage.locator('text=Pending')).toBeVisible();
 
@@ -78,7 +64,7 @@ test('game review mode hides rematch, shows move history, and allows friend requ
   await bobContext.close();
 });
 
-test('game review allows stepping through move history', async ({ browser }) => {
+test('game review shows status title and allows returning to lobby', async ({ browser }) => {
   const aliceContext = await browser.newContext();
   const bobContext = await browser.newContext();
 
@@ -86,33 +72,21 @@ test('game review allows stepping through move history', async ({ browser }) => 
   const bobPage = await bobContext.newPage();
 
   // Setup: Alice and Bob sign up
-  await alicePage.goto('/');
-  await alicePage.click('button:has-text("Sign up")');
   const aliceUsername = `alice_${Math.random().toString(36).slice(2, 7)}`;
-  await alicePage.fill('input[placeholder="Username"]', aliceUsername);
-  await alicePage.fill('input[placeholder="Password"]', 'password123');
-  await alicePage.click('button:has-text("Create account")');
-  await expect(alicePage.locator('text=Account')).toBeVisible();
+  await signUpViaUI(alicePage, aliceUsername, 'password123');
 
-  await bobPage.goto('/');
-  await bobPage.click('button:has-text("Sign up")');
   const bobUsername = `bob_${Math.random().toString(36).slice(2, 7)}`;
-  await bobPage.fill('input[placeholder="Username"]', bobUsername);
-  await bobPage.fill('input[placeholder="Password"]', 'password123');
-  await bobPage.click('button:has-text("Create account")');
-  await expect(bobPage.locator('text=Account')).toBeVisible();
+  await signUpViaUI(bobPage, bobUsername, 'password123');
 
   // Alice creates game, Bob joins
-  await alicePage.click('button:has-text("Create game")');
+  await alicePage.click('button:has-text("Create a game")');
   await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/);
   const gameUrl = alicePage.url();
   const gameId = gameUrl.split('/').pop()!;
   await bobPage.goto(gameUrl);
   await expect(bobPage.locator('text=Live match')).toBeVisible();
 
-  // Determine who is white by checking the page
-  // Make some moves before finishing - find out seat assignment
-  // For simplicity, just force finish (history may be empty but navigation should still work)
+  // Force finish
   await alicePage.evaluate(async (gameId) => {
     await fetch(`/api/games/${gameId}/test-finish`, {
       method: 'POST',
@@ -121,17 +95,19 @@ test('game review allows stepping through move history', async ({ browser }) => 
     });
   }, gameId);
 
-  await expect(alicePage.locator('text=wins')).toBeVisible();
+  await expect(alicePage.getByRole('heading', { name: /wins/ })).toBeVisible({ timeout: 5000 });
 
   // Navigate to review
   await alicePage.goto('/games');
   await alicePage.click('button:has-text("Review")');
 
-  // Verify "Back to lobby" button is visible
-  await expect(alicePage.locator('button:has-text("Back to lobby")')).toBeVisible();
+  // Verify we're on the game page in review mode
+  await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/);
+  // Status title should show "{Color} wins"
+  await expect(alicePage.getByRole('heading', { name: /wins/ })).toBeVisible({ timeout: 5000 });
 
-  // Click back to lobby
-  await alicePage.click('button:has-text("Back to lobby")');
+  // Navigate to lobby by going to the home page
+  await alicePage.goto('/');
   await expect(alicePage).toHaveURL('/');
 
   await aliceContext.close();

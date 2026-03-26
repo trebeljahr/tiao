@@ -38,8 +38,8 @@ jobs:
       - name: Build repo
         run: npm run build
 
-      - name: Run server tests
-        run: npm run test
+      - name: Run server unit tests
+        run: npm run test:unit
 
   e2e:
     runs-on: ubuntu-latest

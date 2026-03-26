@@ -16,7 +16,12 @@ function isAllowedOrigin(origin: string | undefined): boolean {
   if (!origin) return false;
   if (!FRONTEND_URL) return true; // dev mode — allow all
   try {
-    return new URL(origin).origin === new URL(FRONTEND_URL).origin;
+    const allowed = new URL(FRONTEND_URL).origin;
+    const incoming = new URL(origin).origin;
+    if (incoming === allowed) return true;
+    // Allow any localhost origin in development (e2e tests use a different port)
+    if (incoming.match(/^https?:\/\/localhost(:\d+)?$/) && allowed.includes("localhost")) return true;
+    return false;
   } catch {
     return false;
   }

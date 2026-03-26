@@ -524,7 +524,7 @@ router.delete("/matchmaking", async (req: Request, res: Response) => {
 
 /**
  * @openapi
- * /api/{gameId}/test-finish:
+ * /api/games/{gameId}/test-finish:
  *   post:
  *     summary: Force-finish a game (development only)
  *     tags:
@@ -562,7 +562,7 @@ router.delete("/matchmaking", async (req: Request, res: Response) => {
  *       500:
  *         description: Failed to finish game
  */
-router.post("/:gameId/test-finish", async (req: Request, res: Response) => {
+router.post("/games/:gameId/test-finish", async (req: Request, res: Response) => {
   if (process.env.NODE_ENV !== "test") {
     return res.status(403).json({ code: "FORBIDDEN", message: "Only available in test environment." });
   }

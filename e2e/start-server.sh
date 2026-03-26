@@ -45,7 +45,8 @@ if [ "${CI:-}" != "true" ]; then
     docker rm -f "$MINIO_INIT_CONTAINER" 2>/dev/null || true
     docker run --rm --name "$MINIO_INIT_CONTAINER" \
       --link "$MINIO_CONTAINER:minio" \
-      minio/mc:latest sh -c "
+      --entrypoint sh \
+      minio/mc:latest -c "
         until mc alias set local http://minio:9000 minioadmin minioadmin; do sleep 1; done &&
         mc mb --ignore-existing local/tiao-e2e &&
         mc anonymous set download local/tiao-e2e
@@ -79,5 +80,5 @@ if [ "${CI:-}" != "true" ]; then
   done
 fi
 
-# Start the server
-exec npm run server
+# Start the server in e2e/test mode (enables test-only routes like test-finish)
+exec npm --prefix server run dev:e2e

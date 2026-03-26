@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { signUpViaUI } from './helpers';
 
 test('spectator can view an active game without joining', async ({ browser }) => {
   const aliceContext = await browser.newContext();
@@ -10,27 +11,17 @@ test('spectator can view an active game without joining', async ({ browser }) =>
   const spectatorPage = await spectatorContext.newPage();
 
   // Alice signs up and creates a game
-  await alicePage.goto('/');
-  await alicePage.click('button:has-text("Sign up")');
   const aliceUsername = `alice_spec_${Math.random().toString(36).slice(2, 7)}`;
-  await alicePage.fill('input[placeholder="Username"]', aliceUsername);
-  await alicePage.fill('input[placeholder="Password"]', 'password123');
-  await alicePage.click('button:has-text("Create account")');
-  await expect(alicePage.locator('text=Account')).toBeVisible();
+  await signUpViaUI(alicePage, aliceUsername, 'password123');
 
   // Alice creates game
-  await alicePage.click('button:has-text("Create game")');
+  await alicePage.click('button:has-text("Create a game")');
   await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/);
   const gameUrl = alicePage.url();
 
   // Bob signs up and joins
-  await bobPage.goto('/');
-  await bobPage.click('button:has-text("Sign up")');
   const bobUsername = `bob_spec_${Math.random().toString(36).slice(2, 7)}`;
-  await bobPage.fill('input[placeholder="Username"]', bobUsername);
-  await bobPage.fill('input[placeholder="Password"]', 'password123');
-  await bobPage.click('button:has-text("Create account")');
-  await expect(bobPage.locator('text=Account')).toBeVisible();
+  await signUpViaUI(bobPage, bobUsername, 'password123');
 
   await bobPage.goto(gameUrl);
   await expect(bobPage.locator('text=Live match')).toBeVisible();

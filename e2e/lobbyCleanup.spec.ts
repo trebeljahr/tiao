@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { signUpViaUI } from './helpers';
 
 test.describe('Lobby cleanup — no Refresh buttons', () => {
   test('My Games page does NOT have a Refresh button', async ({ browser }) => {
@@ -6,13 +7,8 @@ test.describe('Lobby cleanup — no Refresh buttons', () => {
     const page = await context.newPage();
 
     // Sign up to access My Games
-    await page.goto('/');
-    await page.click('button:has-text("Sign up")');
     const username = `lobby_cl_${Math.random().toString(36).slice(2, 7)}`;
-    await page.fill('input[placeholder="Username"]', username);
-    await page.fill('input[placeholder="Password"]', 'password123');
-    await page.click('button:has-text("Create account")');
-    await expect(page.locator('text=Account')).toBeVisible();
+    await signUpViaUI(page, username, 'password123');
 
     // Navigate to My Games
     await page.goto('/games');
@@ -29,13 +25,8 @@ test.describe('Lobby cleanup — no Refresh buttons', () => {
     const page = await context.newPage();
 
     // Sign up to see the lobby with invitations
-    await page.goto('/');
-    await page.click('button:has-text("Sign up")');
     const username = `lobby_cl2_${Math.random().toString(36).slice(2, 7)}`;
-    await page.fill('input[placeholder="Username"]', username);
-    await page.fill('input[placeholder="Password"]', 'password123');
-    await page.click('button:has-text("Create account")');
-    await expect(page.locator('text=Account')).toBeVisible();
+    await signUpViaUI(page, username, 'password123');
 
     // Go to lobby
     await page.goto('/');

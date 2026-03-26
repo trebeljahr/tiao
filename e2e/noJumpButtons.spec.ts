@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { signUpViaUI } from './helpers';
 
 function cell(page: import('@playwright/test').Page, x: number, y: number) {
   return page.locator(`[data-testid="cell-${x}-${y}"]`);
@@ -42,25 +43,15 @@ test.describe('No Confirm/Undo jump buttons', () => {
     const bobPage = await bobContext.newPage();
 
     // Alice signs up
-    await alicePage.goto('/');
-    await alicePage.click('button:has-text("Sign up")');
     const aliceUsername = `alice_nj_${Math.random().toString(36).slice(2, 7)}`;
-    await alicePage.fill('input[placeholder="Username"]', aliceUsername);
-    await alicePage.fill('input[placeholder="Password"]', 'password123');
-    await alicePage.click('button:has-text("Create account")');
-    await expect(alicePage.locator('text=Account')).toBeVisible();
+    await signUpViaUI(alicePage, aliceUsername, 'password123');
 
     // Bob signs up
-    await bobPage.goto('/');
-    await bobPage.click('button:has-text("Sign up")');
     const bobUsername = `bob_nj_${Math.random().toString(36).slice(2, 7)}`;
-    await bobPage.fill('input[placeholder="Username"]', bobUsername);
-    await bobPage.fill('input[placeholder="Password"]', 'password123');
-    await bobPage.click('button:has-text("Create account")');
-    await expect(bobPage.locator('text=Account')).toBeVisible();
+    await signUpViaUI(bobPage, bobUsername, 'password123');
 
     // Alice creates game, Bob joins
-    await alicePage.click('button:has-text("Create game")');
+    await alicePage.click('button:has-text("Create a game")');
     await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/);
     const gameUrl = alicePage.url();
     await bobPage.goto(gameUrl);

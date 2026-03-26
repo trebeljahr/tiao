@@ -1,16 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { signUpViaUI, signInViaUI } from './helpers';
 
 test.describe('Authentication flows', () => {
   test('signup creates an account and shows account indicator', async ({ page }) => {
-    await page.goto('/');
-    await page.click('button:has-text("Sign up")');
-
     const username = `testuser_${Math.random().toString(36).slice(2, 7)}`;
-    await page.fill('input[placeholder="Username"]', username);
-    await page.fill('input[placeholder="Password"]', 'testpass123');
-    await page.click('button:has-text("Create account")');
-
-    await expect(page.locator('text=Account')).toBeVisible();
+    await signUpViaUI(page, username, 'testpass123');
   });
 
   test('login with existing account', async ({ browser }) => {
@@ -18,25 +12,16 @@ test.describe('Authentication flows', () => {
     const page = await context.newPage();
 
     // First, sign up
-    await page.goto('/');
-    await page.click('button:has-text("Sign up")');
     const username = `logintest_${Math.random().toString(36).slice(2, 7)}`;
-    await page.fill('input[placeholder="Username"]', username);
-    await page.fill('input[placeholder="Password"]', 'testpass123');
-    await page.click('button:has-text("Create account")');
-    await expect(page.locator('text=Account')).toBeVisible();
+    await signUpViaUI(page, username, 'testpass123');
 
     // Logout
-    await page.click('button:has-text("Account")');
-    await page.click('button:has-text("Log out")');
+    await page.click('[aria-label="Open navigation"]');
+    await page.click('button:has-text("Logout")');
 
     // Login again
-    await page.click('button:has-text("Log in")');
-    await page.fill('input[placeholder="Username or email"]', username);
-    await page.fill('input[placeholder="Password"]', 'testpass123');
-    await page.click('button:has-text("Sign in")');
+    await signInViaUI(page, username, 'testpass123');
 
-    await expect(page.locator('text=Account')).toBeVisible();
     await context.close();
   });
 
@@ -44,7 +29,7 @@ test.describe('Authentication flows', () => {
     await page.goto('/');
     // Should load without requiring login
     // Guest should be able to access game features
-    await expect(page.locator('button:has-text("Create game")')).toBeVisible();
-    await expect(page.locator('button:has-text("Find match")')).toBeVisible();
+    await expect(page.locator('button:has-text("Create a game")')).toBeVisible();
+    await expect(page.locator('button:has-text("Unlimited time game")')).toBeVisible();
   });
 });

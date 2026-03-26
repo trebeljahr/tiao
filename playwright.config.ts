@@ -31,6 +31,7 @@ export default defineConfig({
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
       env: {
+        NODE_ENV: 'test',
         MONGODB_URI: E2E_MONGO_URI,
         TOKEN_SECRET: 'e2e-secret',
         PORT: E2E_SERVER_PORT,
@@ -42,6 +43,7 @@ export default defineConfig({
         AWS_ACCESS_KEY_ID: 'minioadmin',
         AWS_SECRET_ACCESS_KEY: 'minioadmin',
         AWS_REGION: 'us-east-1',
+        FRONTEND_URL: `http://localhost:${E2E_CLIENT_PORT}`,
         E2E_MONGO_PORT: '27018',
         E2E_REDIS_PORT: E2E_REDIS_PORT,
         E2E_MINIO_PORT: E2E_MINIO_PORT,

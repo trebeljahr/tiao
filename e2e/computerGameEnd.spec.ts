@@ -62,7 +62,7 @@ test.describe('Computer game end dialog', () => {
     });
 
     // Wait for the game-over dialog to appear (600ms delay in the component)
-    const dialog = page.locator('.fixed.inset-0.z-50');
+    const dialog = page.locator('.fixed.inset-0.z-\\[300\\]');
     await expect(dialog).toBeVisible({ timeout: 3000 });
 
     // Check that the dialog shows the correct title
@@ -134,7 +134,7 @@ test.describe('Computer game end dialog', () => {
     });
 
     // Wait for dialog
-    const dialog = page.locator('.fixed.inset-0.z-50');
+    const dialog = page.locator('.fixed.inset-0.z-\\[300\\]');
     await expect(dialog).toBeVisible({ timeout: 3000 });
 
     // Click "Back to lobby"

@@ -8,6 +8,7 @@
     "build": "npx tsc",
     "start": "NODE_ENV=production node dist/server/index.js",
     "dev": "NODE_ENV=development nodemon --watch . --watch ../shared --ext ts index.ts",
+    "dev:e2e": "NODE_ENV=test nodemon --watch . --watch ../shared --ext ts index.ts",
     "test": "NODE_ENV=test npm run build && NODE_ENV=test node --test dist/server/tests/*.test.js",
     "prod": "pm2 restart ecosystem.config.js"
   },

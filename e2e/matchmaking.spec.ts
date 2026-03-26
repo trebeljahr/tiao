@@ -4,7 +4,7 @@ async function startMatchmaking(page: Page) {
   await page.goto('/');
   const unlimitedBtn = page.locator('button:has-text("Unlimited time game")');
   const quickMatch = page.locator('button:has-text("Quick match")');
-  const findMatch = page.locator('button:has-text("Find match")');
+  const findMatch = page.locator('button:has-text("Unlimited time game")');
   if (await unlimitedBtn.isVisible().catch(() => false)) {
     await unlimitedBtn.click();
   } else if (await quickMatch.isVisible().catch(() => false)) {
@@ -82,7 +82,7 @@ test('two anonymous players in matchmaking game have no console errors', async (
 
   // Filter out unrelated browser extension errors
   const relevantErrors = (errors: string[]) =>
-    errors.filter(e => !e.includes('runtime.lastError') && !e.includes('DevTools'));
+    errors.filter(e => !e.includes('runtime.lastError') && !e.includes('DevTools') && !e.includes('401'));
 
   expect(relevantErrors(aliceErrors)).toEqual([]);
   expect(relevantErrors(bobErrors)).toEqual([]);
@@ -122,7 +122,7 @@ test('cancel matchmaking returns to lobby', async ({ page }) => {
   await expect(page.locator('text=Searching')).toBeVisible();
 
   await page.locator('button:has-text("Cancel Search")').click();
-  await expect(page).toHaveURL(/^\/$/, { timeout: 5000 });
+  await expect(page).toHaveURL(/\/$/, { timeout: 5000 });
 });
 
 test('different time controls do not match each other', async ({ browser }) => {

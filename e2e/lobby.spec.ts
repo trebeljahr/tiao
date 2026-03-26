@@ -1,15 +1,16 @@
 import { test, expect } from '@playwright/test';
+import { signUpViaUI } from './helpers';
 
 test.describe('Lobby', () => {
   test('lobby shows create game and find match buttons', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('button:has-text("Create game")')).toBeVisible();
-    await expect(page.locator('button:has-text("Find match")')).toBeVisible();
+    await expect(page.locator('button:has-text("Create a game")')).toBeVisible();
+    await expect(page.locator('button:has-text("Unlimited time game")')).toBeVisible();
   });
 
   test('creating a game navigates to game page', async ({ page }) => {
     await page.goto('/');
-    await page.click('button:has-text("Create game")');
+    await page.click('button:has-text("Create a game")');
     await expect(page).toHaveURL(/\/game\/[A-Z0-9]{6}/);
   });
 
@@ -18,16 +19,11 @@ test.describe('Lobby', () => {
     const page = await context.newPage();
 
     // Sign up (needed to see games list)
-    await page.goto('/');
-    await page.click('button:has-text("Sign up")');
     const username = `lobby_${Math.random().toString(36).slice(2, 7)}`;
-    await page.fill('input[placeholder="Username"]', username);
-    await page.fill('input[placeholder="Password"]', 'password123');
-    await page.click('button:has-text("Create account")');
-    await expect(page.locator('text=Account')).toBeVisible();
+    await signUpViaUI(page, username, 'password123');
 
     // Create game
-    await page.click('button:has-text("Create game")');
+    await page.click('button:has-text("Create a game")');
     await expect(page).toHaveURL(/\/game\/[A-Z0-9]{6}/);
     const gameId = page.url().split('/').pop()!;
 
