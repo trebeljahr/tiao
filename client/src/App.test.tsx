@@ -1,26 +1,33 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { BrowserRouter } from "react-router-dom";
-import { App } from "./App";
+import "@/test/navigation-mock";
+import { Providers } from "../app/providers";
 
-// Mock the API calls so we don't actually fetch anything
 vi.mock("@/lib/api", () => ({
   createGuest: vi.fn().mockResolvedValue({
     player: { playerId: "guest-123", displayName: "Anonymous", kind: "guest" },
   }),
   getCurrentPlayer: vi.fn().mockRejectedValue(new Error("Not logged in")),
+  buildWebSocketUrl: vi.fn().mockReturnValue("ws://localhost:5005/api/ws"),
 }));
 
-describe("App", () => {
-  it("renders without crashing and uses router hooks correctly", async () => {
-    // We wrap in BrowserRouter because App uses useNavigate/useLocation
-    render(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    );
+vi.mock("@/lib/SocialNotificationsContext", () => ({
+  SocialNotificationsProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useSocialNotifications: () => ({
+    pendingFriendRequestCount: 0,
+    incomingInvitationCount: 0,
+    refreshNotifications: vi.fn(),
+  }),
+}));
 
-    // It should initially show the loading screen
+vi.mock("@/lib/LobbySocketContext", () => ({
+  LobbySocketProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useLobbyMessage: vi.fn(),
+}));
+
+describe("Providers", () => {
+  it("renders loading screen while auth is bootstrapping", async () => {
+    render(<Providers><div>child content</div></Providers>);
     expect(screen.getByText(/Opening Tiao/i)).toBeInTheDocument();
   });
 });

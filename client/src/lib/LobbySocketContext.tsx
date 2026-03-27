@@ -4,7 +4,6 @@ import {
   useEffect,
   useRef,
   useCallback,
-  useState,
 } from "react";
 import type { AuthResponse } from "@shared";
 import { buildWebSocketUrl } from "./api";

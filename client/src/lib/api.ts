@@ -34,16 +34,23 @@ export class ApiError extends Error {
 }
 
 function getApiBaseUrl() {
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL as string;
+  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
   }
 
-  return window.location.origin;
+  return typeof window !== "undefined" ? window.location.origin : "";
 }
 
 export const API_BASE_URL = getApiBaseUrl();
 
 export function buildWebSocketUrl(gameId: string) {
+  const wsBase = process.env.NEXT_PUBLIC_WS_URL;
+  if (wsBase) {
+    const url = new URL(wsBase);
+    url.pathname = "/api/ws";
+    url.searchParams.set("gameId", gameId);
+    return url.toString();
+  }
   const url = new URL(API_BASE_URL);
   url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
   url.pathname = "/api/ws";

@@ -29,8 +29,7 @@ let requestId = 0;
 function getWorker(): Worker {
   if (!worker) {
     worker = new Worker(
-      new URL("./engine/tiao-engine.worker.ts", import.meta.url),
-      { type: "module" },
+      new URL("./engine/tiao-engine.worker", import.meta.url),
     );
   }
   return worker;

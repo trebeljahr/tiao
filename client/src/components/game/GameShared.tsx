@@ -1,12 +1,9 @@
 import React, { useEffect } from "react";
 import { motion, useAnimationControls } from "framer-motion";
 import {
-  BOARD_SIZE,
   GameState,
   PlayerColor,
-  Position,
   isGameOver,
-  getPendingJumpDestination,
 } from "@shared";
 import type {
   MultiplayerSnapshot,
@@ -452,7 +449,7 @@ type AnimatedScoreTilePlayerInfo = {
   isYou?: boolean;
   isFriend?: boolean;
   hasPendingOutgoing?: boolean;
-  canBefriend?: boolean;
+  canBefriend?: boolean | null;
   onAddFriend?: () => void;
   addFriendBusy?: boolean;
   onCancelFriendRequest?: () => void;
@@ -540,7 +537,7 @@ export function AnimatedScoreTile({
             showPending={playerInfo.hasPendingOutgoing}
             onCancelPending={playerInfo.onCancelFriendRequest}
             cancelPendingBusy={playerInfo.cancelFriendRequestBusy}
-            showAddFriend={playerInfo.canBefriend}
+            showAddFriend={!!playerInfo.canBefriend}
             onAddFriend={playerInfo.onAddFriend}
             addFriendBusy={playerInfo.addFriendBusy}
             friendVariant={playerInfo.variant}

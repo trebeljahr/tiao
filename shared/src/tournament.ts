@@ -1,4 +1,4 @@
-import type { FinishReason, PlayerIdentity, TimeControl } from "./protocol";
+import type { FinishReason, TimeControl } from "./protocol";
 import type { PlayerColor } from "./tiao";
 
 // ── Format & Status ──

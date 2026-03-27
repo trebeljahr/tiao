@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { TournamentFormat, TournamentSettings, NoShowPolicy } from "@shared";
+import type { TournamentFormat, TournamentSettings } from "@shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog } from "@/components/ui/dialog";

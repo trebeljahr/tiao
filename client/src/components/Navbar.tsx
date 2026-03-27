@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useRouter, usePathname } from "next/navigation";
 import type { AuthResponse } from "@shared";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -214,8 +214,8 @@ export function Navbar({
   onOpenAuth,
   onLogout,
 }: NavbarProps) {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const router = useRouter();
+  const pathname = usePathname();
   const { pendingFriendRequestCount, incomingInvitationCount } = useSocialNotifications();
   const player = auth?.player;
   const isAccount = player?.kind === "account";
@@ -230,23 +230,23 @@ export function Navbar({
 
   const handleNav = (path: string) => {
     onCloseNav();
-    navigate(path);
+    router.push(path);
   };
 
   const navItems = [
     {
       label: "Lobby",
-      active: location.pathname === "/",
+      active: pathname === "/",
       onClick: () => handleNav("/"),
       badge: incomingInvitationCount,
     },
     {
       label: "Over the Board",
-      active: location.pathname === "/local",
+      active: pathname === "/local",
       onClick: () => handleNav("/local"),
       badge: 0,
     },
-    ...(location.pathname.startsWith("/game/")
+    ...(pathname?.startsWith("/game/")
       ? [
           {
             label: "Multiplayer",
@@ -258,7 +258,7 @@ export function Navbar({
       : []),
     {
       label: "Against computer",
-      active: location.pathname === "/computer",
+      active: pathname === "/computer",
       onClick: () => handleNav("/computer"),
       badge: 0,
     },
@@ -266,19 +266,19 @@ export function Navbar({
       ? [
           {
             label: "Friends",
-            active: location.pathname === "/friends",
+            active: pathname === "/friends",
             onClick: () => handleNav("/friends"),
             badge: pendingFriendRequestCount,
           },
           {
             label: "My Games",
-            active: location.pathname === "/games",
+            active: pathname === "/games",
             onClick: () => handleNav("/games"),
             badge: 0,
           },
           {
             label: "Tournaments",
-            active: location.pathname.startsWith("/tournament"),
+            active: pathname?.startsWith("/tournament"),
             onClick: () => handleNav("/tournaments"),
             badge: 0,
           },
@@ -286,7 +286,7 @@ export function Navbar({
       : []),
     {
       label: "Tutorial",
-      active: location.pathname === "/tutorial",
+      active: pathname === "/tutorial",
       onClick: () => handleNav("/tutorial"),
       badge: 0,
     },
@@ -442,7 +442,7 @@ export function Navbar({
       </div>
 
       <p className="mt-4 text-center text-[10px] tracking-wide text-[#9b8a78]">
-        v{__APP_VERSION__}
+        v{process.env.APP_VERSION}
       </p>
     </motion.aside>
   );

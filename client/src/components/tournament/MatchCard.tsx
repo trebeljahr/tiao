@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { formatFinishReason } from "@/components/game/GameShared";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 
 function statusLabel(status: TournamentMatch["status"]): string {
   switch (status) {
@@ -43,7 +43,7 @@ export function MatchCard({
   currentPlayerId?: string;
   featured?: boolean;
 }) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const isMyMatch =
     currentPlayerId &&
     match.players.some((p) => p?.playerId === currentPlayerId);
@@ -131,7 +131,7 @@ export function MatchCard({
             <Button
               size="sm"
               variant={isMyMatch ? "default" : "outline"}
-              onClick={() => navigate(`/game/${match.roomId}`)}
+              onClick={() => router.push(`/game/${match.roomId}`)}
             >
               {isMyMatch ? "Play" : "Watch"}
             </Button>
@@ -140,7 +140,7 @@ export function MatchCard({
             <Button
               size="sm"
               variant="outline"
-              onClick={() => navigate(`/game/${match.roomId}`)}
+              onClick={() => router.push(`/game/${match.roomId}`)}
             >
               Review
             </Button>

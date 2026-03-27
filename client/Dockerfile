@@ -5,20 +5,26 @@ COPY client/package*.json client/
 
 RUN npm --prefix client ci
 
-COPY package.json ./package.json
 COPY shared ./shared
 COPY client ./client
 
 RUN npm --prefix client run build
 
-FROM nginx:1.27-alpine AS runtime
+FROM node:22.20.0-bookworm-slim AS runtime
+WORKDIR /app
 
-ENV BACKEND_UPSTREAM=http://127.0.0.1:65535
-ENV ESC='$'
+COPY --from=build /app/client/.next ./.next
+COPY --from=build /app/client/public ./public
+COPY --from=build /app/client/package*.json ./
+COPY --from=build /app/client/next.config.mjs ./
+COPY --from=build /app/client/node_modules ./node_modules
 
-COPY client/nginx/default.conf.template /etc/nginx/templates/default.conf.template
-COPY --from=build /app/client/build /usr/share/nginx/html
+ENV NODE_ENV=production
+ENV PORT=80
 
 EXPOSE 80
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=5 CMD wget -q -O /dev/null http://127.0.0.1/healthz || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=5 \
+  CMD wget -q -O /dev/null http://127.0.0.1:80/ || exit 1
+
+CMD ["npx", "next", "start", "-p", "80"]

@@ -1,3 +1,5 @@
+export {};
+
 type LogEntry = {
   timestamp: string;
   level: "log" | "warn" | "error" | "info" | "debug";
@@ -64,7 +66,7 @@ window.addEventListener("unhandledrejection", (event) => {
 
 function dump() {
   const data = {
-    version: __APP_VERSION__,
+    version: process.env.APP_VERSION,
     userAgent: navigator.userAgent,
     url: window.location.href,
     timestamp: new Date().toISOString(),

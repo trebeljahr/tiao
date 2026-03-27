@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 
 export function TournamentContextBar({
   tournamentId,
@@ -9,7 +9,7 @@ export function TournamentContextBar({
   tournamentName?: string;
   roundLabel?: string;
 }) {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return (
     <div className="flex items-center justify-between gap-2 border-b border-amber-200/60 bg-amber-50/80 px-4 py-2 text-sm">
@@ -27,7 +27,7 @@ export function TournamentContextBar({
       <button
         type="button"
         className="text-xs font-medium text-amber-700 hover:text-amber-900 hover:underline"
-        onClick={() => navigate(`/tournament/${tournamentId}`)}
+        onClick={() => router.push(`/tournament/${tournamentId}`)}
       >
         Back to bracket
       </button>

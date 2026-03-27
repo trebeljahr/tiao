@@ -4,21 +4,17 @@ import {
   AuthResponse,
   GameState,
   Position,
-  PlayerColor,
   MultiplayerSnapshot,
   ClientToServerMessage,
   ServerToClientMessage,
-  isGameOver,
-  getJumpTargets,
   jumpPiece,
   placePiece,
   confirmPendingJump,
   undoPendingJumpStep,
-  arePositionsEqual,
   getPendingJumpDestination,
 } from "@shared";
 import { buildWebSocketUrl, accessMultiplayerGame } from "../api";
-import { toastError, readableError, isNetworkError } from "../errors";
+import { readableError, isNetworkError } from "../errors";
 import { createReconnectScheduler } from "../reconnect";
 import { createOptimisticSnapshot } from "../../components/game/GameShared";
 

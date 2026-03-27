@@ -3,8 +3,9 @@ import { cn } from "@/lib/utils";
 
 export function Badge({
   className,
+  variant: _variant,
   ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+}: React.HTMLAttributes<HTMLDivElement> & { variant?: string }) {
   return (
     <div
       className={cn(

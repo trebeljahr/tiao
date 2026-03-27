@@ -4,7 +4,7 @@ import { getTournament } from "@/lib/api";
 import { useLobbyMessage } from "@/lib/LobbySocketContext";
 
 export function useTournament(
-  auth: AuthResponse | null,
+  _auth: AuthResponse | null,
   tournamentId: string | null,
   options?: {
     onMatchReady?: (matchId: string, roomId: string) => void;

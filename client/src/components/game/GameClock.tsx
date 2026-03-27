@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import type { ClockState, PlayerColor, MultiplayerStatus } from "@shared";
 import { cn } from "@/lib/utils";
 

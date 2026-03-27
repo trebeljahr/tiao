@@ -23,7 +23,7 @@ type TiaoBoardProps = {
   disabled?: boolean;
   confirmReady?: boolean;
   lastMove?: LastMoveHighlight;
-  onPointClick: (position: Position) => void;
+  onPointClick?: (position: Position) => void;
   onUndoLastJump?: () => void;
   onConfirmJump?: () => void;
 };
@@ -46,7 +46,7 @@ const IS_TOUCH_DEVICE =
 
 const DRAG_THRESHOLD = 10;
 const DRAG_Y_OFFSET = 4; // grid cells to offset above finger during drag
-const DIRECT_PLACE_CELL_PX = 44; // min cell size in px for direct placement (Apple HIG tap target)
+
 
 function getStarPoints(bs: number): number[] {
   if (bs === 19) return [3, 9, 15];
@@ -395,7 +395,7 @@ export function TiaoBoard({
         suppressClickRef.current = true;
         const confirmPos = mobilePreview;
         setMobilePreview(null);
-        onPointClick(confirmPos);
+        onPointClick?.(confirmPos);
         return;
       }
 
@@ -414,7 +414,7 @@ export function TiaoBoard({
         suppressClickRef.current = false;
         return;
       }
-      onPointClick(position);
+      onPointClick?.(position);
     },
     [onPointClick]
   );
@@ -1170,7 +1170,7 @@ export function TiaoBoard({
                 <button
                   type="button"
                   disabled={!mobilePreviewValid}
-                  onClick={() => { const pos = mobilePreview; setMobilePreview(null); onPointClick(pos); }}
+                  onClick={() => { const pos = mobilePreview; setMobilePreview(null); onPointClick?.(pos); }}
                   className={cn(
                     "flex h-11 items-center gap-1.5 rounded-full border px-3.5 shadow-[0_8px_20px_-8px_rgba(66,39,11,0.5)] backdrop-blur transition-colors",
                     mobilePreviewValid

@@ -1,4 +1,4 @@
-import type { TournamentRound, TournamentMatch } from "@shared";
+import type { TournamentRound } from "@shared";
 import { MatchCard } from "./MatchCard";
 
 export function BracketVisualization({
