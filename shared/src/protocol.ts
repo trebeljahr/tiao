@@ -52,6 +52,7 @@ export type MultiplayerSnapshot = {
   updatedAt: string;
   state: GameState;
   players: PlayerSlot[];
+  spectators: PlayerSlot[];
   rematch: MultiplayerRematchState | null;
   takeback: MultiplayerTakebackState | null;
   seats: Record<PlayerColor, PlayerSlot | null>;

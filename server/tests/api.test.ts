@@ -365,6 +365,10 @@ test("multiplayer routes create games, join open seats, and allow spectators", a
   });
   assert.equal(loaded.status, 200);
   assert.equal(loaded.body.snapshot.gameId, created.body.snapshot.gameId);
+
+  // Snapshot includes an empty spectators array
+  assert.ok(Array.isArray(spectated.body.snapshot.spectators));
+  assert.equal(spectated.body.snapshot.spectators.length, 0);
 });
 
 test("matchmaking API pairs the next two players into a matchmaking room", async () => {

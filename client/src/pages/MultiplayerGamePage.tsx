@@ -24,6 +24,7 @@ import {
   ShareLinkCopyPill,
   PlayerOverviewAvatar,
   EmptySeatAvatar,
+  ConnectionDot,
   formatPlayerName,
 } from "@/components/game/GameShared";
 import { useMultiplayerGame } from "@/lib/hooks/useMultiplayerGame";
@@ -99,6 +100,7 @@ export function MultiplayerGamePage({
 
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [forfeitDialogOpen, setForfeitDialogOpen] = useState(false);
+  const [spectatorDialogOpen, setSpectatorDialogOpen] = useState(false);
   const [inviteBusy, setInviteBusy] = useState<string | null>(null);
 
   // Real-time social updates (friend online status, invitation state)
@@ -260,6 +262,8 @@ export function MultiplayerGamePage({
   const isAwaitingFirstMove = firstMoveCountdownMs !== null && firstMoveCountdownMs > 0;
 
   const isMultiplayerParticipant = !!playerSeat;
+  const isSpectator = multiplayerSnapshot && !isMultiplayerParticipant;
+  const spectatorCount = multiplayerSnapshot?.spectators.length ?? 0;
 
   // Toast for incoming takeback requests
   const lastTakebackToastRef = useRef<string | null>(null);
@@ -351,9 +355,11 @@ export function MultiplayerGamePage({
       ? `${formatPlayerColor(winner)} wins`
       : multiplayerSnapshot.status === "waiting"
         ? "Waiting for player two"
-        : multiplayerYourTurn
-          ? "Your move"
-          : "Waiting for opponent";
+        : isSpectator
+          ? "Spectating"
+          : multiplayerYourTurn
+            ? "Your move"
+            : "Waiting for opponent";
 
   const [copyFeedbackKey, setCopyFeedbackKey] = useState<string | null>(null);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
@@ -593,6 +599,20 @@ export function MultiplayerGamePage({
                             <span className="truncate">Waiting For Opponent</span>
                           </motion.div>
                         </div>
+                      ) : isSpectator && multiplayerSnapshot?.status === "active" ? (
+                        <div className="flex items-center gap-2">
+                          {hasClock && (
+                            <InlineClockBadge timeMs={activeClockMs} className="ml-0 text-base" />
+                          )}
+                          <motion.div
+                            initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            className="flex items-center gap-2 rounded-full border border-[#c4b5d4] bg-[#f5f0fc]/96 px-3 py-2 text-sm font-semibold text-[#5a4570] shadow-[0_16px_28px_-22px_rgba(90,69,112,0.42)] backdrop-blur"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+                            Spectating
+                          </motion.div>
+                        </div>
                       ) : null}
                     </div>
                   </div>
@@ -600,7 +620,9 @@ export function MultiplayerGamePage({
                     <div className="space-y-1">
                       <CardTitle className="font-display text-2xl text-[#2b1e14]">
                         {multiplayerSnapshot?.status === "active"
-                          ? "Live match"
+                          ? isSpectator
+                            ? "Spectating"
+                            : "Live match"
                           : multiplayerStatusTitle}
                       </CardTitle>
                     </div>
@@ -620,6 +642,17 @@ export function MultiplayerGamePage({
                           }
                           onCopy={handleCopyGameLink}
                         />
+                        {spectatorCount > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setSpectatorDialogOpen(true)}
+                            className="flex items-center gap-1.5 rounded-full border border-[#d8c29c] bg-[#fff8ee]/96 px-2.5 py-1.5 text-xs font-semibold text-[#5d4732] transition-colors hover:bg-[#f5e8d4]"
+                            title={`${spectatorCount} spectator${spectatorCount !== 1 ? "s" : ""}`}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+                            {spectatorCount}
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1000,26 +1033,14 @@ export function MultiplayerGamePage({
                         </div>
                       )}
 
-                      {multiplayerSnapshot.players.length > 2 && (
-                        <div className="space-y-2 border-t border-black/5 pt-4">
-                          <p className="text-xs font-semibold uppercase tracking-wider text-[#7b6550]">
-                            Spectators
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {multiplayerSnapshot.players
-                              .slice(2)
-                              .map((slot) => (
-                                <div
-                                  key={slot.player.playerId}
-                                  title={slot.player.displayName}
-                                >
-                                  <PlayerOverviewAvatar
-                                    player={slot.player}
-                                    className="h-6 w-6"
-                                  />
-                                </div>
-                              ))}
-                          </div>
+                      {isSpectator && (
+                        <div className="grid gap-2 border-t border-[#dbc6a2] pt-4">
+                          <Button
+                            variant="ghost"
+                            onClick={() => navigate("/")}
+                          >
+                            Back to lobby
+                          </Button>
                         </div>
                       )}
                     </>
@@ -1164,6 +1185,135 @@ export function MultiplayerGamePage({
           <Button variant="ghost" onClick={() => { setGameOverDialogOpen(false); navigate("/"); }}>
             Back to lobby
           </Button>
+        </div>
+      </Dialog>
+
+      <Dialog
+        open={spectatorDialogOpen}
+        onOpenChange={setSpectatorDialogOpen}
+        title={`Spectators (${spectatorCount})`}
+        description="People watching this game."
+      >
+        <div className="space-y-4">
+          <div className="space-y-2 max-h-[16rem] overflow-y-auto">
+            {multiplayerSnapshot?.spectators.length === 0 ? (
+              <p className="text-center text-sm text-[#6e5b48] py-4">
+                No spectators yet.
+              </p>
+            ) : (
+              multiplayerSnapshot?.spectators.map((slot) => {
+                const specId = slot.player.playerId;
+                const isYou = specId === auth?.player.playerId;
+                const isAccount = auth?.player.kind === "account";
+                const isFriend = liveSocialOverview.friends.some(
+                  (f) => f.playerId === specId,
+                );
+                const hasPendingOutgoing =
+                  liveSocialOverview.outgoingFriendRequests.some(
+                    (f) => f.playerId === specId,
+                  );
+                const hasPendingIncoming =
+                  liveSocialOverview.incomingFriendRequests.some(
+                    (f) => f.playerId === specId,
+                  );
+                const canBefriend =
+                  isAccount &&
+                  !isYou &&
+                  slot.player.kind === "account" &&
+                  !isFriend &&
+                  !hasPendingOutgoing &&
+                  !hasPendingIncoming;
+
+                return (
+                  <div
+                    key={specId}
+                    className="flex items-center justify-between rounded-2xl border border-[#d8c29c] bg-[#fffaf1] px-4 py-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <PlayerOverviewAvatar player={slot.player} />
+                        <ConnectionDot
+                          online={slot.online}
+                          className="absolute -bottom-0.5 -right-0.5 ring-2 ring-[#fffaf1]"
+                        />
+                      </div>
+                      <span className="text-sm font-semibold text-[#2b1e14]">
+                        {formatPlayerName(slot.player, auth?.player.playerId)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {isFriend && (
+                        <Badge className="text-xs bg-emerald-100 text-emerald-700">
+                          Friend
+                        </Badge>
+                      )}
+                      {hasPendingOutgoing && (
+                        <Badge className="text-xs bg-[#f2e8d9] text-[#8d7760]">
+                          Pending
+                        </Badge>
+                      )}
+                      {canBefriend && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-xs h-7 px-2"
+                          onClick={() =>
+                            social.handleSendFriendRequest(specId)
+                          }
+                          disabled={
+                            social.socialActionBusyKey ===
+                            `friend-send:${specId}`
+                          }
+                        >
+                          {social.socialActionBusyKey ===
+                          `friend-send:${specId}`
+                            ? "Sending..."
+                            : "Add Friend"}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          <div className="space-y-2 border-t border-[#dbc6a2] pt-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#7b6550]">
+              Invite spectators
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 text-xs"
+                onClick={handleCopyGameLink}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                {copyFeedbackKey === "share-link" && copyFeedback
+                  ? copyFeedback
+                  : "Copy link"}
+              </Button>
+              {typeof navigator !== "undefined" && "share" in navigator && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 text-xs"
+                  onClick={() => {
+                    const url = `${window.location.origin}/game/${multiplayerSnapshot?.gameId}`;
+                    void navigator.share({
+                      title: "Watch a Tiao game",
+                      text: "Come spectate this Tiao match!",
+                      url,
+                    });
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>
+                  Share
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
       </Dialog>
     </div>

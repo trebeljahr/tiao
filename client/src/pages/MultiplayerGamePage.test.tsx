@@ -83,6 +83,7 @@ function makeMatchmakingSnapshot(overrides?: Partial<MultiplayerSnapshot>): Mult
       white: { player: { playerId: "guest-aaa", displayName: "Anonymous", kind: "guest" }, online: true },
       black: { player: { playerId: "guest-bbb", displayName: "Anonymous", kind: "guest" }, online: true },
     },
+    spectators: [],
     rematch: null,
     takeback: null,
     timeControl: null,
@@ -428,5 +429,68 @@ describe("MultiplayerGamePage", () => {
       type: "request-rematch",
     });
     expect(toast.success).toHaveBeenCalledWith("Rematch request sent!");
+  });
+
+  it("shows spectator badge when spectators are present", async () => {
+    const snapshot = makeMatchmakingSnapshot({
+      spectators: [
+        {
+          player: { playerId: "spec-1", displayName: "Spectator1", kind: "account" },
+          online: true,
+        },
+        {
+          player: { playerId: "spec-2", displayName: "Spectator2", kind: "guest" },
+          online: true,
+        },
+      ],
+    });
+
+    await setupMocks(snapshot);
+    renderWithRouter(guestAuth, "ABC123");
+
+    // Spectator badge shows count
+    const badge = screen.getByTitle("2 spectators");
+    expect(badge).toBeInTheDocument();
+    expect(badge).toHaveTextContent("2");
+  });
+
+  it("hides spectator badge when no spectators", async () => {
+    const snapshot = makeMatchmakingSnapshot({ spectators: [] });
+    await setupMocks(snapshot);
+    renderWithRouter(guestAuth, "ABC123");
+
+    expect(screen.queryByTitle(/spectator/)).not.toBeInTheDocument();
+  });
+
+  it("shows 'Spectating' title when user is not a player", async () => {
+    const spectatorAuth: AuthResponse = {
+      player: {
+        kind: "guest",
+        playerId: "spectator-xyz",
+        displayName: "Watcher",
+      },
+    };
+
+    const snapshot = makeMatchmakingSnapshot({ spectators: [] });
+    await setupMocks(snapshot);
+    renderWithRouter(spectatorAuth, "ABC123");
+
+    expect(screen.getByText("Spectating")).toBeInTheDocument();
+  });
+
+  it("shows 'Back to lobby' button for spectators", async () => {
+    const spectatorAuth: AuthResponse = {
+      player: {
+        kind: "guest",
+        playerId: "spectator-xyz",
+        displayName: "Watcher",
+      },
+    };
+
+    const snapshot = makeMatchmakingSnapshot({ spectators: [] });
+    await setupMocks(snapshot);
+    renderWithRouter(spectatorAuth, "ABC123");
+
+    expect(screen.getByRole("button", { name: "Back to lobby" })).toBeInTheDocument();
   });
 });

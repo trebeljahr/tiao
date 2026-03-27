@@ -31,6 +31,7 @@ const mockSnapshot = {
   status: "active",
   state: { currentTurn: "white" },
   players: [],
+  spectators: [],
   seats: { white: null, black: null },
   rematch: null,
   takeback: null,

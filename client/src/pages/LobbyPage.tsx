@@ -601,6 +601,64 @@ export function LobbyPage({ auth, onOpenAuth, onLogout }: LobbyPageProps) {
             </motion.div>
           </section>
         )}
+
+        <section className="mt-8">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mx-auto max-w-md"
+          >
+            <Card className={cn("overflow-hidden shadow-lg", paperCard)}>
+              <CardHeader className="pb-3">
+                <Badge className="w-fit bg-[#e8e0f4] text-[#5a4570] mb-2">
+                  Spectate
+                </Badge>
+                <CardTitle className="text-2xl text-[#2b1e14]">
+                  Watch a Game
+                </CardTitle>
+                <CardDescription className="text-sm text-[#6e5b48] mt-1">
+                  Paste a Game ID to spectate a match in progress.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pb-6">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const input = e.currentTarget.elements.namedItem(
+                      "spectate-id",
+                    ) as HTMLInputElement;
+                    const id = input?.value.trim().toUpperCase();
+                    if (id) {
+                      navigate(`/game/${id}`);
+                    }
+                  }}
+                  className="flex gap-2"
+                >
+                  <Input
+                    name="spectate-id"
+                    placeholder="Game ID"
+                    maxLength={6}
+                    className="h-12 font-mono bg-white/60 border-[#dcc7a2] focus:ring-[#b98d49]"
+                    onChange={(e) => {
+                      e.target.value = e.target.value
+                        .toUpperCase()
+                        .replace(/[^A-Z0-9]/g, "");
+                    }}
+                  />
+                  <Button
+                    type="submit"
+                    variant="outline"
+                    className="h-12 px-6 border-[#dcc7a2] hover:bg-[#f5f0fc]"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+                    Watch
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </section>
       </main>
     </div>
   );

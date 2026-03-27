@@ -58,6 +58,8 @@ export class GameService {
   private readonly connections = new Map<string, RoomConnections>();
   private readonly lobbyConnections = new Map<string, Set<WebSocket>>();
   private readonly socketRooms = new Map<WebSocket, string>();
+  /** In-memory spectator identities: roomId -> (playerId -> PlayerIdentity) */
+  private readonly spectatorIdentities = new Map<string, Map<string, PlayerIdentity>>();
   private readonly matchmaking: MatchmakingStore;
   private readonly lockProvider: LockProvider;
   private readonly guestAbandonTimers = new Map<string, ReturnType<typeof setTimeout>>();
@@ -203,6 +205,17 @@ export class GameService {
     const connections = this.getConnections(room.id);
     connections.set(socket, player.playerId);
     this.socketRooms.set(socket, room.id);
+
+    // Track spectator identity (non-players connecting to a room)
+    if (!this.isPlayerInRoom(room, player.playerId)) {
+      let roomSpectators = this.spectatorIdentities.get(room.id);
+      if (!roomSpectators) {
+        roomSpectators = new Map();
+        this.spectatorIdentities.set(room.id, roomSpectators);
+      }
+      roomSpectators.set(player.playerId, player);
+    }
+
     this.broadcastSnapshot(room);
   }
 
@@ -224,6 +237,17 @@ export class GameService {
 
     if (connections.size === 0) {
       this.connections.delete(roomId);
+    }
+
+    // Remove spectator identity when all their sockets disconnect
+    if (disconnectedPlayerId && !this.isPlayerOnline(roomId, disconnectedPlayerId)) {
+      const roomSpectators = this.spectatorIdentities.get(roomId);
+      if (roomSpectators) {
+        roomSpectators.delete(disconnectedPlayerId);
+        if (roomSpectators.size === 0) {
+          this.spectatorIdentities.delete(roomId);
+        }
+      }
     }
 
     const room = await this.store.getRoom(roomId);
@@ -840,6 +864,13 @@ export class GameService {
   }
 
   private toSnapshot(room: StoredMultiplayerRoom): MultiplayerSnapshot {
+    const roomSpectators = this.spectatorIdentities.get(room.id);
+    const spectators: PlayerSlot[] = roomSpectators
+      ? Array.from(roomSpectators.values()).map((identity) =>
+          this.toPlayerSlot(room.id, identity)
+        )
+      : [];
+
     return {
       gameId: room.id,
       roomType: room.roomType,
@@ -848,6 +879,7 @@ export class GameService {
       updatedAt: room.updatedAt.toISOString(),
       state: room.state,
       players: room.players.map((player) => this.toPlayerSlot(room.id, player)),
+      spectators,
       rematch: room.rematch,
       takeback: room.takeback,
       seats: {

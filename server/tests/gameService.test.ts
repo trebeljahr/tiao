@@ -435,3 +435,130 @@ test("accessGame on a finished game returns complete move history", async () => 
   assert.equal(snapshot.state.history.length, 1);
   assert.deepEqual(snapshot.state.history[0].type, "put");
 });
+
+test("spectators appear in snapshot when connected via WebSocket", async () => {
+  const store = new InMemoryGameRoomStore();
+  const service = new GameService(store, () => 0);
+  const alice = createPlayer("alice");
+  const bob = createPlayer("bob");
+  const carol = createPlayer("carol", { displayName: "Carol" });
+
+  const created = await service.createGame(alice);
+  await service.joinGame(created.gameId, bob);
+
+  // Before any spectator connects, spectators list is empty
+  let snapshot = await service.getSnapshot(created.gameId);
+  assert.equal(snapshot.spectators.length, 0);
+
+  // Connect carol as a spectator (she's not in room.players)
+  const carolSocket = new FakeSocket() as unknown as WebSocket;
+  await service.connect(created.gameId, carol, carolSocket);
+
+  snapshot = await service.getSnapshot(created.gameId);
+  assert.equal(snapshot.spectators.length, 1);
+  assert.equal(snapshot.spectators[0].player.playerId, "carol");
+  assert.equal(snapshot.spectators[0].player.displayName, "Carol");
+  assert.equal(snapshot.spectators[0].online, true);
+
+  // Players still only has alice and bob
+  assert.equal(snapshot.players.length, 2);
+});
+
+test("spectator is removed from snapshot after disconnect", async () => {
+  const store = new InMemoryGameRoomStore();
+  const service = new GameService(store, () => 0);
+  const alice = createPlayer("alice");
+  const bob = createPlayer("bob");
+  const carol = createPlayer("carol");
+
+  const created = await service.createGame(alice);
+  await service.joinGame(created.gameId, bob);
+
+  const carolSocket = new FakeSocket() as unknown as WebSocket;
+  await service.connect(created.gameId, carol, carolSocket);
+
+  let snapshot = await service.getSnapshot(created.gameId);
+  assert.equal(snapshot.spectators.length, 1);
+
+  await service.disconnect(carolSocket);
+  snapshot = await service.getSnapshot(created.gameId);
+  assert.equal(snapshot.spectators.length, 0);
+});
+
+test("multiple spectators tracked independently", async () => {
+  const store = new InMemoryGameRoomStore();
+  const service = new GameService(store, () => 0);
+  const alice = createPlayer("alice");
+  const bob = createPlayer("bob");
+  const carol = createPlayer("carol");
+  const dave = createPlayer("dave");
+
+  const created = await service.createGame(alice);
+  await service.joinGame(created.gameId, bob);
+
+  const carolSocket = new FakeSocket() as unknown as WebSocket;
+  const daveSocket = new FakeSocket() as unknown as WebSocket;
+  await service.connect(created.gameId, carol, carolSocket);
+  await service.connect(created.gameId, dave, daveSocket);
+
+  let snapshot = await service.getSnapshot(created.gameId);
+  assert.equal(snapshot.spectators.length, 2);
+  const spectatorIds = snapshot.spectators.map((s) => s.player.playerId).sort();
+  assert.deepEqual(spectatorIds, ["carol", "dave"]);
+
+  // Disconnect carol, dave remains
+  await service.disconnect(carolSocket);
+  snapshot = await service.getSnapshot(created.gameId);
+  assert.equal(snapshot.spectators.length, 1);
+  assert.equal(snapshot.spectators[0].player.playerId, "dave");
+});
+
+test("spectator with multiple sockets stays until all sockets disconnect", async () => {
+  const store = new InMemoryGameRoomStore();
+  const service = new GameService(store, () => 0);
+  const alice = createPlayer("alice");
+  const bob = createPlayer("bob");
+  const carol = createPlayer("carol");
+
+  const created = await service.createGame(alice);
+  await service.joinGame(created.gameId, bob);
+
+  const carolSocket1 = new FakeSocket() as unknown as WebSocket;
+  const carolSocket2 = new FakeSocket() as unknown as WebSocket;
+  await service.connect(created.gameId, carol, carolSocket1);
+  await service.connect(created.gameId, carol, carolSocket2);
+
+  let snapshot = await service.getSnapshot(created.gameId);
+  // Still only one spectator entry (same player)
+  assert.equal(snapshot.spectators.length, 1);
+
+  // Disconnect first socket, carol should still be listed
+  await service.disconnect(carolSocket1);
+  snapshot = await service.getSnapshot(created.gameId);
+  assert.equal(snapshot.spectators.length, 1);
+  assert.equal(snapshot.spectators[0].online, true);
+
+  // Disconnect second socket, carol should be gone
+  await service.disconnect(carolSocket2);
+  snapshot = await service.getSnapshot(created.gameId);
+  assert.equal(snapshot.spectators.length, 0);
+});
+
+test("players are not listed as spectators when they connect", async () => {
+  const store = new InMemoryGameRoomStore();
+  const service = new GameService(store, () => 0);
+  const alice = createPlayer("alice");
+  const bob = createPlayer("bob");
+
+  const created = await service.createGame(alice);
+  await service.joinGame(created.gameId, bob);
+
+  const aliceSocket = new FakeSocket() as unknown as WebSocket;
+  const bobSocket = new FakeSocket() as unknown as WebSocket;
+  await service.connect(created.gameId, alice, aliceSocket);
+  await service.connect(created.gameId, bob, bobSocket);
+
+  const snapshot = await service.getSnapshot(created.gameId);
+  assert.equal(snapshot.spectators.length, 0);
+  assert.equal(snapshot.players.length, 2);
+});

@@ -114,6 +114,7 @@ function createMockSnapshot(
         online: true,
       },
     ],
+    spectators: [],
     rematch: null,
     takeback: null,
     seats: {
