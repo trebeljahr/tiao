@@ -106,7 +106,7 @@ export function LocalGamePage({ auth, onOpenAuth, onLogout }: LocalGamePageProps
             </div>
           </div>
 
-          <div className="space-y-4 xl:min-w-[20rem] xl:max-w-[28rem]">
+          <div className="mx-auto w-full max-w-[calc(100dvh-5rem)] space-y-4 xl:mx-0 xl:w-auto xl:min-w-[20rem] xl:max-w-[28rem]">
             <div className="mx-auto w-full xl:mx-0">
               <Card className={paperCard}>
                 <CardHeader>

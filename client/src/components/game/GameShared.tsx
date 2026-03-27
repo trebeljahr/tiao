@@ -147,7 +147,7 @@ export function getSummaryStatusLabel(summary: MultiplayerGameSummary) {
   }
 
   if (summary.status === "waiting") {
-    return "Waiting for player two";
+    return "Waiting";
   }
 
   return isSummaryYourTurn(summary) ? "Your move" : "Waiting for opponent";
