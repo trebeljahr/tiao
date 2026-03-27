@@ -66,12 +66,12 @@ describe("Move Generation", () => {
     ]);
     const moves = generateMoves(state);
     const jumpMoves = moves.filter((m) => m.type === "jump");
-    // Should have both length-1 (single capture) and length-2 (double capture) chains
+    // Should only generate maximal chains (length-2 double capture, no partial length-1)
     const lengths = jumpMoves.map((m) =>
       m.type === "jump" ? m.path.length : 0,
     );
-    expect(lengths).toContain(1);
     expect(lengths).toContain(2);
+    expect(lengths).not.toContain(1);
   });
 
   it("returns no moves when game is over", () => {

@@ -197,8 +197,10 @@ function collectJumpChains(
 ): void {
   const targets = getJumpTargets(state, current, state.currentTurn);
 
-  if (pathSoFar.length > 0) {
+  if (targets.length === 0 && pathSoFar.length > 0) {
+    // Leaf node: no further jumps possible — this is a complete chain
     results.push({ type: "jump", from: origin, path: [...pathSoFar] });
+    return;
   }
 
   for (const target of targets) {
