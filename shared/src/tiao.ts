@@ -1,3 +1,5 @@
+import type { FinishReason } from "./protocol";
+
 export const BOARD_SIZE = 19;
 export const SCORE_TO_WIN = 10;
 
@@ -224,8 +226,6 @@ export function getWinner(state: GameState): PlayerColor | null {
 
   return null;
 }
-
-export type FinishReason = "captured" | "forfeit" | "timeout";
 
 export function getFinishReason(state: GameState): FinishReason | null {
   if (!isGameOver(state)) return null;
