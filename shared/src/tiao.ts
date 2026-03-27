@@ -225,6 +225,20 @@ export function getWinner(state: GameState): PlayerColor | null {
   return null;
 }
 
+export type FinishReason = "captured" | "forfeit" | "timeout";
+
+export function getFinishReason(state: GameState): FinishReason | null {
+  if (!isGameOver(state)) return null;
+
+  const forfeitRecord = state.history.find(
+    (r): r is ForfeitTurn => r.type === "forfeit",
+  );
+
+  if (forfeitRecord?.reason === "timeout") return "timeout";
+  if (forfeitRecord) return "forfeit";
+  return "captured";
+}
+
 export function forfeitGame(
   state: GameState,
   forfeitingColor: PlayerColor,

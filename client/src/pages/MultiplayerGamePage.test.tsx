@@ -29,8 +29,10 @@ vi.mock("@/lib/useStonePlacementSound", () => ({
   useStonePlacementSound: () => ({ play: vi.fn() }),
 }));
 
-vi.mock("@/lib/useWinConfetti", () => ({
-  useWinConfetti: vi.fn(),
+vi.mock("canvas-confetti", () => ({
+  default: Object.assign(vi.fn(), {
+    create: vi.fn(() => vi.fn()),
+  }),
 }));
 
 vi.mock("sonner", () => ({
@@ -245,106 +247,6 @@ describe("MultiplayerGamePage", () => {
 
     // Guest players should not see "Add friend" buttons
     expect(screen.queryByText("Add friend")).not.toBeInTheDocument();
-  });
-
-  it("calls useWinConfetti with viewerColor matching the player's seat color", async () => {
-    const { useWinConfetti } = await import("@/lib/useWinConfetti");
-    const mockUseWinConfetti = useWinConfetti as ReturnType<typeof vi.fn>;
-
-    const snapshot = makeMatchmakingSnapshot();
-
-    const { useMultiplayerGame } = await import("@/lib/hooks/useMultiplayerGame");
-    (useMultiplayerGame as ReturnType<typeof vi.fn>).mockReturnValue({
-      multiplayerSnapshot: snapshot,
-      multiplayerSelection: null,
-      connectionState: "connected",
-      connectToRoom: mockConnectToRoom,
-      sendMultiplayerMessage: mockSendMultiplayerMessage,
-      setMultiplayerSelection: mockSetMultiplayerSelection,
-      multiplayerBusy: false,
-      setMultiplayerBusy: mockSetMultiplayerBusy,
-      multiplayerError: null,
-    });
-
-    const { useSocialData } = await import("@/lib/hooks/useSocialData");
-    (useSocialData as ReturnType<typeof vi.fn>).mockReturnValue({
-      socialOverview: EMPTY_SOCIAL_OVERVIEW,
-      socialLoading: false,
-      socialLoaded: false,
-      friendSearchQuery: "",
-      setFriendSearchQuery: vi.fn(),
-      friendSearchResults: [],
-      friendSearchBusy: false,
-      socialActionBusyKey: null,
-      refreshSocialOverview: vi.fn(),
-      runFriendSearch: vi.fn(),
-      handleSendFriendRequest: vi.fn(),
-      handleAcceptFriendRequest: vi.fn(),
-      handleDeclineFriendRequest: vi.fn(),
-      handleCancelFriendRequest: vi.fn(),
-      handleRemoveFriend: vi.fn(),
-      handleSendGameInvitation: vi.fn(),
-      handleRevokeGameInvitation: vi.fn(),
-    });
-
-    renderWithRouter(guestAuth, "ABC123");
-
-    // guest-aaa is seated at white; game is active (not over) so winner = null
-    // useWinConfetti should be called with (null, { viewerColor: "white" })
-    expect(mockUseWinConfetti).toHaveBeenCalled();
-    const lastCall = mockUseWinConfetti.mock.calls[mockUseWinConfetti.mock.calls.length - 1];
-    expect(lastCall[0]).toBeNull(); // no winner — game is active
-    expect(lastCall[1]).toEqual({ viewerColor: "white" }); // guest-aaa sits at white
-  });
-
-  it("passes null winner to useWinConfetti when in review mode (finished game)", async () => {
-    const { useWinConfetti } = await import("@/lib/useWinConfetti");
-    const mockUseWinConfetti = useWinConfetti as ReturnType<typeof vi.fn>;
-
-    // Create a finished game snapshot
-    const snapshot = makeMatchmakingSnapshot({ status: "finished" });
-
-    const { useMultiplayerGame } = await import("@/lib/hooks/useMultiplayerGame");
-    (useMultiplayerGame as ReturnType<typeof vi.fn>).mockReturnValue({
-      multiplayerSnapshot: snapshot,
-      multiplayerSelection: null,
-      connectionState: "connected",
-      connectToRoom: mockConnectToRoom,
-      sendMultiplayerMessage: mockSendMultiplayerMessage,
-      setMultiplayerSelection: mockSetMultiplayerSelection,
-      multiplayerBusy: false,
-      setMultiplayerBusy: mockSetMultiplayerBusy,
-      multiplayerError: null,
-    });
-
-    const { useSocialData } = await import("@/lib/hooks/useSocialData");
-    (useSocialData as ReturnType<typeof vi.fn>).mockReturnValue({
-      socialOverview: EMPTY_SOCIAL_OVERVIEW,
-      socialLoading: false,
-      socialLoaded: false,
-      friendSearchQuery: "",
-      setFriendSearchQuery: vi.fn(),
-      friendSearchResults: [],
-      friendSearchBusy: false,
-      socialActionBusyKey: null,
-      refreshSocialOverview: vi.fn(),
-      runFriendSearch: vi.fn(),
-      handleSendFriendRequest: vi.fn(),
-      handleAcceptFriendRequest: vi.fn(),
-      handleDeclineFriendRequest: vi.fn(),
-      handleCancelFriendRequest: vi.fn(),
-      handleRemoveFriend: vi.fn(),
-      handleSendGameInvitation: vi.fn(),
-      handleRevokeGameInvitation: vi.fn(),
-    });
-
-    renderWithRouter(guestAuth, "ABC123");
-
-    // In review mode (status=finished), isReviewMode is true, so winner arg
-    // should be null to suppress confetti during review.
-    expect(mockUseWinConfetti).toHaveBeenCalled();
-    const lastCall = mockUseWinConfetti.mock.calls[mockUseWinConfetti.mock.calls.length - 1];
-    expect(lastCall[0]).toBeNull(); // review mode → null winner passed
   });
 
   it("renders review nav buttons in the card header when game is finished with history", async () => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -32,15 +32,17 @@ import { useSocialData } from "@/lib/hooks/useSocialData";
 import { useLobbyMessage } from "@/lib/LobbySocketContext";
 import { useStonePlacementSound } from "@/lib/useStonePlacementSound";
 import { TournamentContextBar } from "@/components/tournament/TournamentContextBar";
-import { useWinConfetti } from "@/lib/useWinConfetti";
+import confetti from "canvas-confetti";
 import {
   isGameOver,
   getWinner,
+  getFinishReason,
   getJumpTargets,
   arePositionsEqual,
   replayToMove,
   isBoardMove,
 } from "@shared";
+import type { FinishReason } from "@shared";
 import { MoveList, MoveListNavButtons } from "@/components/game/MoveList";
 import { useGameClock, useFirstMoveCountdown, InlineClockBadge, formatClockTime } from "@/components/game/GameClock";
 import { cn } from "@/lib/utils";
@@ -224,16 +226,14 @@ export function MultiplayerGamePage({
         )?.[0] as PlayerColor | undefined)
       : null;
 
-  useWinConfetti(wasFinishedOnLoadRef.current ? null : winner, { viewerColor: playerSeat ?? null });
-
   const [gameOverDialogOpen, setGameOverDialogOpen] = useState(false);
   const prevWinnerRef = useRef<string | null>(null);
+  const confettiCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     if (winner && prevWinnerRef.current !== winner && !wasFinishedOnLoadRef.current) {
       prevWinnerRef.current = winner;
-      const id = setTimeout(() => setGameOverDialogOpen(true), 600);
-      return () => clearTimeout(id);
+      setGameOverDialogOpen(true);
     }
     if (!winner) {
       prevWinnerRef.current = null;
@@ -241,8 +241,62 @@ export function MultiplayerGamePage({
     }
   }, [winner]);
 
+  // Fire confetti inside the modal canvas when the dialog opens
+  const fireModalConfetti = useCallback((canvas: HTMLCanvasElement | null) => {
+    if (!canvas) return;
+    const fire = confetti.create(canvas, { resize: true });
+    const playerWon = playerSeat !== null && winner === playerSeat;
+    const playerLost = playerSeat !== null && winner !== null && winner !== playerSeat;
+
+    if (playerLost) {
+      // Subtle defeat particles
+      const colors = ["#8b7355", "#a69278", "#c4b49a", "#d6cbb8"];
+      const duration = 1400;
+      const endTime = Date.now() + duration;
+      const frame = () => {
+        fire({
+          particleCount: 2,
+          startVelocity: 8,
+          spread: 160,
+          gravity: 0.35,
+          drift: 0.6 + Math.random() * 0.8,
+          origin: { x: Math.random(), y: -0.05 },
+          colors,
+          scalar: 1.2,
+          shapes: ["circle"],
+          ticks: 300,
+        });
+        if (Date.now() < endTime) window.requestAnimationFrame(frame);
+      };
+      frame();
+    } else {
+      // Victory confetti
+      fire({
+        particleCount: 100,
+        startVelocity: 35,
+        spread: 360,
+        origin: { x: 0.5, y: 0.4 },
+        colors: ["#ff6b6b", "#feca57", "#48dbfb", "#ff9ff3", "#54a0ff", "#5f27cd", "#01a3a4", "#f368e0", "#ff9f43", "#00d2d3"],
+        scalar: 1.1,
+        gravity: 0.6,
+        ticks: 180,
+        shapes: ["circle", "square"],
+      });
+    }
+  }, [winner, playerSeat]);
+
+  useEffect(() => {
+    if (gameOverDialogOpen && confettiCanvasRef.current && !wasFinishedOnLoadRef.current) {
+      fireModalConfetti(confettiCanvasRef.current);
+    }
+  }, [gameOverDialogOpen, fireModalConfetti]);
+
   const playerWon = playerSeat !== null && winner === playerSeat;
   const playerLost = playerSeat !== null && winner !== null && winner !== playerSeat;
+  const finishReason: FinishReason | null = multiplayerSnapshot
+    ? getFinishReason(multiplayerSnapshot.state)
+    : null;
+
   const gameOverTitle = playerWon
     ? "You won!"
     : playerLost
@@ -250,11 +304,32 @@ export function MultiplayerGamePage({
       : winner
         ? `${formatPlayerColor(winner)} wins!`
         : "";
-  const gameOverDescription = playerWon
-    ? "Great game! Ready for another round?"
-    : playerLost
-      ? "Better luck next time. Want to try again?"
-      : "The game is over.";
+
+  function describeFinishReason(): string {
+    if (!finishReason) return "The game is over.";
+    if (playerWon) {
+      switch (finishReason) {
+        case "captured": return "You captured 10 of your opponent's stones.";
+        case "forfeit": return "Your opponent forfeited the game.";
+        case "timeout": return "Your opponent ran out of time.";
+      }
+    }
+    if (playerLost) {
+      switch (finishReason) {
+        case "captured": return "Your opponent captured 10 of your stones.";
+        case "forfeit": return "You forfeited the game.";
+        case "timeout": return "You ran out of time.";
+      }
+    }
+    // Spectator
+    switch (finishReason) {
+      case "captured": return `${formatPlayerColor(winner!)} captured 10 stones.`;
+      case "forfeit": return `${formatPlayerColor(winner === "white" ? "black" : "white")} forfeited the game.`;
+      case "timeout": return `${formatPlayerColor(winner === "white" ? "black" : "white")} ran out of time.`;
+    }
+  }
+
+  const gameOverDescription = describeFinishReason();
 
   const { whiteTime, blackTime } = useGameClock(
     multiplayerSnapshot?.clock ?? null,
@@ -1212,8 +1287,13 @@ export function MultiplayerGamePage({
         onOpenChange={setGameOverDialogOpen}
         title={gameOverTitle}
         description={gameOverDescription}
+        className="relative overflow-hidden"
       >
-        <div className="grid gap-2">
+        <canvas
+          ref={confettiCanvasRef}
+          className="pointer-events-none absolute inset-0 z-10 h-full w-full"
+        />
+        <div className="relative z-20 grid gap-2">
           {isMultiplayerParticipant &&
             connectionState === "connected" &&
             multiplayerSnapshot?.seats[playerSeat === "white" ? "black" : "white"]?.online ? (
