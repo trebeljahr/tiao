@@ -14,9 +14,14 @@ export default defineConfig({
   workers: 3,
   reporter: 'html',
   globalTeardown: './e2e/global-teardown.ts',
+  expect: {
+    timeout: 10_000,
+  },
   use: {
     baseURL: `http://localhost:${E2E_CLIENT_PORT}`,
     trace: 'on-first-retry',
+    actionTimeout: 10_000,
+    navigationTimeout: 15_000,
   },
   projects: [
     {

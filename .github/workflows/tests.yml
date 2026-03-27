@@ -90,18 +90,31 @@ jobs:
         if: steps.nm-cache.outputs.cache-hit != 'true'
         run: npm --prefix server ci
 
-      - name: Build repo
-        run: npm run build
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
-      - name: Start MinIO and initialize bucket
+      - name: Start MinIO and install Playwright (parallel)
         run: |
+          # Start MinIO in background
           docker run -d --name tiao-e2e-minio \
             -p 9002:9000 \
             -e MINIO_ROOT_USER=minioadmin \
             -e MINIO_ROOT_PASSWORD=minioadmin \
             --tmpfs /data \
             minio/minio:latest server /data
-          # Wait for MinIO to be ready
+
+          # Install Playwright while MinIO starts
+          if [ "${{ steps.playwright-cache.outputs.cache-hit }}" != "true" ]; then
+            npx playwright install --with-deps chromium
+          else
+            npx playwright install-deps chromium
+          fi
+
+          # Now initialize MinIO bucket (should be ready by now)
           for i in $(seq 1 15); do
             if curl -sf http://127.0.0.1:9002/minio/health/live; then break; fi
             sleep 1
@@ -110,21 +123,6 @@ jobs:
           /tmp/mc alias set ci http://127.0.0.1:9002 minioadmin minioadmin
           /tmp/mc mb --ignore-existing ci/tiao-e2e
           /tmp/mc anonymous set download ci/tiao-e2e
-
-      - name: Cache Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-
-      - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps chromium
-
-      - name: Install Playwright system deps (on cache hit)
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps chromium
 
       - name: Run e2e tests
         run: npx playwright test
