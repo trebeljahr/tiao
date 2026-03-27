@@ -632,8 +632,8 @@ export function MultiplayerGamePage({
                         </div>
                       ) : multiplayerWaitingOnOpponent ? (
                         <div className="flex items-center gap-2 min-w-0">
-                          {hasClock && (
-                            <InlineClockBadge timeMs={activeClockMs} className="ml-0 text-base" />
+                          {hasClock && yourClockMs != null && (
+                            <InlineClockBadge timeMs={yourClockMs} className="ml-0 text-base" />
                           )}
                           <motion.div
                             initial={{ opacity: 0, y: -8, scale: 0.96 }}
