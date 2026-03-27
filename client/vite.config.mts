@@ -1,6 +1,7 @@
 /// <reference types="vitest" />
 import path from "path";
 import { readFileSync } from "fs";
+import { execSync } from "child_process";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "tailwindcss";
@@ -8,7 +9,18 @@ import tailwindcss from "tailwindcss";
 const pkg = JSON.parse(
   readFileSync(path.resolve(__dirname, "../package.json"), "utf-8"),
 );
-const APP_VERSION = pkg.version as string;
+
+function getGitVersion(baseVersion: string): string {
+  try {
+    const commitCount = execSync("git rev-list --count HEAD", { encoding: "utf-8" }).trim();
+    const shortHash = execSync("git rev-parse --short HEAD", { encoding: "utf-8" }).trim();
+    return `${baseVersion}-build.${commitCount}+${shortHash}`;
+  } catch {
+    return baseVersion;
+  }
+}
+
+const APP_VERSION = getGitVersion(pkg.version as string);
 
 function silenceProxyErrors(proxy: import("http-proxy").Server) {
   proxy.on("error", (err, _req, res) => {
