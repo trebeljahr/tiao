@@ -143,18 +143,18 @@ export function ComputerGamePage({
                     <Button
                       variant="secondary"
                       className="flex items-center gap-2 border-[#dcc7a2]"
-                      onClick={() => handleStartGame(2, "black")}
-                    >
-                      <span className="h-4 w-4 rounded-full border border-[#191410] bg-[radial-gradient(circle_at_30%_28%,#5d554f,#2d2622_58%,#0f0c0b)]" />
-                      Play as Black
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      className="flex items-center gap-2 border-[#dcc7a2]"
                       onClick={() => handleStartGame(2, "white")}
                     >
                       <span className="h-4 w-4 rounded-full border border-[#ddd2bf] bg-[radial-gradient(circle_at_30%_28%,#fffdfa,#f4eee3_58%,#d9ccb8)]" />
                       Play as White
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      className="flex items-center gap-2 border-[#dcc7a2]"
+                      onClick={() => handleStartGame(2, "black")}
+                    >
+                      <span className="h-4 w-4 rounded-full border border-[#191410] bg-[radial-gradient(circle_at_30%_28%,#5d554f,#2d2622_58%,#0f0c0b)]" />
+                      Play as Black
                     </Button>
                   </div>
                 </div>
