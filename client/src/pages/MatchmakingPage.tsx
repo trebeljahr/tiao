@@ -95,7 +95,14 @@ export function MatchmakingPage({ auth, onOpenAuth, onLogout }: MatchmakingPageP
                     />
                   </div>
                   <p className="text-lg font-semibold text-[#5d4732]">Searching for opponent...</p>
-                  <p className="text-sm text-[#7a6656]">
+                  <p
+                    className="text-sm text-[#7a6656]"
+                    title={
+                      locationTimeControl
+                        ? `${Math.floor(locationTimeControl.initialMs / 60000)} min per player${locationTimeControl.incrementMs > 0 ? ` + ${Math.floor(locationTimeControl.incrementMs / 1000)}s added per move` : ", no increment"}`
+                        : "No time limit"
+                    }
+                  >
                     {locationTimeControl
                       ? `${Math.floor(locationTimeControl.initialMs / 60000)}+${Math.floor(locationTimeControl.incrementMs / 1000)}`
                       : "Unlimited"}

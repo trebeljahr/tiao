@@ -412,26 +412,38 @@ export function LobbyPage({ auth, onOpenAuth, onLogout }: LobbyPageProps) {
                   Unlimited time game
                 </Button>
 
-                <div className="grid grid-cols-3 gap-2">
-                  {TIME_CONTROL_PRESETS.map((preset) => (
-                    <Button
-                      key={preset.label}
-                      variant="secondary"
-                      className="flex flex-col items-center gap-0.5 h-auto py-2.5 border-[#dcc7a2] hover:border-[#b98d49] hover:bg-[#fff8ee] transition-all"
-                      onClick={() =>
-                        navigate("/matchmaking", {
-                          state: { timeControl: preset.timeControl },
-                        })
-                      }
-                    >
-                      <span className="text-sm font-bold text-[#2b1e14]">
-                        {preset.label}
-                      </span>
-                      <span className="text-[0.6rem] uppercase tracking-wider text-[#8d7760]">
-                        {preset.category}
-                      </span>
-                    </Button>
-                  ))}
+                <div className="space-y-2">
+                  <p className="text-[0.68rem] text-[#8d7760]">
+                    Format: <span className="font-semibold">minutes + seconds increment per move</span>
+                  </p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {TIME_CONTROL_PRESETS.map((preset) => {
+                      const minutes = Math.floor(preset.timeControl.initialMs / 60_000);
+                      const increment = Math.floor(preset.timeControl.incrementMs / 1_000);
+                      const tooltip = `${minutes} min${minutes !== 1 ? "s" : ""} per player${increment > 0 ? ` + ${increment}s added per move` : ", no increment"}`;
+
+                      return (
+                        <Button
+                          key={preset.label}
+                          variant="secondary"
+                          title={tooltip}
+                          className="flex flex-col items-center gap-0.5 h-auto py-2.5 border-[#dcc7a2] hover:border-[#b98d49] hover:bg-[#fff8ee] transition-all"
+                          onClick={() =>
+                            navigate("/matchmaking", {
+                              state: { timeControl: preset.timeControl },
+                            })
+                          }
+                        >
+                          <span className="text-sm font-bold text-[#2b1e14]">
+                            {preset.label}
+                          </span>
+                          <span className="text-[0.6rem] uppercase tracking-wider text-[#8d7760]">
+                            {preset.category}
+                          </span>
+                        </Button>
+                      );
+                    })}
+                  </div>
                 </div>
               </CardContent>
             </Card>
