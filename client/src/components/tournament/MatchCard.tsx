@@ -86,9 +86,9 @@ export function MatchCard({
                 <span className="truncate text-muted-foreground">TBD</span>
               )}
               {isDone && player?.playerId === match.winner && (
-                <Badge className="border-green-400 bg-green-50 text-green-700 text-[10px] px-1.5 py-0">
+                <span className="inline-flex items-center rounded-full border border-green-400 bg-green-50 px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wider text-green-700">
                   Won
-                </Badge>
+                </span>
               )}
               {match.status !== "pending" && match.status !== "bye" && (
                 <span className="text-xs text-muted-foreground">
