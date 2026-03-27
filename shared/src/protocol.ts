@@ -64,6 +64,8 @@ export type MultiplayerSnapshot = {
   tournamentId?: string | null;
 };
 
+export type FinishReason = "captured" | "forfeit" | "timeout";
+
 export type MultiplayerGameSummary = {
   gameId: string;
   roomType: MultiplayerRoomType;
@@ -73,6 +75,7 @@ export type MultiplayerGameSummary = {
   currentTurn: PlayerColor;
   historyLength: number;
   winner: PlayerColor | null;
+  finishReason: FinishReason | null;
   yourSeat: PlayerColor | null;
   score: ScoreState;
   players: PlayerSlot[];

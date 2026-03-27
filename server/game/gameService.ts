@@ -1,6 +1,7 @@
 import WebSocket from "ws";
 import {
   ClientToServerMessage,
+  FinishReason,
   MatchmakingState,
   MultiplayerGameSummary,
   MultiplayerGamesIndex,
@@ -1030,6 +1031,25 @@ export class GameService {
     };
   }
 
+  private static deriveFinishReason(
+    room: StoredMultiplayerRoom,
+  ): FinishReason | null {
+    if (room.status !== "finished") return null;
+
+    const history = room.state.history;
+    for (let i = history.length - 1; i >= 0; i--) {
+      const record = history[i];
+      if (record.type === "forfeit") {
+        return record.reason === "timeout" ? "timeout" : "forfeit";
+      }
+      if (record.type === "win") {
+        return "captured";
+      }
+    }
+
+    return "captured";
+  }
+
   private toSummary(
     room: StoredMultiplayerRoom,
     playerId: string
@@ -1043,6 +1063,7 @@ export class GameService {
       currentTurn: room.state.currentTurn,
       historyLength: room.state.history.length,
       winner: getWinner(room.state),
+      finishReason: GameService.deriveFinishReason(room),
       yourSeat: getPlayerColorForRoom(room, playerId),
       score: {
         black: room.state.score.black,

@@ -12,6 +12,7 @@ import type {
   MultiplayerSnapshot,
   MultiplayerGameSummary,
   SocialPlayerSummary,
+  FinishReason,
 } from "@shared";
 import { cn } from "@/lib/utils";
 import { formatClockTime } from "./GameClock";
@@ -203,6 +204,28 @@ export function createOptimisticSnapshot(
     rematch: isGameOver(state) ? snapshot.rematch : null,
     takeback: snapshot.takeback,
   };
+}
+
+export function formatFinishReason(reason: FinishReason | null): string {
+  switch (reason) {
+    case "captured":
+      return "Captured 10";
+    case "forfeit":
+      return "Forfeit";
+    case "timeout":
+      return "Timeout";
+    default:
+      return "";
+  }
+}
+
+export function getPlayerResult(
+  summary: MultiplayerGameSummary,
+): "won" | "lost" | null {
+  if (summary.status !== "finished" || !summary.winner || !summary.yourSeat) {
+    return null;
+  }
+  return summary.winner === summary.yourSeat ? "won" : "lost";
 }
 
 // --- Components ---
