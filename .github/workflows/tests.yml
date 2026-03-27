@@ -25,9 +25,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
+            node_modules
             client/node_modules
             server/node_modules
-          key: nm-${{ runner.os }}-${{ hashFiles('client/package-lock.json', 'server/package-lock.json') }}
+          key: nm-${{ runner.os }}-${{ hashFiles('package-lock.json', 'client/package-lock.json', 'server/package-lock.json') }}
+
+      - name: Install root dependencies
+        if: steps.nm-cache.outputs.cache-hit != 'true'
+        run: npm ci --ignore-scripts
 
       - name: Install client dependencies
         if: steps.nm-cache.outputs.cache-hit != 'true'
