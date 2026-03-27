@@ -215,7 +215,7 @@ export function ComputerGamePage() {
             </Card>
           </section>
         ) : (
-          <section className="grid gap-3 xl:min-h-[calc(100dvh-1rem)] xl:content-center xl:gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start">
+          <section className="grid gap-3 xl:min-h-[calc(100dvh-1rem)] xl:content-center xl:gap-5 xl:grid-cols-[minmax(0,1fr)_24rem] xl:items-start">
             <div className="flex items-center justify-center xl:items-start xl:justify-end">
               <div
                 className="relative isolate mx-auto w-full"

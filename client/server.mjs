@@ -11,7 +11,8 @@
 import { createServer } from "http";
 import { parse } from "url";
 import next from "next";
-import { createProxyServer } from "http-proxy";
+import httpProxy from "http-proxy";
+const { createProxyServer } = httpProxy;
 
 const dev = process.env.NODE_ENV !== "production";
 const port = parseInt(process.env.PORT || "3000", 10);

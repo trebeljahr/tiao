@@ -281,11 +281,15 @@ export function MultiplayerGamePage() {
     }
   }, [winner, playerSeat]);
 
-  useEffect(() => {
-    if (gameOverDialogOpen && confettiCanvasRef.current && !wasFinishedOnLoadRef.current) {
-      fireModalConfetti(confettiCanvasRef.current);
-    }
-  }, [gameOverDialogOpen, fireModalConfetti]);
+  const confettiCanvasCallback = useCallback(
+    (node: HTMLCanvasElement | null) => {
+      confettiCanvasRef.current = node;
+      if (node && !wasFinishedOnLoadRef.current) {
+        fireModalConfetti(node);
+      }
+    },
+    [fireModalConfetti],
+  );
 
   const playerWon = playerSeat !== null && winner === playerSeat;
   const playerLost = playerSeat !== null && winner !== null && winner !== playerSeat;
@@ -608,7 +612,7 @@ export function MultiplayerGamePage() {
         )}
 
       <main className="mx-auto flex max-w-[104rem] flex-col gap-5 px-4 pb-3 pt-16 sm:px-6 sm:pt-5 lg:px-6 lg:pb-4 xl:pt-2">
-        <section className="grid gap-3 xl:min-h-[calc(100dvh-1rem)] xl:content-center xl:gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start">
+        <section className="grid gap-3 xl:min-h-[calc(100dvh-1rem)] xl:content-center xl:gap-5 xl:grid-cols-[minmax(0,1fr)_24rem] xl:items-start">
           <div className="flex items-center justify-center xl:items-start xl:justify-end">
             <div className="relative isolate mx-auto w-full" style={boardWrapStyle}>
               {displayState && (
@@ -1290,18 +1294,20 @@ export function MultiplayerGamePage() {
         </div>
       </Dialog>
 
+      {gameOverDialogOpen && (
+        <canvas
+          ref={confettiCanvasCallback}
+          className="pointer-events-none fixed inset-0 z-[400] h-full w-full"
+        />
+      )}
+
       <Dialog
         open={gameOverDialogOpen}
         onOpenChange={setGameOverDialogOpen}
         title={gameOverTitle}
         description={gameOverDescription}
-        className="relative overflow-hidden"
       >
-        <canvas
-          ref={confettiCanvasRef}
-          className="pointer-events-none absolute inset-0 z-10 h-full w-full"
-        />
-        <div className="relative z-20 grid gap-2">
+        <div className="grid gap-2">
           {isMultiplayerParticipant &&
             connectionState === "connected" &&
             multiplayerSnapshot?.seats[playerSeat === "white" ? "black" : "white"]?.online ? (
