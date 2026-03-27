@@ -134,8 +134,9 @@ export function ComputerGamePage({
                         variant="secondary"
                         className={cn(
                           "border-[#dcc7a2]",
-                          selectedDifficulty === level &&
-                            "border-[#7b5f3f] bg-[#7b5f3f] text-white hover:bg-[#6b5030] hover:text-white",
+                          selectedDifficulty === level
+                            ? "pointer-events-none border-[#6b5030] bg-[#6b5030] text-white"
+                            : "hover:bg-[#ede3d2]",
                         )}
                         onClick={() => setSelectedDifficulty(level)}
                       >
@@ -154,8 +155,9 @@ export function ComputerGamePage({
                       variant="secondary"
                       className={cn(
                         "flex items-center gap-2 border-[#dcc7a2]",
-                        selectedColor === "random" &&
-                          "border-[#7b5f3f] bg-[#7b5f3f] text-white hover:bg-[#6b5030] hover:text-white",
+                        selectedColor === "random"
+                          ? "pointer-events-none border-[#6b5030] bg-[#6b5030] text-white"
+                          : "hover:bg-[#ede3d2]",
                       )}
                       onClick={() => setSelectedColor("random")}
                     >
@@ -172,8 +174,9 @@ export function ComputerGamePage({
                       variant="secondary"
                       className={cn(
                         "flex items-center gap-2 border-[#dcc7a2]",
-                        selectedColor === "white" &&
-                          "border-[#7b5f3f] bg-[#7b5f3f] text-white hover:bg-[#6b5030] hover:text-white",
+                        selectedColor === "white"
+                          ? "pointer-events-none border-[#6b5030] bg-[#6b5030] text-white"
+                          : "hover:bg-[#ede3d2]",
                       )}
                       onClick={() => setSelectedColor("white")}
                     >
@@ -184,8 +187,9 @@ export function ComputerGamePage({
                       variant="secondary"
                       className={cn(
                         "flex items-center gap-2 border-[#dcc7a2]",
-                        selectedColor === "black" &&
-                          "border-[#7b5f3f] bg-[#7b5f3f] text-white hover:bg-[#6b5030] hover:text-white",
+                        selectedColor === "black"
+                          ? "pointer-events-none border-[#6b5030] bg-[#6b5030] text-white"
+                          : "hover:bg-[#ede3d2]",
                       )}
                       onClick={() => setSelectedColor("black")}
                     >
