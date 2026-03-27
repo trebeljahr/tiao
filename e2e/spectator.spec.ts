@@ -64,8 +64,8 @@ test('spectator sees "Spectating" title and players see spectator badge', async 
   await spectatorPage.goto(gameUrl);
   await expect(spectatorPage.locator('[data-testid="cell-9-9"]')).toBeVisible();
 
-  // Spectator should see "Spectating" as the title
-  await expect(spectatorPage.locator('text=Spectating')).toBeVisible();
+  // Spectator should see "Spectating" heading
+  await expect(spectatorPage.locator('h3:has-text("Spectating")')).toBeVisible();
 
   // Players should see the spectator badge with count "1"
   await expect(alicePage.locator('[title="1 spectator"]')).toBeVisible({ timeout: 5000 });
@@ -86,9 +86,9 @@ test('lobby Watch a Game section navigates to game', async ({ page }) => {
   await expect(watchHeading).toBeVisible();
 
   // Type a game ID and submit
-  const input = page.locator('input[name="spectate-id"]');
-  await input.fill('ABCDEF');
-  await page.click('button:has-text("Watch")');
+  const spectateForm = page.locator('form:has(input[name="spectate-id"])');
+  await spectateForm.locator('input[name="spectate-id"]').fill('ABCDEF');
+  await spectateForm.locator('button[type="submit"]').click();
 
   // Should navigate to the game URL
   await expect(page).toHaveURL(/\/game\/ABCDEF/);

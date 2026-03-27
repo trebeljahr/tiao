@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { signUpViaUI } from './helpers';
 
 async function startMatchmaking(page: Page) {
   await page.goto('/');
@@ -27,6 +28,11 @@ test('matchmaking pairs two players into a game', async ({ browser }) => {
   const alicePage = await aliceContext.newPage();
   const bobPage = await bobContext.newPage();
 
+  const aliceName = `mm_a_${Math.random().toString(36).slice(2, 7)}`;
+  const bobName = `mm_b_${Math.random().toString(36).slice(2, 7)}`;
+  await signUpViaUI(alicePage, aliceName, 'password123');
+  await signUpViaUI(bobPage, bobName, 'password123');
+
   await startMatchmaking(alicePage);
   await expect(alicePage).toHaveURL(/\/matchmaking/);
   await expect(alicePage.locator('text=Searching')).toBeVisible();
@@ -45,11 +51,16 @@ test('matchmaking pairs two players into a game', async ({ browser }) => {
   await bobContext.close();
 });
 
-test('two anonymous players in matchmaking game have no console errors', async ({ browser }) => {
+test('matchmaking game has no console errors', async ({ browser }) => {
   const aliceContext = await browser.newContext();
   const bobContext = await browser.newContext();
   const alicePage = await aliceContext.newPage();
   const bobPage = await bobContext.newPage();
+
+  const aliceName = `mm_a_${Math.random().toString(36).slice(2, 7)}`;
+  const bobName = `mm_b_${Math.random().toString(36).slice(2, 7)}`;
+  await signUpViaUI(alicePage, aliceName, 'password123');
+  await signUpViaUI(bobPage, bobName, 'password123');
 
   // Collect console errors from both pages
   const aliceErrors: string[] = [];
@@ -97,6 +108,11 @@ test('timed matchmaking (30+0) pairs two players', async ({ browser }) => {
   const alicePage = await aliceContext.newPage();
   const bobPage = await bobContext.newPage();
 
+  const aliceName = `mm_a_${Math.random().toString(36).slice(2, 7)}`;
+  const bobName = `mm_b_${Math.random().toString(36).slice(2, 7)}`;
+  await signUpViaUI(alicePage, aliceName, 'password123');
+  await signUpViaUI(bobPage, bobName, 'password123');
+
   await startTimedMatchmaking(alicePage, '30+0');
   await expect(alicePage).toHaveURL(/\/matchmaking/);
   await expect(alicePage.locator('text=Searching')).toBeVisible();
@@ -117,6 +133,8 @@ test('timed matchmaking (30+0) pairs two players', async ({ browser }) => {
 });
 
 test('cancel matchmaking returns to lobby', async ({ page }) => {
+  const username = `mm_c_${Math.random().toString(36).slice(2, 7)}`;
+  await signUpViaUI(page, username, 'password123');
   await startMatchmaking(page);
   await expect(page).toHaveURL(/\/matchmaking/);
   await expect(page.locator('text=Searching')).toBeVisible();
@@ -130,6 +148,11 @@ test('different time controls do not match each other', async ({ browser }) => {
   const bobContext = await browser.newContext();
   const alicePage = await aliceContext.newPage();
   const bobPage = await bobContext.newPage();
+
+  const aliceName = `mm_a_${Math.random().toString(36).slice(2, 7)}`;
+  const bobName = `mm_b_${Math.random().toString(36).slice(2, 7)}`;
+  await signUpViaUI(alicePage, aliceName, 'password123');
+  await signUpViaUI(bobPage, bobName, 'password123');
 
   await startTimedMatchmaking(alicePage, '30+0');
   await expect(alicePage).toHaveURL(/\/matchmaking/);

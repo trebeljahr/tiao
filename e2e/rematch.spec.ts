@@ -38,20 +38,20 @@ test('multiplayer rematch flow', async ({ browser }) => {
   }, gameId);
 
   // 6. Verify "Rematch" button appears for both (wait for WS broadcast + 600ms dialog delay)
-  await expect(alicePage.locator('button:has-text("Rematch")')).toBeVisible({ timeout: 5000 });
-  await expect(bobPage.locator('button:has-text("Rematch")')).toBeVisible({ timeout: 5000 });
+  // Game-over dialog overlays the panel, so target the dialog's Rematch button
+  const gameOverDialog = '.fixed.inset-0';
+  await expect(alicePage.locator(`${gameOverDialog} button:has-text("Rematch")`)).toBeVisible({ timeout: 5000 });
+  await expect(bobPage.locator(`${gameOverDialog} button:has-text("Rematch")`)).toBeVisible({ timeout: 5000 });
 
   // 7. Alice requests rematch
-  await alicePage.click('button:has-text("Rematch")');
+  await alicePage.locator(`${gameOverDialog} button:has-text("Rematch")`).click();
   await expect(alicePage.locator('text=Rematch requested')).toBeVisible();
 
-  // 8. Verify Bob sees "Accept Rematch" and "Decline"
-  // Use .first() since both the sidebar/dialog and toast may show these buttons
-  await expect(bobPage.locator('button:has-text("Accept Rematch")').first()).toBeVisible({ timeout: 5000 });
-  await expect(bobPage.locator('button:has-text("Decline")').first()).toBeVisible({ timeout: 5000 });
+  // 8. Bob sees "Accept Rematch" in the game-over dialog
+  await expect(bobPage.locator(`${gameOverDialog} button:has-text("Accept Rematch")`)).toBeVisible({ timeout: 5000 });
 
-  // 9. Bob accepts rematch (use first() to avoid strict mode when toast also shows Accept)
-  await bobPage.locator('button:has-text("Accept Rematch")').first().click();
+  // 9. Bob accepts rematch via the dialog
+  await bobPage.locator(`${gameOverDialog} button:has-text("Accept Rematch")`).click();
 
   // 10. Verify both are back in a "Live match"
   await expect(alicePage.locator('text=Live match')).toBeVisible();

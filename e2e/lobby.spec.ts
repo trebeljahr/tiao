@@ -9,7 +9,8 @@ test.describe('Lobby', () => {
   });
 
   test('creating a game navigates to game page', async ({ page }) => {
-    await page.goto('/');
+    const username = `lobby_${Math.random().toString(36).slice(2, 7)}`;
+    await signUpViaUI(page, username, 'password123');
     await page.click('button:has-text("Create a game")');
     await expect(page).toHaveURL(/\/game\/[A-Z0-9]{6}/);
   });
