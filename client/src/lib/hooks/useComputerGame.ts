@@ -327,6 +327,11 @@ async function animatePlan(
 
   if (cancelledRef.current) return null;
 
+  // Pause after the last hop so the user can see the completed jump
+  // before captures are removed and the turn is confirmed.
+  await sleep(AI_JUMP_STEP_MS);
+  if (cancelledRef.current) return null;
+
   // Confirm the full jump
   const confirmed = confirmPendingJump(current);
   if (!confirmed.ok) return null;

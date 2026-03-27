@@ -30,23 +30,27 @@ export function useLocalGame(settings?: Partial<GameSettings>) {
   const localHistoryLengthRef = useRef(localGame.history.length);
 
   useEffect(() => {
+    // Find the last board move (skip meta-records like "win")
+    const findLastBoardMove = (): TurnRecord | null => {
+      for (let i = localGame.history.length - 1; i >= 0; i--) {
+        const r = localGame.history[i];
+        if (r.type === "put" || r.type === "jump") return r;
+      }
+      return null;
+    };
+
     if (localGame.history.length > localHistoryLengthRef.current) {
-      const lastTurn = localGame.history[localGame.history.length - 1];
-      if (lastTurn.type === "put" || lastTurn.type === "jump") {
+      const lastBoardMove = findLastBoardMove();
+      if (lastBoardMove) {
         setLocalScorePulse((prev) => ({
           ...prev,
           [localGame.currentTurn === "white" ? "black" : "white"]: Date.now(),
         }));
-        setLastMove(lastTurn);
+        setLastMove(lastBoardMove);
       }
     } else if (localGame.history.length < localHistoryLengthRef.current) {
       // History shrank (undo): update lastMove to reflect the new last turn
-      const lastTurn = localGame.history[localGame.history.length - 1];
-      if (lastTurn && (lastTurn.type === "put" || lastTurn.type === "jump")) {
-        setLastMove(lastTurn);
-      } else {
-        setLastMove(null);
-      }
+      setLastMove(findLastBoardMove());
     }
     localHistoryLengthRef.current = localGame.history.length;
   }, [localGame]);

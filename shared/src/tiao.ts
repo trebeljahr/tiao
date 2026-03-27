@@ -803,20 +803,14 @@ export function undoLastTurn(state: GameState): RuleResult<GameState> {
   }
 
   if (lastTurn.type === "win") {
-    return {
-      ok: false,
-      code: "GAME_OVER",
-      reason: "Cannot undo a win.",
-    };
+    // Strip the trailing "win" record and undo the actual winning move
+    const withoutWin = cloneGameState(state);
+    withoutWin.history.pop();
+    return undoLastTurn(withoutWin);
   }
 
   const nextState = cloneGameState(state);
   nextState.history.pop();
-
-  // Also pop a trailing win record if present (win follows the winning move)
-  if (nextState.history.length > 0 && nextState.history[nextState.history.length - 1].type === "win") {
-    nextState.history.pop();
-  }
 
   if (lastTurn.type === "put") {
     nextState.positions[lastTurn.position.y][lastTurn.position.x] = null;
