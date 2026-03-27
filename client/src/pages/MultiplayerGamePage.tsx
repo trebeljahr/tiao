@@ -46,6 +46,15 @@ import { useGameClock, useFirstMoveCountdown, InlineClockBadge, formatClockTime 
 import { cn } from "@/lib/utils";
 import { accessMultiplayerGame } from "@/lib/api";
 
+function AnimatedEllipsis() {
+  const [dots, setDots] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => setDots((d) => (d + 1) % 4), 500);
+    return () => clearInterval(interval);
+  }, []);
+  return <span className="inline-block w-[1.2em] text-left">{".".repeat(dots)}</span>;
+}
+
 type MultiplayerGamePageProps = {
   auth: AuthResponse | null;
   onOpenAuth: (mode: "login" | "signup") => void;
@@ -661,18 +670,9 @@ export function MultiplayerGamePage({
                       ) : null}
                     </div>
                   </div>
-                  <div className="flex items-end justify-between gap-4 border-t border-black/5 pt-4">
-                    <div className="space-y-1">
-                      <CardTitle className="font-display text-2xl text-[#2b1e14]">
-                        {multiplayerSnapshot?.status === "active"
-                          ? isSpectator
-                            ? "Spectating"
-                            : "Live match"
-                          : multiplayerStatusTitle}
-                      </CardTitle>
-                    </div>
+                  <div className="flex flex-col gap-3 border-t border-black/5 pt-4 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
                     {multiplayerSnapshot && (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 sm:order-2">
                         <RoomCodeCopyPill
                           gameId={multiplayerSnapshot.gameId}
                           copied={
@@ -700,6 +700,18 @@ export function MultiplayerGamePage({
                         )}
                       </div>
                     )}
+                    <div className="space-y-1 sm:order-1">
+                      <CardTitle className="font-display text-2xl text-[#2b1e14]">
+                        {multiplayerSnapshot?.status === "active"
+                          ? isSpectator
+                            ? "Spectating"
+                            : "Live match"
+                          : multiplayerStatusTitle}
+                        {multiplayerSnapshot?.status === "waiting" && (
+                          <AnimatedEllipsis />
+                        )}
+                      </CardTitle>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-5">
