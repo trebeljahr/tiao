@@ -99,7 +99,7 @@ export function PlayerIdentityRow({
         <button
           type="button"
           title={`Send friend request to ${player.displayName}`}
-          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20 transition-colors hover:bg-white/35"
+          className="flex shrink-0 items-center gap-1 rounded-full bg-white/20 px-2 py-0.5 text-[0.65rem] font-semibold transition-colors hover:bg-white/35 disabled:opacity-50"
           onClick={onAddFriend}
           disabled={addFriendBusy}
         >
@@ -107,10 +107,11 @@ export function PlayerIdentityRow({
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
             fill="currentColor"
-            className="h-3 w-3"
+            className="h-3.5 w-3.5"
           >
             <path d="M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM2.046 15.253c-.058.468.172.92.57 1.175A9.953 9.953 0 0 0 8 18c1.982 0 3.83-.578 5.384-1.573.398-.254.628-.707.57-1.175a6.001 6.001 0 0 0-11.908 0ZM15.75 6.5a.75.75 0 0 0-1.5 0v2h-2a.75.75 0 0 0 0 1.5h2v2a.75.75 0 0 0 1.5 0v-2h2a.75.75 0 0 0 0-1.5h-2v-2Z" />
           </svg>
+          Add friend
         </button>
       )}
 

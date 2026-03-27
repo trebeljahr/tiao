@@ -18,8 +18,10 @@ import {
   declineGameInvitation,
 } from "../api";
 import { toastError } from "../errors";
+import { useSocialNotifications } from "../SocialNotificationsContext";
 
 export function useSocialData(auth: AuthResponse | null, canToastIncomingInvites: boolean) {
+  const { refreshNotifications } = useSocialNotifications();
   const [socialOverview, setSocialOverview] = useState<SocialOverview>(
     EMPTY_SOCIAL_OVERVIEW,
   );
@@ -75,6 +77,7 @@ export function useSocialData(auth: AuthResponse | null, canToastIncomingInvites
       try {
         const response = await getSocialOverview();
         applySocialOverview(response.overview, options.allowInviteToast ?? false);
+        refreshNotifications();
       } catch (error) {
         if (!options.silent) {
           toastError(error);
@@ -83,7 +86,7 @@ export function useSocialData(auth: AuthResponse | null, canToastIncomingInvites
         setSocialLoading(false);
       }
     },
-    [auth, applySocialOverview],
+    [auth, applySocialOverview, refreshNotifications],
   );
 
   const runFriendSearch = useCallback(async () => {

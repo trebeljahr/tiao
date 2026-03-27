@@ -202,7 +202,8 @@ export function MultiplayerGamePage() {
   const displayState = reviewBoardState ?? multiplayerSnapshot?.state ?? null;
 
   const reviewLastMove = (() => {
-    if (isReviewMode && multiplayerSnapshot && reviewMoveIndex !== null && reviewMoveIndex >= 0) {
+    if (isReviewMode && multiplayerSnapshot && reviewMoveIndex !== null) {
+      if (reviewMoveIndex < 0) return null;
       const rec = multiplayerSnapshot.state.history[reviewMoveIndex];
       return rec && isBoardMove(rec) ? rec : null;
     }
