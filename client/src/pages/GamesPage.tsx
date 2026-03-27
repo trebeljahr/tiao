@@ -201,10 +201,10 @@ export function GamesPage({ auth, onOpenAuth, onLogout }: GamesPageProps) {
                           <Badge className={cn(
                             "text-xs font-semibold",
                             result === "won"
-                              ? "bg-[#e8f2d8] text-[#4b6537]"
+                              ? "bg-[#4b8b2a] text-white"
                               : "bg-[#f8ddd8] text-[#7a3328]",
                           )}>
-                            {result === "won" ? "Won" : "Lost"}
+                            {result === "won" ? `Won as ${game.yourSeat}` : `Lost as ${game.yourSeat}`}
                           </Badge>
                         )}
                         {!result && game.winner && (
