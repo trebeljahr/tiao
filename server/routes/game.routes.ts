@@ -197,7 +197,15 @@ router.post("/games", async (req: Request, res: Response) => {
   }
 
   try {
-    const snapshot = await gameService.createGame(player);
+    const { boardSize, scoreToWin } = req.body ?? {};
+    const gameSettings =
+      boardSize != null || scoreToWin != null
+        ? {
+            boardSize: boardSize != null ? Number(boardSize) : undefined,
+            scoreToWin: scoreToWin != null ? Number(scoreToWin) : undefined,
+          }
+        : undefined;
+    const snapshot = await gameService.createGame(player, { gameSettings });
     return res.status(201).json({ snapshot });
   } catch (error) {
     return respondWithGameServiceError(

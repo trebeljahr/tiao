@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import type { PlayerColor, Position } from "@shared";
+import type { GameSettings, PlayerColor, Position } from "@shared";
 import {
   isGameOver,
   undoLastTurn,
@@ -20,8 +20,8 @@ import type { GameState } from "@shared";
 const AI_LINGER_MS = 600;
 const AI_JUMP_STEP_MS = 350;
 
-export function useComputerGame(difficulty: AIDifficulty = 3) {
-  const local = useLocalGame();
+export function useComputerGame(difficulty: AIDifficulty = 3, settings?: Partial<GameSettings>) {
+  const local = useLocalGame(settings);
   const [computerColor, setComputerColor] = useState<PlayerColor>(randomComputerColor);
   const [computerThinking, setComputerThinking] = useState(false);
   const [thinkProgress, setThinkProgress] = useState(0);

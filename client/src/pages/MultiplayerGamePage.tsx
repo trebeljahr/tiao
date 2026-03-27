@@ -207,7 +207,10 @@ export function MultiplayerGamePage({
 
   const reviewBoardState =
     isReviewMode && multiplayerSnapshot && reviewMoveIndex !== null
-      ? replayToMove(multiplayerSnapshot.state.history, reviewMoveIndex)
+      ? replayToMove(multiplayerSnapshot.state.history, reviewMoveIndex, {
+          boardSize: multiplayerSnapshot.state.boardSize,
+          scoreToWin: multiplayerSnapshot.state.scoreToWin,
+        })
       : null;
 
   const displayState = reviewBoardState ?? multiplayerSnapshot?.state ?? null;
@@ -822,6 +825,7 @@ export function MultiplayerGamePage({
                               pulseKey={0}
                               className="rounded-3xl border border-black/10 bg-[linear-gradient(180deg,#39312b,#14100d)] p-5 text-[#f9f2e8]"
                               labelClassName="text-xs uppercase tracking-wider"
+                              scoreToWin={multiplayerSnapshot.state.scoreToWin}
                             />
                             <AnimatedScoreTile
                               label="White"
@@ -832,6 +836,7 @@ export function MultiplayerGamePage({
                               pulseKey={0}
                               className="rounded-3xl border border-[#d3c3ad] bg-[linear-gradient(180deg,#fffef8,#efe4d1)] p-5 text-[#2b1e14]"
                               labelClassName="text-xs uppercase tracking-wider"
+                              scoreToWin={multiplayerSnapshot.state.scoreToWin}
                             />
                           </div>
                           <div className="space-y-2">
@@ -995,6 +1000,7 @@ export function MultiplayerGamePage({
                                         }
                                       : undefined
                                   }
+                                  scoreToWin={multiplayerSnapshot.state.scoreToWin}
                                 />
                               );
                             },

@@ -166,9 +166,12 @@ export function logoutPlayer() {
   });
 }
 
-export function createMultiplayerGame() {
+export function createMultiplayerGame(
+  settings?: { boardSize?: number; scoreToWin?: number },
+) {
   return request<{ snapshot: MultiplayerSnapshot }>("/api/games", {
     method: "POST",
+    body: settings,
   });
 }
 

@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import {
   createInitialGameState,
+  GameSettings,
   Position,
   GameState,
   PlayerColor,
@@ -15,9 +16,9 @@ import {
   isGameOver,
 } from "@shared";
 
-export function useLocalGame() {
+export function useLocalGame(settings?: Partial<GameSettings>) {
   const [localGame, setLocalGame] = useState<GameState>(() =>
-    createInitialGameState(),
+    createInitialGameState(settings),
   );
   const [localSelection, setLocalSelection] = useState<Position | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
@@ -51,11 +52,11 @@ export function useLocalGame() {
   }, [localGame]);
 
   const resetLocalGame = useCallback(() => {
-    setLocalGame(createInitialGameState());
+    setLocalGame(createInitialGameState(settings));
     setLocalSelection(null);
     setLocalError(null);
     setLastMove(null);
-  }, []);
+  }, [settings]);
 
   const handleLocalConfirmPendingJump = useCallback(() => {
     const result = confirmPendingJump(localGame);

@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useCallback, useMemo } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import type { AuthResponse, PlayerColor } from "@shared";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,11 +35,21 @@ export function ComputerGamePage({
   onLogout,
 }: ComputerGamePageProps) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const gameSettings = useMemo(() => {
+    const bs = searchParams.get("boardSize");
+    const stw = searchParams.get("scoreToWin");
+    if (!bs && !stw) return undefined;
+    return {
+      boardSize: bs ? Number(bs) : undefined,
+      scoreToWin: stw ? Number(stw) : undefined,
+    };
+  }, [searchParams]);
   const [navOpen, setNavOpen] = useState(false);
   const [difficulty, setDifficulty] = useState<AIDifficulty | null>(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState<AIDifficulty>(2);
   const [selectedColor, setSelectedColor] = useState<PlayerColor | "random">("random");
-  const computer = useComputerGame(difficulty ?? 3);
+  const computer = useComputerGame(difficulty ?? 3, gameSettings);
 
   const handleStartGame = useCallback(() => {
     setDifficulty(selectedDifficulty);
@@ -269,6 +279,7 @@ export function ComputerGamePage({
                         pulseKey={computer.localScorePulse.black}
                         className="rounded-3xl border border-black/10 bg-[linear-gradient(180deg,#39312b,#14100d)] p-5 text-[#f9f2e8] shadow-[0_18px_32px_-26px_rgba(0,0,0,0.9)]"
                         labelClassName="text-xs uppercase tracking-[0.24em] text-[#d9cec2]"
+                        scoreToWin={computer.localGame.scoreToWin}
                       />
                       <AnimatedScoreTile
                         label={computer.computerColor === "white" ? "White (AI)" : "White (You)"}
@@ -276,6 +287,7 @@ export function ComputerGamePage({
                         pulseKey={computer.localScorePulse.white}
                         className="rounded-3xl border border-[#d3c3ad] bg-[linear-gradient(180deg,#fffef8,#efe4d1)] p-5 text-[#2b1e14] shadow-[0_18px_32px_-26px_rgba(84,61,36,0.45)]"
                         labelClassName="text-xs uppercase tracking-[0.24em] text-[#847261]"
+                        scoreToWin={computer.localGame.scoreToWin}
                       />
                     </div>
 

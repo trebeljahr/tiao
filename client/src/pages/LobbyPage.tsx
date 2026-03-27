@@ -153,6 +153,20 @@ export function LobbyPage({ auth, onOpenAuth, onLogout }: LobbyPageProps) {
   const [navOpen, setNavOpen] = useState(false);
   const [joinGameId, setJoinGameId] = useState("");
   const [multiplayerBusy, setMultiplayerBusy] = useState(false);
+  const [showGameSettings, setShowGameSettings] = useState(false);
+  const [boardSize, setBoardSize] = useState(19);
+  const [scoreToWin, setScoreToWin] = useState(10);
+  const [showLocalSettings, setShowLocalSettings] = useState(false);
+  const [localBoardSize, setLocalBoardSize] = useState(19);
+  const [localScoreToWin, setLocalScoreToWin] = useState(10);
+
+  function localGameSettingsParams() {
+    if (localBoardSize === 19 && localScoreToWin === 10) return "";
+    const params = new URLSearchParams();
+    if (localBoardSize !== 19) params.set("boardSize", String(localBoardSize));
+    if (localScoreToWin !== 10) params.set("scoreToWin", String(localScoreToWin));
+    return `?${params}`;
+  }
 
   const activeGames = multiplayerGames.active ?? [];
   const finishedGames = multiplayerGames.finished ?? [];
@@ -190,7 +204,11 @@ export function LobbyPage({ auth, onOpenAuth, onLogout }: LobbyPageProps) {
 
     setMultiplayerBusy(true);
     try {
-      const response = await createMultiplayerGame();
+      const settings =
+        boardSize !== 19 || scoreToWin !== 10
+          ? { boardSize, scoreToWin }
+          : undefined;
+      const response = await createMultiplayerGame(settings);
       navigate(`/game/${response.snapshot.gameId}`);
     } catch (error) {
       toastError(error);
@@ -297,7 +315,10 @@ export function LobbyPage({ auth, onOpenAuth, onLogout }: LobbyPageProps) {
                 <Button
                   size="lg"
                   className="w-full h-12 text-base"
-                  onClick={() => navigate("/local")}
+                  onClick={() => {
+                    const params = localGameSettingsParams();
+                    navigate(`/local${params}`);
+                  }}
                 >
                   Play with a Friend
                 </Button>
@@ -312,10 +333,87 @@ export function LobbyPage({ auth, onOpenAuth, onLogout }: LobbyPageProps) {
                   size="lg"
                   variant="secondary"
                   className="w-full h-12 text-base border-[#dcc7a2]"
-                  onClick={() => navigate("/computer")}
+                  onClick={() => {
+                    const params = localGameSettingsParams();
+                    navigate(`/computer${params}`);
+                  }}
                 >
                   Play with a Bot
                 </Button>
+
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-center gap-1.5 text-xs text-[#8d7760] hover:text-[#6e5437] transition-colors"
+                  onClick={() => setShowLocalSettings((v) => !v)}
+                >
+                  <svg
+                    viewBox="0 0 16 16"
+                    className={cn(
+                      "h-3 w-3 transition-transform",
+                      showLocalSettings && "rotate-90",
+                    )}
+                    fill="currentColor"
+                  >
+                    <path d="M6 3l5 5-5 5V3z" />
+                  </svg>
+                  Game Settings
+                  {(localBoardSize !== 19 || localScoreToWin !== 10) && (
+                    <span className="text-[#b98d49]">
+                      ({localBoardSize}x{localBoardSize}, {localScoreToWin} to win)
+                    </span>
+                  )}
+                </button>
+
+                {showLocalSettings && (
+                  <div className="space-y-3 rounded-lg border border-[#dcc7a2] bg-white/40 p-3">
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-[#6e5437]">
+                        Board Size
+                      </label>
+                      <div className="flex gap-2">
+                        {[9, 13, 19].map((size) => (
+                          <Button
+                            key={size}
+                            variant={localBoardSize === size ? "default" : "outline"}
+                            size="sm"
+                            className={cn(
+                              "flex-1",
+                              localBoardSize === size
+                                ? ""
+                                : "border-[#dcc7a2] hover:bg-[#faefd8]",
+                            )}
+                            onClick={() => setLocalBoardSize(size)}
+                          >
+                            {size}x{size}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-[#6e5437]">
+                        Score to Win
+                      </label>
+                      <div className="flex gap-2">
+                        {[5, 10, 15, 20].map((score) => (
+                          <Button
+                            key={score}
+                            variant={localScoreToWin === score ? "default" : "outline"}
+                            size="sm"
+                            className={cn(
+                              "flex-1",
+                              localScoreToWin === score
+                                ? ""
+                                : "border-[#dcc7a2] hover:bg-[#faefd8]",
+                            )}
+                            onClick={() => setLocalScoreToWin(score)}
+                          >
+                            {score}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </motion.div>
@@ -342,14 +440,90 @@ export function LobbyPage({ auth, onOpenAuth, onLogout }: LobbyPageProps) {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6 pb-6">
-                <Button
-                  size="lg"
-                  className="w-full h-12 text-base"
-                  onClick={handleCreateRoom}
-                  disabled={multiplayerBusy}
-                >
-                  {multiplayerBusy ? "Creating..." : "Create a game"}
-                </Button>
+                <div className="space-y-3">
+                  <Button
+                    size="lg"
+                    className="w-full h-12 text-base"
+                    onClick={handleCreateRoom}
+                    disabled={multiplayerBusy}
+                  >
+                    {multiplayerBusy ? "Creating..." : "Create a game"}
+                  </Button>
+
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-center gap-1.5 text-xs text-[#8d7760] hover:text-[#6e5437] transition-colors"
+                    onClick={() => setShowGameSettings((v) => !v)}
+                  >
+                    <svg
+                      viewBox="0 0 16 16"
+                      className={cn(
+                        "h-3 w-3 transition-transform",
+                        showGameSettings && "rotate-90",
+                      )}
+                      fill="currentColor"
+                    >
+                      <path d="M6 3l5 5-5 5V3z" />
+                    </svg>
+                    Game Settings
+                    {(boardSize !== 19 || scoreToWin !== 10) && (
+                      <span className="text-[#b98d49]">
+                        ({boardSize}x{boardSize}, {scoreToWin} to win)
+                      </span>
+                    )}
+                  </button>
+
+                  {showGameSettings && (
+                    <div className="space-y-3 rounded-lg border border-[#dcc7a2] bg-white/40 p-3">
+                      <div>
+                        <label className="mb-1.5 block text-xs font-medium text-[#6e5437]">
+                          Board Size
+                        </label>
+                        <div className="flex gap-2">
+                          {[9, 13, 19].map((size) => (
+                            <Button
+                              key={size}
+                              variant={boardSize === size ? "default" : "outline"}
+                              size="sm"
+                              className={cn(
+                                "flex-1",
+                                boardSize === size
+                                  ? ""
+                                  : "border-[#dcc7a2] hover:bg-[#faefd8]",
+                              )}
+                              onClick={() => setBoardSize(size)}
+                            >
+                              {size}x{size}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="mb-1.5 block text-xs font-medium text-[#6e5437]">
+                          Score to Win
+                        </label>
+                        <div className="flex gap-2">
+                          {[5, 10, 15, 20].map((score) => (
+                            <Button
+                              key={score}
+                              variant={scoreToWin === score ? "default" : "outline"}
+                              size="sm"
+                              className={cn(
+                                "flex-1",
+                                scoreToWin === score
+                                  ? ""
+                                  : "border-[#dcc7a2] hover:bg-[#faefd8]",
+                              )}
+                              onClick={() => setScoreToWin(score)}
+                            >
+                              {score}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] text-[#8d7760]">
                   <span className="h-px flex-1 bg-[#dcc7a2]" />

@@ -123,8 +123,8 @@ function xorshift32(rng: { v: number }): number {
 
 export function computeZobristHash(state: GameState): number {
   let hash = state.currentTurn === "black" ? zobristSide : 0;
-  for (let y = 0; y < BOARD_SIZE; y++) {
-    for (let x = 0; x < BOARD_SIZE; x++) {
+  for (let y = 0; y < state.boardSize; y++) {
+    for (let x = 0; x < state.boardSize; x++) {
       const tile = state.positions[y][x];
       if (tile) {
         hash ^= zobristPiece[y][x][tile === "black" ? 0 : 1];
@@ -226,12 +226,13 @@ export function generateMoves(
   }
 
   // Placement moves — prioritize positions near existing stones and center
-  const center = (BOARD_SIZE - 1) / 2;
+  const bs = state.boardSize;
+  const center = (bs - 1) / 2;
   const placements: Array<{ pos: Position; priority: number }> = [];
 
   let checked = 0;
-  for (let y = 0; y < BOARD_SIZE; y++) {
-    for (let x = 0; x < BOARD_SIZE; x++) {
+  for (let y = 0; y < bs; y++) {
+    for (let x = 0; x < bs; x++) {
       // Check abort periodically during the expensive canPlacePiece loop
       if (abort?.aborted) return moves;
       if (state.positions[y][x] !== null) continue;
@@ -246,9 +247,9 @@ export function generateMoves(
         const ny = y + dy;
         if (
           nx >= 0 &&
-          nx < BOARD_SIZE &&
+          nx < bs &&
           ny >= 0 &&
-          ny < BOARD_SIZE &&
+          ny < bs &&
           state.positions[ny][nx] !== null
         ) {
           adj++;
@@ -275,6 +276,8 @@ export function applyEngineMove(state: GameState, move: EngineMove): GameState {
     const positions = state.positions.map((row) => [...row]);
     positions[move.position.y][move.position.x] = state.currentTurn;
     return {
+      boardSize: state.boardSize,
+      scoreToWin: state.scoreToWin,
       positions,
       currentTurn: otherColor(state.currentTurn),
       pendingJump: [],
@@ -303,6 +306,8 @@ export function applyEngineMove(state: GameState, move: EngineMove): GameState {
   newScore[color] += captures;
 
   return {
+    boardSize: state.boardSize,
+    scoreToWin: state.scoreToWin,
     positions,
     currentTurn: otherColor(color),
     pendingJump: [],
@@ -333,15 +338,16 @@ export function evaluate(state: GameState): number {
   let oppCenterScore = 0;
   let myConnections = 0;
   let oppConnections = 0;
-  const center = (BOARD_SIZE - 1) / 2;
+  const bs = state.boardSize;
+  const center = (bs - 1) / 2;
 
-  for (let y = 0; y < BOARD_SIZE; y++) {
-    for (let x = 0; x < BOARD_SIZE; x++) {
+  for (let y = 0; y < bs; y++) {
+    for (let x = 0; x < bs; x++) {
       const tile = state.positions[y][x];
       if (!tile) continue;
 
       const dist = Math.abs(x - center) + Math.abs(y - center);
-      const centerVal = 18 - dist;
+      const centerVal = bs - 1 - dist;
 
       if (tile === me) {
         myPieces++;
@@ -351,9 +357,9 @@ export function evaluate(state: GameState): number {
           const ny = y + dy;
           if (
             nx >= 0 &&
-            nx < BOARD_SIZE &&
+            nx < bs &&
             ny >= 0 &&
-            ny < BOARD_SIZE &&
+            ny < bs &&
             state.positions[ny][nx] === me
           ) {
             myConnections++;
@@ -367,9 +373,9 @@ export function evaluate(state: GameState): number {
           const ny = y + dy;
           if (
             nx >= 0 &&
-            nx < BOARD_SIZE &&
+            nx < bs &&
             ny >= 0 &&
-            ny < BOARD_SIZE &&
+            ny < bs &&
             state.positions[ny][nx] === opp
           ) {
             oppConnections++;
@@ -397,8 +403,9 @@ function orderMoves(
   depth: number,
   ctx: SearchContext,
   ttBestMoveKey: string | null,
+  boardSize: number = BOARD_SIZE,
 ): EngineMove[] {
-  const center = (BOARD_SIZE - 1) / 2;
+  const center = (boardSize - 1) / 2;
 
   return [...moves].sort((a, b) => {
     const keyA = moveKey(a);
@@ -570,6 +577,8 @@ function negamax(
     state.pendingJump.length === 0
   ) {
     const nullState: GameState = {
+      boardSize: state.boardSize,
+      scoreToWin: state.scoreToWin,
       positions: state.positions,
       currentTurn: otherColor(state.currentTurn),
       pendingJump: [],
@@ -596,7 +605,7 @@ function negamax(
   if (moves.length === 0) return evaluate(state);
   if (ctx.abort.aborted) return 0;
 
-  let orderedMoves = orderMoves(moves, depth, ctx, ttBestMoveKey);
+  let orderedMoves = orderMoves(moves, depth, ctx, ttBestMoveKey, state.boardSize);
 
   // Limit moves at internal nodes to keep search tractable
   if (orderedMoves.length > MAX_MOVES) {
@@ -664,7 +673,7 @@ function searchRoot(
 
   const hash = computeZobristHash(state);
   const ttResult = ttProbe(ctx, hash, depth, -INF, INF);
-  let orderedMoves = orderMoves(moves, 0, ctx, ttResult.bestMoveKey);
+  let orderedMoves = orderMoves(moves, 0, ctx, ttResult.bestMoveKey, state.boardSize);
 
   // Limit root moves to keep deep searches tractable on open boards
   if (orderedMoves.length > MAX_MOVES) {

@@ -52,7 +52,14 @@ export function isBoardMove(record: TurnRecord): record is PutTurn | JumpTurn {
 
 export type ScoreState = Record<PlayerColor, number>;
 
+export type GameSettings = {
+  boardSize: number;
+  scoreToWin: number;
+};
+
 export type GameState = {
+  boardSize: number;
+  scoreToWin: number;
   positions: TileState[][];
   currentTurn: PlayerColor;
   pendingJump: JumpStep[];
@@ -104,9 +111,9 @@ const ALL_JUMP_DIRECTIONS = ALL_DIRECTIONS.map(({ dx, dy }) => ({
   dy: dy * 2,
 }));
 
-function createEmptyBoard(): TileState[][] {
-  return Array.from({ length: BOARD_SIZE }, () =>
-    Array.from({ length: BOARD_SIZE }, () => null)
+function createEmptyBoard(size: number = BOARD_SIZE): TileState[][] {
+  return Array.from({ length: size }, () =>
+    Array.from({ length: size }, () => null)
   );
 }
 
@@ -155,6 +162,8 @@ function cloneHistoryRecord(record: TurnRecord): TurnRecord {
 
 export function cloneGameState(state: GameState): GameState {
   return {
+    boardSize: state.boardSize,
+    scoreToWin: state.scoreToWin,
     positions: state.positions.map((row) => [...row]),
     currentTurn: state.currentTurn,
     pendingJump: state.pendingJump.map(cloneJumpStep),
@@ -164,9 +173,15 @@ export function cloneGameState(state: GameState): GameState {
   };
 }
 
-export function createInitialGameState(): GameState {
+export function createInitialGameState(
+  settings?: Partial<GameSettings>,
+): GameState {
+  const boardSize = settings?.boardSize ?? BOARD_SIZE;
+  const scoreToWin = settings?.scoreToWin ?? SCORE_TO_WIN;
   return {
-    positions: createEmptyBoard(),
+    boardSize,
+    scoreToWin,
+    positions: createEmptyBoard(boardSize),
     currentTurn: "white",
     pendingJump: [],
     pendingCaptures: [],
@@ -182,12 +197,12 @@ export function otherColor(color: PlayerColor): PlayerColor {
   return color === "white" ? "black" : "white";
 }
 
-export function isInBounds(position: Position): boolean {
+export function isInBounds(position: Position, boardSize: number = BOARD_SIZE): boolean {
   return (
     position.x >= 0 &&
-    position.x < BOARD_SIZE &&
+    position.x < boardSize &&
     position.y >= 0 &&
-    position.y < BOARD_SIZE
+    position.y < boardSize
   );
 }
 
@@ -204,18 +219,20 @@ export function getTile(state: GameState, position: Position): TileState {
 }
 
 export function isGameOver(state: GameState): boolean {
-  if (state.score.black >= SCORE_TO_WIN || state.score.white >= SCORE_TO_WIN) {
+  const target = state.scoreToWin ?? SCORE_TO_WIN;
+  if (state.score.black >= target || state.score.white >= target) {
     return true;
   }
   return state.history.some((r) => r.type === "win");
 }
 
 export function getWinner(state: GameState): PlayerColor | null {
-  if (state.score.black >= SCORE_TO_WIN) {
+  const target = state.scoreToWin ?? SCORE_TO_WIN;
+  if (state.score.black >= target) {
     return "black";
   }
 
-  if (state.score.white >= SCORE_TO_WIN) {
+  if (state.score.white >= target) {
     return "white";
   }
 
@@ -321,7 +338,7 @@ export function findConnectedCluster(
         y: current.y + dy,
       };
 
-      if (isInBounds(next) && !visited.has(`${next.x},${next.y}`)) {
+      if (isInBounds(next, state.boardSize) && !visited.has(`${next.x},${next.y}`)) {
         stack.push(next);
       }
     }
@@ -352,7 +369,7 @@ export function getJumpTargets(
       y: from.y + dy,
     };
 
-    if (!isInBounds(middle) || !isInBounds(destination)) {
+    if (!isInBounds(middle, state.boardSize) || !isInBounds(destination, state.boardSize)) {
       continue;
     }
 
@@ -377,24 +394,24 @@ function positionOnTopEdge(position: Position): boolean {
   return position.y === 0;
 }
 
-function positionOnBottomEdge(position: Position): boolean {
-  return position.y === BOARD_SIZE - 1;
+function positionOnBottomEdge(position: Position, boardSize: number = BOARD_SIZE): boolean {
+  return position.y === boardSize - 1;
 }
 
 function positionOnLeftEdge(position: Position): boolean {
   return position.x === 0;
 }
 
-function positionOnRightEdge(position: Position): boolean {
-  return position.x === BOARD_SIZE - 1;
+function positionOnRightEdge(position: Position, boardSize: number = BOARD_SIZE): boolean {
+  return position.x === boardSize - 1;
 }
 
-export function isBorderPosition(position: Position): boolean {
+export function isBorderPosition(position: Position, boardSize: number = BOARD_SIZE): boolean {
   return (
     positionOnTopEdge(position) ||
-    positionOnBottomEdge(position) ||
+    positionOnBottomEdge(position, boardSize) ||
     positionOnLeftEdge(position) ||
-    positionOnRightEdge(position)
+    positionOnRightEdge(position, boardSize)
   );
 }
 
@@ -413,7 +430,7 @@ function positionCouldBeJumpedByEnemy(
       y: position.y + dy / 2,
     };
 
-    if (!isInBounds(jumpingPosition) || !isInBounds(middle)) {
+    if (!isInBounds(jumpingPosition, state.boardSize) || !isInBounds(middle, state.boardSize)) {
       continue;
     }
 
@@ -451,7 +468,7 @@ function violatesClusterRule(state: GameState, position: Position): boolean {
       y: position.y + dy,
     };
 
-    if (!isInBounds(adjacent)) {
+    if (!isInBounds(adjacent, state.boardSize)) {
       continue;
     }
 
@@ -474,7 +491,7 @@ function violatesClusterRule(state: GameState, position: Position): boolean {
 }
 
 function violatesBorderRule(state: GameState, position: Position): boolean {
-  if (!isBorderPosition(position)) {
+  if (!isBorderPosition(position, state.boardSize)) {
     return false;
   }
 
@@ -490,7 +507,7 @@ export function canPlacePiece(state: GameState, position: Position): RuleResult<
     };
   }
 
-  if (!isInBounds(position)) {
+  if (!isInBounds(position, state.boardSize)) {
     return {
       ok: false,
       code: "OUT_OF_BOUNDS",
@@ -574,7 +591,7 @@ export function canJumpFrom(
     };
   }
 
-  if (!isInBounds(from)) {
+  if (!isInBounds(from, state.boardSize)) {
     return {
       ok: false,
       code: "OUT_OF_BOUNDS",
@@ -627,7 +644,7 @@ export function jumpPiece(
     return jumpCheck;
   }
 
-  if (!isInBounds(to)) {
+  if (!isInBounds(to, state.boardSize)) {
     return {
       ok: false,
       code: "OUT_OF_BOUNDS",
@@ -713,7 +730,7 @@ export function confirmPendingJump(state: GameState): RuleResult<GameState> {
   });
 
   // Check if this capture wins the game
-  if (nextState.score[state.currentTurn] >= SCORE_TO_WIN) {
+  if (nextState.score[state.currentTurn] >= (state.scoreToWin ?? SCORE_TO_WIN)) {
     nextState.history.push({
       type: "win",
       color: state.currentTurn,
@@ -840,8 +857,8 @@ export function getSelectableJumpOrigins(
 
   const origins: Position[] = [];
 
-  for (let y = 0; y < BOARD_SIZE; y += 1) {
-    for (let x = 0; x < BOARD_SIZE; x += 1) {
+  for (let y = 0; y < state.boardSize; y += 1) {
+    for (let x = 0; x < state.boardSize; x += 1) {
       const position = { x, y };
       if (getTile(state, position) !== color) {
         continue;
@@ -891,8 +908,9 @@ export function formatTurnRecord(record: TurnRecord, index: number): string {
 export function replayToMove(
   history: TurnRecord[],
   moveIndex: number,
+  settings?: Partial<GameSettings>,
 ): GameState {
-  let state = createInitialGameState();
+  let state = createInitialGameState(settings);
   const end = Math.min(moveIndex + 1, history.length);
 
   for (let i = 0; i < end; i++) {

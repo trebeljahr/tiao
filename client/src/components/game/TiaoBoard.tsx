@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useMemo, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   BOARD_SIZE,
@@ -28,10 +28,17 @@ type TiaoBoardProps = {
   onConfirmJump?: () => void;
 };
 
-const GRID_START = 100 / (BOARD_SIZE * 2);
-const GRID_END = 100 - GRID_START;
-const GRID_SPAN = GRID_END - GRID_START;
-const GRID_STEP = GRID_SPAN / (BOARD_SIZE - 1);
+function gridMetrics(bs: number) {
+  const gridStart = 100 / (bs * 2);
+  const gridEnd = 100 - gridStart;
+  const gridSpan = gridEnd - gridStart;
+  const gridStep = gridSpan / (bs - 1);
+  return { gridStart, gridEnd, gridSpan, gridStep };
+}
+
+const DEFAULT_METRICS = gridMetrics(BOARD_SIZE);
+const GRID_START = DEFAULT_METRICS.gridStart;
+const GRID_STEP = DEFAULT_METRICS.gridStep;
 
 const IS_TOUCH_DEVICE =
   typeof window !== "undefined" &&
@@ -41,15 +48,22 @@ const DRAG_THRESHOLD = 10;
 const DRAG_Y_OFFSET = 4; // grid cells to offset above finger during drag
 const DIRECT_PLACE_CELL_PX = 44; // min cell size in px for direct placement (Apple HIG tap target)
 
-function isStarPoint(position: Position) {
-  const starPointIndices = [3, 9, 15];
+function getStarPoints(bs: number): number[] {
+  if (bs === 19) return [3, 9, 15];
+  if (bs === 13) return [3, 6, 9];
+  if (bs === 9) return [2, 4, 6];
+  return [];
+}
+
+function isStarPoint(position: Position, bs: number) {
+  const starPointIndices = getStarPoints(bs);
   return (
     starPointIndices.includes(position.x) && starPointIndices.includes(position.y)
   );
 }
 
-function pointPercent(index: number) {
-  return GRID_START + GRID_STEP * index;
+function pointPercent(index: number, gs: number = GRID_START, gst: number = GRID_STEP) {
+  return gs + gst * index;
 }
 
 function getPositionKey(position: Position) {
@@ -59,23 +73,29 @@ function getPositionKey(position: Position) {
 export function touchToGridPosition(
   clientX: number,
   clientY: number,
-  rect: DOMRect
+  rect: DOMRect,
+  boardSize: number = BOARD_SIZE,
 ): Position {
+  const m = gridMetrics(boardSize);
   const percentX = ((clientX - rect.left) / rect.width) * 100;
   const percentY = ((clientY - rect.top) / rect.height) * 100;
-  const gridX = Math.round((percentX - GRID_START) / GRID_STEP);
-  const gridY = Math.round((percentY - GRID_START) / GRID_STEP);
+  const gridX = Math.round((percentX - m.gridStart) / m.gridStep);
+  const gridY = Math.round((percentY - m.gridStart) / m.gridStep);
   return {
-    x: Math.max(0, Math.min(BOARD_SIZE - 1, gridX)),
-    y: Math.max(0, Math.min(BOARD_SIZE - 1, gridY)),
+    x: Math.max(0, Math.min(boardSize - 1, gridX)),
+    y: Math.max(0, Math.min(boardSize - 1, gridY)),
   };
 }
 
-function getJumpTrailMetrics(from: Position, to: Position) {
-  const startX = pointPercent(from.x);
-  const startY = pointPercent(from.y);
-  const endX = pointPercent(to.x);
-  const endY = pointPercent(to.y);
+function getJumpTrailMetrics(
+  from: Position,
+  to: Position,
+  pp: (index: number) => number = pointPercent,
+) {
+  const startX = pp(from.x);
+  const startY = pp(from.y);
+  const endX = pp(to.x);
+  const endY = pp(to.y);
   const deltaX = endX - startX;
   const deltaY = endY - startY;
   const distance = Math.hypot(deltaX, deltaY);
@@ -128,6 +148,11 @@ export function TiaoBoard({
   onUndoLastJump,
   onConfirmJump,
 }: TiaoBoardProps) {
+  const bs = state.boardSize ?? BOARD_SIZE;
+  const m = useMemo(() => gridMetrics(bs), [bs]);
+  const pp = useCallback((index: number) => pointPercent(index, m.gridStart, m.gridStep), [m]);
+  const cellPercent = 100 / bs;
+
   const jumpTrailMarkerId = "tiao-jump-trail-arrow";
 
   // Compute last-move highlight positions
@@ -252,7 +277,7 @@ export function TiaoBoard({
             isDraggingPreviewRef.current = true;
             setMobilePreviewDragging(true);
             const rect = boardRef.current.getBoundingClientRect();
-            const fingerPos = touchToGridPosition(touch.clientX, touch.clientY, rect);
+            const fingerPos = touchToGridPosition(touch.clientX, touch.clientY, rect, bs);
             // If this is a fresh placement (no existing preview near finger),
             // apply default offset; otherwise preserve the existing gap
             const existingGapY = mobilePreview.y - fingerPos.y;
@@ -267,11 +292,11 @@ export function TiaoBoard({
           }
           e.preventDefault();
           const rect = boardRef.current.getBoundingClientRect();
-          const pos = touchToGridPosition(touch.clientX, touch.clientY, rect);
+          const pos = touchToGridPosition(touch.clientX, touch.clientY, rect, bs);
           const off = dragOffsetRef.current ?? { dx: 0, dy: -DRAG_Y_OFFSET };
           const offsetPos = {
-            x: Math.max(0, Math.min(BOARD_SIZE - 1, pos.x + off.dx)),
-            y: Math.max(0, Math.min(BOARD_SIZE - 1, pos.y + off.dy)),
+            x: Math.max(0, Math.min(bs - 1, pos.x + off.dx)),
+            y: Math.max(0, Math.min(bs - 1, pos.y + off.dy)),
           };
           if (!arePositionsEqual(mobilePreview, offsetPos)) {
             setMobilePreview(offsetPos);
@@ -322,7 +347,7 @@ export function TiaoBoard({
       }
 
       const rect = boardRef.current.getBoundingClientRect();
-      const pos = touchToGridPosition(touch.clientX, touch.clientY, rect);
+      const pos = touchToGridPosition(touch.clientX, touch.clientY, rect, bs);
       touchStartRef.current = null;
 
       // If there's already a piece, a selection, or a jump target at this
@@ -342,7 +367,7 @@ export function TiaoBoard({
         const adjacentOffsets = [[-1,0],[1,0],[0,-1],[0,1]];
         const hasAdjacentPiece = adjacentOffsets.some(([ox,oy]) => {
           const nx = pos.x + ox, ny = pos.y + oy;
-          return nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE &&
+          return nx >= 0 && nx < bs && ny >= 0 && ny < bs &&
             state.positions[ny]?.[nx] != null;
         });
         // Check pixel distance to the nearest adjacent piece — if closer to it
@@ -350,12 +375,12 @@ export function TiaoBoard({
         if (hasAdjacentPiece) {
           const touchPctX = ((touch.clientX - rect.left) / rect.width) * 100;
           const touchPctY = ((touch.clientY - rect.top) / rect.height) * 100;
-          const snapPctX = pointPercent(pos.x);
-          const snapPctY = pointPercent(pos.y);
+          const snapPctX = pp(pos.x);
+          const snapPctY = pp(pos.y);
           const distToSnap = Math.hypot(touchPctX - snapPctX, touchPctY - snapPctY);
           // If tap was far from the snapped cell center (> 60% of grid step),
           // likely meant to tap the adjacent piece
-          if (distToSnap > GRID_STEP * 0.6) {
+          if (distToSnap > m.gridStep * 0.6) {
             return; // let onClick handle it
           }
         }
@@ -481,25 +506,25 @@ export function TiaoBoard({
           </defs>
 
           <rect
-            x={GRID_START}
-            y={GRID_START}
-            width={GRID_SPAN}
-            height={GRID_SPAN}
+            x={m.gridStart}
+            y={m.gridStart}
+            width={m.gridSpan}
+            height={m.gridSpan}
             fill="none"
             stroke="url(#boardGroove)"
             strokeWidth="0.72"
             vectorEffect="non-scaling-stroke"
           />
 
-          {Array.from({ length: BOARD_SIZE }, (_, index) => {
-            const coordinate = pointPercent(index);
+          {Array.from({ length: bs }, (_, index) => {
+            const coordinate = pp(index);
 
             return (
               <g key={index}>
                 <line
-                  x1={GRID_START}
+                  x1={m.gridStart}
                   y1={coordinate}
-                  x2={GRID_END}
+                  x2={m.gridEnd}
                   y2={coordinate}
                   stroke="#6c4926"
                   strokeWidth="0.46"
@@ -508,9 +533,9 @@ export function TiaoBoard({
                 />
                 <line
                   x1={coordinate}
-                  y1={GRID_START}
+                  y1={m.gridStart}
                   x2={coordinate}
-                  y2={GRID_END}
+                  y2={m.gridEnd}
                   stroke="#6c4926"
                   strokeWidth="0.46"
                   strokeLinecap="square"
@@ -522,13 +547,13 @@ export function TiaoBoard({
 
         </svg>
 
-        {Array.from({ length: BOARD_SIZE * BOARD_SIZE }, (_, index) => {
+        {Array.from({ length: bs * bs }, (_, index) => {
           const position = {
-            x: index % BOARD_SIZE,
-            y: Math.floor(index / BOARD_SIZE),
+            x: index % bs,
+            y: Math.floor(index / bs),
           };
 
-          if (!isStarPoint(position)) {
+          if (!isStarPoint(position, bs)) {
             return null;
           }
 
@@ -537,17 +562,17 @@ export function TiaoBoard({
               key={`star-${position.x}-${position.y}`}
               className="pointer-events-none absolute h-[7px] w-[7px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#573615]"
               style={{
-                left: `${pointPercent(position.x)}%`,
-                top: `${pointPercent(position.y)}%`,
+                left: `${pp(position.x)}%`,
+                top: `${pp(position.y)}%`,
               }}
             />
           );
         })}
 
-        {Array.from({ length: BOARD_SIZE * BOARD_SIZE }, (_, index) => {
+        {Array.from({ length: bs * bs }, (_, index) => {
           const position = {
-            x: index % BOARD_SIZE,
-            y: Math.floor(index / BOARD_SIZE),
+            x: index % bs,
+            y: Math.floor(index / bs),
           };
           const piece = state.positions[position.y][position.x];
           const pieceKey = getPositionKey(position);
@@ -631,9 +656,9 @@ export function TiaoBoard({
                     : "hover:scale-[1.02]")
               )}
               style={{
-                left: `${pointPercent(position.x)}%`,
-                top: `${pointPercent(position.y)}%`,
-                width: `${100 / BOARD_SIZE}%`,
+                left: `${pp(position.x)}%`,
+                top: `${pp(position.y)}%`,
+                width: `${cellPercent}%`,
               }}
             >
               {isJumpTarget ? (
@@ -748,7 +773,7 @@ export function TiaoBoard({
           </defs>
 
           {state.pendingJump.map((jump, index) => {
-            const segment = getJumpTrailMetrics(jump.from, jump.to);
+            const segment = getJumpTrailMetrics(jump.from, jump.to, pp);
             const arrowKey = `${jump.from.x}-${jump.from.y}-${jump.to.x}-${jump.to.y}-${index}`;
 
             return (
@@ -811,7 +836,7 @@ export function TiaoBoard({
 
           {/* Last move jump trail arrows (review mode) */}
           {lastMove?.type === "jump" && lastMove.jumps.map((jump, index) => {
-            const segment = getJumpTrailMetrics(jump.from, jump.to);
+            const segment = getJumpTrailMetrics(jump.from, jump.to, pp);
             const arrowKey = `lastmove-${jump.from.x}-${jump.from.y}-${jump.to.x}-${jump.to.y}-${index}`;
 
             return (
@@ -845,7 +870,7 @@ export function TiaoBoard({
 
           {activeOrigin && hoveredJumpTarget ? (
             (() => {
-              const segment = getJumpTrailMetrics(activeOrigin, hoveredJumpTarget);
+              const segment = getJumpTrailMetrics(activeOrigin, hoveredJumpTarget, pp);
               const previewKey = `preview-${getPositionKey(activeOrigin)}-${getPositionKey(hoveredJumpTarget)}`;
 
               return (
@@ -903,7 +928,7 @@ export function TiaoBoard({
 
           {undoHovered && lastPendingJump ? (
             (() => {
-              const segment = getJumpTrailMetrics(lastPendingJump.to, lastPendingJump.from);
+              const segment = getJumpTrailMetrics(lastPendingJump.to, lastPendingJump.from, pp);
               const undoPreviewKey = `undo-preview-${getPositionKey(lastPendingJump.to)}-${getPositionKey(lastPendingJump.from)}`;
 
               return (
@@ -964,8 +989,8 @@ export function TiaoBoard({
           <span
             className="pointer-events-none absolute z-[95] flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#a7c191]/95 bg-[rgba(247,253,243,0.98)] text-[#5e7b4e] shadow-[0_14px_22px_-14px_rgba(66,89,47,0.62)]"
             style={{
-              left: `${pointPercent(forcedJumpOrigin.x)}%`,
-              top: `${pointPercent(forcedJumpOrigin.y)}%`,
+              left: `${pp(forcedJumpOrigin.x)}%`,
+              top: `${pp(forcedJumpOrigin.y)}%`,
             }}
           >
             <svg
@@ -999,9 +1024,9 @@ export function TiaoBoard({
                   onBlur={() => setUndoHovered(false)}
                   className="absolute z-[90] aspect-square -translate-x-1/2 -translate-y-1/2 bg-transparent"
                   style={{
-                    left: `${pointPercent(lastJump.from.x)}%`,
-                    top: `${pointPercent(lastJump.from.y)}%`,
-                    width: `${100 / BOARD_SIZE}%`,
+                    left: `${pp(lastJump.from.x)}%`,
+                    top: `${pp(lastJump.from.y)}%`,
+                    width: `${cellPercent}%`,
                   }}
                   aria-label="Undo last jump"
                 />
@@ -1013,8 +1038,8 @@ export function TiaoBoard({
           <span
             className="pointer-events-none absolute z-[95] flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#deaaaa] bg-[rgba(255,247,246,0.98)] text-[#ba6561] shadow-[0_12px_20px_-14px_rgba(134,70,67,0.55)]"
             style={{
-              left: `${pointPercent(lastPendingJump.from.x)}%`,
-              top: `${pointPercent(lastPendingJump.from.y)}%`,
+              left: `${pp(lastPendingJump.from.x)}%`,
+              top: `${pp(lastPendingJump.from.y)}%`,
             }}
           >
             <svg
@@ -1042,27 +1067,27 @@ export function TiaoBoard({
             aria-hidden="true"
           >
             <motion.line
-              x1={GRID_START}
-              y1={pointPercent(mobilePreview.y)}
-              x2={GRID_END}
-              y2={pointPercent(mobilePreview.y)}
+              x1={m.gridStart}
+              y1={pp(mobilePreview.y)}
+              x2={m.gridEnd}
+              y2={pp(mobilePreview.y)}
               stroke={GRID_LINE_COLOR}
               strokeOpacity="0.35"
               strokeWidth="1.5"
               vectorEffect="non-scaling-stroke"
-              animate={{ y1: pointPercent(mobilePreview.y), y2: pointPercent(mobilePreview.y) }}
+              animate={{ y1: pp(mobilePreview.y), y2: pp(mobilePreview.y) }}
               transition={{ duration: 0.08, ease: "easeOut" }}
             />
             <motion.line
-              x1={pointPercent(mobilePreview.x)}
-              y1={GRID_START}
-              x2={pointPercent(mobilePreview.x)}
-              y2={GRID_END}
+              x1={pp(mobilePreview.x)}
+              y1={m.gridStart}
+              x2={pp(mobilePreview.x)}
+              y2={m.gridEnd}
               stroke={GRID_LINE_COLOR}
               strokeOpacity="0.35"
               strokeWidth="1.5"
               vectorEffect="non-scaling-stroke"
-              animate={{ x1: pointPercent(mobilePreview.x), x2: pointPercent(mobilePreview.x) }}
+              animate={{ x1: pp(mobilePreview.x), x2: pp(mobilePreview.x) }}
               transition={{ duration: 0.08, ease: "easeOut" }}
             />
           </svg>
@@ -1073,9 +1098,9 @@ export function TiaoBoard({
           <span
             className="pointer-events-none absolute z-30"
             style={{
-              left: `${pointPercent(mobilePreview.x)}%`,
-              top: `${pointPercent(mobilePreview.y)}%`,
-              width: `${100 / BOARD_SIZE * 0.88}%`,
+              left: `${pp(mobilePreview.x)}%`,
+              top: `${pp(mobilePreview.y)}%`,
+              width: `${cellPercent * 0.88}%`,
               aspectRatio: "1",
               transform: `translate(-50%, -50%) scale(${mobilePreviewVisible ? 1 : 0.5})`,
               opacity: mobilePreviewVisible ? 1 : 0,

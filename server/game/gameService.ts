@@ -11,6 +11,7 @@ import {
   MultiplayerSeatAssignments,
   MultiplayerSnapshot,
   MultiplayerStatus,
+  GameSettings,
   PlayerColor,
   PlayerIdentity,
   PlayerSlot,
@@ -199,7 +200,7 @@ export class GameService {
 
   async createGame(
     creator: PlayerIdentity,
-    options: { roomType?: MultiplayerRoomType } = {}
+    options: { roomType?: MultiplayerRoomType; gameSettings?: Partial<GameSettings> } = {}
   ): Promise<MultiplayerSnapshot> {
     return this.withLocks([this.playerLockKey(creator.playerId)], async () => {
       await this.ensureGuestPlayerHasSingleOpenGame(creator);
@@ -208,6 +209,7 @@ export class GameService {
         players: [creator],
         roomType: options.roomType ?? "direct",
         assignSeats: false,
+        gameSettings: options.gameSettings,
       });
 
       return this.toSnapshot(room);
@@ -683,6 +685,7 @@ export class GameService {
     roomType: MultiplayerRoomType;
     assignSeats: boolean;
     timeControl?: TimeControl;
+    gameSettings?: Partial<GameSettings>;
   }): Promise<StoredMultiplayerRoom> {
     const tc = options.timeControl ?? null;
     const clockMs = tc ? { white: tc.initialMs, black: tc.initialMs } : null;
@@ -698,7 +701,7 @@ export class GameService {
         id: this.generateRoomId(),
         roomType: options.roomType,
         status: "waiting",
-        state: createInitialGameState(),
+        state: createInitialGameState(options.gameSettings),
         players: options.players.map((player) => ({ ...player })),
         rematch: null,
         takeback: null,
@@ -1196,6 +1199,10 @@ export class GameService {
         roomType: room.roomType,
         assignSeats: true,
         timeControl: room.timeControl ?? undefined,
+        gameSettings: {
+          boardSize: room.state.boardSize,
+          scoreToWin: room.state.scoreToWin,
+        },
       });
 
       // Notify all connections on the OLD room about the new game

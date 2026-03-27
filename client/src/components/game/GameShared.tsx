@@ -472,6 +472,8 @@ type AnimatedScoreTileProps = {
   clockMs?: number | null;
   /** Whether this player's clock is currently ticking. */
   clockActive?: boolean;
+  /** Target score to win. When non-default, shown as "X / Y". */
+  scoreToWin?: number;
 };
 
 export function AnimatedScoreTile({
@@ -484,6 +486,7 @@ export function AnimatedScoreTile({
   playerInfo,
   clockMs,
   clockActive,
+  scoreToWin,
 }: AnimatedScoreTileProps) {
   const tileControls = useAnimationControls();
   const valueControls = useAnimationControls();
@@ -554,6 +557,11 @@ export function AnimatedScoreTile({
           className={valueClassName}
         >
           {value}
+          {scoreToWin != null && scoreToWin !== 10 && (
+            <span className="text-base font-normal opacity-50">
+              {" "}/ {scoreToWin}
+            </span>
+          )}
         </motion.p>
         {clockMs != null && (
           <span
