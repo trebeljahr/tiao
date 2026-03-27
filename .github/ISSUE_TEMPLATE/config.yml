@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or discussion
+    url: https://github.com/trebeljahr/tiao/discussions
+    about: Ask questions or start a discussion with the community.
+  - name: Security vulnerability
+    url: https://github.com/trebeljahr/tiao/security/advisories/new
+    about: Report a security vulnerability privately.

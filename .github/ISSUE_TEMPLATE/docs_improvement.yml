@@ -1,0 +1,31 @@
+name: Documentation Improvement
+description: Report unclear, missing, or incorrect documentation
+labels: ["type: docs", "status: triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Help us improve the docs! Whether something is unclear, outdated, or missing entirely, we want to know.
+
+  - type: input
+    id: page
+    attributes:
+      label: Which page or section?
+      description: Link to the doc page or describe which section needs work.
+      placeholder: "e.g. https://docs.tiao.ricos.site/docs/architecture or CONTRIBUTING.md"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What needs to change?
+      description: Describe what's wrong, unclear, or missing.
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested improvement
+      description: If you have a specific suggestion for how to fix it, describe it here.

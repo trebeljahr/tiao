@@ -1,0 +1,71 @@
+name: Bug Report
+description: Report something that isn't working correctly
+labels: ["type: bug", "status: triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the form below so we can reproduce and fix it.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug description
+      description: A clear description of what the bug is and what you expected to happen instead.
+      placeholder: |
+        What happened:
+        ...
+
+        What I expected:
+        ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: The minimal steps needed to trigger this bug.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. See error
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      description: Which part of Tiao is affected?
+      options:
+        - Gameplay (board, moves, captures)
+        - Matchmaking
+        - Friends / Social
+        - Account / Authentication
+        - UI / Visual
+        - Server / API
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser, OS, device, or any other relevant context.
+      placeholder: "e.g. Chrome 125 on macOS, iPhone 15 Safari, Node 22.20"
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or recordings
+      description: If applicable, add screenshots or screen recordings to help explain the problem.
+
+  - type: checkboxes
+    id: validations
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched [existing issues](https://github.com/trebeljahr/tiao/issues) and this hasn't been reported yet.
+          required: true

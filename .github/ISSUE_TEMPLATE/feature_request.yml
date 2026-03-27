@@ -1,0 +1,56 @@
+name: Feature Request
+description: Suggest a new feature or improvement
+labels: ["type: feature", "status: triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea for Tiao? We'd love to hear it. Please describe what you are trying to do or would like to see added and your proposed solution.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or motivation
+      description: What problem does this feature solve? Why is it needed?
+      placeholder: "I'm frustrated when ... / It would be great if ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe what you'd like to see implemented.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any other approaches you've thought about?
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of Tiao does this relate to?
+      options:
+        - Gameplay (rules, board, AI)
+        - Matchmaking
+        - Friends / Social
+        - Account / Profile
+        - UI / UX
+        - Server / Infrastructure
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: validations
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched [existing issues](https://github.com/trebeljahr/tiao/issues) and this hasn't been requested yet.
+          required: true

@@ -9,7 +9,7 @@ const sidebars: SidebarsConfig = {
     {
       type: "category",
       label: "Guides",
-      items: ["contributing", "testing", "deployment"],
+      items: ["contributing", "issues-and-labels", "testing", "deployment"],
     },
     {
       type: "category",
