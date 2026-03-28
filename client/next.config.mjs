@@ -24,6 +24,7 @@ function getGitVersion(baseVersion) {
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  allowedDevOrigins: ["192.168.1.0/24", "localhost"],
   env: {
     APP_VERSION: getGitVersion(pkg.version),
   },
