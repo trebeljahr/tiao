@@ -70,24 +70,19 @@ test("rooms persist across service instances and randomize seats on second join"
   assert.equal(reopened.seats.black?.player.playerId, alice.playerId);
 });
 
-test("guest players are limited to one unfinished multiplayer game", async () => {
+test("guest players can have multiple unfinished multiplayer games", async () => {
   const store = new InMemoryGameRoomStore();
   const service = new GameService(store, () => 0);
   const guest = createPlayer("guest-1", { kind: "guest", displayName: "Guest" });
   const host = createPlayer("host");
 
   const firstGame = await service.createGame(guest);
+  const secondGame = await service.createGame(guest);
   const hostGame = await service.createGame(host);
 
-  await assert.rejects(
-    () => service.createGame(guest),
-    (error) => isGameServiceError(error, "GUEST_ACTIVE_GAME_LIMIT")
-  );
-
-  await assert.rejects(
-    () => service.joinGame(hostGame.gameId, guest),
-    (error) => isGameServiceError(error, "GUEST_ACTIVE_GAME_LIMIT")
-  );
+  // Guest can join another player's game while having open games
+  const joined = await service.joinGame(hostGame.gameId, guest);
+  assert.ok(joined);
 
   const reopened = await service.joinGame(firstGame.gameId, guest);
   assert.equal(reopened.gameId, firstGame.gameId);

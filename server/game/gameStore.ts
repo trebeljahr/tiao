@@ -61,6 +61,10 @@ export interface GameRoomStore {
     tournamentId: string,
     matchId: string
   ): Promise<StoredMultiplayerRoom | null>;
+  migratePlayerIdentity(
+    oldPlayerId: string,
+    newIdentity: PlayerIdentity,
+  ): Promise<number>;
 }
 
 function normalizeRoomId(roomId: string): string {
@@ -313,6 +317,57 @@ export class MongoGameRoomStore implements GameRoomStore {
 
     return room ? toStoredRoom(room) : null;
   }
+
+  async migratePlayerIdentity(
+    oldPlayerId: string,
+    newIdentity: PlayerIdentity,
+  ): Promise<number> {
+    // Update all unfinished rooms where the old player appears
+    const result = await GameRoom.updateMany(
+      {
+        status: { $in: ["waiting", "active"] },
+        "players.playerId": oldPlayerId,
+      },
+      {
+        $set: {
+          "players.$[p].playerId": newIdentity.playerId,
+          "players.$[p].displayName": newIdentity.displayName,
+          "players.$[p].kind": newIdentity.kind,
+          "players.$[p].profilePicture": newIdentity.profilePicture,
+        },
+      },
+      {
+        arrayFilters: [{ "p.playerId": oldPlayerId }],
+      },
+    );
+
+    // Also update seats
+    await GameRoom.updateMany(
+      { status: { $in: ["waiting", "active"] }, "seats.white.playerId": oldPlayerId },
+      {
+        $set: {
+          "seats.white.playerId": newIdentity.playerId,
+          "seats.white.displayName": newIdentity.displayName,
+          "seats.white.kind": newIdentity.kind,
+          "seats.white.profilePicture": newIdentity.profilePicture,
+        },
+      },
+    );
+
+    await GameRoom.updateMany(
+      { status: { $in: ["waiting", "active"] }, "seats.black.playerId": oldPlayerId },
+      {
+        $set: {
+          "seats.black.playerId": newIdentity.playerId,
+          "seats.black.displayName": newIdentity.displayName,
+          "seats.black.kind": newIdentity.kind,
+          "seats.black.profilePicture": newIdentity.profilePicture,
+        },
+      },
+    );
+
+    return result.modifiedCount;
+  }
 }
 
 export class InMemoryGameRoomStore implements GameRoomStore {
@@ -419,6 +474,38 @@ export class InMemoryGameRoomStore implements GameRoomStore {
       (r) => r.tournamentId === tournamentId && r.tournamentMatchId === matchId
     );
     return room ? cloneStoredRoom(room) : null;
+  }
+
+  async migratePlayerIdentity(
+    oldPlayerId: string,
+    newIdentity: PlayerIdentity,
+  ): Promise<number> {
+    let count = 0;
+    for (const [, room] of this.rooms) {
+      if (room.status === "finished") continue;
+      let modified = false;
+      for (const p of room.players) {
+        if (p.playerId === oldPlayerId) {
+          p.playerId = newIdentity.playerId;
+          p.displayName = newIdentity.displayName;
+          p.kind = newIdentity.kind;
+          p.profilePicture = newIdentity.profilePicture;
+          modified = true;
+        }
+      }
+      for (const color of ["white", "black"] as const) {
+        const seat = room.seats[color];
+        if (seat?.playerId === oldPlayerId) {
+          seat.playerId = newIdentity.playerId;
+          seat.displayName = newIdentity.displayName;
+          seat.kind = newIdentity.kind;
+          seat.profilePicture = newIdentity.profilePicture;
+          modified = true;
+        }
+      }
+      if (modified) count++;
+    }
+    return count;
   }
 }
 

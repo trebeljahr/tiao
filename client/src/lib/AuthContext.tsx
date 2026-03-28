@@ -12,7 +12,7 @@ import {
 } from "@/lib/api";
 import { isNetworkError, readableError, toastError } from "@/lib/errors";
 
-const ANONYMOUS_NAME = "Anonymous";
+
 
 export interface AuthContextValue {
   auth: AuthResponse | null;
@@ -86,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
 
     async function ensureGuestAuth() {
-      const guestAuth = await createGuest(ANONYMOUS_NAME);
+      const guestAuth = await createGuest();
       if (cancelled) {
         return;
       }
@@ -218,7 +218,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       await logoutPlayer();
-      const guestAuth = await createGuest(ANONYMOUS_NAME);
+      const guestAuth = await createGuest();
       applyAuth(guestAuth);
 
       if (isInGame && typeof window !== "undefined") {

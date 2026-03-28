@@ -64,7 +64,7 @@ test("leave matchmaking clears matched state", async () => {
   assert.equal(state.status, "idle");
 });
 
-test("guest player with active game cannot enter matchmaking", async () => {
+test("guest player with active game can still enter matchmaking", async () => {
   const store = new InMemoryGameRoomStore();
   const service = new GameService(store, () => 0);
   const guest = createPlayer("guest-mm", { kind: "guest" });
@@ -74,11 +74,9 @@ test("guest player with active game cannot enter matchmaking", async () => {
   const game = await service.createGame(guest);
   await service.joinGame(game.gameId, host);
 
-  // Guest should not be able to enter matchmaking
-  await assert.rejects(
-    () => service.enterMatchmaking(guest),
-    (error) => isGameServiceError(error, "GUEST_ACTIVE_GAME_LIMIT")
-  );
+  // Guest should be able to enter matchmaking even with an active game
+  const result = await service.enterMatchmaking(guest);
+  assert.equal(result.status, "searching");
 });
 
 test("matchmaking creates room with matchmaking type", async () => {

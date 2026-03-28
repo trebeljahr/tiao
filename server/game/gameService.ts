@@ -204,8 +204,6 @@ export class GameService {
     options: { roomType?: MultiplayerRoomType; gameSettings?: Partial<GameSettings>; timeControl?: TimeControl } = {}
   ): Promise<MultiplayerSnapshot> {
     return this.withLocks([this.playerLockKey(creator.playerId)], async () => {
-      await this.ensureGuestPlayerHasSingleOpenGame(creator);
-
       const room = await this.createRoomRecord({
         players: [creator],
         roomType: options.roomType ?? "direct",
@@ -250,7 +248,6 @@ export class GameService {
       [this.roomLockKey(gameId), this.playerLockKey(player.playerId)],
       async () => {
         const room = await this.getRoom(gameId);
-        await this.ensureGuestPlayerHasSingleOpenGame(player, room.id);
 
         const savedRoom = await this.joinRoom(room, player);
         this.broadcastSnapshot(savedRoom);
@@ -276,7 +273,6 @@ export class GameService {
           return this.toSnapshot(room);
         }
 
-        await this.ensureGuestPlayerHasSingleOpenGame(player, room.id);
         const savedRoom = await this.joinRoom(room, player);
         this.broadcastSnapshot(savedRoom);
         return this.toSnapshot(savedRoom);
@@ -603,8 +599,6 @@ export class GameService {
         };
       }
 
-      await this.ensureGuestPlayerHasSingleOpenGame(player);
-
       const opponentEntry = await this.matchmaking.findAndRemoveOpponent(
         player.playerId,
         timeControl
@@ -617,9 +611,6 @@ export class GameService {
             this.playerLockKey(opponentEntry.player.playerId),
           ],
           async () => {
-            await this.ensureGuestPlayerHasSingleOpenGame(player);
-            await this.ensureGuestPlayerHasSingleOpenGame(opponentEntry.player);
-
             const room = await this.createRoomRecord({
               players: [opponentEntry.player, player],
               roomType: "matchmaking",
@@ -878,29 +869,6 @@ export class GameService {
     }
 
     return saved;
-  }
-
-  private async ensureGuestPlayerHasSingleOpenGame(
-    player: PlayerIdentity,
-    allowedRoomId?: string
-  ): Promise<void> {
-    if (player.kind !== "guest") {
-      return;
-    }
-
-    const unfinishedRoom = await this.store.findUnfinishedRoomByPlayer(
-      player.playerId
-    );
-
-    if (unfinishedRoom && unfinishedRoom.id !== allowedRoomId) {
-      const err = new GameServiceError(
-        409,
-        "GUEST_ACTIVE_GAME_LIMIT",
-        `You already have an open game (${unfinishedRoom.id}). Resume it or cancel it first.`,
-      );
-      (err as any).existingGameId = unfinishedRoom.id;
-      throw err;
-    }
   }
 
   private deriveRoomStatus(room: StoredMultiplayerRoom): StoredMultiplayerRoom {

@@ -5,6 +5,7 @@ import express, { NextFunction, Request, Response } from "express";
 import { Jimp } from "jimp";
 import mongoose from "mongoose";
 import GameAccount from "../models/GameAccount";
+import GameRoom from "../models/GameRoom";
 import {
   clearPlayerSession,
   commitPlayerSession,
@@ -363,6 +364,10 @@ router.post("/signup", authRateLimiter, async (req: Request, res: Response) => {
       });
     }
 
+    // Capture the current guest identity before replacing the session
+    const currentPlayer = await getPlayerFromRequest(req);
+    const guestPlayerId = currentPlayer?.kind === "guest" ? currentPlayer.playerId : null;
+
     const passwordHash = bcrypt.hashSync(password, saltRounds);
     const account = await GameAccount.create({
       email: normalizedEmail || undefined,
@@ -371,6 +376,25 @@ router.post("/signup", authRateLimiter, async (req: Request, res: Response) => {
     });
 
     const auth = buildAccountAuth(account);
+
+    // Migrate guest's unfinished games to the new account
+    if (guestPlayerId) {
+      const newIdentity = auth.player;
+      await GameRoom.updateMany(
+        { status: { $in: ["waiting", "active"] }, "players.playerId": guestPlayerId },
+        { $set: { "players.$[p].playerId": newIdentity.playerId, "players.$[p].displayName": newIdentity.displayName, "players.$[p].kind": newIdentity.kind } },
+        { arrayFilters: [{ "p.playerId": guestPlayerId }] },
+      );
+      await GameRoom.updateMany(
+        { status: { $in: ["waiting", "active"] }, "seats.white.playerId": guestPlayerId },
+        { $set: { "seats.white.playerId": newIdentity.playerId, "seats.white.displayName": newIdentity.displayName, "seats.white.kind": newIdentity.kind } },
+      );
+      await GameRoom.updateMany(
+        { status: { $in: ["waiting", "active"] }, "seats.black.playerId": guestPlayerId },
+        { $set: { "seats.black.playerId": newIdentity.playerId, "seats.black.displayName": newIdentity.displayName, "seats.black.kind": newIdentity.kind } },
+      );
+    }
+
     await commitPlayerSession(req, res, auth.player);
     return res.status(201).json(auth);
   } catch (error) {
