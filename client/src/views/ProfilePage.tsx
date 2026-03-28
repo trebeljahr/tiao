@@ -552,7 +552,7 @@ export function ProfilePage() {
               id="current-password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="••••••••••••"
               autoComplete="current-password"
               required
             />
@@ -566,7 +566,7 @@ export function ProfilePage() {
               id="new-password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="••••••••••••"
               autoComplete="new-password"
               required
             />
@@ -580,7 +580,7 @@ export function ProfilePage() {
               id="confirm-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="••••••••••••"
               autoComplete="new-password"
               required
             />

@@ -294,7 +294,7 @@ router.post("/signup", authRateLimiter, async (req: Request, res: Response) => {
     };
 
     const normalizedEmail = email?.trim().toLowerCase();
-    const trimmedDisplayName = displayName?.trim();
+    const trimmedDisplayName = displayName?.trim().toLowerCase();
 
     if (
       !password ||
@@ -333,6 +333,14 @@ router.post("/signup", authRateLimiter, async (req: Request, res: Response) => {
         return res.status(400).json({
           code: "DISPLAY_NAME_TOO_SHORT",
           message: "Usernames must be at least 3 characters long.",
+        });
+      }
+
+      if (!/^[a-z0-9][a-z0-9_-]*$/.test(trimmedDisplayName)) {
+        return res.status(400).json({
+          code: "INVALID_DISPLAY_NAME",
+          message:
+            "Usernames must be lowercase and can only contain letters, numbers, hyphens, and underscores.",
         });
       }
 
@@ -724,7 +732,7 @@ router.put("/profile", async (req: Request, res: Response) => {
     };
 
     const normalizedEmail = email?.trim().toLowerCase();
-    const sanitizedDisplayName = displayName?.trim();
+    const sanitizedDisplayName = displayName?.trim().toLowerCase();
 
     if (!normalizedEmail && !sanitizedDisplayName && !password) {
       return res.status(400).json({
@@ -738,6 +746,14 @@ router.put("/profile", async (req: Request, res: Response) => {
         return res.status(400).json({
           code: "DISPLAY_NAME_TOO_SHORT",
           message: "Display name must be at least 3 characters long.",
+        });
+      }
+
+      if (!/^[a-z0-9][a-z0-9_-]*$/.test(sanitizedDisplayName)) {
+        return res.status(400).json({
+          code: "INVALID_DISPLAY_NAME",
+          message:
+            "Usernames must be lowercase and can only contain letters, numbers, hyphens, and underscores.",
         });
       }
 

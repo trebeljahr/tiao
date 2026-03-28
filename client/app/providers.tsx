@@ -114,7 +114,7 @@ function AuthDialog() {
                 name="password"
                 value={loginPassword}
                 onChange={(event) => setLoginPassword(event.target.value)}
-                placeholder="••••••••"
+                placeholder="••••••••••••"
                 autoComplete="current-password"
                 required
               />
@@ -148,9 +148,12 @@ function AuthDialog() {
                 id="signup-display-name"
                 name="name"
                 value={signupDisplayName}
-                onChange={(event) => setSignupDisplayName(event.target.value)}
-                placeholder="Username"
+                onChange={(event) => setSignupDisplayName(event.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
+                placeholder="username"
                 autoComplete="name"
+                pattern="^[a-z0-9][a-z0-9_-]*$"
+                minLength={3}
+                title="Lowercase letters, numbers, hyphens, and underscores only"
                 required
               />
             </div>
@@ -183,7 +186,7 @@ function AuthDialog() {
                 name="password"
                 value={signupPassword}
                 onChange={(event) => setSignupPassword(event.target.value)}
-                placeholder="••••••••"
+                placeholder="••••••••••••"
                 autoComplete="new-password"
                 required
               />
@@ -200,7 +203,7 @@ function AuthDialog() {
                 name="confirm-password"
                 value={signupConfirmPassword}
                 onChange={(event) => setSignupConfirmPassword(event.target.value)}
-                placeholder="••••••••"
+                placeholder="••••••••••••"
                 autoComplete="new-password"
                 required
               />
