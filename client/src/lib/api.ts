@@ -315,6 +315,16 @@ export function getAccountProfile() {
   return request<{ profile: AccountProfile }>("/api/player/profile");
 }
 
+export type PublicProfile = {
+  displayName: string;
+  profilePicture?: string;
+  createdAt?: string;
+};
+
+export function getPublicProfile(username: string) {
+  return request<{ profile: PublicProfile }>(`/api/player/profile/${encodeURIComponent(username)}`);
+}
+
 export function updateAccountProfile(
   body: {
     displayName?: string;

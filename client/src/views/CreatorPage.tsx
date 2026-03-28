@@ -87,7 +87,7 @@ export function CreatorPage({ name, username, image, role, bio, links }: Creator
                 <button
                   type="button"
                   className="font-semibold text-[#5d4732] underline decoration-[#d4c4a8] underline-offset-2 hover:text-[#3a2818]"
-                  onClick={() => router.push(`/profile?user=${encodeURIComponent(username)}`)}
+                  onClick={() => router.push(`/profile/${encodeURIComponent(username)}`)}
                 >
                   @{username}
                 </button>

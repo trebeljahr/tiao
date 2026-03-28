@@ -654,6 +654,30 @@ router.get("/profile", async (req: Request, res: Response) => {
   }
 });
 
+router.get("/profile/:username", async (req: Request, res: Response) => {
+  try {
+    const username = req.params.username?.trim().toLowerCase();
+    if (!username) {
+      return res.status(400).json({ code: "INVALID_USERNAME", message: "Username is required." });
+    }
+
+    const account = await GameAccount.findOne({ displayName: { $regex: new RegExp(`^${username.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") } });
+    if (!account) {
+      return res.status(404).json({ code: "NOT_FOUND", message: "Player not found." });
+    }
+
+    return res.status(200).json({
+      profile: {
+        displayName: account.displayName,
+        profilePicture: account.profilePicture,
+        createdAt: account.createdAt,
+      },
+    });
+  } catch (error) {
+    handleRouteError(error, req, res, "Unable to load profile right now.");
+  }
+});
+
 /**
  * @openapi
  * /api/player/profile:
