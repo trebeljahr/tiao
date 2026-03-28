@@ -55,26 +55,26 @@ export function getBadgesForPlayer(auth: AuthResponse | null): BadgeId[] {
 }
 
 /**
- * Resolves the badge to display for a given player.
+ * Resolves the badge(s) to display for a given player.
  *
- * For other players: uses `player.activeBadge` from the server.
+ * For other players: uses `player.activeBadges` from the server.
  * For known preview users: falls back to hardcoded defaults.
- * Returns the badge ID string or undefined if no badge.
+ * Returns an array of badge ID strings (empty = no badges).
  */
-export function resolvePlayerBadge(
-  player: { displayName?: string; activeBadge?: string } | null | undefined,
-): string | undefined {
-  if (!player) return undefined;
+export function resolvePlayerBadges(
+  player: { displayName?: string; activeBadges?: string[] } | null | undefined,
+): string[] {
+  if (!player) return [];
 
-  // If the server already sent an activeBadge, use it
-  if (player.activeBadge && BADGE_DEFINITIONS[player.activeBadge as BadgeId]) {
-    return player.activeBadge;
+  // If the server already sent activeBadges, use them
+  if (player.activeBadges && player.activeBadges.length > 0) {
+    return player.activeBadges.filter((id) => BADGE_DEFINITIONS[id as BadgeId]);
   }
 
   // Hardcoded fallback for preview users (until server sends badges)
   const name = (player.displayName ?? "").replace(/^@/, "").toLowerCase();
-  if (name === "ricotrebeljahr") return "creator";
-  if (PREVIEW_USERNAMES.has(name)) return "creator";
+  if (name === "ricotrebeljahr") return ["creator"];
+  if (PREVIEW_USERNAMES.has(name)) return ["creator"];
 
-  return undefined;
+  return [];
 }

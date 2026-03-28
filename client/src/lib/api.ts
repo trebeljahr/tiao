@@ -18,6 +18,8 @@ export type AccountProfile = {
   displayName: string;
   email?: string;
   profilePicture?: string;
+  badges?: string[];
+  activeBadges?: string[];
   createdAt?: string;
   updatedAt?: string;
 };
@@ -365,6 +367,13 @@ export function uploadAccountProfilePicture(file: File) {
   return upload<{ auth: AuthResponse; profile: AccountProfile }>(
     "/api/player/profile-picture",
     formData
+  );
+}
+
+export function updateActiveBadges(activeBadges: string[]) {
+  return request<{ auth: AuthResponse; activeBadges: string[] }>(
+    "/api/player/badges/active",
+    { method: "PUT", body: { activeBadges } },
   );
 }
 

@@ -2,11 +2,11 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import { PlayerOverviewAvatar, ConnectionDot } from "@/components/game/GameShared";
 import { UserBadge, type BadgeId } from "@/components/UserBadge";
-import { resolvePlayerBadge } from "@/lib/featureGate";
+import { resolvePlayerBadges } from "@/lib/featureGate";
 import { useActiveBadgeId } from "@/lib/useActiveBadge";
 
 type PlayerIdentityRowProps = {
-  player: { playerId?: string; displayName?: string; profilePicture?: string; activeBadge?: string; rating?: number };
+  player: { playerId?: string; displayName?: string; profilePicture?: string; activeBadges?: string[]; rating?: number };
   anonymous?: boolean;
   currentPlayerId?: string;
   avatarClassName?: string;
@@ -18,8 +18,6 @@ type PlayerIdentityRowProps = {
   showPending?: boolean;
   onCancelPending?: () => void;
   cancelPendingBusy?: boolean;
-  /** Explicit badge override. If omitted, auto-resolves from player data. */
-  activeBadge?: string | null;
   friendVariant?: "dark" | "light";
   className?: string;
   nameClassName?: string;
@@ -39,7 +37,6 @@ export function PlayerIdentityRow({
   showPending,
   onCancelPending,
   cancelPendingBusy,
-  activeBadge,
   friendVariant,
   className,
   nameClassName,
@@ -47,12 +44,10 @@ export function PlayerIdentityRow({
 }: PlayerIdentityRowProps) {
   const isYou = currentPlayerId != null && player.playerId === currentPlayerId;
   const myBadgeFromStorage = useActiveBadgeId();
-  // Resolve badge: explicit prop > localStorage (if "you") > auto-resolve from player data
-  const badgeToShow = activeBadge !== undefined
-    ? activeBadge
-    : isYou && myBadgeFromStorage !== null
-      ? myBadgeFromStorage
-      : resolvePlayerBadge(player);
+  // Resolve badges: localStorage (if "you") > auto-resolve from player data
+  const badgesToShow = isYou && myBadgeFromStorage !== null
+    ? [myBadgeFromStorage]
+    : resolvePlayerBadges(player);
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
@@ -69,9 +64,9 @@ export function PlayerIdentityRow({
         )}
       </span>
 
-      {badgeToShow && (
-        <UserBadge badge={badgeToShow as BadgeId} compact />
-      )}
+      {badgesToShow.map((id) => (
+        <UserBadge key={id} badge={id as BadgeId} compact />
+      ))}
 
       {online != null && (
         <ConnectionDot online={online} />

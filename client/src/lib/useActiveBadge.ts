@@ -1,13 +1,13 @@
 import { useSyncExternalStore, useCallback } from "react";
 import type { BadgeId } from "@/components/UserBadge";
 
-const STORAGE_KEY = "tiao:activeBadge";
+const STORAGE_KEY = "tiao:activeBadges";
 
 // ---------------------------------------------------------------------------
 // External store (same pattern as useSoundPreference / useBoardTheme)
 // ---------------------------------------------------------------------------
 
-/** Returns the stored active badge ID, or null if badges are hidden. */
+/** Returns the stored active badge IDs as a JSON array string, or null. */
 function getSnapshot(): string | null {
   return localStorage.getItem(STORAGE_KEY);
 }
@@ -31,31 +31,53 @@ function subscribe(listener: () => void) {
   };
 }
 
+function parseStoredBadges(raw: string | null): string[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    // Legacy: single badge ID string (from before multi-badge support)
+    return raw ? [raw] : [];
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Hooks
 // ---------------------------------------------------------------------------
 
-/** Returns the active badge ID (what the user chose to display), or null. */
+/**
+ * Returns the first active badge ID from localStorage, or null.
+ * Used by PlayerIdentityRow for quick single-badge display.
+ */
 export function useActiveBadgeId(): string | null {
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const raw = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const badges = parseStoredBadges(raw);
+  return badges[0] ?? null;
+}
+
+/** Returns all active badge IDs from localStorage. */
+export function useActiveBadges(): string[] {
+  const raw = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  return parseStoredBadges(raw);
 }
 
 /**
- * Returns [activeBadgeId, setActiveBadge].
- * - Pass a BadgeId to select that badge.
- * - Pass null to hide all badges.
+ * Returns [activeBadges, setActiveBadges].
+ * - Pass an array of BadgeIds to select those badges.
+ * - Pass an empty array to hide all badges.
  */
-export function useSetActiveBadge(): [string | null, (id: BadgeId | null) => void] {
-  const activeBadgeId = useActiveBadgeId();
+export function useSetActiveBadges(): [string[], (ids: BadgeId[]) => void] {
+  const activeBadges = useActiveBadges();
 
-  const setActiveBadge = useCallback((id: BadgeId | null) => {
-    if (id === null) {
+  const setActiveBadges = useCallback((ids: BadgeId[]) => {
+    if (ids.length === 0) {
       localStorage.removeItem(STORAGE_KEY);
     } else {
-      localStorage.setItem(STORAGE_KEY, id);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
     }
     emitChange();
   }, []);
 
-  return [activeBadgeId, setActiveBadge];
+  return [activeBadges, setActiveBadges];
 }

@@ -14,6 +14,10 @@ export interface IGameAccount extends Document {
   receivedFriendRequests: Schema.Types.ObjectId[];
   sentFriendRequests: Schema.Types.ObjectId[];
   hasSeenTutorial: boolean;
+  /** Badge IDs the player has unlocked. */
+  badges: string[];
+  /** Which badge(s) the player chose to display (empty = hidden). */
+  activeBadges: string[];
   rating: {
     overall: IRatingEntry;
   };
@@ -68,6 +72,14 @@ const GameAccountSchema = new Schema<IGameAccount>(
     hasSeenTutorial: {
       type: Boolean,
       default: false,
+    },
+    badges: {
+      type: [String],
+      default: [],
+    },
+    activeBadges: {
+      type: [String],
+      default: [],
     },
     rating: {
       overall: {

@@ -140,6 +140,8 @@ function buildAccountAuth(account: {
   email?: string;
   displayName: string;
   profilePicture?: string;
+  badges?: string[];
+  activeBadges?: string[];
   rating?: { overall: { elo: number; gamesPlayed: number } };
 }) {
   return createAccountAuth({
@@ -147,6 +149,8 @@ function buildAccountAuth(account: {
     email: account.email,
     displayName: account.displayName,
     profilePicture: account.profilePicture,
+    badges: account.badges ?? [],
+    activeBadges: account.activeBadges ?? [],
     rating: account.rating?.overall?.elo,
   });
 }
@@ -155,6 +159,8 @@ function serializeAccountProfile(account: {
   displayName: string;
   email?: string;
   profilePicture?: string;
+  badges?: string[];
+  activeBadges?: string[];
   createdAt?: Date;
   updatedAt?: Date;
 }) {
@@ -162,6 +168,8 @@ function serializeAccountProfile(account: {
     displayName: account.displayName,
     email: account.email,
     profilePicture: account.profilePicture,
+    badges: account.badges ?? [],
+    activeBadges: account.activeBadges ?? [],
     createdAt: account.createdAt?.toISOString(),
     updatedAt: account.updatedAt?.toISOString(),
   };
@@ -1014,5 +1022,40 @@ router.post(
     }
   }
 );
+
+// ---------------------------------------------------------------------------
+// Badge endpoints
+// ---------------------------------------------------------------------------
+
+router.put("/badges/active", async (req: Request, res: Response) => {
+  try {
+    const account = await requireAccount(req, res);
+    if (!account) {
+      return;
+    }
+
+    const { activeBadges } = req.body as { activeBadges?: string[] };
+
+    if (!Array.isArray(activeBadges)) {
+      return res.status(400).json({
+        code: "VALIDATION_ERROR",
+        message: "activeBadges must be an array of badge IDs.",
+      });
+    }
+
+    // Only allow activating badges the player has unlocked
+    const unlocked = new Set(account.badges ?? []);
+    const validActive = activeBadges.filter((id) => unlocked.has(id));
+
+    account.activeBadges = validActive;
+    await account.save();
+
+    const auth = buildAccountAuth(account);
+    await refreshPlayerSession(req, res, auth.player);
+    return res.status(200).json({ auth, activeBadges: validActive });
+  } catch (error) {
+    return handleRouteError(error, req, res, "Unable to update active badges right now.");
+  }
+});
 
 export default router;

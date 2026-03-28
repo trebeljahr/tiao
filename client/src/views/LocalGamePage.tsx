@@ -73,10 +73,10 @@ export function LocalGamePage() {
   const localStatusTitle = isDraw
     ? t("draw")
     : timeoutWinner
-      ? t("winsOnTime", { color: formatPlayerColor(timeoutWinner) })
+      ? t("winsOnTime", { color: formatPlayerColor(timeoutWinner) as string })
       : winner
-        ? t("wins", { color: formatPlayerColor(winner) })
-        : t("toMove", { color: formatPlayerColor(local.localGame.currentTurn) });
+        ? t("wins", { color: formatPlayerColor(winner!) as string })
+        : t("toMove", { color: formatPlayerColor(local.localGame.currentTurn) as string });
 
   const paperCard =
     "border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]";
@@ -187,8 +187,8 @@ export function LocalGamePage() {
           isDraw
             ? t("draw")
             : timeoutWinner
-              ? t("winsOnTime", { color: formatPlayerColor(timeoutWinner) })
-              : t("wins", { color: formatPlayerColor(effectiveWinner!) })
+              ? t("winsOnTime", { color: formatPlayerColor(timeoutWinner) as string })
+              : t("wins", { color: formatPlayerColor(effectiveWinner!) as string })
         }
         description={isDraw ? t("drawNoMoves") : t("wonDesc")}
       >

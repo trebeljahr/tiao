@@ -24,7 +24,8 @@ import { cn } from "@/lib/utils";
 import { isNetworkError, readableError, toastError } from "@/lib/errors";
 import { getBadgesForPlayer, hasPreviewAccess, isAdmin } from "@/lib/featureGate";
 import { UserBadge, type BadgeId, BADGE_DEFINITIONS, ALL_BADGE_IDS } from "@/components/UserBadge";
-import { useSetActiveBadge } from "@/lib/useActiveBadge";
+import { useSetActiveBadges } from "@/lib/useActiveBadge";
+import { updateActiveBadges } from "@/lib/api";
 import { useTranslations } from "next-intl";
 
 const PROFILE_PIC_SIZE = 512;
@@ -74,9 +75,23 @@ function resizeImage(file: File): Promise<File> {
 function BadgeSelector({ auth }: { auth: AuthResponse | null }) {
   const t = useTranslations("profile");
   const badges = getBadgesForPlayer(auth);
-  const [activeBadgeId, setActiveBadge] = useSetActiveBadge();
+  const [activeBadges, setActiveBadges] = useSetActiveBadges();
 
   if (!hasPreviewAccess(auth) || badges.length === 0) return null;
+
+  const toggleBadge = (badgeId: BadgeId) => {
+    const next = activeBadges.includes(badgeId)
+      ? activeBadges.filter((id) => id !== badgeId)
+      : [...activeBadges, badgeId];
+    setActiveBadges(next as BadgeId[]);
+    // Fire-and-forget server sync
+    void updateActiveBadges(next);
+  };
+
+  const hideAll = () => {
+    setActiveBadges([]);
+    void updateActiveBadges([]);
+  };
 
   return (
     <Card className="border-[#dcc7a3]/60 bg-[linear-gradient(180deg,rgba(255,250,235,0.98),rgba(248,238,215,0.98))] shadow-[0_32px_72px_-28px_rgba(80,52,18,0.26)]">
@@ -91,10 +106,10 @@ function BadgeSelector({ auth }: { auth: AuthResponse | null }) {
           {/* "None" option */}
           <button
             type="button"
-            onClick={() => setActiveBadge(null)}
+            onClick={hideAll}
             className={cn(
               "rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
-              activeBadgeId === null
+              activeBadges.length === 0
                 ? "border-[#8c7a5e] bg-[#f5ecd8] text-[#4e3d2c] shadow-sm"
                 : "border-[#dcc7a3] text-[#9a8670] hover:border-[#b69a6e]",
             )}
@@ -105,13 +120,13 @@ function BadgeSelector({ auth }: { auth: AuthResponse | null }) {
           {badges.map((badgeId) => {
             const def = BADGE_DEFINITIONS[badgeId];
             if (!def) return null;
-            const isActive = activeBadgeId === badgeId;
+            const isActive = activeBadges.includes(badgeId);
 
             return (
               <button
                 key={badgeId}
                 type="button"
-                onClick={() => setActiveBadge(badgeId)}
+                onClick={() => toggleBadge(badgeId)}
                 className={cn(
                   "rounded-xl border p-2 transition-all",
                   isActive
@@ -125,9 +140,14 @@ function BadgeSelector({ auth }: { auth: AuthResponse | null }) {
           })}
         </div>
 
-        {activeBadgeId && (
+        {activeBadges.length > 0 && (
           <p className="mt-3 text-xs text-[#9a8670]">
-            {t("badgeActive", { badge: BADGE_DEFINITIONS[activeBadgeId as BadgeId]?.label })}
+            {t("badgeActive", {
+              badge: activeBadges
+                .map((id) => BADGE_DEFINITIONS[id as BadgeId]?.label)
+                .filter(Boolean)
+                .join(", "),
+            })}
           </p>
         )}
 

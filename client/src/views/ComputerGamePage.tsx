@@ -85,10 +85,10 @@ export function ComputerGamePage() {
   const localStatusTitle = isDraw
     ? t("draw")
     : winner
-      ? t("wins", { color: formatPlayerColor(winner) })
+      ? t("wins", { color: formatPlayerColor(winner!) as string })
       : computer.computerThinking
         ? t("computerThinking")
-        : t("toMove", { color: formatPlayerColor(computer.localGame.currentTurn) });
+        : t("toMove", { color: formatPlayerColor(computer.localGame.currentTurn) as string });
 
   const paperCard =
     "border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]";

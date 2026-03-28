@@ -9,10 +9,10 @@ export type PlayerIdentity = {
   email?: string;
   profilePicture?: string;
   hasSeenTutorial?: boolean;
-  /** Badge IDs the player has earned. */
+  /** Badge IDs the player has unlocked. */
   badges?: string[];
-  /** Which badge the player chose to display (null = hidden). */
-  activeBadge?: string;
+  /** Which badge(s) the player chose to display (empty = hidden). */
+  activeBadges?: string[];
   rating?: number;
 };
 
