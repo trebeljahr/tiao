@@ -93,7 +93,10 @@
     "inviteSent": "Spiel erstellt & Einladung gesendet!",
     "timeControlTooltip": "{minutes, plural, one {# Min.} other {# Min.}} pro Spieler + {increment}s pro Zug",
     "timeControlTooltipNoIncrement": "{minutes, plural, one {# Min.} other {# Min.}} pro Spieler, ohne Inkrement",
-    "opponentOnline": "Gegner ist online"
+    "opponentOnline": "Gegner ist online",
+    "guestLimitTitle": "Spielelimit erreicht",
+    "guestLimitDesc": "Gäste können bis zu {limit} Spiele spielen. Erstelle ein kostenloses Konto, um unbegrenzt zu spielen und deinen Spielverlauf zu behalten!",
+    "guestGamesRemaining": "Noch {remaining} {remaining, plural, one {Gastspiel} other {Gastspiele}} übrig"
   },
   "game": {
     "white": "Weiß",
@@ -224,7 +227,12 @@
     "ruleBorder": "Randregel",
     "ruleBorderDesc": "Rand nur zur Verteidigung gegen einen gegnerischen Sprung",
     "gotItPlay": "Verstanden, los geht's!",
-    "learnToPlay": "Erst die Regeln lernen"
+    "learnToPlay": "Erst die Regeln lernen",
+    "ratingChange": "Wertung",
+    "ratingUp": "{rating} (+{delta})",
+    "ratingDown": "{rating} ({delta})",
+    "ratingUnchanged": "{rating} (±0)",
+    "unrated": "Ohne Wertung"
   },
   "config": {
     "difficulty": "Schwierigkeit",

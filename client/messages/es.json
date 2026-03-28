@@ -93,7 +93,10 @@
     "inviteSent": "¡Partida creada e invitación enviada!",
     "timeControlTooltip": "{minutes, plural, one {# min} other {# mins}} por jugador + {increment}s por jugada",
     "timeControlTooltipNoIncrement": "{minutes, plural, one {# min} other {# mins}} por jugador, sin incremento",
-    "opponentOnline": "Tu rival está en línea"
+    "opponentOnline": "Tu rival está en línea",
+    "guestLimitTitle": "Límite de partidas alcanzado",
+    "guestLimitDesc": "Los invitados pueden jugar hasta {limit} partidas. ¡Crea una cuenta gratis para jugar sin límite y guardar tu historial!",
+    "guestGamesRemaining": "{remaining} {remaining, plural, one {partida} other {partidas}} de invitado restantes"
   },
   "game": {
     "white": "Blancas",
@@ -224,7 +227,12 @@
     "ruleBorder": "Regla de borde",
     "ruleBorderDesc": "Solo se puede colocar en el borde para defender de un salto enemigo",
     "gotItPlay": "¡Entendido, a jugar!",
-    "learnToPlay": "Aprender a jugar primero"
+    "learnToPlay": "Aprender a jugar primero",
+    "ratingChange": "Puntuación",
+    "ratingUp": "{rating} (+{delta})",
+    "ratingDown": "{rating} ({delta})",
+    "ratingUnchanged": "{rating} (±0)",
+    "unrated": "Sin puntuación"
   },
   "config": {
     "difficulty": "Dificultad",

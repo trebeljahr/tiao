@@ -140,11 +140,25 @@ export function LobbyPage() {
     });
   }, [activeGames, rematchGames]);
 
+  const GUEST_GAME_LIMIT = 10;
+  const guestGameCount = multiplayerGames.active.length + multiplayerGames.finished.length;
+  const guestGamesRemaining = GUEST_GAME_LIMIT - guestGameCount;
+  const [guestLimitDialogOpen, setGuestLimitDialogOpen] = useState(false);
+
+  function checkGuestLimit(): boolean {
+    if (auth?.player.kind === "guest" && guestGamesRemaining <= 0) {
+      setGuestLimitDialogOpen(true);
+      return false;
+    }
+    return true;
+  }
+
   async function handleCreateRoom() {
     if (!auth) {
       onOpenAuth("login");
       return;
     }
+    if (!checkGuestLimit()) return;
 
     setMultiplayerBusy(true);
     try {
@@ -169,6 +183,7 @@ export function LobbyPage() {
       onOpenAuth("login");
       return;
     }
+    if (!checkGuestLimit()) return;
 
     if (!joinGameId.trim()) {
       return;
@@ -727,6 +742,23 @@ export function LobbyPage() {
           onSubmit={handleCreateRoom}
           busy={multiplayerBusy}
         />
+      </Dialog>
+
+      {/* Guest game limit dialog */}
+      <Dialog
+        open={guestLimitDialogOpen}
+        onOpenChange={setGuestLimitDialogOpen}
+        title={t("guestLimitTitle")}
+        description={t("guestLimitDesc", { limit: GUEST_GAME_LIMIT })}
+      >
+        <div className="grid gap-2">
+          <Button onClick={() => { setGuestLimitDialogOpen(false); onOpenAuth("signup"); }}>
+            {tc("signUp")}
+          </Button>
+          <Button variant="ghost" onClick={() => setGuestLimitDialogOpen(false)}>
+            {tc("cancel")}
+          </Button>
+        </div>
       </Dialog>
     </div>
   );

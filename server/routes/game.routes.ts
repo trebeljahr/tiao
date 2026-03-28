@@ -4,6 +4,8 @@ import { classifyMongoError } from "../error-handling";
 import { gameService, GameServiceError } from "../game/gameService";
 import { getPlayerFromRequest } from "../auth/sessionHelper";
 import GameInvitation from "../models/GameInvitation";
+import GameRoom from "../models/GameRoom";
+import { PlayerIdentity } from "../../shared/src";
 
 const router = express.Router();
 
@@ -18,6 +20,21 @@ async function getAuthenticatedPlayer(req: Request, res: Response) {
   }
 
   return player;
+}
+
+const GUEST_GAME_LIMIT = 10;
+
+async function checkGuestGameLimit(player: PlayerIdentity, res: Response): Promise<boolean> {
+  if (player.kind !== "guest") return true;
+  const count = await GameRoom.countDocuments({ "players.playerId": player.playerId });
+  if (count >= GUEST_GAME_LIMIT) {
+    res.status(403).json({
+      code: "GUEST_LIMIT_REACHED",
+      message: `Guest players can play up to ${GUEST_GAME_LIMIT} games. Create an account to continue.`,
+    });
+    return false;
+  }
+  return true;
 }
 
 const GAME_ID_PATTERN = /^[A-Z2-9]{6}$/;
@@ -195,6 +212,7 @@ router.post("/games", async (req: Request, res: Response) => {
   if (!player) {
     return;
   }
+  if (!(await checkGuestGameLimit(player, res))) return;
 
   try {
     const { boardSize, scoreToWin, timeControl } = req.body ?? {};
@@ -460,6 +478,7 @@ router.post("/matchmaking", async (req: Request, res: Response) => {
   if (!player) {
     return;
   }
+  if (!(await checkGuestGameLimit(player, res))) return;
 
   try {
     const raw = req.body?.timeControl ?? null;

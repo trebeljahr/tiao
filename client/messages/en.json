@@ -93,7 +93,10 @@
     "inviteSent": "Game created & invitation sent!",
     "timeControlTooltip": "{minutes, plural, one {# min} other {# mins}} per player + {increment}s added per move",
     "timeControlTooltipNoIncrement": "{minutes, plural, one {# min} other {# mins}} per player, no increment",
-    "opponentOnline": "Opponent is online"
+    "opponentOnline": "Opponent is online",
+    "guestLimitTitle": "Game limit reached",
+    "guestLimitDesc": "Guest players can play up to {limit} games. Create a free account to play unlimited games and keep your game history!",
+    "guestGamesRemaining": "{remaining} guest {remaining, plural, one {game} other {games}} remaining"
   },
   "game": {
     "white": "White",
@@ -224,7 +227,12 @@
     "ruleBorder": "Border rule",
     "ruleBorderDesc": "Can only place on border to defend from enemy jump",
     "gotItPlay": "Got it, let's play!",
-    "learnToPlay": "Learn to Play First"
+    "learnToPlay": "Learn to Play First",
+    "ratingChange": "Rating",
+    "ratingUp": "{rating} (+{delta})",
+    "ratingDown": "{rating} ({delta})",
+    "ratingUnchanged": "{rating} (±0)",
+    "unrated": "Unrated"
   },
   "config": {
     "difficulty": "Difficulty",

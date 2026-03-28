@@ -1347,6 +1347,24 @@ export function MultiplayerGamePage() {
         description={gameOverDescription}
       >
         <div className="grid gap-2">
+          {/* Elo rating change after game */}
+          {multiplayerSnapshot?.ratingAfter && multiplayerSnapshot?.ratingBefore && playerSeat && (() => {
+            const before = multiplayerSnapshot.ratingBefore[playerSeat];
+            const after = multiplayerSnapshot.ratingAfter[playerSeat];
+            const delta = after - before;
+            return (
+              <div className="flex items-center justify-center gap-2 py-1 text-sm">
+                <span className="text-[#6e5b48]">{t("ratingChange")}:</span>
+                <span className={delta > 0 ? "font-semibold text-[#56703f]" : delta < 0 ? "font-semibold text-[#a04040]" : "text-[#6e5b48]"}>
+                  {delta > 0
+                    ? t("ratingUp", { rating: Math.round(after), delta: Math.round(delta) })
+                    : delta < 0
+                      ? t("ratingDown", { rating: Math.round(after), delta: Math.round(delta) })
+                      : t("ratingUnchanged", { rating: Math.round(after) })}
+                </span>
+              </div>
+            );
+          })()}
           {isMultiplayerParticipant &&
             connectionState === "connected" &&
             multiplayerSnapshot?.seats[playerSeat === "white" ? "black" : "white"]?.online ? (
