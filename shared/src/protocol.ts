@@ -9,6 +9,10 @@ export type PlayerIdentity = {
   email?: string;
   profilePicture?: string;
   hasSeenTutorial?: boolean;
+  /** Badge IDs the player has earned. */
+  badges?: string[];
+  /** Which badge the player chose to display (null = hidden). */
+  activeBadge?: string;
 };
 
 export type PlayerSlot = {

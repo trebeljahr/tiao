@@ -1,6 +1,7 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import { PlayerOverviewAvatar, ConnectionDot } from "@/components/game/GameShared";
+import { UserBadge, type BadgeId } from "@/components/UserBadge";
 
 type PlayerIdentityRowProps = {
   player: { playerId?: string; displayName?: string; profilePicture?: string };
@@ -15,6 +16,8 @@ type PlayerIdentityRowProps = {
   showPending?: boolean;
   onCancelPending?: () => void;
   cancelPendingBusy?: boolean;
+  /** The badge the player chose to display. */
+  activeBadge?: string | null;
   friendVariant?: "dark" | "light";
   className?: string;
   nameClassName?: string;
@@ -34,6 +37,7 @@ export function PlayerIdentityRow({
   showPending,
   onCancelPending,
   cancelPendingBusy,
+  activeBadge,
   friendVariant,
   className,
   nameClassName,
@@ -52,6 +56,10 @@ export function PlayerIdentityRow({
         {player.displayName ?? "Player"}
         {isYou && <span className="opacity-60"> (you)</span>}
       </span>
+
+      {activeBadge && (
+        <UserBadge badge={activeBadge as BadgeId} compact />
+      )}
 
       {online != null && (
         <ConnectionDot online={online} />

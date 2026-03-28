@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { AuthResponse } from "@shared";
 import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,11 @@ import {
   updateAccountProfile,
   uploadAccountProfilePicture,
 } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import { isNetworkError, readableError, toastError } from "@/lib/errors";
+import { getBadgesForPlayer, hasPreviewAccess, isAdmin } from "@/lib/featureGate";
+import { UserBadge, type BadgeId, BADGE_DEFINITIONS, ALL_BADGE_IDS } from "@/components/UserBadge";
+import { useSetActiveBadge } from "@/lib/useActiveBadge";
 
 const PROFILE_PIC_SIZE = 512;
 const PROFILE_PIC_QUALITY = 0.85;
@@ -63,6 +68,90 @@ function resizeImage(file: File): Promise<File> {
 
     img.src = url;
   });
+}
+
+function BadgeSelector({ auth }: { auth: AuthResponse | null }) {
+  const badges = getBadgesForPlayer(auth);
+  const [activeBadgeId, setActiveBadge] = useSetActiveBadge();
+
+  if (!hasPreviewAccess(auth) || badges.length === 0) return null;
+
+  return (
+    <Card className="border-[#dcc7a3]/60 bg-[linear-gradient(180deg,rgba(255,250,235,0.98),rgba(248,238,215,0.98))] shadow-[0_32px_72px_-28px_rgba(80,52,18,0.26)]">
+      <CardHeader>
+        <CardTitle>Badge</CardTitle>
+        <CardDescription>
+          Choose which badge to show next to your name.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-wrap gap-2">
+          {/* "None" option */}
+          <button
+            type="button"
+            onClick={() => setActiveBadge(null)}
+            className={cn(
+              "rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
+              activeBadgeId === null
+                ? "border-[#8c7a5e] bg-[#f5ecd8] text-[#4e3d2c] shadow-sm"
+                : "border-[#dcc7a3] text-[#9a8670] hover:border-[#b69a6e]",
+            )}
+          >
+            Hidden
+          </button>
+
+          {badges.map((badgeId) => {
+            const def = BADGE_DEFINITIONS[badgeId];
+            if (!def) return null;
+            const isActive = activeBadgeId === badgeId;
+
+            return (
+              <button
+                key={badgeId}
+                type="button"
+                onClick={() => setActiveBadge(badgeId)}
+                className={cn(
+                  "rounded-xl border p-2 transition-all",
+                  isActive
+                    ? "border-[#8c7a5e] bg-[#f5ecd8] shadow-sm"
+                    : "border-transparent hover:border-[#dcc7a3]",
+                )}
+              >
+                <UserBadge badge={badgeId} />
+              </button>
+            );
+          })}
+        </div>
+
+        {activeBadgeId && (
+          <p className="mt-3 text-xs text-[#9a8670]">
+            Your <strong>{BADGE_DEFINITIONS[activeBadgeId as BadgeId]?.label}</strong> badge will
+            appear next to your name in games, friend lists, and tournaments.
+          </p>
+        )}
+
+        {/* Dev preview: show all badges at all sizes for testing */}
+        {isAdmin(auth) && (
+          <div className="mt-5 rounded-xl border border-dashed border-[#c4a978]/50 p-3">
+            <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-[#b09a78]">
+              Dev preview — all badges
+            </p>
+            <div className="flex flex-col gap-3">
+              {ALL_BADGE_IDS.map((id) => (
+                <div key={id} className="flex items-center gap-3">
+                  <UserBadge badge={id} />
+                  <UserBadge badge={id} compact />
+                  <span className="text-[11px] text-[#9a8670]">
+                    Tier {BADGE_DEFINITIONS[id].tier} — {id}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
 }
 
 function formatTimestamp(value?: string) {
@@ -534,6 +623,8 @@ export function ProfilePage() {
                 ) : null}
               </CardContent>
             </Card>
+
+            <BadgeSelector auth={auth} />
           </div>
         ) : null}
       </main>
