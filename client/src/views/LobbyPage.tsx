@@ -853,23 +853,21 @@ export function LobbyPage() {
       <footer className="mx-auto max-w-5xl px-4 pb-8 pt-4 text-center text-xs text-[#a8957e] sm:px-6">
         <p>
           Tiao is a game created by{" "}
-          <a
-            href="https://spielstein.com"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
             className="font-medium text-[#8b7356] underline decoration-[#d4c4a8] underline-offset-2 hover:text-[#5d4732]"
+            onClick={() => router.push("/creators/andreas")}
           >
-            Andreas Spielstein
-          </a>
+            Andreas Edmeier
+          </button>
           . This digital version is built with care by{" "}
-          <a
-            href="https://ricos.site"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
             className="font-medium text-[#8b7356] underline decoration-[#d4c4a8] underline-offset-2 hover:text-[#5d4732]"
+            onClick={() => router.push("/creators/rico")}
           >
             Rico
-          </a>
+          </button>
           .
         </p>
       </footer>
