@@ -40,7 +40,7 @@ export function useMatchmakingData(
         }
         onMatched(response.matchmaking.snapshot);
       }
-    } catch (error) {
+    } catch {
       // Silent error for polling
     }
   }, [onMatched]);

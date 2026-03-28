@@ -7,17 +7,13 @@ import {
   confirmPendingJump,
   createInitialGameState,
   getJumpTargets,
-  getSelectableJumpOrigins,
   getWinner,
   isGameOver,
   jumpPiece,
-  placePiece,
   undoLastTurn,
   undoPendingJumpStep,
   isBorderPosition,
   otherColor,
-  getTile,
-  isInBounds,
 } from "../../shared/src";
 import { assertRegion, at, serializePositions, stateFromDiagram } from "./boardHarness";
 

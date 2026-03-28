@@ -157,7 +157,7 @@ export function MultiplayerGamePage() {
         if (!cancelled) {
           connectToRoom(response.snapshot);
         }
-      } catch (error) {
+      } catch {
         if (!cancelled) {
           toast.error(tCommon("failedToLoadGame"));
           router.push("/");

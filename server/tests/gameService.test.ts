@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test, mock } from "node:test";
 import WebSocket from "ws";
 import type { PlayerIdentity } from "../../shared/src";
-import { GameService, GameServiceError } from "../game/gameService";
+import { GameService } from "../game/gameService";
 import { InMemoryGameRoomStore } from "../game/gameStore";
 
 function createPlayer(playerId: string, options: Partial<PlayerIdentity> = {}): PlayerIdentity {
@@ -32,9 +32,6 @@ class FakeSocket {
   }
 }
 
-function isGameServiceError(error: unknown, code: string): error is GameServiceError {
-  return error instanceof GameServiceError && error.code === code;
-}
 
 test("rooms persist across service instances and randomize seats on second join", async () => {
   const store = new InMemoryGameRoomStore();
@@ -67,7 +64,7 @@ test("guest players can have multiple unfinished multiplayer games", async () =>
   const host = createPlayer("host");
 
   const firstGame = await service.createGame(guest);
-  const secondGame = await service.createGame(guest);
+  const _secondGame = await service.createGame(guest);
   const hostGame = await service.createGame(host);
 
   // Guest can join another player's game while having open games

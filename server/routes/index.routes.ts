@@ -4,7 +4,7 @@ import { isDatabaseReady } from "../db";
 
 const router = express.Router();
 
-router.get("/", (_: Request, res: Response, next: NextFunction) => {
+router.get("/", (_: Request, res: Response, _next: NextFunction) => {
   res.json("All good in here");
 });
 

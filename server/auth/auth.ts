@@ -4,7 +4,6 @@ import { anonymous } from "better-auth/plugins";
 import { APIError } from "better-auth/api";
 import bcrypt from "bcrypt";
 import { MongoClient } from "mongodb";
-import mongoose from "mongoose";
 import GameAccount from "../models/GameAccount";
 import GameRoom from "../models/GameRoom";
 import { generateFunAnonymousName } from "../game/playerTokens";

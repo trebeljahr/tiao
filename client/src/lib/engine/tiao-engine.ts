@@ -225,14 +225,14 @@ export function generateMoves(state: GameState, abort?: { aborted: boolean }): E
   const center = (bs - 1) / 2;
   const placements: Array<{ pos: Position; priority: number }> = [];
 
-  let checked = 0;
+  let _checked = 0;
   for (let y = 0; y < bs; y++) {
     for (let x = 0; x < bs; x++) {
       // Check abort periodically during the expensive canPlacePiece loop
       if (abort?.aborted) return moves;
       if (state.positions[y][x] !== null) continue;
       const pos = { x, y };
-      checked++;
+      _checked++;
       if (!canPlacePiece(state, pos).ok) continue;
 
       // Score by adjacency to any stone + center proximity
@@ -554,7 +554,7 @@ function negamax(
     }
   }
 
-  let moves = generateMoves(state, ctx.abort);
+  const moves = generateMoves(state, ctx.abort);
   if (moves.length === 0) return evaluate(state);
   if (ctx.abort.aborted) return 0;
 

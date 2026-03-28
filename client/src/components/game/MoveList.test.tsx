@@ -141,7 +141,6 @@ describe("MoveList", () => {
     );
 
     // scrollIntoView should NOT have been called on the document body
-    const scrollIntoViewSpy = vi.fn();
     const container = screen.getByTestId("move-list").querySelector(".overflow-y-auto");
     expect(container).toBeTruthy();
 

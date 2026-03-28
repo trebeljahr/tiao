@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useSocialData } from "./useSocialData";
-import type { AuthResponse, EMPTY_SOCIAL_OVERVIEW, SocialOverview } from "@shared";
+import type { AuthResponse, SocialOverview } from "@shared";
 
 const mockGetSocialOverview = vi.fn();
 const mockSearchPlayers = vi.fn();
@@ -71,14 +71,14 @@ describe("useSocialData", () => {
   });
 
   it("does not fetch when auth is null", async () => {
-    const { result } = renderHook(() => useSocialData(null, false));
+    renderHook(() => useSocialData(null, false));
     await new Promise((r) => setTimeout(r, 50));
     expect(mockGetSocialOverview).not.toHaveBeenCalled();
   });
 
   it("does not fetch for guest players", async () => {
     mockGetSocialOverview.mockResolvedValue({ overview: emptyOverview });
-    const { result } = renderHook(() => useSocialData(mockGuestAuth, false));
+    renderHook(() => useSocialData(mockGuestAuth, false));
     await new Promise((r) => setTimeout(r, 50));
     expect(mockGetSocialOverview).not.toHaveBeenCalled();
   });

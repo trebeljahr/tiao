@@ -1,11 +1,9 @@
 import type {
-  TournamentFormat,
   TournamentStatus,
   TournamentSettings,
   TournamentParticipant,
   TournamentRound,
   TournamentGroup,
-  TournamentVisibility,
 } from "../../shared/src";
 import Tournament from "../models/Tournament";
 

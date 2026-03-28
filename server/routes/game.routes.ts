@@ -621,7 +621,7 @@ router.post("/games/:gameId/test-finish", async (req: Request, res: Response) =>
   try {
     await gameService.testForceFinishGame(gameId, winner);
     res.status(200).json({ message: "Game finished." });
-  } catch (error) {
+  } catch {
     res.status(500).json({ code: "INTERNAL_ERROR", message: "Failed to finish game." });
   }
 });

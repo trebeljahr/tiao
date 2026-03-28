@@ -45,7 +45,6 @@ export function LobbyPage() {
     if (payload.type === "game-update") {
       void refreshMultiplayerGames({ silent: true });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const summary = payload.summary as any;
       const prevLen = seenHistoryRef.current[summary.gameId] ?? 0;
       seenHistoryRef.current[summary.gameId] = summary.historyLength;

@@ -5,7 +5,9 @@
     "node": "22.20.x"
   },
   "scripts": {
-    "build": "npx tsc",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "eslint": "eslint .",
     "start": "NODE_ENV=production node dist/server/index.js",
     "dev": "NODE_ENV=development nodemon --watch . --watch ../shared --ext ts index.ts",
     "dev:e2e": "NODE_ENV=test nodemon --watch . --watch ../shared --ext ts index.ts",
@@ -37,10 +39,14 @@
     "@types/node": "^22.5.5",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/ws": "^8.18.1",
+    "@typescript-eslint/eslint-plugin": "^8.57.2",
+    "@typescript-eslint/parser": "^8.57.2",
+    "eslint": "^10.1.0",
     "express": "^4.21.0",
     "nodemon": "^3.1.6",
     "swagger-jsdoc": "^6.2.8",
     "ts-node": "^10.9.2",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.2",
+    "typescript-eslint": "^8.57.2"
   }
 }

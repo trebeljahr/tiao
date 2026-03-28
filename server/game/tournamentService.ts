@@ -1,22 +1,16 @@
 import type {
   PlayerIdentity,
-  TimeControl,
-  TournamentFormat,
   TournamentMatch,
   TournamentMatchPlayer,
-  TournamentMatchStatus,
   TournamentParticipant,
   TournamentRound,
-  TournamentRoundStatus,
   TournamentGroup,
-  TournamentGroupStanding,
   TournamentSettings,
   TournamentSnapshot,
   TournamentListItem,
   TournamentStatus,
 } from "../../shared/src";
 import { GameService, GameServiceError, TournamentGameCallback } from "./gameService";
-import { StoredMultiplayerRoom, getPlayerColorForRoom } from "./gameStore";
 import { LockProvider, InMemoryLockProvider } from "./lockProvider";
 import { TournamentStore, StoredTournament, MongoTournamentStore } from "./tournamentStore";
 import { getWinner, getFinishReason } from "../../shared/src";
@@ -916,7 +910,7 @@ export class TournamentService implements TournamentGameCallback {
     }
   }
 
-  private computeGroupStandings(group: TournamentGroup, tournament: StoredTournament): void {
+  private computeGroupStandings(group: TournamentGroup, _tournament: StoredTournament): void {
     // Reset standings
     for (const s of group.standings) {
       s.wins = 0;

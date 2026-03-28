@@ -256,7 +256,7 @@ test("rematch in timed game also gets firstMoveDeadline", async () => {
   (aliceSocket as unknown as FakeSocket).messages = [];
   (bobSocket as unknown as FakeSocket).messages = [];
 
-  const rematchResult = await service.applyAction(gameId, bob, { type: "request-rematch" });
+  const _rematchResult = await service.applyAction(gameId, bob, { type: "request-rematch" });
 
   // The rematch room should also have firstMoveDeadline since it inherits time control
   // Find the rematch-started message

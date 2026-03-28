@@ -207,7 +207,7 @@ async function main() {
   log(`Deleted ${invitationResult.deletedCount} invitations.`);
 
   // Clean up friend references on kept accounts (remove deleted users from lists)
-  const deletedAccountIds = await GameAccount.find(
+  const _deletedAccountIds = await GameAccount.find(
     { _id: { $nin: [...keepAccountIds].map((id) => new mongoose.Types.ObjectId(id)) } },
     { _id: 1 },
   ).lean();

@@ -220,7 +220,7 @@ export function TiaoBoard({
     }
     setMobilePreviewVisible(false);
     return undefined;
-  }, [mobilePreview !== null]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [mobilePreview !== null]);
 
   const handleTouchStart = useCallback(
     (e: React.TouchEvent) => {

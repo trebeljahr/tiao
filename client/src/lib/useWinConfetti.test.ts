@@ -9,8 +9,6 @@ vi.mock("canvas-confetti", () => ({
 }));
 
 // Mock requestAnimationFrame to run synchronously (single frame only)
-let rafCallback: FrameRequestCallback | null = null;
-const originalRaf = globalThis.requestAnimationFrame;
 
 import { useWinConfetti } from "./useWinConfetti";
 
@@ -19,7 +17,7 @@ describe("useWinConfetti", () => {
     vi.clearAllMocks();
     // Make requestAnimationFrame capture but not recurse — we only need to
     // verify the first confetti() call to know which branch was taken.
-    vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => {
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation((_cb) => {
       // Don't invoke cb — prevents infinite recursion in the animation loop.
       return 0;
     });

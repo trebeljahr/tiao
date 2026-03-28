@@ -88,6 +88,8 @@ export type MultiplayerSnapshot = {
   tournamentId?: string | null;
   /** For timed tournament games: true once both players have connected and the game can begin */
   tournamentReady?: boolean;
+  ratingBefore?: { white: number; black: number } | null;
+  ratingAfter?: { white: number; black: number } | null;
 };
 
 export type FinishReason = "captured" | "forfeit" | "timeout" | "board_full";

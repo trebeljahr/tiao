@@ -18,14 +18,14 @@ class MockWebSocket {
   onclose: ((event: { code: number; reason: string; wasClean: boolean }) => void) | null = null;
   onerror: (() => void) | null = null;
 
-  private eventListeners: Record<string, Function[]> = {};
+  private eventListeners: Record<string, ((...args: any[]) => any)[]> = {};
 
   constructor(url: string) {
     this.url = url;
     MockWebSocket.instances.push(this);
   }
 
-  addEventListener(type: string, listener: Function) {
+  addEventListener(type: string, listener: (...args: any[]) => any) {
     if (!this.eventListeners[type]) {
       this.eventListeners[type] = [];
     }

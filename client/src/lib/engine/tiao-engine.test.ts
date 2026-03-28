@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { createInitialGameState, placePiece, type GameState } from "@shared";
+import {
+  createInitialGameState,
+  type GameState,
+} from "@shared";
 import {
   generateMoves,
   evaluate,
@@ -9,17 +12,8 @@ import {
   type EngineMove,
 } from "./tiao-engine";
 
-function placeStones(positions: Array<{ x: number; y: number }>): GameState {
-  let state = createInitialGameState();
-  for (const pos of positions) {
-    const result = placePiece(state, pos);
-    if (!result.ok) {
-      throw new Error(`Failed to place at (${pos.x},${pos.y}): ${result.reason}`);
-    }
-    state = result.value;
-  }
-  return state;
-}
+
+
 
 function setupBoard(
   pieces: Array<{ x: number; y: number; color: "black" | "white" }>,
@@ -213,7 +207,11 @@ describe("Search", () => {
     const state = createInitialGameState();
     state.currentTurn = "black";
     const abort = { aborted: true };
-    const result = findBestMove(state, { level: 3, color: "black" }, abort);
+    findBestMove(
+      state,
+      { level: 3, color: "black" },
+      abort,
+    );
     // Should still return something from depth 1 if it manages to start
     // but importantly should not hang
     expect(true).toBe(true); // just ensure it completes

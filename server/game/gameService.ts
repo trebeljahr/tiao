@@ -6,7 +6,6 @@ import {
   MultiplayerGameSummary,
   MultiplayerGamesIndex,
   MultiplayerRematchState,
-  MultiplayerTakebackState,
   MultiplayerRoomType,
   MultiplayerSeatAssignments,
   MultiplayerSnapshot,
@@ -49,7 +48,6 @@ import { InMemoryLockProvider, LockProvider } from "./lockProvider";
 import {
   InMemoryMatchmakingStore,
   MatchmakingStore,
-  type MatchmakingQueueEntry,
 } from "./matchmakingStore";
 import { computeNewRatings, DEFAULT_RATING } from "./elo";
 import GameAccount from "../models/GameAccount";
@@ -511,7 +509,7 @@ export class GameService {
       }
 
       // Clock logic: deduct elapsed time and add increment on turn change
-      let clockMs = room.clockMs ? { ...room.clockMs } : null;
+      const clockMs = room.clockMs ? { ...room.clockMs } : null;
       let lastMoveAt = room.lastMoveAt;
 
       if (clockMs && room.timeControl && room.status === "active" && lastMoveAt) {
@@ -1427,7 +1425,7 @@ export class GameService {
     // the requester's last move.
     let state = room.state;
     const requester = room.takeback.requestedBy;
-    let clockMs = room.clockMs ? { ...room.clockMs } : null;
+    const clockMs = room.clockMs ? { ...room.clockMs } : null;
     let lastMoveAt = room.lastMoveAt;
     const increment = room.timeControl?.incrementMs ?? 0;
 

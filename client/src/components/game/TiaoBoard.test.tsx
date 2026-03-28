@@ -183,7 +183,7 @@ describe("TiaoBoard – last move highlighting", () => {
       position: { x: 9, y: 9 },
     };
 
-    const { container } = render(
+    render(
       <TiaoBoard
         state={state}
         selectedPiece={null}
@@ -218,7 +218,7 @@ describe("TiaoBoard – last move highlighting", () => {
       ],
     };
 
-    const { container } = render(
+    render(
       <TiaoBoard
         state={state}
         selectedPiece={null}
@@ -243,7 +243,7 @@ describe("TiaoBoard – last move highlighting", () => {
     const { TiaoBoard } = await import("./TiaoBoard");
     const state = createInitialGameState();
 
-    const { container } = render(
+    render(
       <TiaoBoard
         state={state}
         selectedPiece={null}

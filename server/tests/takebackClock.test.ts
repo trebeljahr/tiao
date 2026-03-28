@@ -63,7 +63,7 @@ test("takeback restores clock correctly for instant moves", async () => {
     position: { x: 8, y: 8 },
   });
   assert.ok(afterThird.clock);
-  const whiteAfterThird = afterThird.clock.white;
+  const _whiteAfterThird = afterThird.clock.white;
 
   // Alice requests takeback
   await service.applyAction(gameId, alice, { type: "request-takeback" });

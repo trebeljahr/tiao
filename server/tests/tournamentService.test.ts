@@ -364,7 +364,7 @@ describe("Groups + knockout bracket", () => {
 
 describe("Game completion callback", () => {
   test("advances bracket when a tournament game finishes", async () => {
-    const { tournamentService, gameStore, gameService } = createServices();
+    const { tournamentService, gameStore, gameService: _gameService } = createServices();
     const alice = createPlayer("alice");
     const bob = createPlayer("bob");
 
@@ -419,7 +419,7 @@ describe("Seeding management", () => {
       await tournamentService.registerPlayer(t.tournamentId, p);
     }
 
-    const before = (await tournamentService.getTournamentSnapshot(t.tournamentId)).participants.map(
+    const _before = (await tournamentService.getTournamentSnapshot(t.tournamentId)).participants.map(
       (p) => p.seed,
     );
 

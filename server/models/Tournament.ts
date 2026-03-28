@@ -1,6 +1,5 @@
 import { Document, Schema, model, models } from "mongoose";
 import type {
-  TournamentFormat,
   TournamentStatus,
   TournamentSettings,
   TournamentParticipant,
@@ -25,7 +24,7 @@ export interface ITournament extends Document {
   updatedAt: Date;
 }
 
-const TournamentMatchPlayerSchema = new Schema(
+const _TournamentMatchPlayerSchema = new Schema(
   {
     playerId: { type: String, required: true },
     displayName: { type: String, required: true },

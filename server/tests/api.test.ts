@@ -170,7 +170,7 @@ async function invokeRoute<T>(
   };
 }
 
-function getSessionCookie<T>(response: RouteResult<T>): string {
+function _getSessionCookie<T>(response: RouteResult<T>): string {
   const setCookieHeader = response.headers["set-cookie"];
   const rawHeader = Array.isArray(setCookieHeader) ? setCookieHeader[0] : setCookieHeader;
 

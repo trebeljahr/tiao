@@ -71,6 +71,7 @@ function makeGameSummary(overrides?: Partial<MultiplayerGameSummary>): Multiplay
     currentTurn: "black",
     historyLength: 4,
     winner: null,
+    finishReason: null,
     yourSeat: "white",
     score: { black: 0, white: 0 },
     players: [
@@ -110,6 +111,10 @@ function makeGameSummary(overrides?: Partial<MultiplayerGameSummary>): Multiplay
       },
     },
     rematch: null,
+    boardSize: 19,
+    scoreToWin: 5,
+    timeControl: null,
+    clockMs: null,
     ...overrides,
   };
 }

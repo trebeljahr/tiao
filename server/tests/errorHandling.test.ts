@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, test } from "node:test";
-import type { AuthResponse } from "../../shared/src";
 import { classifyMongoError } from "../error-handling";
 import { createTestGuest, resetTestSessions, installTestSessionMock } from "./testAuthHelper";
 
@@ -44,7 +43,7 @@ type RouteResult<T> = {
 
 let singletonGameService: (PatchedGameService & Record<string, unknown>) | null = null;
 let originalMethods: Partial<PatchedGameService> = {};
-let gameAuthRoutes: TestRouter;
+let _gameAuthRoutes: TestRouter;
 let gameRoutes: TestRouter;
 
 function createMockResponse<T>(): Record<string, unknown> & {
@@ -166,7 +165,7 @@ async function invokeRoute<T>(
   };
 }
 
-function getSessionCookie<T>(response: RouteResult<T>): string {
+function _getSessionCookie<T>(response: RouteResult<T>): string {
   const setCookieHeader = response.headers["set-cookie"];
   const rawHeader = Array.isArray(setCookieHeader) ? setCookieHeader[0] : setCookieHeader;
 
@@ -218,7 +217,7 @@ beforeEach(async () => {
   singletonGameService.getMatchmakingState = service.getMatchmakingState.bind(service);
   singletonGameService.leaveMatchmaking = service.leaveMatchmaking.bind(service);
 
-  gameAuthRoutes = gameAuthRoutesModule.default as TestRouter;
+  _gameAuthRoutes = gameAuthRoutesModule.default as TestRouter;
   gameRoutes = gameRoutesModule.default as TestRouter;
 });
 

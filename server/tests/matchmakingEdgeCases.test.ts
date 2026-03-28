@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { PlayerIdentity } from "../../shared/src";
-import { GameService, GameServiceError } from "../game/gameService";
+import { GameService } from "../game/gameService";
 import { InMemoryGameRoomStore } from "../game/gameStore";
 
 function createPlayer(playerId: string, options: Partial<PlayerIdentity> = {}): PlayerIdentity {
@@ -14,9 +14,6 @@ function createPlayer(playerId: string, options: Partial<PlayerIdentity> = {}): 
   };
 }
 
-function isGameServiceError(error: unknown, code: string): error is GameServiceError {
-  return error instanceof GameServiceError && error.code === code;
-}
 
 test("entering matchmaking twice returns searching status", async () => {
   const store = new InMemoryGameRoomStore();
