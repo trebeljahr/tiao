@@ -1163,18 +1163,29 @@ export class GameService {
   ): FinishReason | null {
     if (room.status !== "finished") return null;
 
+    // Scan the entire tail of the history for meta-records.
+    // forfeitGame() pushes [forfeit, win] — so we need to check
+    // all trailing meta-records, not just the last one.
     const history = room.state.history;
     for (let i = history.length - 1; i >= 0; i--) {
       const record = history[i];
       if (record.type === "forfeit") {
         return record.reason === "timeout" ? "timeout" : "forfeit";
       }
-      if (record.type === "win") {
-        return "captured";
-      }
       if (record.type === "draw") {
         return "board_full";
       }
+      if (record.type === "win") {
+        // Keep scanning — a forfeit record may precede this win
+        continue;
+      }
+      // Hit a board move — stop scanning
+      break;
+    }
+
+    // If we only found "win" records (no forfeit/draw), it's a score capture
+    if (history.some((r) => r.type === "win")) {
+      return "captured";
     }
 
     return null;
