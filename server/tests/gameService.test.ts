@@ -118,15 +118,13 @@ test("account players can keep multiple active games and browse finished history
   assert.equal(library.finished[0]?.winner, "white");
 });
 
-test("game browsing is restricted to account players", async () => {
+test("game browsing works for guest players", async () => {
   const store = new InMemoryGameRoomStore();
   const service = new GameService(store, () => 0);
   const guest = createPlayer("guest-2", { kind: "guest" });
 
-  await assert.rejects(
-    () => service.listGames(guest),
-    (error) => isGameServiceError(error, "ACCOUNT_REQUIRED")
-  );
+  const result = await service.listGames(guest);
+  assert.deepStrictEqual(result, { active: [], finished: [] });
 });
 
 test("spectator access opens a full game without taking a seat", async () => {

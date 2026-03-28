@@ -196,6 +196,7 @@ export class MongoGameRoomStore implements GameRoomStore {
       firstMoveDeadline: room.firstMoveDeadline,
       tournamentId: room.tournamentId ?? null,
       tournamentMatchId: room.tournamentMatchId ?? null,
+      staleAt: room.status === "waiting" ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : null,
     });
 
     return toStoredRoom({
@@ -246,6 +247,7 @@ export class MongoGameRoomStore implements GameRoomStore {
           firstMoveDeadline: room.firstMoveDeadline,
           tournamentId: room.tournamentId,
           tournamentMatchId: room.tournamentMatchId,
+          staleAt: room.status === "waiting" ? undefined : null,
         },
       },
       {

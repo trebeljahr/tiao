@@ -220,6 +220,22 @@ router.post("/games", async (req: Request, res: Response) => {
   }
 });
 
+router.delete("/games/:gameId", async (req: Request, res: Response) => {
+  const player = await getAuthenticatedPlayer(req, res);
+  if (!player) return;
+
+  try {
+    const gameId = req.params.gameId?.trim().toUpperCase();
+    if (!gameId) {
+      return res.status(400).json({ code: "INVALID_GAME_ID", message: "Game ID is required." });
+    }
+    await gameService.cancelWaitingRoom(gameId, player);
+    return res.status(200).json({ message: "Game cancelled." });
+  } catch (error) {
+    return respondWithGameServiceError(res, error, "Unable to cancel that game.");
+  }
+});
+
 /**
  * @openapi
  * /api/games/{gameId}/join:

@@ -27,7 +27,7 @@ import { useSocialData } from "@/lib/hooks/useSocialData";
 import { useLobbyMessage } from "@/lib/LobbySocketContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { createMultiplayerGame, joinMultiplayerGame } from "@/lib/api";
+import { createMultiplayerGame, joinMultiplayerGame, cancelMultiplayerGame } from "@/lib/api";
 import { toastError } from "@/lib/errors";
 
 export function LobbyPage() {
@@ -410,7 +410,7 @@ export function LobbyPage() {
           </motion.div>
         </section>
 
-        {auth?.player?.kind === "account" && (
+        {auth && sortedActiveGames.length > 0 && (
           <section className="grid grid-cols-1 gap-6 md:mt-8 md:grid-cols-2">
             <motion.div
               initial={{ opacity: 0, y: 16 }}
@@ -509,13 +509,34 @@ export function LobbyPage() {
                                 : "Their move"}
                           </Badge>
                         </div>
-                        <Button
-                          size="sm"
-                          className="shadow-sm group-hover:scale-105 transition-transform"
-                          onClick={() => router.push(`/game/${game.gameId}`)}
-                        >
-                          {hasRematchRequest ? "View" : "Resume"}
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          {game.status === "waiting" && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-xs text-[#9a8770] hover:text-[#7a3328]"
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                  await cancelMultiplayerGame(game.gameId);
+                                  toast.success("Game cancelled.");
+                                  void refreshMultiplayerGames({ silent: true });
+                                } catch (err) {
+                                  toastError(err);
+                                }
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            className="shadow-sm group-hover:scale-105 transition-transform"
+                            onClick={() => router.push(`/game/${game.gameId}`)}
+                          >
+                            {hasRematchRequest ? "View" : "Resume"}
+                          </Button>
+                        </div>
                       </div>
                     );
                   })}
@@ -528,6 +549,7 @@ export function LobbyPage() {
               </Card>
             </motion.div>
 
+            {auth?.player?.kind === "account" && (
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -582,6 +604,7 @@ export function LobbyPage() {
                 </CardContent>
               </Card>
             </motion.div>
+            )}
           </section>
         )}
 

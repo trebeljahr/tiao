@@ -22,7 +22,7 @@ export function useGamesIndex(auth: AuthResponse | null) {
 
   const refreshMultiplayerGames = useCallback(
     async (options: { silent?: boolean } = {}) => {
-      if (!auth || auth.player.kind !== "account") {
+      if (!auth) {
         setMultiplayerGames({
           active: [],
           finished: [],
@@ -49,7 +49,7 @@ export function useGamesIndex(auth: AuthResponse | null) {
   );
 
   useEffect(() => {
-    if (auth?.player.kind === "account" && !multiplayerGamesLoaded && !multiplayerGamesLoading) {
+    if (auth && !multiplayerGamesLoaded && !multiplayerGamesLoading) {
       void refreshMultiplayerGames();
     }
   }, [auth, multiplayerGamesLoaded, multiplayerGamesLoading, refreshMultiplayerGames]);

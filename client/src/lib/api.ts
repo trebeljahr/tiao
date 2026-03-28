@@ -175,6 +175,12 @@ export function createMultiplayerGame(
   });
 }
 
+export function cancelMultiplayerGame(gameId: string) {
+  return request<{ message: string }>(`/api/games/${gameId}`, {
+    method: "DELETE",
+  });
+}
+
 export function joinMultiplayerGame(gameId: string) {
   return request<{ snapshot: MultiplayerSnapshot }>(
     `/api/games/${gameId}/join`,

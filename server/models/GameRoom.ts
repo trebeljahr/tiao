@@ -55,6 +55,7 @@ export interface IGameRoom extends Document {
   firstMoveDeadline: Date | null;
   tournamentId: string | null;
   tournamentMatchId: string | null;
+  staleAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -168,6 +169,11 @@ const GameRoomSchema = new Schema<IGameRoom>(
       default: null,
       sparse: true,
     },
+    /** Auto-delete waiting rooms that have gone stale. Null for active/finished rooms. */
+    staleAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -176,6 +182,7 @@ const GameRoomSchema = new Schema<IGameRoom>(
 
 GameRoomSchema.index({ "players.playerId": 1, status: 1, updatedAt: -1 });
 GameRoomSchema.index({ tournamentId: 1, tournamentMatchId: 1 }, { sparse: true });
+GameRoomSchema.index({ staleAt: 1 }, { expireAfterSeconds: 0, sparse: true });
 
 const GameRoom = models.GameRoom || model<IGameRoom>("GameRoom", GameRoomSchema);
 

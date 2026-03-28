@@ -218,6 +218,30 @@ export class GameService {
     });
   }
 
+  async cancelWaitingRoom(
+    gameId: string,
+    player: PlayerIdentity,
+  ): Promise<void> {
+    return this.withLocks([this.roomLockKey(gameId)], async () => {
+      const room = await this.getRoom(gameId);
+
+      if (room.status !== "waiting") {
+        throw new GameServiceError(409, "GAME_NOT_WAITING", "Only waiting games can be cancelled.");
+      }
+
+      if (!room.players.some((p) => p.playerId === player.playerId)) {
+        throw new GameServiceError(403, "NOT_IN_GAME", "You are not a player in this game.");
+      }
+
+      // Mark as finished so it no longer blocks guest game creation
+      await this.saveRoom({
+        ...room,
+        status: "finished",
+        state: { ...room.state, history: [...room.state.history, { type: "draw" }] },
+      });
+    });
+  }
+
   async joinGame(
     gameId: string,
     player: PlayerIdentity
@@ -265,14 +289,6 @@ export class GameService {
   }
 
   async listGames(player: PlayerIdentity): Promise<MultiplayerGamesIndex> {
-    if (player.kind !== "account") {
-      throw new GameServiceError(
-        403,
-        "ACCOUNT_REQUIRED",
-        "Sign in to browse ongoing games and match history."
-      );
-    }
-
     const rooms = await this.store.listRoomsForPlayer(player.playerId);
     const summaries = rooms.map((room) =>
       this.toSummary(this.deriveRoomStatus(room), player.playerId)
@@ -877,11 +893,13 @@ export class GameService {
     );
 
     if (unfinishedRoom && unfinishedRoom.id !== allowedRoomId) {
-      throw new GameServiceError(
+      const err = new GameServiceError(
         409,
         "GUEST_ACTIVE_GAME_LIMIT",
-        "Guest players can only keep one unfinished multiplayer game at a time. Sign in to juggle multiple tables and unlock match history."
+        `You already have an open game (${unfinishedRoom.id}). Resume it or cancel it first.`,
       );
+      (err as any).existingGameId = unfinishedRoom.id;
+      throw err;
     }
   }
 
