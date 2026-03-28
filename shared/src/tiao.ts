@@ -969,6 +969,21 @@ export function formatTurnRecord(record: TurnRecord, index: number): string {
   return `${moveNumber}. ${colorInitial} ${positions.join("×")}`;
 }
 
+export function formatGameNotation(
+  history: TurnRecord[],
+  metadata?: { gameId?: string; white?: string; black?: string; boardSize?: number; scoreToWin?: number },
+): string {
+  const lines: string[] = [];
+  if (metadata?.gameId) lines.push(`[Game "${metadata.gameId}"]`);
+  if (metadata?.white) lines.push(`[White "${metadata.white}"]`);
+  if (metadata?.black) lines.push(`[Black "${metadata.black}"]`);
+  if (metadata?.boardSize) lines.push(`[BoardSize "${metadata.boardSize}"]`);
+  if (metadata?.scoreToWin) lines.push(`[ScoreToWin "${metadata.scoreToWin}"]`);
+  if (lines.length > 0) lines.push("");
+  lines.push(...history.map((record, i) => formatTurnRecord(record, i)));
+  return lines.join("\n");
+}
+
 export function replayToMove(
   history: TurnRecord[],
   moveIndex: number,

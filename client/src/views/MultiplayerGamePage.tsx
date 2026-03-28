@@ -41,6 +41,7 @@ import {
   arePositionsEqual,
   replayToMove,
   isBoardMove,
+  formatGameNotation,
 } from "@shared";
 import type { FinishReason } from "@shared";
 import { MoveList, MoveListNavButtons } from "@/components/game/MoveList";
@@ -1185,6 +1186,28 @@ export function MultiplayerGamePage() {
                             interactive={isReviewMode}
                             hideNavButtons={isReviewMode}
                           />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="mt-2 w-full text-xs text-[#8d7760]"
+                            onClick={() => {
+                              const notation = formatGameNotation(
+                                multiplayerSnapshot.state.history,
+                                {
+                                  gameId: multiplayerSnapshot.gameId,
+                                  white: multiplayerSnapshot.seats.white?.player.displayName,
+                                  black: multiplayerSnapshot.seats.black?.player.displayName,
+                                  boardSize: multiplayerSnapshot.state.boardSize,
+                                  scoreToWin: multiplayerSnapshot.state.scoreToWin,
+                                },
+                              );
+                              void navigator.clipboard.writeText(notation).then(() => {
+                                toast.success("Game notation copied to clipboard");
+                              });
+                            }}
+                          >
+                            Copy game notation
+                          </Button>
                         </div>
                       )}
 
