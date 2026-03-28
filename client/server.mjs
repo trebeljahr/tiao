@@ -8,7 +8,8 @@
  *   node server.mjs              (dev: PORT, API_PORT, handled by dev.mjs)
  */
 
-import { createServer, request as httpRequest } from "http";
+import { createServer } from "http";
+import { connect as netConnect } from "net";
 import { parse } from "url";
 import next from "next";
 
@@ -28,6 +29,9 @@ const server = createServer((req, res) => {
   handle(req, res, parse(req.url, true));
 });
 
+// Raw TCP tunnel for WebSocket upgrades — forwards exact bytes with zero
+// HTTP-level parsing so the browser ↔ backend WebSocket handshake and
+// framing are never touched by the proxy.
 server.on("upgrade", (req, socket, head) => {
   const { pathname } = parse(req.url, true);
   if (
@@ -36,49 +40,37 @@ server.on("upgrade", (req, socket, head) => {
     pathname === "/ws" ||
     pathname?.startsWith("/api/ws/")
   ) {
-    const proxyReq = httpRequest({
-      hostname: apiUrl.hostname,
-      port: apiUrl.port,
-      path: req.url,
-      method: req.method,
-      headers: req.headers,
-    });
-
-    proxyReq.on("upgrade", (proxyRes, proxySocket, proxyHead) => {
-      // Build the raw 101 response to send to the client
-      let rawHeader = `HTTP/${proxyRes.httpVersion} ${proxyRes.statusCode} ${proxyRes.statusMessage}\r\n`;
-      for (const [key, value] of Object.entries(proxyRes.headers)) {
-        const values = Array.isArray(value) ? value : [value];
-        for (const v of values) {
-          rawHeader += `${key}: ${v}\r\n`;
+    const backend = netConnect(
+      { host: apiUrl.hostname, port: Number(apiUrl.port) },
+      () => {
+        // Reconstruct the raw HTTP upgrade request using original header casing
+        let raw = `${req.method} ${req.url} HTTP/${req.httpVersion}\r\n`;
+        for (let i = 0; i < req.rawHeaders.length; i += 2) {
+          raw += `${req.rawHeaders[i]}: ${req.rawHeaders[i + 1]}\r\n`;
         }
-      }
-      rawHeader += "\r\n";
-      socket.write(rawHeader);
+        raw += "\r\n";
 
-      // Push any buffered data back so the pipes pick it up
-      if (proxyHead && proxyHead.length) proxySocket.unshift(proxyHead);
-      if (head && head.length) socket.unshift(head);
+        backend.write(raw);
+        if (head.length) backend.write(head);
 
-      // Transparent bidirectional pipe
-      proxySocket.pipe(socket);
-      socket.pipe(proxySocket);
+        // Transparent bidirectional pipe — every byte flows as-is
+        backend.pipe(socket);
+        socket.pipe(backend);
+      },
+    );
 
-      proxySocket.on("error", () => socket.destroy());
-      socket.on("error", () => proxySocket.destroy());
-      proxySocket.on("close", () => socket.destroy());
-      socket.on("close", () => proxySocket.destroy());
-    });
-
-    proxyReq.on("error", (err) => {
+    backend.on("error", (err) => {
       console.warn(`[ws-proxy] ${err.code ?? err.message}`);
       socket.destroy();
     });
-
-    proxyReq.end();
+    socket.on("error", () => backend.destroy());
+    socket.on("close", () => backend.destroy());
+    backend.on("close", () => socket.destroy());
   }
 });
 
 server.listen(port, () => {
-  console.log(`> Next.js ready on http://localhost:${port} (${dev ? "dev" : "production"})`);
+  console.log(
+    `> Next.js ready on http://localhost:${port} (${dev ? "dev" : "production"})`,
+  );
 });
