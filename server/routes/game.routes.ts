@@ -197,7 +197,7 @@ router.post("/games", async (req: Request, res: Response) => {
   }
 
   try {
-    const { boardSize, scoreToWin } = req.body ?? {};
+    const { boardSize, scoreToWin, timeControl } = req.body ?? {};
     const gameSettings =
       boardSize != null || scoreToWin != null
         ? {
@@ -205,7 +205,11 @@ router.post("/games", async (req: Request, res: Response) => {
             scoreToWin: scoreToWin != null ? Number(scoreToWin) : undefined,
           }
         : undefined;
-    const snapshot = await gameService.createGame(player, { gameSettings });
+    const parsedTimeControl =
+      timeControl && typeof timeControl === "object" && typeof timeControl.initialMs === "number" && typeof timeControl.incrementMs === "number"
+        ? { initialMs: timeControl.initialMs, incrementMs: timeControl.incrementMs }
+        : undefined;
+    const snapshot = await gameService.createGame(player, { gameSettings, timeControl: parsedTimeControl });
     return res.status(201).json({ snapshot });
   } catch (error) {
     return respondWithGameServiceError(

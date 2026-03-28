@@ -61,6 +61,13 @@ export type GameSettings = {
   scoreToWin: number;
 };
 
+export type GameConfig = GameSettings & {
+  timeControl: import("./protocol").TimeControl;
+};
+
+export const BOARD_SIZE_OPTIONS = [9, 13, 19] as const;
+export const SCORE_TO_WIN_OPTIONS = [5, 10, 15, 20] as const;
+
 export type GameState = {
   boardSize: number;
   scoreToWin: number;

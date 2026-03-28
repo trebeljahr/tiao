@@ -167,7 +167,7 @@ export function logoutPlayer() {
 }
 
 export function createMultiplayerGame(
-  settings?: { boardSize?: number; scoreToWin?: number },
+  settings?: { boardSize?: number; scoreToWin?: number; timeControl?: { initialMs: number; incrementMs: number } },
 ) {
   return request<{ snapshot: MultiplayerSnapshot }>("/api/games", {
     method: "POST",

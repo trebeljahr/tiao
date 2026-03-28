@@ -38,6 +38,26 @@ export type TimeControl = {
   incrementMs: number;
 } | null;
 
+export type TimeControlPreset = {
+  label: string;
+  category: string;
+  initialMs: number;
+  incrementMs: number;
+};
+
+export const TIME_CONTROL_PRESETS: TimeControlPreset[] = [
+  { label: "1+0", category: "Bullet", initialMs: 60_000, incrementMs: 0 },
+  { label: "2+1", category: "Bullet", initialMs: 120_000, incrementMs: 1_000 },
+  { label: "3+0", category: "Blitz", initialMs: 180_000, incrementMs: 0 },
+  { label: "3+2", category: "Blitz", initialMs: 180_000, incrementMs: 2_000 },
+  { label: "5+0", category: "Blitz", initialMs: 300_000, incrementMs: 0 },
+  { label: "5+3", category: "Blitz", initialMs: 300_000, incrementMs: 3_000 },
+  { label: "10+0", category: "Rapid", initialMs: 600_000, incrementMs: 0 },
+  { label: "10+5", category: "Rapid", initialMs: 600_000, incrementMs: 5_000 },
+  { label: "15+10", category: "Rapid", initialMs: 900_000, incrementMs: 10_000 },
+  { label: "30+0", category: "Classical", initialMs: 1_800_000, incrementMs: 0 },
+];
+
 export type ClockState = {
   white: number;
   black: number;
@@ -83,6 +103,9 @@ export type MultiplayerGameSummary = {
   players: PlayerSlot[];
   seats: Record<PlayerColor, PlayerSlot | null>;
   rematch: MultiplayerRematchState | null;
+  boardSize: number;
+  scoreToWin: number;
+  timeControl: TimeControl;
 };
 
 export type MultiplayerGamesIndex = {

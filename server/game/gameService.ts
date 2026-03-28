@@ -201,7 +201,7 @@ export class GameService {
 
   async createGame(
     creator: PlayerIdentity,
-    options: { roomType?: MultiplayerRoomType; gameSettings?: Partial<GameSettings> } = {}
+    options: { roomType?: MultiplayerRoomType; gameSettings?: Partial<GameSettings>; timeControl?: TimeControl } = {}
   ): Promise<MultiplayerSnapshot> {
     return this.withLocks([this.playerLockKey(creator.playerId)], async () => {
       await this.ensureGuestPlayerHasSingleOpenGame(creator);
@@ -211,6 +211,7 @@ export class GameService {
         roomType: options.roomType ?? "direct",
         assignSeats: false,
         gameSettings: options.gameSettings,
+        timeControl: options.timeControl,
       });
 
       return this.toSnapshot(room);
@@ -1141,6 +1142,9 @@ export class GameService {
         black: this.toSeatSlot(room, "black"),
       },
       rematch: room.status === "finished" ? (room.rematch ?? null) : null,
+      boardSize: room.state.boardSize,
+      scoreToWin: room.state.scoreToWin,
+      timeControl: room.timeControl,
     };
   }
 
