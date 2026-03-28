@@ -77,15 +77,13 @@ const GameAccountSchema = new Schema<IGameAccount>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 GameAccountSchema.index({ friends: 1 });
 GameAccountSchema.index({ receivedFriendRequests: 1 });
 GameAccountSchema.index({ sentFriendRequests: 1 });
 
-const GameAccount =
-  models.GameAccount ||
-  model<IGameAccount>("GameAccount", GameAccountSchema);
+const GameAccount = models.GameAccount || model<IGameAccount>("GameAccount", GameAccountSchema);
 
 export default GameAccount;

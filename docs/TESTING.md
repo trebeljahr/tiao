@@ -2,11 +2,11 @@
 
 Tiao uses three test frameworks across three layers:
 
-| Layer | Framework | Config |
-|-------|-----------|--------|
-| Server unit tests | Node.js built-in `node:test` | `server/package.json` ("test" script) |
-| Client unit tests | Vitest + React Testing Library | `client/vite.config.mts` |
-| E2E tests | Playwright | `playwright.config.ts` |
+| Layer             | Framework                      | Config                                |
+| ----------------- | ------------------------------ | ------------------------------------- |
+| Server unit tests | Node.js built-in `node:test`   | `server/package.json` ("test" script) |
+| Client unit tests | Vitest + React Testing Library | `client/vite.config.mts`              |
+| E2E tests         | Playwright                     | `playwright.config.ts`                |
 
 ## Running Tests
 
@@ -32,44 +32,44 @@ For E2E tests, the Playwright config auto-starts both servers (`npm run server` 
 
 ### Server Tests (`server/tests/`)
 
-| File | Tests | What it covers |
-|------|-------|----------------|
-| `tiaoCore.test.ts` | 8 | Core game rules: initial state, border rule, cluster rule, jump chains, undo, jump origins, game over |
-| `tiaoCoreEdgeCases.test.ts` | 19 | Edge cases: occupied/OOB placement, own-piece jumps, diagonal jumps, multi-jump chains, border corners, cluster shapes, game-over at 10, pending jump blocks, utility functions |
-| `api.test.ts` | 6 | REST endpoints: health check, guest auth, logout, game CRUD, matchmaking API, auth enforcement |
-| `authRoutes.test.ts` | 8 | Auth routes: signup/login 503 behavior, guest creation, display name truncation, session management |
-| `gameService.test.ts` | 9 | Service layer: room persistence, seat randomization, guest limits, game library, spectators, online status, matchmaking, rematch flow |
-| `gameServiceActions.test.ts` | 10 | Game actions via service: place-piece, turn enforcement, spectator rejection, jump+confirm capture, undo, broadcasts, rematch guards |
-| `matchmakingEdgeCases.test.ts` | 8 | Matchmaking: double-join, leave queue, matched state cleanup, guest limits, three-player queue |
-| `boardHarness.ts` | -- | Test utility (not a test file) |
+| File                           | Tests | What it covers                                                                                                                                                                  |
+| ------------------------------ | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tiaoCore.test.ts`             | 8     | Core game rules: initial state, border rule, cluster rule, jump chains, undo, jump origins, game over                                                                           |
+| `tiaoCoreEdgeCases.test.ts`    | 19    | Edge cases: occupied/OOB placement, own-piece jumps, diagonal jumps, multi-jump chains, border corners, cluster shapes, game-over at 10, pending jump blocks, utility functions |
+| `api.test.ts`                  | 6     | REST endpoints: health check, guest auth, logout, game CRUD, matchmaking API, auth enforcement                                                                                  |
+| `authRoutes.test.ts`           | 8     | Auth routes: signup/login 503 behavior, guest creation, display name truncation, session management                                                                             |
+| `gameService.test.ts`          | 9     | Service layer: room persistence, seat randomization, guest limits, game library, spectators, online status, matchmaking, rematch flow                                           |
+| `gameServiceActions.test.ts`   | 10    | Game actions via service: place-piece, turn enforcement, spectator rejection, jump+confirm capture, undo, broadcasts, rematch guards                                            |
+| `matchmakingEdgeCases.test.ts` | 8     | Matchmaking: double-join, leave queue, matched state cleanup, guest limits, three-player queue                                                                                  |
+| `boardHarness.ts`              | --    | Test utility (not a test file)                                                                                                                                                  |
 
 ### Client Tests (`client/src/`)
 
-| File | Tests | What it covers |
-|------|-------|----------------|
-| `App.test.tsx` | 1 | App component renders with router |
-| `lib/computer-ai.test.ts` | 7 | AI strategy: placement selection, center bias, jump preference, game-over handling |
-| `lib/hooks/useLocalGame.test.tsx` | 9 | Local game: turn alternation, piece selection, jump targets, color validation |
-| `lib/hooks/useGamesIndex.test.ts` | 6 | Games list: initialization, conditional fetch, malformed responses, auth state changes |
-| `lib/hooks/useComputerGame.test.tsx` | 5 | Computer game: human turn start, click blocking during AI turn, controls disabled state |
-| `lib/hooks/useMultiplayerGame.test.ts` | 10 | Multiplayer: connect/disconnect, snapshot updates, optimistic updates, error handling, message sending |
-| `lib/hooks/useMatchmakingData.test.ts` | 7 | Matchmaking hook: enter/cancel, polling, immediate match, null auth guard |
-| `lib/hooks/useSocialData.test.ts` | 11 | Social: friend request CRUD, search, guest guards, auth state transitions |
-| `lib/hooks/useLobbySocket.test.ts` | 6 | Lobby socket: connect/disconnect, message handling, auth guards |
+| File                                   | Tests | What it covers                                                                                         |
+| -------------------------------------- | ----- | ------------------------------------------------------------------------------------------------------ |
+| `App.test.tsx`                         | 1     | App component renders with router                                                                      |
+| `lib/computer-ai.test.ts`              | 7     | AI strategy: placement selection, center bias, jump preference, game-over handling                     |
+| `lib/hooks/useLocalGame.test.tsx`      | 9     | Local game: turn alternation, piece selection, jump targets, color validation                          |
+| `lib/hooks/useGamesIndex.test.ts`      | 6     | Games list: initialization, conditional fetch, malformed responses, auth state changes                 |
+| `lib/hooks/useComputerGame.test.tsx`   | 5     | Computer game: human turn start, click blocking during AI turn, controls disabled state                |
+| `lib/hooks/useMultiplayerGame.test.ts` | 10    | Multiplayer: connect/disconnect, snapshot updates, optimistic updates, error handling, message sending |
+| `lib/hooks/useMatchmakingData.test.ts` | 7     | Matchmaking hook: enter/cancel, polling, immediate match, null auth guard                              |
+| `lib/hooks/useSocialData.test.ts`      | 11    | Social: friend request CRUD, search, guest guards, auth state transitions                              |
+| `lib/hooks/useLobbySocket.test.ts`     | 6     | Lobby socket: connect/disconnect, message handling, auth guards                                        |
 
 ### E2E Tests (`e2e/`)
 
-| File | What it covers |
-|------|----------------|
-| `localTurns.spec.ts` | Local game turn alternation and opponent piece blocking |
-| `localGameFull.spec.ts` | Score display, piece persistence, jump capture workflow |
-| `computerGame.spec.ts` | Human vs AI: placement, AI response, turn enforcement |
-| `rematch.spec.ts` | Full multiplayer rematch accept flow |
-| `rematchDecline.spec.ts` | Rematch request and decline flow |
-| `matchmaking.spec.ts` | Two players queue and get matched |
-| `auth.spec.ts` | Signup, login, guest access |
-| `spectator.spec.ts` | Third player views game without joining |
-| `lobby.spec.ts` | Lobby buttons, game creation, active game list |
+| File                     | What it covers                                          |
+| ------------------------ | ------------------------------------------------------- |
+| `localTurns.spec.ts`     | Local game turn alternation and opponent piece blocking |
+| `localGameFull.spec.ts`  | Score display, piece persistence, jump capture workflow |
+| `computerGame.spec.ts`   | Human vs AI: placement, AI response, turn enforcement   |
+| `rematch.spec.ts`        | Full multiplayer rematch accept flow                    |
+| `rematchDecline.spec.ts` | Rematch request and decline flow                        |
+| `matchmaking.spec.ts`    | Two players queue and get matched                       |
+| `auth.spec.ts`           | Signup, login, guest access                             |
+| `spectator.spec.ts`      | Third player views game without joining                 |
+| `lobby.spec.ts`          | Lobby buttons, game creation, active game list          |
 
 ## Server Test Harness
 
@@ -113,11 +113,14 @@ The `resetPlayerSessionStoreForTests()` function clears the in-memory session st
 Create game states from ASCII diagrams for readable tests:
 
 ```typescript
-const state = stateFromDiagram(`
+const state = stateFromDiagram(
+  `
   W . .
   . B .
   . . .
-`, { origin: { x: 5, y: 5 }, turn: "white" });
+`,
+  { origin: { x: 5, y: 5 }, turn: "white" },
+);
 
 // W = white, B = black, . = empty
 // origin offsets the diagram onto the 19x19 board
@@ -126,11 +129,15 @@ const state = stateFromDiagram(`
 Assert board regions the same way:
 
 ```typescript
-assertRegion(state, `
+assertRegion(
+  state,
+  `
   . . .
   . B .
   . . W
-`, { origin: { x: 5, y: 5 } });
+`,
+  { origin: { x: 5, y: 5 } },
+);
 ```
 
 ### FakeSocket
@@ -141,7 +148,9 @@ A minimal WebSocket mock that captures sent messages:
 class FakeSocket {
   readyState = WebSocket.OPEN;
   messages: string[] = [];
-  send(message: string) { this.messages.push(message); }
+  send(message: string) {
+    this.messages.push(message);
+  }
 }
 ```
 
@@ -250,6 +259,7 @@ await page.evaluate(async (gameId) => {
 ## Adding New Tests
 
 ### Server test
+
 1. Create `server/tests/yourTest.test.ts`
 2. Use `node:test` and `node:assert/strict`
 3. Import from `../../shared/src` for game types/functions
@@ -257,6 +267,7 @@ await page.evaluate(async (gameId) => {
 5. Run with `npm --prefix server test`
 
 ### Client test
+
 1. Create `client/src/lib/hooks/yourHook.test.ts` (or `.tsx` if rendering components)
 2. Use Vitest globals (`describe`, `it`, `expect`, `vi`)
 3. Mock API calls with `vi.mock("../api", ...)`
@@ -264,6 +275,7 @@ await page.evaluate(async (gameId) => {
 5. Run with `cd client && npx vitest run`
 
 ### E2E test
+
 1. Create `e2e/yourFlow.spec.ts`
 2. Use `@playwright/test` (`test`, `expect`)
 3. Use `browser.newContext()` for multi-player scenarios

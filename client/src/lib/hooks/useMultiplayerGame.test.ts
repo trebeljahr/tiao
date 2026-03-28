@@ -97,9 +97,7 @@ const mockAuth: AuthResponse = {
   },
 };
 
-function createMockSnapshot(
-  overrides: Partial<MultiplayerSnapshot> = {},
-): MultiplayerSnapshot {
+function createMockSnapshot(overrides: Partial<MultiplayerSnapshot> = {}): MultiplayerSnapshot {
   return {
     gameId: "ABC123",
     roomType: "direct",
@@ -142,17 +140,13 @@ describe("useMultiplayerGame", () => {
   });
 
   it("initializes with idle connection state", () => {
-    const { result } = renderHook(() =>
-      useMultiplayerGame(mockAuth, "ABC123"),
-    );
+    const { result } = renderHook(() => useMultiplayerGame(mockAuth, "ABC123"));
     expect(result.current.connectionState).toBe("idle");
     expect(result.current.multiplayerSnapshot).toBeNull();
   });
 
   it("connects to room and transitions to connecting state", () => {
-    const { result } = renderHook(() =>
-      useMultiplayerGame(mockAuth, "ABC123"),
-    );
+    const { result } = renderHook(() => useMultiplayerGame(mockAuth, "ABC123"));
 
     const snapshot = createMockSnapshot();
     act(() => {
@@ -165,9 +159,7 @@ describe("useMultiplayerGame", () => {
   });
 
   it("transitions to connected on socket open", () => {
-    const { result } = renderHook(() =>
-      useMultiplayerGame(mockAuth, "ABC123"),
-    );
+    const { result } = renderHook(() => useMultiplayerGame(mockAuth, "ABC123"));
 
     const snapshot = createMockSnapshot();
     act(() => {
@@ -182,9 +174,7 @@ describe("useMultiplayerGame", () => {
   });
 
   it("updates snapshot on server snapshot message", () => {
-    const { result } = renderHook(() =>
-      useMultiplayerGame(mockAuth, "ABC123"),
-    );
+    const { result } = renderHook(() => useMultiplayerGame(mockAuth, "ABC123"));
 
     const snapshot = createMockSnapshot();
     act(() => {
@@ -206,9 +196,7 @@ describe("useMultiplayerGame", () => {
   });
 
   it("sets error on server error message", () => {
-    const { result } = renderHook(() =>
-      useMultiplayerGame(mockAuth, "ABC123"),
-    );
+    const { result } = renderHook(() => useMultiplayerGame(mockAuth, "ABC123"));
 
     const snapshot = createMockSnapshot();
     act(() => {
@@ -227,9 +215,7 @@ describe("useMultiplayerGame", () => {
   });
 
   it("sends message via WebSocket", () => {
-    const { result } = renderHook(() =>
-      useMultiplayerGame(mockAuth, "ABC123"),
-    );
+    const { result } = renderHook(() => useMultiplayerGame(mockAuth, "ABC123"));
 
     const snapshot = createMockSnapshot();
     act(() => {
@@ -255,9 +241,7 @@ describe("useMultiplayerGame", () => {
   });
 
   it("applies optimistic update on send", () => {
-    const { result } = renderHook(() =>
-      useMultiplayerGame(mockAuth, "ABC123"),
-    );
+    const { result } = renderHook(() => useMultiplayerGame(mockAuth, "ABC123"));
 
     const snapshot = createMockSnapshot();
     act(() => {
@@ -281,9 +265,7 @@ describe("useMultiplayerGame", () => {
   });
 
   it("transitions to disconnected on close", () => {
-    const { result } = renderHook(() =>
-      useMultiplayerGame(mockAuth, "ABC123"),
-    );
+    const { result } = renderHook(() => useMultiplayerGame(mockAuth, "ABC123"));
 
     const snapshot = createMockSnapshot();
     act(() => {
@@ -302,9 +284,7 @@ describe("useMultiplayerGame", () => {
   });
 
   it("sets error when sending on closed socket", () => {
-    const { result } = renderHook(() =>
-      useMultiplayerGame(mockAuth, "ABC123"),
-    );
+    const { result } = renderHook(() => useMultiplayerGame(mockAuth, "ABC123"));
 
     // Don't connect — socket is null
     act(() => {
@@ -318,9 +298,7 @@ describe("useMultiplayerGame", () => {
   });
 
   it("cleans up socket on unmount", () => {
-    const { result, unmount } = renderHook(() =>
-      useMultiplayerGame(mockAuth, "ABC123"),
-    );
+    const { result, unmount } = renderHook(() => useMultiplayerGame(mockAuth, "ABC123"));
 
     const snapshot = createMockSnapshot();
     act(() => {
@@ -336,9 +314,7 @@ describe("useMultiplayerGame", () => {
 
   it("calls onGameAborted callback when game-aborted message received", () => {
     const onGameAborted = vi.fn();
-    const { result } = renderHook(() =>
-      useMultiplayerGame(mockAuth, "ABC123", { onGameAborted }),
-    );
+    const { result } = renderHook(() => useMultiplayerGame(mockAuth, "ABC123", { onGameAborted }));
 
     const snapshot = createMockSnapshot();
     act(() => {
@@ -367,9 +343,7 @@ describe("useMultiplayerGame", () => {
 
   it("calls onGameAborted with requeuedForMatchmaking=false for absent player", () => {
     const onGameAborted = vi.fn();
-    const { result } = renderHook(() =>
-      useMultiplayerGame(mockAuth, "ABC123", { onGameAborted }),
-    );
+    const { result } = renderHook(() => useMultiplayerGame(mockAuth, "ABC123", { onGameAborted }));
 
     const snapshot = createMockSnapshot();
     act(() => {

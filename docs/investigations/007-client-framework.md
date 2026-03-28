@@ -10,12 +10,14 @@ The client was originally a Vite-powered React SPA with react-router-dom. As the
 ## Options Considered
 
 ### Vite + React Router (original)
+
 - Fast HMR, simple configuration, lightweight
 - Pure client-side rendering — no SSR, no SEO, no social sharing previews
 - Nginx serves static files in production
 - Clean separation between client and server deployments
 
 ### Next.js 14 App Router (chosen)
+
 - Server-side rendering for SEO and social sharing meta tags
 - File-system based routing (replaces react-router-dom)
 - Built-in image optimization, font optimization, metadata API
@@ -23,6 +25,7 @@ The client was originally a Vite-powered React SPA with react-router-dom. As the
 - Larger deployment footprint
 
 ### Remix
+
 - Similar SSR capabilities to Next.js
 - Better data loading patterns (loaders/actions)
 - Smaller community than Next.js
@@ -31,6 +34,7 @@ The client was originally a Vite-powered React SPA with react-router-dom. As the
 ## Migration Challenges
 
 The migration (commit `f90bb618`) involved:
+
 1. Replacing react-router-dom with Next.js `app/` directory routing
 2. Renaming `src/pages/` to `src/views/` to avoid Next.js Pages Router conflict
 3. Extracting auth state from `App.tsx` into `AuthContext` provider

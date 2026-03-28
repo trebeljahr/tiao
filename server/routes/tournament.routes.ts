@@ -26,7 +26,9 @@ function respondWithError(res: Response, error: unknown, fallback: string) {
   }
   const mongoError = classifyMongoError(error);
   if (mongoError) {
-    return res.status(mongoError.status).json({ code: mongoError.code, message: mongoError.message });
+    return res
+      .status(mongoError.status)
+      .json({ code: mongoError.code, message: mongoError.message });
   }
   console.error("[tournament-routes] Unhandled error:", error);
   return res.status(500).json({ code: "INTERNAL_ERROR", message: fallback });
@@ -69,14 +71,24 @@ router.post("/tournaments", async (req: Request, res: Response) => {
     };
 
     if (!name || typeof name !== "string" || name.trim().length === 0) {
-      return res.status(400).json({ code: "VALIDATION_ERROR", message: "Tournament name is required." });
+      return res
+        .status(400)
+        .json({ code: "VALIDATION_ERROR", message: "Tournament name is required." });
     }
 
     if (!settings || !settings.format) {
-      return res.status(400).json({ code: "VALIDATION_ERROR", message: "Tournament settings with format are required." });
+      return res.status(400).json({
+        code: "VALIDATION_ERROR",
+        message: "Tournament settings with format are required.",
+      });
     }
 
-    const tournament = await tournamentService.createTournament(player, settings, name.trim(), description?.trim());
+    const tournament = await tournamentService.createTournament(
+      player,
+      settings,
+      name.trim(),
+      description?.trim(),
+    );
     return res.status(201).json({ tournament: tournamentToSnapshot(tournament) });
   } catch (error) {
     return respondWithError(res, error, "Unable to create tournament.");
@@ -158,7 +170,9 @@ router.put("/tournaments/:id/seeding", async (req: Request, res: Response) => {
   try {
     const { seeds } = req.body as { seeds: { playerId: string; seed: number }[] };
     if (!Array.isArray(seeds)) {
-      return res.status(400).json({ code: "VALIDATION_ERROR", message: "Seeds array is required." });
+      return res
+        .status(400)
+        .json({ code: "VALIDATION_ERROR", message: "Seeds array is required." });
     }
 
     await tournamentService.updateSeeding(req.params.id, player.playerId, seeds);
@@ -209,7 +223,12 @@ router.post("/tournaments/:id/matches/:matchId/forfeit", async (req: Request, re
       return res.status(400).json({ code: "VALIDATION_ERROR", message: "loserId is required." });
     }
 
-    await tournamentService.forfeitMatch(req.params.id, req.params.matchId, loserId, player.playerId);
+    await tournamentService.forfeitMatch(
+      req.params.id,
+      req.params.matchId,
+      loserId,
+      player.playerId,
+    );
     const snapshot = await tournamentService.getTournamentSnapshot(req.params.id);
     return res.status(200).json({ tournament: snapshot });
   } catch (error) {

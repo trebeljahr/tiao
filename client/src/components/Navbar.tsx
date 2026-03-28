@@ -193,7 +193,12 @@ function LanguagePicker() {
         <svg viewBox="0 0 20 20" fill="none" className="h-[18px] w-[18px]">
           <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="1.5" />
           <ellipse cx="10" cy="10" rx="3.5" ry="7.5" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M3 7.5h14M3 12.5h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <path
+            d="M3 7.5h14M3 12.5h14"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
         </svg>
       </button>
       <AnimatePresence>
@@ -238,14 +243,15 @@ function PlayerSummary({ auth }: { auth: AuthResponse | null }) {
       <SoundToggle />
       <div className="flex max-w-[11.5rem] items-center gap-3 rounded-full border border-[#af8e5d]/35 bg-[rgba(255,248,232,0.94)] px-2.5 py-1.5 text-left text-[#28170e] shadow-[0_12px_26px_-20px_rgba(99,67,28,0.45)]">
         <PlayerOverviewAvatar
-          player={{ displayName: player?.displayName ?? "Guest", profilePicture: player?.profilePicture }}
+          player={{
+            displayName: player?.displayName ?? "Guest",
+            profilePicture: player?.profilePicture,
+          }}
           anonymous={isAnonymous}
           className="h-10 w-10 border border-[#a37d48]/35 shadow-sm"
         />
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold">
-            {player?.displayName ?? "Guest"}
-          </p>
+          <p className="truncate text-sm font-semibold">{player?.displayName ?? "Guest"}</p>
         </div>
       </div>
     </div>
@@ -269,14 +275,14 @@ function Brand({
       className={cn(
         "flex items-center text-left transition-opacity hover:opacity-90",
         compact ? "gap-2.5" : "gap-3",
-        className
+        className,
       )}
       aria-label={tNav("goToLobby")}
     >
       <span
         className={cn(
           "flex items-center justify-center rounded-2xl border border-[#f6e8cf]/55 bg-[linear-gradient(180deg,#faefd8,#ecd4a6)] font-display text-[#25170d] shadow-[0_14px_28px_-18px_rgba(37,23,13,0.85)]",
-          compact ? "h-11 w-11 text-[1.72rem]" : "h-11 w-11 text-2xl"
+          compact ? "h-11 w-11 text-[1.72rem]" : "h-11 w-11 text-2xl",
         )}
       >
         跳
@@ -284,7 +290,7 @@ function Brand({
       <span
         className={cn(
           "font-display tracking-tight text-[#3a2818]",
-          compact ? "text-[2.05rem]" : "text-3xl"
+          compact ? "text-[2.05rem]" : "text-3xl",
         )}
       >
         Tiao
@@ -391,9 +397,7 @@ export function Navbar({
           aria-current={item.active ? "page" : undefined}
           className={cn(
             "relative justify-start px-3 text-[#28170e]",
-            item.active
-              ? cn(activeNavItemClasses, "pointer-events-none")
-              : navItemClasses,
+            item.active ? cn(activeNavItemClasses, "pointer-events-none") : navItemClasses,
           )}
           onClick={item.active ? undefined : item.onClick}
         >
@@ -420,7 +424,12 @@ export function Navbar({
       </>
     ) : (
       <>
-        <Button variant="ghost" size="sm" className="text-[#28170e]" onClick={() => onOpenAuth("login")}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-[#28170e]"
+          onClick={() => onOpenAuth("login")}
+        >
           {t("signIn")}
         </Button>
         <Button size="sm" onClick={() => onOpenAuth("signup")}>
@@ -440,9 +449,7 @@ export function Navbar({
       <div
         className={cn(
           "flex items-center",
-          minimalMode
-            ? "min-h-11 pl-[4.15rem] pr-2 sm:pl-[4.2rem]"
-            : "justify-between"
+          minimalMode ? "min-h-11 pl-[4.15rem] pr-2 sm:pl-[4.2rem]" : "justify-between",
         )}
       >
         <Brand
@@ -454,12 +461,7 @@ export function Navbar({
           <LanguagePicker />
           <SoundToggle />
           {!minimalMode && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-[#28170e]"
-              onClick={onCloseNav}
-            >
+            <Button variant="ghost" size="icon" className="text-[#28170e]" onClick={onCloseNav}>
               <HamburgerIcon open />
             </Button>
           )}
@@ -474,9 +476,7 @@ export function Navbar({
             aria-current={item.active ? "page" : undefined}
             className={cn(
               navItemClasses,
-              item.active
-                ? cn(activeNavItemClasses, "pointer-events-none")
-                : "",
+              item.active ? cn(activeNavItemClasses, "pointer-events-none") : "",
             )}
             onClick={item.active ? undefined : item.onClick}
           >
@@ -503,28 +503,43 @@ export function Navbar({
         <div className="mt-4 grid gap-2">
           {player?.kind === "account" ? (
             <>
-              <Button variant="secondary" className="w-full justify-start" onClick={() => handleNav("/profile")}>
+              <Button
+                variant="secondary"
+                className="w-full justify-start"
+                onClick={() => handleNav("/profile")}
+              >
                 {t("profile")}
               </Button>
-              <Button variant="ghost" className="w-full justify-start text-[#28170e]" onClick={() => {
-                onCloseNav();
-                onLogout();
-              }}>
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-[#28170e]"
+                onClick={() => {
+                  onCloseNav();
+                  onLogout();
+                }}
+              >
                 {t("logout")}
               </Button>
             </>
           ) : (
             <>
-              <Button variant="ghost" className="w-full justify-start text-[#28170e]" onClick={() => {
-                onCloseNav();
-                onOpenAuth("login");
-              }}>
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-[#28170e]"
+                onClick={() => {
+                  onCloseNav();
+                  onOpenAuth("login");
+                }}
+              >
                 {t("signIn")}
               </Button>
-              <Button className="w-full justify-start" onClick={() => {
-                onCloseNav();
-                onOpenAuth("signup");
-              }}>
+              <Button
+                className="w-full justify-start"
+                onClick={() => {
+                  onCloseNav();
+                  onOpenAuth("signup");
+                }}
+              >
                 {t("signUp")}
               </Button>
             </>

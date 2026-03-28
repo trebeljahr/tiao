@@ -5,7 +5,7 @@ import { useLobbyMessage } from "@/lib/LobbySocketContext";
 
 export function useTournamentList(
   auth: AuthResponse | null,
-  options?: { status?: TournamentStatus }
+  options?: { status?: TournamentStatus },
 ) {
   const [publicTournaments, setPublicTournaments] = useState<TournamentListItem[]>([]);
   const [myTournaments, setMyTournaments] = useState<TournamentListItem[]>([]);
@@ -30,7 +30,7 @@ export function useTournamentList(
         setLoading(false);
       }
     },
-    [auth, options?.status]
+    [auth, options?.status],
   );
 
   useEffect(() => {
@@ -45,8 +45,8 @@ export function useTournamentList(
           refresh({ silent: true });
         }
       },
-      [refresh]
-    )
+      [refresh],
+    ),
   );
 
   return {

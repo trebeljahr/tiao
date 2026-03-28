@@ -23,9 +23,7 @@ function parseDiagram(diagram: string): string[][] {
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean)
-    .map((line) =>
-      line.includes(" ") ? line.split(/\s+/).filter(Boolean) : line.split("")
-    );
+    .map((line) => (line.includes(" ") ? line.split(/\s+/).filter(Boolean) : line.split("")));
 
   if (rows.length === 0) {
     throw new Error("Board diagrams need at least one row.");
@@ -80,10 +78,7 @@ export function at(origin: Position, x: number, y: number): Position {
   };
 }
 
-export function stateFromDiagram(
-  diagram: string,
-  options: DiagramStateOptions = {}
-): GameState {
+export function stateFromDiagram(diagram: string, options: DiagramStateOptions = {}): GameState {
   const parsed = parseDiagram(diagram);
   const origin = options.origin ?? { x: 0, y: 0 };
   const state = createInitialGameState();
@@ -122,7 +117,7 @@ export function renderRegion(
     origin?: Position;
     width: number;
     height: number;
-  }
+  },
 ): string {
   const origin = options.origin ?? { x: 0, y: 0 };
   const rows: string[] = [];
@@ -144,7 +139,7 @@ export function assertRegion(
   expectedDiagram: string,
   options: {
     origin?: Position;
-  } = {}
+  } = {},
 ): void {
   const expected = parseDiagram(expectedDiagram);
   const width = expected[0]!.length;

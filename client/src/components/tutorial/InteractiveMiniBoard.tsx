@@ -17,8 +17,7 @@ import { cn } from "@/lib/utils";
 import { playMoveSoundIfEnabled } from "@/lib/useStonePlacementSound";
 
 const IS_TOUCH_DEVICE =
-  typeof window !== "undefined" &&
-  ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+  typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
 
 function fireLightConfetti(colors: string[]) {
   confetti({
@@ -85,15 +84,17 @@ function getJumpTrailMetrics(from: Pos, to: Pos, size: number, startInset = 0.7,
 
 // --- Component ---
 
-export function InteractiveMiniBoard({
-  config,
-  onComplete,
-  active,
-  resetKey,
-  t,
-}: Props) {
+export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }: Props) {
   const theme = useBoardTheme();
-  const { size, initialBoard, interaction, turnColor = "W", thickBorder, suggestedPos, hintArrows } = config;
+  const {
+    size,
+    initialBoard,
+    interaction,
+    turnColor = "W",
+    thickBorder,
+    suggestedPos,
+    hintArrows,
+  } = config;
   const [board, setBoard] = useState<Cell[][]>(() => cloneBoard(initialBoard));
   const [selected, setSelected] = useState<Pos | null>(null);
   const [pendingJumps, setPendingJumps] = useState<JumpRecord[]>([]);
@@ -112,19 +113,12 @@ export function InteractiveMiniBoard({
 
   const color = turnColor;
   const hasPending = pendingJumps.length > 0;
-  const forcedOrigin = hasPending
-    ? pendingJumps[pendingJumps.length - 1].to
-    : null;
+  const forcedOrigin = hasPending ? pendingJumps[pendingJumps.length - 1].to : null;
   const activeOrigin = forcedOrigin ?? selected;
   const jumpTargetPositions = activeOrigin
     ? getJumpTargets(board, activeOrigin, color, size, pendingCaptures)
     : [];
-  const selectableOrigins = getSelectableJumpOrigins(
-    board,
-    color,
-    size,
-    pendingCaptures,
-  );
+  const selectableOrigins = getSelectableJumpOrigins(board, color, size, pendingCaptures);
   const lastJump = hasPending ? pendingJumps[pendingJumps.length - 1] : null;
 
   // Reset on step change
@@ -174,8 +168,7 @@ export function InteractiveMiniBoard({
 
     // Handle try-and-fail interactions
     if (
-      (interaction.type === "try-and-fail" ||
-        interaction.type === "try-and-fail-border") &&
+      (interaction.type === "try-and-fail" || interaction.type === "try-and-fail-border") &&
       !triedIllegal
     ) {
       if (posEq(pos, interaction.illegal)) {
@@ -193,8 +186,7 @@ export function InteractiveMiniBoard({
     }
 
     if (
-      (interaction.type === "try-and-fail" ||
-        interaction.type === "try-and-fail-border") &&
+      (interaction.type === "try-and-fail" || interaction.type === "try-and-fail-border") &&
       triedIllegal
     ) {
       if (posEq(pos, interaction.then)) {
@@ -269,13 +261,19 @@ export function InteractiveMiniBoard({
               setShakePos(pos);
               setErrorMsg(t("_placeOnBorder"));
               setBoard(cloneBoard(board));
-              setTimeout(() => { setShakePos(null); setErrorMsg(null); }, 1200);
+              setTimeout(() => {
+                setShakePos(null);
+                setErrorMsg(null);
+              }, 1200);
             } else if (interaction.requiredPos && !posEq(pos, interaction.requiredPos)) {
               // Placed validly but not at required position — show hint, revert
               setShakePos(pos);
               setErrorMsg(t("_tryHighlighted"));
               setBoard(cloneBoard(board));
-              setTimeout(() => { setShakePos(null); setErrorMsg(null); }, 1200);
+              setTimeout(() => {
+                setShakePos(null);
+                setErrorMsg(null);
+              }, 1200);
             } else {
               complete();
             }
@@ -377,9 +375,7 @@ export function InteractiveMiniBoard({
         return { pos: interaction.jumpTo!, label: t("_jumpHere") };
       }
       if (hasPending) {
-        const confirmLabel = IS_TOUCH_DEVICE
-          ? t("_tapToConfirm")
-          : t("_clickToConfirm");
+        const confirmLabel = IS_TOUCH_DEVICE ? t("_tapToConfirm") : t("_clickToConfirm");
         return { pos: forcedOrigin!, label: confirmLabel };
       }
     }
@@ -403,10 +399,7 @@ export function InteractiveMiniBoard({
         return { pos: forcedOrigin, label: t("_confirmJump") };
       }
     }
-    if (
-      interaction.type === "try-and-fail" ||
-      interaction.type === "try-and-fail-border"
-    ) {
+    if (interaction.type === "try-and-fail" || interaction.type === "try-and-fail-border") {
       if (!triedIllegal) return { pos: interaction.illegal, label: t("_tryPlacingHere") };
       return { pos: interaction.then, label: t("_placeHereInstead") };
     }
@@ -417,11 +410,7 @@ export function InteractiveMiniBoard({
 
   // On mobile, show a prominent confirm circle the first time a confirm is needed
   const showMobileConfirmHint =
-    IS_TOUCH_DEVICE &&
-    !hasSeenConfirmHint &&
-    hasPending &&
-    forcedOrigin &&
-    !completed;
+    IS_TOUCH_DEVICE && !hasSeenConfirmHint && hasPending && forcedOrigin && !completed;
 
   // Mark the hint as seen once the confirm circle has been shown
   useEffect(() => {
@@ -444,8 +433,7 @@ export function InteractiveMiniBoard({
   const hoveredPos = hoveredKey
     ? { x: parseInt(hoveredKey.split("-")[0]), y: parseInt(hoveredKey.split("-")[1]) }
     : null;
-  const isHoveringJumpTarget =
-    hoveredPos && jumpTargetPositions.some((t) => posEq(t, hoveredPos));
+  const isHoveringJumpTarget = hoveredPos && jumpTargetPositions.some((t) => posEq(t, hoveredPos));
   const hoveredJumpTarget = isHoveringJumpTarget ? hoveredPos : null;
 
   // Should we show hover ghost? Only on valid placement positions.
@@ -456,8 +444,7 @@ export function InteractiveMiniBoard({
     !board[hoveredPos.y]?.[hoveredPos.x] &&
     !activeOrigin &&
     (interaction.type === "free-place" ||
-      ((interaction.type === "try-and-fail" ||
-        interaction.type === "try-and-fail-border") &&
+      ((interaction.type === "try-and-fail" || interaction.type === "try-and-fail-border") &&
         triedIllegal)) &&
     canPlacePiece(board, hoveredPos, color, size).ok;
 
@@ -563,7 +550,8 @@ export function InteractiveMiniBoard({
                   className={cn(
                     "group absolute aspect-square -translate-x-1/2 -translate-y-1/2 transition-transform duration-150",
                     isCapture ? "z-0" : isForcedOrigin || isSelected ? "z-20" : "z-10",
-                    active && !completed &&
+                    active &&
+                      !completed &&
                       (showConfirmAffordance
                         ? "cursor-pointer hover:scale-[1.12]"
                         : "hover:scale-[1.02]"),
@@ -591,8 +579,7 @@ export function InteractiveMiniBoard({
                     <span
                       className="pointer-events-none absolute inset-[5.5%] z-10 rounded-full border transition-opacity duration-200"
                       style={{
-                        borderColor:
-                          cell === "B" ? theme.blackPieceBorder : theme.whitePieceBorder,
+                        borderColor: cell === "B" ? theme.blackPieceBorder : theme.whitePieceBorder,
                         background: cell === "B" ? theme.blackPieceBg : theme.whitePieceBg,
                         boxShadow:
                           isSelectable && active && !completed
@@ -663,39 +650,50 @@ export function InteractiveMiniBoard({
 
               {/* Hint arrows — green dashed arrows showing enemy jump paths */}
               {/* For try-and-fail: shown after failed attempt. For free-place: shown immediately */}
-              {(triedIllegal || interaction.type === "free-place") && hintArrows?.map((arrow, i) => {
-                // Shorter arrows with bigger insets so they don't overlap pieces
-                const seg = getJumpTrailMetrics(arrow.from, arrow.to, size, 1.8, 2.2);
-                return (
-                  <g key={`hint-${i}`}>
-                    <motion.line
-                      x1={seg.startX} y1={seg.startY} x2={seg.endX} y2={seg.endY}
-                      initial={{ x2: seg.startX, y2: seg.startY, opacity: 0 }}
-                      animate={{ x2: seg.endX, y2: seg.endY, opacity: 1 }}
-                      transition={{ duration: 0.3, delay: i * 0.15, ease: [0.22, 1, 0.36, 1] }}
-                      stroke={theme.jumpTrailDarkGreen}
-                      strokeOpacity="0.7"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeDasharray="5 3"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                    <motion.line
-                      x1={seg.startX} y1={seg.startY} x2={seg.endX} y2={seg.endY}
-                      initial={{ x2: seg.startX, y2: seg.startY, opacity: 0 }}
-                      animate={{ x2: seg.endX, y2: seg.endY, opacity: 1 }}
-                      transition={{ duration: 0.35, delay: i * 0.15 + 0.04, ease: [0.22, 1, 0.36, 1] }}
-                      stroke={theme.jumpTrailBrightGreen}
-                      strokeOpacity="0.85"
-                      strokeWidth="2.2"
-                      strokeLinecap="round"
-                      strokeDasharray="5 3"
-                      markerEnd={`url(#${markerId}-green)`}
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  </g>
-                );
-              })}
+              {(triedIllegal || interaction.type === "free-place") &&
+                hintArrows?.map((arrow, i) => {
+                  // Shorter arrows with bigger insets so they don't overlap pieces
+                  const seg = getJumpTrailMetrics(arrow.from, arrow.to, size, 1.8, 2.2);
+                  return (
+                    <g key={`hint-${i}`}>
+                      <motion.line
+                        x1={seg.startX}
+                        y1={seg.startY}
+                        x2={seg.endX}
+                        y2={seg.endY}
+                        initial={{ x2: seg.startX, y2: seg.startY, opacity: 0 }}
+                        animate={{ x2: seg.endX, y2: seg.endY, opacity: 1 }}
+                        transition={{ duration: 0.3, delay: i * 0.15, ease: [0.22, 1, 0.36, 1] }}
+                        stroke={theme.jumpTrailDarkGreen}
+                        strokeOpacity="0.7"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeDasharray="5 3"
+                        vectorEffect="non-scaling-stroke"
+                      />
+                      <motion.line
+                        x1={seg.startX}
+                        y1={seg.startY}
+                        x2={seg.endX}
+                        y2={seg.endY}
+                        initial={{ x2: seg.startX, y2: seg.startY, opacity: 0 }}
+                        animate={{ x2: seg.endX, y2: seg.endY, opacity: 1 }}
+                        transition={{
+                          duration: 0.35,
+                          delay: i * 0.15 + 0.04,
+                          ease: [0.22, 1, 0.36, 1],
+                        }}
+                        stroke={theme.jumpTrailBrightGreen}
+                        strokeOpacity="0.85"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                        strokeDasharray="5 3"
+                        markerEnd={`url(#${markerId}-green)`}
+                        vectorEffect="non-scaling-stroke"
+                      />
+                    </g>
+                  );
+                })}
 
               {/* Completed jump trails */}
               {pendingJumps.map((jump, index) => {
@@ -703,7 +701,10 @@ export function InteractiveMiniBoard({
                 return (
                   <g key={`trail-${index}`}>
                     <motion.line
-                      x1={seg.startX} y1={seg.startY} x2={seg.endX} y2={seg.endY}
+                      x1={seg.startX}
+                      y1={seg.startY}
+                      x2={seg.endX}
+                      y2={seg.endY}
                       initial={{ x2: seg.startX, y2: seg.startY, opacity: 0 }}
                       animate={{ x2: seg.endX, y2: seg.endY, opacity: 1 }}
                       transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
@@ -713,7 +714,10 @@ export function InteractiveMiniBoard({
                       vectorEffect="non-scaling-stroke"
                     />
                     <motion.line
-                      x1={seg.startX} y1={seg.startY} x2={seg.endX} y2={seg.endY}
+                      x1={seg.startX}
+                      y1={seg.startY}
+                      x2={seg.endX}
+                      y2={seg.endY}
                       initial={{ x2: seg.startX, y2: seg.startY, opacity: 0 }}
                       animate={{ x2: seg.endX, y2: seg.endY, opacity: 1 }}
                       transition={{ duration: 0.3, delay: 0.04, ease: [0.22, 1, 0.36, 1] }}
@@ -728,64 +732,80 @@ export function InteractiveMiniBoard({
               })}
 
               {/* Hover preview arrow */}
-              {activeOrigin && hoveredJumpTarget && (() => {
-                const seg = getJumpTrailMetrics(activeOrigin, hoveredJumpTarget, size);
-                return (
-                  <g>
-                    <motion.line
-                      x1={seg.startX} y1={seg.startY} x2={seg.endX} y2={seg.endY}
-                      initial={{ x2: seg.startX, y2: seg.startY }}
-                      animate={{ x2: seg.endX, y2: seg.endY }}
-                      transition={{ duration: 0.28, ease: [0.2, 0.96, 0.3, 1] }}
-                      stroke={theme.jumpTrailDarkGreen}
-                      strokeWidth="3.4"
-                      strokeLinecap="round"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                    <motion.line
-                      x1={seg.startX} y1={seg.startY} x2={seg.endX} y2={seg.endY}
-                      initial={{ x2: seg.startX, y2: seg.startY }}
-                      animate={{ x2: seg.endX, y2: seg.endY }}
-                      transition={{ duration: 0.34, delay: 0.03, ease: [0.2, 0.96, 0.3, 1] }}
-                      stroke="#a6d476"
-                      strokeWidth="2.7"
-                      strokeLinecap="round"
-                      markerEnd={`url(#${markerId}-green)`}
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  </g>
-                );
-              })()}
+              {activeOrigin &&
+                hoveredJumpTarget &&
+                (() => {
+                  const seg = getJumpTrailMetrics(activeOrigin, hoveredJumpTarget, size);
+                  return (
+                    <g>
+                      <motion.line
+                        x1={seg.startX}
+                        y1={seg.startY}
+                        x2={seg.endX}
+                        y2={seg.endY}
+                        initial={{ x2: seg.startX, y2: seg.startY }}
+                        animate={{ x2: seg.endX, y2: seg.endY }}
+                        transition={{ duration: 0.28, ease: [0.2, 0.96, 0.3, 1] }}
+                        stroke={theme.jumpTrailDarkGreen}
+                        strokeWidth="3.4"
+                        strokeLinecap="round"
+                        vectorEffect="non-scaling-stroke"
+                      />
+                      <motion.line
+                        x1={seg.startX}
+                        y1={seg.startY}
+                        x2={seg.endX}
+                        y2={seg.endY}
+                        initial={{ x2: seg.startX, y2: seg.startY }}
+                        animate={{ x2: seg.endX, y2: seg.endY }}
+                        transition={{ duration: 0.34, delay: 0.03, ease: [0.2, 0.96, 0.3, 1] }}
+                        stroke="#a6d476"
+                        strokeWidth="2.7"
+                        strokeLinecap="round"
+                        markerEnd={`url(#${markerId}-green)`}
+                        vectorEffect="non-scaling-stroke"
+                      />
+                    </g>
+                  );
+                })()}
 
               {/* Undo preview arrow */}
-              {undoHovered && lastJump && (() => {
-                const seg = getJumpTrailMetrics(lastJump.to, lastJump.from, size);
-                return (
-                  <g>
-                    <motion.line
-                      x1={seg.startX} y1={seg.startY} x2={seg.endX} y2={seg.endY}
-                      initial={{ x2: seg.startX, y2: seg.startY }}
-                      animate={{ x2: seg.endX, y2: seg.endY }}
-                      transition={{ duration: 0.26, ease: [0.2, 0.96, 0.3, 1] }}
-                      stroke={theme.jumpTrailDarkRed}
-                      strokeWidth="3.25"
-                      strokeLinecap="round"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                    <motion.line
-                      x1={seg.startX} y1={seg.startY} x2={seg.endX} y2={seg.endY}
-                      initial={{ x2: seg.startX, y2: seg.startY }}
-                      animate={{ x2: seg.endX, y2: seg.endY }}
-                      transition={{ duration: 0.31, delay: 0.03, ease: [0.2, 0.96, 0.3, 1] }}
-                      stroke={theme.jumpTrailBrightRed}
-                      strokeWidth="2.55"
-                      strokeLinecap="round"
-                      markerEnd={`url(#${markerId}-red)`}
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  </g>
-                );
-              })()}
+              {undoHovered &&
+                lastJump &&
+                (() => {
+                  const seg = getJumpTrailMetrics(lastJump.to, lastJump.from, size);
+                  return (
+                    <g>
+                      <motion.line
+                        x1={seg.startX}
+                        y1={seg.startY}
+                        x2={seg.endX}
+                        y2={seg.endY}
+                        initial={{ x2: seg.startX, y2: seg.startY }}
+                        animate={{ x2: seg.endX, y2: seg.endY }}
+                        transition={{ duration: 0.26, ease: [0.2, 0.96, 0.3, 1] }}
+                        stroke={theme.jumpTrailDarkRed}
+                        strokeWidth="3.25"
+                        strokeLinecap="round"
+                        vectorEffect="non-scaling-stroke"
+                      />
+                      <motion.line
+                        x1={seg.startX}
+                        y1={seg.startY}
+                        x2={seg.endX}
+                        y2={seg.endY}
+                        initial={{ x2: seg.startX, y2: seg.startY }}
+                        animate={{ x2: seg.endX, y2: seg.endY }}
+                        transition={{ duration: 0.31, delay: 0.03, ease: [0.2, 0.96, 0.3, 1] }}
+                        stroke={theme.jumpTrailBrightRed}
+                        strokeWidth="2.55"
+                        strokeLinecap="round"
+                        markerEnd={`url(#${markerId}-red)`}
+                        vectorEffect="non-scaling-stroke"
+                      />
+                    </g>
+                  );
+                })()}
             </svg>
 
             {/* Confirm overlay */}
@@ -798,7 +818,13 @@ export function InteractiveMiniBoard({
                 }}
               >
                 <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3.5 w-3.5" fill="none">
-                  <path d="M3.5 8.25L6.6 11.35L12.5 5.45" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" />
+                  <path
+                    d="M3.5 8.25L6.6 11.35L12.5 5.45"
+                    stroke="currentColor"
+                    strokeWidth="2.1"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </span>
             )}
@@ -807,7 +833,10 @@ export function InteractiveMiniBoard({
             {hasPending && lastJump && !completed && active && (
               <button
                 type="button"
-                onClick={(e) => { e.stopPropagation(); undoLastJump(); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  undoLastJump();
+                }}
                 onPointerEnter={() => setUndoHovered(true)}
                 onPointerLeave={() => setUndoHovered(false)}
                 className="absolute z-[90] aspect-square -translate-x-1/2 -translate-y-1/2 bg-transparent"
@@ -830,7 +859,12 @@ export function InteractiveMiniBoard({
                 }}
               >
                 <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3.5 w-3.5" fill="none">
-                  <path d="M4.25 4.25L11.75 11.75M11.75 4.25L4.25 11.75" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  <path
+                    d="M4.25 4.25L11.75 11.75M11.75 4.25L4.25 11.75"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
                 </svg>
               </span>
             )}
@@ -842,10 +876,10 @@ export function InteractiveMiniBoard({
                 style={{
                   left: `${pointPct(nudge.pos.x, size)}%`,
                   top: `${pointPct(nudge.pos.y, size)}%`,
-                  width: `${100 / size * 0.85}%`,
+                  width: `${(100 / size) * 0.85}%`,
                   aspectRatio: "1",
-                  marginLeft: `${-100 / size * 0.85 / 2}%`,
-                  marginTop: `${-100 / size * 0.85 / 2}%`,
+                  marginLeft: `${((-100 / size) * 0.85) / 2}%`,
+                  marginTop: `${((-100 / size) * 0.85) / 2}%`,
                 }}
                 animate={{
                   scale: [1, 1.25, 1],
@@ -866,10 +900,10 @@ export function InteractiveMiniBoard({
                 style={{
                   left: `${pointPct(forcedOrigin.x, size)}%`,
                   top: `${pointPct(forcedOrigin.y, size)}%`,
-                  width: `${100 / size * 1.3}%`,
+                  width: `${(100 / size) * 1.3}%`,
                   aspectRatio: "1",
-                  marginLeft: `${-100 / size * 1.3 / 2}%`,
-                  marginTop: `${-100 / size * 1.3 / 2}%`,
+                  marginLeft: `${((-100 / size) * 1.3) / 2}%`,
+                  marginTop: `${((-100 / size) * 1.3) / 2}%`,
                 }}
                 initial={{ scale: 0.6, opacity: 0 }}
                 animate={{
@@ -891,44 +925,46 @@ export function InteractiveMiniBoard({
                 style={{
                   left: `${pointPct(shakePos.x, size)}%`,
                   top: `${pointPct(shakePos.y, size)}%`,
-                  width: `${100 / size * 0.75}%`,
+                  width: `${(100 / size) * 0.75}%`,
                   aspectRatio: "1",
-                  marginLeft: `${-100 / size * 0.75 / 2}%`,
-                  marginTop: `${-100 / size * 0.75 / 2}%`,
+                  marginLeft: `${((-100 / size) * 0.75) / 2}%`,
+                  marginTop: `${((-100 / size) * 0.75) / 2}%`,
                 }}
                 animate={{ x: [0, -4, 4, -4, 4, 0] }}
                 transition={{ duration: 0.4 }}
               />
             )}
-
           </div>
         </div>
 
         {/* Nudge label — positioned below the nudge target, outside overflow-hidden */}
-        {nudge && !shakePos && !completed && (() => {
-          // Map nudge grid position to percentage of the board container
-          // The board has p-2 padding, inner div is the grid area
-          // Approximate: the board container width includes padding
-          const pct = pointPct(nudge.pos.x, size);
-          const topPct = pointPct(nudge.pos.y, size);
-          // Scale from inner grid % to outer container % (accounting for p-2 ~ 3% each side)
-          const outerLeftPct = 3 + pct * 0.94;
-          const outerTopPct = 3 + (topPct + 100 / size * 0.5) * 0.94;
-          return (
-            <motion.div
-              key={`nudge-label-${nudge.pos.x}-${nudge.pos.y}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="pointer-events-none absolute z-[96] -translate-x-1/2 whitespace-nowrap rounded-full border border-[#d7c39e] bg-[#fffaf3] px-2.5 py-0.5 text-[10px] font-semibold text-[#6c543c] shadow-md"
-              style={{
-                left: `${outerLeftPct}%`,
-                top: `${outerTopPct}%`,
-              }}
-            >
-              {nudge.label}
-            </motion.div>
-          );
-        })()}
+        {nudge &&
+          !shakePos &&
+          !completed &&
+          (() => {
+            // Map nudge grid position to percentage of the board container
+            // The board has p-2 padding, inner div is the grid area
+            // Approximate: the board container width includes padding
+            const pct = pointPct(nudge.pos.x, size);
+            const topPct = pointPct(nudge.pos.y, size);
+            // Scale from inner grid % to outer container % (accounting for p-2 ~ 3% each side)
+            const outerLeftPct = 3 + pct * 0.94;
+            const outerTopPct = 3 + (topPct + (100 / size) * 0.5) * 0.94;
+            return (
+              <motion.div
+                key={`nudge-label-${nudge.pos.x}-${nudge.pos.y}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="pointer-events-none absolute z-[96] -translate-x-1/2 whitespace-nowrap rounded-full border border-[#d7c39e] bg-[#fffaf3] px-2.5 py-0.5 text-[10px] font-semibold text-[#6c543c] shadow-md"
+                style={{
+                  left: `${outerLeftPct}%`,
+                  top: `${outerTopPct}%`,
+                }}
+              >
+                {nudge.label}
+              </motion.div>
+            );
+          })()}
 
         {/* Error tooltip */}
         <AnimatePresence>

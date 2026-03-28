@@ -7,7 +7,13 @@ import { resolvePlayerBadges } from "@/lib/featureGate";
 import { useActiveBadgeId } from "@/lib/useActiveBadge";
 
 type PlayerIdentityRowProps = {
-  player: { playerId?: string; displayName?: string; profilePicture?: string; activeBadges?: string[]; rating?: number };
+  player: {
+    playerId?: string;
+    displayName?: string;
+    profilePicture?: string;
+    activeBadges?: string[];
+    rating?: number;
+  };
   anonymous?: boolean;
   currentPlayerId?: string;
   avatarClassName?: string;
@@ -47,17 +53,12 @@ export function PlayerIdentityRow({
   const isYou = currentPlayerId != null && player.playerId === currentPlayerId;
   const myBadgeFromStorage = useActiveBadgeId();
   // Resolve badges: localStorage (if "you") > auto-resolve from player data
-  const badgesToShow = isYou && myBadgeFromStorage !== null
-    ? [myBadgeFromStorage]
-    : resolvePlayerBadges(player);
+  const badgesToShow =
+    isYou && myBadgeFromStorage !== null ? [myBadgeFromStorage] : resolvePlayerBadges(player);
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <PlayerOverviewAvatar
-        player={player}
-        anonymous={anonymous}
-        className={avatarClassName}
-      />
+      <PlayerOverviewAvatar player={player} anonymous={anonymous} className={avatarClassName} />
       <span className={cn("truncate text-sm font-medium", nameClassName)}>
         {player.displayName ?? t("player")}
         {isYou && <span className="opacity-60"> {t("you")}</span>}
@@ -70,17 +71,13 @@ export function PlayerIdentityRow({
         <UserBadge key={id} badge={id as BadgeId} compact />
       ))}
 
-      {online != null && (
-        <ConnectionDot online={online} />
-      )}
+      {online != null && <ConnectionDot online={online} />}
 
       {showFriendBadge && (
         <span
           className={cn(
             "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-            friendVariant === "light"
-              ? "bg-black/10 text-black/60"
-              : "bg-white/20",
+            friendVariant === "light" ? "bg-black/10 text-black/60" : "bg-white/20",
           )}
         >
           {t("friend")}

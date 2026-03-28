@@ -121,14 +121,10 @@ async function invokeRoute<T>(
   },
 ): Promise<RouteResult<T>> {
   const layer = router.stack.find(
-    (entry) =>
-      entry.route?.path === options.path && entry.route.methods[options.method],
+    (entry) => entry.route?.path === options.path && entry.route.methods[options.method],
   );
 
-  assert.ok(
-    layer?.route,
-    `Route ${options.method.toUpperCase()} ${options.path} should exist.`,
-  );
+  assert.ok(layer?.route, `Route ${options.method.toUpperCase()} ${options.path} should exist.`);
 
   const req = {
     method: options.method.toUpperCase(),
@@ -180,14 +176,11 @@ test("/me returns 401 without session cookie", async () => {
 test("/me returns the current guest player with a valid session", async () => {
   const guest = createTestGuest("Session Guest");
 
-  const response = await invokeRoute<{ player: PlayerIdentity }>(
-    gameAuthRoutes,
-    {
-      method: "get",
-      path: "/me",
-      cookie: guest.cookie,
-    },
-  );
+  const response = await invokeRoute<{ player: PlayerIdentity }>(gameAuthRoutes, {
+    method: "get",
+    path: "/me",
+    cookie: guest.cookie,
+  });
 
   assert.equal(response.status, 200);
   assert.equal(response.body.player.playerId, guest.player.playerId);
@@ -198,14 +191,11 @@ test("/me returns the current guest player with a valid session", async () => {
 test("/me returns account player identity", async () => {
   const account = createTestAccount("test-user", "test@example.com");
 
-  const response = await invokeRoute<{ player: PlayerIdentity }>(
-    gameAuthRoutes,
-    {
-      method: "get",
-      path: "/me",
-      cookie: account.cookie,
-    },
-  );
+  const response = await invokeRoute<{ player: PlayerIdentity }>(gameAuthRoutes, {
+    method: "get",
+    path: "/me",
+    cookie: account.cookie,
+  });
 
   assert.equal(response.status, 200);
   assert.equal(response.body.player.playerId, account.player.playerId);
@@ -254,17 +244,14 @@ test("GET /profile route exists", async () => {
 
 test("PUT /badges/active route exists", async () => {
   const layer = gameAuthRoutes.stack.find(
-    (entry) =>
-      entry.route?.path === "/badges/active" && entry.route.methods["put"],
+    (entry) => entry.route?.path === "/badges/active" && entry.route.methods["put"],
   );
   assert.ok(layer?.route, "PUT /badges/active route should exist");
 });
 
 test("POST /tutorial-complete route exists", async () => {
   const layer = gameAuthRoutes.stack.find(
-    (entry) =>
-      entry.route?.path === "/tutorial-complete" &&
-      entry.route.methods["post"],
+    (entry) => entry.route?.path === "/tutorial-complete" && entry.route.methods["post"],
   );
   assert.ok(layer?.route, "POST /tutorial-complete route should exist");
 });

@@ -15,24 +15,28 @@ Desktop behavior is completely unchanged — single clicks place stones immediat
 ## Alternatives Considered
 
 ### 1. Tap-to-Preview + Tap-to-Confirm
+
 First tap shows a ghost stone preview, second tap confirms placement.
 
 - **Pro**: Dead simple, zero learning curve, works identically everywhere
 - **Con**: Every placement requires two taps, slowing down gameplay significantly. Doesn't solve the fundamental "can't see under my finger" problem.
 
 ### 2. Offset Crosshair
+
 Touch target is shifted ~40px above the finger. A ghost stone shows where the stone will actually land.
 
 - **Pro**: Lightweight, single-gesture
 - **Con**: Feels disconnected — you're touching one spot but affecting another. Top row becomes unreachable. Unintuitive for first-time users.
 
 ### 3. Zoom-into-Quadrant
+
 Tapping a region of the board zooms into that area, showing a 5x5 region with larger intersections.
 
 - **Pro**: Very precise placement
 - **Con**: Two-step process, loses full board context during placement, feels jarring.
 
 ### 4. Touch-Drag Loupe (always-on)
+
 Loupe appears on every touch, with quick taps placing immediately.
 
 - **Pro**: No discovery problem
@@ -52,6 +56,7 @@ Loupe appears on every touch, with quick taps placing immediately.
 ### Loupe Rendering
 
 The loupe is a 120px diameter circle rendered as a lightweight SVG:
+
 - Grid lines (same visual style as the main board)
 - Star points
 - Existing stones from game state
@@ -80,9 +85,10 @@ clampedIndex = clamp(gridIndex, 0, BOARD_SIZE - 1)
 ### Touch Detection
 
 Uses a simple check at module load time:
+
 ```typescript
-const IS_TOUCH_DEVICE = typeof window !== "undefined" &&
-  ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+const IS_TOUCH_DEVICE =
+  typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
 ```
 
 This gates both the loupe behavior and suppresses desktop-only hover ghosts on touch devices.

@@ -5,9 +5,14 @@ import { auth } from "./auth";
 import GameAccount from "../models/GameAccount";
 import { PlayerIdentity } from "../../shared/src";
 
-async function toPlayerIdentity(
-  user: { id: string; name: string; email: string; image?: string | null; isAnonymous?: boolean | null; displayName?: string | null },
-): Promise<PlayerIdentity> {
+async function toPlayerIdentity(user: {
+  id: string;
+  name: string;
+  email: string;
+  image?: string | null;
+  isAnonymous?: boolean | null;
+  displayName?: string | null;
+}): Promise<PlayerIdentity> {
   if (user.isAnonymous) {
     return {
       playerId: user.id,
@@ -30,9 +35,7 @@ async function toPlayerIdentity(
   };
 }
 
-export async function getPlayerFromRequest(
-  req: Request,
-): Promise<PlayerIdentity | null> {
+export async function getPlayerFromRequest(req: Request): Promise<PlayerIdentity | null> {
   const session = await auth.api.getSession({
     headers: fromNodeHeaders(req.headers),
   });

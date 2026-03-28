@@ -1,15 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, test } from "node:test";
-import {
-  createTestGuest,
-  resetTestSessions,
-  installTestSessionMock,
-} from "./testAuthHelper";
-import type {
-  AuthResponse,
-  MatchmakingState,
-  MultiplayerSnapshot,
-} from "../../shared/src";
+import { createTestGuest, resetTestSessions, installTestSessionMock } from "./testAuthHelper";
+import type { AuthResponse, MatchmakingState, MultiplayerSnapshot } from "../../shared/src";
 
 process.env.TOKEN_SECRET ??= "test-token-secret";
 process.env.MONGODB_URI ??= "mongodb://127.0.0.1:27017/tiao-test";
@@ -36,7 +28,7 @@ type TestRouter = {
         handle: (
           req: Record<string, unknown>,
           res: Record<string, unknown>,
-          next: (error?: unknown) => void
+          next: (error?: unknown) => void,
         ) => unknown;
       }>;
     };
@@ -53,9 +45,7 @@ type SessionAuth = AuthResponse & {
   cookie: string;
 };
 
-let singletonGameService:
-  | (PatchedGameService & Record<string, unknown>)
-  | null = null;
+let singletonGameService: (PatchedGameService & Record<string, unknown>) | null = null;
 let originalMethods: Partial<PatchedGameService> = {};
 let indexRoutes: TestRouter;
 let gameAuthRoutes: TestRouter;
@@ -97,10 +87,10 @@ async function runHandler(
   handler: (
     req: Record<string, unknown>,
     res: Record<string, unknown>,
-    next: (error?: unknown) => void
+    next: (error?: unknown) => void,
   ) => unknown,
   req: Record<string, unknown>,
-  res: Record<string, unknown>
+  res: Record<string, unknown>,
 ) {
   await new Promise<void>((resolve, reject) => {
     let settled = false;
@@ -147,11 +137,10 @@ async function invokeRoute<T>(
     query?: Record<string, string>;
     cookie?: string;
     body?: Record<string, unknown>;
-  }
+  },
 ): Promise<RouteResult<T>> {
   const layer = router.stack.find(
-    (entry) =>
-      entry.route?.path === options.path && entry.route.methods[options.method]
+    (entry) => entry.route?.path === options.path && entry.route.methods[options.method],
   );
 
   assert.ok(layer?.route, `Route ${options.method.toUpperCase()} ${options.path} should exist.`);
@@ -183,9 +172,7 @@ async function invokeRoute<T>(
 
 function getSessionCookie<T>(response: RouteResult<T>): string {
   const setCookieHeader = response.headers["set-cookie"];
-  const rawHeader = Array.isArray(setCookieHeader)
-    ? setCookieHeader[0]
-    : setCookieHeader;
+  const rawHeader = Array.isArray(setCookieHeader) ? setCookieHeader[0] : setCookieHeader;
 
   assert.equal(typeof rawHeader, "string");
   return rawHeader.split(";")[0]!;
@@ -215,8 +202,7 @@ beforeEach(async () => {
   ]);
 
   const service = new GameService(new InMemoryGameRoomStore(), () => 0);
-  singletonGameService = gameService as unknown as PatchedGameService &
-    Record<string, unknown>;
+  singletonGameService = gameService as unknown as PatchedGameService & Record<string, unknown>;
 
   originalMethods = {
     createGame: singletonGameService.createGame,
@@ -235,8 +221,7 @@ beforeEach(async () => {
   singletonGameService.getSnapshot = service.getSnapshot.bind(service);
   singletonGameService.listGames = service.listGames.bind(service);
   singletonGameService.enterMatchmaking = service.enterMatchmaking.bind(service);
-  singletonGameService.getMatchmakingState =
-    service.getMatchmakingState.bind(service);
+  singletonGameService.getMatchmakingState = service.getMatchmakingState.bind(service);
   singletonGameService.leaveMatchmaking = service.leaveMatchmaking.bind(service);
 
   indexRoutes = indexRoutesModule.default as TestRouter;
@@ -343,9 +328,9 @@ test("multiplayer routes create games, join open seats, and allow spectators", a
   assert.equal(spectated.body.snapshot.players.length, 2);
   assert.equal(
     spectated.body.snapshot.players.some(
-      (slot) => slot.player.playerId === spectator.player.playerId
+      (slot) => slot.player.playerId === spectator.player.playerId,
     ),
-    false
+    false,
   );
 
   const loaded = await invokeRoute<{ snapshot: MultiplayerSnapshot }>(gameRoutes, {
@@ -390,14 +375,11 @@ test("matchmaking API pairs the next two players into a matchmaking room", async
   assert.equal(second.body.matchmaking.snapshot.roomType, "matchmaking");
   assert.equal(second.body.matchmaking.snapshot.status, "active");
 
-  const aliceState = await invokeRoute<{ matchmaking: MatchmakingState }>(
-    gameRoutes,
-    {
-      method: "get",
-      path: "/matchmaking",
-      cookie: alice.cookie,
-    }
-  );
+  const aliceState = await invokeRoute<{ matchmaking: MatchmakingState }>(gameRoutes, {
+    method: "get",
+    path: "/matchmaking",
+    cookie: alice.cookie,
+  });
   assert.equal(aliceState.status, 200);
   assert.equal(aliceState.body.matchmaking.status, "matched");
   if (aliceState.body.matchmaking.status !== "matched") {
@@ -406,7 +388,7 @@ test("matchmaking API pairs the next two players into a matchmaking room", async
 
   assert.equal(
     aliceState.body.matchmaking.snapshot.gameId,
-    second.body.matchmaking.snapshot.gameId
+    second.body.matchmaking.snapshot.gameId,
   );
 
   const left = await invokeRoute<undefined>(gameRoutes, {
@@ -434,6 +416,6 @@ test("multiplayer routes reject unauthenticated callers", async () => {
   assert.equal(response.status, 401);
   assert.match(
     response.body.message,
-    /authenticate as a guest or account before using multiplayer/i
+    /authenticate as a guest or account before using multiplayer/i,
   );
 });

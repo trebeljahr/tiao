@@ -43,7 +43,7 @@ function isEloEligible(
   candidateRating: number,
   candidateQueuedAt: number,
   incomingRating: number,
-  now: number
+  now: number,
 ): boolean {
   const window = computeEloWindow(now - candidateQueuedAt);
   return Math.abs(incomingRating - candidateRating) <= window;
@@ -57,9 +57,7 @@ export class InMemoryMatchmakingStore implements MatchmakingStore {
   private readonly matches = new Map<string, string>();
 
   async findEntry(playerId: string): Promise<MatchmakingQueueEntry | null> {
-    return (
-      this.queue.find((e) => e.player.playerId === playerId) ?? null
-    );
+    return this.queue.find((e) => e.player.playerId === playerId) ?? null;
   }
 
   async findAndRemoveOpponent(
@@ -95,9 +93,7 @@ export class InMemoryMatchmakingStore implements MatchmakingStore {
   }
 
   async removeFromQueue(playerId: string): Promise<void> {
-    const index = this.queue.findIndex(
-      (e) => e.player.playerId === playerId
-    );
+    const index = this.queue.findIndex((e) => e.player.playerId === playerId);
     if (index >= 0) this.queue.splice(index, 1);
   }
 
@@ -184,12 +180,7 @@ export class RedisMatchmakingStore implements MatchmakingStore {
   }
 
   async setMatch(playerId: string, gameId: string): Promise<void> {
-    await this.redis.set(
-      `${MATCH_PREFIX}${playerId}`,
-      gameId,
-      "EX",
-      MATCH_TTL_SECONDS
-    );
+    await this.redis.set(`${MATCH_PREFIX}${playerId}`, gameId, "EX", MATCH_TTL_SECONDS);
   }
 
   async getMatch(playerId: string): Promise<string | null> {

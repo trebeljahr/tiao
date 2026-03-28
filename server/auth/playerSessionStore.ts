@@ -62,8 +62,7 @@ class MongoPlayerSessionStore {
       expiresAt: {
         $gt: new Date(),
       },
-    })
-      .exec();
+    }).exec();
 
     if (!session) {
       return null;
@@ -92,7 +91,7 @@ class MongoPlayerSessionStore {
           profilePicture: player.profilePicture,
           expiresAt: createExpiresAt(),
         },
-      }
+      },
     ).exec();
 
     return result.matchedCount > 0;
@@ -158,21 +157,17 @@ const sessionStore =
     ? new InMemoryPlayerSessionStore()
     : new MongoPlayerSessionStore();
 
-export async function createStoredPlayerSession(
-  player: PlayerIdentity
-): Promise<string> {
+export async function createStoredPlayerSession(player: PlayerIdentity): Promise<string> {
   return sessionStore.create(player);
 }
 
-export async function readStoredPlayerSession(
-  token: string
-): Promise<StoredSession | null> {
+export async function readStoredPlayerSession(token: string): Promise<StoredSession | null> {
   return sessionStore.read(token);
 }
 
 export async function replaceStoredPlayerSession(
   token: string,
-  player: PlayerIdentity
+  player: PlayerIdentity,
 ): Promise<boolean> {
   return sessionStore.replace(token, player);
 }

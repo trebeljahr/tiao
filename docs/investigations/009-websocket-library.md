@@ -10,6 +10,7 @@ The game requires real-time bidirectional communication for move updates, clock 
 ## Options Considered
 
 ### Socket.IO
+
 - Most popular Node.js real-time library (~62K stars)
 - Automatic fallback to long-polling, reconnection, rooms, namespaces, acknowledgements
 - Significant protocol overhead (framing, fallback negotiation, heartbeat)
@@ -17,6 +18,7 @@ The game requires real-time bidirectional communication for move updates, clock 
 - Abstractions (rooms, namespaces) are convenient but add latency
 
 ### ws (chosen)
+
 - Raw WebSocket library for Node.js (~22K stars)
 - Minimal overhead — just WebSocket protocol, nothing more
 - No rooms, namespaces, reconnection, or fallback — build what you need
@@ -24,12 +26,14 @@ The game requires real-time bidirectional communication for move updates, clock 
 - JSON message serialization handled manually
 
 ### WebSocket API (native, via frameworks like Hono or Bun)
+
 - Available if migrating to a different framework/runtime (see Investigation #001)
 - Same raw WebSocket semantics as `ws`
 
 ## Outcome
 
 Raw `ws` was chosen because:
+
 1. The game has exactly two connection types (game + lobby) — no need for Socket.IO's namespace abstraction
 2. Game state sync is custom (server-authoritative validation, optimistic client updates) — Socket.IO's event system adds overhead without helping
 3. Fallback to long-polling is unnecessary — all modern browsers/devices support WebSocket

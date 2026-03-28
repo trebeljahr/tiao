@@ -4,11 +4,10 @@ import { listMultiplayerGames } from "../api";
 import { toastError } from "../errors";
 
 export function useGamesIndex(auth: AuthResponse | null) {
-  const [multiplayerGames, setMultiplayerGames] =
-    useState<MultiplayerGamesIndex>({
-      active: [],
-      finished: [],
-    });
+  const [multiplayerGames, setMultiplayerGames] = useState<MultiplayerGamesIndex>({
+    active: [],
+    finished: [],
+  });
   const [multiplayerGamesLoading, setMultiplayerGamesLoading] = useState(false);
   const [multiplayerGamesLoaded, setMultiplayerGamesLoaded] = useState(false);
 

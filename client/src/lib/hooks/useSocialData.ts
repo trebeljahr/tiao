@@ -1,10 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import {
-  AuthResponse,
-  SocialOverview,
-  SocialSearchResult,
-  EMPTY_SOCIAL_OVERVIEW,
-} from "@shared";
+import { AuthResponse, SocialOverview, SocialSearchResult, EMPTY_SOCIAL_OVERVIEW } from "@shared";
 import {
   getSocialOverview,
   searchPlayers,
@@ -22,19 +17,13 @@ import { useSocialNotifications } from "../SocialNotificationsContext";
 
 export function useSocialData(auth: AuthResponse | null, canToastIncomingInvites: boolean) {
   const { refreshNotifications } = useSocialNotifications();
-  const [socialOverview, setSocialOverview] = useState<SocialOverview>(
-    EMPTY_SOCIAL_OVERVIEW,
-  );
+  const [socialOverview, setSocialOverview] = useState<SocialOverview>(EMPTY_SOCIAL_OVERVIEW);
   const [socialLoading, setSocialLoading] = useState(false);
   const [socialLoaded, setSocialLoaded] = useState(false);
   const [friendSearchQuery, setFriendSearchQuery] = useState("");
-  const [friendSearchResults, setFriendSearchResults] = useState<
-    SocialSearchResult[]
-  >([]);
+  const [friendSearchResults, setFriendSearchResults] = useState<SocialSearchResult[]>([]);
   const [friendSearchBusy, setFriendSearchBusy] = useState(false);
-  const [socialActionBusyKey, setSocialActionBusyKey] = useState<string | null>(
-    null,
-  );
+  const [socialActionBusyKey, setSocialActionBusyKey] = useState<string | null>(null);
 
   const socialInvitationIdsRef = useRef<Set<string>>(new Set());
   const socialInvitationsHydratedRef = useRef(false);
@@ -45,11 +34,7 @@ export function useSocialData(auth: AuthResponse | null, canToastIncomingInvites
         nextOverview.incomingInvitations.map((invitation) => invitation.id),
       );
 
-      if (
-        allowInviteToast &&
-        socialInvitationsHydratedRef.current &&
-        canToastIncomingInvites
-      ) {
+      if (allowInviteToast && socialInvitationsHydratedRef.current && canToastIncomingInvites) {
         // Toast is handled by SocialNotificationsContext with action buttons
       }
 

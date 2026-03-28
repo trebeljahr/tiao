@@ -12,9 +12,7 @@ test.describe("Mobile jump controls", () => {
     await expect(cell(page, 9, 9)).toBeVisible();
   });
 
-  test("shows floating Confirm and Undo buttons during a pending jump", async ({
-    page,
-  }) => {
+  test("shows floating Confirm and Undo buttons during a pending jump", async ({ page }) => {
     // White at (9,9)
     await cell(page, 9, 9).tap();
     await expect(page.locator("text=Black to move")).toBeVisible();
@@ -36,12 +34,10 @@ test.describe("Mobile jump controls", () => {
     await cell(page, 11, 9).tap();
 
     // Should show floating confirm and undo buttons
-    await expect(
-      page.locator('button[aria-label="Confirm jump"]'),
-    ).toBeVisible({ timeout: 3000 });
-    await expect(
-      page.locator('button[aria-label="Undo last jump"]').first(),
-    ).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('button[aria-label="Confirm jump"]')).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('button[aria-label="Undo last jump"]').first()).toBeVisible({
+      timeout: 3000,
+    });
   });
 
   test("Confirm button finalizes the jump", async ({ page }) => {
@@ -64,9 +60,9 @@ test.describe("Mobile jump controls", () => {
     // Turn should switch to Black
     await expect(page.locator("text=Black to move")).toBeVisible();
     // Floating controls should disappear
-    await expect(
-      page.locator('button[aria-label="Confirm jump"]'),
-    ).not.toBeVisible({ timeout: 2000 });
+    await expect(page.locator('button[aria-label="Confirm jump"]')).not.toBeVisible({
+      timeout: 2000,
+    });
   });
 
   test("Undo button reverts the last jump step", async ({ page }) => {
@@ -84,10 +80,7 @@ test.describe("Mobile jump controls", () => {
     await cell(page, 11, 9).tap();
 
     // Tap Undo (use first() since there may be both board-level and floating undo)
-    await page
-      .locator('button[aria-label="Undo last jump"]')
-      .first()
-      .tap();
+    await page.locator('button[aria-label="Undo last jump"]').first().tap();
 
     // Still White's turn (jump was reverted, not confirmed)
     await expect(page.locator("text=White to move")).toBeVisible();
@@ -95,9 +88,7 @@ test.describe("Mobile jump controls", () => {
     await expect(cell(page, 9, 9)).toHaveAttribute("data-piece", "white");
   });
 
-  test("cannot switch to another piece during a pending jump", async ({
-    page,
-  }) => {
+  test("cannot switch to another piece during a pending jump", async ({ page }) => {
     // White at (9,9)
     await cell(page, 9, 9).tap();
     // Black at (10,9)
@@ -115,8 +106,6 @@ test.describe("Mobile jump controls", () => {
     await cell(page, 8, 8).tap();
 
     // Confirm button should still be visible (pending jump not cancelled)
-    await expect(
-      page.locator('button[aria-label="Confirm jump"]'),
-    ).toBeVisible({ timeout: 2000 });
+    await expect(page.locator('button[aria-label="Confirm jump"]')).toBeVisible({ timeout: 2000 });
   });
 });

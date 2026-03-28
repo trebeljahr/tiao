@@ -9,7 +9,13 @@ import { createInitialGameState, EMPTY_SOCIAL_OVERVIEW } from "@shared";
 const mockPush = vi.fn();
 const mockReplace = vi.fn();
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: mockPush, replace: mockReplace, back: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() }),
+  useRouter: () => ({
+    push: mockPush,
+    replace: mockReplace,
+    back: vi.fn(),
+    refresh: vi.fn(),
+    prefetch: vi.fn(),
+  }),
   usePathname: () => "/game/ABC123",
   useSearchParams: () => new URLSearchParams(),
   useParams: () => ({ gameId: "ABC123" }),
@@ -107,8 +113,14 @@ function makeMatchmakingSnapshot(overrides?: Partial<MultiplayerSnapshot>): Mult
       { player: { playerId: "guest-bbb", displayName: "Anonymous", kind: "guest" }, online: true },
     ],
     seats: {
-      white: { player: { playerId: "guest-aaa", displayName: "Anonymous", kind: "guest" }, online: true },
-      black: { player: { playerId: "guest-bbb", displayName: "Anonymous", kind: "guest" }, online: true },
+      white: {
+        player: { playerId: "guest-aaa", displayName: "Anonymous", kind: "guest" },
+        online: true,
+      },
+      black: {
+        player: { playerId: "guest-bbb", displayName: "Anonymous", kind: "guest" },
+        online: true,
+      },
     },
     spectators: [],
     rematch: null,
@@ -140,10 +152,7 @@ const defaultSocialMock = {
   handleRevokeGameInvitation: vi.fn(),
 };
 
-async function setupMocks(
-  snapshot: MultiplayerSnapshot,
-  overrides?: { connectionState?: string },
-) {
+async function setupMocks(snapshot: MultiplayerSnapshot, overrides?: { connectionState?: string }) {
   const { useMultiplayerGame } = await import("@/lib/hooks/useMultiplayerGame");
   (useMultiplayerGame as ReturnType<typeof vi.fn>).mockReturnValue({
     multiplayerSnapshot: snapshot,

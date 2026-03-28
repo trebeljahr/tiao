@@ -8,7 +8,13 @@ import { Dialog } from "@/components/ui/dialog";
 
 const TOURNAMENT_TC_PRESETS_BASE = [
   ...TIME_CONTROL_PRESETS.filter((p) => p.initialMs >= 180_000), // 3 min+
-  { label: "No limit", labelKey: "noLimit" as const, category: "Untimed", initialMs: 0, incrementMs: 0 },
+  {
+    label: "No limit",
+    labelKey: "noLimit" as const,
+    category: "Untimed",
+    initialMs: 0,
+    incrementMs: 0,
+  },
 ];
 
 export function TournamentCreationForm({
@@ -226,11 +232,7 @@ export function TournamentCreationForm({
               <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>
                 {tCommon("back")}
               </Button>
-              <Button
-                className="flex-1"
-                disabled={!name.trim() || busy}
-                onClick={handleSubmit}
-              >
+              <Button className="flex-1" disabled={!name.trim() || busy} onClick={handleSubmit}>
                 {busy ? tCommon("creating") : t("createTournament")}
               </Button>
             </div>

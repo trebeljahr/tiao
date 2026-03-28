@@ -10,12 +10,23 @@ function ThemeSwatch({ theme }: { theme: BoardTheme }) {
       style={{ background: theme.boardBg, borderColor: theme.boardBorder }}
     >
       {/* Sheen overlay */}
-      <div className="pointer-events-none absolute inset-0" style={{ background: theme.boardSheen }} />
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{ background: theme.boardSheen }}
+      />
 
       {/* Mini grid */}
       <svg className="absolute inset-[12%]" viewBox="0 0 40 40" aria-hidden="true">
         {/* Groove border */}
-        <rect x="0" y="0" width="40" height="40" fill="none" stroke={theme.grooveStart} strokeWidth="0.8" />
+        <rect
+          x="0"
+          y="0"
+          width="40"
+          height="40"
+          fill="none"
+          stroke={theme.grooveStart}
+          strokeWidth="0.8"
+        />
         {/* Grid lines */}
         {[10, 20, 30].map((v) => (
           <g key={v}>
@@ -72,9 +83,7 @@ export function ThemePicker() {
               onClick={() => setTheme(theme.id)}
               className={cn(
                 "group flex flex-col items-center gap-1.5 rounded-xl p-1.5 transition-all",
-                isActive
-                  ? "bg-primary/10 ring-2 ring-primary/60"
-                  : "hover:bg-muted/60",
+                isActive ? "bg-primary/10 ring-2 ring-primary/60" : "hover:bg-muted/60",
               )}
               aria-label={`${theme.name} board theme`}
               aria-pressed={isActive}

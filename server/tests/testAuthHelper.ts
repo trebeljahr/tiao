@@ -37,7 +37,10 @@ export function createTestGuest(displayName: string): {
 /**
  * Create a test account session and return a mock cookie string.
  */
-export function createTestAccount(displayName: string, email?: string): {
+export function createTestAccount(
+  displayName: string,
+  email?: string,
+): {
   player: PlayerIdentity;
   cookie: string;
 } {

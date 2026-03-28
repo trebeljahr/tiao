@@ -1,12 +1,12 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-function cell(page: import('@playwright/test').Page, x: number, y: number) {
+function cell(page: import("@playwright/test").Page, x: number, y: number) {
   return page.locator(`[data-testid="cell-${x}-${y}"]`);
 }
 
-test.describe('Computer game end dialog', () => {
-  test('game over dialog appears with correct buttons when game ends', async ({ page }) => {
-    await page.goto('/computer');
+test.describe("Computer game end dialog", () => {
+  test("game over dialog appears with correct buttons when game ends", async ({ page }) => {
+    await page.goto("/computer");
 
     // Select a difficulty to start the game
     await page.click('button:has-text("Easy")');
@@ -18,12 +18,12 @@ test.describe('Computer game end dialog', () => {
     await page.evaluate(() => {
       // Find the React internal instance key on a DOM node
       const boardEl = document.querySelector('[data-testid="cell-9-9"]');
-      if (!boardEl) throw new Error('Board not found');
+      if (!boardEl) throw new Error("Board not found");
 
       const fiberKey = Object.keys(boardEl).find(
-        (k) => k.startsWith('__reactFiber$') || k.startsWith('__reactInternalInstance$'),
+        (k) => k.startsWith("__reactFiber$") || k.startsWith("__reactInternalInstance$"),
       );
-      if (!fiberKey) throw new Error('React fiber not found');
+      if (!fiberKey) throw new Error("React fiber not found");
 
       // Walk up the fiber tree to find a stateNode with the game state
       let fiber = (boardEl as any)[fiberKey];
@@ -36,9 +36,9 @@ test.describe('Computer game end dialog', () => {
             const state = hook.memoizedState;
             if (
               state &&
-              typeof state === 'object' &&
+              typeof state === "object" &&
               state.score &&
-              typeof state.score.white === 'number' &&
+              typeof state.score.white === "number" &&
               state.positions
             ) {
               // Found the game state - now find the setState (queue) for this hook
@@ -58,22 +58,24 @@ test.describe('Computer game end dialog', () => {
       }
 
       if (!found) {
-        throw new Error('Could not find game state in React fiber tree');
+        throw new Error("Could not find game state in React fiber tree");
       }
     });
 
     // Wait for the game-over dialog to appear (600ms delay in the component)
-    const dialog = page.locator('.fixed.inset-0.z-\\[300\\]');
+    const dialog = page.locator(".fixed.inset-0.z-\\[300\\]");
     await expect(dialog).toBeVisible({ timeout: 3000 });
 
     // Check that the dialog shows the correct title
-    const title = dialog.locator('h2');
+    const title = dialog.locator("h2");
     await expect(title).toBeVisible();
     // Title should be "You won!" or "You lost!" depending on winner
     await expect(title).toHaveText(/You won!|You lost!/);
 
     // Check "Play again" or "Try again" button
-    const playAgainBtn = dialog.locator('button:has-text("Play again"), button:has-text("Try again")');
+    const playAgainBtn = dialog.locator(
+      'button:has-text("Play again"), button:has-text("Try again")',
+    );
     await expect(playAgainBtn).toBeVisible();
 
     // Check "Change difficulty" button
@@ -83,8 +85,8 @@ test.describe('Computer game end dialog', () => {
     await expect(dialog.locator('button:has-text("Back to lobby")')).toBeVisible();
   });
 
-  test('clicking Back to lobby navigates to home', async ({ page }) => {
-    await page.goto('/computer');
+  test("clicking Back to lobby navigates to home", async ({ page }) => {
+    await page.goto("/computer");
 
     // Select a difficulty to start the game
     await page.click('button:has-text("Easy")');
@@ -94,12 +96,12 @@ test.describe('Computer game end dialog', () => {
     // Force game-over state
     await page.evaluate(() => {
       const boardEl = document.querySelector('[data-testid="cell-9-9"]');
-      if (!boardEl) throw new Error('Board not found');
+      if (!boardEl) throw new Error("Board not found");
 
       const fiberKey = Object.keys(boardEl).find(
-        (k) => k.startsWith('__reactFiber$') || k.startsWith('__reactInternalInstance$'),
+        (k) => k.startsWith("__reactFiber$") || k.startsWith("__reactInternalInstance$"),
       );
-      if (!fiberKey) throw new Error('React fiber not found');
+      if (!fiberKey) throw new Error("React fiber not found");
 
       let fiber = (boardEl as any)[fiberKey];
       let found = false;
@@ -110,9 +112,9 @@ test.describe('Computer game end dialog', () => {
             const state = hook.memoizedState;
             if (
               state &&
-              typeof state === 'object' &&
+              typeof state === "object" &&
               state.score &&
-              typeof state.score.white === 'number' &&
+              typeof state.score.white === "number" &&
               state.positions
             ) {
               const queue = hook.queue;
@@ -131,18 +133,18 @@ test.describe('Computer game end dialog', () => {
       }
 
       if (!found) {
-        throw new Error('Could not find game state in React fiber tree');
+        throw new Error("Could not find game state in React fiber tree");
       }
     });
 
     // Wait for dialog
-    const dialog = page.locator('.fixed.inset-0.z-\\[300\\]');
+    const dialog = page.locator(".fixed.inset-0.z-\\[300\\]");
     await expect(dialog).toBeVisible({ timeout: 3000 });
 
     // Click "Back to lobby"
     await dialog.locator('button:has-text("Back to lobby")').click();
 
     // Should navigate to home
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL("/");
   });
 });

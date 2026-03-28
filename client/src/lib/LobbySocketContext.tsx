@@ -1,10 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useCallback,
-} from "react";
+import { createContext, useContext, useEffect, useRef, useCallback } from "react";
 import type { AuthResponse } from "@shared";
 import { buildWebSocketUrl } from "./api";
 import { createReconnectScheduler } from "./reconnect";
@@ -97,8 +91,6 @@ export function LobbySocketProvider({
   }, [auth]);
 
   return (
-    <LobbySocketContext.Provider value={{ subscribe }}>
-      {children}
-    </LobbySocketContext.Provider>
+    <LobbySocketContext.Provider value={{ subscribe }}>{children}</LobbySocketContext.Provider>
   );
 }

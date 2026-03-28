@@ -56,12 +56,11 @@ const GameSessionSchema = new Schema<IGameSession>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 GameSessionSchema.index({ playerId: 1, expiresAt: -1 });
 
-const GameSession =
-  models.GameSession || model<IGameSession>("GameSession", GameSessionSchema);
+const GameSession = models.GameSession || model<IGameSession>("GameSession", GameSessionSchema);
 
 export default GameSession;

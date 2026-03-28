@@ -20,9 +20,7 @@ let links;
 try {
   links = JSON.parse(readFileSync(LINKS_FILE, "utf-8"));
 } catch {
-  console.error(
-    "source-links.json not found. Run generate-source-links.mjs first.",
-  );
+  console.error("source-links.json not found. Run generate-source-links.mjs first.");
   process.exit(1);
 }
 
@@ -53,9 +51,7 @@ for (const [key, entry] of Object.entries(links)) {
 
   const lineIdx = entry.line - 1;
   if (lineIdx < 0 || lineIdx >= lines.length) {
-    errors.push(
-      `${key}: line ${entry.line} out of range in ${entry.file} (${lines.length} lines)`,
-    );
+    errors.push(`${key}: line ${entry.line} out of range in ${entry.file} (${lines.length} lines)`);
     continue;
   }
 

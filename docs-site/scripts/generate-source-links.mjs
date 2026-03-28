@@ -20,10 +20,7 @@ const OUT = resolve(__dirname, "../source-links.json");
 const GITHUB_BASE = "https://github.com/trebeljahr/tiao/blob/main";
 
 // ─── Source files to scan for exported symbols ──────────────────────
-const SOURCES = [
-  "shared/src/tiao.ts",
-  "client/src/lib/engine/tiao-engine.ts",
-];
+const SOURCES = ["shared/src/tiao.ts", "client/src/lib/engine/tiao-engine.ts"];
 
 // ─── Files to register as link targets (no line scanning) ───────────
 // Key is the basename by default. If two files share a basename, use
@@ -78,8 +75,7 @@ const FILES = [
 //           export class name
 //           export type name =
 //           export interface name
-const EXPORT_RE =
-  /^export\s+(?:function|const|class|type|interface)\s+(\w+)/;
+const EXPORT_RE = /^export\s+(?:function|const|class|type|interface)\s+(\w+)/;
 
 function scan(filePath) {
   const abs = resolve(ROOT, filePath);

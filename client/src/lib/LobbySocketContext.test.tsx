@@ -27,8 +27,7 @@ class MockWebSocket {
 }
 
 vi.mock("./api", () => ({
-  buildWebSocketUrl: (gameId: string) =>
-    `ws://localhost:5005/api/ws?gameId=${gameId}`,
+  buildWebSocketUrl: (gameId: string) => `ws://localhost:5005/api/ws?gameId=${gameId}`,
 }));
 
 const mockAccountAuth: AuthResponse = {

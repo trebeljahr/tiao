@@ -2,11 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, test } from "node:test";
 import type { AuthResponse } from "../../shared/src";
 import { classifyMongoError } from "../error-handling";
-import {
-  createTestGuest,
-  resetTestSessions,
-  installTestSessionMock,
-} from "./testAuthHelper";
+import { createTestGuest, resetTestSessions, installTestSessionMock } from "./testAuthHelper";
 
 process.env.TOKEN_SECRET ??= "test-token-secret";
 process.env.MONGODB_URI ??= "mongodb://127.0.0.1:27017/tiao-test";
@@ -33,7 +29,7 @@ type TestRouter = {
         handle: (
           req: Record<string, unknown>,
           res: Record<string, unknown>,
-          next: (error?: unknown) => void
+          next: (error?: unknown) => void,
         ) => unknown;
       }>;
     };
@@ -46,9 +42,7 @@ type RouteResult<T> = {
   headers: Record<string, string | string[]>;
 };
 
-let singletonGameService:
-  | (PatchedGameService & Record<string, unknown>)
-  | null = null;
+let singletonGameService: (PatchedGameService & Record<string, unknown>) | null = null;
 let originalMethods: Partial<PatchedGameService> = {};
 let gameAuthRoutes: TestRouter;
 let gameRoutes: TestRouter;
@@ -89,10 +83,10 @@ async function runHandler(
   handler: (
     req: Record<string, unknown>,
     res: Record<string, unknown>,
-    next: (error?: unknown) => void
+    next: (error?: unknown) => void,
   ) => unknown,
   req: Record<string, unknown>,
-  res: Record<string, unknown>
+  res: Record<string, unknown>,
 ) {
   await new Promise<void>((resolve, reject) => {
     let settled = false;
@@ -139,11 +133,10 @@ async function invokeRoute<T>(
     query?: Record<string, string>;
     cookie?: string;
     body?: Record<string, unknown>;
-  }
+  },
 ): Promise<RouteResult<T>> {
   const layer = router.stack.find(
-    (entry) =>
-      entry.route?.path === options.path && entry.route.methods[options.method]
+    (entry) => entry.route?.path === options.path && entry.route.methods[options.method],
   );
 
   assert.ok(layer?.route, `Route ${options.method.toUpperCase()} ${options.path} should exist.`);
@@ -175,9 +168,7 @@ async function invokeRoute<T>(
 
 function getSessionCookie<T>(response: RouteResult<T>): string {
   const setCookieHeader = response.headers["set-cookie"];
-  const rawHeader = Array.isArray(setCookieHeader)
-    ? setCookieHeader[0]
-    : setCookieHeader;
+  const rawHeader = Array.isArray(setCookieHeader) ? setCookieHeader[0] : setCookieHeader;
 
   assert.equal(typeof rawHeader, "string");
   return rawHeader.split(";")[0]!;
@@ -205,8 +196,7 @@ beforeEach(async () => {
   ]);
 
   const service = new GameService(new InMemoryGameRoomStore(), () => 0);
-  singletonGameService = gameService as unknown as PatchedGameService &
-    Record<string, unknown>;
+  singletonGameService = gameService as unknown as PatchedGameService & Record<string, unknown>;
 
   originalMethods = {
     createGame: singletonGameService.createGame,
@@ -225,8 +215,7 @@ beforeEach(async () => {
   singletonGameService.getSnapshot = service.getSnapshot.bind(service);
   singletonGameService.listGames = service.listGames.bind(service);
   singletonGameService.enterMatchmaking = service.enterMatchmaking.bind(service);
-  singletonGameService.getMatchmakingState =
-    service.getMatchmakingState.bind(service);
+  singletonGameService.getMatchmakingState = service.getMatchmakingState.bind(service);
   singletonGameService.leaveMatchmaking = service.leaveMatchmaking.bind(service);
 
   gameAuthRoutes = gameAuthRoutesModule.default as TestRouter;
@@ -326,14 +315,11 @@ describe("game route error handling", () => {
       throw new Error("unexpected internal error");
     };
 
-    const response = await invokeRoute<{ code: string; message: string }>(
-      gameRoutes,
-      {
-        method: "post",
-        path: "/games",
-        cookie: guest.cookie,
-      }
-    );
+    const response = await invokeRoute<{ code: string; message: string }>(gameRoutes, {
+      method: "post",
+      path: "/games",
+      cookie: guest.cookie,
+    });
 
     assert.equal(response.status, 500);
     assert.ok(response.body.message);

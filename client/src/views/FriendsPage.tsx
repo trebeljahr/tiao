@@ -3,13 +3,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog } from "@/components/ui/dialog";
@@ -115,20 +109,37 @@ export function FriendsPage() {
                   onChange={(e) => social.setFriendSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && social.runFriendSearch()}
                 />
-                <Button onClick={social.runFriendSearch} disabled={social.friendSearchBusy}>{tCommon("search")}</Button>
+                <Button onClick={social.runFriendSearch} disabled={social.friendSearchBusy}>
+                  {tCommon("search")}
+                </Button>
               </div>
               <div className="space-y-2">
                 {social.friendSearchResults.map((result) => (
-                  <div key={result.player.playerId} className="flex items-center justify-between p-2 rounded-xl bg-white/40">
+                  <div
+                    key={result.player.playerId}
+                    className="flex items-center justify-between p-2 rounded-xl bg-white/40"
+                  >
                     <PlayerIdentityRow player={result.player} />
                     {result.relationship === "friend" ? (
                       <Badge variant="outline">{t("friend")}</Badge>
                     ) : result.relationship === "outgoing-request" ? (
-                      <Badge variant="outline" className="text-[#8d7760]">{t("pending")}</Badge>
+                      <Badge variant="outline" className="text-[#8d7760]">
+                        {t("pending")}
+                      </Badge>
                     ) : result.relationship === "incoming-request" ? (
-                      <Button size="sm" onClick={() => social.handleAcceptFriendRequest(result.player.playerId)}>{tCommon("accept")}</Button>
+                      <Button
+                        size="sm"
+                        onClick={() => social.handleAcceptFriendRequest(result.player.playerId)}
+                      >
+                        {tCommon("accept")}
+                      </Button>
                     ) : (
-                      <Button size="sm" onClick={() => social.handleSendFriendRequest(result.player.playerId)}>{tCommon("add")}</Button>
+                      <Button
+                        size="sm"
+                        onClick={() => social.handleSendFriendRequest(result.player.playerId)}
+                      >
+                        {tCommon("add")}
+                      </Button>
                     )}
                   </div>
                 ))}
@@ -138,27 +149,54 @@ export function FriendsPage() {
 
           <div className="space-y-5">
             <Card className={paperCard}>
-              <CardHeader><CardTitle>{t("pending")}</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle>{t("pending")}</CardTitle>
+              </CardHeader>
               <CardContent className="space-y-2">
-                {social.socialOverview.incomingFriendRequests.map(req => (
-                  <div key={req.playerId} className="flex items-center justify-between p-3 rounded-xl bg-white/40">
+                {social.socialOverview.incomingFriendRequests.map((req) => (
+                  <div
+                    key={req.playerId}
+                    className="flex items-center justify-between p-3 rounded-xl bg-white/40"
+                  >
                     <PlayerIdentityRow player={req} nameClassName="font-medium" />
                     <div className="flex gap-2">
-                      <Button size="sm" onClick={() => social.handleAcceptFriendRequest(req.playerId)}>{tCommon("accept")}</Button>
-                      <Button size="sm" variant="ghost" onClick={() => social.handleDeclineFriendRequest(req.playerId)}>{tCommon("decline")}</Button>
+                      <Button
+                        size="sm"
+                        onClick={() => social.handleAcceptFriendRequest(req.playerId)}
+                      >
+                        {tCommon("accept")}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => social.handleDeclineFriendRequest(req.playerId)}
+                      >
+                        {tCommon("decline")}
+                      </Button>
                     </div>
                   </div>
                 ))}
-                {social.socialOverview.incomingFriendRequests.length === 0 && <p className="text-sm text-[#6e5b48]">{t("noPendingRequests")}</p>}
+                {social.socialOverview.incomingFriendRequests.length === 0 && (
+                  <p className="text-sm text-[#6e5b48]">{t("noPendingRequests")}</p>
+                )}
               </CardContent>
             </Card>
 
             <Card className={paperCard}>
-              <CardHeader><CardTitle>{t("friends")}</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle>{t("friends")}</CardTitle>
+              </CardHeader>
               <CardContent className="space-y-2">
-                {social.socialOverview.friends.map(friend => (
-                  <div key={friend.playerId} className="flex items-center justify-between p-3 rounded-xl bg-white/40">
-                    <PlayerIdentityRow player={friend} online={friend.online} nameClassName="font-medium" />
+                {social.socialOverview.friends.map((friend) => (
+                  <div
+                    key={friend.playerId}
+                    className="flex items-center justify-between p-3 rounded-xl bg-white/40"
+                  >
+                    <PlayerIdentityRow
+                      player={friend}
+                      online={friend.online}
+                      nameClassName="font-medium"
+                    />
                     <div className="flex items-center gap-2">
                       <Button
                         size="sm"
@@ -180,7 +218,9 @@ export function FriendsPage() {
                     </div>
                   </div>
                 ))}
-                {social.socialOverview.friends.length === 0 && <p className="text-sm text-[#6e5b48]">{t("emptyFriendList")}</p>}
+                {social.socialOverview.friends.length === 0 && (
+                  <p className="text-sm text-[#6e5b48]">{t("emptyFriendList")}</p>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -189,9 +229,15 @@ export function FriendsPage() {
 
       <Dialog
         open={!!inviteDialogFriendId}
-        onOpenChange={(open) => { if (!open) setInviteDialogFriendId(null); }}
+        onOpenChange={(open) => {
+          if (!open) setInviteDialogFriendId(null);
+        }}
         title={t("inviteToGame")}
-        description={inviteDialogFriend ? t("inviteDialogDesc", { name: inviteDialogFriend.displayName }) : undefined}
+        description={
+          inviteDialogFriend
+            ? t("inviteDialogDesc", { name: inviteDialogFriend.displayName })
+            : undefined
+        }
       >
         <div className="space-y-4">
           <div>

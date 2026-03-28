@@ -10,12 +10,14 @@ The game includes a single-player mode against a computer opponent. The AI needs
 ## Options Considered
 
 ### Monte Carlo Tree Search (MCTS)
+
 - State of the art for Go-like games (used by AlphaGo)
 - Requires many playouts to be effective — computationally expensive
 - Overkill for a smaller board game with simpler rules than Go
 - Difficult to tune for consistent play within browser time constraints
 
 ### Minimax / Negamax with Alpha-Beta Pruning (chosen)
+
 - Classic game tree search, well-understood
 - Alpha-beta pruning cuts search space dramatically
 - Quiescence search extends captures up to 4 additional plies to avoid horizon effect
@@ -23,11 +25,13 @@ The game includes a single-player mode against a computer opponent. The AI needs
 - Runs in a Web Worker to keep UI responsive
 
 ### Neural Network / ML-based
+
 - Would require training data and a model
 - Heavy client-side inference (unless server-hosted)
 - Massive over-engineering for current scope
 
 ### Random / Heuristic-only
+
 - Trivial to implement but unsatisfying to play against
 - No strategic depth
 

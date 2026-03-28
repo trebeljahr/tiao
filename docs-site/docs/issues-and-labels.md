@@ -11,11 +11,11 @@ This page explains how we use GitHub Issues and labels to track work on Tiao. Wh
 
 When you [create a new issue](https://github.com/trebeljahr/tiao/issues/new/choose), you'll see a template chooser with three options:
 
-| Template | Use when... |
-|----------|-------------|
-| **Bug Report** | Something isn't working correctly |
-| **Feature Request** | You have an idea for a new feature or improvement |
-| **Documentation Improvement** | Docs are unclear, missing, or wrong |
+| Template                      | Use when...                                       |
+| ----------------------------- | ------------------------------------------------- |
+| **Bug Report**                | Something isn't working correctly                 |
+| **Feature Request**           | You have an idea for a new feature or improvement |
+| **Documentation Improvement** | Docs are unclear, missing, or wrong               |
 
 Each template is a structured form — fill in the fields and we'll have everything we need to act on it. Blank issues are disabled to keep things organized.
 
@@ -27,53 +27,53 @@ Every issue gets labels from four categories. Labels use a `category: value` for
 
 ### Type — what kind of work
 
-| Label | Description |
-|-------|-------------|
-| `type: bug` | Something isn't working |
-| `type: feature` | New feature or request |
-| `type: enhancement` | Improvement to an existing feature |
-| `type: docs` | Documentation change |
-| `type: chore` | Maintenance, refactoring, or tooling |
+| Label               | Description                          |
+| ------------------- | ------------------------------------ |
+| `type: bug`         | Something isn't working              |
+| `type: feature`     | New feature or request               |
+| `type: enhancement` | Improvement to an existing feature   |
+| `type: docs`        | Documentation change                 |
+| `type: chore`       | Maintenance, refactoring, or tooling |
 
 ### Status — where it is in the pipeline
 
-| Label | Description |
-|-------|-------------|
-| `status: triage` | New issue, needs review by a maintainer |
-| `status: confirmed` | Confirmed and ready for someone to pick up |
-| `status: needs info` | We need more details from the reporter |
+| Label                        | Description                                   |
+| ---------------------------- | --------------------------------------------- |
+| `status: triage`             | New issue, needs review by a maintainer       |
+| `status: confirmed`          | Confirmed and ready for someone to pick up    |
+| `status: needs info`         | We need more details from the reporter        |
 | `status: needs reproduction` | We need a minimal reproduction to investigate |
-| `status: blocked` | Waiting on something else |
-| `status: wontfix` | Won't be addressed (with explanation) |
-| `status: duplicate` | Duplicate of another issue |
+| `status: blocked`            | Waiting on something else                     |
+| `status: wontfix`            | Won't be addressed (with explanation)         |
+| `status: duplicate`          | Duplicate of another issue                    |
 
 ### Priority — how urgent
 
-| Label | Description |
-|-------|-------------|
+| Label                | Description                                          |
+| -------------------- | ---------------------------------------------------- |
 | `priority: critical` | Must be fixed ASAP — game-breaking or security issue |
-| `priority: high` | Important, blocks progress on other work |
-| `priority: medium` | Should be fixed soon |
-| `priority: low` | Nice to have, no rush |
+| `priority: high`     | Important, blocks progress on other work             |
+| `priority: medium`   | Should be fixed soon                                 |
+| `priority: low`      | Nice to have, no rush                                |
 
 ### Area — which part of the codebase
 
-| Label | Description |
-|-------|-------------|
-| `area: game-engine` | Game rules and engine (`shared/`) |
-| `area: server` | Backend, API, WebSocket (`server/`) |
-| `area: client` | Frontend, UI, components (`client/`) |
-| `area: matchmaking` | Matchmaking and game pairing |
-| `area: social` | Friends, invitations, profiles |
-| `area: ai` | Computer opponent |
-| `area: infra` | CI/CD, Docker, deployment |
+| Label               | Description                          |
+| ------------------- | ------------------------------------ |
+| `area: game-engine` | Game rules and engine (`shared/`)    |
+| `area: server`      | Backend, API, WebSocket (`server/`)  |
+| `area: client`      | Frontend, UI, components (`client/`) |
+| `area: matchmaking` | Matchmaking and game pairing         |
+| `area: social`      | Friends, invitations, profiles       |
+| `area: ai`          | Computer opponent                    |
+| `area: infra`       | CI/CD, Docker, deployment            |
 
 ### Community
 
-| Label | Description |
-|-------|-------------|
-| `good first issue` | Good for newcomers — scoped, well-defined, and approachable |
-| `help wanted` | Extra attention needed — we'd especially appreciate help here |
+| Label              | Description                                                   |
+| ------------------ | ------------------------------------------------------------- |
+| `good first issue` | Good for newcomers — scoped, well-defined, and approachable   |
+| `help wanted`      | Extra attention needed — we'd especially appreciate help here |
 
 ## Issue Lifecycle
 

@@ -106,12 +106,7 @@ describe("TiaoBoard – desktop behavior (no touch)", () => {
     const state = createInitialGameState();
 
     render(
-      <TiaoBoard
-        state={state}
-        selectedPiece={null}
-        jumpTargets={[]}
-        onPointClick={onPointClick}
-      />
+      <TiaoBoard state={state} selectedPiece={null} jumpTargets={[]} onPointClick={onPointClick} />,
     );
 
     const cell = screen.getByTestId("cell-9-9");
@@ -126,12 +121,7 @@ describe("TiaoBoard – desktop behavior (no touch)", () => {
     const state = createInitialGameState();
 
     render(
-      <TiaoBoard
-        state={state}
-        selectedPiece={null}
-        jumpTargets={[]}
-        onPointClick={() => {}}
-      />
+      <TiaoBoard state={state} selectedPiece={null} jumpTargets={[]} onPointClick={() => {}} />,
     );
 
     const cell = screen.getByTestId("cell-9-9");
@@ -156,7 +146,7 @@ describe("TiaoBoard – disabled state", () => {
         jumpTargets={[]}
         disabled={true}
         onPointClick={onPointClick}
-      />
+      />,
     );
 
     const cell = screen.getByTestId("cell-9-9");
@@ -173,12 +163,7 @@ describe("TiaoBoard – board testid", () => {
     const state = createInitialGameState();
 
     render(
-      <TiaoBoard
-        state={state}
-        selectedPiece={null}
-        jumpTargets={[]}
-        onPointClick={() => {}}
-      />
+      <TiaoBoard state={state} selectedPiece={null} jumpTargets={[]} onPointClick={() => {}} />,
     );
 
     expect(screen.getByTestId("tiao-board")).toBeTruthy();
@@ -206,7 +191,7 @@ describe("TiaoBoard – last move highlighting", () => {
         lastMove={lastMove}
         onPointClick={() => {}}
         disabled
-      />
+      />,
     );
 
     // The cell at (9,9) should be marked as last move
@@ -241,7 +226,7 @@ describe("TiaoBoard – last move highlighting", () => {
         lastMove={lastMove}
         onPointClick={() => {}}
         disabled
-      />
+      />,
     );
 
     // Should render SVG lines for the jump trail with gold color
@@ -265,7 +250,7 @@ describe("TiaoBoard – last move highlighting", () => {
         jumpTargets={[]}
         onPointClick={() => {}}
         disabled
-      />
+      />,
     );
 
     const board = screen.getByTestId("tiao-board");
@@ -304,7 +289,7 @@ describe("TiaoBoard – pending jump controls", () => {
         onPointClick={() => {}}
         onUndoLastJump={onUndoLastJump}
         onConfirmJump={onConfirmJump}
-      />
+      />,
     );
 
     const undoButtons = screen.getAllByLabelText("Undo last jump");
@@ -325,7 +310,7 @@ describe("TiaoBoard – pending jump controls", () => {
         onPointClick={() => {}}
         onUndoLastJump={onUndoLastJump}
         onConfirmJump={onConfirmJump}
-      />
+      />,
     );
 
     const undoButtons = screen.getAllByLabelText("Undo last jump");
@@ -345,7 +330,7 @@ describe("TiaoBoard – pending jump controls", () => {
         onPointClick={() => {}}
         onUndoLastJump={() => {}}
         onConfirmJump={() => {}}
-      />
+      />,
     );
 
     expect(screen.queryByLabelText("Undo last jump")).toBeNull();
@@ -359,12 +344,7 @@ describe("TiaoBoard – crosshair overlay", () => {
     const state = createInitialGameState();
 
     render(
-      <TiaoBoard
-        state={state}
-        selectedPiece={null}
-        jumpTargets={[]}
-        onPointClick={() => {}}
-      />
+      <TiaoBoard state={state} selectedPiece={null} jumpTargets={[]} onPointClick={() => {}} />,
     );
 
     const board = screen.getByTestId("tiao-board");

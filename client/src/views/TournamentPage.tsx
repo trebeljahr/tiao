@@ -61,19 +61,25 @@ export function TournamentPage() {
         },
       });
     },
-    [router, t, tCommon]
+    [router, t, tCommon],
   );
 
-  const { tournament, loading, error, refresh } = useTournament(
-    auth,
-    tournamentId ?? null,
-    { onMatchReady }
-  );
+  const { tournament, loading, error, refresh } = useTournament(auth, tournamentId ?? null, {
+    onMatchReady,
+  });
 
   if (loading && !tournament) {
     return (
       <>
-        <Navbar mode="lobby" auth={auth} navOpen={navOpen} onToggleNav={() => setNavOpen(!navOpen)} onCloseNav={() => setNavOpen(false)} onOpenAuth={onOpenAuth} onLogout={onLogout} />
+        <Navbar
+          mode="lobby"
+          auth={auth}
+          navOpen={navOpen}
+          onToggleNav={() => setNavOpen(!navOpen)}
+          onCloseNav={() => setNavOpen(false)}
+          onOpenAuth={onOpenAuth}
+          onLogout={onLogout}
+        />
         <div className="mx-auto max-w-4xl px-4 pb-5 pt-20">
           <p className="text-muted-foreground">{t("loadingTournament")}</p>
         </div>
@@ -84,7 +90,15 @@ export function TournamentPage() {
   if (error || !tournament) {
     return (
       <>
-        <Navbar mode="lobby" auth={auth} navOpen={navOpen} onToggleNav={() => setNavOpen(!navOpen)} onCloseNav={() => setNavOpen(false)} onOpenAuth={onOpenAuth} onLogout={onLogout} />
+        <Navbar
+          mode="lobby"
+          auth={auth}
+          navOpen={navOpen}
+          onToggleNav={() => setNavOpen(!navOpen)}
+          onCloseNav={() => setNavOpen(false)}
+          onOpenAuth={onOpenAuth}
+          onLogout={onLogout}
+        />
         <div className="mx-auto max-w-4xl px-4 pb-5 pt-20">
           <p className="text-red-600">{error ?? t("tournamentNotFound")}</p>
         </div>
@@ -93,9 +107,7 @@ export function TournamentPage() {
   }
 
   const isAdmin = playerId === tournament.creatorId;
-  const isRegistered = tournament.participants.some(
-    (p) => p.playerId === playerId
-  );
+  const isRegistered = tournament.participants.some((p) => p.playerId === playerId);
   const canJoin =
     isAccount &&
     !isRegistered &&
@@ -123,7 +135,15 @@ export function TournamentPage() {
 
   return (
     <>
-      <Navbar mode="lobby" auth={auth} navOpen={navOpen} onToggleNav={() => setNavOpen(!navOpen)} onCloseNav={() => setNavOpen(false)} onOpenAuth={onOpenAuth} onLogout={onLogout} />
+      <Navbar
+        mode="lobby"
+        auth={auth}
+        navOpen={navOpen}
+        onToggleNav={() => setNavOpen(!navOpen)}
+        onCloseNav={() => setNavOpen(false)}
+        onOpenAuth={onOpenAuth}
+        onLogout={onLogout}
+      />
 
       <div className="mx-auto max-w-5xl px-4 pb-5 pt-20 space-y-6">
         {/* Header */}
@@ -134,12 +154,13 @@ export function TournamentPage() {
             <Badge>{formatLabel(tournament.settings.format)}</Badge>
           </div>
           {tournament.description && (
-            <p className="text-sm text-muted-foreground mt-1">
-              {tournament.description}
-            </p>
+            <p className="text-sm text-muted-foreground mt-1">{tournament.description}</p>
           )}
           <p className="text-xs text-muted-foreground mt-1">
-            {t("players", { count: tournament.participants.length, max: tournament.settings.maxPlayers })}
+            {t("players", {
+              count: tournament.participants.length,
+              max: tournament.settings.maxPlayers,
+            })}
           </p>
         </div>
 
@@ -153,9 +174,7 @@ export function TournamentPage() {
                   setInviteCodeInput("");
                   setInviteCodeDialogOpen(true);
                 } else {
-                  handleAction(() =>
-                    registerForTournament(tournament.tournamentId)
-                  );
+                  handleAction(() => registerForTournament(tournament.tournamentId));
                 }
               }}
             >
@@ -166,11 +185,7 @@ export function TournamentPage() {
             <Button
               variant="outline"
               disabled={busy}
-              onClick={() =>
-                handleAction(() =>
-                  unregisterFromTournament(tournament.tournamentId)
-                )
-              }
+              onClick={() => handleAction(() => unregisterFromTournament(tournament.tournamentId))}
             >
               {t("leaveTournament")}
             </Button>
@@ -178,11 +193,7 @@ export function TournamentPage() {
           {canStart && (
             <Button
               disabled={busy}
-              onClick={() =>
-                handleAction(() =>
-                  apiStartTournament(tournament.tournamentId)
-                )
-              }
+              onClick={() => handleAction(() => apiStartTournament(tournament.tournamentId))}
             >
               {t("startTournament")}
             </Button>
@@ -192,25 +203,17 @@ export function TournamentPage() {
               variant="outline"
               disabled={busy}
               onClick={() =>
-                handleAction(() =>
-                  randomizeTournamentSeeding(tournament.tournamentId)
-                )
+                handleAction(() => randomizeTournamentSeeding(tournament.tournamentId))
               }
             >
               {t("randomizeSeeds")}
             </Button>
           )}
-          {isAdmin &&
-            tournament.status !== "finished" &&
-            tournament.status !== "cancelled" && (
-              <Button
-                variant="outline"
-                disabled={busy}
-                onClick={() => setCancelDialogOpen(true)}
-              >
-                {t("cancelTournament")}
-              </Button>
-            )}
+          {isAdmin && tournament.status !== "finished" && tournament.status !== "cancelled" && (
+            <Button variant="outline" disabled={busy} onClick={() => setCancelDialogOpen(true)}>
+              {t("cancelTournament")}
+            </Button>
+          )}
         </div>
 
         {/* Featured / active matches */}
@@ -242,9 +245,7 @@ export function TournamentPage() {
             </CardHeader>
             <CardContent>
               {tournament.participants.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  {t("noParticipants")}
-                </p>
+                <p className="text-sm text-muted-foreground">{t("noParticipants")}</p>
               ) : (
                 <div className="space-y-1">
                   {tournament.participants
@@ -253,9 +254,7 @@ export function TournamentPage() {
                       <div
                         key={p.playerId}
                         className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${
-                          p.playerId === playerId
-                            ? "bg-amber-50/60 font-medium"
-                            : ""
+                          p.playerId === playerId ? "bg-amber-50/60 font-medium" : ""
                         }`}
                       >
                         <span className="w-6 text-right text-xs text-muted-foreground">
@@ -289,11 +288,7 @@ export function TournamentPage() {
                   <CardContent>
                     <div className="space-y-2">
                       {round.matches.map((match) => (
-                        <MatchCard
-                          key={match.matchId}
-                          match={match}
-                          currentPlayerId={playerId}
-                        />
+                        <MatchCard key={match.matchId} match={match} currentPlayerId={playerId} />
                       ))}
                     </div>
                   </CardContent>
@@ -326,17 +321,12 @@ export function TournamentPage() {
                       <CardTitle>{group.label}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <StandingsTable
-                        standings={group.standings}
-                        highlightPlayerId={playerId}
-                      />
+                      <StandingsTable standings={group.standings} highlightPlayerId={playerId} />
                       {group.rounds
                         .filter((r) => r.status === "active")
                         .map((round) => (
                           <div key={round.roundIndex}>
-                            <h4 className="text-sm font-medium mb-2">
-                              {round.label}
-                            </h4>
+                            <h4 className="text-sm font-medium mb-2">{round.label}</h4>
                             <div className="space-y-2">
                               {round.matches.map((match) => (
                                 <MatchCard
@@ -371,28 +361,29 @@ export function TournamentPage() {
         )}
 
         {/* Winner banner */}
-        {tournament.status === "finished" && (() => {
-          const winner = tournament.participants.find((p) => p.status === "winner");
-          return (
-            <Card className="border-amber-400/60 bg-amber-50/50">
-              <CardContent className="flex flex-col items-center gap-2 py-6">
-                <p className="text-sm font-semibold uppercase tracking-wider text-amber-600">
-                  {t("winner")}
-                </p>
-                {winner ? (
-                  <PlayerIdentityRow
-                    player={winner}
-                    avatarClassName="h-10 w-10"
-                    nameClassName="text-xl font-bold"
-                    className="gap-3"
-                  />
-                ) : (
-                  <p className="text-xl font-bold">{t("unknown")}</p>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })()}
+        {tournament.status === "finished" &&
+          (() => {
+            const winner = tournament.participants.find((p) => p.status === "winner");
+            return (
+              <Card className="border-amber-400/60 bg-amber-50/50">
+                <CardContent className="flex flex-col items-center gap-2 py-6">
+                  <p className="text-sm font-semibold uppercase tracking-wider text-amber-600">
+                    {t("winner")}
+                  </p>
+                  {winner ? (
+                    <PlayerIdentityRow
+                      player={winner}
+                      avatarClassName="h-10 w-10"
+                      nameClassName="text-xl font-bold"
+                      className="gap-3"
+                    />
+                  ) : (
+                    <p className="text-xl font-bold">{t("unknown")}</p>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })()}
       </div>
 
       {/* Cancel confirmation dialog */}
@@ -443,10 +434,7 @@ export function TournamentPage() {
             autoFocus
           />
           <div className="flex gap-3 justify-end">
-            <Button
-              variant="outline"
-              onClick={() => setInviteCodeDialogOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setInviteCodeDialogOpen(false)}>
               {tCommon("cancel")}
             </Button>
             <Button
@@ -454,10 +442,7 @@ export function TournamentPage() {
               onClick={async () => {
                 setInviteCodeDialogOpen(false);
                 handleAction(() =>
-                  registerForTournament(
-                    tournament.tournamentId,
-                    inviteCodeInput.trim()
-                  )
+                  registerForTournament(tournament.tournamentId, inviteCodeInput.trim()),
                 );
               }}
             >

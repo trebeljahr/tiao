@@ -102,7 +102,8 @@ async function main() {
   for (const room of allRooms) {
     const r = room as any;
     const playerIds = (r.players || []).map((p: any) => String(p.playerId));
-    const allPlayersKept = playerIds.length > 0 && playerIds.every((id: string) => keepPlayerIds.has(id));
+    const allPlayersKept =
+      playerIds.length > 0 && playerIds.every((id: string) => keepPlayerIds.has(id));
     if (allPlayersKept) {
       keepRoomIds.push(r.roomId);
     } else {
@@ -118,7 +119,8 @@ async function main() {
   for (const t of allTournaments) {
     const tournament = t as any;
     const participantIds = (tournament.participants || []).map((p: any) => String(p.playerId));
-    const allKept = participantIds.length > 0 && participantIds.every((id: string) => keepPlayerIds.has(id));
+    const allKept =
+      participantIds.length > 0 && participantIds.every((id: string) => keepPlayerIds.has(id));
     if (allKept) {
       keepTournamentIds.push(tournament.tournamentId);
     } else {
@@ -138,11 +140,21 @@ async function main() {
   console.log("\n════════════════════════════════════════");
   console.log("  CLEANUP SUMMARY");
   console.log("════════════════════════════════════════\n");
-  console.log(`  Accounts:     ${deleteAccountCount} delete / ${keepAccounts.length} keep (of ${totalAccounts})`);
-  console.log(`  Sessions:     ${totalSessions - keepSessionCount} delete / ${keepSessionCount} keep (of ${totalSessions})`);
-  console.log(`  Game Rooms:   ${deleteRoomIds.length} delete / ${keepRoomIds.length} keep (of ${allRooms.length})`);
-  console.log(`  Tournaments:  ${deleteTournamentIds.length} delete / ${keepTournamentIds.length} keep (of ${allTournaments.length})`);
-  console.log(`  Invitations:  ${totalInvitations - keepInvitationCount} delete / ${keepInvitationCount} keep (of ${totalInvitations})`);
+  console.log(
+    `  Accounts:     ${deleteAccountCount} delete / ${keepAccounts.length} keep (of ${totalAccounts})`,
+  );
+  console.log(
+    `  Sessions:     ${totalSessions - keepSessionCount} delete / ${keepSessionCount} keep (of ${totalSessions})`,
+  );
+  console.log(
+    `  Game Rooms:   ${deleteRoomIds.length} delete / ${keepRoomIds.length} keep (of ${allRooms.length})`,
+  );
+  console.log(
+    `  Tournaments:  ${deleteTournamentIds.length} delete / ${keepTournamentIds.length} keep (of ${allTournaments.length})`,
+  );
+  console.log(
+    `  Invitations:  ${totalInvitations - keepInvitationCount} delete / ${keepInvitationCount} keep (of ${totalInvitations})`,
+  );
   console.log();
 
   if (DRY_RUN) {
@@ -206,8 +218,12 @@ async function main() {
       {
         $pull: {
           friends: { $nin: [...keepAccountIds].map((id) => new mongoose.Types.ObjectId(id)) },
-          receivedFriendRequests: { $nin: [...keepAccountIds].map((id) => new mongoose.Types.ObjectId(id)) },
-          sentFriendRequests: { $nin: [...keepAccountIds].map((id) => new mongoose.Types.ObjectId(id)) },
+          receivedFriendRequests: {
+            $nin: [...keepAccountIds].map((id) => new mongoose.Types.ObjectId(id)),
+          },
+          sentFriendRequests: {
+            $nin: [...keepAccountIds].map((id) => new mongoose.Types.ObjectId(id)),
+          },
         },
       },
     );

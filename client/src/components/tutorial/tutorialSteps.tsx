@@ -47,9 +47,7 @@ export type TutorialStep = {
 // --- Helper ---
 
 function board(size: number, pieces: Array<[number, number, Cell]>): Cell[][] {
-  const b: Cell[][] = Array.from({ length: size }, () =>
-    Array(size).fill(null) as Cell[],
-  );
+  const b: Cell[][] = Array.from({ length: size }, () => Array(size).fill(null) as Cell[]);
   for (const [x, y, cell] of pieces) {
     b[y][x] = cell;
   }
@@ -73,12 +71,8 @@ export function getTutorialSteps(t: T): TutorialStep[] {
               跳
             </span>
           </div>
-          <p className="text-center text-lg font-medium text-[#3d2c1a]">
-            {t("_welcome_intro")}
-          </p>
-          <p className="text-center text-[#6e5b48]">
-            {t("_welcome_details")}
-          </p>
+          <p className="text-center text-lg font-medium text-[#3d2c1a]">{t("_welcome_intro")}</p>
+          <p className="text-center text-[#6e5b48]">{t("_welcome_details")}</p>
         </div>
       ),
     },
@@ -87,11 +81,7 @@ export function getTutorialSteps(t: T): TutorialStep[] {
     {
       id: "place",
       title: t("_place_title"),
-      description: (
-        <p className="text-[#3d2c1a]">
-          {t("_place_desc")}
-        </p>
-      ),
+      description: <p className="text-[#3d2c1a]">{t("_place_desc")}</p>,
       board: {
         size: 5,
         initialBoard: board(5, [
@@ -106,11 +96,7 @@ export function getTutorialSteps(t: T): TutorialStep[] {
     {
       id: "jump",
       title: t("_jump_title"),
-      description: (
-        <p className="text-[#3d2c1a]">
-          {t("_jump_desc")}
-        </p>
-      ),
+      description: <p className="text-[#3d2c1a]">{t("_jump_desc")}</p>,
       board: {
         size: 5,
         initialBoard: board(5, [
@@ -129,11 +115,7 @@ export function getTutorialSteps(t: T): TutorialStep[] {
     {
       id: "chain",
       title: t("_chain_title"),
-      description: (
-        <p className="text-[#3d2c1a]">
-          {t("_chain_desc")}
-        </p>
-      ),
+      description: <p className="text-[#3d2c1a]">{t("_chain_desc")}</p>,
       board: {
         size: 7,
         initialBoard: board(7, [
@@ -152,11 +134,7 @@ export function getTutorialSteps(t: T): TutorialStep[] {
     {
       id: "confirm-undo",
       title: t("_confirmUndo_title"),
-      description: (
-        <p className="text-[#3d2c1a]">
-          {t("_confirmUndo_desc")}
-        </p>
-      ),
+      description: <p className="text-[#3d2c1a]">{t("_confirmUndo_desc")}</p>,
       board: {
         size: 7,
         initialBoard: board(7, [
@@ -176,11 +154,7 @@ export function getTutorialSteps(t: T): TutorialStep[] {
     {
       id: "border-basic",
       title: t("_borderBasic_title"),
-      description: (
-        <p className="text-[#3d2c1a]">
-          {t("_borderBasic_desc")}
-        </p>
-      ),
+      description: <p className="text-[#3d2c1a]">{t("_borderBasic_desc")}</p>,
       board: {
         size: 5,
         thickBorder: true,
@@ -203,11 +177,7 @@ export function getTutorialSteps(t: T): TutorialStep[] {
     {
       id: "border-chain",
       title: t("_borderChain_title"),
-      description: (
-        <p className="text-[#3d2c1a]">
-          {t("_borderChain_desc")}
-        </p>
-      ),
+      description: <p className="text-[#3d2c1a]">{t("_borderChain_desc")}</p>,
       board: {
         size: 7,
         thickBorder: true,
@@ -231,20 +201,22 @@ export function getTutorialSteps(t: T): TutorialStep[] {
     {
       id: "cluster-basic",
       title: t("_clusterBasic_title"),
-      description: (
-        <p className="text-[#3d2c1a]">
-          {t("_clusterBasic_desc")}
-        </p>
-      ),
+      description: <p className="text-[#3d2c1a]">{t("_clusterBasic_desc")}</p>,
       board: {
         size: 7,
         initialBoard: board(7, [
-          [2, 1, "W"], [3, 1, "W"],
-          [2, 2, "W"], [3, 2, "W"],
-          [2, 3, "W"], [3, 3, "W"],
-          [2, 4, "W"], [3, 4, "W"],
-          [2, 5, "W"], [3, 5, "W"],
-          [5, 3, "B"], [5, 5, "B"],
+          [2, 1, "W"],
+          [3, 1, "W"],
+          [2, 2, "W"],
+          [3, 2, "W"],
+          [2, 3, "W"],
+          [3, 3, "W"],
+          [2, 4, "W"],
+          [3, 4, "W"],
+          [2, 5, "W"],
+          [3, 5, "W"],
+          [5, 3, "B"],
+          [5, 5, "B"],
         ]),
         interaction: {
           type: "try-and-fail",
@@ -259,17 +231,19 @@ export function getTutorialSteps(t: T): TutorialStep[] {
     {
       id: "cluster-diagonal",
       title: t("_clusterDiagonal_title"),
-      description: (
-        <p className="text-[#3d2c1a]">
-          {t("_clusterDiagonal_desc")}
-        </p>
-      ),
+      description: <p className="text-[#3d2c1a]">{t("_clusterDiagonal_desc")}</p>,
       board: {
         size: 7,
         initialBoard: board(7, [
-          [2, 2, "W"], [3, 2, "W"], [4, 2, "W"],
-          [2, 3, "W"], [3, 3, "W"], [4, 3, "W"],
-          [2, 4, "W"], [3, 4, "W"], [4, 4, "W"],
+          [2, 2, "W"],
+          [3, 2, "W"],
+          [4, 2, "W"],
+          [2, 3, "W"],
+          [3, 3, "W"],
+          [4, 3, "W"],
+          [2, 4, "W"],
+          [3, 4, "W"],
+          [4, 4, "W"],
           [2, 5, "W"],
         ]),
         interaction: { type: "free-place", requiredPos: { x: 5, y: 5 } },
@@ -281,21 +255,24 @@ export function getTutorialSteps(t: T): TutorialStep[] {
     {
       id: "cluster-merge",
       title: t("_clusterMerge_title"),
-      description: (
-        <p className="text-[#3d2c1a]">
-          {t("_clusterMerge_desc")}
-        </p>
-      ),
+      description: <p className="text-[#3d2c1a]">{t("_clusterMerge_desc")}</p>,
       board: {
         size: 7,
         initialBoard: board(7, [
-          [1, 1, "W"], [2, 1, "W"],
-          [1, 2, "W"], [2, 2, "W"],
-          [1, 3, "W"], [2, 3, "W"],
-          [4, 1, "W"], [5, 1, "W"],
-          [4, 2, "W"], [5, 2, "W"],
-          [4, 3, "W"], [5, 3, "W"],
-          [3, 5, "B"], [5, 5, "B"],
+          [1, 1, "W"],
+          [2, 1, "W"],
+          [1, 2, "W"],
+          [2, 2, "W"],
+          [1, 3, "W"],
+          [2, 3, "W"],
+          [4, 1, "W"],
+          [5, 1, "W"],
+          [4, 2, "W"],
+          [5, 2, "W"],
+          [4, 3, "W"],
+          [5, 3, "W"],
+          [3, 5, "B"],
+          [5, 5, "B"],
         ]),
         interaction: { type: "free-place", requiredPos: { x: 3, y: 2 } },
         suggestedPos: { x: 3, y: 2 },
@@ -306,19 +283,20 @@ export function getTutorialSteps(t: T): TutorialStep[] {
     {
       id: "cluster-enemy",
       title: t("_clusterEnemy_title"),
-      description: (
-        <p className="text-[#3d2c1a]">
-          {t("_clusterEnemy_desc")}
-        </p>
-      ),
+      description: <p className="text-[#3d2c1a]">{t("_clusterEnemy_desc")}</p>,
       board: {
         size: 7,
         initialBoard: board(7, [
-          [2, 1, "B"], [3, 1, "B"],
-          [2, 2, "B"], [3, 2, "B"],
-          [2, 3, "B"], [3, 3, "B"],
-          [2, 4, "B"], [3, 4, "B"],
-          [4, 3, "B"], [4, 4, "B"],
+          [2, 1, "B"],
+          [3, 1, "B"],
+          [2, 2, "B"],
+          [3, 2, "B"],
+          [2, 3, "B"],
+          [3, 3, "B"],
+          [2, 4, "B"],
+          [3, 4, "B"],
+          [4, 3, "B"],
+          [4, 4, "B"],
           [5, 3, "W"],
         ]),
         interaction: { type: "free-place", requiredPos: { x: 1, y: 3 } },
@@ -330,19 +308,20 @@ export function getTutorialSteps(t: T): TutorialStep[] {
     {
       id: "cluster-jump",
       title: t("_clusterJump_title"),
-      description: (
-        <p className="text-[#3d2c1a]">
-          {t("_clusterJump_desc")}
-        </p>
-      ),
+      description: <p className="text-[#3d2c1a]">{t("_clusterJump_desc")}</p>,
       board: {
         size: 7,
         initialBoard: board(7, [
-          [1, 1, "W"], [2, 1, "W"],
-          [1, 2, "W"], [2, 2, "W"],
-          [1, 3, "W"], [2, 3, "W"],
-          [1, 4, "W"], [2, 4, "W"],
-          [1, 5, "W"], [2, 5, "W"],
+          [1, 1, "W"],
+          [2, 1, "W"],
+          [1, 2, "W"],
+          [2, 2, "W"],
+          [1, 3, "W"],
+          [2, 3, "W"],
+          [1, 4, "W"],
+          [2, 4, "W"],
+          [1, 5, "W"],
+          [2, 5, "W"],
           [4, 3, "B"],
           [5, 3, "W"],
         ]),
@@ -374,10 +353,7 @@ export function getTutorialSteps(t: T): TutorialStep[] {
                     [t("_summary_ruleBorder"), t("_summary_ruleBorderDesc")],
                   ] as const
                 ).map(([rule, desc]) => (
-                  <tr
-                    key={rule}
-                    className="border-b border-[#e8dcc8] last:border-0"
-                  >
+                  <tr key={rule} className="border-b border-[#e8dcc8] last:border-0">
                     <td className="px-3 py-2 font-semibold text-[#2b1e14] whitespace-nowrap">
                       {rule}
                     </td>
@@ -387,9 +363,7 @@ export function getTutorialSteps(t: T): TutorialStep[] {
               </tbody>
             </table>
           </div>
-          <p className="text-center text-[#6e5b48] mt-2">
-            {t("_summary_ready")}
-          </p>
+          <p className="text-center text-[#6e5b48] mt-2">{t("_summary_ready")}</p>
         </div>
       ),
     },

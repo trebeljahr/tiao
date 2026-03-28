@@ -1,12 +1,7 @@
 import { Document, Schema, model, models } from "mongoose";
 import { MultiplayerRoomType } from "../../shared/src";
 
-export type GameInvitationStatus =
-  | "pending"
-  | "accepted"
-  | "revoked"
-  | "declined"
-  | "expired";
+export type GameInvitationStatus = "pending" | "accepted" | "revoked" | "declined" | "expired";
 
 export interface IGameInvitation extends Document {
   gameId: string;
@@ -60,16 +55,15 @@ const GameInvitationSchema = new Schema<IGameInvitation>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 GameInvitationSchema.index(
   { gameId: 1, senderId: 1, recipientId: 1, status: 1 },
-  { unique: false }
+  { unique: false },
 );
 
 const GameInvitation =
-  models.GameInvitation ||
-  model<IGameInvitation>("GameInvitation", GameInvitationSchema);
+  models.GameInvitation || model<IGameInvitation>("GameInvitation", GameInvitationSchema);
 
 export default GameInvitation;

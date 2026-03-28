@@ -19,8 +19,7 @@ vi.mock("@/lib/api", async (importOriginal) => {
         updatedAt: "2025-01-01T00:00:00Z",
       },
     }),
-    updateAccountProfile: (...args: unknown[]) =>
-      mockUpdateAccountProfile(...args),
+    updateAccountProfile: (...args: unknown[]) => mockUpdateAccountProfile(...args),
     uploadAccountProfilePicture: vi.fn(),
   };
 });
@@ -29,7 +28,11 @@ function motionProxy(tag: string) {
   return ({ children, onClick, className, ...rest }: Record<string, unknown>) => {
     const Tag = tag as keyof JSX.IntrinsicElements;
     return (
-      <Tag onClick={onClick as React.MouseEventHandler} className={className as string} {...filterDomProps(rest)}>
+      <Tag
+        onClick={onClick as React.MouseEventHandler}
+        className={className as string}
+        {...filterDomProps(rest)}
+      >
         {children as React.ReactNode}
       </Tag>
     );
@@ -39,7 +42,19 @@ function motionProxy(tag: string) {
 function filterDomProps(props: Record<string, unknown>) {
   const filtered: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(props)) {
-    if (!["initial", "animate", "exit", "transition", "variants", "whileHover", "whileTap", "layout", "layoutId"].includes(key)) {
+    if (
+      ![
+        "initial",
+        "animate",
+        "exit",
+        "transition",
+        "variants",
+        "whileHover",
+        "whileTap",
+        "layout",
+        "layoutId",
+      ].includes(key)
+    ) {
       filtered[key] = value;
     }
   }

@@ -32,7 +32,7 @@ describe("Tiao core edge cases", () => {
       {
         origin: { x: 5, y: 5 },
         turn: "white",
-      }
+      },
     );
 
     const result = canPlacePiece(state, { x: 6, y: 5 });
@@ -81,7 +81,7 @@ describe("Tiao core edge cases", () => {
       {
         origin,
         turn: "white",
-      }
+      },
     );
 
     const result = jumpPiece(state, at(origin, 0, 0), at(origin, 2, 2));
@@ -102,7 +102,7 @@ describe("Tiao core edge cases", () => {
       {
         origin,
         turn: "white",
-      }
+      },
     );
 
     const result = jumpPiece(state, at(origin, 0, 0), at(origin, 2, 2));
@@ -123,7 +123,7 @@ describe("Tiao core edge cases", () => {
       {
         origin,
         turn: "white",
-      }
+      },
     );
 
     const result = jumpPiece(state, at(origin, 0, 0), at(origin, 2, 2));
@@ -139,7 +139,7 @@ describe("Tiao core edge cases", () => {
         . B .
         . . W
       `,
-      { origin }
+      { origin },
     );
     assert.equal(result.value.pendingJump.length, 1);
     assert.equal(result.value.pendingCaptures.length, 1);
@@ -157,7 +157,7 @@ describe("Tiao core edge cases", () => {
       {
         origin,
         turn: "white",
-      }
+      },
     );
 
     // First jump: right over the black piece at (6,5) landing on (7,5)
@@ -175,7 +175,7 @@ describe("Tiao core edge cases", () => {
         . . B . .
         . . . . .
       `,
-      { origin }
+      { origin },
     );
 
     // Second jump: diagonal down-right from (7,5) over black at (7,6) to (7,7)?
@@ -209,7 +209,7 @@ describe("Tiao core edge cases", () => {
       `,
       {
         turn: "white",
-      }
+      },
     );
 
     const blocked = canPlacePiece(blockedState, { x: 0, y: 0 });
@@ -227,7 +227,7 @@ describe("Tiao core edge cases", () => {
       `,
       {
         turn: "white",
-      }
+      },
     );
 
     const allowed = canPlacePiece(allowedState, { x: 0, y: 0 });
@@ -247,7 +247,7 @@ describe("Tiao core edge cases", () => {
       {
         origin,
         turn: "white",
-      }
+      },
     );
 
     // Adding an 11th stone adjacent to the cluster should fail
@@ -274,7 +274,7 @@ describe("Tiao core edge cases", () => {
         origin,
         turn: "white",
         score: { white: SCORE_TO_WIN - 1 },
-      }
+      },
     );
 
     assert.equal(isGameOver(state), false);
@@ -309,7 +309,7 @@ describe("Tiao core edge cases", () => {
       {
         origin,
         turn: "white",
-      }
+      },
     );
 
     const jumped = jumpPiece(state, at(origin, 0, 0), at(origin, 2, 2));
@@ -380,7 +380,7 @@ describe("Tiao core edge cases", () => {
       {
         origin,
         turn: "white",
-      }
+      },
     );
 
     // White's turn, but trying to jump with the black piece
@@ -427,7 +427,7 @@ describe("Tiao core edge cases", () => {
       {
         origin,
         turn: "white",
-      }
+      },
     );
 
     const targets = getJumpTargets(state, at(origin, 2, 2));
@@ -435,9 +435,9 @@ describe("Tiao core edge cases", () => {
 
     // Should be able to jump in all 4 cardinal directions
     // (diagonal jumps need diagonal neighbors which we haven't placed)
-    assert.ok(serialized.includes(`${origin.x + 2},${origin.y}`));     // up
+    assert.ok(serialized.includes(`${origin.x + 2},${origin.y}`)); // up
     assert.ok(serialized.includes(`${origin.x + 2},${origin.y + 4}`)); // down
-    assert.ok(serialized.includes(`${origin.x},${origin.y + 2}`));     // left
+    assert.ok(serialized.includes(`${origin.x},${origin.y + 2}`)); // left
     assert.ok(serialized.includes(`${origin.x + 4},${origin.y + 2}`)); // right
     assert.equal(targets.length, 4);
   });
@@ -455,20 +455,20 @@ describe("Tiao core edge cases", () => {
       {
         origin,
         turn: "white",
-      }
+      },
     );
 
     const targets = getJumpTargets(state, at(origin, 2, 2));
     const serialized = serializePositions(targets);
 
     // All 8 directions should be available
-    assert.ok(serialized.includes(`${origin.x + 2},${origin.y}`));     // up
+    assert.ok(serialized.includes(`${origin.x + 2},${origin.y}`)); // up
     assert.ok(serialized.includes(`${origin.x + 2},${origin.y + 4}`)); // down
-    assert.ok(serialized.includes(`${origin.x},${origin.y + 2}`));     // left
+    assert.ok(serialized.includes(`${origin.x},${origin.y + 2}`)); // left
     assert.ok(serialized.includes(`${origin.x + 4},${origin.y + 2}`)); // right
-    assert.ok(serialized.includes(`${origin.x},${origin.y}`));         // up-left
-    assert.ok(serialized.includes(`${origin.x + 4},${origin.y}`));     // up-right
-    assert.ok(serialized.includes(`${origin.x},${origin.y + 4}`));     // down-left
+    assert.ok(serialized.includes(`${origin.x},${origin.y}`)); // up-left
+    assert.ok(serialized.includes(`${origin.x + 4},${origin.y}`)); // up-right
+    assert.ok(serialized.includes(`${origin.x},${origin.y + 4}`)); // down-left
     assert.ok(serialized.includes(`${origin.x + 4},${origin.y + 4}`)); // down-right
     assert.equal(targets.length, 8);
   });

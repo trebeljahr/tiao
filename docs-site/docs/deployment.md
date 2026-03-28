@@ -6,10 +6,12 @@ title: Deployment
 # Tiao On Coolify
 
 Tiao is now set up to deploy as two applications:
+
 - a frontend container built from `client/Dockerfile`
 - a backend container built from `server/Dockerfile`
 
 The recommended production shape still keeps a single browser origin:
+
 - the frontend serves the SPA
 - either the frontend proxies `/api` and `/api/ws` to the backend over the private network, or Coolify path-routes those same paths directly to the backend
 - the backend does not serve frontend assets anymore
@@ -17,15 +19,18 @@ The recommended production shape still keeps a single browser origin:
 ## Recommended production shape
 
 Use two [Coolify applications](https://coolify.io/docs/applications) built from this repo:
+
 - `tiao-client`: public, built from `client/Dockerfile`
 - `tiao-server`: internal or public as needed, built from `server/Dockerfile`
 
 Recommended dependencies:
+
 - MongoDB: external managed MongoDB, or a [Coolify MongoDB resource](https://coolify.io/docs/resources/databases)
 - Object storage: S3, Cloudflare R2, Hetzner Object Storage, or MinIO
 - Redis (optional): enables distributed matchmaking, locks, and rate limiting for multi-instance deployments. Not required for single-instance setups — the server falls back to in-memory stores.
 
 MongoDB backs more than account metadata here:
+
 - multiplayer room persistence
 - social data
 - opaque session storage for the `HttpOnly` auth cookie
@@ -35,6 +40,7 @@ MongoDB backs more than account metadata here:
 When Coolify shows a server named `localhost`, that is the actual machine where Coolify itself is installed.
 
 For your current setup, that means:
+
 - the Hetzner VPS is the one and only deployment server
 - Tiao can run on that same server
 - a Coolify MongoDB resource can also run on that same server
@@ -46,6 +52,7 @@ You do not need to add another server just because the current one is named `loc
 ### Backend app
 
 Suggested base settings:
+
 - Application Type: `Docker Image`
 - Registry image name: `ghcr.io/<owner>/<repo>-server`
 - Registry image tag: `main`
@@ -55,12 +62,14 @@ Suggested base settings:
 
 The backend does not need a public domain if the frontend proxies traffic to it over the internal network.
 If you want to keep a single public domain without depending on an internal upstream hostname, you can instead attach path-based domains:
+
 - `https://tiao.your-domain.com/api`
 - `https://tiao.your-domain.com/api/ws`
 
 ### Frontend app
 
 Suggested base settings:
+
 - Application Type: `Docker Image`
 - Registry image name: `ghcr.io/<owner>/<repo>-client`
 - Registry image tag: `main`
@@ -69,11 +78,13 @@ Suggested base settings:
 - Domain: `https://tiao.your-domain.com`
 
 Important:
+
 - do not put `:main` inside the image name field
 - put `main` in the image tag field
 - if the image is private, add GHCR credentials in Coolify first
 
 If you prefer image-based deploys instead of building on the VPS:
+
 - publish from GitHub Actions to both `ghcr.io/<owner>/<repo>-client:main` and `ghcr.io/<owner>/<repo>-server:main`
 - point each Coolify app at the matching image
 - add these GitHub secrets so pushes to `main` trigger a redeploy through the Coolify API:
@@ -83,6 +94,7 @@ If you prefer image-based deploys instead of building on the VPS:
   - `COOLIFY_SERVER_RESOURCE_UUID`
 
 If the repository or package is private:
+
 - add a GHCR registry entry in Coolify
 - use a GitHub personal access token with package read access
 - configure both Coolify apps to pull from that private registry
@@ -92,6 +104,7 @@ If the repository or package is private:
 Start from `server/.env.example`.
 
 Required:
+
 - `MONGODB_URI`
 - `TOKEN_SECRET`
 - `S3_BUCKET_NAME`
@@ -101,31 +114,38 @@ Required:
 - `AWS_SECRET_ACCESS_KEY`
 
 Optional:
+
 - `FRONTEND_URL`
 - `S3_ENDPOINT`
 - `S3_FORCE_PATH_STYLE`
 
 Notes:
+
 - the backend `FRONTEND_URL` should be the public frontend URL if you want strict CORS when accessing the backend directly
 - `S3_ENDPOINT` and `S3_FORCE_PATH_STYLE=true` are useful for MinIO and some S3-compatible providers.
 
 Frontend runtime variables:
+
 - `BACKEND_UPSTREAM=http://tiao-server:3000`
 
 Notes:
+
 - `BACKEND_UPSTREAM` is only needed in frontend-proxy mode
 - if you use Coolify path-based routing on the same public domain for `/api` and `/api/ws`, the frontend app can leave `BACKEND_UPSTREAM` unset
 
 Optional:
+
 - `REDIS_URL=redis://your-redis:6379` — enables distributed matchmaking, locks, and rate limiting. When omitted, the server uses in-memory stores (single-instance only).
 
 Recommended values for a first production deploy:
+
 - `FRONTEND_URL=https://tiao.your-domain.com`
 - `MONGODB_URI=<Coolify Mongo internal URL or managed Mongo URL>`
 - `PORT=3000` or simply omit `PORT` and let the backend default to `3000`
 - `BACKEND_UPSTREAM=http://<coolify-internal-backend-host>:3000`
 
 Recommended values for a single-domain Coolify path-routing deploy:
+
 - frontend domain: `https://tiao.your-domain.com`
 - backend domains: `https://tiao.your-domain.com/api,https://tiao.your-domain.com/api/ws`
 - `FRONTEND_URL=https://tiao.your-domain.com`
@@ -162,11 +182,13 @@ Recommended values for a single-domain Coolify path-routing deploy:
 See [Coolify DNS configuration](https://coolify.io/docs/knowledge-base/dns-configuration) for domain setup details.
 
 Tiao expects the frontend domain to receive:
+
 - normal HTTPS traffic for the SPA
 - API requests at `/api`
 - websocket upgrade requests at `/api/ws`
 
 Whether you use the frontend proxy or Coolify path-based routing, the browser can keep using one origin. That means:
+
 - no cross-site cookies are required
 - no browser-facing CORS complexity is required in the default production setup
 - multiplayer websocket URLs continue to work without special browser configuration
@@ -174,6 +196,7 @@ Whether you use the frontend proxy or Coolify path-based routing, the browser ca
 If `https://tiao.your-domain.com` returns a response from Coolify or Traefik, then DNS and HTTPS are at least partially working.
 
 If you see `no available server`, that usually means:
+
 - the domain reached the reverse proxy
 - but the proxy does not currently see a healthy frontend container to route traffic to
 
@@ -190,6 +213,7 @@ For Tiao, that almost always means the frontend is crashing, restarting, or fail
 ## Recommended Workflow For This Repo
 
 For now, the recommended setup is:
+
 - GitHub Actions builds the frontend and backend images
 - GHCR stores both images
 - Coolify deploys both images on the VPS
@@ -201,6 +225,7 @@ That keeps build load off the VPS while still using Coolify for domains, env var
 See the [Coolify API reference](https://coolify.io/docs/api-reference) for full details.
 
 To use the documented API deployment flow:
+
 1. In Coolify, enable the API.
 2. Create an API token in `Keys & Tokens`.
 3. Copy the application UUIDs from both Coolify apps.
@@ -217,6 +242,7 @@ To use the documented API deployment flow:
 The backend is starting, but required runtime env vars are missing.
 
 Fix:
+
 - add the missing variables in the backend Coolify app settings
 - save and redeploy
 
@@ -225,6 +251,7 @@ Fix:
 The backend is trying to connect to MongoDB on `localhost`, which means "inside the backend container itself".
 
 Fix:
+
 - do not use your local development Mongo URI in production
 - create a MongoDB resource in Coolify or use an external MongoDB
 - copy the database `internal URL` or managed URL into `MONGODB_URI`
@@ -234,6 +261,7 @@ Fix:
 This usually means Traefik is up, but the frontend container is not healthy enough to receive traffic.
 
 Check:
+
 - the frontend app logs
 - the deployment logs
 - that the frontend port is `80`
@@ -242,6 +270,7 @@ Check:
 - that the public domain is attached to the frontend app, not only present in DNS
 
 Common gotcha:
+
 - the backend may be healthy while the frontend still fails to serve the app because `BACKEND_UPSTREAM` is wrong
 - another common issue is mapping the frontend app to `3000` instead of `80`
 
@@ -254,6 +283,7 @@ If the app page still fails, the issue is usually frontend health or frontend-to
 ### Image pull or deploy errors from GHCR
 
 Check:
+
 - backend image name is `ghcr.io/<owner>/<repo>-server`
 - frontend image name is `ghcr.io/<owner>/<repo>-client`
 - tag is `main`
@@ -263,6 +293,7 @@ Check:
 ## What To Automate Later
 
 The most manual parts today are:
+
 - creating the frontend and backend Coolify apps
 - creating the MongoDB resource
 - wiring registry credentials
@@ -270,6 +301,7 @@ The most manual parts today are:
 - copying backend/frontend runtime env vars into Coolify
 
 These are good candidates for the reusable ops repo later via:
+
 - Coolify API scripts
 - env templates
 - secrets bootstrap helpers
@@ -294,6 +326,7 @@ The docs site is available at `https://docs.tiao.ricos.site`.
 ### When docs are rebuilt
 
 The workflow triggers when any of these paths change:
+
 - `docs/**` — markdown source
 - `docs-site/**` — Docusaurus config, CSS, plugins
 - `shared/src/**` — game engine (source links may change)

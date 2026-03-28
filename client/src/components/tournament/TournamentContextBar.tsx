@@ -17,12 +17,8 @@ export function TournamentContextBar({
         <span className="text-xs font-semibold uppercase tracking-wider text-amber-600">
           Tournament
         </span>
-        {tournamentName && (
-          <span className="truncate text-amber-900">{tournamentName}</span>
-        )}
-        {roundLabel && (
-          <span className="text-xs text-amber-600">{roundLabel}</span>
-        )}
+        {tournamentName && <span className="truncate text-amber-900">{tournamentName}</span>}
+        {roundLabel && <span className="text-xs text-amber-600">{roundLabel}</span>}
       </div>
       <button
         type="button"

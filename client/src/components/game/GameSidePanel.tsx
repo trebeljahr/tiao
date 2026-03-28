@@ -3,11 +3,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  GamePanelBrand,
-  AnimatedScoreTile,
-  type AnimatedScoreTilePlayerInfo,
-} from "./GameShared";
+import { GamePanelBrand, AnimatedScoreTile, type AnimatedScoreTilePlayerInfo } from "./GameShared";
 import { formatClockTime } from "./GameClock";
 import { cn } from "@/lib/utils";
 
@@ -89,11 +85,10 @@ export function GameSidePanel({
               {headerExtra}
             </div>
             <Badge className={cn("w-fit bg-[#f4e8d2] text-[#6c543c]", badgeClassName)}>
-              {badge}{timeControl ? formatBadgeTimeControl(timeControl) : ""}
+              {badge}
+              {timeControl ? formatBadgeTimeControl(timeControl) : ""}
             </Badge>
-            <CardTitle className="text-[#2b1e14]">
-              {statusTitle}
-            </CardTitle>
+            <CardTitle className="text-[#2b1e14]">{statusTitle}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
             <div className="grid grid-cols-1 gap-4">
@@ -123,11 +118,7 @@ export function GameSidePanel({
 
             {onUndo && !gameOver && (
               <div className="grid gap-2">
-                <Button
-                  variant="secondary"
-                  onClick={onUndo}
-                  disabled={undoDisabled}
-                >
+                <Button variant="secondary" onClick={onUndo} disabled={undoDisabled}>
                   {t("undoMove")}
                 </Button>
               </div>
@@ -136,9 +127,7 @@ export function GameSidePanel({
             {children}
 
             {gameOver && gameOverActions && (
-              <div className="grid gap-2 border-t border-[#dbc6a2] pt-4">
-                {gameOverActions}
-              </div>
+              <div className="grid gap-2 border-t border-[#dbc6a2] pt-4">{gameOverActions}</div>
             )}
           </CardContent>
         </Card>

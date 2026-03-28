@@ -4,13 +4,7 @@ import { motion } from "framer-motion";
 import type { MultiplayerSnapshot, TimeControl } from "@shared";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
 import { HourglassSpinner } from "@/components/game/GameShared";
 import { useMatchmakingData } from "@/lib/hooks/useMatchmakingData";
@@ -33,19 +27,24 @@ export function MatchmakingPage() {
   const cancelledRef = useRef(false);
   const failedRef = useRef(false);
 
-  const onMatched = useCallback((snapshot: MultiplayerSnapshot) => {
-    router.push(`/game/${snapshot.gameId}`);
-  }, [router]);
+  const onMatched = useCallback(
+    (snapshot: MultiplayerSnapshot) => {
+      router.push(`/game/${snapshot.gameId}`);
+    },
+    [router],
+  );
 
-  const {
-    matchmaking,
-    matchmakingBusy,
-    handleEnterMatchmaking,
-    handleCancelMatchmaking,
-  } = useMatchmakingData(auth, onMatched);
+  const { matchmaking, matchmakingBusy, handleEnterMatchmaking, handleCancelMatchmaking } =
+    useMatchmakingData(auth, onMatched);
 
   useEffect(() => {
-    if (auth && matchmaking.status === "idle" && !matchmakingBusy && !cancelledRef.current && !failedRef.current) {
+    if (
+      auth &&
+      matchmaking.status === "idle" &&
+      !matchmakingBusy &&
+      !cancelledRef.current &&
+      !failedRef.current
+    ) {
       void handleEnterMatchmaking(locationTimeControl).catch(() => {
         failedRef.current = true;
       });
@@ -74,9 +73,7 @@ export function MatchmakingPage() {
           <Card className={paperCard}>
             <CardHeader className="text-center">
               <CardTitle className="text-4xl text-[#2b1e14]">{t("title")}</CardTitle>
-              <CardDescription className="text-[#6e5b48]">
-                {t("description")}
-              </CardDescription>
+              <CardDescription className="text-[#6e5b48]">{t("description")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 flex flex-col items-center py-8">
               {authLoading ? (
@@ -108,7 +105,11 @@ export function MatchmakingPage() {
                   </p>
                   <Button
                     variant="outline"
-                    onClick={async () => { cancelledRef.current = true; await handleCancelMatchmaking(); router.push("/"); }}
+                    onClick={async () => {
+                      cancelledRef.current = true;
+                      await handleCancelMatchmaking();
+                      router.push("/");
+                    }}
                     disabled={matchmakingBusy}
                   >
                     {t("cancelSearch")}

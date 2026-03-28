@@ -19,7 +19,7 @@ export async function getDb(): Promise<Db> {
 }
 
 export async function getCollection<T extends Document = Document>(
-  name: string
+  name: string,
 ): Promise<Collection<T>> {
   const db = await getDb();
   return db.collection<T>(name);
@@ -28,9 +28,7 @@ export async function getCollection<T extends Document = Document>(
 export async function cleanDatabase(): Promise<void> {
   const db = await getDb();
   const collections = await db.listCollections().toArray();
-  await Promise.all(
-    collections.map((col) => db.collection(col.name).deleteMany({}))
-  );
+  await Promise.all(collections.map((col) => db.collection(col.name).deleteMany({})));
 }
 
 export async function closeDbConnection(): Promise<void> {

@@ -10,6 +10,7 @@ MongoDB was adopted from the start — the server was extracted from another pro
 ## Current Choice: MongoDB + Mongoose
 
 **Why it works well for this project:**
+
 - Document model naturally fits game state (single document per game, see ADR #5)
 - Flexible schema for evolving game features (Mixed type for GameState)
 - TTL indexes for automatic session cleanup
@@ -17,6 +18,7 @@ MongoDB was adopted from the start — the server was extracted from another pro
 - Simple operational model for self-hosting (single Coolify service)
 
 **Where it creates friction:**
+
 - No relational joins — social features (friends, invitations) require multiple queries or manual denormalization
 - Tournament bracket queries across matches are awkward in document model
 - No built-in full-text search (player search uses regex)
@@ -24,6 +26,7 @@ MongoDB was adopted from the start — the server was extracted from another pro
 ## Alternatives worth considering
 
 ### PostgreSQL (+ Prisma or Drizzle)
+
 - Relational model better suited for social graph (friends, invitations, tournaments)
 - Strong consistency guarantees, ACID transactions
 - Full-text search built in
@@ -31,12 +34,14 @@ MongoDB was adopted from the start — the server was extracted from another pro
 - Would require migrating all Mongoose schemas — significant effort
 
 ### Supabase (PostgreSQL + auth + realtime)
+
 - Hosted PostgreSQL with built-in auth, realtime subscriptions, and storage
 - Could replace MongoDB + custom auth + S3 in one service
 - But: adds vendor dependency, hosted service costs, less control
 - Realtime subscriptions could supplement (not replace) WebSocket game state
 
 ### SQLite (via Turso or libsql)
+
 - Extremely lightweight, no separate server process
 - Good for small-to-medium scale
 - Limited concurrent write throughput (relevant for multiplayer)

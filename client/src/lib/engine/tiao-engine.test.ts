@@ -1,9 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  createInitialGameState,
-  placePiece,
-  type GameState,
-} from "@shared";
+import { createInitialGameState, placePiece, type GameState } from "@shared";
 import {
   generateMoves,
   evaluate,
@@ -18,9 +14,7 @@ function placeStones(positions: Array<{ x: number; y: number }>): GameState {
   for (const pos of positions) {
     const result = placePiece(state, pos);
     if (!result.ok) {
-      throw new Error(
-        `Failed to place at (${pos.x},${pos.y}): ${result.reason}`,
-      );
+      throw new Error(`Failed to place at (${pos.x},${pos.y}): ${result.reason}`);
     }
     state = result.value;
   }
@@ -67,9 +61,7 @@ describe("Move Generation", () => {
     const moves = generateMoves(state);
     const jumpMoves = moves.filter((m) => m.type === "jump");
     // Should only generate maximal chains (length-2 double capture, no partial length-1)
-    const lengths = jumpMoves.map((m) =>
-      m.type === "jump" ? m.path.length : 0,
-    );
+    const lengths = jumpMoves.map((m) => (m.type === "jump" ? m.path.length : 0));
     expect(lengths).toContain(2);
     expect(lengths).not.toContain(1);
   });
@@ -143,14 +135,8 @@ describe("Evaluation", () => {
   });
 
   it("values center positions", () => {
-    const centerState = setupBoard(
-      [{ x: 9, y: 9, color: "black" }],
-      "black",
-    );
-    const cornerState = setupBoard(
-      [{ x: 1, y: 1, color: "black" }],
-      "black",
-    );
+    const centerState = setupBoard([{ x: 9, y: 9, color: "black" }], "black");
+    const cornerState = setupBoard([{ x: 1, y: 1, color: "black" }], "black");
     const centerScore = evaluate(centerState);
     const cornerScore = evaluate(cornerState);
     expect(centerScore).toBeGreaterThan(cornerScore);
@@ -181,14 +167,8 @@ describe("Zobrist Hashing", () => {
   });
 
   it("produces different hash for different turn", () => {
-    const state1 = setupBoard(
-      [{ x: 9, y: 9, color: "black" }],
-      "black",
-    );
-    const state2 = setupBoard(
-      [{ x: 9, y: 9, color: "black" }],
-      "white",
-    );
+    const state1 = setupBoard([{ x: 9, y: 9, color: "black" }], "black");
+    const state2 = setupBoard([{ x: 9, y: 9, color: "black" }], "white");
     expect(computeZobristHash(state1)).not.toBe(computeZobristHash(state2));
   });
 });
@@ -199,11 +179,7 @@ describe("Search", () => {
       { x: 9, y: 9, color: "black" },
       { x: 10, y: 9, color: "white" },
     ]);
-    const result = findBestMove(
-      state,
-      { level: 3, color: "black" },
-      { aborted: false },
-    );
+    const result = findBestMove(state, { level: 3, color: "black" }, { aborted: false });
     expect(result).not.toBeNull();
     expect(result!.move.type).toBe("jump");
   });
@@ -218,11 +194,7 @@ describe("Search", () => {
       { x: 3, y: 3, color: "black" },
       { x: 4, y: 3, color: "white" },
     ]);
-    const result = findBestMove(
-      state,
-      { level: 3, color: "black" },
-      { aborted: false },
-    );
+    const result = findBestMove(state, { level: 3, color: "black" }, { aborted: false });
     expect(result).not.toBeNull();
     if (result!.move.type === "jump") {
       // Should prefer the double capture chain
@@ -233,11 +205,7 @@ describe("Search", () => {
   it("returns null for game-over state", () => {
     const state = createInitialGameState();
     state.score.white = 10;
-    const result = findBestMove(
-      state,
-      { level: 3, color: "black" },
-      { aborted: false },
-    );
+    const result = findBestMove(state, { level: 3, color: "black" }, { aborted: false });
     expect(result).toBeNull();
   });
 
@@ -245,11 +213,7 @@ describe("Search", () => {
     const state = createInitialGameState();
     state.currentTurn = "black";
     const abort = { aborted: true };
-    const result = findBestMove(
-      state,
-      { level: 3, color: "black" },
-      abort,
-    );
+    const result = findBestMove(state, { level: 3, color: "black" }, abort);
     // Should still return something from depth 1 if it manages to start
     // but importantly should not hang
     expect(true).toBe(true); // just ensure it completes
@@ -258,11 +222,7 @@ describe("Search", () => {
   it("chooses a placement when no captures available", () => {
     const state = createInitialGameState();
     state.currentTurn = "black";
-    const result = findBestMove(
-      state,
-      { level: 3, color: "black" },
-      { aborted: false },
-    );
+    const result = findBestMove(state, { level: 3, color: "black" }, { aborted: false });
     expect(result).not.toBeNull();
     expect(result!.move.type).toBe("place");
   });
@@ -272,11 +232,7 @@ describe("Search", () => {
       { x: 9, y: 9, color: "black" },
       { x: 10, y: 9, color: "white" },
     ]);
-    const result = findBestMove(
-      state,
-      { level: 3, color: "black" },
-      { aborted: false },
-    );
+    const result = findBestMove(state, { level: 3, color: "black" }, { aborted: false });
     expect(result).not.toBeNull();
     const newState = applyEngineMove(state, result!.move);
     expect(newState.currentTurn).toBe("white");
@@ -301,16 +257,8 @@ describe("Difficulty Levels", () => {
       { x: 5, y: 5, color: "white" },
       { x: 6, y: 6, color: "black" },
     ]);
-    const result1 = findBestMove(
-      state,
-      { level: 1, color: "black" },
-      { aborted: false },
-    );
-    const result4 = findBestMove(
-      state,
-      { level: 3, color: "black" },
-      { aborted: false },
-    );
+    const result1 = findBestMove(state, { level: 1, color: "black" }, { aborted: false });
+    const result4 = findBestMove(state, { level: 3, color: "black" }, { aborted: false });
     expect(result1).not.toBeNull();
     expect(result4).not.toBeNull();
     expect(result4!.depth).toBeGreaterThanOrEqual(result1!.depth);

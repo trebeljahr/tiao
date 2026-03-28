@@ -5,10 +5,7 @@ import type { PlayerIdentity, ServerToClientMessage, TimeControl } from "../../s
 import { GameService } from "../game/gameService";
 import { InMemoryGameRoomStore } from "../game/gameStore";
 
-function createPlayer(
-  playerId: string,
-  options: Partial<PlayerIdentity> = {}
-): PlayerIdentity {
+function createPlayer(playerId: string, options: Partial<PlayerIdentity> = {}): PlayerIdentity {
   return {
     playerId,
     displayName: options.displayName ?? playerId,

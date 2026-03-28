@@ -1,10 +1,4 @@
-import {
-  NextFunction,
-  Request,
-  Response,
-  ErrorRequestHandler,
-  Application,
-} from "express";
+import { NextFunction, Request, Response, ErrorRequestHandler, Application } from "express";
 
 interface MongoError extends Error {
   code?: number;
@@ -15,15 +9,11 @@ interface MongoError extends Error {
 function isMongoError(error: unknown): error is MongoError {
   if (!error || typeof error !== "object") return false;
   const name = (error as { name?: string }).name ?? "";
-  return (
-    name === "MongoServerError" ||
-    name === "MongoError" ||
-    name === "MongoWriteConcernError"
-  );
+  return name === "MongoServerError" || name === "MongoError" || name === "MongoWriteConcernError";
 }
 
 export function classifyMongoError(
-  error: unknown
+  error: unknown,
 ): { status: number; message: string; code: string } | null {
   if (!isMongoError(error)) return null;
 
@@ -49,7 +39,7 @@ export const addErrorHandlingToApp = (app: Application) => {
     if (mongoClassification) {
       console.warn(
         `[${req.method} ${req.path}] MongoDB ${mongoClassification.code}:`,
-        (err as MongoError).keyValue
+        (err as MongoError).keyValue,
       );
 
       if (!res.headersSent) {

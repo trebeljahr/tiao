@@ -16,10 +16,24 @@ export default function Page() {
       bioKey="andreasBio"
       bioTags={{
         nexus: (chunks: ReactNode) => (
-          <a href="https://www.ubisoft.com/en-us/game/assassins-creed/nexus-vr" target="_blank" rel="noopener noreferrer" className={linkClass}>{chunks}</a>
+          <a
+            href="https://www.ubisoft.com/en-us/game/assassins-creed/nexus-vr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClass}
+          >
+            {chunks}
+          </a>
         ),
         avatar: (chunks: ReactNode) => (
-          <a href="https://www.ubisoft.com/en-us/game/avatar/frontiers-of-pandora" target="_blank" rel="noopener noreferrer" className={linkClass}>{chunks}</a>
+          <a
+            href="https://www.ubisoft.com/en-us/game/avatar/frontiers-of-pandora"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClass}
+          >
+            {chunks}
+          </a>
         ),
       }}
       links={[

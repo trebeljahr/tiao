@@ -41,12 +41,10 @@ const GRID_START = DEFAULT_METRICS.gridStart;
 const GRID_STEP = DEFAULT_METRICS.gridStep;
 
 const IS_TOUCH_DEVICE =
-  typeof window !== "undefined" &&
-  ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+  typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
 
 const DRAG_THRESHOLD = 10;
 const DRAG_Y_OFFSET = 4; // grid cells to offset above finger during drag
-
 
 function getStarPoints(bs: number): number[] {
   if (bs === 19) return [3, 9, 15];
@@ -57,9 +55,7 @@ function getStarPoints(bs: number): number[] {
 
 function isStarPoint(position: Position, bs: number) {
   const starPointIndices = getStarPoints(bs);
-  return (
-    starPointIndices.includes(position.x) && starPointIndices.includes(position.y)
-  );
+  return starPointIndices.includes(position.x) && starPointIndices.includes(position.y);
 }
 
 function pointPercent(index: number, gs: number = GRID_START, gst: number = GRID_STEP) {
@@ -174,33 +170,22 @@ export function TiaoBoard({
   const activeOrigin = forcedJumpOrigin ?? selectedPiece;
   const hasPendingJump = state.pendingJump.length > 0;
   const canUndoLastJump = !!onUndoLastJump && hasPendingJump && !disabled;
-  const lastPendingJump = hasPendingJump
-    ? state.pendingJump[state.pendingJump.length - 1]
-    : null;
+  const lastPendingJump = hasPendingJump ? state.pendingJump[state.pendingJump.length - 1] : null;
   const historyLengthRef = useRef(state.history.length);
-  const [celebratingPieceKey, setCelebratingPieceKey] = useState<string | null>(
-    null
-  );
-  const [hoveredJumpTargetKey, setHoveredJumpTargetKey] = useState<string | null>(
-    null
-  );
+  const [celebratingPieceKey, setCelebratingPieceKey] = useState<string | null>(null);
+  const [hoveredJumpTargetKey, setHoveredJumpTargetKey] = useState<string | null>(null);
   const [hoveredEmptyKey, setHoveredEmptyKey] = useState<string | null>(null);
   const [confirmHovered, setConfirmHovered] = useState(false);
   const [undoHovered, setUndoHovered] = useState(false);
-  const selectableOrigins = getSelectableJumpOrigins(state).map(
-    (position) => getPositionKey(position)
+  const selectableOrigins = getSelectableJumpOrigins(state).map((position) =>
+    getPositionKey(position),
   );
-  const jumpTargetKeys = jumpTargets.map(
-    (position) => getPositionKey(position)
-  );
+  const jumpTargetKeys = jumpTargets.map((position) => getPositionKey(position));
   const hoveredJumpTarget =
     hoveredJumpTargetKey && activeOrigin
-      ? jumpTargets.find(
-          (position) => getPositionKey(position) === hoveredJumpTargetKey
-        ) ?? null
+      ? (jumpTargets.find((position) => getPositionKey(position) === hoveredJumpTargetKey) ?? null)
       : null;
-  const showConfirmOverlay =
-    !!forcedJumpOrigin && hasPendingJump && confirmReady && confirmHovered;
+  const showConfirmOverlay = !!forcedJumpOrigin && hasPendingJump && confirmReady && confirmHovered;
 
   // -- Mobile tap-to-preview state --
   const boardRef = useRef<HTMLDivElement>(null);
@@ -255,7 +240,7 @@ export function TiaoBoard({
       touchStartTimeRef.current = Date.now();
       isDraggingPreviewRef.current = false;
     },
-    [disabled, zoom.handlers]
+    [disabled, zoom.handlers],
   );
 
   const handleTouchMove = useCallback(
@@ -305,7 +290,7 @@ export function TiaoBoard({
         }
       }
     },
-    [zoom.handlers, zoom.gestureActiveRef, mobilePreview, state.positions]
+    [zoom.handlers, zoom.gestureActiveRef, mobilePreview, state.positions],
   );
 
   const handleTouchEnd = useCallback(
@@ -365,11 +350,16 @@ export function TiaoBoard({
       // on an adjacent intersection, let the click handler deal with it
       // (the button's hit area will catch it)
       if (!piece && !hasActiveOrigin) {
-        const adjacentOffsets = [[-1,0],[1,0],[0,-1],[0,1]];
-        const hasAdjacentPiece = adjacentOffsets.some(([ox,oy]) => {
-          const nx = pos.x + ox, ny = pos.y + oy;
-          return nx >= 0 && nx < bs && ny >= 0 && ny < bs &&
-            state.positions[ny]?.[nx] != null;
+        const adjacentOffsets = [
+          [-1, 0],
+          [1, 0],
+          [0, -1],
+          [0, 1],
+        ];
+        const hasAdjacentPiece = adjacentOffsets.some(([ox, oy]) => {
+          const nx = pos.x + ox,
+            ny = pos.y + oy;
+          return nx >= 0 && nx < bs && ny >= 0 && ny < bs && state.positions[ny]?.[nx] != null;
         });
         // Check pixel distance to the nearest adjacent piece — if closer to it
         // than the grid step, skip preview
@@ -390,7 +380,8 @@ export function TiaoBoard({
       // Quick tap to confirm: if preview is showing, position is valid,
       // and the tap was short and sharp (< 150ms), confirm placement
       const tapDuration = Date.now() - touchStartTimeRef.current;
-      const previewValid = mobilePreview && state.positions[mobilePreview.y]?.[mobilePreview.x] == null;
+      const previewValid =
+        mobilePreview && state.positions[mobilePreview.y]?.[mobilePreview.x] == null;
       if (mobilePreview && previewValid && tapDuration < 150) {
         e.preventDefault();
         suppressClickRef.current = true;
@@ -406,7 +397,14 @@ export function TiaoBoard({
       // Tap repositions the preview (or creates it if none exists)
       setMobilePreview(pos);
     },
-    [state.positions, activeOrigin, mobilePreview, onPointClick, zoom.handlers, zoom.gestureActiveRef]
+    [
+      state.positions,
+      activeOrigin,
+      mobilePreview,
+      onPointClick,
+      zoom.handlers,
+      zoom.gestureActiveRef,
+    ],
   );
 
   const handleButtonClick = useCallback(
@@ -417,7 +415,7 @@ export function TiaoBoard({
       }
       onPointClick?.(position);
     },
-    [onPointClick]
+    [onPointClick],
   );
 
   useEffect(() => {
@@ -480,20 +478,30 @@ export function TiaoBoard({
   return (
     <div
       className="relative z-0 overflow-hidden rounded-[2rem] border p-3"
-      style={{ borderColor: theme.boardBorder, background: theme.boardBg, boxShadow: theme.boardShadow }}
+      style={{
+        borderColor: theme.boardBorder,
+        background: theme.boardBg,
+        boxShadow: theme.boardShadow,
+      }}
     >
-      <div className="pointer-events-none absolute inset-0" style={{ background: theme.boardSheen }} />
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{ background: theme.boardSheen }}
+      />
       <div
         ref={boardRef}
         data-testid="tiao-board"
         className={cn(
           "relative aspect-square w-full rounded-[1.55rem]",
           IS_TOUCH_DEVICE && "touch-none",
-          zoom.isAnimating && "transition-transform duration-[250ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
+          zoom.isAnimating &&
+            "transition-transform duration-[250ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
         )}
         style={{
           background: theme.boardInnerBg,
-          ...(zoom.transformStyle ? { transform: zoom.transformStyle, transformOrigin: "center center" } : {}),
+          ...(zoom.transformStyle
+            ? { transform: zoom.transformStyle, transformOrigin: "center center" }
+            : {}),
         }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -551,7 +559,6 @@ export function TiaoBoard({
               </g>
             );
           })}
-
         </svg>
 
         {Array.from({ length: bs * bs }, (_, index) => {
@@ -591,7 +598,12 @@ export function TiaoBoard({
           const isJumpTarget = jumpTargetKeys.includes(pieceKey);
           const isMarkedForCapture = isPositionMarkedForCapture(state, position);
           const isSelectableOrigin = selectableOrigins.includes(pieceKey);
-          const isHoveredEmpty = !piece && hoveredEmptyKey === pieceKey && !disabled && !activeOrigin && !IS_TOUCH_DEVICE;
+          const isHoveredEmpty =
+            !piece &&
+            hoveredEmptyKey === pieceKey &&
+            !disabled &&
+            !activeOrigin &&
+            !IS_TOUCH_DEVICE;
           const isLastMove = lastMovePositions.has(pieceKey);
 
           return (
@@ -653,15 +665,11 @@ export function TiaoBoard({
               }}
               className={cn(
                 "group absolute aspect-square -translate-x-1/2 -translate-y-1/2 transition-transform duration-150",
-                isMarkedForCapture
-                  ? "z-0"
-                  : isForcedOrigin || isSelected
-                    ? "z-20"
-                    : "z-10",
+                isMarkedForCapture ? "z-0" : isForcedOrigin || isSelected ? "z-20" : "z-10",
                 !disabled &&
                   (showConfirmAffordance
                     ? "cursor-pointer hover:scale-[1.12]"
-                    : "hover:scale-[1.02]")
+                    : "hover:scale-[1.02]"),
               )}
               style={{
                 left: `${pp(position.x)}%`,
@@ -672,29 +680,45 @@ export function TiaoBoard({
               {isJumpTarget ? (
                 <span
                   className="pointer-events-none absolute inset-[13.5%] rounded-full border-[3px] border-dashed"
-                  style={{ borderColor: theme.jumpTargetBorder, background: theme.jumpTargetBg, boxShadow: `0 0 0 2.5px ${theme.jumpTargetBg}` }}
+                  style={{
+                    borderColor: theme.jumpTargetBorder,
+                    background: theme.jumpTargetBg,
+                    boxShadow: `0 0 0 2.5px ${theme.jumpTargetBg}`,
+                  }}
                 />
               ) : null}
 
               {isForcedOrigin ? (
                 <span
                   className="pointer-events-none absolute inset-[4.5%] rounded-full border-[3px]"
-                  style={{ borderColor: theme.forcedOriginBorder, boxShadow: `0 0 0 2.5px ${theme.forcedOriginBorder}44` }}
+                  style={{
+                    borderColor: theme.forcedOriginBorder,
+                    boxShadow: `0 0 0 2.5px ${theme.forcedOriginBorder}44`,
+                  }}
                 />
               ) : isSelected ? (
                 <span
                   className="pointer-events-none absolute inset-[6.5%] rounded-full border-[2.5px]"
-                  style={{ borderColor: theme.selectedBorder, boxShadow: `0 0 0 4px ${theme.selectedBorder}33` }}
+                  style={{
+                    borderColor: theme.selectedBorder,
+                    boxShadow: `0 0 0 4px ${theme.selectedBorder}33`,
+                  }}
                 />
               ) : isLastMove && piece ? (
                 <span
                   className="pointer-events-none absolute inset-[3%] rounded-full border-[2.5px]"
-                  style={{ borderColor: `${theme.lastMoveBorder}b3`, boxShadow: `0 0 0 3px ${theme.lastMoveBorder}2e` }}
+                  style={{
+                    borderColor: `${theme.lastMoveBorder}b3`,
+                    boxShadow: `0 0 0 3px ${theme.lastMoveBorder}2e`,
+                  }}
                 />
               ) : null}
 
               {isLastMove && !piece ? (
-                <span className="pointer-events-none absolute inset-[35%] rounded-full" style={{ background: `${theme.lastMoveDotBg}4d` }} />
+                <span
+                  className="pointer-events-none absolute inset-[35%] rounded-full"
+                  style={{ background: `${theme.lastMoveDotBg}4d` }}
+                />
               ) : null}
 
               {piece ? (
@@ -725,17 +749,23 @@ export function TiaoBoard({
                   }
                   className="pointer-events-none absolute inset-[5.5%] z-10 rounded-full border"
                   style={{
-                    borderColor: piece === "black" ? theme.blackPieceBorder : theme.whitePieceBorder,
+                    borderColor:
+                      piece === "black" ? theme.blackPieceBorder : theme.whitePieceBorder,
                     background: piece === "black" ? theme.blackPieceBg : theme.whitePieceBg,
-                    boxShadow: isSelectableOrigin && !disabled ? theme.selectableGlow : theme.pieceShadow,
+                    boxShadow:
+                      isSelectableOrigin && !disabled ? theme.selectableGlow : theme.pieceShadow,
                   }}
                 />
               ) : isHoveredEmpty ? (
                 <span
                   className="pointer-events-none absolute inset-[5.5%] z-10 rounded-full border opacity-40 shadow-sm"
                   style={{
-                    borderColor: state.currentTurn === "black" ? theme.blackPieceBorder : theme.whitePieceBorder,
-                    background: state.currentTurn === "black" ? theme.blackPieceBg : theme.whitePieceBg,
+                    borderColor:
+                      state.currentTurn === "black"
+                        ? theme.blackPieceBorder
+                        : theme.whitePieceBorder,
+                    background:
+                      state.currentTurn === "black" ? theme.blackPieceBg : theme.whitePieceBg,
                   }}
                 />
               ) : null}
@@ -851,154 +881,155 @@ export function TiaoBoard({
           })}
 
           {/* Last move jump trail arrows (review mode) */}
-          {lastMove?.type === "jump" && lastMove.jumps.map((jump, index) => {
-            const segment = getJumpTrailMetrics(jump.from, jump.to, pp);
-            const arrowKey = `lastmove-${jump.from.x}-${jump.from.y}-${jump.to.x}-${jump.to.y}-${index}`;
-
-            return (
-              <g key={arrowKey}>
-                <line
-                  x1={segment.startX}
-                  y1={segment.startY}
-                  x2={segment.endX}
-                  y2={segment.endY}
-                  stroke={theme.lastMoveDark}
-                  strokeOpacity="0.5"
-                  strokeWidth="3.15"
-                  strokeLinecap="round"
-                  vectorEffect="non-scaling-stroke"
-                />
-                <line
-                  x1={segment.startX}
-                  y1={segment.startY}
-                  x2={segment.endX}
-                  y2={segment.endY}
-                  stroke={theme.lastMoveBright}
-                  strokeOpacity="0.7"
-                  strokeWidth="2.45"
-                  strokeLinecap="round"
-                  markerEnd={`url(#${jumpTrailMarkerId}-overlay-gold)`}
-                  vectorEffect="non-scaling-stroke"
-                />
-              </g>
-            );
-          })}
-
-          {activeOrigin && hoveredJumpTarget ? (
-            (() => {
-              const segment = getJumpTrailMetrics(activeOrigin, hoveredJumpTarget, pp);
-              const previewKey = `preview-${getPositionKey(activeOrigin)}-${getPositionKey(hoveredJumpTarget)}`;
+          {lastMove?.type === "jump" &&
+            lastMove.jumps.map((jump, index) => {
+              const segment = getJumpTrailMetrics(jump.from, jump.to, pp);
+              const arrowKey = `lastmove-${jump.from.x}-${jump.from.y}-${jump.to.x}-${jump.to.y}-${index}`;
 
               return (
-                <g key={previewKey}>
-                  <motion.line
+                <g key={arrowKey}>
+                  <line
                     x1={segment.startX}
                     y1={segment.startY}
                     x2={segment.endX}
                     y2={segment.endY}
-                    initial={{
-                      x2: segment.startX,
-                      y2: segment.startY,
-                    }}
-                    animate={{
-                      x2: segment.endX,
-                      y2: segment.endY,
-                    }}
-                    transition={{
-                      duration: 0.28,
-                      ease: [0.2, 0.96, 0.3, 1],
-                    }}
-                    stroke={theme.jumpTrailDarkGreen}
-                    strokeWidth="3.4"
+                    stroke={theme.lastMoveDark}
+                    strokeOpacity="0.5"
+                    strokeWidth="3.15"
                     strokeLinecap="round"
                     vectorEffect="non-scaling-stroke"
                   />
-                  <motion.line
+                  <line
                     x1={segment.startX}
                     y1={segment.startY}
                     x2={segment.endX}
                     y2={segment.endY}
-                    initial={{
-                      x2: segment.startX,
-                      y2: segment.startY,
-                    }}
-                    animate={{
-                      x2: segment.endX,
-                      y2: segment.endY,
-                    }}
-                    transition={{
-                      duration: 0.34,
-                      delay: 0.03,
-                      ease: [0.2, 0.96, 0.3, 1],
-                    }}
-                    stroke={theme.jumpTrailPreviewGreen}
-                    strokeWidth="2.7"
+                    stroke={theme.lastMoveBright}
+                    strokeOpacity="0.7"
+                    strokeWidth="2.45"
                     strokeLinecap="round"
-                    markerEnd={`url(#${jumpTrailMarkerId}-overlay-green)`}
+                    markerEnd={`url(#${jumpTrailMarkerId}-overlay-gold)`}
                     vectorEffect="non-scaling-stroke"
                   />
                 </g>
               );
-            })()
-          ) : null}
+            })}
 
-          {undoHovered && lastPendingJump ? (
-            (() => {
-              const segment = getJumpTrailMetrics(lastPendingJump.to, lastPendingJump.from, pp);
-              const undoPreviewKey = `undo-preview-${getPositionKey(lastPendingJump.to)}-${getPositionKey(lastPendingJump.from)}`;
+          {activeOrigin && hoveredJumpTarget
+            ? (() => {
+                const segment = getJumpTrailMetrics(activeOrigin, hoveredJumpTarget, pp);
+                const previewKey = `preview-${getPositionKey(activeOrigin)}-${getPositionKey(hoveredJumpTarget)}`;
 
-              return (
-                <g key={undoPreviewKey}>
-                  <motion.line
-                    x1={segment.startX}
-                    y1={segment.startY}
-                    x2={segment.endX}
-                    y2={segment.endY}
-                    initial={{
-                      x2: segment.startX,
-                      y2: segment.startY,
-                    }}
-                    animate={{
-                      x2: segment.endX,
-                      y2: segment.endY,
-                    }}
-                    transition={{
-                      duration: 0.26,
-                      ease: [0.2, 0.96, 0.3, 1],
-                    }}
-                    stroke={theme.jumpTrailDarkRed}
-                    strokeWidth="3.25"
-                    strokeLinecap="round"
-                    vectorEffect="non-scaling-stroke"
-                  />
-                  <motion.line
-                    x1={segment.startX}
-                    y1={segment.startY}
-                    x2={segment.endX}
-                    y2={segment.endY}
-                    initial={{
-                      x2: segment.startX,
-                      y2: segment.startY,
-                    }}
-                    animate={{
-                      x2: segment.endX,
-                      y2: segment.endY,
-                    }}
-                    transition={{
-                      duration: 0.31,
-                      delay: 0.03,
-                      ease: [0.2, 0.96, 0.3, 1],
-                    }}
-                    stroke={theme.jumpTrailBrightRed}
-                    strokeWidth="2.55"
-                    strokeLinecap="round"
-                    markerEnd={`url(#${jumpTrailMarkerId}-overlay-red)`}
-                    vectorEffect="non-scaling-stroke"
-                  />
-                </g>
-              );
-            })()
-          ) : null}
+                return (
+                  <g key={previewKey}>
+                    <motion.line
+                      x1={segment.startX}
+                      y1={segment.startY}
+                      x2={segment.endX}
+                      y2={segment.endY}
+                      initial={{
+                        x2: segment.startX,
+                        y2: segment.startY,
+                      }}
+                      animate={{
+                        x2: segment.endX,
+                        y2: segment.endY,
+                      }}
+                      transition={{
+                        duration: 0.28,
+                        ease: [0.2, 0.96, 0.3, 1],
+                      }}
+                      stroke={theme.jumpTrailDarkGreen}
+                      strokeWidth="3.4"
+                      strokeLinecap="round"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                    <motion.line
+                      x1={segment.startX}
+                      y1={segment.startY}
+                      x2={segment.endX}
+                      y2={segment.endY}
+                      initial={{
+                        x2: segment.startX,
+                        y2: segment.startY,
+                      }}
+                      animate={{
+                        x2: segment.endX,
+                        y2: segment.endY,
+                      }}
+                      transition={{
+                        duration: 0.34,
+                        delay: 0.03,
+                        ease: [0.2, 0.96, 0.3, 1],
+                      }}
+                      stroke={theme.jumpTrailPreviewGreen}
+                      strokeWidth="2.7"
+                      strokeLinecap="round"
+                      markerEnd={`url(#${jumpTrailMarkerId}-overlay-green)`}
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  </g>
+                );
+              })()
+            : null}
+
+          {undoHovered && lastPendingJump
+            ? (() => {
+                const segment = getJumpTrailMetrics(lastPendingJump.to, lastPendingJump.from, pp);
+                const undoPreviewKey = `undo-preview-${getPositionKey(lastPendingJump.to)}-${getPositionKey(lastPendingJump.from)}`;
+
+                return (
+                  <g key={undoPreviewKey}>
+                    <motion.line
+                      x1={segment.startX}
+                      y1={segment.startY}
+                      x2={segment.endX}
+                      y2={segment.endY}
+                      initial={{
+                        x2: segment.startX,
+                        y2: segment.startY,
+                      }}
+                      animate={{
+                        x2: segment.endX,
+                        y2: segment.endY,
+                      }}
+                      transition={{
+                        duration: 0.26,
+                        ease: [0.2, 0.96, 0.3, 1],
+                      }}
+                      stroke={theme.jumpTrailDarkRed}
+                      strokeWidth="3.25"
+                      strokeLinecap="round"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                    <motion.line
+                      x1={segment.startX}
+                      y1={segment.startY}
+                      x2={segment.endX}
+                      y2={segment.endY}
+                      initial={{
+                        x2: segment.startX,
+                        y2: segment.startY,
+                      }}
+                      animate={{
+                        x2: segment.endX,
+                        y2: segment.endY,
+                      }}
+                      transition={{
+                        duration: 0.31,
+                        delay: 0.03,
+                        ease: [0.2, 0.96, 0.3, 1],
+                      }}
+                      stroke={theme.jumpTrailBrightRed}
+                      strokeWidth="2.55"
+                      strokeLinecap="round"
+                      markerEnd={`url(#${jumpTrailMarkerId}-overlay-red)`}
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  </g>
+                );
+              })()
+            : null}
         </svg>
 
         {showConfirmOverlay && forcedJumpOrigin ? (
@@ -1013,12 +1044,7 @@ export function TiaoBoard({
               top: `${pp(forcedJumpOrigin.y)}%`,
             }}
           >
-            <svg
-              viewBox="0 0 16 16"
-              aria-hidden="true"
-              className="h-3.5 w-3.5"
-              fill="none"
-            >
+            <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3.5 w-3.5" fill="none">
               <path
                 d="M3.5 8.25L6.6 11.35L12.5 5.45"
                 stroke="currentColor"
@@ -1066,12 +1092,7 @@ export function TiaoBoard({
               top: `${pp(lastPendingJump.from.y)}%`,
             }}
           >
-            <svg
-              viewBox="0 0 16 16"
-              aria-hidden="true"
-              className="h-3.5 w-3.5"
-              fill="none"
-            >
+            <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3.5 w-3.5" fill="none">
               <path
                 d="M4.25 4.25L11.75 11.75M11.75 4.25L4.25 11.75"
                 stroke="currentColor"
@@ -1138,35 +1159,38 @@ export function TiaoBoard({
               className="absolute inset-[-4%] rounded-full"
               style={{
                 background: "radial-gradient(circle, rgba(0,0,0,0.18) 0%, transparent 70%)",
-                transform: mobilePreviewDragging ? "translateY(12%) scale(1.1)" : "translateY(8%) scale(1.05)",
+                transform: mobilePreviewDragging
+                  ? "translateY(12%) scale(1.1)"
+                  : "translateY(8%) scale(1.05)",
                 opacity: mobilePreviewDragging ? 0.5 : 0.7,
                 transition: "transform 150ms ease-out, opacity 150ms ease-out",
               }}
             />
             {/* Stone */}
             <span
-              className={cn(
-                "relative block h-full w-full rounded-full",
-                "border",
-              )}
+              className={cn("relative block h-full w-full rounded-full", "border")}
               style={{
                 borderColor: !mobilePreviewValid
                   ? "rgba(196,74,58,0.6)"
-                  : state.currentTurn === "black" ? theme.blackPieceBorder : theme.whitePieceBorder,
+                  : state.currentTurn === "black"
+                    ? theme.blackPieceBorder
+                    : theme.whitePieceBorder,
                 background: !mobilePreviewValid
                   ? "radial-gradient(circle at 30% 28%,#d4847a,#b85a4e 58%,#8a3028)"
-                  : state.currentTurn === "black" ? theme.blackPieceBg : theme.whitePieceBg,
+                  : state.currentTurn === "black"
+                    ? theme.blackPieceBg
+                    : theme.whitePieceBg,
                 opacity: !mobilePreviewValid ? 0.45 : mobilePreviewDragging ? 0.6 : 0.8,
                 transform: mobilePreviewDragging ? "translateY(-3px)" : "translateY(-1px)",
                 boxShadow: mobilePreviewDragging
                   ? "0 6px 16px rgba(0,0,0,0.25), inset 0 2px 10px rgba(255,255,255,0.18)"
                   : "0 3px 8px rgba(0,0,0,0.2), inset 0 2px 10px rgba(255,255,255,0.18)",
-                transition: "opacity 150ms ease-out, transform 150ms ease-out, box-shadow 150ms ease-out",
+                transition:
+                  "opacity 150ms ease-out, transform 150ms ease-out, box-shadow 150ms ease-out",
               }}
             />
           </span>
         )}
-
       </div>
 
       {/* Bottom-right floating controls */}
@@ -1190,13 +1214,22 @@ export function TiaoBoard({
                   aria-label="Cancel placement"
                 >
                   <svg viewBox="0 0 14 14" fill="none" className="h-4 w-4">
-                    <path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    <path
+                      d="M3.5 3.5l7 7M10.5 3.5l-7 7"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
                   </svg>
                 </button>
                 <button
                   type="button"
                   disabled={!mobilePreviewValid}
-                  onClick={() => { const pos = mobilePreview; setMobilePreview(null); onPointClick?.(pos); }}
+                  onClick={() => {
+                    const pos = mobilePreview;
+                    setMobilePreview(null);
+                    onPointClick?.(pos);
+                  }}
                   className={cn(
                     "flex h-11 items-center gap-1.5 rounded-full border px-3.5 shadow-[0_8px_20px_-8px_rgba(66,39,11,0.5)] backdrop-blur transition-colors",
                     mobilePreviewValid
@@ -1206,7 +1239,13 @@ export function TiaoBoard({
                   aria-label="Confirm placement"
                 >
                   <svg viewBox="0 0 14 14" fill="none" className="h-4 w-4">
-                    <path d="M3 7.5l2.8 2.8L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path
+                      d="M3 7.5l2.8 2.8L11 4"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                   <span className="text-sm font-semibold">Place</span>
                 </button>
@@ -1223,7 +1262,12 @@ export function TiaoBoard({
                     aria-label="Undo last jump"
                   >
                     <svg viewBox="0 0 14 14" fill="none" className="h-4 w-4">
-                      <path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      <path
+                        d="M3.5 3.5l7 7M10.5 3.5l-7 7"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
                     </svg>
                   </button>
                 )}
@@ -1235,7 +1279,13 @@ export function TiaoBoard({
                     aria-label="Confirm jump"
                   >
                     <svg viewBox="0 0 14 14" fill="none" className="h-4 w-4">
-                      <path d="M3 7.5l2.8 2.8L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path
+                        d="M3 7.5l2.8 2.8L11 4"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                     <span className="text-sm font-semibold">Confirm</span>
                   </button>
@@ -1251,7 +1301,12 @@ export function TiaoBoard({
               >
                 <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" aria-hidden="true">
                   <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5" />
-                  <path d="M11 11l3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  <path
+                    d="M11 11l3.5 3.5"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
                   <path d="M5 7h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
                 <span className="text-xs font-semibold">{Math.round(zoom.scale * 10) / 10}x</span>

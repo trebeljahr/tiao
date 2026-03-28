@@ -43,11 +43,7 @@ function isValidGameId(gameId: string): boolean {
   return GAME_ID_PATTERN.test(gameId.trim().toUpperCase());
 }
 
-function respondWithGameServiceError(
-  res: Response,
-  error: unknown,
-  fallbackMessage: string
-) {
+function respondWithGameServiceError(res: Response, error: unknown, fallbackMessage: string) {
   if (error instanceof GameServiceError) {
     return res.status(error.status).json({
       code: error.code,
@@ -71,10 +67,7 @@ function respondWithGameServiceError(
   });
 }
 
-async function acceptPendingInvitationsForPlayer(
-  gameId: string,
-  playerId: string
-) {
+async function acceptPendingInvitationsForPlayer(gameId: string, playerId: string) {
   if (mongoose.connection.readyState !== 1) {
     return;
   }
@@ -92,7 +85,7 @@ async function acceptPendingInvitationsForPlayer(
       $set: {
         status: "accepted",
       },
-    }
+    },
   );
 }
 
@@ -121,7 +114,7 @@ async function revokeAllPendingInvitationsForGame(gameId: string) {
       status: "pending",
       expiresAt: { $gt: new Date() },
     },
-    { $set: { status: "revoked" } }
+    { $set: { status: "revoked" } },
   );
 
   // Collect unique player IDs that need a social-update notification
@@ -178,7 +171,7 @@ router.get("/games", async (req: Request, res: Response) => {
     return respondWithGameServiceError(
       res,
       error,
-      "Unable to load your multiplayer games right now."
+      "Unable to load your multiplayer games right now.",
     );
   }
 });
@@ -224,16 +217,22 @@ router.post("/games", async (req: Request, res: Response) => {
           }
         : undefined;
     const parsedTimeControl =
-      timeControl && typeof timeControl === "object" && typeof timeControl.initialMs === "number" && typeof timeControl.incrementMs === "number"
+      timeControl &&
+      typeof timeControl === "object" &&
+      typeof timeControl.initialMs === "number" &&
+      typeof timeControl.incrementMs === "number"
         ? { initialMs: timeControl.initialMs, incrementMs: timeControl.incrementMs }
         : undefined;
-    const snapshot = await gameService.createGame(player, { gameSettings, timeControl: parsedTimeControl });
+    const snapshot = await gameService.createGame(player, {
+      gameSettings,
+      timeControl: parsedTimeControl,
+    });
     return res.status(201).json({ snapshot });
   } catch (error) {
     return respondWithGameServiceError(
       res,
       error,
-      "Unable to create a multiplayer game right now."
+      "Unable to create a multiplayer game right now.",
     );
   }
 });
@@ -304,11 +303,7 @@ router.post("/games/:gameId/join", async (req: Request, res: Response) => {
 
     return res.status(200).json({ snapshot });
   } catch (error) {
-    return respondWithGameServiceError(
-      res,
-      error,
-      "Unable to join that game right now."
-    );
+    return respondWithGameServiceError(res, error, "Unable to join that game right now.");
   }
 });
 
@@ -366,11 +361,7 @@ router.post("/games/:gameId/access", async (req: Request, res: Response) => {
 
     return res.status(200).json({ snapshot });
   } catch (error) {
-    return respondWithGameServiceError(
-      res,
-      error,
-      "Unable to open that game right now."
-    );
+    return respondWithGameServiceError(res, error, "Unable to open that game right now.");
   }
 });
 
@@ -419,11 +410,7 @@ router.delete("/games/:gameId", async (req: Request, res: Response) => {
     void revokeAllPendingInvitationsForGame(req.params.gameId);
     return res.status(204).send();
   } catch (error) {
-    return respondWithGameServiceError(
-      res,
-      error,
-      "Unable to cancel that game right now."
-    );
+    return respondWithGameServiceError(res, error, "Unable to cancel that game right now.");
   }
 });
 
@@ -441,11 +428,7 @@ router.get("/games/:gameId", async (req: Request, res: Response) => {
     const snapshot = await gameService.getSnapshot(req.params.gameId);
     return res.status(200).json({ snapshot });
   } catch (error) {
-    return respondWithGameServiceError(
-      res,
-      error,
-      "Unable to load that game right now."
-    );
+    return respondWithGameServiceError(res, error, "Unable to load that game right now.");
   }
 });
 
@@ -496,8 +479,7 @@ router.post("/matchmaking", async (req: Request, res: Response) => {
       ) {
         return res.status(400).json({
           code: "INVALID_TIME_CONTROL",
-          message:
-            "Invalid time control. Provide positive initialMs and non-negative incrementMs.",
+          message: "Invalid time control. Provide positive initialMs and non-negative incrementMs.",
         });
       }
 
@@ -507,11 +489,7 @@ router.post("/matchmaking", async (req: Request, res: Response) => {
     const matchmaking = await gameService.enterMatchmaking(player, timeControl);
     return res.status(200).json({ matchmaking });
   } catch (error) {
-    return respondWithGameServiceError(
-      res,
-      error,
-      "Unable to enter matchmaking right now."
-    );
+    return respondWithGameServiceError(res, error, "Unable to enter matchmaking right now.");
   }
 });
 
@@ -549,11 +527,7 @@ router.get("/matchmaking", async (req: Request, res: Response) => {
     const matchmaking = await gameService.getMatchmakingState(player);
     return res.status(200).json({ matchmaking });
   } catch (error) {
-    return respondWithGameServiceError(
-      res,
-      error,
-      "Unable to load matchmaking right now."
-    );
+    return respondWithGameServiceError(res, error, "Unable to load matchmaking right now.");
   }
 });
 
@@ -584,11 +558,7 @@ router.delete("/matchmaking", async (req: Request, res: Response) => {
     await gameService.leaveMatchmaking(player);
     return res.status(204).send();
   } catch (error) {
-    return respondWithGameServiceError(
-      res,
-      error,
-      "Unable to leave matchmaking right now."
-    );
+    return respondWithGameServiceError(res, error, "Unable to leave matchmaking right now.");
   }
 });
 
@@ -634,14 +604,18 @@ router.delete("/matchmaking", async (req: Request, res: Response) => {
  */
 router.post("/games/:gameId/test-finish", async (req: Request, res: Response) => {
   if (process.env.NODE_ENV !== "test") {
-    return res.status(403).json({ code: "FORBIDDEN", message: "Only available in test environment." });
+    return res
+      .status(403)
+      .json({ code: "FORBIDDEN", message: "Only available in test environment." });
   }
 
   const { gameId } = req.params;
   const { winner } = req.body as { winner: string };
 
   if (typeof winner !== "string" || (winner !== "white" && winner !== "black")) {
-    return res.status(400).json({ code: "VALIDATION_ERROR", message: "Winner must be 'white' or 'black'." });
+    return res
+      .status(400)
+      .json({ code: "VALIDATION_ERROR", message: "Winner must be 'white' or 'black'." });
   }
 
   try {

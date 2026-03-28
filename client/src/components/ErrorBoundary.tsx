@@ -41,10 +41,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 {this.state.error.message}
               </pre>
             )}
-            <Button
-              className="mt-6 w-full"
-              onClick={() => window.location.assign("/")}
-            >
+            <Button className="mt-6 w-full" onClick={() => window.location.assign("/")}>
               Back to Home
             </Button>
           </div>

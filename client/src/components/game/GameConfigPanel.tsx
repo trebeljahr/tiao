@@ -1,11 +1,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { TimeControl } from "@shared";
-import {
-  BOARD_SIZE_OPTIONS,
-  SCORE_TO_WIN_OPTIONS,
-  TIME_CONTROL_PRESETS,
-} from "@shared";
+import { BOARD_SIZE_OPTIONS, SCORE_TO_WIN_OPTIONS, TIME_CONTROL_PRESETS } from "@shared";
 import type { AIDifficulty } from "@/lib/computer-ai";
 import type { PlayerColor } from "@shared";
 import { Button } from "@/components/ui/button";
@@ -35,13 +31,7 @@ type GameConfigPanelProps = {
 
 const DIFFICULTIES: AIDifficulty[] = [1, 2, 3];
 
-function OptionGroup({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function OptionGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
       <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#8d7760]">
@@ -215,9 +205,7 @@ function TimeControlSection({
 }) {
   const t = useTranslations("config");
   const hasClock = timeControl !== null;
-  const isCustom =
-    hasClock &&
-    !TIME_CONTROL_PRESETS.some((p) => tcMatch(timeControl, p));
+  const isCustom = hasClock && !TIME_CONTROL_PRESETS.some((p) => tcMatch(timeControl, p));
   const [showCustom, setShowCustom] = useState(isCustom);
 
   return (
@@ -266,7 +254,9 @@ function TimeControlSection({
                   <span className="flex flex-col items-center leading-tight">
                     <span className="font-bold">{preset.label}</span>
                     <span className="text-[0.6rem] uppercase opacity-60">
-                      {t(preset.category.toLowerCase() as "bullet" | "blitz" | "rapid" | "classical")}
+                      {t(
+                        preset.category.toLowerCase() as "bullet" | "blitz" | "rapid" | "classical",
+                      )}
                     </span>
                   </span>
                 </ToggleButton>

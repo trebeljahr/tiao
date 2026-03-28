@@ -6,12 +6,7 @@ import { toast } from "sonner";
 import type { PlayerColor, Position } from "@shared";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog } from "@/components/ui/dialog";
 import { Navbar } from "@/components/Navbar";
@@ -46,7 +41,12 @@ import {
 } from "@shared";
 import type { FinishReason } from "@shared";
 import { MoveList, MoveListNavButtons } from "@/components/game/MoveList";
-import { useGameClock, useFirstMoveCountdown, InlineClockBadge, formatClockTime } from "@/components/game/GameClock";
+import {
+  useGameClock,
+  useFirstMoveCountdown,
+  InlineClockBadge,
+  formatClockTime,
+} from "@/components/game/GameClock";
 import { cn } from "@/lib/utils";
 import { accessMultiplayerGame } from "@/lib/api";
 
@@ -79,7 +79,9 @@ export function MultiplayerGamePage() {
     onGameAborted: (info) => {
       if (info.requeuedForMatchmaking && info.timeControl) {
         toast.info(info.reason);
-        router.replace(`/matchmaking?initial=${info.timeControl.initialMs}&increment=${info.timeControl.incrementMs}`);
+        router.replace(
+          `/matchmaking?initial=${info.timeControl.initialMs}&increment=${info.timeControl.incrementMs}`,
+        );
       } else {
         toast.error(info.reason);
         router.replace("/");
@@ -172,14 +174,7 @@ export function MultiplayerGamePage() {
     return () => {
       cancelled = true;
     };
-  }, [
-    auth,
-    gameId,
-    connectionState,
-    connectToRoom,
-    router,
-    setMultiplayerBusy,
-  ]);
+  }, [auth, gameId, connectionState, connectToRoom, router, setMultiplayerBusy]);
 
   useStonePlacementSound(multiplayerSnapshot?.state ?? null);
   const winner = multiplayerSnapshot
@@ -262,47 +257,61 @@ export function MultiplayerGamePage() {
   }, [winner]);
 
   // Fire confetti inside the modal canvas when the dialog opens
-  const fireModalConfetti = useCallback((canvas: HTMLCanvasElement | null) => {
-    if (!canvas) return;
-    const fire = confetti.create(canvas, { resize: true });
-    const playerLost = playerSeat !== null && winner !== null && winner !== playerSeat;
+  const fireModalConfetti = useCallback(
+    (canvas: HTMLCanvasElement | null) => {
+      if (!canvas) return;
+      const fire = confetti.create(canvas, { resize: true });
+      const playerLost = playerSeat !== null && winner !== null && winner !== playerSeat;
 
-    if (playerLost) {
-      // Subtle defeat particles
-      const colors = ["#8b7355", "#a69278", "#c4b49a", "#d6cbb8"];
-      const duration = 1400;
-      const endTime = Date.now() + duration;
-      const frame = () => {
+      if (playerLost) {
+        // Subtle defeat particles
+        const colors = ["#8b7355", "#a69278", "#c4b49a", "#d6cbb8"];
+        const duration = 1400;
+        const endTime = Date.now() + duration;
+        const frame = () => {
+          fire({
+            particleCount: 2,
+            startVelocity: 8,
+            spread: 160,
+            gravity: 0.35,
+            drift: 0.6 + Math.random() * 0.8,
+            origin: { x: Math.random(), y: -0.05 },
+            colors,
+            scalar: 1.2,
+            shapes: ["circle"],
+            ticks: 300,
+          });
+          if (Date.now() < endTime) window.requestAnimationFrame(frame);
+        };
+        frame();
+      } else {
+        // Victory confetti
         fire({
-          particleCount: 2,
-          startVelocity: 8,
-          spread: 160,
-          gravity: 0.35,
-          drift: 0.6 + Math.random() * 0.8,
-          origin: { x: Math.random(), y: -0.05 },
-          colors,
-          scalar: 1.2,
-          shapes: ["circle"],
-          ticks: 300,
+          particleCount: 100,
+          startVelocity: 35,
+          spread: 360,
+          origin: { x: 0.5, y: 0.4 },
+          colors: [
+            "#ff6b6b",
+            "#feca57",
+            "#48dbfb",
+            "#ff9ff3",
+            "#54a0ff",
+            "#5f27cd",
+            "#01a3a4",
+            "#f368e0",
+            "#ff9f43",
+            "#00d2d3",
+          ],
+          scalar: 1.1,
+          gravity: 0.6,
+          ticks: 180,
+          shapes: ["circle", "square"],
         });
-        if (Date.now() < endTime) window.requestAnimationFrame(frame);
-      };
-      frame();
-    } else {
-      // Victory confetti
-      fire({
-        particleCount: 100,
-        startVelocity: 35,
-        spread: 360,
-        origin: { x: 0.5, y: 0.4 },
-        colors: ["#ff6b6b", "#feca57", "#48dbfb", "#ff9ff3", "#54a0ff", "#5f27cd", "#01a3a4", "#f368e0", "#ff9f43", "#00d2d3"],
-        scalar: 1.1,
-        gravity: 0.6,
-        ticks: 180,
-        shapes: ["circle", "square"],
-      });
-    }
-  }, [winner, playerSeat]);
+      }
+    },
+    [winner, playerSeat],
+  );
 
   const confettiCanvasCallback = useCallback(
     (node: HTMLCanvasElement | null) => {
@@ -320,9 +329,7 @@ export function MultiplayerGamePage() {
     ? getFinishReason(multiplayerSnapshot.state)
     : null;
 
-  const isDraw = multiplayerSnapshot
-    ? isGameOver(multiplayerSnapshot.state) && !winner
-    : false;
+  const isDraw = multiplayerSnapshot ? isGameOver(multiplayerSnapshot.state) && !winner : false;
 
   const gameOverTitle = isDraw
     ? t("draw")
@@ -339,23 +346,36 @@ export function MultiplayerGamePage() {
     if (finishReason === "board_full") return t("boardFullDesc");
     if (playerWon) {
       switch (finishReason) {
-        case "captured": return t("youCapturedDesc");
-        case "forfeit": return t("opponentForfeitedDesc");
-        case "timeout": return t("opponentTimedOutDesc");
+        case "captured":
+          return t("youCapturedDesc");
+        case "forfeit":
+          return t("opponentForfeitedDesc");
+        case "timeout":
+          return t("opponentTimedOutDesc");
       }
     }
     if (playerLost) {
       switch (finishReason) {
-        case "captured": return t("opponentCapturedDesc");
-        case "forfeit": return t("youForfeitedDesc");
-        case "timeout": return t("youTimedOutDesc");
+        case "captured":
+          return t("opponentCapturedDesc");
+        case "forfeit":
+          return t("youForfeitedDesc");
+        case "timeout":
+          return t("youTimedOutDesc");
       }
     }
     // Spectator
     switch (finishReason) {
-      case "captured": return t("spectatorCaptured", { color: formatPlayerColor(winner!)! });
-      case "forfeit": return t("spectatorForfeit", { color: formatPlayerColor(winner === "white" ? "black" : "white")! });
-      case "timeout": return t("spectatorTimeout", { color: formatPlayerColor(winner === "white" ? "black" : "white")! });
+      case "captured":
+        return t("spectatorCaptured", { color: formatPlayerColor(winner!)! });
+      case "forfeit":
+        return t("spectatorForfeit", {
+          color: formatPlayerColor(winner === "white" ? "black" : "white")!,
+        });
+      case "timeout":
+        return t("spectatorTimeout", {
+          color: formatPlayerColor(winner === "white" ? "black" : "white")!,
+        });
     }
   }
 
@@ -477,15 +497,15 @@ export function MultiplayerGamePage() {
       ? t("drawTitle")
       : winner
         ? t("colorWins", { color: formatPlayerColor(winner)! })
-      : multiplayerSnapshot.status === "waiting"
-        ? t("waiting")
-        : isTournamentUnstarted
-          ? t("waitingForOpponentToConnect")
-          : isSpectator
-            ? t("spectating")
-            : multiplayerYourTurn
-              ? t("yourMove")
-              : t("waitingForOpponent");
+        : multiplayerSnapshot.status === "waiting"
+          ? t("waiting")
+          : isTournamentUnstarted
+            ? t("waitingForOpponentToConnect")
+            : isSpectator
+              ? t("spectating")
+              : multiplayerYourTurn
+                ? t("yourMove")
+                : t("waitingForOpponent");
 
   const [copyFeedbackKey, setCopyFeedbackKey] = useState<string | null>(null);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
@@ -550,11 +570,7 @@ export function MultiplayerGamePage() {
 
   const multiplayerJumpTargets =
     multiplayerSelection && displayState && !isReviewMode
-      ? getJumpTargets(
-          displayState,
-          multiplayerSelection,
-          displayState.currentTurn,
-        )
+      ? getJumpTargets(displayState, multiplayerSelection, displayState.currentTurn)
       : [];
 
   const handleBoardClick = (position: Position) => {
@@ -563,9 +579,7 @@ export function MultiplayerGamePage() {
     const state = multiplayerSnapshot.state;
     const tile = state.positions[position.y][position.x];
     const activeOrigin = multiplayerSelection;
-    const jumpTargets = activeOrigin
-      ? getJumpTargets(state, activeOrigin, state.currentTurn)
-      : [];
+    const jumpTargets = activeOrigin ? getJumpTargets(state, activeOrigin, state.currentTurn) : [];
 
     if (activeOrigin && arePositionsEqual(activeOrigin, position)) {
       if (state.pendingJump.length > 0) {
@@ -577,10 +591,7 @@ export function MultiplayerGamePage() {
       return;
     }
 
-    if (
-      activeOrigin &&
-      jumpTargets.some((t) => arePositionsEqual(t, position))
-    ) {
+    if (activeOrigin && jumpTargets.some((t) => arePositionsEqual(t, position))) {
       sendMultiplayerMessage({
         type: "jump-piece",
         from: activeOrigin,
@@ -626,13 +637,12 @@ export function MultiplayerGamePage() {
         onLogout={onLogout}
       />
 
-      {multiplayerSnapshot?.roomType === "tournament" &&
-        multiplayerSnapshot.tournamentId && (
-          <TournamentContextBar
-            tournamentId={multiplayerSnapshot.tournamentId}
-            tournamentName="Tournament"
-          />
-        )}
+      {multiplayerSnapshot?.roomType === "tournament" && multiplayerSnapshot.tournamentId && (
+        <TournamentContextBar
+          tournamentId={multiplayerSnapshot.tournamentId}
+          tournamentName="Tournament"
+        />
+      )}
 
       <main className="mx-auto flex max-w-[104rem] flex-col gap-5 px-4 pb-3 pt-16 sm:px-6 sm:pt-5 lg:px-6 lg:pb-4 xl:pt-2">
         <section className="grid gap-3 xl:min-h-[calc(100dvh-1rem)] xl:content-center xl:gap-5 xl:grid-cols-[minmax(0,1fr)_24rem] xl:items-start">
@@ -712,17 +722,14 @@ export function MultiplayerGamePage() {
                             onSelectMove={setReviewMoveIndex}
                           />
                         </motion.div>
-                      ) : multiplayerSnapshot &&
-                      connectionState !== "connected" ? (
+                      ) : multiplayerSnapshot && connectionState !== "connected" ? (
                         <motion.div
                           initial={{ opacity: 0, y: -8, scale: 0.96 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           className="flex items-center gap-2 rounded-full border border-[#d8c29c] bg-[#fff8ee]/96 px-3 py-2 text-sm font-semibold text-[#5d4732] shadow-[0_16px_28px_-22px_rgba(67,45,24,0.5)] backdrop-blur"
                         >
                           <HourglassSpinner className="text-[#7b5f3f]" />
-                          {connectionState === "connecting"
-                            ? t("connecting")
-                            : t("reconnecting")}
+                          {connectionState === "connecting" ? t("connecting") : t("reconnecting")}
                         </motion.div>
                       ) : isAwaitingFirstMove && multiplayerYourTurn ? (
                         <motion.div
@@ -730,7 +737,9 @@ export function MultiplayerGamePage() {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           className="flex items-center gap-2 rounded-full border border-[#c9a84c] bg-[#fffbeb]/96 px-3 py-2 text-sm font-semibold text-[#8b6914] shadow-[0_16px_28px_-22px_rgba(139,105,20,0.42)] backdrop-blur"
                         >
-                          <span className="font-mono tabular-nums text-base">{formatClockTime(firstMoveCountdownMs)}</span>
+                          <span className="font-mono tabular-nums text-base">
+                            {formatClockTime(firstMoveCountdownMs)}
+                          </span>
                           <span>{t("toMakeFirstMove")}</span>
                         </motion.div>
                       ) : isAwaitingFirstMove && multiplayerWaitingOnOpponent ? (
@@ -740,7 +749,9 @@ export function MultiplayerGamePage() {
                           className="flex items-center gap-2 rounded-full border border-[#d8c29c] bg-[#fff8ee]/96 px-3 py-2 text-sm font-semibold text-[#5d4732] shadow-[0_16px_28px_-22px_rgba(67,45,24,0.5)] backdrop-blur"
                         >
                           <HourglassSpinner className="text-[#7b5f3f]" />
-                          <span className="font-mono tabular-nums">{formatClockTime(firstMoveCountdownMs)}</span>
+                          <span className="font-mono tabular-nums">
+                            {formatClockTime(firstMoveCountdownMs)}
+                          </span>
                           <span>{t("opponentsFirstMove")}</span>
                         </motion.div>
                       ) : multiplayerYourTurn ? (
@@ -780,7 +791,20 @@ export function MultiplayerGamePage() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             className="flex items-center gap-2 rounded-full border border-[#c4b5d4] bg-[#f5f0fc]/96 px-3 py-2 text-sm font-semibold text-[#5a4570] shadow-[0_16px_28px_-22px_rgba(90,69,112,0.42)] backdrop-blur"
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+                              <circle cx="12" cy="12" r="3" />
+                            </svg>
                             {t("spectating")}
                           </motion.div>
                         </div>
@@ -792,16 +816,12 @@ export function MultiplayerGamePage() {
                       <div className="flex items-center gap-2 sm:order-2">
                         <RoomCodeCopyPill
                           gameId={multiplayerSnapshot.gameId}
-                          copied={
-                            copyFeedbackKey === "game-id" && !!copyFeedback
-                          }
+                          copied={copyFeedbackKey === "game-id" && !!copyFeedback}
                           onCopy={handleCopyGameId}
                           hideCopyIcon={isReviewMode}
                         />
                         <ShareLinkCopyPill
-                          copied={
-                            copyFeedbackKey === "share-link" && !!copyFeedback
-                          }
+                          copied={copyFeedbackKey === "share-link" && !!copyFeedback}
                           onCopy={handleCopyGameLink}
                         />
                         {spectatorCount > 0 && (
@@ -811,7 +831,20 @@ export function MultiplayerGamePage() {
                             className="flex items-center gap-1.5 rounded-full border border-[#d8c29c] bg-[#fff8ee]/96 px-2.5 py-1.5 text-xs font-semibold text-[#5d4732] transition-colors hover:bg-[#f5e8d4]"
                             title={`${spectatorCount} spectator${spectatorCount !== 1 ? "s" : ""}`}
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+                              <circle cx="12" cy="12" r="3" />
+                            </svg>
                             {spectatorCount}
                           </button>
                         )}
@@ -824,9 +857,7 @@ export function MultiplayerGamePage() {
                             ? t("spectating")
                             : t("liveMatch")
                           : multiplayerStatusTitle}
-                        {multiplayerSnapshot?.status === "waiting" && (
-                          <AnimatedEllipsis />
-                        )}
+                        {multiplayerSnapshot?.status === "waiting" && <AnimatedEllipsis />}
                       </CardTitle>
                     </div>
                   </div>
@@ -839,10 +870,7 @@ export function MultiplayerGamePage() {
                           <div className="grid grid-cols-1 gap-4">
                             <AnimatedScoreTile
                               label={t("black")}
-                              value={
-                                (displayState ?? multiplayerSnapshot.state)
-                                  .score.black
-                              }
+                              value={(displayState ?? multiplayerSnapshot.state).score.black}
                               pulseKey={0}
                               className="rounded-3xl border border-black/10 bg-[linear-gradient(180deg,#39312b,#14100d)] p-5 text-[#f9f2e8]"
                               labelClassName="text-xs uppercase tracking-wider"
@@ -850,10 +878,7 @@ export function MultiplayerGamePage() {
                             />
                             <AnimatedScoreTile
                               label={t("white")}
-                              value={
-                                (displayState ?? multiplayerSnapshot.state)
-                                  .score.white
-                              }
+                              value={(displayState ?? multiplayerSnapshot.state).score.white}
                               pulseKey={0}
                               className="rounded-3xl border border-[#d3c3ad] bg-[linear-gradient(180deg,#fffef8,#efe4d1)] p-5 text-[#2b1e14]"
                               labelClassName="text-xs uppercase tracking-wider"
@@ -862,8 +887,7 @@ export function MultiplayerGamePage() {
                           </div>
                           <div className="space-y-2">
                             {Array.from({ length: 2 }, (_, index) => {
-                              const slot =
-                                multiplayerSnapshot.players[index] ?? null;
+                              const slot = multiplayerSnapshot.players[index] ?? null;
                               return (
                                 <div
                                   key={`lobby-player-${index}`}
@@ -871,17 +895,13 @@ export function MultiplayerGamePage() {
                                 >
                                   <div className="flex items-center gap-3">
                                     {slot ? (
-                                      <PlayerOverviewAvatar
-                                        player={slot.player}
-                                      />
+                                      <PlayerOverviewAvatar player={slot.player} />
                                     ) : (
                                       <EmptySeatAvatar />
                                     )}
                                     <div>
                                       <p className="text-sm font-semibold text-[#2b1e14]">
-                                        {index === 0
-                                          ? t("lobbyHost")
-                                          : t("secondPlayer")}
+                                        {index === 0 ? t("lobbyHost") : t("secondPlayer")}
                                       </p>
                                       <p className="text-sm text-[#7a6656]">
                                         {slot
@@ -902,9 +922,7 @@ export function MultiplayerGamePage() {
                                           size="sm"
                                           variant="secondary"
                                           className="text-xs border-[#dcc7a2]"
-                                          onClick={() =>
-                                            setInviteDialogOpen(true)
-                                          }
+                                          onClick={() => setInviteDialogOpen(true)}
                                         >
                                           {t("inviteFriend")}
                                         </Button>
@@ -929,98 +947,90 @@ export function MultiplayerGamePage() {
                         </>
                       ) : (
                         <div className="grid grid-cols-1 gap-4">
-                          {(["black", "white"] as PlayerColor[]).map(
-                            (color) => {
-                              const seat = multiplayerSnapshot.seats[color];
-                              const isYourSeat =
-                                seat?.player.playerId === auth?.player.playerId;
-                              const isAccount = auth?.player.kind === "account";
-                              const opponentId = seat?.player.playerId;
+                          {(["black", "white"] as PlayerColor[]).map((color) => {
+                            const seat = multiplayerSnapshot.seats[color];
+                            const isYourSeat = seat?.player.playerId === auth?.player.playerId;
+                            const isAccount = auth?.player.kind === "account";
+                            const opponentId = seat?.player.playerId;
 
-                              const isFriend =
-                                !isYourSeat && opponentId
-                                  ? liveSocialOverview.friends.some(
-                                      (f) => f.playerId === opponentId,
-                                    )
-                                  : false;
-                              const hasPendingOutgoing =
-                                !isYourSeat && opponentId
-                                  ? liveSocialOverview.outgoingFriendRequests.some(
-                                      (f) => f.playerId === opponentId,
-                                    )
-                                  : false;
-                              const hasPendingIncoming =
-                                !isYourSeat && opponentId
-                                  ? liveSocialOverview.incomingFriendRequests.some(
-                                      (f) => f.playerId === opponentId,
-                                    )
-                                  : false;
-                              const canBefriend =
-                                isAccount &&
-                                !isYourSeat &&
-                                seat &&
-                                seat.player.kind === "account" &&
-                                !isFriend &&
-                                !hasPendingOutgoing &&
-                                !hasPendingIncoming;
+                            const isFriend =
+                              !isYourSeat && opponentId
+                                ? liveSocialOverview.friends.some((f) => f.playerId === opponentId)
+                                : false;
+                            const hasPendingOutgoing =
+                              !isYourSeat && opponentId
+                                ? liveSocialOverview.outgoingFriendRequests.some(
+                                    (f) => f.playerId === opponentId,
+                                  )
+                                : false;
+                            const hasPendingIncoming =
+                              !isYourSeat && opponentId
+                                ? liveSocialOverview.incomingFriendRequests.some(
+                                    (f) => f.playerId === opponentId,
+                                  )
+                                : false;
+                            const canBefriend =
+                              isAccount &&
+                              !isYourSeat &&
+                              seat &&
+                              seat.player.kind === "account" &&
+                              !isFriend &&
+                              !hasPendingOutgoing &&
+                              !hasPendingIncoming;
 
-                              const tileVariant =
-                                color === "black" ? "dark" : "light";
-                              const tileStyle =
-                                color === "black"
-                                  ? "rounded-3xl border border-black/10 bg-[linear-gradient(180deg,#39312b,#14100d)] p-5 text-[#f9f2e8]"
-                                  : "rounded-3xl border border-[#d3c3ad] bg-[linear-gradient(180deg,#fffef8,#efe4d1)] p-5 text-[#2b1e14]";
+                            const tileVariant = color === "black" ? "dark" : "light";
+                            const tileStyle =
+                              color === "black"
+                                ? "rounded-3xl border border-black/10 bg-[linear-gradient(180deg,#39312b,#14100d)] p-5 text-[#f9f2e8]"
+                                : "rounded-3xl border border-[#d3c3ad] bg-[linear-gradient(180deg,#fffef8,#efe4d1)] p-5 text-[#2b1e14]";
 
-                              return (
-                                <AnimatedScoreTile
-                                  key={color}
-                                  label={t(color)}
-                                  value={
-                                    (displayState ?? multiplayerSnapshot.state)
-                                      .score[color]
-                                  }
-                                  pulseKey={0}
-                                  className={tileStyle}
-                                  labelClassName="text-xs uppercase tracking-wider"
-                                  clockMs={hasClock ? (color === "white" ? whiteTime : blackTime) : null}
-                                  clockActive={hasClock && multiplayerSnapshot.state.currentTurn === color && multiplayerSnapshot.status === "active"}
-                                  playerInfo={
-                                    seat
-                                      ? {
-                                          player: seat.player,
-                                          online: seat.online,
-                                          isYou: isYourSeat,
-                                          isFriend,
-                                          hasPendingOutgoing,
-                                          canBefriend,
-                                          variant: tileVariant,
-                                          onAddFriend: canBefriend
-                                            ? () =>
-                                                social.handleSendFriendRequest(
-                                                  seat.player.playerId,
-                                                )
-                                            : undefined,
-                                          addFriendBusy:
-                                            social.socialActionBusyKey ===
-                                            `friend-send:${seat.player.playerId}`,
-                                          onCancelFriendRequest:
-                                            hasPendingOutgoing
-                                              ? () =>
-                                                  social.handleCancelFriendRequest(
-                                                    seat.player.playerId,
-                                                  )
-                                              : undefined,
-                                          cancelFriendRequestBusy:
-                                            social.socialActionBusyKey ===
-                                            `friend-cancel:${seat.player.playerId}`,
-                                        }
-                                      : undefined
-                                  }
-                                  scoreToWin={multiplayerSnapshot.state.scoreToWin}
-                                />
-                              );
-                            },
-                          )}
+                            return (
+                              <AnimatedScoreTile
+                                key={color}
+                                label={t(color)}
+                                value={(displayState ?? multiplayerSnapshot.state).score[color]}
+                                pulseKey={0}
+                                className={tileStyle}
+                                labelClassName="text-xs uppercase tracking-wider"
+                                clockMs={
+                                  hasClock ? (color === "white" ? whiteTime : blackTime) : null
+                                }
+                                clockActive={
+                                  hasClock &&
+                                  multiplayerSnapshot.state.currentTurn === color &&
+                                  multiplayerSnapshot.status === "active"
+                                }
+                                playerInfo={
+                                  seat
+                                    ? {
+                                        player: seat.player,
+                                        online: seat.online,
+                                        isYou: isYourSeat,
+                                        isFriend,
+                                        hasPendingOutgoing,
+                                        canBefriend,
+                                        variant: tileVariant,
+                                        onAddFriend: canBefriend
+                                          ? () =>
+                                              social.handleSendFriendRequest(seat.player.playerId)
+                                          : undefined,
+                                        addFriendBusy:
+                                          social.socialActionBusyKey ===
+                                          `friend-send:${seat.player.playerId}`,
+                                        onCancelFriendRequest: hasPendingOutgoing
+                                          ? () =>
+                                              social.handleCancelFriendRequest(seat.player.playerId)
+                                          : undefined,
+                                        cancelFriendRequestBusy:
+                                          social.socialActionBusyKey ===
+                                          `friend-cancel:${seat.player.playerId}`,
+                                      }
+                                    : undefined
+                                }
+                                scoreToWin={multiplayerSnapshot.state.scoreToWin}
+                              />
+                            );
+                          })}
                         </div>
                       )}
 
@@ -1093,10 +1103,14 @@ export function MultiplayerGamePage() {
                                 }
                                 disabled={
                                   multiplayerSnapshot.state.history.length === 0 ||
-                                  (multiplayerSnapshot.takeback?.declinedCount?.[playerSeat as PlayerColor] ?? 0) >= 3
+                                  (multiplayerSnapshot.takeback?.declinedCount?.[
+                                    playerSeat as PlayerColor
+                                  ] ?? 0) >= 3
                                 }
                               >
-                                {(multiplayerSnapshot.takeback?.declinedCount?.[playerSeat as PlayerColor] ?? 0) >= 3
+                                {(multiplayerSnapshot.takeback?.declinedCount?.[
+                                  playerSeat as PlayerColor
+                                ] ?? 0) >= 3
                                   ? t("noTakebacksLeft")
                                   : t("requestTakeback")}
                               </Button>
@@ -1107,7 +1121,8 @@ export function MultiplayerGamePage() {
                       {winner &&
                         isMultiplayerParticipant &&
                         connectionState === "connected" &&
-                        multiplayerSnapshot.seats[playerSeat === "white" ? "black" : "white"]?.online && (
+                        multiplayerSnapshot.seats[playerSeat === "white" ? "black" : "white"]
+                          ?.online && (
                           <div className="grid gap-2 border-t border-[#dbc6a2] pt-4">
                             {multiplayerSnapshot.rematch?.requestedBy.includes(
                               playerSeat as PlayerColor,
@@ -1116,9 +1131,9 @@ export function MultiplayerGamePage() {
                                 <p className="text-center text-sm font-medium text-[#56703f]">
                                   {t("rematchRequestedWaiting")}
                                 </p>
-                                {(
-                                  multiplayerSnapshot.rematch?.requestedBy ?? []
-                                ).some((color) => color !== playerSeat) && (
+                                {(multiplayerSnapshot.rematch?.requestedBy ?? []).some(
+                                  (color) => color !== playerSeat,
+                                ) && (
                                   <p className="text-center text-xs text-[#6e5b48]">
                                     {t("rematchBothWant")}
                                   </p>
@@ -1137,14 +1152,13 @@ export function MultiplayerGamePage() {
                                     }
                                   }}
                                 >
-                                  {multiplayerSnapshot.rematch?.requestedBy
-                                    .length
+                                  {multiplayerSnapshot.rematch?.requestedBy.length
                                     ? t("acceptRematch")
                                     : t("rematch")}
                                 </Button>
-                                {(
-                                  multiplayerSnapshot.rematch?.requestedBy ?? []
-                                ).some((color) => color !== playerSeat) ? (
+                                {(multiplayerSnapshot.rematch?.requestedBy ?? []).some(
+                                  (color) => color !== playerSeat,
+                                ) ? (
                                   <Button
                                     variant="outline"
                                     onClick={() =>
@@ -1156,10 +1170,7 @@ export function MultiplayerGamePage() {
                                     {tCommon("decline")}
                                   </Button>
                                 ) : (
-                                  <Button
-                                    variant="outline"
-                                    onClick={() => router.push("/")}
-                                  >
+                                  <Button variant="outline" onClick={() => router.push("/")}>
                                     {tCommon("lobby")}
                                   </Button>
                                 )}
@@ -1169,15 +1180,9 @@ export function MultiplayerGamePage() {
                         )}
 
                       {isReviewMode &&
-                        !(
-                          isMultiplayerParticipant &&
-                          connectionState === "connected"
-                        ) && (
+                        !(isMultiplayerParticipant && connectionState === "connected") && (
                           <div className="grid gap-2 border-t border-[#dbc6a2] pt-4">
-                            <Button
-                              variant="ghost"
-                              onClick={() => router.push("/")}
-                            >
+                            <Button variant="ghost" onClick={() => router.push("/")}>
                               {tCommon("backToLobby")}
                             </Button>
                           </div>
@@ -1195,9 +1200,7 @@ export function MultiplayerGamePage() {
                                 ? reviewMoveIndex
                                 : multiplayerSnapshot.state.history.length - 1
                             }
-                            onSelectMove={
-                              isReviewMode ? setReviewMoveIndex : undefined
-                            }
+                            onSelectMove={isReviewMode ? setReviewMoveIndex : undefined}
                             interactive={isReviewMode}
                             hideNavButtons={isReviewMode}
                           />
@@ -1228,10 +1231,7 @@ export function MultiplayerGamePage() {
 
                       {isSpectator && (
                         <div className="grid gap-2 border-t border-[#dbc6a2] pt-4">
-                          <Button
-                            variant="ghost"
-                            onClick={() => router.push("/")}
-                          >
+                          <Button variant="ghost" onClick={() => router.push("/")}>
                             {tCommon("backToLobby")}
                           </Button>
                         </div>
@@ -1258,20 +1258,15 @@ export function MultiplayerGamePage() {
       >
         <div className="space-y-2 max-h-[20rem] overflow-y-auto">
           {liveSocialOverview.friends.length === 0 ? (
-            <p className="text-center text-sm text-[#6e5b48] py-6">
-              {t("noFriendsYet")}
-            </p>
+            <p className="text-center text-sm text-[#6e5b48] py-6">{t("noFriendsYet")}</p>
           ) : (
             liveSocialOverview.friends.map((friend) => {
               const alreadyInRoom = multiplayerSnapshot?.players.some(
                 (slot) => slot.player.playerId === friend.playerId,
               );
-              const alreadyInvited =
-                liveSocialOverview.outgoingInvitations.some(
-                  (inv) =>
-                    inv.recipient.playerId === friend.playerId &&
-                    inv.gameId === gameId,
-                );
+              const alreadyInvited = liveSocialOverview.outgoingInvitations.some(
+                (inv) => inv.recipient.playerId === friend.playerId && inv.gameId === gameId,
+              );
               return (
                 <div
                   key={friend.playerId}
@@ -1315,10 +1310,7 @@ export function MultiplayerGamePage() {
         description={t("forfeitConfirm")}
       >
         <div className="flex gap-3 justify-end">
-          <Button
-            variant="outline"
-            onClick={() => setForfeitDialogOpen(false)}
-          >
+          <Button variant="outline" onClick={() => setForfeitDialogOpen(false)}>
             {tCommon("cancel")}
           </Button>
           <Button
@@ -1348,26 +1340,37 @@ export function MultiplayerGamePage() {
       >
         <div className="grid gap-2">
           {/* Elo rating change after game */}
-          {multiplayerSnapshot?.ratingAfter && multiplayerSnapshot?.ratingBefore && playerSeat && (() => {
-            const before = multiplayerSnapshot.ratingBefore[playerSeat];
-            const after = multiplayerSnapshot.ratingAfter[playerSeat];
-            const delta = after - before;
-            return (
-              <div className="flex items-center justify-center gap-2 py-1 text-sm">
-                <span className="text-[#6e5b48]">{t("ratingChange")}:</span>
-                <span className={delta > 0 ? "font-semibold text-[#56703f]" : delta < 0 ? "font-semibold text-[#a04040]" : "text-[#6e5b48]"}>
-                  {delta > 0
-                    ? t("ratingUp", { rating: Math.round(after), delta: Math.round(delta) })
-                    : delta < 0
-                      ? t("ratingDown", { rating: Math.round(after), delta: Math.round(delta) })
-                      : t("ratingUnchanged", { rating: Math.round(after) })}
-                </span>
-              </div>
-            );
-          })()}
+          {multiplayerSnapshot?.ratingAfter &&
+            multiplayerSnapshot?.ratingBefore &&
+            playerSeat &&
+            (() => {
+              const before = multiplayerSnapshot.ratingBefore[playerSeat];
+              const after = multiplayerSnapshot.ratingAfter[playerSeat];
+              const delta = after - before;
+              return (
+                <div className="flex items-center justify-center gap-2 py-1 text-sm">
+                  <span className="text-[#6e5b48]">{t("ratingChange")}:</span>
+                  <span
+                    className={
+                      delta > 0
+                        ? "font-semibold text-[#56703f]"
+                        : delta < 0
+                          ? "font-semibold text-[#a04040]"
+                          : "text-[#6e5b48]"
+                    }
+                  >
+                    {delta > 0
+                      ? t("ratingUp", { rating: Math.round(after), delta: Math.round(delta) })
+                      : delta < 0
+                        ? t("ratingDown", { rating: Math.round(after), delta: Math.round(delta) })
+                        : t("ratingUnchanged", { rating: Math.round(after) })}
+                  </span>
+                </div>
+              );
+            })()}
           {isMultiplayerParticipant &&
-            connectionState === "connected" &&
-            multiplayerSnapshot?.seats[playerSeat === "white" ? "black" : "white"]?.online ? (
+          connectionState === "connected" &&
+          multiplayerSnapshot?.seats[playerSeat === "white" ? "black" : "white"]?.online ? (
             <>
               {multiplayerSnapshot?.rematch?.requestedBy.includes(playerSeat as PlayerColor) ? (
                 <p className="text-center text-sm font-medium text-[#56703f] py-2">
@@ -1390,7 +1393,13 @@ export function MultiplayerGamePage() {
               )}
             </>
           ) : null}
-          <Button variant="ghost" onClick={() => { setGameOverDialogOpen(false); router.push("/"); }}>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setGameOverDialogOpen(false);
+              router.push("/");
+            }}
+          >
             {tCommon("backToLobby")}
           </Button>
         </div>
@@ -1405,25 +1414,19 @@ export function MultiplayerGamePage() {
         <div className="space-y-4">
           <div className="space-y-2 max-h-[16rem] overflow-y-auto">
             {multiplayerSnapshot?.spectators.length === 0 ? (
-              <p className="text-center text-sm text-[#6e5b48] py-4">
-                {t("noSpectatorsYet")}
-              </p>
+              <p className="text-center text-sm text-[#6e5b48] py-4">{t("noSpectatorsYet")}</p>
             ) : (
               multiplayerSnapshot?.spectators.map((slot) => {
                 const specId = slot.player.playerId;
                 const isYou = specId === auth?.player.playerId;
                 const isAccount = auth?.player.kind === "account";
-                const isFriend = liveSocialOverview.friends.some(
+                const isFriend = liveSocialOverview.friends.some((f) => f.playerId === specId);
+                const hasPendingOutgoing = liveSocialOverview.outgoingFriendRequests.some(
                   (f) => f.playerId === specId,
                 );
-                const hasPendingOutgoing =
-                  liveSocialOverview.outgoingFriendRequests.some(
-                    (f) => f.playerId === specId,
-                  );
-                const hasPendingIncoming =
-                  liveSocialOverview.incomingFriendRequests.some(
-                    (f) => f.playerId === specId,
-                  );
+                const hasPendingIncoming = liveSocialOverview.incomingFriendRequests.some(
+                  (f) => f.playerId === specId,
+                );
                 const canBefriend =
                   isAccount &&
                   !isYou &&
@@ -1460,16 +1463,10 @@ export function MultiplayerGamePage() {
                           size="sm"
                           variant="outline"
                           className="text-xs h-7 px-2"
-                          onClick={() =>
-                            social.handleSendFriendRequest(specId)
-                          }
-                          disabled={
-                            social.socialActionBusyKey ===
-                            `friend-send:${specId}`
-                          }
+                          onClick={() => social.handleSendFriendRequest(specId)}
+                          disabled={social.socialActionBusyKey === `friend-send:${specId}`}
                         >
-                          {social.socialActionBusyKey ===
-                          `friend-send:${specId}`
+                          {social.socialActionBusyKey === `friend-send:${specId}`
                             ? t("sending")
                             : tCommon("addFriend")}
                         </Button>
@@ -1492,10 +1489,22 @@ export function MultiplayerGamePage() {
                 className="flex-1 text-xs"
                 onClick={handleCopyGameLink}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-                {copyFeedbackKey === "share-link" && copyFeedback
-                  ? copyFeedback
-                  : t("copyLink")}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="mr-1.5"
+                >
+                  <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                  <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                </svg>
+                {copyFeedbackKey === "share-link" && copyFeedback ? copyFeedback : t("copyLink")}
               </Button>
               {typeof navigator !== "undefined" && "share" in navigator && (
                 <Button
@@ -1511,7 +1520,22 @@ export function MultiplayerGamePage() {
                     });
                   }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="mr-1.5"
+                  >
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                    <polyline points="16 6 12 2 8 6" />
+                    <line x1="12" x2="12" y1="2" y2="15" />
+                  </svg>
                   {t("share")}
                 </Button>
               )}
@@ -1541,10 +1565,7 @@ export function MultiplayerGamePage() {
                     [t("ruleBorder"), t("ruleBorderDesc")],
                   ] as const
                 ).map(([rule, desc]) => (
-                  <tr
-                    key={rule}
-                    className="border-b border-[#e8dcc8] last:border-0"
-                  >
+                  <tr key={rule} className="border-b border-[#e8dcc8] last:border-0">
                     <td className="px-3 py-2 font-semibold text-[#2b1e14] whitespace-nowrap">
                       {rule}
                     </td>
@@ -1556,16 +1577,15 @@ export function MultiplayerGamePage() {
           </div>
 
           <div className="grid gap-2">
-            <Button onClick={() => {
-              localStorage.setItem("tiao:tutorialComplete", "1");
-              setRulesIntroOpen(false);
-            }}>
+            <Button
+              onClick={() => {
+                localStorage.setItem("tiao:tutorialComplete", "1");
+                setRulesIntroOpen(false);
+              }}
+            >
               {t("gotItPlay")}
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => router.push("/tutorial")}
-            >
+            <Button variant="outline" onClick={() => router.push("/tutorial")}>
               {t("learnToPlay")}
             </Button>
           </div>

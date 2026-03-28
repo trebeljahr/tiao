@@ -4,12 +4,7 @@ import { Page } from "@playwright/test";
  * Opens the nav drawer (hamburger menu) and clicks "Sign up",
  * fills in the form, and submits. Waits for the signup API to succeed.
  */
-export async function signUpViaUI(
-  page: Page,
-  username: string,
-  password: string,
-  email?: string,
-) {
+export async function signUpViaUI(page: Page, username: string, password: string, email?: string) {
   const testEmail = email || `${username}@test.tiao.local`;
 
   await page.goto("/");
@@ -30,11 +25,7 @@ export async function signUpViaUI(
  * Opens the nav drawer and clicks "Sign in",
  * fills in credentials and submits. Waits for login API to succeed.
  */
-export async function signInViaUI(
-  page: Page,
-  usernameOrEmail: string,
-  password: string,
-) {
+export async function signInViaUI(page: Page, usernameOrEmail: string, password: string) {
   await page.goto("/");
   await page.click('[aria-label="Open navigation"]');
   await page.click('button:has-text("Sign in")');

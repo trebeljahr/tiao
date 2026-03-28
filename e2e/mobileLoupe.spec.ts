@@ -88,18 +88,12 @@ test.describe("Mobile loupe – stone placement", () => {
     expect(cell88).not.toBeNull();
 
     // First tap at (9,9) — show preview there
-    await page.touchscreen.tap(
-      cell99!.x + cell99!.width / 2,
-      cell99!.y + cell99!.height / 2,
-    );
+    await page.touchscreen.tap(cell99!.x + cell99!.width / 2, cell99!.y + cell99!.height / 2);
     const loupe = board(page).locator('[class*="z-30"]');
     await expect(loupe).toBeVisible({ timeout: 2000 });
 
     // Tap at (8,8) — preview should move (not confirm at 9,9)
-    await page.touchscreen.tap(
-      cell88!.x + cell88!.width / 2,
-      cell88!.y + cell88!.height / 2,
-    );
+    await page.touchscreen.tap(cell88!.x + cell88!.width / 2, cell88!.y + cell88!.height / 2);
 
     // No stone placed at (9,9)
     await expect(cell(page, 9, 9)).not.toHaveAttribute("data-piece", "white");
@@ -107,10 +101,7 @@ test.describe("Mobile loupe – stone placement", () => {
     await expect(loupe).toBeVisible();
 
     // Confirm at (8,8) with second tap
-    await page.touchscreen.tap(
-      cell88!.x + cell88!.width / 2,
-      cell88!.y + cell88!.height / 2,
-    );
+    await page.touchscreen.tap(cell88!.x + cell88!.width / 2, cell88!.y + cell88!.height / 2);
     await expect(cell(page, 8, 8)).toHaveAttribute("data-piece", "white");
   });
 

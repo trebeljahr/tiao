@@ -1,12 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useComputerGame } from "./useComputerGame";
-import {
-  createInitialGameState,
-  placePiece,
-  jumpPiece,
-  confirmPendingJump,
-} from "@shared";
+import { createInitialGameState, placePiece, jumpPiece, confirmPendingJump } from "@shared";
 import type { GameState } from "@shared";
 
 // Store resolve/reject callbacks so tests can control when the AI "responds"
@@ -145,11 +140,13 @@ describe("useComputerGame – AI multi-jump animation completes", () => {
     state.positions[7][9] = "white";
     state.positions[9][9] = "white";
     state.currentTurn = "black";
-    state.history = [{
-      type: "put" as const,
-      color: "white" as const,
-      position: { x: 5, y: 5 },
-    }];
+    state.history = [
+      {
+        type: "put" as const,
+        color: "white" as const,
+        position: { x: 5, y: 5 },
+      },
+    ];
     state.positions[5][5] = "white";
 
     act(() => {
@@ -161,7 +158,10 @@ describe("useComputerGame – AI multi-jump animation completes", () => {
     const jumpPlan = {
       type: "jump" as const,
       from: { x: 9, y: 6 },
-      path: [{ x: 9, y: 8 }, { x: 9, y: 10 }],
+      path: [
+        { x: 9, y: 8 },
+        { x: 9, y: 10 },
+      ],
       score: 200,
     };
 
@@ -206,11 +206,13 @@ describe("useComputerGame – AI multi-jump animation completes", () => {
     state.positions[6][9] = "black";
     state.positions[7][9] = "white";
     state.currentTurn = "black";
-    state.history = [{
-      type: "put" as const,
-      color: "white" as const,
-      position: { x: 5, y: 5 },
-    }];
+    state.history = [
+      {
+        type: "put" as const,
+        color: "white" as const,
+        position: { x: 5, y: 5 },
+      },
+    ];
     state.positions[5][5] = "white";
 
     act(() => {
@@ -265,11 +267,13 @@ describe("useComputerGame – undo during AI animation (mid-jump)", () => {
     // It's black's turn (computer)
     state.currentTurn = "black";
     // Add a dummy history entry so the player has something to undo
-    state.history = [{
-      type: "put" as const,
-      color: "white" as const,
-      position: { x: 5, y: 5 },
-    }];
+    state.history = [
+      {
+        type: "put" as const,
+        color: "white" as const,
+        position: { x: 5, y: 5 },
+      },
+    ];
     state.positions[5][5] = "white";
 
     act(() => {
@@ -281,7 +285,10 @@ describe("useComputerGame – undo during AI animation (mid-jump)", () => {
     const jumpPlan = {
       type: "jump" as const,
       from: { x: 9, y: 6 },
-      path: [{ x: 9, y: 8 }, { x: 9, y: 10 }],
+      path: [
+        { x: 9, y: 8 },
+        { x: 9, y: 10 },
+      ],
       score: 200,
     };
 

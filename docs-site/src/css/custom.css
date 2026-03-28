@@ -29,11 +29,9 @@
   --ifm-code-background: rgba(139, 105, 20, 0.08);
   --ifm-code-border-radius: 4px;
 
-  --ifm-font-family-base: "Zen Kaku Gothic New", ui-sans-serif, system-ui,
-    sans-serif;
+  --ifm-font-family-base: "Zen Kaku Gothic New", ui-sans-serif, system-ui, sans-serif;
   --ifm-heading-font-family: "Zen Old Mincho", ui-serif, serif;
-  --ifm-font-family-monospace: ui-monospace, SFMono-Regular, Menlo, Monaco,
-    Consolas, monospace;
+  --ifm-font-family-monospace: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   --docusaurus-highlighted-code-line-bg: rgba(139, 105, 20, 0.1);
 }

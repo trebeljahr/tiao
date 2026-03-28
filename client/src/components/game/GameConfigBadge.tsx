@@ -50,9 +50,5 @@ export function GameConfigBadge({
 
   if (parts.length === 0) return null;
 
-  return (
-    <span className="text-xs text-[#8d7760]">
-      {parts.join(" · ")}
-    </span>
-  );
+  return <span className="text-xs text-[#8d7760]">{parts.join(" · ")}</span>;
 }

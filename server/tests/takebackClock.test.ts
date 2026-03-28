@@ -5,10 +5,7 @@ import type { PlayerIdentity, TimeControl } from "../../shared/src";
 import { GameService } from "../game/gameService";
 import { InMemoryGameRoomStore } from "../game/gameStore";
 
-function createPlayer(
-  playerId: string,
-  options: Partial<PlayerIdentity> = {}
-): PlayerIdentity {
+function createPlayer(playerId: string, options: Partial<PlayerIdentity> = {}): PlayerIdentity {
   return {
     playerId,
     displayName: options.displayName ?? playerId,
@@ -82,7 +79,7 @@ test("takeback restores clock correctly for instant moves", async () => {
   const diff = Math.abs(afterTakeback.clock.white - whiteAfterFirst);
   assert.ok(
     diff < 1_000,
-    `clock should be restored to ~${whiteAfterFirst}ms but got ${afterTakeback.clock.white}ms (diff: ${diff}ms)`
+    `clock should be restored to ~${whiteAfterFirst}ms but got ${afterTakeback.clock.white}ms (diff: ${diff}ms)`,
   );
 });
 
@@ -127,10 +124,7 @@ test("takeback sets lastMoveAt to current time, not a stale historical timestamp
   assert.ok(room.lastMoveAt);
 
   const ageMs = Date.now() - room.lastMoveAt.getTime();
-  assert.ok(
-    ageMs < 2_000,
-    `lastMoveAt should be recent (within 2s) but is ${ageMs}ms old`
-  );
+  assert.ok(ageMs < 2_000, `lastMoveAt should be recent (within 2s) but is ${ageMs}ms old`);
 });
 
 test("double takeback (requester's turn) restores both clocks correctly", async () => {
@@ -183,7 +177,7 @@ test("double takeback (requester's turn) restores both clocks correctly", async 
   const diff = Math.abs(afterTakeback.clock.black - blackAfterBobFirst);
   assert.ok(
     diff < 1_000,
-    `bob's clock should be restored to ~${blackAfterBobFirst}ms but got ${afterTakeback.clock.black}ms (diff: ${diff}ms)`
+    `bob's clock should be restored to ~${blackAfterBobFirst}ms but got ${afterTakeback.clock.black}ms (diff: ${diff}ms)`,
   );
 
   // lastMoveAt should be recent

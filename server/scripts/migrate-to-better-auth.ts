@@ -44,9 +44,7 @@ async function migrate() {
 
     try {
       // Determine email — use real email or generate placeholder for email-less accounts
-      const email =
-        account.email ||
-        `${account.displayName}@no-email.tiao.local`;
+      const email = account.email || `${account.displayName}@no-email.tiao.local`;
       const emailVerified = !!account.email;
 
       // Create better-auth user document
@@ -93,10 +91,7 @@ async function migrate() {
   console.log("Ensuring indexes...");
   await baUsers.createIndex({ email: 1 }, { unique: true });
   await baAccounts.createIndex({ userId: 1 });
-  await baAccounts.createIndex(
-    { providerId: 1, accountId: 1 },
-    { unique: true },
-  );
+  await baAccounts.createIndex({ providerId: 1, accountId: 1 }, { unique: true });
 
   console.log("Done. You can now deploy the better-auth code.");
   await mongoose.disconnect();

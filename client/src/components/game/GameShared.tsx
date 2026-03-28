@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, useAnimationControls } from "framer-motion";
-import {
-  GameState,
-  PlayerColor,
-  isGameOver,
-} from "@shared";
+import { GameState, PlayerColor, isGameOver } from "@shared";
 import type {
   MultiplayerSnapshot,
   MultiplayerGameSummary,
@@ -19,12 +15,7 @@ import { formatClockTime } from "./GameClock";
 
 export function CopyIcon({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 20 20"
-      fill="none"
-      aria-hidden="true"
-      className={cn("h-4 w-4", className)}
-    >
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className={cn("h-4 w-4", className)}>
       <path
         d="M7.5 6.25V5a2.5 2.5 0 0 1 2.5-2.5h5a2.5 2.5 0 0 1 2.5 2.5v5A2.5 2.5 0 0 1 15 12.5h-1.25"
         stroke="currentColor"
@@ -47,12 +38,7 @@ export function CopyIcon({ className }: { className?: string }) {
 
 export function LinkIcon({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 20 20"
-      fill="none"
-      aria-hidden="true"
-      className={cn("h-4 w-4", className)}
-    >
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className={cn("h-4 w-4", className)}>
       <path
         d="M11.875 7.625a3.125 3.125 0 0 1 0 4.417l-1.875 1.875a3.125 3.125 0 0 1-4.417-4.417l.625-.625m3.75 3.125a3.125 3.125 0 0 1 0-4.417l1.875-1.875a3.125 3.125 0 0 1 4.417 4.417l-.625.625"
         stroke="currentColor"
@@ -66,12 +52,7 @@ export function LinkIcon({ className }: { className?: string }) {
 
 export function CheckIcon({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 20 20"
-      fill="none"
-      aria-hidden="true"
-      className={cn("h-4 w-4", className)}
-    >
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className={cn("h-4 w-4", className)}>
       <path
         d="m4.5 10 3.5 3.5L15.5 6"
         stroke="currentColor"
@@ -93,9 +74,7 @@ export function getOpponentFromSlots(
     return null;
   }
 
-  return (
-    players.find((slot) => slot.player.playerId !== playerId)?.player ?? null
-  );
+  return players.find((slot) => slot.player.playerId !== playerId)?.player ?? null;
 }
 
 export function formatPlayerColor(color: PlayerColor | null) {
@@ -117,9 +96,7 @@ export function formatGameTimestamp(value: string) {
 
 export function isSummaryYourTurn(summary: MultiplayerGameSummary) {
   return (
-    summary.status === "active" &&
-    !!summary.yourSeat &&
-    summary.currentTurn === summary.yourSeat
+    summary.status === "active" && !!summary.yourSeat && summary.currentTurn === summary.yourSeat
   );
 }
 
@@ -158,10 +135,7 @@ export function getSummaryStatusLabel(
   return t ? t("waitingForOpponent") : "Waiting for opponent";
 }
 
-export function formatRelativeExpiry(
-  value: string,
-  t?: (key: string, values?: any) => string,
-) {
+export function formatRelativeExpiry(value: string, t?: (key: string, values?: any) => string) {
   const remainingMs = new Date(value).getTime() - Date.now();
   const remainingMinutes = Math.max(0, Math.round(remainingMs / 60000));
 
@@ -189,10 +163,7 @@ export function formatPlayerName(
     : player.displayName;
 }
 
-export function getOptimisticSnapshotStatus(
-  snapshot: MultiplayerSnapshot,
-  state: GameState,
-) {
+export function getOptimisticSnapshotStatus(snapshot: MultiplayerSnapshot, state: GameState) {
   if (isGameOver(state)) {
     return "finished";
   }
@@ -248,25 +219,33 @@ export function describeResult(
   if (!result) return "";
   if (result === "won") {
     switch (finishReason) {
-      case "captured": return t ? t("scoreTargetReached") : "Score target reached";
-      case "forfeit": return t ? t("opponentForfeited") : "Opponent forfeited";
-      case "timeout": return t ? t("opponentTimedOut") : "Opponent ran out of time";
-      case "board_full": return t ? t("boardFullYouWon") : "Board full — you had more points";
-      default: return "";
+      case "captured":
+        return t ? t("scoreTargetReached") : "Score target reached";
+      case "forfeit":
+        return t ? t("opponentForfeited") : "Opponent forfeited";
+      case "timeout":
+        return t ? t("opponentTimedOut") : "Opponent ran out of time";
+      case "board_full":
+        return t ? t("boardFullYouWon") : "Board full — you had more points";
+      default:
+        return "";
     }
   }
   switch (finishReason) {
-    case "captured": return t ? t("opponentReachedTarget") : "Opponent reached score target";
-    case "forfeit": return t ? t("youForfeited") : "You forfeited";
-    case "timeout": return t ? t("youTimedOut") : "You ran out of time";
-    case "board_full": return t ? t("boardFullOpponentWon") : "Board full — opponent had more points";
-    default: return "";
+    case "captured":
+      return t ? t("opponentReachedTarget") : "Opponent reached score target";
+    case "forfeit":
+      return t ? t("youForfeited") : "You forfeited";
+    case "timeout":
+      return t ? t("youTimedOut") : "You ran out of time";
+    case "board_full":
+      return t ? t("boardFullOpponentWon") : "Board full — opponent had more points";
+    default:
+      return "";
   }
 }
 
-export function getPlayerResult(
-  summary: MultiplayerGameSummary,
-): "won" | "lost" | null {
+export function getPlayerResult(summary: MultiplayerGameSummary): "won" | "lost" | null {
   if (summary.status !== "finished" || !summary.winner || !summary.yourSeat) {
     return null;
   }
@@ -275,13 +254,7 @@ export function getPlayerResult(
 
 // --- Components ---
 
-export function ConnectionDot({
-  online,
-  className,
-}: {
-  online: boolean;
-  className?: string;
-}) {
+export function ConnectionDot({ online, className }: { online: boolean; className?: string }) {
   return (
     <span
       role="status"
@@ -400,9 +373,7 @@ export function RoomCodeCopyPill({
         <span
           className={cn(
             "flex h-6 w-6 items-center justify-center rounded-full border text-[#f9f2e8]/90 transition-colors",
-            copied
-              ? "border-[#a7d08e] bg-[#456136] text-[#eef9e8]"
-              : "border-white/15 bg-white/8",
+            copied ? "border-[#a7d08e] bg-[#456136] text-[#eef9e8]" : "border-white/15 bg-white/8",
           )}
         >
           {copied ? <CheckIcon /> : <CopyIcon />}
@@ -412,13 +383,7 @@ export function RoomCodeCopyPill({
   );
 }
 
-export function ShareLinkCopyPill({
-  copied,
-  onCopy,
-}: {
-  copied: boolean;
-  onCopy: () => void;
-}) {
+export function ShareLinkCopyPill({ copied, onCopy }: { copied: boolean; onCopy: () => void }) {
   return (
     <motion.button
       type="button"
@@ -444,9 +409,7 @@ export function ShareLinkCopyPill({
       <span
         className={cn(
           "flex h-6 w-6 items-center justify-center rounded-full border text-[#f9f2e8]/90 transition-colors",
-          copied
-            ? "border-[#a7d08e] bg-[#456136] text-[#eef9e8]"
-            : "border-white/15 bg-white/8",
+          copied ? "border-[#a7d08e] bg-[#456136] text-[#eef9e8]" : "border-white/15 bg-white/8",
         )}
       >
         {copied ? <CheckIcon /> : <LinkIcon />}
@@ -486,9 +449,7 @@ export function GamePanelBrand() {
       <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#f6e8cf]/55 bg-[linear-gradient(180deg,#faefd8,#ecd4a6)] font-display text-2xl text-[#25170d] shadow-[0_14px_28px_-18px_rgba(37,23,13,0.85)]">
         跳
       </span>
-      <span className="font-display text-3xl tracking-tight text-[#2f2015]">
-        Tiao
-      </span>
+      <span className="font-display text-3xl tracking-tight text-[#2f2015]">Tiao</span>
     </div>
   );
 }
@@ -598,16 +559,10 @@ export function AnimatedScoreTile({
       )}
       <p className={labelClassName}>{label}</p>
       <div className="flex items-baseline justify-between gap-2">
-        <motion.p
-          initial={{ scale: 1, y: 0 }}
-          animate={valueControls}
-          className={valueClassName}
-        >
+        <motion.p initial={{ scale: 1, y: 0 }} animate={valueControls} className={valueClassName}>
           {value}
           {scoreToWin != null && (
-            <span className="text-base font-normal opacity-50">
-              {" "}/ {scoreToWin}
-            </span>
+            <span className="text-base font-normal opacity-50"> / {scoreToWin}</span>
           )}
         </motion.p>
         {clockMs != null && (

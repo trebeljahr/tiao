@@ -10,10 +10,7 @@ const DEFAULTS: Required<ReconnectOptions> = {
   jitterMs: 1000,
 };
 
-export function createReconnectScheduler(
-  onReconnect: () => void,
-  options: ReconnectOptions = {},
-) {
+export function createReconnectScheduler(onReconnect: () => void, options: ReconnectOptions = {}) {
   const config = { ...DEFAULTS, ...options };
   let attempt = 0;
   let timer: number | null = null;

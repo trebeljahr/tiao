@@ -14,7 +14,7 @@ export const configureApp = (app: Express): void => {
     cors({
       origin: FRONTEND_URL ? [FRONTEND_URL] : false,
       credentials: true,
-    })
+    }),
   );
 
   const isProduction = process.env.NODE_ENV === "production";

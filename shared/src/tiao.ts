@@ -123,9 +123,7 @@ const ALL_JUMP_DIRECTIONS = ALL_DIRECTIONS.map(({ dx, dy }) => ({
 }));
 
 function createEmptyBoard(size: number = BOARD_SIZE): TileState[][] {
-  return Array.from({ length: size }, () =>
-    Array.from({ length: size }, () => null)
-  );
+  return Array.from({ length: size }, () => Array.from({ length: size }, () => null));
 }
 
 function clonePosition(position: Position): Position {
@@ -188,9 +186,7 @@ export function cloneGameState(state: GameState): GameState {
   };
 }
 
-export function createInitialGameState(
-  settings?: Partial<GameSettings>,
-): GameState {
+export function createInitialGameState(settings?: Partial<GameSettings>): GameState {
   const boardSize = settings?.boardSize ?? BOARD_SIZE;
   const scoreToWin = settings?.scoreToWin ?? SCORE_TO_WIN;
   return {
@@ -213,12 +209,7 @@ export function otherColor(color: PlayerColor): PlayerColor {
 }
 
 export function isInBounds(position: Position, boardSize: number = BOARD_SIZE): boolean {
-  return (
-    position.x >= 0 &&
-    position.x < boardSize &&
-    position.y >= 0 &&
-    position.y < boardSize
-  );
+  return position.x >= 0 && position.x < boardSize && position.y >= 0 && position.y < boardSize;
 }
 
 export function arePositionsEqual(a: Position | null, b: Position | null): boolean {
@@ -262,9 +253,7 @@ export function getWinner(state: GameState): PlayerColor | null {
 export function getFinishReason(state: GameState): FinishReason | null {
   if (!isGameOver(state)) return null;
 
-  const forfeitRecord = state.history.find(
-    (r): r is ForfeitTurn => r.type === "forfeit",
-  );
+  const forfeitRecord = state.history.find((r): r is ForfeitTurn => r.type === "forfeit");
 
   if (forfeitRecord?.reason === "timeout") return "timeout";
   if (forfeitRecord) return "forfeit";
@@ -309,19 +298,16 @@ export function getPendingJumpDestination(state: GameState): Position | null {
   return state.pendingJump[state.pendingJump.length - 1]?.to ?? null;
 }
 
-export function isPositionMarkedForCapture(
-  state: GameState,
-  position: Position
-): boolean {
+export function isPositionMarkedForCapture(state: GameState, position: Position): boolean {
   return state.pendingCaptures.some(
-    (capture) => capture.x === position.x && capture.y === position.y
+    (capture) => capture.x === position.x && capture.y === position.y,
   );
 }
 
 export function findConnectedCluster(
   state: GameState,
   start: Position,
-  targetColor: TileState = getTile(state, start)
+  targetColor: TileState = getTile(state, start),
 ): Position[] {
   if (!targetColor) {
     return [];
@@ -369,7 +355,7 @@ export function findConnectedCluster(
 export function getJumpTargets(
   state: GameState,
   from: Position,
-  color: PlayerColor = getTile(state, from) as PlayerColor
+  color: PlayerColor = getTile(state, from) as PlayerColor,
 ): Position[] {
   if (!color) {
     return [];
@@ -434,10 +420,7 @@ export function isBorderPosition(position: Position, boardSize: number = BOARD_S
   );
 }
 
-function positionCouldBeJumpedByEnemy(
-  state: GameState,
-  position: Position
-): boolean {
+function positionCouldBeJumpedByEnemy(state: GameState, position: Position): boolean {
   for (const { dx, dy } of ALL_JUMP_DIRECTIONS) {
     const jumpingPosition = {
       x: position.x + dx,
@@ -456,10 +439,7 @@ function positionCouldBeJumpedByEnemy(
     const middlePiece = getTile(state, middle);
     const jumpingPiece = getTile(state, jumpingPosition);
 
-    if (
-      middlePiece !== state.currentTurn ||
-      isPositionMarkedForCapture(state, middle)
-    ) {
+    if (middlePiece !== state.currentTurn || isPositionMarkedForCapture(state, middle)) {
       continue;
     }
 
@@ -495,11 +475,7 @@ function violatesClusterRule(state: GameState, position: Position): boolean {
       continue;
     }
 
-    const adjacentCluster = findConnectedCluster(
-      state,
-      adjacent,
-      state.currentTurn
-    );
+    const adjacentCluster = findConnectedCluster(state, adjacent, state.currentTurn);
 
     if (adjacentCluster.length >= 10) {
       return true;
@@ -596,10 +572,7 @@ function hasNoLegalMoves(state: GameState, color: PlayerColor): boolean {
   return true;
 }
 
-export function placePiece(
-  state: GameState,
-  position: Position
-): RuleResult<GameState> {
+export function placePiece(state: GameState, position: Position): RuleResult<GameState> {
   const placementCheck = canPlacePiece(state, position);
   if (!placementCheck.ok) {
     return placementCheck;
@@ -633,10 +606,7 @@ export function placePiece(
   };
 }
 
-export function canJumpFrom(
-  state: GameState,
-  from: Position
-): RuleResult<true> {
+export function canJumpFrom(state: GameState, from: Position): RuleResult<true> {
   if (isGameOver(state)) {
     return {
       ok: false,
@@ -688,11 +658,7 @@ export function canJumpFrom(
   };
 }
 
-export function jumpPiece(
-  state: GameState,
-  from: Position,
-  to: Position
-): RuleResult<GameState> {
+export function jumpPiece(state: GameState, from: Position, to: Position): RuleResult<GameState> {
   const jumpCheck = canJumpFrom(state, from);
   if (!jumpCheck.ok) {
     return jumpCheck;
@@ -883,7 +849,6 @@ export function undoLastTurn(state: GameState): RuleResult<GameState> {
     nextState.history.pop();
   }
 
-
   if (lastTurn.type === "put") {
     nextState.positions[lastTurn.position.y][lastTurn.position.x] = null;
     nextState.currentTurn = lastTurn.color;
@@ -902,7 +867,7 @@ export function undoLastTurn(state: GameState): RuleResult<GameState> {
 
   nextState.score[lastTurn.color] = Math.max(
     0,
-    nextState.score[lastTurn.color] - lastTurn.jumps.length
+    nextState.score[lastTurn.color] - lastTurn.jumps.length,
   );
   nextState.currentTurn = lastTurn.color;
 
@@ -914,7 +879,7 @@ export function undoLastTurn(state: GameState): RuleResult<GameState> {
 
 export function getSelectableJumpOrigins(
   state: GameState,
-  color: PlayerColor = state.currentTurn
+  color: PlayerColor = state.currentTurn,
 ): Position[] {
   if (state.pendingJump.length > 0) {
     const destination = getPendingJumpDestination(state);
@@ -978,7 +943,13 @@ export function formatTurnRecord(record: TurnRecord, index: number): string {
 
 export function formatGameNotation(
   history: TurnRecord[],
-  metadata?: { gameId?: string; white?: string; black?: string; boardSize?: number; scoreToWin?: number },
+  metadata?: {
+    gameId?: string;
+    white?: string;
+    black?: string;
+    boardSize?: number;
+    scoreToWin?: number;
+  },
 ): string {
   const lines: string[] = [];
   if (metadata?.gameId) lines.push(`[Game "${metadata.gameId}"]`);
@@ -1052,13 +1023,9 @@ export function positionsToSparse(positions: TileState[][]): SparsePositions {
   return { white, black };
 }
 
-export function sparseToPositions(
-  sparse: SparsePositions,
-  boardSize: number,
-): TileState[][] {
+export function sparseToPositions(sparse: SparsePositions, boardSize: number): TileState[][] {
   const positions = createEmptyBoard(boardSize);
   for (const [x, y] of sparse.white) positions[y][x] = "white";
   for (const [x, y] of sparse.black) positions[y][x] = "black";
   return positions;
 }
-

@@ -9,7 +9,7 @@ export function useTournament(
   options?: {
     onMatchReady?: (matchId: string, roomId: string) => void;
     onRoundComplete?: (roundIndex: number) => void;
-  }
+  },
 ) {
   const [tournament, setTournament] = useState<TournamentSnapshot | null>(null);
   const [loading, setLoading] = useState(false);
@@ -30,7 +30,7 @@ export function useTournament(
         setLoading(false);
       }
     },
-    [tournamentId]
+    [tournamentId],
   );
 
   useEffect(() => {
@@ -43,34 +43,22 @@ export function useTournament(
       (payload) => {
         if (!tournamentId) return;
 
-        if (
-          payload.type === "tournament-update" &&
-          payload.tournamentId === tournamentId
-        ) {
+        if (payload.type === "tournament-update" && payload.tournamentId === tournamentId) {
           fetchTournament({ silent: true });
         }
 
-        if (
-          payload.type === "tournament-match-ready" &&
-          payload.tournamentId === tournamentId
-        ) {
-          options?.onMatchReady?.(
-            payload.matchId as string,
-            payload.roomId as string
-          );
+        if (payload.type === "tournament-match-ready" && payload.tournamentId === tournamentId) {
+          options?.onMatchReady?.(payload.matchId as string, payload.roomId as string);
           fetchTournament({ silent: true });
         }
 
-        if (
-          payload.type === "tournament-round-complete" &&
-          payload.tournamentId === tournamentId
-        ) {
+        if (payload.type === "tournament-round-complete" && payload.tournamentId === tournamentId) {
           options?.onRoundComplete?.(payload.roundIndex as number);
           fetchTournament({ silent: true });
         }
       },
-      [tournamentId, fetchTournament, options?.onMatchReady, options?.onRoundComplete]
-    )
+      [tournamentId, fetchTournament, options?.onMatchReady, options?.onRoundComplete],
+    ),
   );
 
   return {

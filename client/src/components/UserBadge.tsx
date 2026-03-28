@@ -213,9 +213,7 @@ export function UserBadge({ badge, className, compact = false }: UserBadgeProps)
     <span
       className={cn(
         "inline-flex shrink-0 items-center rounded-full font-bold uppercase tracking-wider",
-        compact
-          ? "px-1.5 py-[1px] text-[8px]"
-          : "px-2 py-0.5 text-[10px]",
+        compact ? "px-1.5 py-[1px] text-[8px]" : "px-2 py-0.5 text-[10px]",
         className,
       )}
       style={{

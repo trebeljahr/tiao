@@ -8,11 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog } from "@/components/ui/dialog";
 import { Navbar } from "@/components/Navbar";
 import { TiaoBoard } from "@/components/game/TiaoBoard";
-import {
-  GamePanelBrand,
-  formatPlayerColor,
-  HourglassSpinner,
-} from "@/components/game/GameShared";
+import { GamePanelBrand, formatPlayerColor, HourglassSpinner } from "@/components/game/GameShared";
 import { GameSidePanel } from "@/components/game/GameSidePanel";
 import { GameConfigPanel } from "@/components/game/GameConfigPanel";
 import { useComputerGame } from "@/lib/hooks/useComputerGame";
@@ -42,7 +38,9 @@ export function ComputerGamePage() {
     setDifficulty(selectedDifficulty);
     const playerColorChoice = selectedColor === "random" ? undefined : selectedColor;
     const computerCol = playerColorChoice
-      ? (playerColorChoice === "white" ? "black" : "white")
+      ? playerColorChoice === "white"
+        ? "black"
+        : "white"
       : undefined;
     computer.resetLocalGame(computerCol);
   }, [selectedDifficulty, selectedColor, computer.resetLocalGame]);
@@ -94,11 +92,7 @@ export function ComputerGamePage() {
 
   const playerWon = winner !== null && winner !== computer.computerColor;
   const gameOverTitle = isDraw ? t("draw") : playerWon ? t("youWon") : t("youLost");
-  const gameOverDescription = isDraw
-    ? t("drawNoMoves")
-    : playerWon
-      ? t("wonDesc")
-      : t("lostDesc");
+  const gameOverDescription = isDraw ? t("drawNoMoves") : playerWon ? t("wonDesc") : t("lostDesc");
 
   const localStatusTitle = isDraw
     ? t("draw")
@@ -136,9 +130,7 @@ export function ComputerGamePage() {
             <Card className={cn(paperCard, "w-full max-w-md")}>
               <CardHeader>
                 <GamePanelBrand />
-                <CardTitle className="text-[#2b1e14]">
-                  {t("gameSetup")}
-                </CardTitle>
+                <CardTitle className="text-[#2b1e14]">{t("gameSetup")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <GameConfigPanel
@@ -162,10 +154,7 @@ export function ComputerGamePage() {
         ) : (
           <section className="grid gap-3 xl:min-h-[calc(100dvh-1rem)] xl:content-center xl:gap-5 xl:grid-cols-[minmax(0,1fr)_24rem] xl:items-start">
             <div className="flex items-center justify-center xl:items-start xl:justify-end">
-              <div
-                className="relative isolate mx-auto w-full"
-                style={boardWrapStyle}
-              >
+              <div className="relative isolate mx-auto w-full" style={boardWrapStyle}>
                 <TiaoBoard
                   state={computer.localGame}
                   selectedPiece={computer.localSelection}
@@ -204,7 +193,11 @@ export function ComputerGamePage() {
               gameState={computer.localGame}
               scorePulse={computer.localScorePulse}
               timeControl={null}
-              badge={t("vsAi", { difficulty: tConfig(difficulty === 1 ? "easy" : difficulty === 2 ? "intermediate" : "hard") })}
+              badge={t("vsAi", {
+                difficulty: tConfig(
+                  difficulty === 1 ? "easy" : difficulty === 2 ? "intermediate" : "hard",
+                ),
+              })}
               badgeClassName="bg-[#edf5e4] text-[#486334]"
               statusTitle={localStatusTitle}
               blackLabel={computer.computerColor === "black" ? t("blackAi") : t("blackYou")}
@@ -237,10 +230,21 @@ export function ComputerGamePage() {
         description={gameOverDescription}
       >
         <div className="grid gap-2">
-          <Button onClick={() => { setGameOverDialogOpen(false); computer.resetLocalGame(); }}>
+          <Button
+            onClick={() => {
+              setGameOverDialogOpen(false);
+              computer.resetLocalGame();
+            }}
+          >
             {playerWon ? t("playAgain") : t("tryAgain")}
           </Button>
-          <Button variant="secondary" onClick={() => { setGameOverDialogOpen(false); handleChangeDifficulty(); }}>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setGameOverDialogOpen(false);
+              handleChangeDifficulty();
+            }}
+          >
             {t("changeDifficulty")}
           </Button>
           <Button variant="ghost" onClick={() => router.push("/")}>

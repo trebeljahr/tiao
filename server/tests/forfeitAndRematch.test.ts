@@ -6,10 +6,7 @@ import { SCORE_TO_WIN, getWinner } from "../../shared/src";
 import { GameService, GameServiceError } from "../game/gameService";
 import { InMemoryGameRoomStore } from "../game/gameStore";
 
-function createPlayer(
-  playerId: string,
-  options: Partial<PlayerIdentity> = {}
-): PlayerIdentity {
+function createPlayer(playerId: string, options: Partial<PlayerIdentity> = {}): PlayerIdentity {
   return {
     playerId,
     displayName: options.displayName ?? playerId,
@@ -19,11 +16,7 @@ function createPlayer(
   };
 }
 
-async function finishRoom(
-  store: InMemoryGameRoomStore,
-  roomId: string,
-  winner: "white" | "black"
-) {
+async function finishRoom(store: InMemoryGameRoomStore, roomId: string, winner: "white" | "black") {
   const room = await store.getRoom(roomId);
   assert.ok(room, "expected room to exist");
   room.state.score[winner] = SCORE_TO_WIN;
@@ -40,10 +33,7 @@ class FakeSocket {
   }
 }
 
-function isGameServiceError(
-  error: unknown,
-  code: string
-): error is GameServiceError {
+function isGameServiceError(error: unknown, code: string): error is GameServiceError {
   return error instanceof GameServiceError && error.code === code;
 }
 
@@ -83,7 +73,7 @@ test("cannot forfeit a game that is not active (waiting)", async () => {
       service.applyAction(created.gameId, alice, {
         type: "forfeit",
       }),
-    (error) => isGameServiceError(error, "NOT_IN_GAME")
+    (error) => isGameServiceError(error, "NOT_IN_GAME"),
   );
 });
 
@@ -102,7 +92,7 @@ test("cannot forfeit a game that is already finished", async () => {
       service.applyAction(created.gameId, alice, {
         type: "forfeit",
       }),
-    (error) => isGameServiceError(error, "GAME_NOT_ACTIVE")
+    (error) => isGameServiceError(error, "GAME_NOT_ACTIVE"),
   );
 });
 

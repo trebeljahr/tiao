@@ -24,9 +24,11 @@ function mountRouteVariants(basePath: string, router: Router) {
 }
 
 app.get("/", (_, res) => {
-  res.type("text/plain").send(
-    "Tiao API server is running. Start the Vite client in development or deploy the separate frontend service."
-  );
+  res
+    .type("text/plain")
+    .send(
+      "Tiao API server is running. Start the Vite client in development or deploy the separate frontend service.",
+    );
 });
 
 // Accept both root-mounted and /api-prefixed paths so the backend can sit

@@ -5,10 +5,7 @@ import { Jimp } from "jimp";
 import mongoose from "mongoose";
 import GameAccount from "../models/GameAccount";
 import { auth } from "../auth/auth";
-import {
-  getPlayerFromRequest,
-  requireAccount,
-} from "../auth/sessionHelper";
+import { getPlayerFromRequest, requireAccount } from "../auth/sessionHelper";
 import { sanitizeDisplayName } from "../game/playerTokens";
 import { BUCKET_NAME, CLOUDFRONT_URL } from "../config/envVars";
 import { s3Client } from "../config/s3Client";
@@ -18,18 +15,10 @@ import { authRateLimiter } from "../middleware/rateLimiter";
 
 const router = express.Router();
 
-function handleRouteError(
-  error: unknown,
-  req: Request,
-  res: Response,
-  fallbackMessage: string,
-) {
+function handleRouteError(error: unknown, req: Request, res: Response, fallbackMessage: string) {
   const mongoError = classifyMongoError(error);
   if (mongoError) {
-    console.warn(
-      `[${req.method} ${req.path}] MongoDB ${mongoError.code}:`,
-      error,
-    );
+    console.warn(`[${req.method} ${req.path}] MongoDB ${mongoError.code}:`, error);
     return res.status(mongoError.status).json({
       code: mongoError.code,
       message: mongoError.message,
@@ -123,8 +112,7 @@ router.post("/login", authRateLimiter, async (req: Request, res: Response) => {
     if (!isDatabaseReady()) {
       return res.status(503).json({
         code: "SERVICE_UNAVAILABLE",
-        message:
-          "Account login is unavailable right now. You can still keep playing as a guest.",
+        message: "Account login is unavailable right now. You can still keep playing as a guest.",
       });
     }
 
@@ -231,12 +219,7 @@ router.get("/me", async (req: Request, res: Response) => {
 
     return res.status(200).json({ player });
   } catch (error) {
-    handleRouteError(
-      error,
-      req,
-      res,
-      "Unable to load player session right now.",
-    );
+    handleRouteError(error, req, res, "Unable to load player session right now.");
   }
 });
 
@@ -256,12 +239,7 @@ router.post("/tutorial-complete", async (req: Request, res: Response) => {
     const player = buildPlayerIdentityFromAccount(account, email);
     return res.status(200).json({ auth: { player } });
   } catch (error) {
-    handleRouteError(
-      error,
-      req,
-      res,
-      "Unable to update tutorial status right now.",
-    );
+    handleRouteError(error, req, res, "Unable to update tutorial status right now.");
   }
 });
 
@@ -290,23 +268,16 @@ router.get("/profile/:username", async (req: Request, res: Response) => {
   try {
     const username = req.params.username?.trim().toLowerCase();
     if (!username) {
-      return res
-        .status(400)
-        .json({ code: "INVALID_USERNAME", message: "Username is required." });
+      return res.status(400).json({ code: "INVALID_USERNAME", message: "Username is required." });
     }
 
     const account = await GameAccount.findOne({
       displayName: {
-        $regex: new RegExp(
-          `^${username.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
-          "i",
-        ),
+        $regex: new RegExp(`^${username.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i"),
       },
     });
     if (!account) {
-      return res
-        .status(404)
-        .json({ code: "NOT_FOUND", message: "Player not found." });
+      return res.status(404).json({ code: "NOT_FOUND", message: "Player not found." });
     }
 
     return res.status(200).json({
@@ -380,10 +351,12 @@ router.put("/profile", async (req: Request, res: Response) => {
 
       // Also update display name in better-auth's user collection
       const db = mongoose.connection.getClient().db();
-      await db.collection("user").updateOne(
-        { _id: account._id },
-        { $set: { name: account.displayName, displayName: account.displayName } },
-      );
+      await db
+        .collection("user")
+        .updateOne(
+          { _id: account._id },
+          { $set: { name: account.displayName, displayName: account.displayName } },
+        );
     }
 
     if (password !== undefined) {
@@ -426,12 +399,7 @@ router.put("/profile", async (req: Request, res: Response) => {
         message: "Current password is incorrect.",
       });
     }
-    return handleRouteError(
-      error,
-      req,
-      res,
-      "Unable to update profile right now.",
-    );
+    return handleRouteError(error, req, res, "Unable to update profile right now.");
   }
 });
 
@@ -481,10 +449,7 @@ router.post(
             );
           }
         } catch (error) {
-          console.error(
-            "Error deleting previous game account profile picture:",
-            error,
-          );
+          console.error("Error deleting previous game account profile picture:", error);
         }
       }
 
@@ -536,12 +501,7 @@ router.put("/badges/active", async (req: Request, res: Response) => {
     const player = buildPlayerIdentityFromAccount(account, email);
     return res.status(200).json({ auth: { player }, activeBadges: validActive });
   } catch (error) {
-    return handleRouteError(
-      error,
-      req,
-      res,
-      "Unable to update active badges right now.",
-    );
+    return handleRouteError(error, req, res, "Unable to update active badges right now.");
   }
 });
 

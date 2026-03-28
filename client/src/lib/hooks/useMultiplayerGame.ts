@@ -36,14 +36,11 @@ export function useMultiplayerGame(
     websocketDebugEnabled?: boolean;
   } = {},
 ) {
-  const [multiplayerSnapshot, setMultiplayerSnapshot] =
-    useState<MultiplayerSnapshot | null>(null);
-  const [multiplayerSelection, setMultiplayerSelection] =
-    useState<Position | null>(null);
+  const [multiplayerSnapshot, setMultiplayerSnapshot] = useState<MultiplayerSnapshot | null>(null);
+  const [multiplayerSelection, setMultiplayerSelection] = useState<Position | null>(null);
   const [multiplayerError, setMultiplayerError] = useState<string | null>(null);
   const [multiplayerBusy, setMultiplayerBusy] = useState(false);
-  const [connectionState, setConnectionState] =
-    useState<ConnectionState>("idle");
+  const [connectionState, setConnectionState] = useState<ConnectionState>("idle");
 
   const onRematchStartedRef = useRef(options.onRematchStarted);
   onRematchStartedRef.current = options.onRematchStarted;
@@ -53,12 +50,8 @@ export function useMultiplayerGame(
 
   const socketRef = useRef<WebSocket | null>(null);
   const latestAuthRef = useRef<AuthResponse | null>(auth);
-  const latestMultiplayerSnapshotRef = useRef<MultiplayerSnapshot | null>(
-    multiplayerSnapshot,
-  );
-  const confirmedMultiplayerSnapshotRef = useRef<MultiplayerSnapshot | null>(
-    null,
-  );
+  const latestMultiplayerSnapshotRef = useRef<MultiplayerSnapshot | null>(multiplayerSnapshot);
+  const confirmedMultiplayerSnapshotRef = useRef<MultiplayerSnapshot | null>(null);
   const pendingOptimisticUpdateRef = useRef(false);
 
   useEffect(() => {
@@ -102,14 +95,9 @@ export function useMultiplayerGame(
     [],
   );
 
-  const syncMultiplayerSelection = useCallback(
-    (snapshot: MultiplayerSnapshot | null) => {
-      setMultiplayerSelection(
-        snapshot ? getPendingJumpDestination(snapshot.state) : null,
-      );
-    },
-    [],
-  );
+  const syncMultiplayerSelection = useCallback((snapshot: MultiplayerSnapshot | null) => {
+    setMultiplayerSelection(snapshot ? getPendingJumpDestination(snapshot.state) : null);
+  }, []);
 
   const restoreConfirmedSnapshot = useCallback(() => {
     const confirmedSnapshot = confirmedMultiplayerSnapshotRef.current;
@@ -167,11 +155,7 @@ export function useMultiplayerGame(
             break;
           }
           case "jump-piece": {
-            const result = jumpPiece(
-              currentSnapshot.state,
-              message.from,
-              message.to,
-            );
+            const result = jumpPiece(currentSnapshot.state, message.from, message.to);
             if (!result.ok) {
               setMultiplayerError(result.reason);
               return;
@@ -203,10 +187,7 @@ export function useMultiplayerGame(
 
         if (nextState) {
           pendingOptimisticUpdateRef.current = true;
-          const nextSnapshot = createOptimisticSnapshot(
-            currentSnapshot,
-            nextState,
-          );
+          const nextSnapshot = createOptimisticSnapshot(currentSnapshot, nextState);
           commitMultiplayerSnapshot(nextSnapshot, { confirmed: false });
           syncMultiplayerSelection(nextSnapshot);
         }
@@ -222,11 +203,7 @@ export function useMultiplayerGame(
         handleUnexpectedMultiplayerDisconnect();
       }
     },
-    [
-      commitMultiplayerSnapshot,
-      syncMultiplayerSelection,
-      handleUnexpectedMultiplayerDisconnect,
-    ],
+    [commitMultiplayerSnapshot, syncMultiplayerSelection, handleUnexpectedMultiplayerDisconnect],
   );
 
   const connectToRoom = useCallback(

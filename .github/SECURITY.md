@@ -11,6 +11,7 @@ We will acknowledge your report within 1 week and work with you to understand an
 ## Scope
 
 This policy applies to:
+
 - The Tiao server (`server/`)
 - The Tiao client (`client/`)
 - The game engine (`shared/`)

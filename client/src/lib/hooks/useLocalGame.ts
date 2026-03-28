@@ -17,14 +17,13 @@ import {
 } from "@shared";
 
 export function useLocalGame(settings?: Partial<GameSettings>) {
-  const [localGame, setLocalGame] = useState<GameState>(() =>
-    createInitialGameState(settings),
-  );
+  const [localGame, setLocalGame] = useState<GameState>(() => createInitialGameState(settings));
   const [localSelection, setLocalSelection] = useState<Position | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
-  const [localScorePulse, setLocalScorePulse] = useState<
-    Record<PlayerColor, number>
-  >({ black: 0, white: 0 });
+  const [localScorePulse, setLocalScorePulse] = useState<Record<PlayerColor, number>>({
+    black: 0,
+    white: 0,
+  });
 
   const [lastMove, setLastMove] = useState<TurnRecord | null>(null);
   const localHistoryLengthRef = useRef(localGame.history.length);
@@ -104,10 +103,7 @@ export function useLocalGame(settings?: Partial<GameSettings>) {
       }
 
       if (localSelection) {
-        if (
-          localSelection.x === position.x &&
-          localSelection.y === position.y
-        ) {
+        if (localSelection.x === position.x && localSelection.y === position.y) {
           if (hasPending) {
             handleLocalConfirmPendingJump();
           } else {
@@ -184,9 +180,7 @@ export function useLocalGame(settings?: Partial<GameSettings>) {
     }
   }, [localGame]);
 
-  const localJumpTargets = localSelection
-    ? getJumpTargets(localGame, localSelection)
-    : [];
+  const localJumpTargets = localSelection ? getJumpTargets(localGame, localSelection) : [];
 
   return {
     localGame,

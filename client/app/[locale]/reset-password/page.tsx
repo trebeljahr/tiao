@@ -128,9 +128,7 @@ export default function ResetPasswordPage() {
               required
             />
           </div>
-          {error && (
-            <p className="text-sm text-red-500">{error}</p>
-          )}
+          {error && <p className="text-sm text-red-500">{error}</p>}
           <Button type="submit" className="w-full" disabled={busy}>
             {busy ? "Resetting..." : "Reset password"}
           </Button>

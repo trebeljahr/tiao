@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-} from "react";
+import { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 import { toast } from "sonner";
 import type { AuthResponse, SocialOverview } from "@shared";
 import { EMPTY_SOCIAL_OVERVIEW } from "@shared";
@@ -24,12 +17,11 @@ type SocialNotificationsContextValue = {
   refreshNotifications: () => void;
 };
 
-const SocialNotificationsContext =
-  createContext<SocialNotificationsContextValue>({
-    pendingFriendRequestCount: 0,
-    incomingInvitationCount: 0,
-    refreshNotifications: () => {},
-  });
+const SocialNotificationsContext = createContext<SocialNotificationsContextValue>({
+  pendingFriendRequestCount: 0,
+  incomingInvitationCount: 0,
+  refreshNotifications: () => {},
+});
 
 export function useSocialNotifications() {
   return useContext(SocialNotificationsContext);
@@ -42,9 +34,7 @@ export function SocialNotificationsProvider({
   auth: AuthResponse | null;
   children: React.ReactNode;
 }) {
-  const [overview, setOverview] = useState<SocialOverview>(
-    EMPTY_SOCIAL_OVERVIEW,
-  );
+  const [overview, setOverview] = useState<SocialOverview>(EMPTY_SOCIAL_OVERVIEW);
   const prevRequestIdsRef = useRef<Set<string>>(new Set());
   const prevInvitationIdsRef = useRef<Set<string>>(new Set());
   const hydratedRef = useRef(false);
@@ -63,9 +53,7 @@ export function SocialNotificationsProvider({
       prevRequestIdsRef.current = new Set(
         nextOverview.incomingFriendRequests.map((r) => r.playerId),
       );
-      prevInvitationIdsRef.current = new Set(
-        nextOverview.incomingInvitations.map((inv) => inv.id),
-      );
+      prevInvitationIdsRef.current = new Set(nextOverview.incomingInvitations.map((inv) => inv.id));
       hydratedRef.current = true;
       setOverview(nextOverview);
     } catch {
@@ -104,9 +92,7 @@ export function SocialNotificationsProvider({
                 void (async () => {
                   try {
                     await acceptFriendRequest(reqPlayerId);
-                    toast.success(
-                      `You are now friends with ${reqName}`,
-                    );
+                    toast.success(`You are now friends with ${reqName}`);
                   } catch (e) {
                     toastError(e);
                   }
@@ -156,12 +142,8 @@ export function SocialNotificationsProvider({
       }
     }
 
-    prevRequestIdsRef.current = new Set(
-      nextOverview.incomingFriendRequests.map((r) => r.playerId),
-    );
-    prevInvitationIdsRef.current = new Set(
-      nextOverview.incomingInvitations.map((inv) => inv.id),
-    );
+    prevRequestIdsRef.current = new Set(nextOverview.incomingFriendRequests.map((r) => r.playerId));
+    prevInvitationIdsRef.current = new Set(nextOverview.incomingInvitations.map((inv) => inv.id));
     hydratedRef.current = true;
     setOverview(nextOverview);
   });
@@ -171,7 +153,11 @@ export function SocialNotificationsProvider({
 
   return (
     <SocialNotificationsContext.Provider
-      value={{ pendingFriendRequestCount, incomingInvitationCount, refreshNotifications: fetchOverview }}
+      value={{
+        pendingFriendRequestCount,
+        incomingInvitationCount,
+        refreshNotifications: fetchOverview,
+      }}
     >
       {children}
     </SocialNotificationsContext.Provider>

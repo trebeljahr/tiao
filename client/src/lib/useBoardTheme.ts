@@ -1,9 +1,5 @@
 import { useSyncExternalStore, useCallback } from "react";
-import {
-  type BoardTheme,
-  DEFAULT_THEME_ID,
-  getTheme,
-} from "@/components/game/boardThemes";
+import { type BoardTheme, DEFAULT_THEME_ID, getTheme } from "@/components/game/boardThemes";
 
 const STORAGE_KEY = "tiao:boardTheme";
 

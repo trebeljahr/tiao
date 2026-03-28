@@ -5,10 +5,7 @@ import type { PlayerIdentity } from "../../shared/src";
 import { GameService, GameServiceError } from "../game/gameService";
 import { InMemoryGameRoomStore } from "../game/gameStore";
 
-function createPlayer(
-  playerId: string,
-  options: Partial<PlayerIdentity> = {}
-): PlayerIdentity {
+function createPlayer(playerId: string, options: Partial<PlayerIdentity> = {}): PlayerIdentity {
   return {
     playerId,
     displayName: options.displayName ?? playerId,
@@ -18,11 +15,7 @@ function createPlayer(
   };
 }
 
-async function finishRoom(
-  store: InMemoryGameRoomStore,
-  roomId: string,
-  winner: "white" | "black"
-) {
+async function finishRoom(store: InMemoryGameRoomStore, roomId: string, winner: "white" | "black") {
   const room = await store.getRoom(roomId);
   assert.ok(room, "expected room to exist");
   room.state.score[winner] = 10;
@@ -39,10 +32,7 @@ class FakeSocket {
   }
 }
 
-function isGameServiceError(
-  error: unknown,
-  code: string
-): error is GameServiceError {
+function isGameServiceError(error: unknown, code: string): error is GameServiceError {
   return error instanceof GameServiceError && error.code === code;
 }
 
@@ -138,7 +128,7 @@ test("spectator access opens a full game without taking a seat", async () => {
   assert.equal(spectated.players.length, 2);
   assert.equal(
     spectated.players.some((slot) => slot.player.playerId === carol.playerId),
-    false
+    false,
   );
 });
 

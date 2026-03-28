@@ -67,13 +67,7 @@ export class RedisLockProvider implements LockProvider {
     const retryDelayMs = 500;
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const acquired = await this.redis.set(
-        lockKey,
-        lockValue,
-        "EX",
-        ttlSeconds,
-        "NX"
-      );
+      const acquired = await this.redis.set(lockKey, lockValue, "EX", ttlSeconds, "NX");
 
       if (acquired === "OK") {
         try {

@@ -59,7 +59,7 @@ export function Dialog({
         transition={{ duration: 0.18 }}
         className={cn(
           "w-full max-w-lg max-h-[90dvh] overflow-y-auto rounded-[1.75rem] border border-white/70 bg-card p-6 text-card-foreground shadow-[0_34px_80px_-36px_rgba(63,37,17,0.45)]",
-          className
+          className,
         )}
         onClick={(event) => event.stopPropagation()}
       >
@@ -67,9 +67,7 @@ export function Dialog({
           <div>
             <h2 className="font-display text-3xl font-semibold">{title}</h2>
             {description ? (
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                {description}
-              </p>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
             ) : null}
           </div>
           <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>

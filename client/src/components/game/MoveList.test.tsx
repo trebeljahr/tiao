@@ -23,19 +23,12 @@ const sampleHistory: TurnRecord[] = [
 
 describe("MoveList", () => {
   it("renders empty state when history is empty", () => {
-    render(
-      <MoveList history={[]} currentMoveIndex={null} />,
-    );
+    render(<MoveList history={[]} currentMoveIndex={null} />);
     expect(screen.getByText("No moves yet.")).toBeTruthy();
   });
 
   it("renders all moves from history", () => {
-    render(
-      <MoveList
-        history={sampleHistory}
-        currentMoveIndex={3}
-      />,
-    );
+    render(<MoveList history={sampleHistory} currentMoveIndex={3} />);
 
     const moveList = screen.getByTestId("move-list");
     expect(moveList).toBeTruthy();
@@ -46,12 +39,7 @@ describe("MoveList", () => {
   });
 
   it("highlights the active move", () => {
-    render(
-      <MoveList
-        history={sampleHistory}
-        currentMoveIndex={0}
-      />,
-    );
+    render(<MoveList history={sampleHistory} currentMoveIndex={0} />);
 
     // The first move (j10) should have the active styling
     const activeSpan = screen.getByTestId("move-list").querySelector(".font-semibold");
@@ -60,13 +48,7 @@ describe("MoveList", () => {
   });
 
   it("does not render navigation buttons when not interactive", () => {
-    render(
-      <MoveList
-        history={sampleHistory}
-        currentMoveIndex={3}
-        interactive={false}
-      />,
-    );
+    render(<MoveList history={sampleHistory} currentMoveIndex={3} interactive={false} />);
 
     expect(screen.queryByLabelText("Previous move")).toBeNull();
     expect(screen.queryByLabelText("Next move")).toBeNull();

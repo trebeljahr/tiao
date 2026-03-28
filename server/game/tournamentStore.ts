@@ -27,7 +27,9 @@ export type StoredTournament = {
 };
 
 export interface TournamentStore {
-  createTournament(tournament: Omit<StoredTournament, "createdAt" | "updatedAt">): Promise<StoredTournament>;
+  createTournament(
+    tournament: Omit<StoredTournament, "createdAt" | "updatedAt">,
+  ): Promise<StoredTournament>;
   getTournament(tournamentId: string): Promise<StoredTournament | null>;
   saveTournament(tournament: StoredTournament): Promise<StoredTournament>;
   listPublicTournaments(options?: { status?: TournamentStatus }): Promise<StoredTournament[]>;
@@ -58,7 +60,7 @@ function toStoredTournament(doc: any): StoredTournament {
 
 export class MongoTournamentStore implements TournamentStore {
   async createTournament(
-    tournament: Omit<StoredTournament, "createdAt" | "updatedAt">
+    tournament: Omit<StoredTournament, "createdAt" | "updatedAt">,
   ): Promise<StoredTournament> {
     const doc = await Tournament.create(tournament);
     return toStoredTournament(doc);
@@ -85,7 +87,7 @@ export class MongoTournamentStore implements TournamentStore {
           featuredMatchId: tournament.featuredMatchId,
         },
       },
-      { new: true }
+      { new: true },
     )
       .lean()
       .exec();
@@ -97,29 +99,22 @@ export class MongoTournamentStore implements TournamentStore {
     return toStoredTournament(doc);
   }
 
-  async listPublicTournaments(
-    options?: { status?: TournamentStatus }
-  ): Promise<StoredTournament[]> {
+  async listPublicTournaments(options?: {
+    status?: TournamentStatus;
+  }): Promise<StoredTournament[]> {
     const filter: any = { "settings.visibility": "public" };
     if (options?.status) {
       filter.status = options.status;
     }
 
-    const docs = await Tournament.find(filter)
-      .sort({ createdAt: -1 })
-      .limit(50)
-      .lean()
-      .exec();
+    const docs = await Tournament.find(filter).sort({ createdAt: -1 }).limit(50).lean().exec();
 
     return docs.map(toStoredTournament);
   }
 
   async listTournamentsForPlayer(playerId: string): Promise<StoredTournament[]> {
     const docs = await Tournament.find({
-      $or: [
-        { "participants.playerId": playerId },
-        { creatorId: playerId },
-      ],
+      $or: [{ "participants.playerId": playerId }, { creatorId: playerId }],
     })
       .sort({ updatedAt: -1 })
       .limit(50)
@@ -159,7 +154,7 @@ export class InMemoryTournamentStore implements TournamentStore {
   private tournaments = new Map<string, StoredTournament>();
 
   async createTournament(
-    tournament: Omit<StoredTournament, "createdAt" | "updatedAt">
+    tournament: Omit<StoredTournament, "createdAt" | "updatedAt">,
   ): Promise<StoredTournament> {
     if (this.tournaments.has(tournament.tournamentId)) {
       throw new Error("Duplicate tournament id.");
@@ -195,9 +190,9 @@ export class InMemoryTournamentStore implements TournamentStore {
     return { ...updated };
   }
 
-  async listPublicTournaments(
-    options?: { status?: TournamentStatus }
-  ): Promise<StoredTournament[]> {
+  async listPublicTournaments(options?: {
+    status?: TournamentStatus;
+  }): Promise<StoredTournament[]> {
     return Array.from(this.tournaments.values())
       .filter((t) => {
         if (t.settings.visibility !== "public") return false;
@@ -210,9 +205,7 @@ export class InMemoryTournamentStore implements TournamentStore {
   async listTournamentsForPlayer(playerId: string): Promise<StoredTournament[]> {
     return Array.from(this.tournaments.values())
       .filter(
-        (t) =>
-          t.creatorId === playerId ||
-          t.participants.some((p) => p.playerId === playerId)
+        (t) => t.creatorId === playerId || t.participants.some((p) => p.playerId === playerId),
       )
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
   }
@@ -233,9 +226,7 @@ export class InMemoryTournamentStore implements TournamentStore {
 
   async findRegistrationTournamentsByParticipant(playerId: string): Promise<StoredTournament[]> {
     return Array.from(this.tournaments.values()).filter(
-      (t) =>
-        t.status === "registration" &&
-        t.participants.some((p) => p.playerId === playerId)
+      (t) => t.status === "registration" && t.participants.some((p) => p.playerId === playerId),
     );
   }
 }

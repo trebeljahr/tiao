@@ -13,23 +13,20 @@ export function useMatchmakingData(
   const [matchmakingBusy, setMatchmakingBusy] = useState(false);
   const pollTimerRef = useRef<number | null>(null);
 
-  const stopMatchmaking = useCallback(
-    async (options: { silent?: boolean } = {}) => {
-      if (pollTimerRef.current !== null) {
-        window.clearInterval(pollTimerRef.current);
-        pollTimerRef.current = null;
+  const stopMatchmaking = useCallback(async (options: { silent?: boolean } = {}) => {
+    if (pollTimerRef.current !== null) {
+      window.clearInterval(pollTimerRef.current);
+      pollTimerRef.current = null;
+    }
+    try {
+      await leaveMatchmaking();
+      setMatchmaking({ status: "idle" });
+    } catch (error) {
+      if (!options.silent) {
+        toastError(error);
       }
-      try {
-        await leaveMatchmaking();
-        setMatchmaking({ status: "idle" });
-      } catch (error) {
-        if (!options.silent) {
-          toastError(error);
-        }
-      }
-    },
-    [],
-  );
+    }
+  }, []);
 
   const pollMatchmakingStatus = useCallback(async () => {
     try {
@@ -55,32 +52,33 @@ export function useMatchmakingData(
     pollTimerRef.current = window.setInterval(pollMatchmakingStatus, 2000);
   }, [pollMatchmakingStatus]);
 
-  const handleEnterMatchmaking = useCallback(async (timeControl?: TimeControl) => {
-    if (!auth) {
-      return;
-    }
-
-    setMatchmakingBusy(true);
-
-    try {
-      const response = await enterMatchmaking(
-        timeControl ? { timeControl } : undefined,
-      );
-      setMatchmaking(response.matchmaking);
-
-      if (response.matchmaking.status === "matched") {
-        onMatched(response.matchmaking.snapshot);
-      } else if (response.matchmaking.status === "searching") {
-        startPolling();
+  const handleEnterMatchmaking = useCallback(
+    async (timeControl?: TimeControl) => {
+      if (!auth) {
+        return;
       }
-    } catch (error) {
-      toastError(error);
-      setMatchmaking({ status: "idle" } as MatchmakingState);
-      throw error; // Re-throw so callers can catch
-    } finally {
-      setMatchmakingBusy(false);
-    }
-  }, [auth, onMatched, stopMatchmaking, startPolling]);
+
+      setMatchmakingBusy(true);
+
+      try {
+        const response = await enterMatchmaking(timeControl ? { timeControl } : undefined);
+        setMatchmaking(response.matchmaking);
+
+        if (response.matchmaking.status === "matched") {
+          onMatched(response.matchmaking.snapshot);
+        } else if (response.matchmaking.status === "searching") {
+          startPolling();
+        }
+      } catch (error) {
+        toastError(error);
+        setMatchmaking({ status: "idle" } as MatchmakingState);
+        throw error; // Re-throw so callers can catch
+      } finally {
+        setMatchmakingBusy(false);
+      }
+    },
+    [auth, onMatched, stopMatchmaking, startPolling],
+  );
 
   const handleCancelMatchmaking = useCallback(async () => {
     setMatchmakingBusy(true);

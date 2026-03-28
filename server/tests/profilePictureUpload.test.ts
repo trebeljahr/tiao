@@ -9,20 +9,13 @@ process.env.S3_BUCKET_NAME ??= "tiao-test-assets";
 process.env.S3_PUBLIC_URL ??= "https://assets.test.local";
 
 import express from "express";
-import {
-  profilePictureUpload,
-  MAX_FILE_SIZE,
-} from "../middleware/multerUploadMiddleware";
+import { profilePictureUpload, MAX_FILE_SIZE } from "../middleware/multerUploadMiddleware";
 
 function buildApp() {
   const app = express();
-  app.post(
-    "/upload",
-    profilePictureUpload("profilePicture"),
-    (_req, res) => {
-      res.status(200).json({ message: "ok" });
-    }
-  );
+  app.post("/upload", profilePictureUpload("profilePicture"), (_req, res) => {
+    res.status(200).json({ message: "ok" });
+  });
   return app;
 }
 
@@ -30,7 +23,7 @@ function buildMultipartBody(
   fieldName: string,
   fileName: string,
   contentType: string,
-  content: Buffer
+  content: Buffer,
 ): { body: Buffer; boundary: string } {
   const boundary = "----TestBoundary" + Date.now();
   const parts = [
@@ -51,14 +44,9 @@ async function sendUpload(
   fieldName: string,
   fileName: string,
   contentType: string,
-  content: Buffer
+  content: Buffer,
 ): Promise<{ status: number; body: { message: string } }> {
-  const { body, boundary } = buildMultipartBody(
-    fieldName,
-    fileName,
-    contentType,
-    content
-  );
+  const { body, boundary } = buildMultipartBody(fieldName, fileName, contentType, content);
 
   const response = await fetch(`http://127.0.0.1:${port}/upload`, {
     method: "POST",
@@ -87,7 +75,7 @@ describe("profilePictureUpload middleware", () => {
         "profilePicture",
         "avatar.jpg",
         "image/jpeg",
-        smallImage
+        smallImage,
       );
       assert.equal(result.status, 200);
       assert.equal(result.body.message, "ok");
@@ -110,7 +98,7 @@ describe("profilePictureUpload middleware", () => {
         "profilePicture",
         "avatar.png",
         "image/png",
-        smallImage
+        smallImage,
       );
       assert.equal(result.status, 200);
     } finally {
@@ -132,7 +120,7 @@ describe("profilePictureUpload middleware", () => {
         "profilePicture",
         "huge.jpg",
         "image/jpeg",
-        oversizedImage
+        oversizedImage,
       );
       assert.equal(result.status, 413);
       assert.match(result.body.message, /too large/i);
@@ -151,14 +139,14 @@ describe("profilePictureUpload middleware", () => {
 
     try {
       const svgContent = Buffer.from(
-        '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'
+        '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>',
       );
       const result = await sendUpload(
         port,
         "profilePicture",
         "evil.svg",
         "image/svg+xml",
-        svgContent
+        svgContent,
       );
       assert.equal(result.status, 415);
       assert.match(result.body.message, /unsupported file type/i);
@@ -181,7 +169,7 @@ describe("profilePictureUpload middleware", () => {
         "profilePicture",
         "readme.txt",
         "text/plain",
-        textContent
+        textContent,
       );
       assert.equal(result.status, 415);
       assert.match(result.body.message, /unsupported file type/i);
@@ -205,7 +193,7 @@ describe("profilePictureUpload middleware", () => {
         "profilePicture",
         "doc.pdf",
         "application/pdf",
-        pdfContent
+        pdfContent,
       );
       assert.equal(result.status, 415);
     } finally {

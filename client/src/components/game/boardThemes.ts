@@ -86,11 +86,9 @@ export const CLASSIC: BoardTheme = {
   name: "Classic",
   description: "Traditional wooden board",
 
-  boardBg:
-    "linear-gradient(180deg,rgba(234,199,131,0.98),rgba(217,177,104,0.98))",
+  boardBg: "linear-gradient(180deg,rgba(234,199,131,0.98),rgba(217,177,104,0.98))",
   boardBorder: "#cdb07f",
-  boardInnerBg:
-    "linear-gradient(180deg,rgba(255,250,240,0.16),rgba(255,255,255,0.04))",
+  boardInnerBg: "linear-gradient(180deg,rgba(255,250,240,0.16),rgba(255,255,255,0.04))",
   boardShadow: "0 52px 120px -42px rgba(66,39,11,0.92)",
   boardSheen:
     "radial-gradient(circle at top left,rgba(255,248,234,0.28),transparent 28%),linear-gradient(135deg,rgba(255,255,255,0.06),transparent 42%)",
@@ -101,13 +99,10 @@ export const CLASSIC: BoardTheme = {
   starPointColor: "#573615",
 
   blackPieceBorder: "#191410",
-  blackPieceBg:
-    "radial-gradient(circle at 30% 28%,#5d554f,#2d2622 58%,#0f0c0b)",
+  blackPieceBg: "radial-gradient(circle at 30% 28%,#5d554f,#2d2622 58%,#0f0c0b)",
   whitePieceBorder: "#ddd2bf",
-  whitePieceBg:
-    "radial-gradient(circle at 30% 28%,#fffdfa,#f4eee3 58%,#d9ccb8)",
-  pieceShadow:
-    "inset 0 2px 10px rgba(255,255,255,0.18), 0 10px 18px rgba(0,0,0,0.18)",
+  whitePieceBg: "radial-gradient(circle at 30% 28%,#fffdfa,#f4eee3 58%,#d9ccb8)",
+  pieceShadow: "inset 0 2px 10px rgba(255,255,255,0.18), 0 10px 18px rgba(0,0,0,0.18)",
   selectableGlow:
     "0 0 0 4px rgba(242,208,144,0.22), inset 0 2px 10px rgba(255,255,255,0.18), 0 10px 18px rgba(0,0,0,0.18)",
 
@@ -140,8 +135,16 @@ export const CLASSIC: BoardTheme = {
   undoShadow: "0 12px 20px -14px rgba(134,70,67,0.55)",
 
   victoryColors: [
-    "#ff6b6b", "#feca57", "#48dbfb", "#ff9ff3", "#54a0ff",
-    "#5f27cd", "#01a3a4", "#f368e0", "#ff9f43", "#00d2d3",
+    "#ff6b6b",
+    "#feca57",
+    "#48dbfb",
+    "#ff9ff3",
+    "#54a0ff",
+    "#5f27cd",
+    "#01a3a4",
+    "#f368e0",
+    "#ff9f43",
+    "#00d2d3",
   ],
   defeatColors: ["#8b7355", "#a69278", "#c4b49a", "#d6cbb8"],
 
@@ -159,8 +162,7 @@ export const NIGHT: BoardTheme = {
 
   boardBg: "linear-gradient(180deg,#1e1e2a,#16161f)",
   boardBorder: "#2a2a3a",
-  boardInnerBg:
-    "linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))",
+  boardInnerBg: "linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))",
   boardShadow: "0 52px 120px -42px rgba(0,0,0,0.85)",
   boardSheen:
     "radial-gradient(circle at top left,rgba(100,120,180,0.10),transparent 28%),linear-gradient(135deg,rgba(255,255,255,0.02),transparent 42%)",
@@ -171,11 +173,9 @@ export const NIGHT: BoardTheme = {
   starPointColor: "#4a4a64",
 
   blackPieceBorder: "#2a2a40",
-  blackPieceBg:
-    "radial-gradient(circle at 30% 28%,#5a5a72,#3a3a52 58%,#22223a)",
+  blackPieceBg: "radial-gradient(circle at 30% 28%,#5a5a72,#3a3a52 58%,#22223a)",
   whitePieceBorder: "#b8b8d0",
-  whitePieceBg:
-    "radial-gradient(circle at 30% 28%,#e8e8f4,#c4c4d8 58%,#a0a0b8)",
+  whitePieceBg: "radial-gradient(circle at 30% 28%,#e8e8f4,#c4c4d8 58%,#a0a0b8)",
   pieceShadow:
     "inset 0 2px 10px rgba(140,160,255,0.15), 0 0 0 1px rgba(100,110,160,0.18), 0 10px 18px rgba(0,0,0,0.35)",
   selectableGlow:
@@ -210,8 +210,16 @@ export const NIGHT: BoardTheme = {
   undoShadow: "0 12px 20px -14px rgba(0,0,0,0.65)",
 
   victoryColors: [
-    "#7c6aff", "#4ae0d4", "#ff6baa", "#5ce8ff", "#ffd75c",
-    "#a07cff", "#00d4aa", "#ff8ccc", "#6caaff", "#e0ff6c",
+    "#7c6aff",
+    "#4ae0d4",
+    "#ff6baa",
+    "#5ce8ff",
+    "#ffd75c",
+    "#a07cff",
+    "#00d4aa",
+    "#ff8ccc",
+    "#6caaff",
+    "#e0ff6c",
   ],
   defeatColors: ["#3a3a52", "#4a4a64", "#5a5a76", "#6a6a88"],
 
@@ -227,11 +235,9 @@ export const SAKURA: BoardTheme = {
   name: "Sakura",
   description: "Soft cherry-blossom pink",
 
-  boardBg:
-    "linear-gradient(180deg,rgba(245,218,220,0.98),rgba(232,196,198,0.98))",
+  boardBg: "linear-gradient(180deg,rgba(245,218,220,0.98),rgba(232,196,198,0.98))",
   boardBorder: "#ddb8ba",
-  boardInnerBg:
-    "linear-gradient(180deg,rgba(255,245,245,0.18),rgba(255,255,255,0.05))",
+  boardInnerBg: "linear-gradient(180deg,rgba(255,245,245,0.18),rgba(255,255,255,0.05))",
   boardShadow: "0 52px 120px -42px rgba(120,50,55,0.55)",
   boardSheen:
     "radial-gradient(circle at top left,rgba(255,230,235,0.35),transparent 28%),linear-gradient(135deg,rgba(255,255,255,0.08),transparent 42%)",
@@ -242,13 +248,10 @@ export const SAKURA: BoardTheme = {
   starPointColor: "#96585c",
 
   blackPieceBorder: "#2a1618",
-  blackPieceBg:
-    "radial-gradient(circle at 30% 28%,#5a3a3c,#3a1e20 58%,#1a0a0c)",
+  blackPieceBg: "radial-gradient(circle at 30% 28%,#5a3a3c,#3a1e20 58%,#1a0a0c)",
   whitePieceBorder: "#f0d8da",
-  whitePieceBg:
-    "radial-gradient(circle at 30% 28%,#fff4f5,#f4dce0 58%,#e8c4c8)",
-  pieceShadow:
-    "inset 0 2px 10px rgba(255,200,210,0.22), 0 10px 18px rgba(80,20,25,0.16)",
+  whitePieceBg: "radial-gradient(circle at 30% 28%,#fff4f5,#f4dce0 58%,#e8c4c8)",
+  pieceShadow: "inset 0 2px 10px rgba(255,200,210,0.22), 0 10px 18px rgba(80,20,25,0.16)",
   selectableGlow:
     "0 0 0 4px rgba(240,160,170,0.28), inset 0 2px 10px rgba(255,200,210,0.22), 0 10px 18px rgba(80,20,25,0.16)",
 
@@ -281,8 +284,16 @@ export const SAKURA: BoardTheme = {
   undoShadow: "0 12px 20px -14px rgba(134,70,67,0.45)",
 
   victoryColors: [
-    "#ff8fa0", "#ffb0c0", "#ffd4e0", "#ff6b8a", "#e0a0ff",
-    "#ffaacc", "#ff70a0", "#ffc0d8", "#d090ff", "#ffddee",
+    "#ff8fa0",
+    "#ffb0c0",
+    "#ffd4e0",
+    "#ff6b8a",
+    "#e0a0ff",
+    "#ffaacc",
+    "#ff70a0",
+    "#ffc0d8",
+    "#d090ff",
+    "#ffddee",
   ],
   defeatColors: ["#9a7a7c", "#aa8a8c", "#ba9a9c", "#caaaac"],
 
@@ -298,11 +309,9 @@ export const OCEAN: BoardTheme = {
   name: "Ocean",
   description: "Deep blue-green sea board",
 
-  boardBg:
-    "linear-gradient(180deg,rgba(140,190,200,0.98),rgba(110,165,180,0.98))",
+  boardBg: "linear-gradient(180deg,rgba(140,190,200,0.98),rgba(110,165,180,0.98))",
   boardBorder: "#8ab8c4",
-  boardInnerBg:
-    "linear-gradient(180deg,rgba(220,245,250,0.14),rgba(255,255,255,0.04))",
+  boardInnerBg: "linear-gradient(180deg,rgba(220,245,250,0.14),rgba(255,255,255,0.04))",
   boardShadow: "0 52px 120px -42px rgba(15,50,65,0.80)",
   boardSheen:
     "radial-gradient(circle at top left,rgba(220,248,255,0.28),transparent 28%),linear-gradient(135deg,rgba(255,255,255,0.07),transparent 42%)",
@@ -313,13 +322,10 @@ export const OCEAN: BoardTheme = {
   starPointColor: "#2a5a68",
 
   blackPieceBorder: "#0a1a20",
-  blackPieceBg:
-    "radial-gradient(circle at 30% 28%,#3a5560,#1a3038 58%,#081820)",
+  blackPieceBg: "radial-gradient(circle at 30% 28%,#3a5560,#1a3038 58%,#081820)",
   whitePieceBorder: "#c8dce4",
-  whitePieceBg:
-    "radial-gradient(circle at 30% 28%,#f0f8fc,#d8eaf0 58%,#b8d4e0)",
-  pieceShadow:
-    "inset 0 2px 10px rgba(180,220,240,0.20), 0 10px 18px rgba(0,30,50,0.22)",
+  whitePieceBg: "radial-gradient(circle at 30% 28%,#f0f8fc,#d8eaf0 58%,#b8d4e0)",
+  pieceShadow: "inset 0 2px 10px rgba(180,220,240,0.20), 0 10px 18px rgba(0,30,50,0.22)",
   selectableGlow:
     "0 0 0 4px rgba(120,200,220,0.25), inset 0 2px 10px rgba(180,220,240,0.20), 0 10px 18px rgba(0,30,50,0.22)",
 
@@ -352,8 +358,16 @@ export const OCEAN: BoardTheme = {
   undoShadow: "0 12px 20px -14px rgba(100,40,40,0.50)",
 
   victoryColors: [
-    "#48dbfb", "#00d2d3", "#5ce8a0", "#4ae0d4", "#6cc4ff",
-    "#2af0c0", "#70e0ff", "#3ad8b8", "#88ccff", "#00e8c8",
+    "#48dbfb",
+    "#00d2d3",
+    "#5ce8a0",
+    "#4ae0d4",
+    "#6cc4ff",
+    "#2af0c0",
+    "#70e0ff",
+    "#3ad8b8",
+    "#88ccff",
+    "#00e8c8",
   ],
   defeatColors: ["#4a6a78", "#5a7a88", "#6a8a98", "#7a9aa8"],
 
@@ -369,11 +383,9 @@ export const MARBLE: BoardTheme = {
   name: "Marble",
   description: "Cool grey stone board",
 
-  boardBg:
-    "linear-gradient(180deg,rgba(215,215,220,0.98),rgba(195,195,202,0.98))",
+  boardBg: "linear-gradient(180deg,rgba(215,215,220,0.98),rgba(195,195,202,0.98))",
   boardBorder: "#b8b8c0",
-  boardInnerBg:
-    "linear-gradient(180deg,rgba(245,245,250,0.16),rgba(255,255,255,0.06))",
+  boardInnerBg: "linear-gradient(180deg,rgba(245,245,250,0.16),rgba(255,255,255,0.06))",
   boardShadow: "0 52px 120px -42px rgba(30,30,40,0.70)",
   boardSheen:
     "radial-gradient(circle at top left,rgba(248,248,255,0.32),transparent 28%),linear-gradient(135deg,rgba(255,255,255,0.10),transparent 42%)",
@@ -384,13 +396,10 @@ export const MARBLE: BoardTheme = {
   starPointColor: "#5a5a68",
 
   blackPieceBorder: "#101014",
-  blackPieceBg:
-    "radial-gradient(circle at 30% 28%,#4a4a54,#282830 58%,#0e0e14)",
+  blackPieceBg: "radial-gradient(circle at 30% 28%,#4a4a54,#282830 58%,#0e0e14)",
   whitePieceBorder: "#e0e0e8",
-  whitePieceBg:
-    "radial-gradient(circle at 30% 28%,#fafafc,#e8e8f0 58%,#d0d0dc)",
-  pieceShadow:
-    "inset 0 2px 10px rgba(255,255,255,0.22), 0 10px 18px rgba(0,0,0,0.20)",
+  whitePieceBg: "radial-gradient(circle at 30% 28%,#fafafc,#e8e8f0 58%,#d0d0dc)",
+  pieceShadow: "inset 0 2px 10px rgba(255,255,255,0.22), 0 10px 18px rgba(0,0,0,0.20)",
   selectableGlow:
     "0 0 0 4px rgba(180,180,220,0.25), inset 0 2px 10px rgba(255,255,255,0.22), 0 10px 18px rgba(0,0,0,0.20)",
 
@@ -423,8 +432,16 @@ export const MARBLE: BoardTheme = {
   undoShadow: "0 12px 20px -14px rgba(80,40,40,0.50)",
 
   victoryColors: [
-    "#b0b0ff", "#ff9090", "#90e0a0", "#f0d060", "#80d0f0",
-    "#c8a0ff", "#ff80b0", "#60e0c0", "#e0b060", "#a0c0ff",
+    "#b0b0ff",
+    "#ff9090",
+    "#90e0a0",
+    "#f0d060",
+    "#80d0f0",
+    "#c8a0ff",
+    "#ff80b0",
+    "#60e0c0",
+    "#e0b060",
+    "#a0c0ff",
   ],
   defeatColors: ["#6a6a78", "#7a7a88", "#8a8a98", "#9a9aa8"],
 

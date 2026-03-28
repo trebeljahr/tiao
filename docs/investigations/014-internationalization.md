@@ -23,12 +23,14 @@ Lichess's scale (millions of users, 140+ languages) justifies the investment. Fo
 ## Is It Worth It?
 
 **Arguments for:**
+
 - 9 of the top 10 app markets by downloads are non-English
 - Games see engagement boosts when localized — players prefer native language UI
 - Retrofitting later is 2-3x more expensive than building i18n-ready infrastructure now
 - Setting up the plumbing now (even with only English) makes future translation trivial
 
 **Arguments against:**
+
 - Tiao is a niche abstract strategy game — the audience skews toward English-speaking board game enthusiasts
 - Estimated effort: **120-175 hours** (3-4 weeks) for full retrofit
 - Ongoing maintenance cost: every new feature needs strings extracted and translated
@@ -74,17 +76,17 @@ Lichess's scale (millions of users, 140+ languages) justifies the investment. Fo
 
 ### Comparison
 
-| Concern | next-intl | react-i18next |
-|---------|-----------|---------------|
-| App Router integration | Native, first-class | Manual, bolted-on |
-| URL prefix routing | Built-in middleware | DIY middleware |
-| Server Components | Built-in `getTranslations()` | Requires custom setup |
-| Bundle size | ~12KB | ~25KB+ |
-| Ecosystem size | Smaller, focused | Massive, general-purpose |
-| String extraction tools | Manual or third-party | i18next-scanner, cli-instrument |
-| Type safety | Built-in | Via i18next-resources-to-ts |
-| Learning curve | Lower for Next.js devs | Lower if you know i18next already |
-| SEO (hreflang, canonical) | Automatic | Manual |
+| Concern                   | next-intl                    | react-i18next                     |
+| ------------------------- | ---------------------------- | --------------------------------- |
+| App Router integration    | Native, first-class          | Manual, bolted-on                 |
+| URL prefix routing        | Built-in middleware          | DIY middleware                    |
+| Server Components         | Built-in `getTranslations()` | Requires custom setup             |
+| Bundle size               | ~12KB                        | ~25KB+                            |
+| Ecosystem size            | Smaller, focused             | Massive, general-purpose          |
+| String extraction tools   | Manual or third-party        | i18next-scanner, cli-instrument   |
+| Type safety               | Built-in                     | Via i18next-resources-to-ts       |
+| Learning curve            | Lower for Next.js devs       | Lower if you know i18next already |
+| SEO (hreflang, canonical) | Automatic                    | Manual                            |
 
 ## Recommendation: next-intl
 
@@ -105,6 +107,7 @@ The main downside vs react-i18next is the smaller ecosystem — but for this pro
 ## Suggested Phased Approach
 
 ### Phase 1: Infrastructure (8-12 hours)
+
 - Install next-intl, create middleware.ts, restructure `app/` under `[locale]/`
 - Configure locale detection (browser → cookie → default `en`)
 - Set up message files structure (`messages/en.json`)
@@ -112,11 +115,13 @@ The main downside vs react-i18next is the smaller ecosystem — but for this pro
 - Verify custom server.mjs still works
 
 ### Phase 2: Extract strings incrementally (ongoing)
+
 - Don't extract all 500+ strings at once — do it page by page as you touch components
 - Start with high-traffic pages: lobby, game, profile
 - Use namespace separation (`game.json`, `lobby.json`, `profile.json`)
 
 ### Phase 3: Add languages (when demand exists)
+
 - Set up Crowdin or similar translation platform
 - Start with 1-2 languages (e.g., Portuguese, Spanish)
 - Recruit community translators or use professional services for game terminology

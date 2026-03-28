@@ -20,7 +20,8 @@ function isAllowedOrigin(origin: string | undefined): boolean {
     const incoming = new URL(origin).origin;
     if (incoming === allowed) return true;
     // Allow any localhost origin in development (e2e tests use a different port)
-    if (incoming.match(/^https?:\/\/localhost(:\d+)?$/) && allowed.includes("localhost")) return true;
+    if (incoming.match(/^https?:\/\/localhost(:\d+)?$/) && allowed.includes("localhost"))
+      return true;
     return false;
   } catch {
     return false;
@@ -59,7 +60,9 @@ websocketServer.on("connection", (socket, request) => {
 
   socket.on("close", (code, reason) => {
     clearInterval(pingInterval);
-    console.info(`[ws] closed ${gameId || "unknown"}: code=${code}, reason=${reason.toString() || "none"}`);
+    console.info(
+      `[ws] closed ${gameId || "unknown"}: code=${code}, reason=${reason.toString() || "none"}`,
+    );
     void gameService.disconnect(socket);
   });
 
@@ -123,7 +126,7 @@ websocketServer.on("connection", (socket, request) => {
           : new GameServiceError(
               500,
               "WS_CONNECT_FAILED",
-              "Unable to connect to that multiplayer room."
+              "Unable to connect to that multiplayer room.",
             );
 
       console.error(`[ws] gameService.connect failed for ${gameId}:`, serviceError);
@@ -147,7 +150,7 @@ websocketServer.on("connection", (socket, request) => {
               : new GameServiceError(
                   400,
                   "INVALID_MESSAGE",
-                  "That move update could not be processed."
+                  "That move update could not be processed.",
                 );
 
           sendJson(socket, {
@@ -169,9 +172,12 @@ websocketServer.on("connection", (socket, request) => {
   });
 });
 
-const pruneHandle = setInterval(() => {
-  gameService.pruneInactiveRooms(1000 * 60 * 60 * 24);
-}, 1000 * 60 * 30);
+const pruneHandle = setInterval(
+  () => {
+    gameService.pruneInactiveRooms(1000 * 60 * 60 * 24);
+  },
+  1000 * 60 * 30,
+);
 
 pruneHandle.unref();
 

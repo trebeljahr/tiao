@@ -49,18 +49,14 @@ export function MatchCard({
     }
   }
 
-  const isMyMatch =
-    currentPlayerId &&
-    match.players.some((p) => p?.playerId === currentPlayerId);
+  const isMyMatch = currentPlayerId && match.players.some((p) => p?.playerId === currentPlayerId);
   const isDone = match.status === "finished" || match.status === "forfeit";
   const reason = isDone ? formatFinishReason(match.finishReason ?? null, undefined, tGame) : "";
 
   return (
     <div
       className={`rounded-xl border p-3 ${
-        featured
-          ? "border-amber-400/60 bg-amber-50/40"
-          : "border-white/50 bg-white/60"
+        featured ? "border-amber-400/60 bg-amber-50/40" : "border-white/50 bg-white/60"
       }`}
     >
       <div className="flex items-center justify-between gap-2">
@@ -106,9 +102,7 @@ export function MatchCard({
                 </span>
               )}
               {match.status !== "pending" && match.status !== "bye" && (
-                <span className="text-xs text-muted-foreground">
-                  {match.score[i]}
-                </span>
+                <span className="text-xs text-muted-foreground">{match.score[i]}</span>
               )}
             </div>
           ))}
@@ -116,15 +110,11 @@ export function MatchCard({
 
         <div className="flex flex-col items-end gap-1">
           {!isDone && (
-            <Badge className={statusColor(match.status)}>
-              {statusLabel(match.status)}
-            </Badge>
+            <Badge className={statusColor(match.status)}>{statusLabel(match.status)}</Badge>
           )}
           {isDone && (
             <div className="flex flex-col items-end gap-0.5">
-              {reason && (
-                <span className="text-[11px] text-muted-foreground">{reason}</span>
-              )}
+              {reason && <span className="text-[11px] text-muted-foreground">{reason}</span>}
               {match.historyLength != null && (
                 <span className="text-[11px] text-muted-foreground">
                   {tCommon("moves", { count: match.historyLength })}

@@ -46,8 +46,10 @@ async function fetchPlayerProfiles(playerIds: string[]): Promise<Map<string, Pla
   try {
     const accounts = await GameAccount.find(
       { _id: { $in: playerIds } },
-      { displayName: 1, profilePicture: 1 }
-    ).lean().exec();
+      { displayName: 1, profilePicture: 1 },
+    )
+      .lean()
+      .exec();
     for (const a of accounts) {
       map.set(String(a._id), { displayName: a.displayName, profilePicture: a.profilePicture });
     }
@@ -65,7 +67,7 @@ function participantToMatchPlayer(p: TournamentParticipant): TournamentMatchPlay
 
 function generateRoundRobinRounds(
   participants: TournamentParticipant[],
-  prefix = ""
+  prefix = "",
 ): TournamentRound[] {
   const players = [...participants];
   const hasBye = players.length % 2 !== 0;
@@ -135,9 +137,7 @@ function getRoundLabel(roundIndex: number, totalRounds: number): string {
   return `Round ${roundIndex + 1}`;
 }
 
-function generateSingleEliminationRounds(
-  participants: TournamentParticipant[]
-): TournamentRound[] {
+function generateSingleEliminationRounds(participants: TournamentParticipant[]): TournamentRound[] {
   const size = nextPowerOf2(participants.length);
   const totalRounds = Math.log2(size);
   const rounds: TournamentRound[] = [];
@@ -159,10 +159,7 @@ function generateSingleEliminationRounds(
       matchId: generateMatchId(0, m),
       roundIndex: 0,
       matchIndex: m,
-      players: [
-        p1 ? participantToMatchPlayer(p1) : null,
-        p2 ? participantToMatchPlayer(p2) : null,
-      ],
+      players: [p1 ? participantToMatchPlayer(p1) : null, p2 ? participantToMatchPlayer(p2) : null],
       roomId: null,
       winner: isBye ? (p1?.playerId ?? p2?.playerId ?? null) : null,
       score: [0, 0],
@@ -209,7 +206,7 @@ function generateSingleEliminationRounds(
 
 function generateGroups(
   participants: TournamentParticipant[],
-  groupSize: number
+  groupSize: number,
 ): TournamentGroup[] {
   const seeded = [...participants].sort((a, b) => a.seed - b.seed);
   const numGroups = Math.ceil(seeded.length / groupSize);
@@ -298,10 +295,14 @@ export class TournamentService implements TournamentGameCallback {
     creator: PlayerIdentity,
     settings: TournamentSettings,
     name: string,
-    description?: string
+    description?: string,
   ): Promise<StoredTournament> {
     if (creator.kind !== "account") {
-      throw new GameServiceError(403, "ACCOUNT_REQUIRED", "Only account users can create tournaments.");
+      throw new GameServiceError(
+        403,
+        "ACCOUNT_REQUIRED",
+        "Only account users can create tournaments.",
+      );
     }
 
     const tournamentId = generateTournamentId();
@@ -324,10 +325,14 @@ export class TournamentService implements TournamentGameCallback {
   async registerPlayer(
     tournamentId: string,
     player: PlayerIdentity,
-    inviteCode?: string
+    inviteCode?: string,
   ): Promise<StoredTournament> {
     if (player.kind !== "account") {
-      throw new GameServiceError(403, "ACCOUNT_REQUIRED", "Only account users can join tournaments.");
+      throw new GameServiceError(
+        403,
+        "ACCOUNT_REQUIRED",
+        "Only account users can join tournaments.",
+      );
     }
 
     return this.withLock(tournamentId, async () => {
@@ -366,15 +371,16 @@ export class TournamentService implements TournamentGameCallback {
     });
   }
 
-  async unregisterPlayer(
-    tournamentId: string,
-    playerId: string
-  ): Promise<StoredTournament> {
+  async unregisterPlayer(tournamentId: string, playerId: string): Promise<StoredTournament> {
     return this.withLock(tournamentId, async () => {
       const tournament = await this.getTournament(tournamentId);
 
       if (tournament.status !== "registration") {
-        throw new GameServiceError(409, "REGISTRATION_CLOSED", "Cannot unregister after registration closes.");
+        throw new GameServiceError(
+          409,
+          "REGISTRATION_CLOSED",
+          "Cannot unregister after registration closes.",
+        );
       }
 
       const idx = tournament.participants.findIndex((p) => p.playerId === playerId);
@@ -395,10 +401,7 @@ export class TournamentService implements TournamentGameCallback {
     });
   }
 
-  async startTournament(
-    tournamentId: string,
-    adminId: string
-  ): Promise<StoredTournament> {
+  async startTournament(tournamentId: string, adminId: string): Promise<StoredTournament> {
     return this.withLock(tournamentId, async () => {
       const tournament = await this.getTournament(tournamentId);
 
@@ -407,14 +410,18 @@ export class TournamentService implements TournamentGameCallback {
       }
 
       if (tournament.status !== "registration") {
-        throw new GameServiceError(409, "INVALID_STATUS", "Tournament cannot be started from its current state.");
+        throw new GameServiceError(
+          409,
+          "INVALID_STATUS",
+          "Tournament cannot be started from its current state.",
+        );
       }
 
       if (tournament.participants.length < tournament.settings.minPlayers) {
         throw new GameServiceError(
           409,
           "NOT_ENOUGH_PLAYERS",
-          `Need at least ${tournament.settings.minPlayers} players to start.`
+          `Need at least ${tournament.settings.minPlayers} players to start.`,
         );
       }
 
@@ -459,10 +466,7 @@ export class TournamentService implements TournamentGameCallback {
     });
   }
 
-  async cancelTournament(
-    tournamentId: string,
-    adminId: string
-  ): Promise<StoredTournament> {
+  async cancelTournament(tournamentId: string, adminId: string): Promise<StoredTournament> {
     return this.withLock(tournamentId, async () => {
       const tournament = await this.getTournament(tournamentId);
 
@@ -471,7 +475,11 @@ export class TournamentService implements TournamentGameCallback {
       }
 
       if (tournament.status === "finished" || tournament.status === "cancelled") {
-        throw new GameServiceError(409, "ALREADY_DONE", "Tournament is already finished or cancelled.");
+        throw new GameServiceError(
+          409,
+          "ALREADY_DONE",
+          "Tournament is already finished or cancelled.",
+        );
       }
 
       tournament.status = "cancelled";
@@ -486,14 +494,18 @@ export class TournamentService implements TournamentGameCallback {
   async updateSeeding(
     tournamentId: string,
     adminId: string,
-    seeds: { playerId: string; seed: number }[]
+    seeds: { playerId: string; seed: number }[],
   ): Promise<StoredTournament> {
     return this.withLock(tournamentId, async () => {
       const tournament = await this.getTournament(tournamentId);
       this.ensureAdmin(tournament, adminId);
 
       if (tournament.status !== "registration") {
-        throw new GameServiceError(409, "INVALID_STATUS", "Seeds can only be changed during registration.");
+        throw new GameServiceError(
+          409,
+          "INVALID_STATUS",
+          "Seeds can only be changed during registration.",
+        );
       }
 
       for (const entry of seeds) {
@@ -507,16 +519,17 @@ export class TournamentService implements TournamentGameCallback {
     });
   }
 
-  async randomizeSeeding(
-    tournamentId: string,
-    adminId: string
-  ): Promise<StoredTournament> {
+  async randomizeSeeding(tournamentId: string, adminId: string): Promise<StoredTournament> {
     return this.withLock(tournamentId, async () => {
       const tournament = await this.getTournament(tournamentId);
       this.ensureAdmin(tournament, adminId);
 
       if (tournament.status !== "registration") {
-        throw new GameServiceError(409, "INVALID_STATUS", "Seeds can only be changed during registration.");
+        throw new GameServiceError(
+          409,
+          "INVALID_STATUS",
+          "Seeds can only be changed during registration.",
+        );
       }
 
       // Fisher-Yates shuffle
@@ -540,7 +553,7 @@ export class TournamentService implements TournamentGameCallback {
   async setFeaturedMatch(
     tournamentId: string,
     adminId: string,
-    matchId: string | null
+    matchId: string | null,
   ): Promise<StoredTournament> {
     return this.withLock(tournamentId, async () => {
       const tournament = await this.getTournament(tournamentId);
@@ -559,7 +572,7 @@ export class TournamentService implements TournamentGameCallback {
     tournamentId: string,
     matchId: string,
     loserId: string,
-    adminId: string
+    adminId: string,
   ): Promise<StoredTournament> {
     return this.withLock(tournamentId, async () => {
       const tournament = await this.getTournament(tournamentId);
@@ -724,7 +737,7 @@ export class TournamentService implements TournamentGameCallback {
     for (const round of tournament.rounds) {
       if (round.status === "active") {
         const allDone = round.matches.every(
-          (m) => m.status === "finished" || m.status === "forfeit" || m.status === "bye"
+          (m) => m.status === "finished" || m.status === "forfeit" || m.status === "bye",
         );
         if (allDone) {
           round.status = "finished";
@@ -751,7 +764,7 @@ export class TournamentService implements TournamentGameCallback {
       if (round.status !== "active") continue;
 
       const allDone = round.matches.every(
-        (m) => m.status === "finished" || m.status === "forfeit" || m.status === "bye"
+        (m) => m.status === "finished" || m.status === "forfeit" || m.status === "bye",
       );
       if (!allDone) continue;
 
@@ -793,7 +806,7 @@ export class TournamentService implements TournamentGameCallback {
       for (const round of group.rounds) {
         if (round.status === "active") {
           const allDone = round.matches.every(
-            (m) => m.status === "finished" || m.status === "forfeit" || m.status === "bye"
+            (m) => m.status === "finished" || m.status === "forfeit" || m.status === "bye",
           );
           if (allDone) {
             round.status = "finished";
@@ -824,7 +837,7 @@ export class TournamentService implements TournamentGameCallback {
         if (round.status !== "active") continue;
 
         const allDone = round.matches.every(
-          (m) => m.status === "finished" || m.status === "forfeit" || m.status === "bye"
+          (m) => m.status === "finished" || m.status === "forfeit" || m.status === "bye",
         );
         if (!allDone) continue;
 
@@ -855,8 +868,8 @@ export class TournamentService implements TournamentGameCallback {
   }
 
   private generateKnockoutFromGroups(tournament: StoredTournament): void {
-    const advancePerGroup = tournament.settings.advancePerGroup ??
-      Math.ceil((tournament.settings.groupSize ?? 4) / 2);
+    const advancePerGroup =
+      tournament.settings.advancePerGroup ?? Math.ceil((tournament.settings.groupSize ?? 4) / 2);
 
     // Compute final standings per group
     for (const group of tournament.groups) {
@@ -956,7 +969,7 @@ export class TournamentService implements TournamentGameCallback {
 
   private getMatchWinnerAsPlayer(
     tournament: StoredTournament,
-    match: TournamentMatch
+    match: TournamentMatch,
   ): TournamentMatchPlayer | null {
     if (!match.winner) return null;
     const participant = tournament.participants.find((p) => p.playerId === match.winner);
@@ -992,9 +1005,8 @@ export class TournamentService implements TournamentGameCallback {
       }
     } else {
       // Elimination formats: find the last standing player
-      const rounds = tournament.knockoutRounds.length > 0
-        ? tournament.knockoutRounds
-        : tournament.rounds;
+      const rounds =
+        tournament.knockoutRounds.length > 0 ? tournament.knockoutRounds : tournament.rounds;
       const finalRound = rounds[rounds.length - 1];
       const finalMatch = finalRound?.matches[0];
       if (finalMatch?.winner) {
@@ -1012,10 +1024,7 @@ export class TournamentService implements TournamentGameCallback {
   }
 
   private async createRoomsForActiveRound(tournament: StoredTournament): Promise<void> {
-    const allRounds = [
-      ...tournament.rounds,
-      ...tournament.knockoutRounds,
-    ];
+    const allRounds = [...tournament.rounds, ...tournament.knockoutRounds];
 
     // Also include group rounds
     for (const group of tournament.groups) {
@@ -1066,7 +1075,7 @@ export class TournamentService implements TournamentGameCallback {
             identity2,
             tournament.settings.timeControl,
             tournament.tournamentId,
-            match.matchId
+            match.matchId,
           );
 
           match.roomId = room.id;
@@ -1093,10 +1102,7 @@ export class TournamentService implements TournamentGameCallback {
             roomId: room.id,
           });
         } catch (err) {
-          console.error(
-            `[tournament] Failed to create game room for match ${match.matchId}:`,
-            err
-          );
+          console.error(`[tournament] Failed to create game room for match ${match.matchId}:`, err);
         }
       }
     }
@@ -1173,7 +1179,7 @@ export class TournamentService implements TournamentGameCallback {
         matches: round.matches.map((match) => ({
           ...match,
           players: match.players.map((mp) =>
-            mp ? { ...mp, ...enrich(mp.playerId, mp.displayName) } : null
+            mp ? { ...mp, ...enrich(mp.playerId, mp.displayName) } : null,
           ) as TournamentMatch["players"],
         })),
       }));

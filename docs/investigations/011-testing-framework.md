@@ -10,18 +10,21 @@ The project needs unit testing for the shared game engine and server logic, comp
 ## Options Considered
 
 ### Jest
+
 - Industry standard, used initially
 - Slow startup, heavy configuration
 - ESM support is painful (the shared game engine and server use ESM)
 - Removed in commit `8114d3d3`
 
 ### Vitest (chosen for unit/component)
+
 - Vite-native test runner, fast startup, native ESM support
 - Compatible with Jest's `expect` API (easy migration)
 - Watch mode with instant re-runs
 - When Vite was removed in favor of Next.js, a standalone `vitest.config.mts` was created to keep Vitest independent of the build tool
 
 ### Playwright (chosen for E2E)
+
 - Cross-browser E2E testing
 - Reliable selectors, auto-waiting, trace viewer for debugging
 - E2E tests run against isolated Docker infrastructure (dedicated MongoDB on port 27018, Redis on port 6380, MinIO on port 9002 — all with tmpfs for speed)

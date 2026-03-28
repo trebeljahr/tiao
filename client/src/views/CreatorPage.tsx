@@ -19,7 +19,15 @@ type CreatorPageProps = {
   links: CreatorLink[];
 };
 
-export function CreatorPage({ name, username, image, roleKey, bioKey, bioTags, links }: CreatorPageProps) {
+export function CreatorPage({
+  name,
+  username,
+  image,
+  roleKey,
+  bioKey,
+  bioTags,
+  links,
+}: CreatorPageProps) {
   const t = useTranslations("creator");
   const tCommon = useTranslations("common");
   const { auth, onOpenAuth, onLogout } = useAuth();
@@ -61,15 +69,11 @@ export function CreatorPage({ name, username, image, roleKey, bioKey, bioTags, l
             />
 
             <div className="text-center">
-              <h1 className="font-display text-3xl font-bold text-[#2b1e14]">
-                {name}
-              </h1>
+              <h1 className="font-display text-3xl font-bold text-[#2b1e14]">{name}</h1>
               <p className="mt-1 text-sm font-medium text-[#8d7760]">{t(roleKey)}</p>
             </div>
 
-            <p className="max-w-lg leading-relaxed text-[#4e3d2c]">
-              {t.rich(bioKey, bioTags)}
-            </p>
+            <p className="max-w-lg leading-relaxed text-[#4e3d2c]">{t.rich(bioKey, bioTags)}</p>
 
             <div className="flex flex-wrap gap-3">
               {links.map((link) => (
@@ -81,7 +85,22 @@ export function CreatorPage({ name, username, image, roleKey, bioKey, bioTags, l
                   className="inline-flex items-center gap-1.5 rounded-full border border-[#d8c29c] bg-[#fff8ee]/80 px-4 py-2 text-sm font-semibold text-[#5d4732] transition-colors hover:bg-[#f5e8d4]"
                 >
                   {link.label}
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="opacity-50"
+                  >
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                    <polyline points="15 3 21 3 21 9" />
+                    <line x1="10" y1="14" x2="21" y2="3" />
+                  </svg>
                 </a>
               ))}
             </div>

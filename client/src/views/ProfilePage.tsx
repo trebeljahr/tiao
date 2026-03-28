@@ -4,13 +4,7 @@ import type { AuthResponse } from "@shared";
 import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
@@ -31,7 +25,10 @@ import { useTranslations } from "next-intl";
 const PROFILE_PIC_SIZE = 512;
 const PROFILE_PIC_QUALITY = 0.85;
 
-function resizeImage(file: File, errorMessages: { failedToResize: string; failedToLoad: string }): Promise<File> {
+function resizeImage(
+  file: File,
+  errorMessages: { failedToResize: string; failedToLoad: string },
+): Promise<File> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
@@ -97,9 +94,7 @@ function BadgeSelector({ auth }: { auth: AuthResponse | null }) {
     <Card className="border-[#dcc7a3]/60 bg-[linear-gradient(180deg,rgba(255,250,235,0.98),rgba(248,238,215,0.98))] shadow-[0_32px_72px_-28px_rgba(80,52,18,0.26)]">
       <CardHeader>
         <CardTitle>{t("badge")}</CardTitle>
-        <CardDescription>
-          {t("badgeDesc")}
-        </CardDescription>
+        <CardDescription>{t("badgeDesc")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex flex-wrap gap-2">
@@ -433,9 +428,7 @@ export function ProfilePage() {
           <Card className={paperCard}>
             <CardHeader>
               <CardTitle>{t("title")}</CardTitle>
-              <CardDescription>
-                {t("description")}
-              </CardDescription>
+              <CardDescription>{t("description")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="rounded-2xl border border-[#dcc7a3] bg-[#fff9ef] px-4 py-3 text-sm text-[#6f5a45]">
@@ -459,9 +452,7 @@ export function ProfilePage() {
             <Card className={paperCard}>
               <CardHeader>
                 <CardTitle>{t("picture")}</CardTitle>
-                <CardDescription>
-                  {t("pictureDesc")}
-                </CardDescription>
+                <CardDescription>{t("pictureDesc")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div
@@ -493,7 +484,10 @@ export function ProfilePage() {
                   onDragLeave={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (dropZoneRef.current && !dropZoneRef.current.contains(e.relatedTarget as Node)) {
+                    if (
+                      dropZoneRef.current &&
+                      !dropZoneRef.current.contains(e.relatedTarget as Node)
+                    ) {
                       setDragging(false);
                     }
                   }}
@@ -544,18 +538,14 @@ export function ProfilePage() {
                   />
                 </div>
 
-                <p className="text-center text-xs text-[#8b7659]">
-                  {t("pictureHint")}
-                </p>
+                <p className="text-center text-xs text-[#8b7659]">{t("pictureHint")}</p>
               </CardContent>
             </Card>
 
             <Card className={paperCard}>
               <CardHeader>
                 <CardTitle>{t("basicInfo")}</CardTitle>
-                <CardDescription>
-                  {t("basicInfoDesc")}
-                </CardDescription>
+                <CardDescription>{t("basicInfoDesc")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {loading ? (
@@ -581,7 +571,11 @@ export function ProfilePage() {
                         id="profile-display-name"
                         name="name"
                         value={displayName}
-                        onChange={(event) => setDisplayName(event.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
+                        onChange={(event) =>
+                          setDisplayName(
+                            event.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""),
+                          )
+                        }
                         placeholder={t("usernamePlaceholder")}
                         autoComplete="username"
                         pattern="^[a-z0-9][a-z0-9_-]*$"
@@ -590,16 +584,11 @@ export function ProfilePage() {
                         title="Lowercase letters, numbers, hyphens, and underscores only (3-32 chars)"
                         required
                       />
-                      <p className="text-xs text-[#8d7760]">
-                        {t("usernameHint")}
-                      </p>
+                      <p className="text-xs text-[#8d7760]">{t("usernameHint")}</p>
                     </div>
 
                     <div className="grid gap-2">
-                      <label
-                        htmlFor="profile-email"
-                        className="text-sm font-medium text-[#4e3d2c]"
-                      >
+                      <label htmlFor="profile-email" className="text-sm font-medium text-[#4e3d2c]">
                         {t("emailOptional")}
                       </label>
                       <Input
@@ -656,19 +645,19 @@ export function ProfilePage() {
                     )}
 
                     <div className="grid gap-3 rounded-2xl border border-[#dcc7a3] bg-[#fff9ef] px-4 py-3 text-sm text-[#6f5a45]">
-                      <p>{t("created", { date: formatTimestamp(profile?.createdAt, t("justNow")) })}</p>
-                      <p>{t("updated", { date: formatTimestamp(profile?.updatedAt, t("justNow")) })}</p>
+                      <p>
+                        {t("created", { date: formatTimestamp(profile?.createdAt, t("justNow")) })}
+                      </p>
+                      <p>
+                        {t("updated", { date: formatTimestamp(profile?.updatedAt, t("justNow")) })}
+                      </p>
                     </div>
 
                     <div className="flex flex-wrap gap-3">
                       <Button type="submit" disabled={saving}>
                         {saving ? tCommon("saving") : tCommon("save")}
                       </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => router.push("/")}
-                      >
+                      <Button type="button" variant="outline" onClick={() => router.push("/")}>
                         {tCommon("backToLobby")}
                       </Button>
                     </div>
@@ -753,11 +742,7 @@ export function ProfilePage() {
             <Button type="submit" disabled={savingPassword}>
               {savingPassword ? tCommon("saving") : t("updatePassword")}
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setPasswordModalOpen(false)}
-            >
+            <Button type="button" variant="outline" onClick={() => setPasswordModalOpen(false)}>
               {tCommon("cancel")}
             </Button>
           </div>

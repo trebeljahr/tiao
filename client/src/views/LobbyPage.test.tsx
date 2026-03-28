@@ -61,9 +61,7 @@ vi.mock("@/lib/AuthContext", () => ({
   }),
 }));
 
-function makeGameSummary(
-  overrides?: Partial<MultiplayerGameSummary>,
-): MultiplayerGameSummary {
+function makeGameSummary(overrides?: Partial<MultiplayerGameSummary>): MultiplayerGameSummary {
   return {
     gameId: "ABC123",
     roomType: "direct",
@@ -201,7 +199,8 @@ describe("LobbyPage", () => {
 
     render(<LobbyPage />);
 
-    const spectateInput = screen.getAllByPlaceholderText("Game ID")
+    const spectateInput = screen
+      .getAllByPlaceholderText("Game ID")
       .find((el) => el.getAttribute("name") === "spectate-id")!;
     fireEvent.change(spectateInput, { target: { value: "ABC123" } });
     fireEvent.submit(spectateInput.closest("form")!);
@@ -223,7 +222,8 @@ describe("LobbyPage", () => {
 
     render(<LobbyPage />);
 
-    const spectateInput = screen.getAllByPlaceholderText("Game ID")
+    const spectateInput = screen
+      .getAllByPlaceholderText("Game ID")
       .find((el) => el.getAttribute("name") === "spectate-id")!;
     fireEvent.change(spectateInput, { target: { value: "FIN999" } });
     fireEvent.submit(spectateInput.closest("form")!);
@@ -241,7 +241,8 @@ describe("LobbyPage", () => {
 
     render(<LobbyPage />);
 
-    const spectateInput = screen.getAllByPlaceholderText("Game ID")
+    const spectateInput = screen
+      .getAllByPlaceholderText("Game ID")
       .find((el) => el.getAttribute("name") === "spectate-id")!;
     fireEvent.change(spectateInput, { target: { value: "XYZ789" } });
     fireEvent.submit(spectateInput.closest("form")!);

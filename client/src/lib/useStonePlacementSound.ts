@@ -5,7 +5,7 @@ import { useSoundEnabled } from "./useSoundPreference";
 function countPieces(state: GameState) {
   return state.positions.reduce(
     (total, row) => total + row.filter((cell) => cell !== null).length,
-    0
+    0,
   );
 }
 
@@ -42,12 +42,10 @@ export function useStonePlacementSound(state: GameState | null) {
     const nextJumpLength = state.pendingJump.length;
 
     const pieceAdded =
-      previousPieceCount.current !== null &&
-      nextPieceCount > previousPieceCount.current;
+      previousPieceCount.current !== null && nextPieceCount > previousPieceCount.current;
 
     const jumpStepAdded =
-      previousJumpLength.current !== null &&
-      nextJumpLength > previousJumpLength.current;
+      previousJumpLength.current !== null && nextJumpLength > previousJumpLength.current;
 
     if ((pieceAdded || jumpStepAdded) && soundEnabled) {
       playMoveSound();

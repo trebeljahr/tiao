@@ -14,8 +14,7 @@ const mockAuth: AuthResponse = {
 const mockListMultiplayerGames = vi.fn();
 
 vi.mock("../api", () => ({
-  listMultiplayerGames: (...args: unknown[]) =>
-    mockListMultiplayerGames(...args),
+  listMultiplayerGames: (...args: unknown[]) => mockListMultiplayerGames(...args),
 }));
 
 vi.mock("../errors", () => ({
@@ -98,10 +97,9 @@ describe("useGamesIndex", () => {
     const games = { active: [{ gameId: "X" }], finished: [] };
     mockListMultiplayerGames.mockResolvedValue({ games });
 
-    const { result, rerender } = renderHook(
-      ({ auth }) => useGamesIndex(auth),
-      { initialProps: { auth: mockAuth as AuthResponse | null } },
-    );
+    const { result, rerender } = renderHook(({ auth }) => useGamesIndex(auth), {
+      initialProps: { auth: mockAuth as AuthResponse | null },
+    });
 
     await waitFor(() => {
       expect(result.current.multiplayerGamesLoaded).toBe(true);

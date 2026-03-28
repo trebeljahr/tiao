@@ -10,6 +10,7 @@ The game has no user-facing analytics or event tracking. Understanding player be
 ## Options Considered
 
 ### OpenPanel
+
 - Open-source, self-hostable analytics
 - Privacy-focused, GDPR-friendly
 - Modern dashboard with event tracking, funnels, and retention
@@ -17,6 +18,7 @@ The game has no user-facing analytics or event tracking. Understanding player be
 - Smaller community than Plausible
 
 ### Plausible Analytics
+
 - Open-source, self-hostable (or hosted at plausible.io)
 - Lightweight script (~1KB), no cookies, GDPR-compliant by default
 - Focused on page-level analytics (pageviews, referrers, geography)
@@ -25,12 +27,14 @@ The game has no user-facing analytics or event tracking. Understanding player be
 - Self-hosting requires PostgreSQL + ClickHouse — heavier infrastructure
 
 ### PostHog
+
 - Open-source product analytics with feature flags, session replay, A/B testing
 - Very feature-rich but heavyweight for a game project
 - Self-hosting is resource-intensive (Kafka, ClickHouse, PostgreSQL, Redis)
 - Overkill for current needs
 
 ### Google Analytics
+
 - Free, comprehensive, industry standard
 - Privacy concerns — data sent to Google, cookie banners required
 - Against the project's self-hosted philosophy
@@ -38,6 +42,7 @@ The game has no user-facing analytics or event tracking. Understanding player be
 ## Current Leaning
 
 OpenPanel is listed in the project roadmap as the intended choice. No implementation has been done yet. The key decision factors are:
+
 - Self-hostable on existing Hetzner VPS via Coolify
 - Custom event tracking (not just pageviews) for game-specific metrics
 - Lightweight infrastructure requirements

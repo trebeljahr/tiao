@@ -17,7 +17,10 @@ export default defineConfig({
       "next/headers": path.resolve(__dirname, "node_modules/next/headers.js"),
       // Stub better-auth (WIP migration — package not yet installed)
       "better-auth/react": path.resolve(__dirname, "src/test/stubs/better-auth-react.ts"),
-      "better-auth/client/plugins": path.resolve(__dirname, "src/test/stubs/better-auth-client-plugins.ts"),
+      "better-auth/client/plugins": path.resolve(
+        __dirname,
+        "src/test/stubs/better-auth-client-plugins.ts",
+      ),
     },
   },
   test: {

@@ -20,16 +20,11 @@ export function NumberStepper({
   label,
   unit,
 }: NumberStepperProps) {
-  const clamp = useCallback(
-    (v: number) => Math.max(min, Math.min(max, v)),
-    [min, max],
-  );
+  const clamp = useCallback((v: number) => Math.max(min, Math.min(max, v)), [min, max]);
 
   return (
     <div className="flex flex-col gap-1.5">
-      <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#8d7760]">
-        {label}
-      </p>
+      <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#8d7760]">{label}</p>
       <div className="flex items-center gap-2">
         <div className="flex items-center rounded-xl border border-[#d8c29c] bg-[#fffaf1] shadow-[0_8px_20px_-14px_rgba(48,31,18,0.4)]">
           <button
@@ -39,7 +34,18 @@ export function NumberStepper({
             disabled={value <= min}
             aria-label={`Decrease ${label}`}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 9l6 6 6-6"/></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            >
+              <path d="M6 9l6 6 6-6" />
+            </svg>
           </button>
           <input
             type="number"
@@ -62,7 +68,18 @@ export function NumberStepper({
             disabled={value >= max}
             aria-label={`Increase ${label}`}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 15l-6-6-6 6"/></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            >
+              <path d="M18 15l-6-6-6 6" />
+            </svg>
           </button>
         </div>
         <span className="text-sm text-[#8d7760]">{unit}</span>

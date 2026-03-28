@@ -153,10 +153,8 @@ function ttProbe(
   if (entry.depth >= depth) {
     ctx.stats.ttHits++;
     if (entry.flag === "exact") return { score: entry.score, bestMoveKey };
-    if (entry.flag === "lower" && entry.score >= beta)
-      return { score: entry.score, bestMoveKey };
-    if (entry.flag === "upper" && entry.score <= alpha)
-      return { score: entry.score, bestMoveKey };
+    if (entry.flag === "lower" && entry.score >= beta) return { score: entry.score, bestMoveKey };
+    if (entry.flag === "upper" && entry.score <= alpha) return { score: entry.score, bestMoveKey };
   }
 
   return { score: null, bestMoveKey };
@@ -210,10 +208,7 @@ function collectJumpChains(
   }
 }
 
-export function generateMoves(
-  state: GameState,
-  abort?: { aborted: boolean },
-): EngineMove[] {
+export function generateMoves(state: GameState, abort?: { aborted: boolean }): EngineMove[] {
   if (isGameOver(state)) return [];
 
   const moves: EngineMove[] = [];
@@ -245,13 +240,7 @@ export function generateMoves(
       for (const { dx, dy } of XY_DIRECTIONS) {
         const nx = x + dx;
         const ny = y + dy;
-        if (
-          nx >= 0 &&
-          nx < bs &&
-          ny >= 0 &&
-          ny < bs &&
-          state.positions[ny][nx] !== null
-        ) {
+        if (nx >= 0 && nx < bs && ny >= 0 && ny < bs && state.positions[ny][nx] !== null) {
           adj++;
         }
       }
@@ -355,13 +344,7 @@ export function evaluate(state: GameState): number {
         for (const { dx, dy } of XY_DIRECTIONS) {
           const nx = x + dx;
           const ny = y + dy;
-          if (
-            nx >= 0 &&
-            nx < bs &&
-            ny >= 0 &&
-            ny < bs &&
-            state.positions[ny][nx] === me
-          ) {
+          if (nx >= 0 && nx < bs && ny >= 0 && ny < bs && state.positions[ny][nx] === me) {
             myConnections++;
           }
         }
@@ -371,13 +354,7 @@ export function evaluate(state: GameState): number {
         for (const { dx, dy } of XY_DIRECTIONS) {
           const nx = x + dx;
           const ny = y + dy;
-          if (
-            nx >= 0 &&
-            nx < bs &&
-            ny >= 0 &&
-            ny < bs &&
-            state.positions[ny][nx] === opp
-          ) {
+          if (nx >= 0 && nx < bs && ny >= 0 && ny < bs && state.positions[ny][nx] === opp) {
             oppConnections++;
           }
         }
@@ -391,7 +368,7 @@ export function evaluate(state: GameState): number {
   score += myJumpOrigins * 80 - oppJumpOrigins * 85;
   score += (myPieces - oppPieces) * 3;
   score += (myCenterScore - oppCenterScore) * 2;
-  score += (myConnections - oppConnections);
+  score += myConnections - oppConnections;
 
   return score;
 }
@@ -439,10 +416,8 @@ function orderMoves(
 
     // Placements: prefer center
     if (a.type === "place" && b.type === "place") {
-      const distA =
-        Math.abs(a.position.x - center) + Math.abs(a.position.y - center);
-      const distB =
-        Math.abs(b.position.x - center) + Math.abs(b.position.y - center);
+      const distA = Math.abs(a.position.x - center) + Math.abs(a.position.y - center);
+      const distB = Math.abs(b.position.x - center) + Math.abs(b.position.y - center);
       return distA - distB;
     }
 
@@ -450,11 +425,7 @@ function orderMoves(
   });
 }
 
-function updateKillerMove(
-  ctx: SearchContext,
-  move: EngineMove,
-  depth: number,
-): void {
+function updateKillerMove(ctx: SearchContext, move: EngineMove, depth: number): void {
   const key = moveKey(move);
   const killers = ctx.killerMoves[depth];
   if (!killers) return;
@@ -463,11 +434,7 @@ function updateKillerMove(
   killers[0] = key;
 }
 
-function updateHistoryScore(
-  ctx: SearchContext,
-  move: EngineMove,
-  depth: number,
-): void {
+function updateHistoryScore(ctx: SearchContext, move: EngineMove, depth: number): void {
   const key = moveKey(move);
   const current = ctx.historyScores.get(key) ?? 0;
   ctx.historyScores.set(key, current + depth * depth);
@@ -508,8 +475,7 @@ function quiescence(
 
   const captureMoves = generateCaptureMoves(state);
   captureMoves.sort((a, b) => {
-    if (a.type === "jump" && b.type === "jump")
-      return b.path.length - a.path.length;
+    if (a.type === "jump" && b.type === "jump") return b.path.length - a.path.length;
     return 0;
   });
 
@@ -570,12 +536,7 @@ function negamax(
   const ttBestMoveKey = ttResult.bestMoveKey;
 
   // Null move pruning
-  if (
-    allowNullMove &&
-    ctx.preset.nullMove &&
-    depth >= 3 &&
-    state.pendingJump.length === 0
-  ) {
+  if (allowNullMove && ctx.preset.nullMove && depth >= 3 && state.pendingJump.length === 0) {
     const nullState: GameState = {
       boardSize: state.boardSize,
       scoreToWin: state.scoreToWin,
@@ -587,15 +548,7 @@ function negamax(
       history: state.history,
     };
     const nullHash = hash ^ zobristSide;
-    const nullScore = -negamax(
-      nullState,
-      depth - 3,
-      -beta,
-      -beta + 1,
-      nullHash,
-      false,
-      ctx,
-    );
+    const nullScore = -negamax(nullState, depth - 3, -beta, -beta + 1, nullHash, false, ctx);
     if (nullScore >= beta) {
       return beta;
     }
@@ -621,15 +574,7 @@ function negamax(
 
     const newState = applyEngineMove(state, move);
     const newHash = computeZobristHash(newState);
-    const score = -negamax(
-      newState,
-      depth - 1,
-      -beta,
-      -alpha,
-      newHash,
-      true,
-      ctx,
-    );
+    const score = -negamax(newState, depth - 1, -beta, -alpha, newHash, true, ctx);
 
     if (score > bestScore) {
       bestScore = score;
@@ -657,11 +602,7 @@ function negamax(
 
 // ─── Root Search ─────────────────────────────────────────────────────
 
-function searchRoot(
-  state: GameState,
-  depth: number,
-  ctx: SearchContext,
-): SearchResult | null {
+function searchRoot(state: GameState, depth: number, ctx: SearchContext): SearchResult | null {
   let moves = generateMoves(state, ctx.abort);
   if (moves.length === 0) return null;
 
@@ -699,9 +640,7 @@ function searchRoot(
     const score = -negamax(newState, depth - 1, -INF, -alpha, newHash, true, ctx);
 
     const noisyScore =
-      ctx.preset.evalNoise > 0
-        ? score + (Math.random() * 2 - 1) * ctx.preset.evalNoise
-        : score;
+      ctx.preset.evalNoise > 0 ? score + (Math.random() * 2 - 1) * ctx.preset.evalNoise : score;
 
     if (noisyScore > bestScore) {
       bestScore = noisyScore;

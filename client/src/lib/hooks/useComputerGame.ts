@@ -1,12 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { GameSettings, PlayerColor, Position } from "@shared";
-import {
-  isGameOver,
-  undoLastTurn,
-  jumpPiece,
-  placePiece,
-  confirmPendingJump,
-} from "@shared";
+import { isGameOver, undoLastTurn, jumpPiece, placePiece, confirmPendingJump } from "@shared";
 import { useLocalGame } from "./useLocalGame";
 import {
   COMPUTER_THINK_MS,
@@ -45,9 +39,7 @@ export function useComputerGame(difficulty: AIDifficulty = 3, settings?: Partial
   const localGameRef = useRef(local.localGame);
   localGameRef.current = local.localGame;
 
-  const needsMove =
-    !isGameOver(local.localGame) &&
-    local.localGame.currentTurn === computerColor;
+  const needsMove = !isGameOver(local.localGame) && local.localGame.currentTurn === computerColor;
 
   // Stable trigger that doesn't change during multi-jump animation.
   // jumpPiece() only updates pendingJump/pendingCaptures — it doesn't
@@ -120,18 +112,13 @@ export function useComputerGame(difficulty: AIDifficulty = 3, settings?: Partial
         if (cancelledRef.current) return;
 
         // Animate the plan step by step
-        const finalState = await animatePlan(
-          gameAtRequest,
-          plan,
-          cancelledRef,
-          (state) => {
-            if (!cancelledRef.current) {
-              local.setLocalGame(state);
-              local.setLocalSelection(null);
-              local.setLocalError(null);
-            }
-          },
-        );
+        const finalState = await animatePlan(gameAtRequest, plan, cancelledRef, (state) => {
+          if (!cancelledRef.current) {
+            local.setLocalGame(state);
+            local.setLocalSelection(null);
+            local.setLocalError(null);
+          }
+        });
 
         if (cancelledRef.current) return;
 
@@ -182,12 +169,7 @@ export function useComputerGame(difficulty: AIDifficulty = 3, settings?: Partial
       }
       local.handleLocalBoardClick(position);
     },
-    [
-      computerThinking,
-      computerColor,
-      local.localGame.currentTurn,
-      local.handleLocalBoardClick,
-    ],
+    [computerThinking, computerColor, local.localGame.currentTurn, local.handleLocalBoardClick],
   );
 
   // Undo for AI games: cancel AI thinking if active, then undo moves
@@ -247,24 +229,32 @@ export function useComputerGame(difficulty: AIDifficulty = 3, settings?: Partial
     local.setLocalGame(state);
     local.setLocalSelection(null);
     local.setLocalError(null);
-  }, [local.localGame, computerColor, local.setLocalGame, local.setLocalSelection, local.setLocalError]);
+  }, [
+    local.localGame,
+    computerColor,
+    local.setLocalGame,
+    local.setLocalSelection,
+    local.setLocalError,
+  ]);
 
-  const resetComputerGame = useCallback((preferredComputerColor?: PlayerColor) => {
-    if (cancelRef.current) {
-      cancelRef.current();
-      cancelRef.current = null;
-    }
-    preAIStateRef.current = null;
-    searchedForRef.current = -1;
-    setResetGeneration((g) => g + 1);
-    setComputerColor(preferredComputerColor ?? randomComputerColor());
-    local.resetLocalGame();
-  }, [local.resetLocalGame]);
+  const resetComputerGame = useCallback(
+    (preferredComputerColor?: PlayerColor) => {
+      if (cancelRef.current) {
+        cancelRef.current();
+        cancelRef.current = null;
+      }
+      preAIStateRef.current = null;
+      searchedForRef.current = -1;
+      setResetGeneration((g) => g + 1);
+      setComputerColor(preferredComputerColor ?? randomComputerColor());
+      local.resetLocalGame();
+    },
+    [local.resetLocalGame],
+  );
 
   // Player can undo if they have at least one move in history
   const canUndo = local.localGame.history.some(
-    (t) =>
-      (t.type === "put" || t.type === "jump") && t.color !== computerColor,
+    (t) => (t.type === "put" || t.type === "jump") && t.color !== computerColor,
   );
 
   return {
@@ -276,8 +266,7 @@ export function useComputerGame(difficulty: AIDifficulty = 3, settings?: Partial
     handleLocalBoardClick: handleBoardClick,
     handleLocalUndoTurn: handleUndoForAI,
     resetLocalGame: resetComputerGame,
-    controlsDisabled:
-      computerThinking || local.localGame.currentTurn === computerColor,
+    controlsDisabled: computerThinking || local.localGame.currentTurn === computerColor,
   };
 }
 

@@ -3,23 +3,13 @@ import type { PlayerColor } from "./tiao";
 
 // ── Format & Status ──
 
-export type TournamentFormat =
-  | "round-robin"
-  | "single-elimination"
-  | "groups-knockout";
+export type TournamentFormat = "round-robin" | "single-elimination" | "groups-knockout";
 
-export type TournamentStatus =
-  | "draft"
-  | "registration"
-  | "active"
-  | "finished"
-  | "cancelled";
+export type TournamentStatus = "draft" | "registration" | "active" | "finished" | "cancelled";
 
 export type SchedulingMode = "simultaneous" | "time-window";
 
-export type NoShowPolicy =
-  | { type: "auto-forfeit"; timeoutMs: number }
-  | { type: "admin-decides" };
+export type NoShowPolicy = { type: "auto-forfeit"; timeoutMs: number } | { type: "admin-decides" };
 
 export type TournamentVisibility = "public" | "private";
 
@@ -43,11 +33,7 @@ export type TournamentSettings = {
 
 // ── Participant ──
 
-export type TournamentParticipantStatus =
-  | "registered"
-  | "eliminated"
-  | "active"
-  | "winner";
+export type TournamentParticipantStatus = "registered" | "eliminated" | "active" | "winner";
 
 export type TournamentParticipant = {
   playerId: string;
@@ -59,12 +45,7 @@ export type TournamentParticipant = {
 
 // ── Match ──
 
-export type TournamentMatchStatus =
-  | "pending"
-  | "active"
-  | "finished"
-  | "forfeit"
-  | "bye";
+export type TournamentMatchStatus = "pending" | "active" | "finished" | "forfeit" | "bye";
 
 export type TournamentMatchPlayer = {
   playerId: string;

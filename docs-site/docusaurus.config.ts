@@ -6,8 +6,7 @@ import remarkSourceLinks from "./plugins/remark-source-links.mjs";
 
 const config: Config = {
   title: "Tiao",
-  tagline:
-    'Tiao is an open-source multiplayer board game platform — think "lichess for Tiao."',
+  tagline: 'Tiao is an open-source multiplayer board game platform — think "lichess for Tiao."',
   favicon: "img/favicon.png",
 
   future: {

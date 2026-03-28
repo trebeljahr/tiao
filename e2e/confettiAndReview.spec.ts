@@ -1,8 +1,8 @@
-import { test, expect } from '@playwright/test';
-import { signUpViaUI } from './helpers';
+import { test, expect } from "@playwright/test";
+import { signUpViaUI } from "./helpers";
 
-test.describe('Game review from My Games page', () => {
-  test('no confetti fires when opening a finished game in review mode', async ({ browser }) => {
+test.describe("Game review from My Games page", () => {
+  test("no confetti fires when opening a finished game in review mode", async ({ browser }) => {
     const aliceContext = await browser.newContext();
     const bobContext = await browser.newContext();
     const alicePage = await aliceContext.newPage();
@@ -10,33 +10,33 @@ test.describe('Game review from My Games page', () => {
 
     // Alice signs up
     const aliceUsername = `alice_rv_${Math.random().toString(36).slice(2, 7)}`;
-    await signUpViaUI(alicePage, aliceUsername, 'password123');
+    await signUpViaUI(alicePage, aliceUsername, "password123");
 
     // Bob signs up
     const bobUsername = `bob_rv_${Math.random().toString(36).slice(2, 7)}`;
-    await signUpViaUI(bobPage, bobUsername, 'password123');
+    await signUpViaUI(bobPage, bobUsername, "password123");
 
     // Alice creates game, Bob joins
     await alicePage.click('button:has-text("Create a game")');
     await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/);
     const gameUrl = alicePage.url();
-    const gameId = gameUrl.split('/').pop()!;
+    const gameId = gameUrl.split("/").pop()!;
     await bobPage.goto(gameUrl);
-    await expect(bobPage.locator('text=Live match')).toBeVisible();
+    await expect(bobPage.locator("text=Live match")).toBeVisible();
 
     // Force finish the game
     await alicePage.evaluate(async (gameId) => {
       await fetch(`/api/games/${gameId}/test-finish`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ winner: 'white' }),
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ winner: "white" }),
       });
     }, gameId);
-    await expect(alicePage.getByRole('heading', { name: /wins/ })).toBeVisible({ timeout: 5000 });
+    await expect(alicePage.getByRole("heading", { name: /wins/ })).toBeVisible({ timeout: 5000 });
 
     // Navigate to My Games and open in review mode
-    await alicePage.goto('/games');
-    await expect(alicePage.locator('text=Match History')).toBeVisible();
+    await alicePage.goto("/games");
+    await expect(alicePage.locator("text=Match History")).toBeVisible();
 
     // Track whether confetti fires by intercepting the canvas-confetti calls
     await alicePage.evaluate(() => {
@@ -45,7 +45,7 @@ test.describe('Game review from My Games page', () => {
       // Patch canvas-confetti's typical pattern: it creates a canvas element
       const origCreate = document.createElement.bind(document);
       document.createElement = function (tag: string) {
-        if (tag === 'canvas') {
+        if (tag === "canvas") {
           // confetti library creates a canvas — mark it
           (window as any).__confettiCanvasCreated = true;
         }
@@ -71,7 +71,9 @@ test.describe('Game review from My Games page', () => {
     await bobContext.close();
   });
 
-  test('review mode shows nav buttons and hides rematch when opponent offline', async ({ browser }) => {
+  test("review mode shows nav buttons and hides rematch when opponent offline", async ({
+    browser,
+  }) => {
     const aliceContext = await browser.newContext();
     const bobContext = await browser.newContext();
     const alicePage = await aliceContext.newPage();
@@ -79,43 +81,47 @@ test.describe('Game review from My Games page', () => {
 
     // Alice signs up
     const aliceUsername = `alice_rv2_${Math.random().toString(36).slice(2, 7)}`;
-    await signUpViaUI(alicePage, aliceUsername, 'password123');
+    await signUpViaUI(alicePage, aliceUsername, "password123");
 
     // Bob signs up
     const bobUsername = `bob_rv2_${Math.random().toString(36).slice(2, 7)}`;
-    await signUpViaUI(bobPage, bobUsername, 'password123');
+    await signUpViaUI(bobPage, bobUsername, "password123");
 
     // Alice creates game, Bob joins
     await alicePage.click('button:has-text("Create a game")');
     await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/);
     const gameUrl = alicePage.url();
-    const gameId = gameUrl.split('/').pop()!;
+    const gameId = gameUrl.split("/").pop()!;
     await bobPage.goto(gameUrl);
-    await expect(bobPage.locator('text=Live match')).toBeVisible();
+    await expect(bobPage.locator("text=Live match")).toBeVisible();
 
     // Force finish
     await alicePage.evaluate(async (gameId) => {
       await fetch(`/api/games/${gameId}/test-finish`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ winner: 'white' }),
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ winner: "white" }),
       });
     }, gameId);
-    await expect(alicePage.getByRole('heading', { name: /wins/ })).toBeVisible({ timeout: 5000 });
+    await expect(alicePage.getByRole("heading", { name: /wins/ })).toBeVisible({ timeout: 5000 });
 
     // Close Bob's context (he leaves the game) and navigate Alice to My Games
     await bobContext.close();
 
-    await alicePage.goto('/games');
-    await expect(alicePage.locator('text=Match History')).toBeVisible();
+    await alicePage.goto("/games");
+    await expect(alicePage.locator("text=Match History")).toBeVisible();
     await alicePage.click('button:has-text("Review")');
     await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/);
 
     // Rematch button should NOT be visible (Bob is offline, rematch requires opponent online)
-    await expect(alicePage.locator('button:has-text("Rematch")')).not.toBeVisible({ timeout: 3000 });
+    await expect(alicePage.locator('button:has-text("Rematch")')).not.toBeVisible({
+      timeout: 3000,
+    });
 
     // Move navigation buttons should appear in the floating review nav
-    await expect(alicePage.locator('[data-testid="review-nav-buttons"]')).toBeVisible({ timeout: 5000 });
+    await expect(alicePage.locator('[data-testid="review-nav-buttons"]')).toBeVisible({
+      timeout: 5000,
+    });
     await expect(alicePage.locator('button[aria-label="Go to start"]')).toBeVisible();
     await expect(alicePage.locator('button[aria-label="Go to end"]')).toBeVisible();
 

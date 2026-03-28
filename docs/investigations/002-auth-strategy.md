@@ -10,12 +10,14 @@ The game needed authentication supporting both instant play (no signup wall) and
 ## Options Considered
 
 ### JWT Tokens (original implementation)
+
 - Stateless — no server-side session storage needed
 - Cannot be revoked without a blacklist (which requires storage, defeating the purpose)
 - Larger payload (header + payload + signature)
 - Overkill for single-backend architecture — no cross-service token validation needed
 
 ### Third-Party Auth Libraries (better-auth, Passport, Lucia, Auth0, Clerk)
+
 - Reduce boilerplate and provide battle-tested auth flows
 - Add significant dependency weight and abstraction layers
 - Many are designed for OAuth/social login flows — the game only needs email/password + guest
@@ -24,6 +26,7 @@ The game needed authentication supporting both instant play (no signup wall) and
 - better-auth and Lucia are lighter but still add abstraction over what is a straightforward requirement
 
 ### Custom HMAC Cookie Sessions (chosen)
+
 - HttpOnly cookies with random 48-byte base64url tokens
 - Server stores only HMAC-SHA256 digest in MongoDB with TTL index
 - Immediate session revocation (just delete from DB)
@@ -33,6 +36,7 @@ The game needed authentication supporting both instant play (no signup wall) and
 ## Outcome
 
 Custom HMAC cookie sessions were chosen. The auth model splits into two player types sharing a common `PlayerIdentity` shape:
+
 - **Guest:** Instant creation, no credentials, ephemeral, limited features
 - **Account:** Email/password (bcrypt), persistent profile, friends, history
 

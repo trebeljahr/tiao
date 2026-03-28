@@ -10,18 +10,21 @@ The game needs a deployment platform that supports Docker containers, custom dom
 ## Options Considered
 
 ### Vercel
+
 - Excellent Next.js support (they maintain it)
 - Serverless model doesn't work for persistent WebSocket connections
 - Free tier is generous for static/SSR but WebSocket support requires Enterprise or workarounds
 - Vendor lock-in for deployment model
 
 ### Railway / Render / Fly.io
+
 - Container-based platforms with WebSocket support
 - Monthly costs scale with usage ($5-20+/month)
 - Less control than a VPS
 - Good DX but another managed service dependency
 
 ### Coolify on Hetzner VPS (chosen)
+
 - Open-source, self-hosted PaaS (alternative to Heroku/Vercel)
 - Runs on a Hetzner VPS (~$5-10/month for a capable box)
 - Full Docker container support with automatic SSL via Let's Encrypt
@@ -30,6 +33,7 @@ The game needs a deployment platform that supports Docker containers, custom dom
 - Can run MongoDB, Redis, MinIO, and the app on the same box
 
 ### Bare Docker on VPS (no PaaS)
+
 - Maximum control, minimum abstraction
 - Manual SSL, deployment scripts, monitoring
 - More operational overhead than Coolify provides
@@ -37,6 +41,7 @@ The game needs a deployment platform that supports Docker containers, custom dom
 ## Outcome
 
 Coolify on Hetzner VPS was chosen. The deployment architecture uses:
+
 - Two Docker containers: client (Next.js via custom server.mjs) and server (Node.js Express)
 - GitHub Actions builds images to GHCR, triggers Coolify redeploy via API
 - MongoDB and Redis run as Coolify services on the same VPS

@@ -1,7 +1,7 @@
-import { test, expect } from '@playwright/test';
-import { signUpViaUI } from './helpers';
+import { test, expect } from "@playwright/test";
+import { signUpViaUI } from "./helpers";
 
-test('spectator can view an active game without joining', async ({ browser }) => {
+test("spectator can view an active game without joining", async ({ browser }) => {
   const aliceContext = await browser.newContext();
   const bobContext = await browser.newContext();
   const spectatorContext = await browser.newContext();
@@ -12,7 +12,7 @@ test('spectator can view an active game without joining', async ({ browser }) =>
 
   // Alice signs up and creates a game
   const aliceUsername = `alice_spec_${Math.random().toString(36).slice(2, 7)}`;
-  await signUpViaUI(alicePage, aliceUsername, 'password123');
+  await signUpViaUI(alicePage, aliceUsername, "password123");
 
   // Alice creates game
   await alicePage.click('button:has-text("Create a game")');
@@ -21,10 +21,10 @@ test('spectator can view an active game without joining', async ({ browser }) =>
 
   // Bob signs up and joins
   const bobUsername = `bob_spec_${Math.random().toString(36).slice(2, 7)}`;
-  await signUpViaUI(bobPage, bobUsername, 'password123');
+  await signUpViaUI(bobPage, bobUsername, "password123");
 
   await bobPage.goto(gameUrl);
-  await expect(bobPage.locator('text=Live match')).toBeVisible();
+  await expect(bobPage.locator("text=Live match")).toBeVisible();
 
   // Spectator (as guest) visits the game URL
   await spectatorPage.goto(gameUrl);
@@ -48,7 +48,7 @@ test('spectator sees "Spectating" title and players see spectator badge', async 
 
   // Alice signs up and creates a game
   const aliceUsername = `alice_badge_${Math.random().toString(36).slice(2, 7)}`;
-  await signUpViaUI(alicePage, aliceUsername, 'password123');
+  await signUpViaUI(alicePage, aliceUsername, "password123");
 
   await alicePage.click('button:has-text("Create a game")');
   await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/);
@@ -56,9 +56,9 @@ test('spectator sees "Spectating" title and players see spectator badge', async 
 
   // Bob signs up and joins
   const bobUsername = `bob_badge_${Math.random().toString(36).slice(2, 7)}`;
-  await signUpViaUI(bobPage, bobUsername, 'password123');
+  await signUpViaUI(bobPage, bobUsername, "password123");
   await bobPage.goto(gameUrl);
-  await expect(bobPage.locator('text=Live match')).toBeVisible();
+  await expect(bobPage.locator("text=Live match")).toBeVisible();
 
   // Spectator visits the game
   await spectatorPage.goto(gameUrl);
@@ -76,31 +76,31 @@ test('spectator sees "Spectating" title and players see spectator badge', async 
   await spectatorContext.close();
 });
 
-test('lobby Watch a Game section navigates to game', async ({ page }) => {
+test("lobby Watch a Game section navigates to game", async ({ page }) => {
   // Guest visits the lobby
-  await page.goto('/');
-  await page.waitForLoadState('networkidle');
+  await page.goto("/");
+  await page.waitForLoadState("networkidle");
 
   // Scroll to the Watch a Game section
-  const watchHeading = page.locator('text=Watch a Game');
+  const watchHeading = page.locator("text=Watch a Game");
   await expect(watchHeading).toBeVisible();
 
   // Type a game ID and submit
   const spectateForm = page.locator('form:has(input[name="spectate-id"])');
-  await spectateForm.locator('input[name="spectate-id"]').fill('ABCDEF');
+  await spectateForm.locator('input[name="spectate-id"]').fill("ABCDEF");
   await spectateForm.locator('button[type="submit"]').click();
 
   // Should navigate to the game URL
   await expect(page).toHaveURL(/\/game\/ABCDEF/);
 });
 
-test('spectating own game shows error toast and stays on lobby', async ({ browser }) => {
+test("spectating own game shows error toast and stays on lobby", async ({ browser }) => {
   const context = await browser.newContext();
   const page = await context.newPage();
 
   // Sign up and create a game
   const username = `own_spec_${Math.random().toString(36).slice(2, 7)}`;
-  await signUpViaUI(page, username, 'password123');
+  await signUpViaUI(page, username, "password123");
 
   await page.click('button:has-text("Create a game")');
   await expect(page).toHaveURL(/\/game\/[A-Z0-9]{6}/);
@@ -110,8 +110,8 @@ test('spectating own game shows error toast and stays on lobby', async ({ browse
   expect(gameId).toBeTruthy();
 
   // Go back to lobby
-  await page.goto('/');
-  await page.waitForLoadState('networkidle');
+  await page.goto("/");
+  await page.waitForLoadState("networkidle");
 
   // Try to spectate own game via the Watch a Game form
   const input = page.locator('input[name="spectate-id"]');
@@ -119,8 +119,8 @@ test('spectating own game shows error toast and stays on lobby', async ({ browse
   await page.click('button:has-text("Watch")');
 
   // Should show error toast and stay on lobby
-  await expect(page.locator('text=your own game')).toBeVisible({ timeout: 3000 });
-  await expect(page).toHaveURL('/');
+  await expect(page.locator("text=your own game")).toBeVisible({ timeout: 3000 });
+  await expect(page).toHaveURL("/");
 
   await context.close();
 });

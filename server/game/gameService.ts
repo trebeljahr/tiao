@@ -102,7 +102,7 @@ export class GameService {
     player2: PlayerIdentity,
     timeControl: TimeControl,
     tournamentId: string,
-    matchId: string
+    matchId: string,
   ): Promise<StoredMultiplayerRoom> {
     const tc = timeControl ?? null;
     const clockMs = tc ? { white: tc.initialMs, black: tc.initialMs } : null;
@@ -163,7 +163,7 @@ export class GameService {
     throw new GameServiceError(
       500,
       "ROOM_CREATE_FAILED",
-      "Unable to create a tournament game room right now."
+      "Unable to create a tournament game room right now.",
     );
   }
 
@@ -185,7 +185,11 @@ export class GameService {
       if (userSockets?.size === 0) {
         this.lobbyConnections.delete(player.playerId);
         for (const cb of this.lobbyDisconnectCallbacks) {
-          try { cb(player.playerId); } catch { /* best-effort */ }
+          try {
+            cb(player.playerId);
+          } catch {
+            /* best-effort */
+          }
         }
       }
     });
@@ -205,7 +209,11 @@ export class GameService {
 
   async createGame(
     creator: PlayerIdentity,
-    options: { roomType?: MultiplayerRoomType; gameSettings?: Partial<GameSettings>; timeControl?: TimeControl } = {}
+    options: {
+      roomType?: MultiplayerRoomType;
+      gameSettings?: Partial<GameSettings>;
+      timeControl?: TimeControl;
+    } = {},
   ): Promise<MultiplayerSnapshot> {
     return this.withLocks([this.playerLockKey(creator.playerId)], async () => {
       const room = await this.createRoomRecord({
@@ -220,10 +228,7 @@ export class GameService {
     });
   }
 
-  async cancelWaitingRoom(
-    gameId: string,
-    player: PlayerIdentity,
-  ): Promise<void> {
+  async cancelWaitingRoom(gameId: string, player: PlayerIdentity): Promise<void> {
     return this.withLocks([this.roomLockKey(gameId)], async () => {
       const room = await this.getRoom(gameId);
 
@@ -244,10 +249,7 @@ export class GameService {
     });
   }
 
-  async joinGame(
-    gameId: string,
-    player: PlayerIdentity
-  ): Promise<MultiplayerSnapshot> {
+  async joinGame(gameId: string, player: PlayerIdentity): Promise<MultiplayerSnapshot> {
     return this.withLocks(
       [this.roomLockKey(gameId), this.playerLockKey(player.playerId)],
       async () => {
@@ -256,14 +258,11 @@ export class GameService {
         const savedRoom = await this.joinRoom(room, player);
         this.broadcastSnapshot(savedRoom);
         return this.toSnapshot(savedRoom);
-      }
+      },
     );
   }
 
-  async accessGame(
-    gameId: string,
-    player: PlayerIdentity
-  ): Promise<MultiplayerSnapshot> {
+  async accessGame(gameId: string, player: PlayerIdentity): Promise<MultiplayerSnapshot> {
     return this.withLocks(
       [this.roomLockKey(gameId), this.playerLockKey(player.playerId)],
       async () => {
@@ -280,7 +279,7 @@ export class GameService {
         const savedRoom = await this.joinRoom(room, player);
         this.broadcastSnapshot(savedRoom);
         return this.toSnapshot(savedRoom);
-      }
+      },
     );
   }
 
@@ -291,7 +290,7 @@ export class GameService {
   async listGames(player: PlayerIdentity): Promise<MultiplayerGamesIndex> {
     const rooms = await this.store.listRoomsForPlayer(player.playerId);
     const summaries = rooms.map((room) =>
-      this.toSummary(this.deriveRoomStatus(room), player.playerId)
+      this.toSummary(this.deriveRoomStatus(room), player.playerId),
     );
 
     return {
@@ -300,11 +299,7 @@ export class GameService {
     };
   }
 
-  async connect(
-    gameId: string,
-    player: PlayerIdentity,
-    socket: WebSocket
-  ): Promise<void> {
+  async connect(gameId: string, player: PlayerIdentity, socket: WebSocket): Promise<void> {
     const room = await this.getRoom(gameId);
 
     this.clearAbandonTimer(room.id, player.playerId);
@@ -415,7 +410,7 @@ export class GameService {
       !this.isPlayerOnline(roomId, disconnectedPlayerId)
     ) {
       const disconnectedPlayer = derivedRoom.players.find(
-        (p) => p.playerId === disconnectedPlayerId
+        (p) => p.playerId === disconnectedPlayerId,
       );
       if (disconnectedPlayer?.kind === "guest") {
         this.startAbandonTimer(roomId, disconnectedPlayerId);
@@ -426,18 +421,14 @@ export class GameService {
   async applyAction(
     gameId: string,
     player: PlayerIdentity,
-    message: ClientToServerMessage
+    message: ClientToServerMessage,
   ): Promise<MultiplayerSnapshot> {
     return this.withLock(this.roomLockKey(gameId), async () => {
       const room = await this.getRoom(gameId);
       const playerColor = getPlayerColorForRoom(room, player.playerId);
 
       if (!playerColor) {
-        throw new GameServiceError(
-          403,
-          "NOT_IN_GAME",
-          "You are not seated in this game."
-        );
+        throw new GameServiceError(403, "NOT_IN_GAME", "You are not seated in this game.");
       }
 
       let result;
@@ -477,7 +468,7 @@ export class GameService {
             throw new GameServiceError(
               409,
               "GAME_NOT_ACTIVE",
-              "You can only forfeit an active game."
+              "You can only forfeit an active game.",
             );
           }
           result = forfeitGame(room.state, playerColor);
@@ -503,11 +494,7 @@ export class GameService {
           result = undoPendingJumpStep(room.state);
           break;
         default:
-          throw new GameServiceError(
-            400,
-            "UNKNOWN_ACTION",
-            "That message type is not supported."
-          );
+          throw new GameServiceError(400, "UNKNOWN_ACTION", "That message type is not supported.");
       }
 
       if (!result.ok) {
@@ -612,10 +599,7 @@ export class GameService {
 
       if (opponentEntry) {
         const snapshot = await this.withLocks(
-          [
-            this.playerLockKey(player.playerId),
-            this.playerLockKey(opponentEntry.player.playerId),
-          ],
+          [this.playerLockKey(player.playerId), this.playerLockKey(opponentEntry.player.playerId)],
           async () => {
             const room = await this.createRoomRecord({
               players: [opponentEntry.player, player],
@@ -628,7 +612,7 @@ export class GameService {
             await this.matchmaking.setMatch(player.playerId, room.id);
 
             return this.toSnapshot(room);
-          }
+          },
         );
 
         return {
@@ -712,9 +696,8 @@ export class GameService {
 
     // Set a first-move deadline for timed games that start with both players seated
     const willBeActive = options.assignSeats && options.players.length >= 2;
-    const firstMoveDeadline = tc && willBeActive
-      ? new Date(Date.now() + FIRST_MOVE_TIMEOUT_MS)
-      : null;
+    const firstMoveDeadline =
+      tc && willBeActive ? new Date(Date.now() + FIRST_MOVE_TIMEOUT_MS) : null;
 
     for (let attempt = 0; attempt < 12; attempt += 1) {
       const room = this.deriveRoomStatus({
@@ -777,13 +760,13 @@ export class GameService {
     throw new GameServiceError(
       500,
       "ROOM_CREATE_FAILED",
-      "Unable to create a multiplayer room right now."
+      "Unable to create a multiplayer room right now.",
     );
   }
 
   private assignSeats(
     firstPlayer: PlayerIdentity,
-    secondPlayer: PlayerIdentity
+    secondPlayer: PlayerIdentity,
   ): MultiplayerSeatAssignments {
     if (this.seatRandom() < 0.5) {
       return {
@@ -800,18 +783,14 @@ export class GameService {
 
   private async joinRoom(
     room: StoredMultiplayerRoom,
-    player: PlayerIdentity
+    player: PlayerIdentity,
   ): Promise<StoredMultiplayerRoom> {
     if (this.isPlayerInRoom(room, player.playerId)) {
       return room;
     }
 
     if (room.players.length >= 2) {
-      throw new GameServiceError(
-        409,
-        "ROOM_FULL",
-        "That game already has two players."
-      );
+      throw new GameServiceError(409, "ROOM_FULL", "That game already has two players.");
     }
 
     const players = [...room.players, player];
@@ -836,13 +815,21 @@ export class GameService {
   private refreshPlayerIdentity(room: StoredMultiplayerRoom, fresh: PlayerIdentity): void {
     for (let i = 0; i < room.players.length; i++) {
       if (room.players[i].playerId === fresh.playerId) {
-        room.players[i] = { ...room.players[i], displayName: fresh.displayName, profilePicture: fresh.profilePicture };
+        room.players[i] = {
+          ...room.players[i],
+          displayName: fresh.displayName,
+          profilePicture: fresh.profilePicture,
+        };
       }
     }
     for (const color of ["white", "black"] as const) {
       const seat = room.seats[color];
       if (seat?.playerId === fresh.playerId) {
-        room.seats[color] = { ...seat, displayName: fresh.displayName, profilePicture: fresh.profilePicture };
+        room.seats[color] = {
+          ...seat,
+          displayName: fresh.displayName,
+          profilePicture: fresh.profilePicture,
+        };
       }
     }
   }
@@ -857,9 +844,7 @@ export class GameService {
     return this.deriveRoomStatus(room);
   }
 
-  private async saveRoom(
-    room: StoredMultiplayerRoom
-  ): Promise<StoredMultiplayerRoom> {
+  private async saveRoom(room: StoredMultiplayerRoom): Promise<StoredMultiplayerRoom> {
     const previousStatus = room.status;
     const saved = this.deriveRoomStatus(await this.store.saveRoom(this.deriveRoomStatus(room)));
 
@@ -897,8 +882,10 @@ export class GameService {
 
     // Only rate games where both players are accounts
     if (
-      !whitePlayer || !blackPlayer ||
-      whitePlayer.kind !== "account" || blackPlayer.kind !== "account"
+      !whitePlayer ||
+      !blackPlayer ||
+      whitePlayer.kind !== "account" ||
+      blackPlayer.kind !== "account"
     ) {
       return;
     }
@@ -919,8 +906,10 @@ export class GameService {
     const blackGames = blackAccount.rating?.overall?.gamesPlayed ?? 0;
 
     const { newRatingA, newRatingB } = computeNewRatings(
-      whiteElo, whiteGames,
-      blackElo, blackGames,
+      whiteElo,
+      whiteGames,
+      blackElo,
+      blackGames,
       scoreWhite,
     );
 
@@ -941,7 +930,7 @@ export class GameService {
     await this.store.saveRoom(room);
 
     console.log(
-      `[game] Elo updated for room ${room.id}: white ${whiteElo}->${newRatingA}, black ${blackElo}->${newRatingB}`
+      `[game] Elo updated for room ${room.id}: white ${whiteElo}->${newRatingA}, black ${blackElo}->${newRatingB}`,
     );
   }
 
@@ -956,22 +945,17 @@ export class GameService {
         : {
             white:
               room.seats.white &&
-              players.some(
-                (player) => player.playerId === room.seats.white?.playerId
-              )
+              players.some((player) => player.playerId === room.seats.white?.playerId)
                 ? { ...room.seats.white }
                 : null,
             black:
               room.seats.black &&
-              players.some(
-                (player) => player.playerId === room.seats.black?.playerId
-              )
+              players.some((player) => player.playerId === room.seats.black?.playerId)
                 ? { ...room.seats.black }
                 : null,
           };
     const status = this.getStatus(room.state, players, seats);
-    const rematch =
-      status === "finished" ? this.normalizeRematch(room.rematch, seats) : null;
+    const rematch = status === "finished" ? this.normalizeRematch(room.rematch, seats) : null;
 
     // Clear takeback state if game is not active
     const takeback = status === "active" ? (room.takeback ?? null) : null;
@@ -989,18 +973,14 @@ export class GameService {
 
   private normalizeRematch(
     rematch: MultiplayerRematchState | null,
-    seats: MultiplayerSeatAssignments
+    seats: MultiplayerSeatAssignments,
   ): MultiplayerRematchState | null {
     if (!rematch) {
       return null;
     }
 
-    const activeColors = (["white", "black"] as PlayerColor[]).filter(
-      (color) => !!seats[color]
-    );
-    const requestedBy = rematch.requestedBy.filter((color) =>
-      activeColors.includes(color)
-    );
+    const activeColors = (["white", "black"] as PlayerColor[]).filter((color) => !!seats[color]);
+    const requestedBy = rematch.requestedBy.filter((color) => activeColors.includes(color));
 
     if (requestedBy.length === 0) {
       return null;
@@ -1013,7 +993,7 @@ export class GameService {
 
   private normalizePlayers(
     players: PlayerIdentity[] | undefined,
-    seats: MultiplayerSeatAssignments
+    seats: MultiplayerSeatAssignments,
   ): PlayerIdentity[] {
     const nextPlayers: PlayerIdentity[] = [];
     const seen = new Set<string>();
@@ -1043,7 +1023,7 @@ export class GameService {
   private getStatus(
     state: StoredMultiplayerRoom["state"],
     players: PlayerIdentity[],
-    seats: MultiplayerSeatAssignments
+    seats: MultiplayerSeatAssignments,
   ): MultiplayerStatus {
     if (isGameOver(state)) {
       return "finished";
@@ -1076,10 +1056,7 @@ export class GameService {
     };
   }
 
-  private toSeatSlot(
-    room: StoredMultiplayerRoom,
-    color: PlayerColor
-  ): PlayerSlot | null {
+  private toSeatSlot(room: StoredMultiplayerRoom, color: PlayerColor): PlayerSlot | null {
     const player = room.seats[color];
     if (!player) {
       return null;
@@ -1091,9 +1068,7 @@ export class GameService {
   private toSnapshot(room: StoredMultiplayerRoom): MultiplayerSnapshot {
     const roomSpectators = this.spectatorIdentities.get(room.id);
     const spectators: PlayerSlot[] = roomSpectators
-      ? Array.from(roomSpectators.values()).map((identity) =>
-          this.toPlayerSlot(room.id, identity)
-        )
+      ? Array.from(roomSpectators.values()).map((identity) => this.toPlayerSlot(room.id, identity))
       : [];
 
     return {
@@ -1115,9 +1090,10 @@ export class GameService {
       clock: this.computeLiveClock(room),
       firstMoveDeadline: room.firstMoveDeadline?.toISOString() ?? null,
       tournamentId: room.tournamentId ?? null,
-      tournamentReady: room.roomType === "tournament"
-        ? !!(room.firstMoveDeadline || room.lastMoveAt) || !room.timeControl
-        : undefined,
+      tournamentReady:
+        room.roomType === "tournament"
+          ? !!(room.firstMoveDeadline || room.lastMoveAt) || !room.timeControl
+          : undefined,
     };
   }
 
@@ -1158,9 +1134,7 @@ export class GameService {
     };
   }
 
-  private static deriveFinishReason(
-    room: StoredMultiplayerRoom,
-  ): FinishReason | null {
+  private static deriveFinishReason(room: StoredMultiplayerRoom): FinishReason | null {
     if (room.status !== "finished") return null;
 
     // Scan the entire tail of the history for meta-records.
@@ -1191,10 +1165,7 @@ export class GameService {
     return null;
   }
 
-  private toSummary(
-    room: StoredMultiplayerRoom,
-    playerId: string
-  ): MultiplayerGameSummary {
+  private toSummary(room: StoredMultiplayerRoom, playerId: string): MultiplayerGameSummary {
     return {
       gameId: room.id,
       roomType: room.roomType,
@@ -1225,15 +1196,12 @@ export class GameService {
     };
   }
 
-  private ensureActionableRoom(
-    room: StoredMultiplayerRoom,
-    playerColor: PlayerColor
-  ): void {
+  private ensureActionableRoom(room: StoredMultiplayerRoom, playerColor: PlayerColor): void {
     if (!room.seats.white || !room.seats.black) {
       throw new GameServiceError(
         409,
         "WAITING_FOR_OPPONENT",
-        "The game cannot start until both players have joined."
+        "The game cannot start until both players have joined.",
       );
     }
 
@@ -1247,28 +1215,24 @@ export class GameService {
       throw new GameServiceError(
         409,
         "TOURNAMENT_NOT_STARTED",
-        "Waiting for both players to connect before the game can begin."
+        "Waiting for both players to connect before the game can begin.",
       );
     }
 
     if (room.state.currentTurn !== playerColor) {
-      throw new GameServiceError(
-        409,
-        "NOT_YOUR_TURN",
-        "It is not your turn."
-      );
+      throw new GameServiceError(409, "NOT_YOUR_TURN", "It is not your turn.");
     }
   }
 
   private async requestRematch(
     room: StoredMultiplayerRoom,
-    playerColor: PlayerColor
+    playerColor: PlayerColor,
   ): Promise<StoredMultiplayerRoom> {
     if (room.roomType === "tournament") {
       throw new GameServiceError(
         409,
         "TOURNAMENT_NO_REMATCH",
-        "Rematches are not available in tournament games."
+        "Rematches are not available in tournament games.",
       );
     }
 
@@ -1276,7 +1240,7 @@ export class GameService {
       throw new GameServiceError(
         409,
         "GAME_NOT_FINISHED",
-        "A rematch is only available once the game has finished."
+        "A rematch is only available once the game has finished.",
       );
     }
 
@@ -1284,13 +1248,11 @@ export class GameService {
       throw new GameServiceError(
         409,
         "WAITING_FOR_OPPONENT",
-        "A rematch needs both players to still be seated."
+        "A rematch needs both players to still be seated.",
       );
     }
 
-    const requestedBy = Array.from(
-      new Set([...(room.rematch?.requestedBy ?? []), playerColor])
-    );
+    const requestedBy = Array.from(new Set([...(room.rematch?.requestedBy ?? []), playerColor]));
 
     if (requestedBy.length === 2) {
       // Both players agreed — create a new game room
@@ -1349,25 +1311,25 @@ export class GameService {
 
   private async declineRematch(
     room: StoredMultiplayerRoom,
-    playerColor: PlayerColor
+    playerColor: PlayerColor,
   ): Promise<StoredMultiplayerRoom> {
     if (room.status !== "finished") {
       throw new GameServiceError(
         409,
         "GAME_NOT_FINISHED",
-        "A rematch can only be declined once the game has finished."
+        "A rematch can only be declined once the game has finished.",
       );
     }
 
     const incomingRequestExists = (room.rematch?.requestedBy ?? []).some(
-      (color) => color !== playerColor
+      (color) => color !== playerColor,
     );
 
     if (!incomingRequestExists) {
       throw new GameServiceError(
         409,
         "NO_REMATCH_REQUEST",
-        "There is no incoming rematch request to decline."
+        "There is no incoming rematch request to decline.",
       );
     }
 
@@ -1379,13 +1341,13 @@ export class GameService {
 
   private async cancelRematch(
     room: StoredMultiplayerRoom,
-    playerColor: PlayerColor
+    playerColor: PlayerColor,
   ): Promise<StoredMultiplayerRoom> {
     if (room.status !== "finished") {
       throw new GameServiceError(
         409,
         "GAME_NOT_FINISHED",
-        "Cannot cancel a rematch on a game that is not finished."
+        "Cannot cancel a rematch on a game that is not finished.",
       );
     }
 
@@ -1403,30 +1365,22 @@ export class GameService {
 
   private async requestTakeback(
     room: StoredMultiplayerRoom,
-    playerColor: PlayerColor
+    playerColor: PlayerColor,
   ): Promise<StoredMultiplayerRoom> {
     if (room.status !== "active") {
       throw new GameServiceError(
         409,
         "GAME_NOT_ACTIVE",
-        "Takebacks are only available during an active game."
+        "Takebacks are only available during an active game.",
       );
     }
 
     if (room.state.history.length === 0) {
-      throw new GameServiceError(
-        409,
-        "NO_MOVES",
-        "There are no moves to take back."
-      );
+      throw new GameServiceError(409, "NO_MOVES", "There are no moves to take back.");
     }
 
     if (room.takeback?.requestedBy) {
-      throw new GameServiceError(
-        409,
-        "TAKEBACK_PENDING",
-        "A takeback request is already pending."
-      );
+      throw new GameServiceError(409, "TAKEBACK_PENDING", "A takeback request is already pending.");
     }
 
     const declinedCount = room.takeback?.declinedCount ?? { white: 0, black: 0 };
@@ -1434,7 +1388,7 @@ export class GameService {
       throw new GameServiceError(
         409,
         "TAKEBACK_LIMIT",
-        "You have used all your takeback requests. Make a move to reset."
+        "You have used all your takeback requests. Make a move to reset.",
       );
     }
 
@@ -1449,13 +1403,13 @@ export class GameService {
 
   private async acceptTakeback(
     room: StoredMultiplayerRoom,
-    playerColor: PlayerColor
+    playerColor: PlayerColor,
   ): Promise<StoredMultiplayerRoom> {
     if (!room.takeback?.requestedBy) {
       throw new GameServiceError(
         409,
         "NO_TAKEBACK_REQUEST",
-        "There is no takeback request to accept."
+        "There is no takeback request to accept.",
       );
     }
 
@@ -1463,7 +1417,7 @@ export class GameService {
       throw new GameServiceError(
         409,
         "OWN_TAKEBACK",
-        "You cannot accept your own takeback request."
+        "You cannot accept your own takeback request.",
       );
     }
 
@@ -1549,13 +1503,13 @@ export class GameService {
 
   private async declineTakeback(
     room: StoredMultiplayerRoom,
-    playerColor: PlayerColor
+    playerColor: PlayerColor,
   ): Promise<StoredMultiplayerRoom> {
     if (!room.takeback?.requestedBy) {
       throw new GameServiceError(
         409,
         "NO_TAKEBACK_REQUEST",
-        "There is no takeback request to decline."
+        "There is no takeback request to decline.",
       );
     }
 
@@ -1563,7 +1517,7 @@ export class GameService {
       throw new GameServiceError(
         409,
         "OWN_TAKEBACK",
-        "You cannot decline your own takeback request."
+        "You cannot decline your own takeback request.",
       );
     }
 
@@ -1633,12 +1587,7 @@ export class GameService {
   }
 
   private isDuplicateRoomError(error: unknown): boolean {
-    return (
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      error.code === 11000
-    );
+    return typeof error === "object" && error !== null && "code" in error && error.code === 11000;
   }
 
   private abandonTimerKey(roomId: string, playerId: string): string {
@@ -1835,16 +1784,18 @@ export class GameService {
           const playerColor = getPlayerColorForRoom(derived, playerId);
           const isAbsentPlayer = playerColor === absentColor;
 
-          socket.send(JSON.stringify({
-            type: "game-aborted",
-            reason: isAbsentPlayer
-              ? `You did not make a move within ${timeoutSeconds} seconds. The game has been cancelled.`
-              : isTournament
-                ? "Your opponent did not make a move in time. The match has been forfeited."
-                : "Your opponent did not make a move in time. Finding you a new match...",
-            requeuedForMatchmaking: isTournament ? false : !isAbsentPlayer,
-            timeControl: derived.timeControl,
-          }));
+          socket.send(
+            JSON.stringify({
+              type: "game-aborted",
+              reason: isAbsentPlayer
+                ? `You did not make a move within ${timeoutSeconds} seconds. The game has been cancelled.`
+                : isTournament
+                  ? "Your opponent did not make a move in time. The match has been forfeited."
+                  : "Your opponent did not make a move in time. Finding you a new match...",
+              requeuedForMatchmaking: isTournament ? false : !isAbsentPlayer,
+              timeControl: derived.timeControl,
+            }),
+          );
         }
       }
 
@@ -1885,10 +1836,7 @@ export class GameService {
     return `room:${gameId.trim().toUpperCase()}`;
   }
 
-  private async withLocks<T>(
-    keys: string[],
-    operation: () => Promise<T>
-  ): Promise<T> {
+  private async withLocks<T>(keys: string[], operation: () => Promise<T>): Promise<T> {
     const uniqueKeys = Array.from(new Set(keys)).sort();
 
     const run = (index: number): Promise<T> => {
@@ -1919,7 +1867,7 @@ function createGameService(): GameService {
       Math.random,
       GUEST_ABANDON_TIMEOUT_MS,
       new RedisMatchmakingStore(redis),
-      new RedisLockProvider(redis)
+      new RedisLockProvider(redis),
     );
   }
 

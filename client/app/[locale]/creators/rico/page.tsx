@@ -16,10 +16,24 @@ export default function Page() {
       bioKey="ricoBio"
       bioTags={{
         liveAndLearn: (chunks: ReactNode) => (
-          <a href="https://newsletter.trebeljahr.com" target="_blank" rel="noopener noreferrer" className={linkClass}>{chunks}</a>
+          <a
+            href="https://newsletter.trebeljahr.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClass}
+          >
+            {chunks}
+          </a>
         ),
         fractalGarden: (chunks: ReactNode) => (
-          <a href="https://fractal-garden.trebeljahr.com" target="_blank" rel="noopener noreferrer" className={linkClass}>{chunks}</a>
+          <a
+            href="https://fractal-garden.trebeljahr.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClass}
+          >
+            {chunks}
+          </a>
         ),
       }}
       links={[

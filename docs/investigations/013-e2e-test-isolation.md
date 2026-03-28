@@ -10,16 +10,19 @@ E2E tests were running against the development MongoDB instance, causing data po
 ## Options Considered
 
 ### Shared dev database with cleanup scripts
+
 - Simplest approach — tests clean up after themselves
 - Fragile: test failures leave orphaned data, parallel tests conflict
 - Development data can break tests and vice versa
 
 ### In-memory MongoDB (mongodb-memory-server)
+
 - Runs an ephemeral MongoDB instance in the test process
 - Good for unit tests but doesn't test the real server startup path
 - E2E tests need a real server process, not just a database
 
 ### Dedicated Docker containers (chosen)
+
 - Separate MongoDB (port 27018), Redis (port 6380), MinIO (port 9002)
 - tmpfs mounts for RAM-backed storage (fast, ephemeral)
 - `docker-compose.e2e.yml` for local runs

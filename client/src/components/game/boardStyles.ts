@@ -2,13 +2,10 @@
 
 // --- Piece gradients ---
 export const BLACK_PIECE_BORDER = "#191410";
-export const BLACK_PIECE_BG =
-  "radial-gradient(circle at 30% 28%,#5d554f,#2d2622 58%,#0f0c0b)";
+export const BLACK_PIECE_BG = "radial-gradient(circle at 30% 28%,#5d554f,#2d2622 58%,#0f0c0b)";
 export const WHITE_PIECE_BORDER = "#ddd2bf";
-export const WHITE_PIECE_BG =
-  "radial-gradient(circle at 30% 28%,#fffdfa,#f4eee3 58%,#d9ccb8)";
-export const PIECE_SHADOW =
-  "inset 0 2px 10px rgba(255,255,255,0.18), 0 10px 18px rgba(0,0,0,0.18)";
+export const WHITE_PIECE_BG = "radial-gradient(circle at 30% 28%,#fffdfa,#f4eee3 58%,#d9ccb8)";
+export const PIECE_SHADOW = "inset 0 2px 10px rgba(255,255,255,0.18), 0 10px 18px rgba(0,0,0,0.18)";
 export const SELECTABLE_GLOW =
   "0 0 0 4px rgba(242,208,144,0.22), inset 0 2px 10px rgba(255,255,255,0.18), 0 10px 18px rgba(0,0,0,0.18)";
 
@@ -42,6 +39,5 @@ export const UNDO_BG = "rgba(255,247,246,0.98)";
 export const UNDO_TEXT = "#ba6561";
 
 // --- Board container ---
-export const BOARD_BG =
-  "linear-gradient(180deg,rgba(234,199,131,0.98),rgba(217,177,104,0.98))";
+export const BOARD_BG = "linear-gradient(180deg,rgba(234,199,131,0.98),rgba(217,177,104,0.98))";
 export const BOARD_BORDER = "#cdb07f";

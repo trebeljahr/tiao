@@ -84,10 +84,7 @@ async function request<T>(
       body: options.body ? JSON.stringify(options.body) : undefined,
     });
   } catch {
-    throw new ApiError(
-      0,
-      "Could not reach the server. Make sure the backend is running.",
-    );
+    throw new ApiError(0, "Could not reach the server. Make sure the backend is running.");
   }
 
   const data = (await response.json().catch(() => ({}))) as {
@@ -116,10 +113,7 @@ async function upload<T>(path: string, formData: FormData): Promise<T> {
       body: formData,
     });
   } catch {
-    throw new ApiError(
-      0,
-      "Could not reach the server. Make sure the backend is running.",
-    );
+    throw new ApiError(0, "Could not reach the server. Make sure the backend is running.");
   }
 
   const data = (await response.json().catch(() => ({}))) as {
@@ -178,21 +172,15 @@ export function cancelMultiplayerGame(gameId: string) {
 }
 
 export function joinMultiplayerGame(gameId: string) {
-  return request<{ snapshot: MultiplayerSnapshot }>(
-    `/api/games/${gameId}/join`,
-    {
-      method: "POST",
-    },
-  );
+  return request<{ snapshot: MultiplayerSnapshot }>(`/api/games/${gameId}/join`, {
+    method: "POST",
+  });
 }
 
 export function accessMultiplayerGame(gameId: string) {
-  return request<{ snapshot: MultiplayerSnapshot }>(
-    `/api/games/${gameId}/access`,
-    {
-      method: "POST",
-    },
-  );
+  return request<{ snapshot: MultiplayerSnapshot }>(`/api/games/${gameId}/access`, {
+    method: "POST",
+  });
 }
 
 export function getMultiplayerGame(gameId: string) {
@@ -208,9 +196,7 @@ export function enterMatchmaking(options?: {
 }) {
   return request<{ matchmaking: MatchmakingState }>("/api/matchmaking", {
     method: "POST",
-    body: options?.timeControl
-      ? { timeControl: options.timeControl }
-      : undefined,
+    body: options?.timeControl ? { timeControl: options.timeControl } : undefined,
   });
 }
 
@@ -245,37 +231,27 @@ export function sendFriendRequest(accountId: string) {
 }
 
 export function acceptFriendRequest(accountId: string) {
-  return request<{ message: string }>(
-    `/api/player/social/friend-requests/${accountId}/accept`,
-    {
-      method: "POST",
-    },
-  );
+  return request<{ message: string }>(`/api/player/social/friend-requests/${accountId}/accept`, {
+    method: "POST",
+  });
 }
 
 export function declineFriendRequest(accountId: string) {
-  return request<{ message: string }>(
-    `/api/player/social/friend-requests/${accountId}/decline`,
-    {
-      method: "POST",
-    },
-  );
+  return request<{ message: string }>(`/api/player/social/friend-requests/${accountId}/decline`, {
+    method: "POST",
+  });
 }
 
 export function cancelFriendRequest(accountId: string) {
-  return request<{ message: string }>(
-    `/api/player/social/friend-requests/${accountId}/cancel`,
-    {
-      method: "POST",
-    },
-  );
+  return request<{ message: string }>(`/api/player/social/friend-requests/${accountId}/cancel`, {
+    method: "POST",
+  });
 }
 
 export function removeFriend(accountId: string) {
-  return request<{ message: string }>(
-    `/api/player/social/friends/${accountId}/remove`,
-    { method: "POST" },
-  );
+  return request<{ message: string }>(`/api/player/social/friends/${accountId}/remove`, {
+    method: "POST",
+  });
 }
 
 export function sendGameInvitation(body: {
@@ -324,9 +300,7 @@ export type PublicProfile = {
 };
 
 export function getPublicProfile(username: string) {
-  return request<{ profile: PublicProfile }>(
-    `/api/player/profile/${encodeURIComponent(username)}`,
-  );
+  return request<{ profile: PublicProfile }>(`/api/player/profile/${encodeURIComponent(username)}`);
 }
 
 export function updateAccountProfile(body: {
@@ -335,13 +309,10 @@ export function updateAccountProfile(body: {
   password?: string;
   currentPassword?: string;
 }) {
-  return request<{ auth: AuthResponse; profile: AccountProfile }>(
-    "/api/player/profile",
-    {
-      method: "PUT",
-      body,
-    },
-  );
+  return request<{ auth: AuthResponse; profile: AccountProfile }>("/api/player/profile", {
+    method: "PUT",
+    body,
+  });
 }
 
 export function uploadAccountProfilePicture(file: File) {
@@ -355,19 +326,17 @@ export function uploadAccountProfilePicture(file: File) {
 }
 
 export function updateActiveBadges(activeBadges: string[]) {
-  return request<{ auth: AuthResponse; activeBadges: string[] }>(
-    "/api/player/badges/active",
-    { method: "PUT", body: { activeBadges } },
-  );
+  return request<{ auth: AuthResponse; activeBadges: string[] }>("/api/player/badges/active", {
+    method: "PUT",
+    body: { activeBadges },
+  });
 }
 
 // ── Tournament API ──
 
 export function listPublicTournaments(status?: TournamentStatus) {
   const qs = status ? `?status=${status}` : "";
-  return request<{ tournaments: TournamentListItem[] }>(
-    `/api/tournaments${qs}`,
-  );
+  return request<{ tournaments: TournamentListItem[] }>(`/api/tournaments${qs}`);
 }
 
 export function listMyTournaments() {
@@ -386,22 +355,14 @@ export function createTournament(body: {
 }
 
 export function getTournament(tournamentId: string) {
-  return request<{ tournament: TournamentSnapshot }>(
-    `/api/tournaments/${tournamentId}`,
-  );
+  return request<{ tournament: TournamentSnapshot }>(`/api/tournaments/${tournamentId}`);
 }
 
-export function registerForTournament(
-  tournamentId: string,
-  inviteCode?: string,
-) {
-  return request<{ tournament: TournamentSnapshot }>(
-    `/api/tournaments/${tournamentId}/register`,
-    {
-      method: "POST",
-      body: inviteCode ? { inviteCode } : undefined,
-    },
-  );
+export function registerForTournament(tournamentId: string, inviteCode?: string) {
+  return request<{ tournament: TournamentSnapshot }>(`/api/tournaments/${tournamentId}/register`, {
+    method: "POST",
+    body: inviteCode ? { inviteCode } : undefined,
+  });
 }
 
 export function unregisterFromTournament(tournamentId: string) {
@@ -412,30 +373,25 @@ export function unregisterFromTournament(tournamentId: string) {
 }
 
 export function startTournament(tournamentId: string) {
-  return request<{ tournament: TournamentSnapshot }>(
-    `/api/tournaments/${tournamentId}/start`,
-    { method: "POST" },
-  );
+  return request<{ tournament: TournamentSnapshot }>(`/api/tournaments/${tournamentId}/start`, {
+    method: "POST",
+  });
 }
 
 export function cancelTournament(tournamentId: string) {
-  return request<{ tournament: TournamentSnapshot }>(
-    `/api/tournaments/${tournamentId}/cancel`,
-    { method: "POST" },
-  );
+  return request<{ tournament: TournamentSnapshot }>(`/api/tournaments/${tournamentId}/cancel`, {
+    method: "POST",
+  });
 }
 
 export function updateTournamentSeeding(
   tournamentId: string,
   seeds: { playerId: string; seed: number }[],
 ) {
-  return request<{ tournament: TournamentSnapshot }>(
-    `/api/tournaments/${tournamentId}/seeding`,
-    {
-      method: "PUT",
-      body: { seeds } as unknown as Record<string, unknown>,
-    },
-  );
+  return request<{ tournament: TournamentSnapshot }>(`/api/tournaments/${tournamentId}/seeding`, {
+    method: "PUT",
+    body: { seeds } as unknown as Record<string, unknown>,
+  });
 }
 
 export function randomizeTournamentSeeding(tournamentId: string) {
@@ -445,10 +401,7 @@ export function randomizeTournamentSeeding(tournamentId: string) {
   );
 }
 
-export function setTournamentFeaturedMatch(
-  tournamentId: string,
-  matchId: string | null,
-) {
+export function setTournamentFeaturedMatch(tournamentId: string, matchId: string | null) {
   return request<{ tournament: TournamentSnapshot }>(
     `/api/tournaments/${tournamentId}/featured-match`,
     {
@@ -458,11 +411,7 @@ export function setTournamentFeaturedMatch(
   );
 }
 
-export function forfeitTournamentMatch(
-  tournamentId: string,
-  matchId: string,
-  loserId: string,
-) {
+export function forfeitTournamentMatch(tournamentId: string, matchId: string, loserId: string) {
   return request<{ tournament: TournamentSnapshot }>(
     `/api/tournaments/${tournamentId}/matches/${matchId}/forfeit`,
     {

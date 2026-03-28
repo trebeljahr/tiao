@@ -11,11 +11,7 @@ export function BracketVisualization({
   featuredMatchId?: string | null;
 }) {
   if (rounds.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        No bracket data available yet.
-      </p>
-    );
+    return <p className="text-sm text-muted-foreground">No bracket data available yet.</p>;
   }
 
   return (

@@ -137,6 +137,7 @@ The frontend is organized around pages and hooks:
 All changes should include tests where applicable. See [docs/TESTING.md](docs/TESTING.md) for the full testing guide, including how the test harnesses work and how to add new tests.
 
 Quick summary:
+
 - **Game rule changes** -- add tests in `server/tests/tiaoCore*.test.ts` using the board ASCII harness
 - **API route changes** -- add tests in `server/tests/api.test.ts` or `authRoutes.test.ts`
 - **Service logic changes** -- add tests in `server/tests/gameService*.test.ts`

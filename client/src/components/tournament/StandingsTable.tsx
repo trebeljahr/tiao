@@ -29,9 +29,7 @@ export function StandingsTable({
             <tr
               key={s.playerId}
               className={`border-b last:border-b-0 ${
-                s.playerId === highlightPlayerId
-                  ? "bg-amber-50/60 font-medium"
-                  : ""
+                s.playerId === highlightPlayerId ? "bg-amber-50/60 font-medium" : ""
               }`}
             >
               <td className="px-3 py-2 text-muted-foreground">{i + 1}</td>

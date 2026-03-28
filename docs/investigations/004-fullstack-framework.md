@@ -10,6 +10,7 @@ The project is a real-time multiplayer board game with a custom game engine, Web
 ## Options Considered
 
 ### Wasp
+
 - Full-stack framework with declarative DSL for defining app structure
 - Generates React + Node.js + Prisma boilerplate
 - Good for CRUD apps with auth, but limited control over real-time infrastructure
@@ -17,6 +18,7 @@ The project is a real-time multiplayer board game with a custom game engine, Web
 - Opinionated about database (Prisma/PostgreSQL) — project uses MongoDB
 
 ### create-t3-app
+
 - Scaffolding tool for Next.js + tRPC + Prisma + Tailwind + NextAuth
 - TypeScript-first, good DX
 - Assumes PostgreSQL + Prisma (project uses MongoDB + Mongoose)
@@ -24,11 +26,13 @@ The project is a real-time multiplayer board game with a custom game engine, Web
 - More of a starting template than a framework — less lock-in but less ongoing value
 
 ### Blitz.js / RedwoodJS
+
 - Full-stack React frameworks with conventions for data layer
 - Designed for traditional web apps, not real-time game servers
 - Would constrain the custom WebSocket architecture and shared game engine pattern
 
 ### Custom Monorepo (chosen)
+
 - `client/` (React, originally Vite, now Next.js) + `server/` (Express + ws) + `shared/` (pure game engine)
 - Full control over WebSocket architecture, game state sync, and deployment
 - Each layer can evolve independently (Vite → Next.js happened without touching server)

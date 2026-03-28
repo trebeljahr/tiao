@@ -100,8 +100,8 @@ function AuthDialog() {
   const dialogTitle = forgotMode
     ? "Reset password"
     : authDialogMode === "login"
-    ? "Sign in"
-    : "Create account";
+      ? "Sign in"
+      : "Create account";
 
   return (
     <Dialog
@@ -174,11 +174,7 @@ function AuthDialog() {
                     setAuthDialogError(null);
                   }}
                 >
-                  {item === "signup"
-                    ? "Sign up"
-                    : item === "login"
-                    ? "Sign in"
-                    : null}
+                  {item === "signup" ? "Sign up" : item === "login" ? "Sign in" : null}
                 </Button>
               ))}
             </div>
@@ -235,11 +231,7 @@ function AuthDialog() {
                 >
                   Forgot password?
                 </button>
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={authBusy}
-                >
+                <Button type="submit" className="w-full" disabled={authBusy}>
                   {authBusy ? "Signing in..." : "Sign in"}
                 </Button>
               </form>
@@ -264,7 +256,11 @@ function AuthDialog() {
                     id="signup-display-name"
                     name="name"
                     value={signupDisplayName}
-                    onChange={(event) => setSignupDisplayName(event.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
+                    onChange={(event) =>
+                      setSignupDisplayName(
+                        event.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""),
+                      )
+                    }
                     placeholder="username"
                     autoComplete="name"
                     pattern="^[a-z0-9][a-z0-9_-]*$"
@@ -326,11 +322,7 @@ function AuthDialog() {
                     required
                   />
                 </div>
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={authBusy}
-                >
+                <Button type="submit" className="w-full" disabled={authBusy}>
                   {authBusy ? "Creating..." : "Create account"}
                 </Button>
               </form>

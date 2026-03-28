@@ -29,9 +29,7 @@ const options: swaggerJsdoc.Options = {
       { name: "Social", description: "Friends, friend requests, and game invitations" },
     ],
   },
-  apis: [
-    resolve(__dirname, "../routes/*.ts"),
-  ],
+  apis: [resolve(__dirname, "../routes/*.ts")],
 };
 
 const spec = swaggerJsdoc(options) as Record<string, unknown>;

@@ -2,13 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { GameConfigBadge } from "@/components/game/GameConfigBadge";
 import { MatchHistoryCard } from "@/components/game/MatchHistoryCard";
@@ -35,10 +29,7 @@ export function GamesPage() {
   const [navOpen, setNavOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const {
-    multiplayerGames,
-    refreshMultiplayerGames,
-  } = useGamesIndex(auth);
+  const { multiplayerGames, refreshMultiplayerGames } = useGamesIndex(auth);
 
   // Real-time updates for games page
   useLobbyMessage((payload) => {
@@ -49,17 +40,20 @@ export function GamesPage() {
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const handleDeleteGame = useCallback(async (gameId: string) => {
-    setDeletingId(gameId);
-    try {
-      await cancelMultiplayerGame(gameId);
-      void refreshMultiplayerGames({ silent: true });
-    } catch {
-      // best-effort
-    } finally {
-      setDeletingId(null);
-    }
-  }, [refreshMultiplayerGames]);
+  const handleDeleteGame = useCallback(
+    async (gameId: string) => {
+      setDeletingId(gameId);
+      try {
+        await cancelMultiplayerGame(gameId);
+        void refreshMultiplayerGames({ silent: true });
+      } catch {
+        // best-effort
+      } finally {
+        setDeletingId(null);
+      }
+    },
+    [refreshMultiplayerGames],
+  );
 
   const handleCopy = useCallback((gameId: string) => {
     void navigator.clipboard.writeText(gameId);
@@ -106,13 +100,15 @@ export function GamesPage() {
               <CardDescription>{t("activeGamesDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3 sm:grid-cols-2">
-              {multiplayerGames.active.map(game => {
+              {multiplayerGames.active.map((game) => {
                 const isYourTurn = isSummaryYourTurn(game);
-                const opponent = game.yourSeat === "white"
-                  ? game.seats.black?.player
-                  : game.seats.white?.player;
+                const opponent =
+                  game.yourSeat === "white" ? game.seats.black?.player : game.seats.white?.player;
                 return (
-                  <div key={game.gameId} className="flex items-center justify-between gap-3 p-4 rounded-2xl border border-[#d7c39e] bg-white/40">
+                  <div
+                    key={game.gameId}
+                    className="flex items-center justify-between gap-3 p-4 rounded-2xl border border-[#d7c39e] bg-white/40"
+                  >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         {game.yourSeat && (
@@ -136,15 +132,18 @@ export function GamesPage() {
                         </p>
                       </div>
                       <div className="mt-1.5 flex items-center gap-2">
-                        <Badge className={cn(
-                          isYourTurn
-                            ? "bg-[#e8f2d8] text-[#4b6537] animate-pulse"
-                            : "bg-[#f3e7d5] text-[#6b563e]",
-                        )}>
+                        <Badge
+                          className={cn(
+                            isYourTurn
+                              ? "bg-[#e8f2d8] text-[#4b6537] animate-pulse"
+                              : "bg-[#f3e7d5] text-[#6b563e]",
+                          )}
+                        >
                           {getSummaryStatusLabel(game, tGame)}
                         </Badge>
                         <span className="text-xs text-[#8d7760]">
-                          {game.score.white}-{game.score.black} · {tCommon("moves", { count: game.historyLength })}
+                          {game.score.white}-{game.score.black} ·{" "}
+                          {tCommon("moves", { count: game.historyLength })}
                         </span>
                         <GameConfigBadge
                           boardSize={game.boardSize}
@@ -167,12 +166,18 @@ export function GamesPage() {
                           {deletingId === game.gameId ? "…" : tCommon("cancel")}
                         </Button>
                       )}
-                      <Button onClick={() => router.push(`/game/${game.gameId}`)}>{tCommon("resume")}</Button>
+                      <Button onClick={() => router.push(`/game/${game.gameId}`)}>
+                        {tCommon("resume")}
+                      </Button>
                     </div>
                   </div>
                 );
               })}
-              {multiplayerGames.active.length === 0 && <p className="col-span-full py-8 text-center text-sm text-[#6e5b48]">{t("noActiveGames")}</p>}
+              {multiplayerGames.active.length === 0 && (
+                <p className="col-span-full py-8 text-center text-sm text-[#6e5b48]">
+                  {t("noActiveGames")}
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -182,7 +187,7 @@ export function GamesPage() {
               <CardDescription>{t("matchHistoryDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3">
-              {multiplayerGames.finished.map(game => (
+              {multiplayerGames.finished.map((game) => (
                 <MatchHistoryCard
                   key={game.gameId}
                   game={game}
@@ -192,7 +197,11 @@ export function GamesPage() {
                   onReview={() => router.push(`/game/${game.gameId}`)}
                 />
               ))}
-              {multiplayerGames.finished.length === 0 && <p className="col-span-full py-8 text-center text-sm text-[#6e5b48]">{t("noMatchHistory")}</p>}
+              {multiplayerGames.finished.length === 0 && (
+                <p className="col-span-full py-8 text-center text-sm text-[#6e5b48]">
+                  {t("noMatchHistory")}
+                </p>
+              )}
             </CardContent>
           </Card>
         </section>

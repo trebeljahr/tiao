@@ -11,6 +11,7 @@ This document records the key architectural decisions made in Tiao, the reasonin
 **Decision:** All error responses use `{code, message}` format. Codes are uppercase, snake_case, machine-readable identifiers (e.g., `VALIDATION_ERROR`, `DUPLICATE_EMAIL`, `NOT_AUTHENTICATED`). Messages are human-readable sentences for display.
 
 **Consequences:**
+
 - Clients can branch on `code` instead of string-matching messages
 - Error messages can be changed without breaking client logic
 - Enables future localization (map codes to translated strings)
@@ -27,17 +28,20 @@ This document records the key architectural decisions made in Tiao, the reasonin
 **Decision:** Extract matchmaking and locking into pluggable abstractions (`MatchmakingStore`, `LockProvider`) with both in-memory and Redis implementations. Rate limiting uses `rate-limit-redis` when available. Redis is **optional** — when `REDIS_URL` is not set, the server falls back to in-memory stores for local development and testing.
 
 **What moved to Redis:**
+
 - Matchmaking queue (Redis Sorted Set, scored by queue time)
 - Matchmaking match mapping (Redis String with 5-minute TTL)
 - Distributed locks (SETNX + TTL + Lua release script)
 - Rate limit counters (via `rate-limit-redis`)
 
 **What stays in-memory:**
+
 - WebSocket connections (socket objects cannot be serialized)
 - Abandon timers and clock timers (setTimeout handles; job queue migration planned)
 - Lobby connections (socket references)
 
 **Consequences:**
+
 - Enables horizontal scaling when Redis is available
 - Matchmaking survives server restarts
 - Locks work across instances
@@ -54,6 +58,7 @@ This document records the key architectural decisions made in Tiao, the reasonin
 **Decision:** Rate limit key generator uses `playerId` for authenticated requests and falls back to `req.ip` for unauthenticated ones. The player identity is resolved from the session cookie via the existing `getPlayerFromRequest()` function.
 
 **Consequences:**
+
 - Fair per-user limits regardless of IP sharing
 - Authenticated users get their own limit buckets
 - Unauthenticated endpoints (login, signup, guest creation) still use IP-based limiting
@@ -71,12 +76,14 @@ This document records the key architectural decisions made in Tiao, the reasonin
 **Decision:** Sessions use HttpOnly cookies containing a random 48-byte base64url token. The server stores only the HMAC-SHA256 digest (keyed with `TOKEN_SECRET`) in MongoDB's `GameSession` collection with a TTL index for automatic expiration.
 
 **Why not JWT:**
+
 - JWTs can't be revoked without a blacklist (which requires storage anyway)
 - Game sessions need server-side state (player identity, session validity)
 - JWT tokens are larger (header + payload + signature) than a simple cookie
 - No need for cross-service token validation (single backend)
 
 **Consequences:**
+
 - Immediate session revocation (delete from DB)
 - DB query on every authenticated request (fast with indexed `tokenDigest`)
 - TOKEN_SECRET compromise requires credential rotation (not token re-issuance)
@@ -94,12 +101,14 @@ This document records the key architectural decisions made in Tiao, the reasonin
 **Decision:** Store the entire game state as a single MongoDB document (`GameRoom`). The `state` field is `Schema.Types.Mixed` containing the full `GameState` object (board positions, history, scores, pending jumps).
 
 **Why not event sourcing:**
+
 - Games are short (typically < 200 moves, completing in minutes)
 - Turn-based game with low write frequency (one move per turn)
 - Single document = atomic reads/writes without transactions
 - No need for replay/audit infrastructure at this scale
 
 **Consequences:**
+
 - Simple query model (find by gameId, get everything)
 - Document grows with each move (acceptable for < 200 moves)
 - List queries fetch full state even when only metadata is needed (mitigated with `.limit()`)
@@ -115,6 +124,7 @@ This document records the key architectural decisions made in Tiao, the reasonin
 **Context:** The game requires real-time bidirectional communication for move updates, clock synchronization, rematch/takeback negotiation, and lobby notifications.
 
 **Decision:** Single `ws.WebSocketServer` instance handling two connection types:
+
 - `/api/ws?gameId=XXXX` — per-game connections for move updates
 - `/api/ws/lobby` — lobby connections for matchmaking and social notifications
 
@@ -125,6 +135,7 @@ Messages are JSON-serialized and dispatched through `GameService.applyAction()`.
 **Future path:** Redis Pub/Sub channels per game room. Each instance subscribes to rooms where it has active connections. Broadcast publishes to Redis; local instances relay to their sockets.
 
 **Consequences:**
+
 - Simple, direct socket ↔ memory model with low latency
 - Ping/pong heartbeat (10s) detects stale connections
 - Origin validation prevents Cross-Site WebSocket Hijacking
@@ -143,6 +154,7 @@ Messages are JSON-serialized and dispatched through `GameService.applyAction()`.
 **Server usage:** Authoritative validation — every move is validated using the same functions before persisting. The server is the single source of truth.
 
 **Consequences:**
+
 - Consistent behavior between client and server (same code, same edge cases)
 - Cheating requires breaking the server, not just the client
 - Larger client bundle (game engine code shipped to browser)
@@ -158,10 +170,12 @@ Messages are JSON-serialized and dispatched through `GameService.applyAction()`.
 **Context:** The game should be accessible immediately (no signup wall) but also support persistent profiles, friends, and match history.
 
 **Decision:** Two player types share a common `PlayerIdentity` shape:
+
 - **Guest:** Instant creation, no credentials, ephemeral UUID, limited to one unfinished multiplayer game. Session-only persistence.
 - **Account:** Email/password (bcrypt), persistent profile, friends list, game history, profile pictures. Full social features.
 
 **Consequences:**
+
 - Zero friction for first-time players (play immediately)
 - Social features (friends, invitations, history) require an account
 - Guest → Account upgrade is a separate flow (no automatic migration of guest games)
@@ -176,15 +190,18 @@ Messages are JSON-serialized and dispatched through `GameService.applyAction()`.
 **Context:** Profile picture uploads need to be resized and optimized. The client runs on devices with varying network speeds.
 
 **Decision:** Dual resize pipeline:
+
 - **Client-side (canvas):** Crops to square, resizes to 512x512, compresses to JPEG at 85% quality. Provides instant preview and reduces upload payload (~30KB).
 - **Server-side (Jimp):** Resizes to 320px width, converts to JPEG. Ensures consistent dimensions regardless of client behavior. Uploads to S3.
 
 **Why both:**
+
 - Client resize gives instant feedback and smaller uploads (important for mobile)
 - Server resize guarantees uniformity (browser canvas quality varies)
 - Defense in depth: even if client is modified, server produces consistent output
 
 **Consequences:**
+
 - Fast perceived upload (small payload after client resize)
 - Consistent storage format (server normalizes everything to 320px JPEG)
 - Upload limit: 512KB (after client resize, typical images are ~30KB)
@@ -199,6 +216,7 @@ Messages are JSON-serialized and dispatched through `GameService.applyAction()`.
 **Context:** The client was a Vite-powered React SPA with react-router-dom. As the project matured, the SPA model became limiting: no server-side rendering for SEO, no social sharing meta tags (Open Graph), and no control over initial HTML for performance. A framework with SSR capabilities was needed.
 
 **Decision:** Migrate to Next.js 14 App Router. This required:
+
 - Replacing react-router-dom with Next.js file-system routing (`app/` directory)
 - Creating a custom `server.mjs` wrapping Next.js with `http-proxy` for WebSocket proxying — same-origin session cookies don't work with cross-origin WebSocket connections
 - Extracting auth state from `App.tsx` into an `AuthContext` provider
@@ -208,6 +226,7 @@ Messages are JSON-serialized and dispatched through `GameService.applyAction()`.
 - Changing SameSite cookie from `Strict` to `Lax` for Next.js navigation behavior
 
 **Consequences:**
+
 - SSR enables SEO and social sharing meta tags
 - Custom `server.mjs` adds a proxy layer but enables same-origin cookies for WebSocket auth
 - Production deployment requires a Node.js runtime (no longer static files)
@@ -221,11 +240,13 @@ Messages are JSON-serialized and dispatched through `GameService.applyAction()`.
 **Context:** The game needed a competitive structure beyond individual matches. Players requested organized tournaments with brackets, standings, and progression. The tournament system needed to integrate with the existing GameService and WebSocket infrastructure without disrupting normal game flow.
 
 **Decision:** A dedicated tournament layer with its own service (`tournamentService.ts`), MongoDB model, REST API (12 endpoints), and WebSocket notifications. Three tournament formats supported:
+
 - **Single Elimination:** Standard bracket, losers are eliminated
 - **Round Robin:** Every player plays every other player, standings by points
 - **Groups + Knockout:** Group stage (round-robin) followed by single-elimination bracket
 
 Key design choices:
+
 - Tournament games are regular games with special lifecycle rules (deferred timers, no rematch, auto-drop on disconnect)
 - Bracket generation uses circle method (round-robin) and snake-seeding (elimination)
 - GameService completion callbacks trigger automatic round advancement
@@ -233,6 +254,7 @@ Key design choices:
 - Player data assembled dynamically from `GameAccount` (no denormalized copies)
 
 **Consequences:**
+
 - Tournament games reuse the existing game engine and WebSocket infrastructure
 - Round advancement is automatic — no manual intervention after tournament starts
 - Tournament-specific UI (brackets, standings, match cards) is a significant client-side addition

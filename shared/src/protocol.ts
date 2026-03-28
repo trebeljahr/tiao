@@ -142,11 +142,7 @@ export type SocialPlayerSummary = {
   online?: boolean;
 };
 
-export type SocialSearchRelationship =
-  | "none"
-  | "friend"
-  | "incoming-request"
-  | "outgoing-request";
+export type SocialSearchRelationship = "none" | "friend" | "incoming-request" | "outgoing-request";
 
 export type SocialSearchResult = {
   player: SocialPlayerSummary;

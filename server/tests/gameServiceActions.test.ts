@@ -5,10 +5,7 @@ import type { PlayerIdentity } from "../../shared/src";
 import { GameService, GameServiceError } from "../game/gameService";
 import { InMemoryGameRoomStore } from "../game/gameStore";
 
-function createPlayer(
-  playerId: string,
-  options: Partial<PlayerIdentity> = {}
-): PlayerIdentity {
+function createPlayer(playerId: string, options: Partial<PlayerIdentity> = {}): PlayerIdentity {
   return {
     playerId,
     displayName: options.displayName ?? playerId,
@@ -27,10 +24,7 @@ class FakeSocket {
   }
 }
 
-function isGameServiceError(
-  error: unknown,
-  code: string
-): error is GameServiceError {
+function isGameServiceError(error: unknown, code: string): error is GameServiceError {
   return error instanceof GameServiceError && error.code === code;
 }
 
@@ -69,7 +63,7 @@ test("place-piece rejects when it is not the player's turn", async () => {
         type: "place-piece",
         position: { x: 9, y: 9 },
       }),
-    (error) => isGameServiceError(error, "NOT_YOUR_TURN")
+    (error) => isGameServiceError(error, "NOT_YOUR_TURN"),
   );
 });
 
@@ -89,7 +83,7 @@ test("place-piece rejects spectator actions", async () => {
         type: "place-piece",
         position: { x: 9, y: 9 },
       }),
-    (error) => isGameServiceError(error, "NOT_IN_GAME")
+    (error) => isGameServiceError(error, "NOT_IN_GAME"),
   );
 });
 
@@ -199,7 +193,7 @@ test("actions on waiting room are rejected", async () => {
         type: "place-piece",
         position: { x: 9, y: 9 },
       }),
-    (error) => isGameServiceError(error, "NOT_IN_GAME")
+    (error) => isGameServiceError(error, "NOT_IN_GAME"),
   );
 });
 
@@ -217,7 +211,7 @@ test("unknown action type is rejected", async () => {
       service.applyAction(created.gameId, alice, {
         type: "invalid-action" as any,
       }),
-    (error) => isGameServiceError(error, "UNKNOWN_ACTION")
+    (error) => isGameServiceError(error, "UNKNOWN_ACTION"),
   );
 });
 
@@ -249,9 +243,7 @@ test("broadcast sends snapshots to connected sockets", async () => {
   assert.ok((aliceSocket as unknown as FakeSocket).messages.length > 0);
   assert.ok((bobSocket as unknown as FakeSocket).messages.length > 0);
 
-  const aliceMsg = JSON.parse(
-    (aliceSocket as unknown as FakeSocket).messages.at(-1)!
-  );
+  const aliceMsg = JSON.parse((aliceSocket as unknown as FakeSocket).messages.at(-1)!);
   assert.equal(aliceMsg.type, "snapshot");
   assert.equal(aliceMsg.snapshot.state.currentTurn, "black");
 });
@@ -266,9 +258,8 @@ test("rematch on active game is rejected", async () => {
   await service.joinGame(created.gameId, bob);
 
   await assert.rejects(
-    () =>
-      service.applyAction(created.gameId, alice, { type: "request-rematch" }),
-    (error) => isGameServiceError(error, "GAME_NOT_FINISHED")
+    () => service.applyAction(created.gameId, alice, { type: "request-rematch" }),
+    (error) => isGameServiceError(error, "GAME_NOT_FINISHED"),
   );
 });
 
@@ -288,8 +279,7 @@ test("decline rematch without pending request is rejected", async () => {
   await store.saveRoom(room!);
 
   await assert.rejects(
-    () =>
-      service.applyAction(created.gameId, bob, { type: "decline-rematch" }),
-    (error) => isGameServiceError(error, "NO_REMATCH_REQUEST")
+    () => service.applyAction(created.gameId, bob, { type: "decline-rematch" }),
+    (error) => isGameServiceError(error, "NO_REMATCH_REQUEST"),
   );
 });

@@ -7,7 +7,7 @@ function getRequiredEnv(
   options: {
     testDefault?: string;
     aliases?: string[];
-  } = {}
+  } = {},
 ): string {
   const value =
     process.env[name] ||

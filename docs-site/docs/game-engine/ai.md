@@ -32,6 +32,7 @@ User clicks "Play with a Bot"
 ```
 
 Source files:
+
 - [`tiao-engine.ts`][fn-tiao-engine.ts] — search algorithm, evaluation, move generation (765 lines)
 - [`tiao-engine.worker.ts`][fn-tiao-engine.worker.ts] — Web Worker entry point
 - [`computer-ai.ts`][fn-computer-ai.ts] — orchestration and cancellation
@@ -78,13 +79,13 @@ Alpha-beta pruning dramatically reduces the search space. In the best case (with
 
 The [`evaluate`][fn-evaluate] function scores a position from the current player's perspective. The score is a weighted sum of several factors:
 
-| Factor | Weight | Description |
-|--------|--------|-------------|
-| Captures | ×1000 | Difference in captured pieces — the most important factor since 10 captures wins |
-| Jump opportunities | ×80/85 | Number of pieces that can initiate a jump. Opponent jumps are weighted slightly higher (×85) to encourage defensive awareness |
-| Piece count | ×3 | Having more pieces on the board gives more tactical options |
-| Center control | ×2 | Pieces near the center of the 19×19 board score higher (measured by [Manhattan distance](https://en.wikipedia.org/wiki/Taxicab_geometry)) |
-| Connectivity | ×1 | Orthogonally adjacent same-color pieces. Encourages grouped formations |
+| Factor             | Weight | Description                                                                                                                               |
+| ------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Captures           | ×1000  | Difference in captured pieces — the most important factor since 10 captures wins                                                          |
+| Jump opportunities | ×80/85 | Number of pieces that can initiate a jump. Opponent jumps are weighted slightly higher (×85) to encourage defensive awareness             |
+| Piece count        | ×3     | Having more pieces on the board gives more tactical options                                                                               |
+| Center control     | ×2     | Pieces near the center of the 19×19 board score higher (measured by [Manhattan distance](https://en.wikipedia.org/wiki/Taxicab_geometry)) |
+| Connectivity       | ×1     | Orthogonally adjacent same-color pieces. Encourages grouped formations                                                                    |
 
 Terminal positions return ±50,000 (plus depth bonus to prefer faster wins).
 
@@ -109,6 +110,7 @@ XOR is its own inverse, which makes updates efficient — placing or removing a 
 A [transposition table](https://en.wikipedia.org/wiki/Transposition_table) caches previously evaluated positions to avoid redundant work. The same board position can be reached through different move orders (transpositions), and the table lets the engine reuse earlier results.
 
 Each entry stores:
+
 - **hash** — Zobrist hash of the position
 - **depth** — how deep this position was searched
 - **score** — the evaluated score
@@ -144,11 +146,11 @@ The engine applies null move pruning at depths ≥ 3, searching the null positio
 
 The engine offers three difficulty presets that control search depth and time budget:
 
-| Level | Label | Max Depth | Time Budget |
-|-------|-------|-----------|-------------|
-| 1 | Easy | 5 | 3 seconds |
-| 2 | Intermediate | 6 | 5 seconds |
-| 3 | Hard | 6 | 6 seconds |
+| Level | Label        | Max Depth | Time Budget |
+| ----- | ------------ | --------- | ----------- |
+| 1     | Easy         | 5         | 3 seconds   |
+| 2     | Intermediate | 6         | 5 seconds   |
+| 3     | Hard         | 6         | 6 seconds   |
 
 All levels use null move pruning, quiescence search, and full move ordering. The difference is primarily in search depth and how long the engine is allowed to think.
 

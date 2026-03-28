@@ -11,9 +11,19 @@ import { cn } from "@/lib/utils";
 import { InteractiveMiniBoard } from "@/components/tutorial/InteractiveMiniBoard";
 import { getTutorialSteps } from "@/components/tutorial/tutorialSteps";
 
-
 function fireBigConfetti() {
-  const colors = ["#ff6b6b", "#feca57", "#48dbfb", "#ff9ff3", "#54a0ff", "#5f27cd", "#01a3a4", "#f368e0", "#ff9f43", "#00d2d3"];
+  const colors = [
+    "#ff6b6b",
+    "#feca57",
+    "#48dbfb",
+    "#ff9ff3",
+    "#54a0ff",
+    "#5f27cd",
+    "#01a3a4",
+    "#f368e0",
+    "#ff9f43",
+    "#00d2d3",
+  ];
 
   // Big initial burst from center
   confetti({
@@ -27,7 +37,6 @@ function fireBigConfetti() {
     ticks: 200,
     shapes: ["circle", "square"],
   });
-
 }
 
 // --- Progress dots ---
@@ -81,12 +90,8 @@ export function TutorialPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [completing, setCompleting] = useState(false);
-  const [completedSteps, setCompletedSteps] = useState<Set<number>>(
-    new Set(),
-  );
-  const [resetKeys, setResetKeys] = useState<number[]>(
-    () => steps.map(() => 0),
-  );
+  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+  const [resetKeys, setResetKeys] = useState<number[]>(() => steps.map(() => 0));
 
   const step = steps[currentStep];
   const isLastStep = currentStep === steps.length - 1;
@@ -142,7 +147,9 @@ export function TutorialPage() {
     if (auth?.player.kind === "account" && !isReplay) {
       markTutorialComplete()
         .then((result) => applyAuth(result.auth))
-        .catch(() => {/* Non-critical */});
+        .catch(() => {
+          /* Non-critical */
+        });
     }
   }
 
@@ -314,9 +321,7 @@ export function TutorialPage() {
                 {t("next")}
               </Button>
             ) : (
-              <span className="text-xs text-[#a08d78] italic">
-                {t("completeChallenge")}
-              </span>
+              <span className="text-xs text-[#a08d78] italic">{t("completeChallenge")}</span>
             )}
           </div>
         </div>

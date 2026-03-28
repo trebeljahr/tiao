@@ -73,11 +73,11 @@ Sets the `tiao.session` HttpOnly cookie.
 
 **Errors:**
 
-| Status | Reason |
-|--------|--------|
-| 400 | Missing password, password too short (<8 chars), display name too short (<3 chars), invalid email format |
-| 409 | Email or username already taken |
-| 503 | Database unavailable |
+| Status | Reason                                                                                                   |
+| ------ | -------------------------------------------------------------------------------------------------------- |
+| 400    | Missing password, password too short (<8 chars), display name too short (<3 chars), invalid email format |
+| 409    | Email or username already taken                                                                          |
+| 503    | Database unavailable                                                                                     |
 
 ---
 
@@ -113,11 +113,11 @@ Sets the `tiao.session` HttpOnly cookie.
 
 **Errors:**
 
-| Status | Reason |
-|--------|--------|
-| 400 | Missing identifier or password |
-| 401 | Account not found, wrong password |
-| 503 | Database unavailable |
+| Status | Reason                            |
+| ------ | --------------------------------- |
+| 400    | Missing identifier or password    |
+| 401    | Account not found, wrong password |
+| 503    | Database unavailable              |
 
 ---
 
@@ -149,9 +149,9 @@ Get the current authenticated player.
 
 **Errors:**
 
-| Status | Reason |
-|--------|--------|
-| 401 | Not authenticated |
+| Status | Reason            |
+| ------ | ----------------- |
+| 401    | Not authenticated |
 
 ---
 
@@ -179,11 +179,11 @@ Get account profile.
 
 **Errors:**
 
-| Status | Reason |
-|--------|--------|
-| 401 | Not authenticated |
-| 403 | Not an account player |
-| 404 | Account not found |
+| Status | Reason                |
+| ------ | --------------------- |
+| 401    | Not authenticated     |
+| 403    | Not an account player |
+| 404    | Account not found     |
 
 ---
 
@@ -225,10 +225,10 @@ Update account profile. All fields are optional, but at least one must be provid
 
 **Errors:**
 
-| Status | Reason |
-|--------|--------|
-| 400 | Nothing to update, display name too short, password too short, invalid email |
-| 409 | Username or email already taken |
+| Status | Reason                                                                       |
+| ------ | ---------------------------------------------------------------------------- |
+| 400    | Nothing to update, display name too short, password too short, invalid email |
+| 409    | Username or email already taken                                              |
 
 ---
 
@@ -267,9 +267,9 @@ Field: profilePicture (file)
 
 **Errors:**
 
-| Status | Reason |
-|--------|--------|
-| 400 | No file uploaded |
+| Status | Reason           |
+| ------ | ---------------- |
+| 400    | No file uploaded |
 
 ---
 
@@ -297,12 +297,24 @@ List the authenticated player's games. Account only.
         "yourSeat": "white",
         "score": { "white": 2, "black": 2 },
         "players": [
-          { "player": { "playerId": "abc123", "displayName": "Alice", "kind": "account" }, "online": true },
-          { "player": { "playerId": "def456", "displayName": "Bob", "kind": "account" }, "online": false }
+          {
+            "player": { "playerId": "abc123", "displayName": "Alice", "kind": "account" },
+            "online": true
+          },
+          {
+            "player": { "playerId": "def456", "displayName": "Bob", "kind": "account" },
+            "online": false
+          }
         ],
         "seats": {
-          "white": { "player": { "playerId": "abc123", "displayName": "Alice", "kind": "account" }, "online": true },
-          "black": { "player": { "playerId": "def456", "displayName": "Bob", "kind": "account" }, "online": false }
+          "white": {
+            "player": { "playerId": "abc123", "displayName": "Alice", "kind": "account" },
+            "online": true
+          },
+          "black": {
+            "player": { "playerId": "def456", "displayName": "Bob", "kind": "account" },
+            "online": false
+          }
         }
       }
     ],
@@ -331,11 +343,17 @@ Create a new game room.
     "updatedAt": "2025-03-01T12:00:00.000Z",
     "state": { "...": "full board state" },
     "players": [
-      { "player": { "playerId": "abc123", "displayName": "Alice", "kind": "account" }, "online": false }
+      {
+        "player": { "playerId": "abc123", "displayName": "Alice", "kind": "account" },
+        "online": false
+      }
     ],
     "rematch": null,
     "seats": {
-      "white": { "player": { "playerId": "abc123", "displayName": "Alice", "kind": "account" }, "online": false },
+      "white": {
+        "player": { "playerId": "abc123", "displayName": "Alice", "kind": "account" },
+        "online": false
+      },
       "black": null
     }
   }
@@ -368,9 +386,9 @@ Get a game snapshot.
 
 **Errors:**
 
-| Status | Reason |
-|--------|--------|
-| 404 | Game not found |
+| Status | Reason         |
+| ------ | -------------- |
+| 404    | Game not found |
 
 ---
 
@@ -388,9 +406,9 @@ Join an existing game room by taking an available seat.
 
 **Errors:**
 
-| Status | Reason |
-|--------|--------|
-| 409 | Room full, guest active game limit reached |
+| Status | Reason                                     |
+| ------ | ------------------------------------------ |
+| 409    | Room full, guest active game limit reached |
 
 ---
 
@@ -489,9 +507,9 @@ Force finish a game. Development only.
 
 **Errors:**
 
-| Status | Reason |
-|--------|--------|
-| 403 | Not allowed in production |
+| Status | Reason                    |
+| ------ | ------------------------- |
+| 403    | Not allowed in production |
 
 ---
 
@@ -508,9 +526,7 @@ Get the full social overview including friends, requests, and invitations.
 ```json
 {
   "overview": {
-    "friends": [
-      { "playerId": "def456", "displayName": "Bob", "kind": "account" }
-    ],
+    "friends": [{ "playerId": "def456", "displayName": "Bob", "kind": "account" }],
     "incomingFriendRequests": [
       { "playerId": "ghi789", "displayName": "Charlie", "kind": "account" }
     ],
@@ -536,9 +552,9 @@ Search for players by display name or exact email.
 
 **Query parameters:**
 
-| Parameter | Required | Description |
-|-----------|----------|-------------|
-| `q` | Yes | Search string, minimum 2 characters |
+| Parameter | Required | Description                         |
+| --------- | -------- | ----------------------------------- |
+| `q`       | Yes      | Search string, minimum 2 characters |
 
 **Response 200:**
 
@@ -569,9 +585,9 @@ Possible `relationship` values: `"none"`, `"friend"`, `"incoming-request"`, `"ou
 
 **Errors:**
 
-| Status | Reason |
-|--------|--------|
-| 400 | Query too short (less than 2 characters) |
+| Status | Reason                                   |
+| ------ | ---------------------------------------- |
+| 400    | Query too short (less than 2 characters) |
 
 ---
 
@@ -597,11 +613,11 @@ Send a friend request.
 
 **Errors:**
 
-| Status | Reason |
-|--------|--------|
-| 400 | Missing accountId, cannot add yourself |
-| 404 | Player not found |
-| 409 | Already friends, pending request already exists |
+| Status | Reason                                          |
+| ------ | ----------------------------------------------- |
+| 400    | Missing accountId, cannot add yourself          |
+| 404    | Player not found                                |
+| 409    | Already friends, pending request already exists |
 
 ---
 
@@ -681,11 +697,11 @@ Send a game invitation to a friend.
 
 **Errors:**
 
-| Status | Reason |
-|--------|--------|
-| 400 | Missing required fields, invalid duration |
-| 403 | Not friends with recipient, not in the game |
-| 409 | Game already finished, recipient already in the game |
+| Status | Reason                                               |
+| ------ | ---------------------------------------------------- |
+| 400    | Missing required fields, invalid duration            |
+| 403    | Not friends with recipient, not in the game          |
+| 409    | Game already finished, recipient already in the game |
 
 ---
 
@@ -703,9 +719,9 @@ Revoke a sent invitation.
 
 **Errors:**
 
-| Status | Reason |
-|--------|--------|
-| 404 | Invitation not found or already expired |
+| Status | Reason                                  |
+| ------ | --------------------------------------- |
+| 404    | Invitation not found or already expired |
 
 ---
 
@@ -792,14 +808,14 @@ The `tiao.session` cookie is sent automatically by the browser.
 
 #### Error Codes
 
-| Code | Meaning |
-|------|---------|
-| `NOT_IN_GAME` | Player is not seated in this game |
-| `NOT_YOUR_TURN` | It is not the player's turn |
+| Code                   | Meaning                                     |
+| ---------------------- | ------------------------------------------- |
+| `NOT_IN_GAME`          | Player is not seated in this game           |
+| `NOT_YOUR_TURN`        | It is not the player's turn                 |
 | `WAITING_FOR_OPPONENT` | Game has not started yet (missing opponent) |
-| `GAME_NOT_FINISHED` | Cannot request rematch on an active game |
-| `NO_REMATCH_REQUEST` | Declining when no rematch request exists |
-| `UNKNOWN_ACTION` | Unrecognized message type |
+| `GAME_NOT_FINISHED`    | Cannot request rematch on an active game    |
+| `NO_REMATCH_REQUEST`   | Declining when no rematch request exists    |
+| `UNKNOWN_ACTION`       | Unrecognized message type                   |
 
 Additional error codes from the game engine's `RuleFailureCode` may be returned for invalid moves.
 
@@ -934,7 +950,14 @@ The `GameState.history` array contains every move made in the game. Each entry i
 
 ```typescript
 // Piece placement
-{ type: "put"; color: "white" | "black"; position: { x: number; y: number } }
+{
+  type: "put";
+  color: "white" | "black";
+  position: {
+    x: number;
+    y: number;
+  }
+}
 
 // Jump sequence (one or more captures)
 {
@@ -942,7 +965,7 @@ The `GameState.history` array contains every move made in the game. Each entry i
   color: "white" | "black";
   jumps: Array<{
     from: { x: number; y: number };
-    over: { x: number; y: number };   // captured piece position
+    over: { x: number; y: number }; // captured piece position
     to: { x: number; y: number };
     color: "white" | "black";
   }>;

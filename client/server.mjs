@@ -144,7 +144,5 @@ httpServer.on("upgrade", (req, socket, head) => {
 });
 
 httpServer.listen(port, () => {
-  console.log(
-    `> Next.js ready on http://localhost:${port} (${dev ? "dev" : "production"})`,
-  );
+  console.log(`> Next.js ready on http://localhost:${port} (${dev ? "dev" : "production"})`);
 });

@@ -4,10 +4,7 @@ import type { PlayerIdentity } from "../../shared/src";
 import { GameService, GameServiceError } from "../game/gameService";
 import { InMemoryGameRoomStore } from "../game/gameStore";
 
-function createPlayer(
-  playerId: string,
-  options: Partial<PlayerIdentity> = {}
-): PlayerIdentity {
+function createPlayer(playerId: string, options: Partial<PlayerIdentity> = {}): PlayerIdentity {
   return {
     playerId,
     displayName: options.displayName ?? playerId,
@@ -17,10 +14,7 @@ function createPlayer(
   };
 }
 
-function isGameServiceError(
-  error: unknown,
-  code: string
-): error is GameServiceError {
+function isGameServiceError(error: unknown, code: string): error is GameServiceError {
   return error instanceof GameServiceError && error.code === code;
 }
 

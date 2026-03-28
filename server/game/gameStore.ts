@@ -61,17 +61,12 @@ export interface GameRoomStore {
   getRoom(roomId: string): Promise<StoredMultiplayerRoom | null>;
   saveRoom(room: StoredMultiplayerRoom): Promise<StoredMultiplayerRoom>;
   listRoomsForPlayer(playerId: string): Promise<StoredMultiplayerRoom[]>;
-  findUnfinishedRoomByPlayer(
-    playerId: string
-  ): Promise<StoredMultiplayerRoom | null>;
+  findUnfinishedRoomByPlayer(playerId: string): Promise<StoredMultiplayerRoom | null>;
   findRoomByTournamentMatch(
     tournamentId: string,
-    matchId: string
+    matchId: string,
   ): Promise<StoredMultiplayerRoom | null>;
-  migratePlayerIdentity(
-    oldPlayerId: string,
-    newIdentity: PlayerIdentity,
-  ): Promise<number>;
+  migratePlayerIdentity(oldPlayerId: string, newIdentity: PlayerIdentity): Promise<number>;
 }
 
 function normalizeRoomId(roomId: string): string {
@@ -89,9 +84,7 @@ function clonePlayers(players: PlayerIdentity[]): PlayerIdentity[] {
   return players.map((player) => ({ ...player }));
 }
 
-function cloneRematch(
-  rematch: MultiplayerRematchState | null
-): MultiplayerRematchState | null {
+function cloneRematch(rematch: MultiplayerRematchState | null): MultiplayerRematchState | null {
   if (!rematch) {
     return null;
   }
@@ -102,7 +95,7 @@ function cloneRematch(
 }
 
 function cloneTakeback(
-  takeback: MultiplayerTakebackState | null | undefined
+  takeback: MultiplayerTakebackState | null | undefined,
 ): MultiplayerTakebackState | null {
   if (!takeback) {
     return null;
@@ -188,10 +181,7 @@ function toStoredRoom(room: PersistedGameRoom): StoredMultiplayerRoom {
   for (const color of ["white", "black"] as PlayerColor[]) {
     const seatedPlayer = room.seats[color];
 
-    if (
-      seatedPlayer &&
-      !players.some((player) => player.playerId === seatedPlayer.playerId)
-    ) {
+    if (seatedPlayer && !players.some((player) => player.playerId === seatedPlayer.playerId)) {
       players.push({ ...seatedPlayer });
     }
   }
@@ -219,9 +209,7 @@ function toStoredRoom(room: PersistedGameRoom): StoredMultiplayerRoom {
 }
 
 export class MongoGameRoomStore implements GameRoomStore {
-  async createRoom(
-    room: CreateStoredMultiplayerRoomInput
-  ): Promise<StoredMultiplayerRoom> {
+  async createRoom(room: CreateStoredMultiplayerRoomInput): Promise<StoredMultiplayerRoom> {
     const createdRoom = await GameRoom.create({
       roomId: normalizeRoomId(room.id),
       roomType: room.roomType,
@@ -297,7 +285,7 @@ export class MongoGameRoomStore implements GameRoomStore {
       },
       {
         new: true,
-      }
+      },
     )
       .lean<PersistedGameRoom>()
       .exec();
@@ -325,9 +313,7 @@ export class MongoGameRoomStore implements GameRoomStore {
     return rooms.map(toStoredRoom);
   }
 
-  async findUnfinishedRoomByPlayer(
-    playerId: string
-  ): Promise<StoredMultiplayerRoom | null> {
+  async findUnfinishedRoomByPlayer(playerId: string): Promise<StoredMultiplayerRoom | null> {
     const room = await GameRoom.findOne({
       status: {
         $in: ["waiting", "active"],
@@ -347,7 +333,7 @@ export class MongoGameRoomStore implements GameRoomStore {
 
   async findRoomByTournamentMatch(
     tournamentId: string,
-    matchId: string
+    matchId: string,
   ): Promise<StoredMultiplayerRoom | null> {
     const room = await GameRoom.findOne({
       tournamentId,
@@ -359,10 +345,7 @@ export class MongoGameRoomStore implements GameRoomStore {
     return room ? toStoredRoom(room) : null;
   }
 
-  async migratePlayerIdentity(
-    oldPlayerId: string,
-    newIdentity: PlayerIdentity,
-  ): Promise<number> {
+  async migratePlayerIdentity(oldPlayerId: string, newIdentity: PlayerIdentity): Promise<number> {
     // Update all unfinished rooms where the old player appears
     const result = await GameRoom.updateMany(
       {
@@ -414,9 +397,7 @@ export class MongoGameRoomStore implements GameRoomStore {
 export class InMemoryGameRoomStore implements GameRoomStore {
   private rooms = new Map<string, StoredMultiplayerRoom>();
 
-  async createRoom(
-    room: CreateStoredMultiplayerRoomInput
-  ): Promise<StoredMultiplayerRoom> {
+  async createRoom(room: CreateStoredMultiplayerRoomInput): Promise<StoredMultiplayerRoom> {
     const normalizedId = normalizeRoomId(room.id);
     if (this.rooms.has(normalizedId)) {
       const duplicateError = new Error("Duplicate room id.");
@@ -489,22 +470,18 @@ export class InMemoryGameRoomStore implements GameRoomStore {
 
   async listRoomsForPlayer(playerId: string): Promise<StoredMultiplayerRoom[]> {
     const rooms = Array.from(this.rooms.values())
-      .filter((room) =>
-        room.players.some((player) => player.playerId === playerId)
-      )
+      .filter((room) => room.players.some((player) => player.playerId === playerId))
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 
     return rooms.map(cloneStoredRoom);
   }
 
-  async findUnfinishedRoomByPlayer(
-    playerId: string
-  ): Promise<StoredMultiplayerRoom | null> {
+  async findUnfinishedRoomByPlayer(playerId: string): Promise<StoredMultiplayerRoom | null> {
     const room = Array.from(this.rooms.values())
       .filter(
         (candidate) =>
           candidate.status !== "finished" &&
-          candidate.players.some((player) => player.playerId === playerId)
+          candidate.players.some((player) => player.playerId === playerId),
       )
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0];
 
@@ -513,18 +490,15 @@ export class InMemoryGameRoomStore implements GameRoomStore {
 
   async findRoomByTournamentMatch(
     tournamentId: string,
-    matchId: string
+    matchId: string,
   ): Promise<StoredMultiplayerRoom | null> {
     const room = Array.from(this.rooms.values()).find(
-      (r) => r.tournamentId === tournamentId && r.tournamentMatchId === matchId
+      (r) => r.tournamentId === tournamentId && r.tournamentMatchId === matchId,
     );
     return room ? cloneStoredRoom(room) : null;
   }
 
-  async migratePlayerIdentity(
-    oldPlayerId: string,
-    newIdentity: PlayerIdentity,
-  ): Promise<number> {
+  async migratePlayerIdentity(oldPlayerId: string, newIdentity: PlayerIdentity): Promise<number> {
     let count = 0;
     for (const [, room] of this.rooms) {
       if (room.status === "finished") continue;
@@ -556,7 +530,7 @@ export class InMemoryGameRoomStore implements GameRoomStore {
 
 export function getPlayerColorForRoom(
   room: { seats: MultiplayerSeatAssignments },
-  playerId: string
+  playerId: string,
 ): PlayerColor | null {
   if (room.seats.white?.playerId === playerId) {
     return "white";

@@ -7,10 +7,7 @@ import { TournamentService } from "../game/tournamentService";
 import { InMemoryTournamentStore } from "../game/tournamentStore";
 import { InMemoryLockProvider } from "../game/lockProvider";
 
-function createPlayer(
-  playerId: string,
-  options: Partial<PlayerIdentity> = {}
-): PlayerIdentity {
+function createPlayer(playerId: string, options: Partial<PlayerIdentity> = {}): PlayerIdentity {
   return {
     playerId,
     displayName: options.displayName ?? playerId,
@@ -38,18 +35,11 @@ function createServices() {
   const tournamentStore = new InMemoryTournamentStore();
   const lockProvider = new InMemoryLockProvider();
   const gameService = new GameService(gameStore, () => 0);
-  const tournamentService = new TournamentService(
-    tournamentStore,
-    gameService,
-    lockProvider
-  );
+  const tournamentService = new TournamentService(tournamentStore, gameService, lockProvider);
   return { gameStore, tournamentStore, gameService, tournamentService };
 }
 
-function isGameServiceError(
-  error: unknown,
-  code: string
-): error is GameServiceError {
+function isGameServiceError(error: unknown, code: string): error is GameServiceError {
   return error instanceof GameServiceError && error.code === code;
 }
 
@@ -64,7 +54,7 @@ describe("Tournament creation", () => {
       alice,
       defaultSettings(),
       "Test Tournament",
-      "A fun tournament"
+      "A fun tournament",
     );
 
     assert.equal(tournament.status, "registration");
@@ -81,7 +71,7 @@ describe("Tournament creation", () => {
 
     await assert.rejects(
       () => tournamentService.createTournament(guest, defaultSettings(), "Test"),
-      (error) => isGameServiceError(error, "ACCOUNT_REQUIRED")
+      (error) => isGameServiceError(error, "ACCOUNT_REQUIRED"),
     );
   });
 });
@@ -94,11 +84,7 @@ describe("Tournament registration", () => {
     const alice = createPlayer("alice");
     const bob = createPlayer("bob");
 
-    const tournament = await tournamentService.createTournament(
-      alice,
-      defaultSettings(),
-      "Test"
-    );
+    const tournament = await tournamentService.createTournament(alice, defaultSettings(), "Test");
     const id = tournament.tournamentId;
 
     await tournamentService.registerPlayer(id, alice);
@@ -125,7 +111,7 @@ describe("Tournament registration", () => {
 
     await assert.rejects(
       () => tournamentService.registerPlayer(t.tournamentId, alice),
-      (error) => isGameServiceError(error, "ALREADY_REGISTERED")
+      (error) => isGameServiceError(error, "ALREADY_REGISTERED"),
     );
   });
 
@@ -136,14 +122,14 @@ describe("Tournament registration", () => {
     const t = await tournamentService.createTournament(
       alice,
       defaultSettings({ maxPlayers: 2 }),
-      "Small"
+      "Small",
     );
     await tournamentService.registerPlayer(t.tournamentId, alice);
     await tournamentService.registerPlayer(t.tournamentId, createPlayer("bob"));
 
     await assert.rejects(
       () => tournamentService.registerPlayer(t.tournamentId, createPlayer("charlie")),
-      (error) => isGameServiceError(error, "TOURNAMENT_FULL")
+      (error) => isGameServiceError(error, "TOURNAMENT_FULL"),
     );
   });
 
@@ -154,20 +140,16 @@ describe("Tournament registration", () => {
     const t = await tournamentService.createTournament(
       alice,
       defaultSettings({ visibility: "private", inviteCode: "secret" }),
-      "Private"
+      "Private",
     );
 
     await assert.rejects(
       () => tournamentService.registerPlayer(t.tournamentId, createPlayer("bob")),
-      (error) => isGameServiceError(error, "INVALID_INVITE_CODE")
+      (error) => isGameServiceError(error, "INVALID_INVITE_CODE"),
     );
 
     // With correct code it works
-    await tournamentService.registerPlayer(
-      t.tournamentId,
-      createPlayer("bob"),
-      "secret"
-    );
+    await tournamentService.registerPlayer(t.tournamentId, createPlayer("bob"), "secret");
     const snapshot = await tournamentService.getTournamentSnapshot(t.tournamentId);
     assert.equal(snapshot.participants.length, 1);
   });
@@ -183,13 +165,13 @@ describe("Starting a tournament", () => {
     const t = await tournamentService.createTournament(
       alice,
       defaultSettings({ minPlayers: 4 }),
-      "Test"
+      "Test",
     );
     await tournamentService.registerPlayer(t.tournamentId, alice);
 
     await assert.rejects(
       () => tournamentService.startTournament(t.tournamentId, "alice"),
-      (error) => isGameServiceError(error, "NOT_ENOUGH_PLAYERS")
+      (error) => isGameServiceError(error, "NOT_ENOUGH_PLAYERS"),
     );
   });
 
@@ -204,7 +186,7 @@ describe("Starting a tournament", () => {
 
     await assert.rejects(
       () => tournamentService.startTournament(t.tournamentId, "bob"),
-      (error) => isGameServiceError(error, "NOT_ADMIN")
+      (error) => isGameServiceError(error, "NOT_ADMIN"),
     );
   });
 });
@@ -220,7 +202,7 @@ describe("Single elimination bracket", () => {
     const t = await tournamentService.createTournament(
       alice,
       defaultSettings({ minPlayers: 2 }),
-      "Elim4"
+      "Elim4",
     );
 
     for (const p of players) {
@@ -265,7 +247,7 @@ describe("Single elimination bracket", () => {
     const t = await tournamentService.createTournament(
       creator,
       defaultSettings({ minPlayers: 2 }),
-      "Elim3"
+      "Elim3",
     );
     for (const p of players) {
       await tournamentService.registerPlayer(t.tournamentId, p);
@@ -298,7 +280,7 @@ describe("Round robin bracket", () => {
     const t = await tournamentService.createTournament(
       creator,
       defaultSettings({ format: "round-robin", minPlayers: 2 }),
-      "RR4"
+      "RR4",
     );
     for (const p of players) {
       await tournamentService.registerPlayer(t.tournamentId, p);
@@ -326,9 +308,7 @@ describe("Round robin bracket", () => {
     for (const round of snapshot.rounds) {
       for (const match of round.matches) {
         if (match.players[0] && match.players[1]) {
-          const key = [match.players[0].playerId, match.players[1].playerId]
-            .sort()
-            .join("-");
+          const key = [match.players[0].playerId, match.players[1].playerId].sort().join("-");
           matchups.add(key);
         }
       }
@@ -354,7 +334,7 @@ describe("Groups + knockout bracket", () => {
         groupSize: 4,
         minPlayers: 2,
       }),
-      "GK8"
+      "GK8",
     );
     for (const p of players) {
       await tournamentService.registerPlayer(t.tournamentId, p);
@@ -391,7 +371,7 @@ describe("Game completion callback", () => {
     const t = await tournamentService.createTournament(
       alice,
       defaultSettings({ minPlayers: 2 }),
-      "Callback Test"
+      "Callback Test",
     );
     await tournamentService.registerPlayer(t.tournamentId, alice);
     await tournamentService.registerPlayer(t.tournamentId, bob);
@@ -439,13 +419,15 @@ describe("Seeding management", () => {
       await tournamentService.registerPlayer(t.tournamentId, p);
     }
 
-    const before = (await tournamentService.getTournamentSnapshot(t.tournamentId))
-      .participants.map((p) => p.seed);
+    const before = (await tournamentService.getTournamentSnapshot(t.tournamentId)).participants.map(
+      (p) => p.seed,
+    );
 
     await tournamentService.randomizeSeeding(t.tournamentId, "alice");
 
-    const after = (await tournamentService.getTournamentSnapshot(t.tournamentId))
-      .participants.map((p) => p.seed);
+    const after = (await tournamentService.getTournamentSnapshot(t.tournamentId)).participants.map(
+      (p) => p.seed,
+    );
 
     // Seeds should still be 1-4 (just potentially reordered)
     assert.deepEqual([...after].sort(), [1, 2, 3, 4]);
@@ -481,7 +463,7 @@ describe("Seeding management", () => {
 
     await assert.rejects(
       () => tournamentService.randomizeSeeding(t.tournamentId, "bob"),
-      (error) => isGameServiceError(error, "NOT_ADMIN")
+      (error) => isGameServiceError(error, "NOT_ADMIN"),
     );
   });
 });
@@ -508,7 +490,7 @@ describe("Tournament cancellation", () => {
 
     await assert.rejects(
       () => tournamentService.cancelTournament(t.tournamentId, "bob"),
-      (error) => isGameServiceError(error, "NOT_ADMIN")
+      (error) => isGameServiceError(error, "NOT_ADMIN"),
     );
   });
 });
@@ -523,12 +505,12 @@ describe("Tournament listing", () => {
     await tournamentService.createTournament(
       alice,
       defaultSettings({ visibility: "public" }),
-      "Public"
+      "Public",
     );
     await tournamentService.createTournament(
       alice,
       defaultSettings({ visibility: "private", inviteCode: "x" }),
-      "Private"
+      "Private",
     );
 
     const list = await tournamentService.listPublicTournaments();
@@ -563,7 +545,7 @@ describe("Admin forfeit", () => {
     const t = await tournamentService.createTournament(
       alice,
       defaultSettings({ minPlayers: 2 }),
-      "Forfeit Test"
+      "Forfeit Test",
     );
     await tournamentService.registerPlayer(t.tournamentId, alice);
     await tournamentService.registerPlayer(t.tournamentId, bob);
@@ -572,12 +554,7 @@ describe("Admin forfeit", () => {
     let snapshot = await tournamentService.getTournamentSnapshot(t.tournamentId);
     const matchId = snapshot.rounds[0].matches[0].matchId;
 
-    await tournamentService.forfeitMatch(
-      t.tournamentId,
-      matchId,
-      "bob",
-      "alice"
-    );
+    await tournamentService.forfeitMatch(t.tournamentId, matchId, "bob", "alice");
 
     snapshot = await tournamentService.getTournamentSnapshot(t.tournamentId);
     const match = snapshot.rounds[0].matches[0];
@@ -597,7 +574,7 @@ describe("Deferred timer for tournament games", () => {
     const t = await tournamentService.createTournament(
       alice,
       defaultSettings({ minPlayers: 2, timeControl: { initialMs: 300_000, incrementMs: 0 } }),
-      "Deferred Timer"
+      "Deferred Timer",
     );
     await tournamentService.registerPlayer(t.tournamentId, alice);
     await tournamentService.registerPlayer(t.tournamentId, bob);
@@ -609,7 +586,11 @@ describe("Deferred timer for tournament games", () => {
 
     const room = await gameStore.getRoom(roomId);
     assert.ok(room);
-    assert.equal(room.firstMoveDeadline, null, "firstMoveDeadline should be null until both connect");
+    assert.equal(
+      room.firstMoveDeadline,
+      null,
+      "firstMoveDeadline should be null until both connect",
+    );
     assert.equal(room.status, "active", "room should be active (both seated)");
     assert.ok(room.timeControl, "room should have time control");
   });
@@ -622,7 +603,7 @@ describe("Deferred timer for tournament games", () => {
     const t = await tournamentService.createTournament(
       alice,
       defaultSettings({ minPlayers: 2, timeControl: null }),
-      "Untimed"
+      "Untimed",
     );
     await tournamentService.registerPlayer(t.tournamentId, alice);
     await tournamentService.registerPlayer(t.tournamentId, bob);
@@ -650,7 +631,7 @@ describe("Move blocking in unstarted tournament games", () => {
     const t = await tournamentService.createTournament(
       alice,
       defaultSettings({ minPlayers: 2, timeControl: { initialMs: 300_000, incrementMs: 0 } }),
-      "Block Moves"
+      "Block Moves",
     );
     await tournamentService.registerPlayer(t.tournamentId, alice);
     await tournamentService.registerPlayer(t.tournamentId, bob);
@@ -662,8 +643,9 @@ describe("Move blocking in unstarted tournament games", () => {
 
     // Try to place a piece — should fail because neither player has connected via WebSocket
     await assert.rejects(
-      () => gameService.applyAction(roomId, alice, { type: "place-piece", position: { x: 9, y: 9 } }),
-      (error) => isGameServiceError(error, "TOURNAMENT_NOT_STARTED")
+      () =>
+        gameService.applyAction(roomId, alice, { type: "place-piece", position: { x: 9, y: 9 } }),
+      (error) => isGameServiceError(error, "TOURNAMENT_NOT_STARTED"),
     );
   });
 
@@ -675,7 +657,7 @@ describe("Move blocking in unstarted tournament games", () => {
     const t = await tournamentService.createTournament(
       alice,
       defaultSettings({ minPlayers: 2, timeControl: null }),
-      "Untimed Moves"
+      "Untimed Moves",
     );
     await tournamentService.registerPlayer(t.tournamentId, alice);
     await tournamentService.registerPlayer(t.tournamentId, bob);
@@ -711,7 +693,7 @@ describe("tournamentReady snapshot field", () => {
     const t = await tournamentService.createTournament(
       alice,
       defaultSettings({ minPlayers: 2, timeControl: { initialMs: 300_000, incrementMs: 0 } }),
-      "Ready Field"
+      "Ready Field",
     );
     await tournamentService.registerPlayer(t.tournamentId, alice);
     await tournamentService.registerPlayer(t.tournamentId, bob);
@@ -733,7 +715,7 @@ describe("tournamentReady snapshot field", () => {
     const t = await tournamentService.createTournament(
       alice,
       defaultSettings({ minPlayers: 2, timeControl: null }),
-      "Untimed Ready"
+      "Untimed Ready",
     );
     await tournamentService.registerPlayer(t.tournamentId, alice);
     await tournamentService.registerPlayer(t.tournamentId, bob);
@@ -791,7 +773,7 @@ describe("Tournament rematch blocking", () => {
     const t = await tournamentService.createTournament(
       alice,
       defaultSettings({ minPlayers: 2 }),
-      "No Rematch"
+      "No Rematch",
     );
     await tournamentService.registerPlayer(t.tournamentId, alice);
     await tournamentService.registerPlayer(t.tournamentId, bob);
@@ -811,7 +793,7 @@ describe("Tournament rematch blocking", () => {
     // Try to request rematch — should be rejected
     await assert.rejects(
       () => gameService.applyAction(roomId, alice, { type: "request-rematch" }),
-      (error) => isGameServiceError(error, "TOURNAMENT_NO_REMATCH")
+      (error) => isGameServiceError(error, "TOURNAMENT_NO_REMATCH"),
     );
   });
 });

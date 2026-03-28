@@ -1,10 +1,6 @@
 import { execSync } from "child_process";
 
-const CONTAINERS = [
-  "tiao-e2e-mongo",
-  "tiao-e2e-redis",
-  "tiao-e2e-minio",
-];
+const CONTAINERS = ["tiao-e2e-mongo", "tiao-e2e-redis", "tiao-e2e-minio"];
 
 async function globalTeardown(): Promise<void> {
   if (process.env.CI) {

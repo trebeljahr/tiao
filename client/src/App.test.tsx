@@ -31,7 +31,11 @@ vi.mock("@/lib/LobbySocketContext", () => ({
 
 describe("Providers", () => {
   it("renders children after auth bootstrap", async () => {
-    render(<Providers><div>child content</div></Providers>);
+    render(
+      <Providers>
+        <div>child content</div>
+      </Providers>,
+    );
     await waitFor(() => {
       expect(screen.getByText("child content")).toBeInTheDocument();
     });

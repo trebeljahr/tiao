@@ -61,6 +61,7 @@ After completing a jump, if your piece can make another legal jump from its new 
 #### Confirming a Jump
 
 After one or more jumps, you must **confirm** to end your turn. All captured pieces are removed from the board and added to your score. Until you confirm:
+
 - You cannot place a new piece.
 - You can only continue jumping with the same piece.
 - You can **undo** individual jump steps to try a different path.
@@ -103,31 +104,31 @@ The first player to capture **10 enemy pieces** wins the game. Once a player's s
 
 ## Summary
 
-| Rule | Description |
-|------|-------------|
-| Board | 19x19 empty grid |
-| First move | White |
-| Place | Put a piece on an empty intersection (subject to cluster + border rules) |
-| Jump | Leap 2 squares over an enemy piece (orthogonal or diagonal) to capture |
-| Chain jumps | Continue jumping with the same piece if possible |
-| Confirm | End your jump sequence, remove captured pieces, score points |
-| Cluster limit | Max 10 connected same-color pieces |
-| Border limit | Edge placements must be reachable by an enemy jump |
-| Win condition | First to capture 10 enemy pieces |
+| Rule          | Description                                                              |
+| ------------- | ------------------------------------------------------------------------ |
+| Board         | 19x19 empty grid                                                         |
+| First move    | White                                                                    |
+| Place         | Put a piece on an empty intersection (subject to cluster + border rules) |
+| Jump          | Leap 2 squares over an enemy piece (orthogonal or diagonal) to capture   |
+| Chain jumps   | Continue jumping with the same piece if possible                         |
+| Confirm       | End your jump sequence, remove captured pieces, score points             |
+| Cluster limit | Max 10 connected same-color pieces                                       |
+| Border limit  | Edge placements must be reachable by an enemy jump                       |
+| Win condition | First to capture 10 enemy pieces                                         |
 
 ## Error Codes
 
 When a move is illegal, the game engine returns one of these codes:
 
-| Code | Meaning |
-|------|---------|
-| `GAME_OVER` | The game has already ended |
-| `OUT_OF_BOUNDS` | Position is outside the 19x19 board |
-| `OCCUPIED` | That intersection already has a piece |
-| `PENDING_JUMP` | You must finish the current jump sequence first |
-| `INVALID_CLUSTER` | Placement would violate the cluster rule |
-| `INVALID_BORDER` | Border placement is not allowed here |
-| `NO_PIECE` | No piece at the jump origin |
-| `NOT_YOUR_PIECE` | That piece belongs to your opponent |
-| `INVALID_JUMP` | The jump is not legal from this position |
+| Code              | Meaning                                         |
+| ----------------- | ----------------------------------------------- |
+| `GAME_OVER`       | The game has already ended                      |
+| `OUT_OF_BOUNDS`   | Position is outside the 19x19 board             |
+| `OCCUPIED`        | That intersection already has a piece           |
+| `PENDING_JUMP`    | You must finish the current jump sequence first |
+| `INVALID_CLUSTER` | Placement would violate the cluster rule        |
+| `INVALID_BORDER`  | Border placement is not allowed here            |
+| `NO_PIECE`        | No piece at the jump origin                     |
+| `NOT_YOUR_PIECE`  | That piece belongs to your opponent             |
+| `INVALID_JUMP`    | The jump is not legal from this position        |
 | `NO_PENDING_JUMP` | No jump sequence in progress to confirm or undo |

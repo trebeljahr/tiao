@@ -1,8 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 
 const IS_TOUCH_DEVICE =
-  typeof window !== "undefined" &&
-  ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+  typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 3;
@@ -80,7 +79,13 @@ export function usePinchZoom({ containerRef, panDisabled }: UsePinchZoomOptions)
       if (!rect) return;
       // rect is the visual (transformed) rect — divide by current scale to get original dims
       const currentScale = scaleRef.current || 1;
-      const clamped = clampTranslate(newTx, newTy, newScale, rect.width / currentScale, rect.height / currentScale);
+      const clamped = clampTranslate(
+        newTx,
+        newTy,
+        newScale,
+        rect.width / currentScale,
+        rect.height / currentScale,
+      );
       scaleRef.current = newScale;
       translateXRef.current = clamped.x;
       translateYRef.current = clamped.y;
@@ -172,10 +177,8 @@ export function usePinchZoom({ containerRef, panDisabled }: UsePinchZoomOptions)
           const offsetY = mid.y - cy;
 
           const scaleChange = newScale / pinchStartScale.current;
-          const newTx =
-            pinchStartTranslate.current.x - offsetX * (scaleChange - 1);
-          const newTy =
-            pinchStartTranslate.current.y - offsetY * (scaleChange - 1);
+          const newTx = pinchStartTranslate.current.x - offsetX * (scaleChange - 1);
+          const newTy = pinchStartTranslate.current.y - offsetY * (scaleChange - 1);
           updateTransform(newScale, newTx, newTy);
         }
         return;
@@ -237,11 +240,7 @@ export function usePinchZoom({ containerRef, panDisabled }: UsePinchZoomOptions)
       panStartPoint.current = null;
 
       // Double-tap to reset zoom (only when zoomed)
-      if (
-        remainingTouches === 0 &&
-        touchCountRef.current === 1 &&
-        scaleRef.current > 1.05
-      ) {
+      if (remainingTouches === 0 && touchCountRef.current === 1 && scaleRef.current > 1.05) {
         const now = Date.now();
         if (now - lastTapTime.current < DOUBLE_TAP_THRESHOLD) {
           resetZoom();

@@ -80,11 +80,7 @@ export function findCluster(board: Cell[][], start: Pos, size: number): Pos[] {
 
     for (const d of ORTHO_DIRS) {
       const n: Pos = { x: p.x + d.dx, y: p.y + d.dy };
-      if (
-        inBounds(n, size) &&
-        board[n.y][n.x] === color &&
-        !visited.has(`${n.x},${n.y}`)
-      ) {
+      if (inBounds(n, size) && board[n.y][n.x] === color && !visited.has(`${n.x},${n.y}`)) {
         stack.push(n);
       }
     }

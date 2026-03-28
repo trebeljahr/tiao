@@ -10,9 +10,7 @@ const LOG_BUFFER_SIZE = 500;
 const logBuffer: LogEntry[] = [];
 
 function captureLog(level: LogEntry["level"], args: unknown[]) {
-  const message = args
-    .map((a) => (typeof a === "string" ? a : JSON.stringify(a)))
-    .join(" ");
+  const message = args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" ");
 
   logBuffer.push({
     timestamp: new Date().toISOString(),

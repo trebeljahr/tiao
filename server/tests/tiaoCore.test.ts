@@ -43,7 +43,7 @@ describe("Tiao core rules", () => {
       `,
       {
         turn: "white",
-      }
+      },
     );
     const blocked = stateFromDiagram(
       `
@@ -53,7 +53,7 @@ describe("Tiao core rules", () => {
       `,
       {
         turn: "white",
-      }
+      },
     );
 
     const allowedPlacement = canPlacePiece(allowed, { x: 1, y: 0 });
@@ -75,7 +75,7 @@ describe("Tiao core rules", () => {
       {
         origin,
         turn: "white",
-      }
+      },
     );
     const tenStoneCluster = stateFromDiagram(
       `
@@ -84,7 +84,7 @@ describe("Tiao core rules", () => {
       {
         origin,
         turn: "white",
-      }
+      },
     );
 
     const tenthStone = canPlacePiece(nineStoneCluster, at(origin, 9, 0));
@@ -111,7 +111,7 @@ describe("Tiao core rules", () => {
       {
         origin,
         turn: "white",
-      }
+      },
     );
 
     const firstJump = jumpPiece(state, at(origin, 0, 0), at(origin, 2, 2));
@@ -131,14 +131,10 @@ describe("Tiao core rules", () => {
         . . . . . .
         . . . . . .
       `,
-      { origin }
+      { origin },
     );
 
-    const secondJump = jumpPiece(
-      firstJump.value,
-      at(origin, 2, 2),
-      at(origin, 4, 4)
-    );
+    const secondJump = jumpPiece(firstJump.value, at(origin, 2, 2), at(origin, 4, 4));
     assert.equal(secondJump.ok, true);
     if (!secondJump.ok) {
       return;
@@ -146,9 +142,7 @@ describe("Tiao core rules", () => {
 
     assert.equal(secondJump.value.pendingJump.length, 2);
     assert.equal(secondJump.value.pendingCaptures.length, 2);
-    const lockedOrigins = serializePositions(
-      getSelectableJumpOrigins(secondJump.value)
-    );
+    const lockedOrigins = serializePositions(getSelectableJumpOrigins(secondJump.value));
     assert.deepEqual(lockedOrigins, [`${origin.x + 4},${origin.y + 4}`]);
 
     const pendingPlacement = canPlacePiece(secondJump.value, at(origin, 5, 0));
@@ -177,7 +171,7 @@ describe("Tiao core rules", () => {
         . . . . W .
         . . . . . .
       `,
-      { origin }
+      { origin },
     );
   });
 
@@ -195,7 +189,7 @@ describe("Tiao core rules", () => {
       {
         origin,
         turn: "white",
-      }
+      },
     );
 
     const firstJump = jumpPiece(state, at(origin, 0, 0), at(origin, 2, 2));
@@ -204,11 +198,7 @@ describe("Tiao core rules", () => {
       return;
     }
 
-    const secondJump = jumpPiece(
-      firstJump.value,
-      at(origin, 2, 2),
-      at(origin, 4, 4)
-    );
+    const secondJump = jumpPiece(firstJump.value, at(origin, 2, 2), at(origin, 4, 4));
     assert.equal(secondJump.ok, true);
     if (!secondJump.ok) {
       return;
@@ -232,7 +222,7 @@ describe("Tiao core rules", () => {
         . . . . . .
         . . . . . .
       `,
-      { origin }
+      { origin },
     );
   });
 
@@ -247,14 +237,11 @@ describe("Tiao core rules", () => {
       {
         origin,
         turn: "white",
-      }
+      },
     );
 
     const selectableOrigins = serializePositions(getSelectableJumpOrigins(state));
-    assert.deepEqual(selectableOrigins, [
-      `${origin.x},${origin.y}`,
-      `${origin.x + 3},${origin.y}`,
-    ]);
+    assert.deepEqual(selectableOrigins, [`${origin.x},${origin.y}`, `${origin.x + 3},${origin.y}`]);
 
     const jumped = jumpPiece(state, at(origin, 0, 0), at(origin, 2, 2));
     assert.equal(jumped.ok, true);
@@ -296,7 +283,7 @@ describe("Tiao core rules", () => {
       {
         origin,
         turn: "white",
-      }
+      },
     );
 
     const firstJump = jumpPiece(jumpState, at(origin, 0, 0), at(origin, 2, 2));
@@ -305,11 +292,7 @@ describe("Tiao core rules", () => {
       return;
     }
 
-    const secondJump = jumpPiece(
-      firstJump.value,
-      at(origin, 2, 2),
-      at(origin, 4, 4)
-    );
+    const secondJump = jumpPiece(firstJump.value, at(origin, 2, 2), at(origin, 4, 4));
     assert.equal(secondJump.ok, true);
     if (!secondJump.ok) {
       return;
@@ -340,7 +323,7 @@ describe("Tiao core rules", () => {
         . . . . . .
         . . . . . .
       `,
-      { origin }
+      { origin },
     );
   });
 
@@ -422,9 +405,7 @@ describe("Tiao core rules", () => {
   });
 
   test("replayToMove with negative index returns initial state", () => {
-    const history = [
-      { type: "put" as const, color: "white" as const, position: { x: 9, y: 9 } },
-    ];
+    const history = [{ type: "put" as const, color: "white" as const, position: { x: 9, y: 9 } }];
     const state = replayToMove(history, -1);
     assert.equal(state.positions[9][9], null);
     assert.equal(state.currentTurn, "white");
@@ -440,7 +421,7 @@ describe("Tiao core rules", () => {
       {
         turn: "white",
         score: { white: SCORE_TO_WIN },
-      }
+      },
     );
 
     const placement = canPlacePiece(gameOverState, { x: 2, y: 2 });
@@ -449,11 +430,7 @@ describe("Tiao core rules", () => {
       assert.equal(placement.code, "GAME_OVER");
     }
 
-    const jumpWhileOver = jumpPiece(
-      gameOverState,
-      { x: 0, y: 0 },
-      { x: 2, y: 2 }
-    );
+    const jumpWhileOver = jumpPiece(gameOverState, { x: 0, y: 0 }, { x: 2, y: 2 });
     assert.equal(jumpWhileOver.ok, false);
     if (!jumpWhileOver.ok) {
       assert.equal(jumpWhileOver.code, "GAME_OVER");
@@ -467,13 +444,9 @@ describe("Tiao core rules", () => {
       `,
       {
         turn: "white",
-      }
+      },
     );
-    const illegalJump = jumpPiece(
-      illegalJumpState,
-      { x: 0, y: 0 },
-      { x: 2, y: 2 }
-    );
+    const illegalJump = jumpPiece(illegalJumpState, { x: 0, y: 0 }, { x: 2, y: 2 });
     assert.equal(illegalJump.ok, false);
     if (!illegalJump.ok) {
       assert.equal(illegalJump.code, "INVALID_JUMP");

@@ -77,14 +77,14 @@ The game engine (`shared/src/tiao.ts`) is a set of pure functions with no side e
 
 ## Documentation
 
-| Document | Description |
-|----------|-------------|
-| [docs/GAME_RULES.md](docs/GAME_RULES.md) | Complete game rules with diagrams |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, data flow, and technical decisions |
-| [docs/API.md](docs/API.md) | REST and WebSocket API reference |
-| [docs/TESTING.md](docs/TESTING.md) | Testing guide, harnesses, and how to add tests |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute |
-| [docs/coolify-deployment.md](docs/coolify-deployment.md) | Coolify/Docker deployment guide |
+| Document                                                 | Description                                       |
+| -------------------------------------------------------- | ------------------------------------------------- |
+| [docs/GAME_RULES.md](docs/GAME_RULES.md)                 | Complete game rules with diagrams                 |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)             | System design, data flow, and technical decisions |
+| [docs/API.md](docs/API.md)                               | REST and WebSocket API reference                  |
+| [docs/TESTING.md](docs/TESTING.md)                       | Testing guide, harnesses, and how to add tests    |
+| [CONTRIBUTING.md](CONTRIBUTING.md)                       | How to contribute                                 |
+| [docs/coolify-deployment.md](docs/coolify-deployment.md) | Coolify/Docker deployment guide                   |
 
 ## Testing
 
@@ -111,12 +111,14 @@ Production runs as two Docker containers:
 ### Required Environment Variables
 
 **Backend:**
+
 - `MONGODB_URI` -- MongoDB connection string
 - `TOKEN_SECRET` -- secret for session token hashing
 - `S3_BUCKET_NAME`, `S3_PUBLIC_URL` -- for profile picture uploads
 - `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
 
 **Optional:**
+
 - `FRONTEND_URL` -- for cross-origin CORS setups
 - `S3_ENDPOINT`, `S3_FORCE_PATH_STYLE` -- for S3-compatible providers (MinIO, etc.)
 - `REDIS_URL` -- enables distributed matchmaking, locks, and rate limiting (falls back to in-memory)

@@ -64,7 +64,9 @@ export function MoveListNavButtons({
         size="sm"
         className="h-7 w-7 p-0 text-xs"
         onClick={() =>
-          onSelectMove(currentMoveIndex !== null ? findPrevBoardMove(history, currentMoveIndex) : -1)
+          onSelectMove(
+            currentMoveIndex !== null ? findPrevBoardMove(history, currentMoveIndex) : -1,
+          )
         }
         disabled={currentMoveIndex === null || currentMoveIndex < 0}
         aria-label="Previous move"
@@ -124,15 +126,15 @@ export function MoveList({
   }, [currentMoveIndex]);
 
   if (history.length === 0) {
-    return (
-      <div className="py-4 text-center text-sm text-[#7a6656]">
-        No moves yet.
-      </div>
-    );
+    return <div className="py-4 text-center text-sm text-[#7a6656]">No moves yet.</div>;
   }
 
   // Pair moves into rows: [white, black?]
-  const rows: Array<{ index: number; white: { record: TurnRecord; idx: number }; black?: { record: TurnRecord; idx: number } }> = [];
+  const rows: Array<{
+    index: number;
+    white: { record: TurnRecord; idx: number };
+    black?: { record: TurnRecord; idx: number };
+  }> = [];
   let rowIndex = 0;
   for (let i = 0; i < history.length; i += 2) {
     rows.push({
@@ -167,9 +169,7 @@ export function MoveList({
           <tbody>
             {rows.map((row) => (
               <tr key={row.index}>
-                <td className="py-0.5 text-[#9b8a78] tabular-nums">
-                  {row.index + 1}
-                </td>
+                <td className="py-0.5 text-[#9b8a78] tabular-nums">{row.index + 1}</td>
                 <td className="py-0.5">
                   <MoveCell
                     record={row.white.record}
@@ -209,38 +209,39 @@ type MoveCellProps = {
   onSelect?: (index: number) => void;
 };
 
-const MoveCell = React.forwardRef<HTMLButtonElement, MoveCellProps>(
-  function MoveCell({ record, moveIdx, isActive, interactive, onSelect }, ref) {
-    const label =
-      record.type === "put"
-        ? formatTurnRecord(record, moveIdx).replace(/^\d+\.\s\w\s/, "")
-        : formatTurnRecord(record, moveIdx).replace(/^\d+\.\s\w\s/, "");
+const MoveCell = React.forwardRef<HTMLButtonElement, MoveCellProps>(function MoveCell(
+  { record, moveIdx, isActive, interactive, onSelect },
+  ref,
+) {
+  const label =
+    record.type === "put"
+      ? formatTurnRecord(record, moveIdx).replace(/^\d+\.\s\w\s/, "")
+      : formatTurnRecord(record, moveIdx).replace(/^\d+\.\s\w\s/, "");
 
-    if (!interactive) {
-      return (
-        <span
-          className={cn(
-            "inline-block rounded px-1.5 py-0.5 font-mono text-[#2b1e14]",
-            isActive && "bg-[#e8dcc8] font-semibold",
-          )}
-        >
-          {label}
-        </span>
-      );
-    }
-
+  if (!interactive) {
     return (
-      <button
-        ref={ref}
-        type="button"
-        onClick={() => onSelect?.(moveIdx)}
+      <span
         className={cn(
-          "inline-block cursor-pointer rounded px-1.5 py-0.5 font-mono text-[#2b1e14] transition-colors hover:bg-[#f0e6d4]",
+          "inline-block rounded px-1.5 py-0.5 font-mono text-[#2b1e14]",
           isActive && "bg-[#e8dcc8] font-semibold",
         )}
       >
         {label}
-      </button>
+      </span>
     );
-  },
-);
+  }
+
+  return (
+    <button
+      ref={ref}
+      type="button"
+      onClick={() => onSelect?.(moveIdx)}
+      className={cn(
+        "inline-block cursor-pointer rounded px-1.5 py-0.5 font-mono text-[#2b1e14] transition-colors hover:bg-[#f0e6d4]",
+        isActive && "bg-[#e8dcc8] font-semibold",
+      )}
+    >
+      {label}
+    </button>
+  );
+});

@@ -31,7 +31,7 @@ const TournamentMatchPlayerSchema = new Schema(
     displayName: { type: String, required: true },
     seed: { type: Number, required: true },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const TournamentMatchSchema = new Schema(
@@ -56,7 +56,7 @@ const TournamentMatchSchema = new Schema(
     scheduledAt: { type: String },
     deadline: { type: String },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const TournamentRoundSchema = new Schema(
@@ -71,7 +71,7 @@ const TournamentRoundSchema = new Schema(
       default: "pending",
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const TournamentGroupStandingSchema = new Schema(
@@ -85,7 +85,7 @@ const TournamentGroupStandingSchema = new Schema(
     points: { type: Number, default: 0 },
     scoreDiff: { type: Number, default: 0 },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const TournamentGroupSchema = new Schema(
@@ -96,7 +96,7 @@ const TournamentGroupSchema = new Schema(
     rounds: { type: [TournamentRoundSchema], default: [] },
     standings: { type: [TournamentGroupStandingSchema], default: [] },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const NoShowPolicySchema = new Schema(
@@ -104,7 +104,7 @@ const NoShowPolicySchema = new Schema(
     type: { type: String, required: true, enum: ["auto-forfeit", "admin-decides"] },
     timeoutMs: { type: Number },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const TournamentSettingsSchema = new Schema(
@@ -134,7 +134,7 @@ const TournamentSettingsSchema = new Schema(
     advancePerGroup: { type: Number },
     inviteCode: { type: String },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const TournamentParticipantSchema = new Schema(
@@ -149,7 +149,7 @@ const TournamentParticipantSchema = new Schema(
       default: "registered",
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const TournamentSchema = new Schema<ITournament>(
@@ -212,13 +212,12 @@ const TournamentSchema = new Schema<ITournament>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 TournamentSchema.index({ status: 1, "settings.visibility": 1, createdAt: -1 });
 TournamentSchema.index({ "participants.playerId": 1 });
 
-const Tournament =
-  models.Tournament || model<ITournament>("Tournament", TournamentSchema);
+const Tournament = models.Tournament || model<ITournament>("Tournament", TournamentSchema);
 
 export default Tournament;

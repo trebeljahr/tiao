@@ -6,21 +6,12 @@ import type { TimeControl } from "@shared";
 import { TIME_CONTROL_PRESETS } from "@shared";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog } from "@/components/ui/dialog";
 import { Navbar } from "@/components/Navbar";
-import {
-  getOpponentLabel,
-  isSummaryYourTurn,
-} from "@/components/game/GameShared";
+import { getOpponentLabel, isSummaryYourTurn } from "@/components/game/GameShared";
 import { GameConfigPanel } from "@/components/game/GameConfigPanel";
 import { GameConfigBadge } from "@/components/game/GameConfigBadge";
 import { useGamesIndex } from "@/lib/hooks/useGamesIndex";
@@ -40,8 +31,10 @@ export function LobbyPage() {
   const tGame = useTranslations("game");
   const { multiplayerGames, refreshMultiplayerGames } = useGamesIndex(auth);
 
-  const { socialOverview, refreshSocialOverview, handleDeclineGameInvitation } =
-    useSocialData(auth, true);
+  const { socialOverview, refreshSocialOverview, handleDeclineGameInvitation } = useSocialData(
+    auth,
+    true,
+  );
 
   // Track the last seen history length per game to avoid spurious "your move" toasts
   // (e.g. when leaving a game, the departure triggers a game-update but no new move).
@@ -66,8 +59,7 @@ export function LobbyPage() {
         newMoveOccurred
       ) {
         const opponentSeat = summary.yourSeat === "white" ? "black" : "white";
-        const opponentName =
-          summary.seats[opponentSeat]?.player.displayName || "your opponent";
+        const opponentName = summary.seats[opponentSeat]?.player.displayName || "your opponent";
         toast.info(t("yourMoveToast", { gameId: summary.gameId }), {
           id: `your-turn-${summary.gameId}`,
           description: t("yourTurnDesc", { opponent: opponentName }),
@@ -87,8 +79,7 @@ export function LobbyPage() {
         !inGame
       ) {
         const opponentSeat = summary.yourSeat === "white" ? "black" : "white";
-        const opponentName =
-          summary.seats[opponentSeat]?.player.displayName || "your opponent";
+        const opponentName = summary.seats[opponentSeat]?.player.displayName || "your opponent";
         toast(t("rematchToast", { opponent: opponentName }), {
           id: `rematch-${summary.gameId}`,
           description: t("game", { gameId: summary.gameId }),
@@ -117,19 +108,15 @@ export function LobbyPage() {
   const rematchGames = useMemo(() => {
     return finishedGames.filter(
       (g) =>
-        g.rematch?.requestedBy.length &&
-        g.yourSeat &&
-        !g.rematch.requestedBy.includes(g.yourSeat),
+        g.rematch?.requestedBy.length && g.yourSeat && !g.rematch.requestedBy.includes(g.yourSeat),
     );
   }, [finishedGames]);
   const sortedActiveGames = useMemo(() => {
     const combined = [...activeGames, ...rematchGames];
     return combined.sort((a, b) => {
       // Rematch requests at the top
-      const aRematch =
-        a.status === "finished" && !!a.rematch?.requestedBy.length;
-      const bRematch =
-        b.status === "finished" && !!b.rematch?.requestedBy.length;
+      const aRematch = a.status === "finished" && !!a.rematch?.requestedBy.length;
+      const bRematch = b.status === "finished" && !!b.rematch?.requestedBy.length;
       if (aRematch && !bRematch) return -1;
       if (!aRematch && bRematch) return 1;
       const aYourTurn = isSummaryYourTurn(a);
@@ -191,9 +178,7 @@ export function LobbyPage() {
 
     setMultiplayerBusy(true);
     try {
-      const response = await joinMultiplayerGame(
-        joinGameId.trim().toUpperCase(),
-      );
+      const response = await joinMultiplayerGame(joinGameId.trim().toUpperCase());
       router.push(`/game/${response.snapshot.gameId}`);
     } catch (error) {
       toastError(error);
@@ -261,12 +246,8 @@ export function LobbyPage() {
             <Card className={cn("overflow-hidden shadow-xl xl:flex-1", paperCard)}>
               <div className="h-2 bg-[linear-gradient(90deg,#4b3726,#b98d49)]" />
               <CardHeader className="pb-6">
-                <Badge className="w-fit bg-[#f4e8d2] text-[#6c543c] mb-2">
-                  {t("local")}
-                </Badge>
-                <CardTitle className="text-3xl text-[#2b1e14]">
-                  {t("overTheBoard")}
-                </CardTitle>
+                <Badge className="w-fit bg-[#f4e8d2] text-[#6c543c] mb-2">{t("local")}</Badge>
+                <CardTitle className="text-3xl text-[#2b1e14]">{t("overTheBoard")}</CardTitle>
                 <CardDescription className="text-sm text-[#6e5b48] mt-1 md:hidden xl:block">
                   {t("overTheBoardDesc")}
                 </CardDescription>
@@ -308,9 +289,7 @@ export function LobbyPage() {
             <Card className={cn("overflow-hidden shadow-xl xl:flex-1", paperCard)}>
               <div className="h-2 bg-[linear-gradient(90deg,#6e4f29,#d2a661)]" />
               <CardHeader className="pb-6">
-                <Badge className="w-fit bg-[#f5ead8] text-[#6e5437] mb-2">
-                  {t("online")}
-                </Badge>
+                <Badge className="w-fit bg-[#f5ead8] text-[#6e5437] mb-2">{t("online")}</Badge>
                 <CardTitle className="text-3xl text-[#2b1e14]">
                   {t("playSomeoneSpecific")}
                 </CardTitle>
@@ -340,9 +319,7 @@ export function LobbyPage() {
                   <Input
                     value={joinGameId}
                     onChange={(e) =>
-                      setJoinGameId(
-                        e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""),
-                      )
+                      setJoinGameId(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))
                     }
                     placeholder={tc("gameId")}
                     maxLength={6}
@@ -371,12 +348,8 @@ export function LobbyPage() {
             <Card className={cn("overflow-hidden shadow-xl", paperCard)}>
               <div className="h-2 bg-[linear-gradient(90deg,#6e4f29,#d2a661)]" />
               <CardHeader className="pb-6">
-                <Badge className="w-fit bg-[#f5ead8] text-[#6e5437] mb-2">
-                  {t("online")}
-                </Badge>
-                <CardTitle className="text-3xl text-[#2b1e14]">
-                  {t("matchmaking")}
-                </CardTitle>
+                <Badge className="w-fit bg-[#f5ead8] text-[#6e5437] mb-2">{t("online")}</Badge>
+                <CardTitle className="text-3xl text-[#2b1e14]">{t("matchmaking")}</CardTitle>
                 <CardDescription className="text-sm text-[#6e5b48] mt-1 xl:hidden">
                   {t("matchmakingDesc")}
                 </CardDescription>
@@ -392,15 +365,17 @@ export function LobbyPage() {
 
                 <div className="space-y-2">
                   <p className="text-[0.68rem] text-[#8d7760]">
-                    {t("timeFormat", { format: "" })}<span className="font-semibold">{t("timeFormatBold")}</span>
+                    {t("timeFormat", { format: "" })}
+                    <span className="font-semibold">{t("timeFormatBold")}</span>
                   </p>
                   <div className="grid grid-cols-3 gap-2">
                     {TIME_CONTROL_PRESETS.map((preset) => {
                       const minutes = Math.floor(preset.initialMs / 60_000);
                       const increment = Math.floor(preset.incrementMs / 1_000);
-                      const tooltip = increment > 0
-                        ? t("timeControlTooltip", { minutes, increment })
-                        : t("timeControlTooltipNoIncrement", { minutes });
+                      const tooltip =
+                        increment > 0
+                          ? t("timeControlTooltip", { minutes, increment })
+                          : t("timeControlTooltipNoIncrement", { minutes });
 
                       return (
                         <Button
@@ -409,14 +384,20 @@ export function LobbyPage() {
                           title={tooltip}
                           className="flex flex-col items-center gap-0.5 h-auto py-2.5 border-[#dcc7a2] hover:border-[#b98d49] hover:bg-[#fff8ee] transition-all"
                           onClick={() =>
-                            router.push(`/matchmaking?initial=${preset.initialMs}&increment=${preset.incrementMs}`)
+                            router.push(
+                              `/matchmaking?initial=${preset.initialMs}&increment=${preset.incrementMs}`,
+                            )
                           }
                         >
-                          <span className="text-sm font-bold text-[#2b1e14]">
-                            {preset.label}
-                          </span>
+                          <span className="text-sm font-bold text-[#2b1e14]">{preset.label}</span>
                           <span className="text-[0.6rem] uppercase tracking-wider text-[#8d7760]">
-                            {tConfig(preset.category.toLowerCase() as "bullet" | "blitz" | "rapid" | "classical")}
+                            {tConfig(
+                              preset.category.toLowerCase() as
+                                | "bullet"
+                                | "blitz"
+                                | "rapid"
+                                | "classical",
+                            )}
                           </span>
                         </Button>
                       );
@@ -437,9 +418,7 @@ export function LobbyPage() {
             >
               <Card className={cn("overflow-hidden shadow-lg flex-1", paperCard)}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-black/5 bg-black/2 py-4">
-                  <CardTitle className="text-2xl text-[#2b1e14]">
-                    {t("activeGames")}
-                  </CardTitle>
+                  <CardTitle className="text-2xl text-[#2b1e14]">{t("activeGames")}</CardTitle>
                   <Button
                     variant="secondary"
                     size="sm"
@@ -452,13 +431,10 @@ export function LobbyPage() {
                 <CardContent className="space-y-3 pt-6">
                   {sortedActiveGames.slice(0, 3).map((game) => {
                     const isYourTurn = isSummaryYourTurn(game);
-                    const opponentSeat =
-                      game.yourSeat === "white" ? "black" : "white";
-                    const opponentOnline =
-                      game.seats[opponentSeat]?.online ?? false;
+                    const opponentSeat = game.yourSeat === "white" ? "black" : "white";
+                    const opponentOnline = game.seats[opponentSeat]?.online ?? false;
                     const hasRematchRequest =
-                      game.status === "finished" &&
-                      !!game.rematch?.requestedBy.length;
+                      game.status === "finished" && !!game.rematch?.requestedBy.length;
                     return (
                       <div
                         key={game.gameId}
@@ -499,7 +475,8 @@ export function LobbyPage() {
                                 />
                               )}
                               <span className="ml-2 text-xs text-[#8d7760]">
-                                {game.score.white}-{game.score.black} · {tc("moves", { count: game.historyLength })}
+                                {game.score.white}-{game.score.black} ·{" "}
+                                {tc("moves", { count: game.historyLength })}
                               </span>
                               <GameConfigBadge
                                 boardSize={game.boardSize}
@@ -568,60 +545,56 @@ export function LobbyPage() {
             </motion.div>
 
             {auth?.player?.kind === "account" && (
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col"
-            >
-              <Card className={cn("overflow-hidden shadow-lg flex-1", paperCard)}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-black/5 bg-black/2 py-4">
-                  <CardTitle className="text-2xl text-[#2b1e14]">
-                    {t("invitations")}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 pt-6">
-                  {socialOverview.incomingInvitations.slice(0, 3).map((inv) => (
-                    <div
-                      key={inv.id}
-                      className="flex items-center justify-between rounded-2xl border border-[#dcc7a2] bg-[#fffdf7] p-4 shadow-sm hover:border-[#b98d49] transition-colors group"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="flex flex-col">
-                          <p className="font-semibold text-lg text-[#2b1e14]">
-                            {inv.sender.displayName}
-                          </p>
-                          <p className="text-sm text-[#7a6656]">
-                            Game {inv.gameId}
-                          </p>
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col"
+              >
+                <Card className={cn("overflow-hidden shadow-lg flex-1", paperCard)}>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-black/5 bg-black/2 py-4">
+                    <CardTitle className="text-2xl text-[#2b1e14]">{t("invitations")}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3 pt-6">
+                    {socialOverview.incomingInvitations.slice(0, 3).map((inv) => (
+                      <div
+                        key={inv.id}
+                        className="flex items-center justify-between rounded-2xl border border-[#dcc7a2] bg-[#fffdf7] p-4 shadow-sm hover:border-[#b98d49] transition-colors group"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="flex flex-col">
+                            <p className="font-semibold text-lg text-[#2b1e14]">
+                              {inv.sender.displayName}
+                            </p>
+                            <p className="text-sm text-[#7a6656]">Game {inv.gameId}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-[#dcc7a2] hover:bg-[#faefd8]"
+                            onClick={() => handleDeclineGameInvitation(inv.id)}
+                          >
+                            {tc("decline")}
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="shadow-sm group-hover:scale-105 transition-transform"
+                            onClick={() => router.push(`/game/${inv.gameId}`)}
+                          >
+                            {tc("accept")}
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-[#dcc7a2] hover:bg-[#faefd8]"
-                          onClick={() => handleDeclineGameInvitation(inv.id)}
-                        >
-                          {tc("decline")}
-                        </Button>
-                        <Button
-                          size="sm"
-                          className="shadow-sm group-hover:scale-105 transition-transform"
-                          onClick={() => router.push(`/game/${inv.gameId}`)}
-                        >
-                          {tc("accept")}
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                  {socialOverview.incomingInvitations.length === 0 && (
-                    <p className="text-center text-sm text-[#6e5b48] py-8 bg-white/20 rounded-2xl border border-dashed border-[#dcc7a2]">
-                      {t("noInvitations")}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
+                    ))}
+                    {socialOverview.incomingInvitations.length === 0 && (
+                      <p className="text-center text-sm text-[#6e5b48] py-8 bg-white/20 rounded-2xl border border-dashed border-[#dcc7a2]">
+                        {t("noInvitations")}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
             )}
           </section>
         )}
@@ -635,12 +608,8 @@ export function LobbyPage() {
           >
             <Card className={cn("overflow-hidden shadow-lg", paperCard)}>
               <CardHeader className="pb-3">
-                <Badge className="w-fit bg-[#e8e0f4] text-[#5a4570] mb-2">
-                  {t("spectate")}
-                </Badge>
-                <CardTitle className="text-2xl text-[#2b1e14]">
-                  {t("watchGame")}
-                </CardTitle>
+                <Badge className="w-fit bg-[#e8e0f4] text-[#5a4570] mb-2">{t("spectate")}</Badge>
+                <CardTitle className="text-2xl text-[#2b1e14]">{t("watchGame")}</CardTitle>
                 <CardDescription className="text-sm text-[#6e5b48] mt-1">
                   {t("watchGameDesc")}
                 </CardDescription>
@@ -654,10 +623,7 @@ export function LobbyPage() {
                     ) as HTMLInputElement;
                     const id = input?.value.trim().toUpperCase();
                     if (!id) return;
-                    const allGames = [
-                      ...multiplayerGames.active,
-                      ...multiplayerGames.finished,
-                    ];
+                    const allGames = [...multiplayerGames.active, ...multiplayerGames.finished];
                     if (allGames.some((g) => g.gameId === id)) {
                       toast.error(t("ownGameError"));
                       return;
@@ -672,9 +638,7 @@ export function LobbyPage() {
                     maxLength={6}
                     className="h-12 font-mono bg-white/60 border-[#dcc7a2] focus:ring-[#b98d49]"
                     onChange={(e) => {
-                      e.target.value = e.target.value
-                        .toUpperCase()
-                        .replace(/[^A-Z0-9]/g, "");
+                      e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
                     }}
                   />
                   <Button
@@ -682,7 +646,21 @@ export function LobbyPage() {
                     variant="outline"
                     className="h-12 px-6 border-[#dcc7a2] hover:bg-[#f5f0fc]"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="mr-1.5"
+                    >
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
                     {t("watch")}
                   </Button>
                 </form>
@@ -711,8 +689,8 @@ export function LobbyPage() {
             style={{ animation: "heartbeat 2s ease-in-out infinite" }}
           >
             <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
-          </svg>
-          {" "}{t("footerBy")}{" "}
+          </svg>{" "}
+          {t("footerBy")}{" "}
           <button
             type="button"
             className="font-medium text-[#8b7356] underline decoration-[#d4c4a8] underline-offset-2 hover:text-[#5d4732]"
@@ -752,7 +730,12 @@ export function LobbyPage() {
         description={t("guestLimitDesc", { limit: GUEST_GAME_LIMIT })}
       >
         <div className="grid gap-2">
-          <Button onClick={() => { setGuestLimitDialogOpen(false); onOpenAuth("signup"); }}>
+          <Button
+            onClick={() => {
+              setGuestLimitDialogOpen(false);
+              onOpenAuth("signup");
+            }}
+          >
             {tc("signUp")}
           </Button>
           <Button variant="ghost" onClick={() => setGuestLimitDialogOpen(false)}>

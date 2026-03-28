@@ -118,9 +118,7 @@ export function LocalGamePage() {
             <Card className={cn(paperCard, "w-full max-w-md")}>
               <CardHeader>
                 <GamePanelBrand />
-                <CardTitle className="text-[#2b1e14]">
-                  {t("gameSetup")}
-                </CardTitle>
+                <CardTitle className="text-[#2b1e14]">{t("gameSetup")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <GameConfigPanel
@@ -193,10 +191,21 @@ export function LocalGamePage() {
         description={isDraw ? t("drawNoMoves") : t("wonDesc")}
       >
         <div className="grid gap-2">
-          <Button onClick={() => { setGameOverDialogOpen(false); handleNewGame(); }}>
+          <Button
+            onClick={() => {
+              setGameOverDialogOpen(false);
+              handleNewGame();
+            }}
+          >
             {t("newGame")}
           </Button>
-          <Button variant="secondary" onClick={() => { setGameOverDialogOpen(false); handleStartGame(); }}>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setGameOverDialogOpen(false);
+              handleStartGame();
+            }}
+          >
             {t("rematchSameSettings")}
           </Button>
           <Button variant="ghost" onClick={() => router.push("/")}>

@@ -9,10 +9,7 @@ type WinConfettiOptions = {
   viewerColor?: PlayerColor | null;
 };
 
-export function useWinConfetti(
-  winner: PlayerColor | null,
-  options: WinConfettiOptions = {},
-) {
+export function useWinConfetti(winner: PlayerColor | null, options: WinConfettiOptions = {}) {
   const { viewerColor = null } = options;
   const lastWinnerRef = useRef<PlayerColor | null>(null);
   const theme = useBoardTheme();

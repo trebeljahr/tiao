@@ -219,9 +219,7 @@ describe("useSocialData", () => {
 
     expect(mockSearchPlayers).toHaveBeenCalledWith("Found");
     expect(result.current.friendSearchResults).toHaveLength(1);
-    expect(result.current.friendSearchResults[0].player.displayName).toBe(
-      "Found User",
-    );
+    expect(result.current.friendSearchResults[0].player.displayName).toBe("Found User");
   });
 
   it("resets social state when auth becomes null", async () => {
@@ -232,10 +230,9 @@ describe("useSocialData", () => {
       },
     });
 
-    const { result, rerender } = renderHook(
-      ({ auth }) => useSocialData(auth, false),
-      { initialProps: { auth: mockAuth as AuthResponse | null } },
-    );
+    const { result, rerender } = renderHook(({ auth }) => useSocialData(auth, false), {
+      initialProps: { auth: mockAuth as AuthResponse | null },
+    });
 
     await waitFor(() => {
       expect(result.current.socialLoaded).toBe(true);

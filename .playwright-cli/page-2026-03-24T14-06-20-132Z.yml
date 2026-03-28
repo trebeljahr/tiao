@@ -1,54 +1,54 @@
 - generic [ref=e3]:
-  - main [ref=e8]:
-    - generic [ref=e9]:
-      - button "Open navigation" [ref=e10] [cursor=pointer]
-      - generic:
-        - complementary:
-          - generic:
-            - button "Go to lobby":
-              - generic: 跳
-              - generic: Tiao
-          - generic:
-            - button "Lobby" [disabled]
-            - button "Over the Board"
-            - button "Multiplayer"
-            - button "Against computer"
-          - generic:
+    - main [ref=e8]:
+        - generic [ref=e9]:
+            - button "Open navigation" [ref=e10] [cursor=pointer]
             - generic:
-              - generic:
-                - paragraph: Anonymous
-                - paragraph: Sign in to save your profile
-            - generic:
-              - button "Sign in"
-              - button "Sign up"
-      - main [ref=e15]:
-        - generic [ref=e16]:
-          - generic [ref=e17]:
-            - generic [ref=e19]:
-              - generic [ref=e21]:
-                - generic [ref=e22]: Local
-                - heading "Over the board" [level=3] [ref=e23]
-                - paragraph [ref=e24]: Start a shared-board match with a clean, focused table view.
-              - button "Start local game" [ref=e26] [cursor=pointer]
-            - generic [ref=e28]:
-              - generic [ref=e30]:
-                - generic [ref=e31]: Against computer
-                - heading "Solo board" [level=3] [ref=e32]
-                - paragraph [ref=e33]: Play white, take the first move, and let the computer answer.
-              - button "Play against AI" [ref=e35] [cursor=pointer]
-          - generic [ref=e37]:
-            - generic [ref=e39]:
-              - generic [ref=e40]: Multiplayer
-              - heading "Invite room" [level=3] [ref=e41]
-              - paragraph [ref=e42]: Create a room, share the code, or join one in progress.
-            - generic [ref=e43]:
-              - generic [ref=e44]:
-                - paragraph [ref=e45]: Start a fresh room
-                - button "Create room" [ref=e46] [cursor=pointer]
-              - generic [ref=e47]: Join existing room
-              - generic [ref=e50]:
-                - text: Room code
-                - textbox "Game ID" [ref=e51]
-                - button "Join room" [ref=e52] [cursor=pointer]
-              - paragraph [ref=e54]: Guest players can keep one unfinished multiplayer game at a time. Sign in to juggle multiple tables and unlock match history.
-  - region "Notifications alt+T"
+                - complementary:
+                    - generic:
+                        - button "Go to lobby":
+                            - generic: 跳
+                            - generic: Tiao
+                    - generic:
+                        - button "Lobby" [disabled]
+                        - button "Over the Board"
+                        - button "Multiplayer"
+                        - button "Against computer"
+                    - generic:
+                        - generic:
+                            - generic:
+                                - paragraph: Anonymous
+                                - paragraph: Sign in to save your profile
+                        - generic:
+                            - button "Sign in"
+                            - button "Sign up"
+            - main [ref=e15]:
+                - generic [ref=e16]:
+                    - generic [ref=e17]:
+                        - generic [ref=e19]:
+                            - generic [ref=e21]:
+                                - generic [ref=e22]: Local
+                                - heading "Over the board" [level=3] [ref=e23]
+                                - paragraph [ref=e24]: Start a shared-board match with a clean, focused table view.
+                            - button "Start local game" [ref=e26] [cursor=pointer]
+                        - generic [ref=e28]:
+                            - generic [ref=e30]:
+                                - generic [ref=e31]: Against computer
+                                - heading "Solo board" [level=3] [ref=e32]
+                                - paragraph [ref=e33]: Play white, take the first move, and let the computer answer.
+                            - button "Play against AI" [ref=e35] [cursor=pointer]
+                    - generic [ref=e37]:
+                        - generic [ref=e39]:
+                            - generic [ref=e40]: Multiplayer
+                            - heading "Invite room" [level=3] [ref=e41]
+                            - paragraph [ref=e42]: Create a room, share the code, or join one in progress.
+                        - generic [ref=e43]:
+                            - generic [ref=e44]:
+                                - paragraph [ref=e45]: Start a fresh room
+                                - button "Create room" [ref=e46] [cursor=pointer]
+                            - generic [ref=e47]: Join existing room
+                            - generic [ref=e50]:
+                                - text: Room code
+                                - textbox "Game ID" [ref=e51]
+                                - button "Join room" [ref=e52] [cursor=pointer]
+                            - paragraph [ref=e54]: Guest players can keep one unfinished multiplayer game at a time. Sign in to juggle multiple tables and unlock match history.
+    - region "Notifications alt+T"

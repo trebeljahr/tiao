@@ -30,9 +30,7 @@ describe("useWinConfetti", () => {
   });
 
   it("fires victory confetti when winner matches viewerColor", () => {
-    renderHook(() =>
-      useWinConfetti("white", { viewerColor: "white" }),
-    );
+    renderHook(() => useWinConfetti("white", { viewerColor: "white" }));
 
     expect(mockConfetti).toHaveBeenCalled();
     // Victory confetti uses particleCount: 120
@@ -42,9 +40,7 @@ describe("useWinConfetti", () => {
   });
 
   it("fires defeat particles when winner does NOT match viewerColor", () => {
-    renderHook(() =>
-      useWinConfetti("black", { viewerColor: "white" }),
-    );
+    renderHook(() => useWinConfetti("black", { viewerColor: "white" }));
 
     expect(mockConfetti).toHaveBeenCalled();
     // Defeat particles use particleCount: 2
@@ -55,9 +51,7 @@ describe("useWinConfetti", () => {
   });
 
   it("fires victory confetti when viewerColor is null (local mode)", () => {
-    renderHook(() =>
-      useWinConfetti("white", { viewerColor: null }),
-    );
+    renderHook(() => useWinConfetti("white", { viewerColor: null }));
 
     expect(mockConfetti).toHaveBeenCalled();
     const call = mockConfetti.mock.calls[0][0];
@@ -73,9 +67,7 @@ describe("useWinConfetti", () => {
   });
 
   it("does NOT fire confetti when winner is null", () => {
-    renderHook(() =>
-      useWinConfetti(null, { viewerColor: "white" }),
-    );
+    renderHook(() => useWinConfetti(null, { viewerColor: "white" }));
 
     expect(mockConfetti).not.toHaveBeenCalled();
   });
@@ -84,7 +76,12 @@ describe("useWinConfetti", () => {
     const { rerender } = renderHook(
       ({ winner, viewerColor }: { winner: PlayerColor | null; viewerColor: PlayerColor | null }) =>
         useWinConfetti(winner, { viewerColor }),
-      { initialProps: { winner: "white" as PlayerColor | null, viewerColor: "white" as PlayerColor | null } },
+      {
+        initialProps: {
+          winner: "white" as PlayerColor | null,
+          viewerColor: "white" as PlayerColor | null,
+        },
+      },
     );
 
     const callCountAfterFirst = mockConfetti.mock.calls.length;
@@ -98,8 +95,7 @@ describe("useWinConfetti", () => {
 
   it("resets and can re-trigger after winner goes null then back", () => {
     const { rerender } = renderHook(
-      ({ winner }: { winner: PlayerColor | null }) =>
-        useWinConfetti(winner),
+      ({ winner }: { winner: PlayerColor | null }) => useWinConfetti(winner),
       { initialProps: { winner: "white" as PlayerColor | null } },
     );
 
@@ -116,20 +112,38 @@ describe("useWinConfetti", () => {
   });
 
   it("uses correct colors for white winner victory confetti", () => {
-    renderHook(() =>
-      useWinConfetti("white", { viewerColor: "white" }),
-    );
+    renderHook(() => useWinConfetti("white", { viewerColor: "white" }));
 
     const call = mockConfetti.mock.calls[0][0];
-    expect(call.colors).toEqual(["#ff6b6b", "#feca57", "#48dbfb", "#ff9ff3", "#54a0ff", "#5f27cd", "#01a3a4", "#f368e0", "#ff9f43", "#00d2d3"]);
+    expect(call.colors).toEqual([
+      "#ff6b6b",
+      "#feca57",
+      "#48dbfb",
+      "#ff9ff3",
+      "#54a0ff",
+      "#5f27cd",
+      "#01a3a4",
+      "#f368e0",
+      "#ff9f43",
+      "#00d2d3",
+    ]);
   });
 
   it("uses correct colors for black winner victory confetti", () => {
-    renderHook(() =>
-      useWinConfetti("black", { viewerColor: "black" }),
-    );
+    renderHook(() => useWinConfetti("black", { viewerColor: "black" }));
 
     const call = mockConfetti.mock.calls[0][0];
-    expect(call.colors).toEqual(["#ff6b6b", "#feca57", "#48dbfb", "#ff9ff3", "#54a0ff", "#5f27cd", "#01a3a4", "#f368e0", "#ff9f43", "#00d2d3"]);
+    expect(call.colors).toEqual([
+      "#ff6b6b",
+      "#feca57",
+      "#48dbfb",
+      "#ff9ff3",
+      "#54a0ff",
+      "#5f27cd",
+      "#01a3a4",
+      "#f368e0",
+      "#ff9f43",
+      "#00d2d3",
+    ]);
   });
 });

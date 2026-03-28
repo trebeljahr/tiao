@@ -22,7 +22,7 @@ async function signUpViaApi(page: import("@playwright/test").Page) {
       });
       return { status: res.status, body: await res.text() };
     },
-    { name: username, mail: email }
+    { name: username, mail: email },
   );
 
   expect(result.status).toBe(200);
@@ -30,9 +30,7 @@ async function signUpViaApi(page: import("@playwright/test").Page) {
 }
 
 test.describe("Profile picture upload", () => {
-  test("rejects files exceeding 512KB size limit with 413", async ({
-    page,
-  }) => {
+  test("rejects files exceeding 512KB size limit with 413", async ({ page }) => {
     await signUpViaApi(page);
 
     const response = await page.evaluate(async () => {
@@ -40,10 +38,7 @@ test.describe("Profile picture upload", () => {
         type: "image/jpeg",
       });
       const formData = new FormData();
-      formData.set(
-        "profilePicture",
-        new File([largeBlob], "huge.jpg", { type: "image/jpeg" })
-      );
+      formData.set("profilePicture", new File([largeBlob], "huge.jpg", { type: "image/jpeg" }));
 
       const res = await fetch("/api/player/profile-picture", {
         method: "POST",
@@ -62,20 +57,14 @@ test.describe("Profile picture upload", () => {
     expect(response.body.message).toContain("512KB");
   });
 
-  test("rejects SVG uploads with 415 and descriptive message", async ({
-    page,
-  }) => {
+  test("rejects SVG uploads with 415 and descriptive message", async ({ page }) => {
     await signUpViaApi(page);
 
     const response = await page.evaluate(async () => {
-      const svgContent =
-        '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>';
+      const svgContent = '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>';
       const blob = new Blob([svgContent], { type: "image/svg+xml" });
       const formData = new FormData();
-      formData.set(
-        "profilePicture",
-        new File([blob], "evil.svg", { type: "image/svg+xml" })
-      );
+      formData.set("profilePicture", new File([blob], "evil.svg", { type: "image/svg+xml" }));
 
       const res = await fetch("/api/player/profile-picture", {
         method: "POST",
@@ -102,10 +91,7 @@ test.describe("Profile picture upload", () => {
         type: "application/pdf",
       });
       const formData = new FormData();
-      formData.set(
-        "profilePicture",
-        new File([blob], "doc.pdf", { type: "application/pdf" })
-      );
+      formData.set("profilePicture", new File([blob], "doc.pdf", { type: "application/pdf" }));
 
       const res = await fetch("/api/player/profile-picture", {
         method: "POST",
@@ -133,10 +119,7 @@ test.describe("Profile picture upload", () => {
     const response = await page.evaluate(async () => {
       const blob = new Blob([new Uint8Array(100)], { type: "image/jpeg" });
       const formData = new FormData();
-      formData.set(
-        "profilePicture",
-        new File([blob], "test.jpg", { type: "image/jpeg" })
-      );
+      formData.set("profilePicture", new File([blob], "test.jpg", { type: "image/jpeg" }));
 
       const res = await fetch("/api/player/profile-picture", {
         method: "POST",
@@ -163,10 +146,7 @@ test.describe("Profile picture upload", () => {
       const blob = await canvas.convertToBlob({ type: "image/jpeg" });
 
       const formData = new FormData();
-      formData.set(
-        "profilePicture",
-        new File([blob], "tiny.jpg", { type: "image/jpeg" })
-      );
+      formData.set("profilePicture", new File([blob], "tiny.jpg", { type: "image/jpeg" }));
 
       const res = await fetch("/api/player/profile-picture", {
         method: "POST",

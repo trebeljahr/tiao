@@ -42,13 +42,9 @@ export function useGameClock(
 
   return {
     whiteTime:
-      currentTurn === "white" && isActive
-        ? Math.max(0, clock.white - elapsed)
-        : clock.white,
+      currentTurn === "white" && isActive ? Math.max(0, clock.white - elapsed) : clock.white,
     blackTime:
-      currentTurn === "black" && isActive
-        ? Math.max(0, clock.black - elapsed)
-        : clock.black,
+      currentTurn === "black" && isActive ? Math.max(0, clock.black - elapsed) : clock.black,
   };
 }
 
@@ -78,13 +74,7 @@ export function useFirstMoveCountdown(
 }
 
 /** Inline clock badge for use in the "Your move" header pill. */
-export function InlineClockBadge({
-  timeMs,
-  className,
-}: {
-  timeMs: number;
-  className?: string;
-}) {
+export function InlineClockBadge({ timeMs, className }: { timeMs: number; className?: string }) {
   const lowTime = timeMs < 30_000 && timeMs > 0;
   const criticalTime = timeMs < 10_000 && timeMs > 0;
 

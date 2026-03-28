@@ -40,7 +40,7 @@ const PlayerIdentitySchema = new Schema<PlayerIdentity>(
   },
   {
     _id: false,
-  }
+  },
 );
 
 export interface IGameRoom extends Document {
@@ -104,7 +104,7 @@ const GameRoomSchema = new Schema<IGameRoom>(
             default: [],
           },
         },
-        { _id: false }
+        { _id: false },
       ),
       default: null,
     },
@@ -121,7 +121,7 @@ const GameRoomSchema = new Schema<IGameRoom>(
             default: { white: 0, black: 0 },
           },
         },
-        { _id: false }
+        { _id: false },
       ),
       default: null,
     },
@@ -141,7 +141,7 @@ const GameRoomSchema = new Schema<IGameRoom>(
           initialMs: { type: Number, required: true },
           incrementMs: { type: Number, required: true },
         },
-        { _id: false }
+        { _id: false },
       ),
       default: null,
     },
@@ -151,7 +151,7 @@ const GameRoomSchema = new Schema<IGameRoom>(
           white: { type: Number, required: true },
           black: { type: Number, required: true },
         },
-        { _id: false }
+        { _id: false },
       ),
       default: null,
     },
@@ -169,7 +169,7 @@ const GameRoomSchema = new Schema<IGameRoom>(
           white: { type: Number, required: true },
           black: { type: Number, required: true },
         },
-        { _id: false }
+        { _id: false },
       ),
       default: null,
     },
@@ -179,7 +179,7 @@ const GameRoomSchema = new Schema<IGameRoom>(
           white: { type: Number, required: true },
           black: { type: Number, required: true },
         },
-        { _id: false }
+        { _id: false },
       ),
       default: null,
     },
@@ -202,7 +202,7 @@ const GameRoomSchema = new Schema<IGameRoom>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 GameRoomSchema.index({ "players.playerId": 1, status: 1, updatedAt: -1 });

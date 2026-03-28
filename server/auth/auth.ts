@@ -86,8 +86,11 @@ export const auth = betterAuth({
     // In dev, allow localhost and LAN IPs
     if (process.env.NODE_ENV !== "production") {
       const origin = request?.headers.get("origin");
-      if (origin && (/localhost/.test(origin) ||
-          /^https?:\/\/(127\.|192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(origin))) {
+      if (
+        origin &&
+        (/localhost/.test(origin) ||
+          /^https?:\/\/(127\.|192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(origin))
+      ) {
         origins.push(origin);
       }
     }
@@ -175,8 +178,7 @@ export const auth = betterAuth({
         // Migrate guest's in-progress games to the new account
         const guestId = anonymousUser.user.id;
         const newId = newUser.user.id;
-        const newDisplayName =
-          (newUser.user as any).displayName || newUser.user.name;
+        const newDisplayName = (newUser.user as any).displayName || newUser.user.name;
 
         await GameRoom.updateMany(
           {

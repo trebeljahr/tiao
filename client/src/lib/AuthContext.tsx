@@ -106,8 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         // No session — create anonymous guest
-        const { data: anonData, error: anonError } =
-          await authClient.signIn.anonymous();
+        const { data: anonData, error: anonError } = await authClient.signIn.anonymous();
         if (cancelled) return;
 
         if (anonError || !anonData) {
@@ -259,9 +258,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const onLogout = useCallback(async () => {
     setAuth(null);
 
-    const isInGame =
-      typeof window !== "undefined" &&
-      window.location.pathname.startsWith("/game/");
+    const isInGame = typeof window !== "undefined" && window.location.pathname.startsWith("/game/");
 
     try {
       await authClient.signOut();

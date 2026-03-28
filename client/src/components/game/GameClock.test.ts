@@ -36,18 +36,14 @@ describe("useGameClock", () => {
       lastMoveAt: new Date().toISOString(),
     };
 
-    const { result } = renderHook(() =>
-      useGameClock(clock, "white", "waiting"),
-    );
+    const { result } = renderHook(() => useGameClock(clock, "white", "waiting"));
 
     expect(result.current.whiteTime).toBe(60_000);
     expect(result.current.blackTime).toBe(60_000);
   });
 
   it("returns zeros when clock is null", () => {
-    const { result } = renderHook(() =>
-      useGameClock(null, "white", "active"),
-    );
+    const { result } = renderHook(() => useGameClock(null, "white", "active"));
 
     expect(result.current.whiteTime).toBe(0);
     expect(result.current.blackTime).toBe(0);
@@ -63,9 +59,7 @@ describe("useGameClock", () => {
       lastMoveAt: new Date(now - 5000).toISOString(), // 5s ago
     };
 
-    const { result } = renderHook(() =>
-      useGameClock(clock, "white", "active"),
-    );
+    const { result } = renderHook(() => useGameClock(clock, "white", "active"));
 
     // White should have ~55s left (60s - 5s elapsed)
     expect(result.current.whiteTime).toBeLessThanOrEqual(55_000);
@@ -86,9 +80,7 @@ describe("useGameClock", () => {
       lastMoveAt: new Date(now - 5000).toISOString(),
     };
 
-    const { result } = renderHook(() =>
-      useGameClock(clock, "black", "active"),
-    );
+    const { result } = renderHook(() => useGameClock(clock, "black", "active"));
 
     // White should be unchanged (it's black's turn)
     expect(result.current.whiteTime).toBe(60_000);
@@ -107,9 +99,7 @@ describe("useGameClock", () => {
       lastMoveAt: new Date().toISOString(),
     };
 
-    const { result } = renderHook(() =>
-      useGameClock(clock, "white", "active"),
-    );
+    const { result } = renderHook(() => useGameClock(clock, "white", "active"));
 
     // Should be very close to 60s (only ms have passed)
     expect(result.current.whiteTime).toBeGreaterThan(59_900);
@@ -177,18 +167,14 @@ describe("useFirstMoveCountdown", () => {
   });
 
   it("returns null when no deadline", () => {
-    const { result } = renderHook(() =>
-      useFirstMoveCountdown(null, "active"),
-    );
+    const { result } = renderHook(() => useFirstMoveCountdown(null, "active"));
 
     expect(result.current).toBeNull();
   });
 
   it("returns remaining ms even when game is waiting (deadline present)", () => {
     const deadline = new Date(Date.now() + 30_000).toISOString();
-    const { result } = renderHook(() =>
-      useFirstMoveCountdown(deadline, "waiting"),
-    );
+    const { result } = renderHook(() => useFirstMoveCountdown(deadline, "waiting"));
 
     // The hook still calculates remaining time; the UI decides when to show it
     expect(result.current).not.toBeNull();
@@ -197,9 +183,7 @@ describe("useFirstMoveCountdown", () => {
 
   it("returns remaining ms when deadline is in the future", () => {
     const deadline = new Date(Date.now() + 25_000).toISOString();
-    const { result } = renderHook(() =>
-      useFirstMoveCountdown(deadline, "active"),
-    );
+    const { result } = renderHook(() => useFirstMoveCountdown(deadline, "active"));
 
     expect(result.current).not.toBeNull();
     expect(result.current!).toBeGreaterThan(24_000);
@@ -208,9 +192,7 @@ describe("useFirstMoveCountdown", () => {
 
   it("returns 0 when deadline has passed", () => {
     const deadline = new Date(Date.now() - 1000).toISOString();
-    const { result } = renderHook(() =>
-      useFirstMoveCountdown(deadline, "active"),
-    );
+    const { result } = renderHook(() => useFirstMoveCountdown(deadline, "active"));
 
     expect(result.current).toBe(0);
   });
@@ -219,9 +201,7 @@ describe("useFirstMoveCountdown", () => {
     vi.useFakeTimers();
     const deadline = new Date(Date.now() + 20_000).toISOString();
 
-    const { result } = renderHook(() =>
-      useFirstMoveCountdown(deadline, "active"),
-    );
+    const { result } = renderHook(() => useFirstMoveCountdown(deadline, "active"));
 
     const initial = result.current!;
     expect(initial).toBeGreaterThan(19_000);

@@ -107,8 +107,7 @@ if (includeDocs) {
 
 try {
   execSync(
-    `npx concurrently -k -n ${names.join(",")} -c ${colors.join(",")}` +
-      ` ${processes.join(" ")}`,
+    `npx concurrently -k -n ${names.join(",")} -c ${colors.join(",")}` + ` ${processes.join(" ")}`,
     { stdio: "inherit" },
   );
 } catch {

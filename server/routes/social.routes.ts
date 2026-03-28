@@ -22,27 +22,25 @@ function isDatabaseReady(): boolean {
 
 function containsAccountId(
   accountIds: ReadonlyArray<{ toString(): string }>,
-  targetId: string
+  targetId: string,
 ): boolean {
   return accountIds.some((accountId) => accountId.toString() === targetId);
 }
 
 function removeAccountId<T extends { toString(): string }>(
   accountIds: ReadonlyArray<T>,
-  targetId: string
+  targetId: string,
 ) {
   return accountIds.filter((accountId) => accountId.toString() !== targetId);
 }
 
-function toSocialPlayerSummary(
-  account: {
-    id?: string;
-    _id?: unknown;
-    displayName: string;
-    profilePicture?: string;
-    email?: string;
-  },
-): SocialPlayerSummary {
+function toSocialPlayerSummary(account: {
+  id?: string;
+  _id?: unknown;
+  displayName: string;
+  profilePicture?: string;
+  email?: string;
+}): SocialPlayerSummary {
   return {
     playerId: account.id ?? (account._id ? String(account._id) : ""),
     displayName: account.displayName,
@@ -66,15 +64,14 @@ async function expireStaleInvitations() {
       $set: {
         status: "expired",
       },
-    }
+    },
   );
 }
 
 async function requireAccount(req: Request, res: Response) {
   if (!isDatabaseReady()) {
     res.status(503).json({
-      message:
-        "Account social features are unavailable right now. You can still play as a guest.",
+      message: "Account social features are unavailable right now. You can still play as a guest.",
     });
     return null;
   }
@@ -105,10 +102,7 @@ async function requireAccount(req: Request, res: Response) {
   return account;
 }
 
-function getSearchRelationship(
-  account: IGameAccount,
-  targetId: string
-): SocialSearchRelationship {
+function getSearchRelationship(account: IGameAccount, targetId: string): SocialSearchRelationship {
   if (containsAccountId(account.friends, targetId)) {
     return "friend";
   }
@@ -143,7 +137,7 @@ async function loadAccountsById(accountIds: ReadonlyArray<{ toString(): string }
 }
 
 async function loadFriendsWithOnlineStatus(
-  accountIds: ReadonlyArray<{ toString(): string }>
+  accountIds: ReadonlyArray<{ toString(): string }>,
 ): Promise<SocialPlayerSummary[]> {
   const friends = await loadAccountsById(accountIds);
   return friends.map((friend) => ({
@@ -153,7 +147,7 @@ async function loadFriendsWithOnlineStatus(
 }
 
 async function loadInvitationSummaries(
-  filter: Record<string, unknown>
+  filter: Record<string, unknown>,
 ): Promise<GameInvitationSummary[]> {
   const invitations = await GameInvitation.find(filter)
     .populate("senderId", "displayName profilePicture email")
@@ -185,12 +179,7 @@ async function loadInvitationSummaries(
     });
 }
 
-function handleRouteError(
-  error: unknown,
-  req: Request,
-  res: Response,
-  fallbackMessage: string
-) {
+function handleRouteError(error: unknown, req: Request, res: Response, fallbackMessage: string) {
   if (error instanceof GameServiceError) {
     return res.status(error.status).json({
       code: error.code,
@@ -200,10 +189,7 @@ function handleRouteError(
 
   const mongoError = classifyMongoError(error);
   if (mongoError) {
-    console.warn(
-      `[${req.method} ${req.path}] MongoDB ${mongoError.code}:`,
-      error
-    );
+    console.warn(`[${req.method} ${req.path}] MongoDB ${mongoError.code}:`, error);
     return res.status(mongoError.status).json({
       code: mongoError.code,
       message: mongoError.message,
@@ -223,12 +209,11 @@ async function notifyLobbyUpdate(playerId: string) {
 
   await expireStaleInvitations();
 
-  const [friends, incomingFriendRequests, outgoingFriendRequests] =
-    await Promise.all([
-      loadFriendsWithOnlineStatus(account.friends),
-      loadAccountsById(account.receivedFriendRequests),
-      loadAccountsById(account.sentFriendRequests),
-    ]);
+  const [friends, incomingFriendRequests, outgoingFriendRequests] = await Promise.all([
+    loadFriendsWithOnlineStatus(account.friends),
+    loadAccountsById(account.receivedFriendRequests),
+    loadAccountsById(account.sentFriendRequests),
+  ]);
 
   const [incomingInvitations, outgoingInvitations] = await Promise.all([
     loadInvitationSummaries({
@@ -298,12 +283,11 @@ router.get("/player/social/overview", async (req: Request, res: Response) => {
 
     await expireStaleInvitations();
 
-    const [friends, incomingFriendRequests, outgoingFriendRequests] =
-      await Promise.all([
-        loadFriendsWithOnlineStatus(account.friends),
-        loadAccountsById(account.receivedFriendRequests),
-        loadAccountsById(account.sentFriendRequests),
-      ]);
+    const [friends, incomingFriendRequests, outgoingFriendRequests] = await Promise.all([
+      loadFriendsWithOnlineStatus(account.friends),
+      loadAccountsById(account.receivedFriendRequests),
+      loadAccountsById(account.sentFriendRequests),
+    ]);
 
     const [incomingInvitations, outgoingInvitations] = await Promise.all([
       loadInvitationSummaries({
@@ -605,11 +589,11 @@ router.post(
 
       account.receivedFriendRequests = removeAccountId(
         account.receivedFriendRequests,
-        requester.id
+        requester.id,
       ) as mongoose.Types.ObjectId[];
       requester.sentFriendRequests = removeAccountId(
         requester.sentFriendRequests,
-        account.id
+        account.id,
       ) as mongoose.Types.ObjectId[];
 
       if (!containsAccountId(account.friends, requester.id)) {
@@ -631,7 +615,7 @@ router.post(
     } catch (error) {
       return handleRouteError(error, req, res, "Unable to accept friend request right now.");
     }
-  }
+  },
 );
 
 /**
@@ -694,11 +678,11 @@ router.post(
 
       account.receivedFriendRequests = removeAccountId(
         account.receivedFriendRequests,
-        requester.id
+        requester.id,
       ) as mongoose.Types.ObjectId[];
       requester.sentFriendRequests = removeAccountId(
         requester.sentFriendRequests,
-        account.id
+        account.id,
       ) as mongoose.Types.ObjectId[];
 
       await Promise.all([account.save(), requester.save()]);
@@ -712,7 +696,7 @@ router.post(
     } catch (error) {
       return handleRouteError(error, req, res, "Unable to decline friend request right now.");
     }
-  }
+  },
 );
 
 /**
@@ -775,11 +759,11 @@ router.post(
 
       account.sentFriendRequests = removeAccountId(
         account.sentFriendRequests,
-        targetAccount.id
+        targetAccount.id,
       ) as mongoose.Types.ObjectId[];
       targetAccount.receivedFriendRequests = removeAccountId(
         targetAccount.receivedFriendRequests,
-        account.id
+        account.id,
       ) as mongoose.Types.ObjectId[];
 
       await Promise.all([account.save(), targetAccount.save()]);
@@ -793,7 +777,7 @@ router.post(
     } catch (error) {
       return handleRouteError(error, req, res, "Unable to cancel friend request right now.");
     }
-  }
+  },
 );
 
 /**
@@ -849,11 +833,7 @@ router.post("/player/social/game-invitations", async (req: Request, res: Respons
       return;
     }
 
-    const {
-      gameId,
-      recipientId,
-      expiresInMinutes,
-    } = req.body as {
+    const { gameId, recipientId, expiresInMinutes } = req.body as {
       gameId?: string;
       recipientId?: string;
       expiresInMinutes?: number;
@@ -885,9 +865,7 @@ router.post("/player/social/game-invitations", async (req: Request, res: Respons
     }
 
     const snapshot = await gameService.getSnapshot(gameId);
-    const isPlayerInRoom = snapshot.players.some(
-      (slot) => slot.player.playerId === account.id
-    );
+    const isPlayerInRoom = snapshot.players.some((slot) => slot.player.playerId === account.id);
 
     if (!isPlayerInRoom) {
       return res.status(403).json({
@@ -901,9 +879,7 @@ router.post("/player/social/game-invitations", async (req: Request, res: Respons
       });
     }
 
-    if (
-      snapshot.players.some((slot) => slot.player.playerId === recipient.id)
-    ) {
+    if (snapshot.players.some((slot) => slot.player.playerId === recipient.id)) {
       return res.status(409).json({
         message: "That friend is already in the room.",
       });
@@ -1023,7 +999,7 @@ router.post(
     } catch (error) {
       return handleRouteError(error, req, res, "Unable to revoke invitation right now.");
     }
-  }
+  },
 );
 
 router.post(
@@ -1066,56 +1042,50 @@ router.post(
     } catch (error) {
       return handleRouteError(error, req, res, "Unable to decline invitation right now.");
     }
-  }
+  },
 );
 
-router.post(
-  "/player/social/friends/:accountId/remove",
-  async (req: Request, res: Response) => {
-    try {
-      const account = await requireAccount(req, res);
-      if (!account) {
-        return;
-      }
-
-      const targetId = req.params.accountId;
-      if (!targetId || !mongoose.Types.ObjectId.isValid(targetId)) {
-        return res.status(400).json({ message: "Invalid account ID." });
-      }
-
-      if (!containsAccountId(account.friends, targetId)) {
-        return res.status(400).json({
-          message: "That player is not in your friends list.",
-        });
-      }
-
-      const targetAccount = await GameAccount.findById(targetId);
-      if (!targetAccount) {
-        return res.status(404).json({ message: "Player not found." });
-      }
-
-      account.friends = removeAccountId(
-        account.friends,
-        targetId
-      ) as mongoose.Types.ObjectId[];
-
-      targetAccount.friends = removeAccountId(
-        targetAccount.friends,
-        account.id
-      ) as mongoose.Types.ObjectId[];
-
-      await Promise.all([account.save(), targetAccount.save()]);
-
-      void notifyLobbyUpdate(account.id);
-      void notifyLobbyUpdate(targetAccount.id);
-
-      return res.status(200).json({
-        message: "Friend removed.",
-      });
-    } catch (error) {
-      return handleRouteError(error, req, res, "Unable to remove friend right now.");
+router.post("/player/social/friends/:accountId/remove", async (req: Request, res: Response) => {
+  try {
+    const account = await requireAccount(req, res);
+    if (!account) {
+      return;
     }
+
+    const targetId = req.params.accountId;
+    if (!targetId || !mongoose.Types.ObjectId.isValid(targetId)) {
+      return res.status(400).json({ message: "Invalid account ID." });
+    }
+
+    if (!containsAccountId(account.friends, targetId)) {
+      return res.status(400).json({
+        message: "That player is not in your friends list.",
+      });
+    }
+
+    const targetAccount = await GameAccount.findById(targetId);
+    if (!targetAccount) {
+      return res.status(404).json({ message: "Player not found." });
+    }
+
+    account.friends = removeAccountId(account.friends, targetId) as mongoose.Types.ObjectId[];
+
+    targetAccount.friends = removeAccountId(
+      targetAccount.friends,
+      account.id,
+    ) as mongoose.Types.ObjectId[];
+
+    await Promise.all([account.save(), targetAccount.save()]);
+
+    void notifyLobbyUpdate(account.id);
+    void notifyLobbyUpdate(targetAccount.id);
+
+    return res.status(200).json({
+      message: "Friend removed.",
+    });
+  } catch (error) {
+    return handleRouteError(error, req, res, "Unable to remove friend right now.");
   }
-);
+});
 
 export default router;

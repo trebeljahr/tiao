@@ -87,9 +87,7 @@ export function TournamentListPage() {
         <div className="flex items-center justify-between mb-6">
           <h1 className="font-display text-3xl font-bold">{t("title")}</h1>
           {isAccount && (
-            <Button onClick={() => setCreateOpen(true)}>
-              {t("createTournament")}
-            </Button>
+            <Button onClick={() => setCreateOpen(true)}>{t("createTournament")}</Button>
           )}
         </div>
 
@@ -113,9 +111,7 @@ export function TournamentListPage() {
         ) : displayList.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center text-muted-foreground">
-              {tab === "my"
-                ? t("noMyTournaments")
-                : t("noPublicTournaments")}
+              {tab === "my" ? t("noMyTournaments") : t("noPublicTournaments")}
             </CardContent>
           </Card>
         ) : (
@@ -130,15 +126,11 @@ export function TournamentListPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-medium truncate">{item.name}</span>
-                      <Badge className={statusColor(item.status)}>
-                        {item.status}
-                      </Badge>
+                      <Badge className={statusColor(item.status)}>{item.status}</Badge>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                       <span>{formatLabel(item.format, t)}</span>
-                      <span>
-                        {t("players", { count: item.playerCount, max: item.maxPlayers })}
-                      </span>
+                      <span>{t("players", { count: item.playerCount, max: item.maxPlayers })}</span>
                       <span>{t("by", { name: item.creatorDisplayName })}</span>
                     </div>
                   </div>

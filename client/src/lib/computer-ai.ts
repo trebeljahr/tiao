@@ -28,9 +28,7 @@ let requestId = 0;
 
 function getWorker(): Worker {
   if (!worker) {
-    worker = new Worker(
-      new URL("./engine/tiao-engine.worker", import.meta.url),
-    );
+    worker = new Worker(new URL("./engine/tiao-engine.worker", import.meta.url));
   }
   return worker;
 }
