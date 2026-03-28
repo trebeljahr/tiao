@@ -1172,9 +1172,12 @@ export class GameService {
       if (record.type === "win") {
         return "captured";
       }
+      if (record.type === "draw") {
+        return "board_full";
+      }
     }
 
-    return "captured";
+    return null;
   }
 
   private toSummary(

@@ -227,19 +227,19 @@ export function describeResult(
   if (!result) return "";
   if (result === "won") {
     switch (finishReason) {
-      case "captured": return "You captured enough stones!";
+      case "captured": return "Score target reached";
       case "forfeit": return "Opponent forfeited";
       case "timeout": return "Opponent ran out of time";
       case "board_full": return "Board full — you had more points";
-      default: return "You won!";
+      default: return "";
     }
   }
   switch (finishReason) {
-    case "captured": return "Opponent captured enough stones";
+    case "captured": return "Opponent reached score target";
     case "forfeit": return "You forfeited";
     case "timeout": return "You ran out of time";
     case "board_full": return "Board full — opponent had more points";
-    default: return "You lost";
+    default: return "";
   }
 }
 
