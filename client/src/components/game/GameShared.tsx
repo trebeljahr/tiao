@@ -443,7 +443,7 @@ export function GamePanelBrand() {
   );
 }
 
-type AnimatedScoreTilePlayerInfo = {
+export type AnimatedScoreTilePlayerInfo = {
   player: { displayName?: string; profilePicture?: string; playerId: string };
   online: boolean;
   isYou?: boolean;

@@ -3,17 +3,14 @@ import { useRouter } from "next/navigation";
 import type { PlayerColor } from "@shared";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Dialog } from "@/components/ui/dialog";
 import { Navbar } from "@/components/Navbar";
 import { TiaoBoard } from "@/components/game/TiaoBoard";
 import {
-  GamePanelBrand,
-  AnimatedScoreTile,
   formatPlayerColor,
   HourglassSpinner,
 } from "@/components/game/GameShared";
+import { GameSidePanel } from "@/components/game/GameSidePanel";
 import { GameConfigPanel } from "@/components/game/GameConfigPanel";
 import { useComputerGame } from "@/lib/hooks/useComputerGame";
 import { useStonePlacementSound } from "@/lib/useStonePlacementSound";
@@ -180,74 +177,32 @@ export function ComputerGamePage() {
               </div>
             </div>
 
-            <div className="mx-auto w-full max-w-[calc(100dvh-5rem)] space-y-4 xl:mx-0 xl:w-auto xl:min-w-[20rem] xl:max-w-[28rem]">
-              <div className="mx-auto w-full xl:mx-0">
-                <Card className={paperCard}>
-                  <CardHeader>
-                    <GamePanelBrand />
-                    <Badge className="w-fit bg-[#edf5e4] text-[#486334]">
-                      Vs AI — {AI_DIFFICULTY_LABELS[difficulty]}
-                    </Badge>
-                    <CardTitle className="text-[#2b1e14]">
-                      {localStatusTitle}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-5">
-                    <div className="grid grid-cols-1 gap-4">
-                      <AnimatedScoreTile
-                        label={computer.computerColor === "black" ? "Black (AI)" : "Black (You)"}
-                        value={computer.localGame.score.black}
-                        pulseKey={computer.localScorePulse.black}
-                        className="rounded-3xl border border-black/10 bg-[linear-gradient(180deg,#39312b,#14100d)] p-5 text-[#f9f2e8] shadow-[0_18px_32px_-26px_rgba(0,0,0,0.9)]"
-                        labelClassName="text-xs uppercase tracking-[0.24em] text-[#d9cec2]"
-                        scoreToWin={computer.localGame.scoreToWin}
-                      />
-                      <AnimatedScoreTile
-                        label={computer.computerColor === "white" ? "White (AI)" : "White (You)"}
-                        value={computer.localGame.score.white}
-                        pulseKey={computer.localScorePulse.white}
-                        className="rounded-3xl border border-[#d3c3ad] bg-[linear-gradient(180deg,#fffef8,#efe4d1)] p-5 text-[#2b1e14] shadow-[0_18px_32px_-26px_rgba(84,61,36,0.45)]"
-                        labelClassName="text-xs uppercase tracking-[0.24em] text-[#847261]"
-                        scoreToWin={computer.localGame.scoreToWin}
-                      />
-                    </div>
-
-                    <div className="grid gap-2">
-                      <Button
-                        variant="secondary"
-                        onClick={computer.handleLocalUndoTurn}
-                        disabled={!computer.canUndo}
-                      >
-                        Undo move
-                      </Button>
-                    </div>
-
-                    {winner && (
-                      <div className="grid gap-2 border-t border-[#dbc6a2] pt-4">
-                        <Button
-                          variant="secondary"
-                          onClick={() => computer.resetLocalGame()}
-                        >
-                          Restart board
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          onClick={handleChangeDifficulty}
-                        >
-                          Change difficulty
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          onClick={() => router.push("/")}
-                        >
-                          Back to lobby
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+            <GameSidePanel
+              gameState={computer.localGame}
+              scorePulse={computer.localScorePulse}
+              timeControl={null}
+              badge={`Vs AI — ${AI_DIFFICULTY_LABELS[difficulty]}`}
+              badgeClassName="bg-[#edf5e4] text-[#486334]"
+              statusTitle={localStatusTitle}
+              blackLabel={computer.computerColor === "black" ? "Black (AI)" : "Black (You)"}
+              whiteLabel={computer.computerColor === "white" ? "White (AI)" : "White (You)"}
+              onUndo={computer.handleLocalUndoTurn}
+              undoDisabled={!computer.canUndo}
+              gameOver={gameOver}
+              gameOverActions={
+                <>
+                  <Button variant="secondary" onClick={() => computer.resetLocalGame()}>
+                    Restart board
+                  </Button>
+                  <Button variant="secondary" onClick={handleChangeDifficulty}>
+                    Change difficulty
+                  </Button>
+                  <Button variant="ghost" onClick={() => router.push("/")}>
+                    Back to lobby
+                  </Button>
+                </>
+              }
+            />
           </section>
         )}
       </main>
