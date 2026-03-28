@@ -25,6 +25,7 @@ export function useComputerGame(difficulty: AIDifficulty = 3, settings?: Partial
   const [computerColor, setComputerColor] = useState<PlayerColor>(randomComputerColor);
   const [computerThinking, setComputerThinking] = useState(false);
   const [thinkProgress, setThinkProgress] = useState(0);
+  const [resetGeneration, setResetGeneration] = useState(0);
 
   // Track the game history length that triggered the current search.
   // This prevents re-triggering for the same position and handles strict mode:
@@ -172,7 +173,7 @@ export function useComputerGame(difficulty: AIDifficulty = 3, settings?: Partial
       // turn and undo would jump back too far.
       preAIStateRef.current = null;
     };
-  }, [needsMove, histLen, currentTurn, difficulty, computerColor]);
+  }, [needsMove, histLen, currentTurn, difficulty, computerColor, resetGeneration]);
 
   const handleBoardClick = useCallback(
     (position: Position) => {
@@ -255,6 +256,7 @@ export function useComputerGame(difficulty: AIDifficulty = 3, settings?: Partial
     }
     preAIStateRef.current = null;
     searchedForRef.current = -1;
+    setResetGeneration((g) => g + 1);
     setComputerColor(preferredComputerColor ?? randomComputerColor());
     local.resetLocalGame();
   }, [local.resetLocalGame]);
