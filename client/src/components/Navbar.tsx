@@ -436,7 +436,7 @@ export function Navbar({
       initial={false}
       animate={{ x: navOpen ? 0 : -36, opacity: navOpen ? 1 : 0 }}
       transition={navMotionTransition}
-      className="absolute left-0 top-0 h-full w-full max-w-[28rem] overflow-y-auto border-r border-[#b69261]/24 bg-[linear-gradient(180deg,rgba(251,238,210,0.985),rgba(239,213,161,0.975))] px-4 py-3 text-[#2b1a10] shadow-[0_30px_80px_-28px_rgba(95,59,21,0.34)] lg:max-w-[24.5rem] lg:px-3.5"
+      className="absolute left-0 top-0 h-full w-full max-w-[20.6rem] overflow-y-auto border-r border-[#b69261]/24 bg-[linear-gradient(180deg,rgba(251,238,210,0.985),rgba(239,213,161,0.975))] px-4 py-3 text-[#2b1a10] shadow-[0_30px_80px_-28px_rgba(95,59,21,0.34)] lg:max-w-[18rem] lg:px-3.5"
       onClick={(event) => event.stopPropagation()}
     >
       <div
