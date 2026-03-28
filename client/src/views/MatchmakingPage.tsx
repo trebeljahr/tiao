@@ -19,7 +19,7 @@ import { useTranslations } from "next-intl";
 export function MatchmakingPage() {
   const t = useTranslations("matchmaking");
   const tCommon = useTranslations("common");
-  const { auth, onOpenAuth, onLogout } = useAuth();
+  const { auth, authLoading, onOpenAuth, onLogout } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const locationTimeControl: TimeControl | null = (() => {
@@ -80,18 +80,9 @@ export function MatchmakingPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 flex flex-col items-center py-8">
-              {!auth ? (
-                <div className="w-full space-y-4 text-center">
-                  <p className="text-[#6e5b48]">
-                    {t("signInRequired")}
-                  </p>
-                  <Button
-                    size="lg"
-                    className="w-full h-16 text-xl"
-                    onClick={() => onOpenAuth("login")}
-                  >
-                    {tCommon("signIn")}
-                  </Button>
+              {authLoading ? (
+                <div className="flex flex-col items-center gap-4 py-8">
+                  <HourglassSpinner className="h-12 w-12 text-[#a6824d]" />
                 </div>
               ) : matchmaking.status === "searching" || matchmakingBusy ? (
                 <div className="flex flex-col items-center gap-4">

@@ -82,7 +82,13 @@ export const auth = betterAuth({
 
   trustedOrigins: FRONTEND_URL
     ? [FRONTEND_URL]
-    : ["http://localhost:3000", "http://localhost:5173"],
+    : (origin) => {
+        // In dev, allow localhost and LAN IPs
+        if (!origin) return true;
+        if (origin.includes("localhost")) return true;
+        if (/^https?:\/\/(127\.|192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(origin)) return true;
+        return false;
+      },
 
   databaseHooks: {
     user: {
