@@ -1032,3 +1032,33 @@ export function replayToMove(
   return state;
 }
 
+// --- Sparse board storage for MongoDB ---
+
+export type SparsePositions = {
+  white: [number, number][];
+  black: [number, number][];
+};
+
+export function positionsToSparse(positions: TileState[][]): SparsePositions {
+  const white: [number, number][] = [];
+  const black: [number, number][] = [];
+  for (let y = 0; y < positions.length; y++) {
+    for (let x = 0; x < positions[y].length; x++) {
+      const tile = positions[y][x];
+      if (tile === "white") white.push([x, y]);
+      else if (tile === "black") black.push([x, y]);
+    }
+  }
+  return { white, black };
+}
+
+export function sparseToPositions(
+  sparse: SparsePositions,
+  boardSize: number,
+): TileState[][] {
+  const positions = createEmptyBoard(boardSize);
+  for (const [x, y] of sparse.white) positions[y][x] = "white";
+  for (const [x, y] of sparse.black) positions[y][x] = "black";
+  return positions;
+}
+

@@ -9,6 +9,9 @@ import {
   PlayerIdentity,
   TimeControl,
   cloneGameState,
+  SparsePositions,
+  positionsToSparse,
+  sparseToPositions,
 } from "../../shared/src";
 import GameRoom from "../models/GameRoom";
 
@@ -111,6 +114,30 @@ function cloneTakeback(
   };
 }
 
+// --- Sparse board persistence helpers ---
+
+type DehydratedGameState = Omit<GameState, "positions"> & {
+  stones: SparsePositions;
+};
+
+function dehydrateGameState(state: GameState): DehydratedGameState {
+  const { positions, ...rest } = state;
+  return { ...rest, stones: positionsToSparse(positions) };
+}
+
+function hydrateGameState(raw: Record<string, unknown>): GameState {
+  // New sparse format: has stones, no positions
+  if ("stones" in raw && !("positions" in raw)) {
+    const { stones, ...rest } = raw as DehydratedGameState;
+    return {
+      ...rest,
+      positions: sparseToPositions(stones, rest.boardSize),
+    } as GameState;
+  }
+  // Old format: positions array already present
+  return raw as GameState;
+}
+
 export function cloneStoredRoom(room: StoredMultiplayerRoom): StoredMultiplayerRoom {
   return {
     id: room.id,
@@ -173,7 +200,7 @@ function toStoredRoom(room: PersistedGameRoom): StoredMultiplayerRoom {
     id: room.roomId,
     roomType: room.roomType ?? "direct",
     status: room.status,
-    state: cloneGameState(room.state),
+    state: cloneGameState(hydrateGameState(room.state as unknown as Record<string, unknown>)),
     players,
     rematch: cloneRematch(room.rematch ?? null),
     takeback: cloneTakeback(room.takeback ?? null),
@@ -199,7 +226,7 @@ export class MongoGameRoomStore implements GameRoomStore {
       roomId: normalizeRoomId(room.id),
       roomType: room.roomType,
       status: room.status,
-      state: cloneGameState(room.state),
+      state: dehydrateGameState(room.state),
       players: clonePlayers(room.players),
       rematch: cloneRematch(room.rematch),
       takeback: cloneTakeback(room.takeback),
@@ -252,7 +279,7 @@ export class MongoGameRoomStore implements GameRoomStore {
         $set: {
           roomType: room.roomType,
           status: room.status,
-          state: cloneGameState(room.state),
+          state: dehydrateGameState(room.state),
           players: clonePlayers(room.players),
           rematch: cloneRematch(room.rematch),
           takeback: cloneTakeback(room.takeback),
