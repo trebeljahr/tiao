@@ -170,16 +170,16 @@ export const NIGHT: BoardTheme = {
   grooveEnd: "#252535",
   starPointColor: "#4a4a64",
 
-  blackPieceBorder: "#0a0a12",
+  blackPieceBorder: "#2a2a40",
   blackPieceBg:
-    "radial-gradient(circle at 30% 28%,#3a3a50,#1a1a28 58%,#08080e)",
+    "radial-gradient(circle at 30% 28%,#5a5a72,#3a3a52 58%,#22223a)",
   whitePieceBorder: "#b8b8d0",
   whitePieceBg:
     "radial-gradient(circle at 30% 28%,#e8e8f4,#c4c4d8 58%,#a0a0b8)",
   pieceShadow:
-    "inset 0 2px 10px rgba(140,160,255,0.12), 0 10px 18px rgba(0,0,0,0.35)",
+    "inset 0 2px 10px rgba(140,160,255,0.15), 0 0 0 1px rgba(100,110,160,0.18), 0 10px 18px rgba(0,0,0,0.35)",
   selectableGlow:
-    "0 0 0 4px rgba(120,140,220,0.25), inset 0 2px 10px rgba(140,160,255,0.12), 0 10px 18px rgba(0,0,0,0.35)",
+    "0 0 0 4px rgba(120,140,220,0.25), inset 0 2px 10px rgba(140,160,255,0.15), 0 0 0 1px rgba(100,110,160,0.18), 0 10px 18px rgba(0,0,0,0.35)",
 
   jumpTrailDarkGreen: "#3d6644",
   jumpTrailBrightGreen: "#6aad5e",

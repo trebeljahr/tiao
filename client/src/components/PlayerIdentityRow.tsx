@@ -2,9 +2,11 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import { PlayerOverviewAvatar, ConnectionDot } from "@/components/game/GameShared";
 import { UserBadge, type BadgeId } from "@/components/UserBadge";
+import { resolvePlayerBadge } from "@/lib/featureGate";
+import { useActiveBadgeId } from "@/lib/useActiveBadge";
 
 type PlayerIdentityRowProps = {
-  player: { playerId?: string; displayName?: string; profilePicture?: string };
+  player: { playerId?: string; displayName?: string; profilePicture?: string; activeBadge?: string };
   anonymous?: boolean;
   currentPlayerId?: string;
   avatarClassName?: string;
@@ -16,7 +18,7 @@ type PlayerIdentityRowProps = {
   showPending?: boolean;
   onCancelPending?: () => void;
   cancelPendingBusy?: boolean;
-  /** The badge the player chose to display. */
+  /** Explicit badge override. If omitted, auto-resolves from player data. */
   activeBadge?: string | null;
   friendVariant?: "dark" | "light";
   className?: string;
@@ -44,6 +46,13 @@ export function PlayerIdentityRow({
   children,
 }: PlayerIdentityRowProps) {
   const isYou = currentPlayerId != null && player.playerId === currentPlayerId;
+  const myBadgeFromStorage = useActiveBadgeId();
+  // Resolve badge: explicit prop > localStorage (if "you") > auto-resolve from player data
+  const badgeToShow = activeBadge !== undefined
+    ? activeBadge
+    : isYou && myBadgeFromStorage !== null
+      ? myBadgeFromStorage
+      : resolvePlayerBadge(player);
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
@@ -57,8 +66,8 @@ export function PlayerIdentityRow({
         {isYou && <span className="opacity-60"> (you)</span>}
       </span>
 
-      {activeBadge && (
-        <UserBadge badge={activeBadge as BadgeId} compact />
+      {badgeToShow && (
+        <UserBadge badge={badgeToShow as BadgeId} compact />
       )}
 
       {online != null && (

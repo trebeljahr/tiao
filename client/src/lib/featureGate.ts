@@ -1,5 +1,5 @@
 import type { AuthResponse } from "@shared";
-import { type BadgeId, ALL_BADGE_IDS } from "@/components/UserBadge";
+import { type BadgeId, ALL_BADGE_IDS, BADGE_DEFINITIONS } from "@/components/UserBadge";
 
 /**
  * Usernames that have access to premium/preview features before they're
@@ -52,4 +52,29 @@ export function getBadgesForPlayer(auth: AuthResponse | null): BadgeId[] {
   }
 
   return [];
+}
+
+/**
+ * Resolves the badge to display for a given player.
+ *
+ * For other players: uses `player.activeBadge` from the server.
+ * For known preview users: falls back to hardcoded defaults.
+ * Returns the badge ID string or undefined if no badge.
+ */
+export function resolvePlayerBadge(
+  player: { displayName?: string; activeBadge?: string } | null | undefined,
+): string | undefined {
+  if (!player) return undefined;
+
+  // If the server already sent an activeBadge, use it
+  if (player.activeBadge && BADGE_DEFINITIONS[player.activeBadge as BadgeId]) {
+    return player.activeBadge;
+  }
+
+  // Hardcoded fallback for preview users (until server sends badges)
+  const name = (player.displayName ?? "").replace(/^@/, "").toLowerCase();
+  if (name === "ricotrebeljahr") return "creator";
+  if (PREVIEW_USERNAMES.has(name)) return "creator";
+
+  return undefined;
 }
