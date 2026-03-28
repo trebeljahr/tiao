@@ -215,12 +215,6 @@ export function getMultiplayerGame(gameId: string) {
   return request<{ snapshot: MultiplayerSnapshot }>(`/api/games/${gameId}`);
 }
 
-export function cancelMultiplayerGame(gameId: string) {
-  return request<void>(`/api/games/${gameId}`, {
-    method: "DELETE",
-  });
-}
-
 export function listMultiplayerGames() {
   return request<{ games: MultiplayerGamesIndex }>("/api/games");
 }

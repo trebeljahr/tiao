@@ -283,8 +283,8 @@ export function InteractiveMiniBoard({
       }
     }
 
-    // Try selecting a piece (but not in free-place with requiredPos — only placement allowed)
-    if (cell === color && !(interaction.type === "free-place" && interaction.requiredPos)) {
+    // Try selecting a piece (but never in free-place steps — only placement allowed there)
+    if (cell === color && interaction.type !== "free-place") {
       const targets = getJumpTargets(board, pos, color, size, pendingCaptures);
       if (targets.length > 0) {
         setSelected(pos);
