@@ -4,7 +4,7 @@ import type { Cell, Pos } from "./tutorialEngine";
 // --- Interaction mode types ---
 
 export type InteractionMode =
-  | { type: "free-place"; completionZone?: "border" }
+  | { type: "free-place"; completionZone?: "border"; requiredPos?: Pos }
   | { type: "guided-jump"; selectPiece: Pos; jumpTo: Pos }
   | { type: "confirm-undo"; selectPiece: Pos; jumpTo: Pos }
   | { type: "chain-undo"; firstSelect: Pos; undoAfterJumps: number }
@@ -99,9 +99,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
       size: 5,
       initialBoard: board(5, [
         [1, 1, "W"],
-        [3, 2, "B"],
-        [2, 3, "B"],
-        [3, 3, "W"],
+        [3, 3, "B"],
       ]),
       interaction: { type: "free-place" },
     },
@@ -236,7 +234,9 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
       thickBorder: true,
       turnColor: "B",
       // W(2,2), B(3,3), B(5,5). Chain: W(2,2)→(4,4)→(6,6).
+      // W(1,1) blocks B(3,3) from counter-jumping over W(2,2).
       initialBoard: board(7, [
+        [1, 1, "W"],
         [2, 2, "W"],
         [3, 3, "B"],
         [5, 5, "B"],
@@ -304,9 +304,8 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
         [2, 3, "W"], [3, 3, "W"], [4, 3, "W"],
         [2, 4, "W"], [3, 4, "W"], [4, 4, "W"],
         [2, 5, "W"],
-        [1, 1, "B"], [5, 1, "B"],
       ]),
-      interaction: { type: "free-place" },
+      interaction: { type: "free-place", requiredPos: { x: 5, y: 5 } },
       suggestedPos: { x: 5, y: 5 },
     },
   },
@@ -336,7 +335,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
         [4, 3, "W"], [5, 3, "W"],
         [3, 5, "B"], [5, 5, "B"],
       ]),
-      interaction: { type: "free-place" },
+      interaction: { type: "free-place", requiredPos: { x: 3, y: 2 } },
       suggestedPos: { x: 3, y: 2 },
     },
   },
@@ -363,7 +362,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
         [4, 3, "B"], [4, 4, "B"],
         [5, 3, "W"],
       ]),
-      interaction: { type: "free-place" },
+      interaction: { type: "free-place", requiredPos: { x: 1, y: 3 } },
       suggestedPos: { x: 1, y: 3 },
     },
   },

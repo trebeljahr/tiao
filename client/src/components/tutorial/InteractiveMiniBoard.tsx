@@ -256,7 +256,12 @@ export function InteractiveMiniBoard({
               // Placed validly but not on border — show hint, don't complete
               setShakePos(pos);
               setErrorMsg("Place on the border to defend!");
-              // Revert the placement
+              setBoard(cloneBoard(board));
+              setTimeout(() => { setShakePos(null); setErrorMsg(null); }, 1200);
+            } else if (interaction.requiredPos && !posEq(pos, interaction.requiredPos)) {
+              // Placed validly but not at required position — show hint, revert
+              setShakePos(pos);
+              setErrorMsg("Try the highlighted spot!");
               setBoard(cloneBoard(board));
               setTimeout(() => { setShakePos(null); setErrorMsg(null); }, 1200);
             } else {
@@ -268,8 +273,8 @@ export function InteractiveMiniBoard({
       }
     }
 
-    // Try selecting a piece
-    if (cell === color) {
+    // Try selecting a piece (but not in free-place with requiredPos — only placement allowed)
+    if (cell === color && !(interaction.type === "free-place" && interaction.requiredPos)) {
       const targets = getJumpTargets(board, pos, color, size, pendingCaptures);
       if (targets.length > 0) {
         setSelected(pos);
@@ -369,6 +374,9 @@ export function InteractiveMiniBoard({
     if (interaction.type === "chain-jump" || interaction.type === "chain-jump-early") {
       if (!selected && !hasPending) {
         return { pos: interaction.firstSelect, label: "Select this piece" };
+      }
+      if (hasPending && forcedOrigin && showConfirmNudge) {
+        return { pos: forcedOrigin, label: "Click the piece to confirm" };
       }
     }
     if (interaction.type === "chain-undo") {
