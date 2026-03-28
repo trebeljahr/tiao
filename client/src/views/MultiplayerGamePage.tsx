@@ -116,6 +116,7 @@ export function MultiplayerGamePage() {
       multiplayerSnapshot &&
       auth &&
       !auth.player.hasSeenTutorial &&
+      !localStorage.getItem("tiao:tutorialComplete") &&
       !rulesIntroShownRef.current
     ) {
       rulesIntroShownRef.current = true;
@@ -1537,7 +1538,10 @@ export function MultiplayerGamePage() {
           </div>
 
           <div className="grid gap-2">
-            <Button onClick={() => setRulesIntroOpen(false)}>
+            <Button onClick={() => {
+              localStorage.setItem("tiao:tutorialComplete", "1");
+              setRulesIntroOpen(false);
+            }}>
               {t("gotItPlay")}
             </Button>
             <Button
