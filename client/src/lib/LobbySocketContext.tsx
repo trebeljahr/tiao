@@ -90,7 +90,22 @@ export function LobbySocketProvider({
 
     connect();
 
+    // Disconnect when the page is hidden (mobile background) to save
+    // battery and data, reconnect when it becomes visible again.
+    function handleVisibilityChange() {
+      if (document.hidden) {
+        reconnect.clear();
+        socket?.close();
+        socket = null;
+      } else if (!socket || socket.readyState !== WebSocket.OPEN) {
+        connect();
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       reconnect.clear();
       socket?.close();
     };
