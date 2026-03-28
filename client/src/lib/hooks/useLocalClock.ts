@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import type { TimeControl, PlayerColor } from "@shared";
+import type { TimeControl, PlayerColor, TurnRecord } from "@shared";
 
 export type LocalClockState = {
   white: number;
@@ -11,13 +11,13 @@ export type LocalClockState = {
 /**
  * Client-side chess clock for local (over-the-board) timed games.
  * Tracks remaining time per side, switches on turn change, applies
- * increment after moves, and detects timeout.
+ * increment after moves, and restores clock on undo using timestamps.
  */
 export function useLocalClock(
   timeControl: TimeControl,
   currentTurn: PlayerColor,
   gameOver: boolean,
-  historyLength: number,
+  history: TurnRecord[],
 ) {
   const [clock, setClock] = useState<LocalClockState>(() => ({
     white: timeControl?.initialMs ?? 0,
@@ -27,7 +27,7 @@ export function useLocalClock(
   }));
 
   const lastTurnRef = useRef(currentTurn);
-  const lastHistoryLenRef = useRef(historyLength);
+  const lastHistoryLenRef = useRef(history.length);
   const lastTickRef = useRef(Date.now());
 
   // Reset clock when timeControl changes (new game)
@@ -39,42 +39,56 @@ export function useLocalClock(
       timedOut: null,
     });
     lastTurnRef.current = currentTurn;
-    lastHistoryLenRef.current = historyLength;
+    lastHistoryLenRef.current = history.length;
     lastTickRef.current = Date.now();
   }, [timeControl?.initialMs, timeControl?.incrementMs]);
 
-  // Detect turn change (a move was made) → apply increment to the player who just moved.
-  // On undo (historyLength decreases), just reset the tick reference without applying increment.
+  // Detect turn change (forward move or undo)
   useEffect(() => {
     if (!timeControl || gameOver || clock.timedOut) return;
+    const increment = timeControl.incrementMs ?? 0;
 
-    if (historyLength > lastHistoryLenRef.current && currentTurn !== lastTurnRef.current) {
+    if (history.length > lastHistoryLenRef.current && currentTurn !== lastTurnRef.current) {
       // Forward move: apply increment to the player who just moved
       const movedColor = lastTurnRef.current;
       setClock((prev) => ({
         ...prev,
         running: true,
-        [movedColor]: prev[movedColor] + (timeControl.incrementMs ?? 0),
+        [movedColor]: prev[movedColor] + increment,
       }));
       lastTickRef.current = Date.now();
-    } else if (historyLength < lastHistoryLenRef.current) {
-      // Undo: just reset the tick so the new current player's clock
-      // starts counting from now, not from before the undo
+    } else if (history.length < lastHistoryLenRef.current) {
+      // Undo: restore clock using timestamps (same logic as server takeback)
+      // Find the move that was just undone — it was at index history.length
+      // in the previous history (which is now gone).
+      // We saved timestamps on each move, so we can reverse the clock.
+      //
+      // Since the move is already removed from history, we can't access it
+      // directly. Instead, recalculate clocks from scratch using all
+      // remaining timestamped moves.
+      setClock((prev) => {
+        const restored = recalculateClocks(timeControl, history);
+        return {
+          ...prev,
+          ...restored,
+          running: history.length > 0,
+        };
+      });
       lastTickRef.current = Date.now();
     }
 
     lastTurnRef.current = currentTurn;
-    lastHistoryLenRef.current = historyLength;
-  }, [currentTurn, historyLength, timeControl, gameOver, clock.timedOut]);
+    lastHistoryLenRef.current = history.length;
+  }, [currentTurn, history, timeControl, gameOver, clock.timedOut]);
 
   // Start the clock after the first move
   useEffect(() => {
     if (!timeControl || gameOver || clock.timedOut) return;
-    if (historyLength > 0 && !clock.running) {
+    if (history.length > 0 && !clock.running) {
       setClock((prev) => ({ ...prev, running: true }));
       lastTickRef.current = Date.now();
     }
-  }, [historyLength, timeControl, gameOver, clock.timedOut, clock.running]);
+  }, [history.length, timeControl, gameOver, clock.timedOut, clock.running]);
 
   // Tick the clock every 100ms
   useEffect(() => {
@@ -118,4 +132,47 @@ export function useLocalClock(
   }, [timeControl]);
 
   return { clock, resetClock: reset };
+}
+
+/**
+ * Recalculate clock state from scratch using move timestamps.
+ * Replays the time deductions and increments for every timestamped
+ * move in the history — the same approach the server uses for
+ * takeback clock restoration.
+ */
+function recalculateClocks(
+  timeControl: NonNullable<TimeControl>,
+  history: TurnRecord[],
+): { white: number; black: number } {
+  let white = timeControl.initialMs;
+  let black = timeControl.initialMs;
+  const increment = timeControl.incrementMs ?? 0;
+
+  let prevTimestamp: number | null = null;
+
+  for (const rec of history) {
+    if (rec.type !== "put" && rec.type !== "jump") continue;
+    if (!rec.timestamp) continue;
+
+    // Deduct elapsed time since previous move
+    if (prevTimestamp !== null) {
+      const elapsed = rec.timestamp - prevTimestamp;
+      if (rec.color === "white") {
+        white = Math.max(0, white - elapsed);
+      } else {
+        black = Math.max(0, black - elapsed);
+      }
+    }
+
+    // Apply increment after the move
+    if (rec.color === "white") {
+      white += increment;
+    } else {
+      black += increment;
+    }
+
+    prevTimestamp = rec.timestamp;
+  }
+
+  return { white, black };
 }

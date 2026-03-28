@@ -40,6 +40,15 @@ export function useLocalGame(settings?: Partial<GameSettings>) {
     };
 
     if (localGame.history.length > localHistoryLengthRef.current) {
+      // Stamp timestamps on new move records (for clock restoration on undo)
+      const now = Date.now();
+      for (let i = localHistoryLengthRef.current; i < localGame.history.length; i++) {
+        const rec = localGame.history[i];
+        if ((rec.type === "put" || rec.type === "jump") && !rec.timestamp) {
+          rec.timestamp = now;
+        }
+      }
+
       const lastBoardMove = findLastBoardMove();
       if (lastBoardMove) {
         setLocalScorePulse((prev) => ({

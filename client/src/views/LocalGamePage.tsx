@@ -40,7 +40,7 @@ export function LocalGamePage() {
     timeControl,
     local.localGame.currentTurn,
     gameOver,
-    local.localGame.history.length,
+    local.localGame.history,
   );
 
   // Timeout triggers a win for the other side
