@@ -75,6 +75,8 @@ export function useMatchmakingData(
       }
     } catch (error) {
       toastError(error);
+      setMatchmaking({ status: "idle" } as MatchmakingState);
+      throw error; // Re-throw so callers can catch
     } finally {
       setMatchmakingBusy(false);
     }

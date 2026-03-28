@@ -29,6 +29,7 @@ export function MatchmakingPage() {
   })();
   const [navOpen, setNavOpen] = useState(false);
   const cancelledRef = useRef(false);
+  const failedRef = useRef(false);
 
   const onMatched = useCallback((snapshot: MultiplayerSnapshot) => {
     router.push(`/game/${snapshot.gameId}`);
@@ -42,8 +43,10 @@ export function MatchmakingPage() {
   } = useMatchmakingData(auth, onMatched);
 
   useEffect(() => {
-    if (auth && matchmaking.status === "idle" && !matchmakingBusy && !cancelledRef.current) {
-      void handleEnterMatchmaking(locationTimeControl);
+    if (auth && matchmaking.status === "idle" && !matchmakingBusy && !cancelledRef.current && !failedRef.current) {
+      void handleEnterMatchmaking(locationTimeControl).catch(() => {
+        failedRef.current = true;
+      });
     }
   }, [auth, matchmaking.status, matchmakingBusy, handleEnterMatchmaking, locationTimeControl]);
 
