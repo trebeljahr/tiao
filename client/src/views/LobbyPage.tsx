@@ -849,6 +849,30 @@ export function LobbyPage() {
           </motion.div>
         </section>
       </main>
+
+      <footer className="mx-auto max-w-5xl px-4 pb-8 pt-4 text-center text-xs text-[#a8957e] sm:px-6">
+        <p>
+          Tiao is a game created by{" "}
+          <a
+            href="https://spielstein.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-[#8b7356] underline decoration-[#d4c4a8] underline-offset-2 hover:text-[#5d4732]"
+          >
+            Andreas Spielstein
+          </a>
+          . This digital version is built with care by{" "}
+          <a
+            href="https://ricos.site"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-[#8b7356] underline decoration-[#d4c4a8] underline-offset-2 hover:text-[#5d4732]"
+          >
+            Rico
+          </a>
+          .
+        </p>
+      </footer>
     </div>
   );
 }
