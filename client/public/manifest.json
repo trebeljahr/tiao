@@ -1,0 +1,23 @@
+{
+  "name": "Tiao",
+  "short_name": "Tiao",
+  "description": "A beautiful abstract strategy board game. Play online with friends, against AI, or over the board.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5e3c0",
+  "theme_color": "#2a1d13",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/tiao-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/tiao-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

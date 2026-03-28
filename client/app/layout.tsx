@@ -29,9 +29,15 @@ export const metadata: Metadata = {
     icon: { url: "/tiao-icon.svg", type: "image/svg+xml" },
     apple: "/tiao-icon.png",
   },
+  manifest: "/manifest.json",
   robots: {
     index: true,
     follow: true,
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Tiao",
   },
 };
 
