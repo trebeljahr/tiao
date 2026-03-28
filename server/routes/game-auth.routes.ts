@@ -88,6 +88,7 @@ function serializeAccountProfile(
     updatedAt?: Date;
   },
   email?: string,
+  providers?: string[],
 ) {
   return {
     displayName: account.displayName,
@@ -97,7 +98,19 @@ function serializeAccountProfile(
     activeBadges: account.activeBadges ?? [],
     createdAt: account.createdAt?.toISOString(),
     updatedAt: account.updatedAt?.toISOString(),
+    /** Auth providers linked to this account (e.g. "credential", "github", "google") */
+    providers: providers ?? [],
   };
+}
+
+/** Look up which auth providers are linked to an account. */
+async function getProvidersForAccount(accountId: string): Promise<string[]> {
+  const db = mongoose.connection.getClient().db();
+  const accounts = await db
+    .collection("account")
+    .find({ userId: accountId } as any)
+    .toArray();
+  return accounts.map((a) => a.providerId as string);
 }
 
 // ---------------------------------------------------------------------------
@@ -261,9 +274,12 @@ router.get("/profile", async (req: Request, res: Response) => {
     const account = await requireAccount(req, res);
     if (!account) return;
 
-    const email = await getEmailForAccount(account.id);
+    const [email, providers] = await Promise.all([
+      getEmailForAccount(account.id),
+      getProvidersForAccount(account.id),
+    ]);
     return res.status(200).json({
-      profile: serializeAccountProfile(account, email),
+      profile: serializeAccountProfile(account, email, providers),
     });
   } catch (error) {
     handleRouteError(error, req, res, "Unable to load profile right now.");

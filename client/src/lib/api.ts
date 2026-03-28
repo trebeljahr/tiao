@@ -22,6 +22,8 @@ export type AccountProfile = {
   activeBadges?: string[];
   createdAt?: string;
   updatedAt?: string;
+  /** Auth providers linked to this account (e.g. "credential", "github", "google") */
+  providers?: string[];
 };
 
 export class ApiError extends Error {

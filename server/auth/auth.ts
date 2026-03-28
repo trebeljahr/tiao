@@ -17,7 +17,7 @@ const SALT_ROUNDS = 10;
 const mongoClient = new MongoClient(MONGODB_URI);
 
 export const auth = betterAuth({
-  baseURL: process.env.BETTER_AUTH_URL || `http://localhost:${PORT}`,
+  baseURL: process.env.BETTER_AUTH_URL || FRONTEND_URL || `http://localhost:${PORT}`,
   basePath: "/api/auth",
   secret: process.env.BETTER_AUTH_SECRET || TOKEN_SECRET,
 
@@ -121,16 +121,34 @@ export const auth = betterAuth({
           // Don't create a GameAccount for anonymous users — they're ephemeral
           if (user.isAnonymous) return;
 
+          // Skip if a GameAccount already exists (e.g. OAuth linking to existing account)
+          const existing = await GameAccount.findById(user.id);
+          if (existing) return;
+
           const displayName =
             (user.displayName as string | undefined) ||
             user.name ||
             user.email?.split("@")[0] ||
             `player-${user.id.slice(0, 8)}`;
 
-          await GameAccount.create({
-            _id: user.id,
-            displayName,
-          });
+          try {
+            await GameAccount.create({
+              _id: user.id,
+              displayName,
+              profilePicture: user.image || undefined,
+            });
+          } catch (err: any) {
+            // Duplicate key on displayName is fine — generate a unique fallback
+            if (err?.code === 11000) {
+              await GameAccount.create({
+                _id: user.id,
+                displayName: `${displayName}-${user.id.slice(0, 6)}`,
+                profilePicture: user.image || undefined,
+              });
+            } else {
+              throw err;
+            }
+          }
         },
       },
     },

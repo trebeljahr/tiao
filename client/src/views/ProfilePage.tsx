@@ -256,6 +256,11 @@ export function ProfilePage() {
     };
   }, [auth]);
 
+  const providers = profile?.providers ?? [];
+  const hasCredentialProvider = providers.includes("credential");
+  const hasOAuthProvider = providers.some((p) => p !== "credential");
+  const oauthProviderLabel = providers.find((p) => p !== "credential") ?? "OAuth";
+
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -292,10 +297,12 @@ export function ProfilePage() {
     setPageError(null);
 
     try {
-      const response = await updateAccountProfile({
-        displayName,
-        email: email || undefined,
-      });
+      const body: { displayName?: string; email?: string } = { displayName };
+      // Only send email if the user has a credential provider (OAuth emails are managed by the provider)
+      if (hasCredentialProvider || !hasOAuthProvider) {
+        body.email = email || undefined;
+      }
+      const response = await updateAccountProfile(body);
       onAuthChange(response.auth);
       setProfile(response.profile);
       setDisplayName(response.profile.displayName);
@@ -603,24 +610,50 @@ export function ProfilePage() {
                         onChange={(event) => setEmail(event.target.value)}
                         placeholder="name@example.com"
                         autoComplete="email"
+                        readOnly={hasOAuthProvider && !hasCredentialProvider}
                       />
+                      {hasOAuthProvider && !hasCredentialProvider && (
+                        <p className="text-xs text-[#8d7760]">
+                          Email is managed by your {oauthProviderLabel} account.
+                        </p>
+                      )}
                     </div>
 
-                    <div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          setPasswordError(null);
-                          setCurrentPassword("");
-                          setNewPassword("");
-                          setConfirmPassword("");
-                          setPasswordModalOpen(true);
-                        }}
-                      >
-                        {t("changePassword")}
-                      </Button>
-                    </div>
+                    {hasOAuthProvider && (
+                      <div className="grid gap-2 rounded-2xl border border-[#dcc7a3] bg-[#fff9ef] px-4 py-3 text-sm text-[#6f5a45]">
+                        <p className="font-medium text-[#4e3d2c]">Connected accounts</p>
+                        <div className="flex flex-wrap gap-2">
+                          {(profile?.providers ?? [])
+                            .filter((p) => p !== "credential")
+                            .map((provider) => (
+                              <span
+                                key={provider}
+                                className="inline-flex items-center gap-1.5 rounded-full border border-[#dcc7a3] bg-white px-3 py-1 text-xs font-medium capitalize"
+                              >
+                                {provider}
+                              </span>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {hasCredentialProvider && (
+                      <div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setPasswordError(null);
+                            setCurrentPassword("");
+                            setNewPassword("");
+                            setConfirmPassword("");
+                            setPasswordModalOpen(true);
+                          }}
+                        >
+                          {t("changePassword")}
+                        </Button>
+                      </div>
+                    )}
 
                     <div className="grid gap-3 rounded-2xl border border-[#dcc7a3] bg-[#fff9ef] px-4 py-3 text-sm text-[#6f5a45]">
                       <p>{t("created", { date: formatTimestamp(profile?.createdAt, t("justNow")) })}</p>
