@@ -146,6 +146,17 @@ export function GamesPage() {
                   <div key={game.gameId} className="flex items-center justify-between gap-3 p-4 rounded-2xl border border-[#d7c39e] bg-white/40">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
+                        {game.yourSeat && (
+                          <span
+                            className={cn(
+                              "inline-block h-3 w-3 shrink-0 rounded-full border",
+                              game.yourSeat === "white"
+                                ? "border-[#ddd2bf] bg-[radial-gradient(circle_at_30%_28%,#fffdfa,#f4eee3_58%,#d9ccb8)]"
+                                : "border-[#191410] bg-[radial-gradient(circle_at_30%_28%,#5d554f,#2d2622_58%,#0f0c0b)]",
+                            )}
+                            title={`Playing as ${game.yourSeat}`}
+                          />
+                        )}
                         {opponent ? (
                           <PlayerOverviewAvatar player={opponent} className="h-6 w-6 shrink-0" />
                         ) : (
@@ -155,14 +166,18 @@ export function GamesPage() {
                           {getOpponentLabel(game, auth.player.playerId)}
                         </p>
                       </div>
-                      <Badge className={cn(
-                        "mt-2",
-                        isYourTurn
-                          ? "bg-[#e8f2d8] text-[#4b6537] animate-pulse"
-                          : "bg-[#f3e7d5] text-[#6b563e]",
-                      )}>
-                        {getSummaryStatusLabel(game)}
-                      </Badge>
+                      <div className="mt-1.5 flex items-center gap-2">
+                        <Badge className={cn(
+                          isYourTurn
+                            ? "bg-[#e8f2d8] text-[#4b6537] animate-pulse"
+                            : "bg-[#f3e7d5] text-[#6b563e]",
+                        )}>
+                          {getSummaryStatusLabel(game)}
+                        </Badge>
+                        <span className="text-xs text-[#8d7760]">
+                          {game.score.white}-{game.score.black} · {game.historyLength} moves
+                        </span>
+                      </div>
                     </div>
                     <Button onClick={() => router.push(`/game/${game.gameId}`)}>Resume</Button>
                   </div>

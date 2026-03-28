@@ -659,10 +659,23 @@ export function LobbyPage() {
                         )}
                       >
                         <div className="flex items-center gap-4">
-                          <div className="flex flex-col">
-                            <p className="font-mono text-lg font-bold text-[#2b1e14]">
-                              {game.gameId}
-                            </p>
+                          <div className="flex flex-col gap-0.5">
+                            <div className="flex items-center gap-2">
+                              {game.yourSeat && (
+                                <span
+                                  className={cn(
+                                    "inline-block h-3 w-3 shrink-0 rounded-full border",
+                                    game.yourSeat === "white"
+                                      ? "border-[#ddd2bf] bg-[radial-gradient(circle_at_30%_28%,#fffdfa,#f4eee3_58%,#d9ccb8)]"
+                                      : "border-[#191410] bg-[radial-gradient(circle_at_30%_28%,#5d554f,#2d2622_58%,#0f0c0b)]",
+                                  )}
+                                  title={`Playing as ${game.yourSeat}`}
+                                />
+                              )}
+                              <p className="font-mono text-lg font-bold text-[#2b1e14]">
+                                {game.gameId}
+                              </p>
+                            </div>
                             <p className="text-sm text-[#6e5b48]">
                               vs {getOpponentLabel(game, auth.player.playerId)}
                               {opponentOnline && (
@@ -671,6 +684,9 @@ export function LobbyPage() {
                                   title="Opponent is online"
                                 />
                               )}
+                              <span className="ml-2 text-xs text-[#8d7760]">
+                                {game.score.white}-{game.score.black} · {game.historyLength} moves
+                              </span>
                             </p>
                           </div>
                           <Badge
