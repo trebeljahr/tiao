@@ -12,7 +12,7 @@ import tournamentRoutes from "./routes/tournament.routes";
 const app = express();
 
 // Mount better-auth BEFORE express.json() to avoid body consumption conflicts
-app.all("/api/auth/*splat", toNodeHandler(auth));
+app.all("/api/auth/*", toNodeHandler(auth));
 
 configureApp(app);
 

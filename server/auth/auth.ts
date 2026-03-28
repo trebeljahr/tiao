@@ -3,20 +3,25 @@ import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { anonymous } from "better-auth/plugins";
 import { APIError } from "better-auth/api";
 import bcrypt from "bcrypt";
+import { MongoClient } from "mongodb";
 import mongoose from "mongoose";
 import GameAccount from "../models/GameAccount";
 import GameRoom from "../models/GameRoom";
 import { generateFunAnonymousName } from "../game/playerTokens";
-import { FRONTEND_URL, TOKEN_SECRET, PORT } from "../config/envVars";
+import { FRONTEND_URL, MONGODB_URI, TOKEN_SECRET, PORT } from "../config/envVars";
 
 const SALT_ROUNDS = 10;
+
+// Use a standalone MongoClient for better-auth — Mongoose's connection isn't
+// ready at module load time, but better-auth needs a client immediately.
+const mongoClient = new MongoClient(MONGODB_URI);
 
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL || `http://localhost:${PORT}`,
   basePath: "/api/auth",
   secret: process.env.BETTER_AUTH_SECRET || TOKEN_SECRET,
 
-  database: mongodbAdapter(mongoose.connection.getClient().db()),
+  database: mongodbAdapter(mongoClient.db()),
 
   emailAndPassword: {
     enabled: true,
@@ -75,7 +80,9 @@ export const auth = betterAuth({
     cookiePrefix: "tiao",
   },
 
-  trustedOrigins: FRONTEND_URL ? [FRONTEND_URL] : [],
+  trustedOrigins: FRONTEND_URL
+    ? [FRONTEND_URL]
+    : ["http://localhost:3000", "http://localhost:5173"],
 
   databaseHooks: {
     user: {
@@ -131,7 +138,11 @@ export const auth = betterAuth({
 
   plugins: [
     anonymous({
-      generateName: () => generateFunAnonymousName(),
+      generateName: () => {
+        const name = generateFunAnonymousName();
+        console.info(`[auth] Generated anonymous name: ${name}`);
+        return name;
+      },
       onLinkAccount: async ({ anonymousUser, newUser }) => {
         // Migrate guest's in-progress games to the new account
         const guestId = anonymousUser.user.id;

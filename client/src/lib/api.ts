@@ -68,7 +68,7 @@ async function request<T>(
   options: {
     method?: string;
     body?: JsonBody;
-  } = {}
+  } = {},
 ): Promise<T> {
   let response: Response;
 
@@ -84,7 +84,7 @@ async function request<T>(
   } catch {
     throw new ApiError(
       0,
-      "Could not reach the server. Make sure the backend is running."
+      "Could not reach the server. Make sure the backend is running.",
     );
   }
 
@@ -97,7 +97,7 @@ async function request<T>(
     throw new ApiError(
       response.status,
       data.message || "The request could not be completed.",
-      data.code
+      data.code,
     );
   }
 
@@ -116,7 +116,7 @@ async function upload<T>(path: string, formData: FormData): Promise<T> {
   } catch {
     throw new ApiError(
       0,
-      "Could not reach the server. Make sure the backend is running."
+      "Could not reach the server. Make sure the backend is running.",
     );
   }
 
@@ -129,7 +129,7 @@ async function upload<T>(path: string, formData: FormData): Promise<T> {
     throw new ApiError(
       response.status,
       data.message || "The request could not be completed.",
-      data.code
+      data.code,
     );
   }
 
@@ -158,9 +158,11 @@ export function getPlayerIdentity() {
   return request<{ player: PlayerIdentity }>("/api/player/me");
 }
 
-export function createMultiplayerGame(
-  settings?: { boardSize?: number; scoreToWin?: number; timeControl?: { initialMs: number; incrementMs: number } },
-) {
+export function createMultiplayerGame(settings?: {
+  boardSize?: number;
+  scoreToWin?: number;
+  timeControl?: { initialMs: number; incrementMs: number };
+}) {
   return request<{ snapshot: MultiplayerSnapshot }>("/api/games", {
     method: "POST",
     body: settings,
@@ -178,7 +180,7 @@ export function joinMultiplayerGame(gameId: string) {
     `/api/games/${gameId}/join`,
     {
       method: "POST",
-    }
+    },
   );
 }
 
@@ -187,7 +189,7 @@ export function accessMultiplayerGame(gameId: string) {
     `/api/games/${gameId}/access`,
     {
       method: "POST",
-    }
+    },
   );
 }
 
@@ -204,7 +206,9 @@ export function enterMatchmaking(options?: {
 }) {
   return request<{ matchmaking: MatchmakingState }>("/api/matchmaking", {
     method: "POST",
-    body: options?.timeControl ? { timeControl: options.timeControl } : undefined,
+    body: options?.timeControl
+      ? { timeControl: options.timeControl }
+      : undefined,
   });
 }
 
@@ -225,7 +229,7 @@ export function getSocialOverview() {
 export function searchPlayers(query: string) {
   return request<{ results: SocialSearchResult[] }>(
     `/api/player/social/search?q=${encodeURIComponent(query)}`,
-    {}
+    {},
   );
 }
 
@@ -243,7 +247,7 @@ export function acceptFriendRequest(accountId: string) {
     `/api/player/social/friend-requests/${accountId}/accept`,
     {
       method: "POST",
-    }
+    },
   );
 }
 
@@ -252,7 +256,7 @@ export function declineFriendRequest(accountId: string) {
     `/api/player/social/friend-requests/${accountId}/decline`,
     {
       method: "POST",
-    }
+    },
   );
 }
 
@@ -261,24 +265,22 @@ export function cancelFriendRequest(accountId: string) {
     `/api/player/social/friend-requests/${accountId}/cancel`,
     {
       method: "POST",
-    }
+    },
   );
 }
 
 export function removeFriend(accountId: string) {
   return request<{ message: string }>(
     `/api/player/social/friends/${accountId}/remove`,
-    { method: "POST" }
+    { method: "POST" },
   );
 }
 
-export function sendGameInvitation(
-  body: {
-    gameId: string;
-    recipientId: string;
-    expiresInMinutes: number;
-  }
-) {
+export function sendGameInvitation(body: {
+  gameId: string;
+  recipientId: string;
+  expiresInMinutes: number;
+}) {
   return request<{ message: string }>("/api/player/social/game-invitations", {
     method: "POST",
     body,
@@ -290,7 +292,7 @@ export function revokeGameInvitation(invitationId: string) {
     `/api/player/social/game-invitations/${invitationId}/revoke`,
     {
       method: "POST",
-    }
+    },
   );
 }
 
@@ -299,7 +301,7 @@ export function declineGameInvitation(invitationId: string) {
     `/api/player/social/game-invitations/${invitationId}/decline`,
     {
       method: "POST",
-    }
+    },
   );
 }
 
@@ -320,23 +322,23 @@ export type PublicProfile = {
 };
 
 export function getPublicProfile(username: string) {
-  return request<{ profile: PublicProfile }>(`/api/player/profile/${encodeURIComponent(username)}`);
+  return request<{ profile: PublicProfile }>(
+    `/api/player/profile/${encodeURIComponent(username)}`,
+  );
 }
 
-export function updateAccountProfile(
-  body: {
-    displayName?: string;
-    email?: string;
-    password?: string;
-    currentPassword?: string;
-  }
-) {
+export function updateAccountProfile(body: {
+  displayName?: string;
+  email?: string;
+  password?: string;
+  currentPassword?: string;
+}) {
   return request<{ auth: AuthResponse; profile: AccountProfile }>(
     "/api/player/profile",
     {
       method: "PUT",
       body,
-    }
+    },
   );
 }
 
@@ -346,7 +348,7 @@ export function uploadAccountProfilePicture(file: File) {
 
   return upload<{ auth: AuthResponse; profile: AccountProfile }>(
     "/api/player/profile-picture",
-    formData
+    formData,
   );
 }
 
@@ -361,7 +363,9 @@ export function updateActiveBadges(activeBadges: string[]) {
 
 export function listPublicTournaments(status?: TournamentStatus) {
   const qs = status ? `?status=${status}` : "";
-  return request<{ tournaments: TournamentListItem[] }>(`/api/tournaments${qs}`);
+  return request<{ tournaments: TournamentListItem[] }>(
+    `/api/tournaments${qs}`,
+  );
 }
 
 export function listMyTournaments() {
@@ -381,84 +385,87 @@ export function createTournament(body: {
 
 export function getTournament(tournamentId: string) {
   return request<{ tournament: TournamentSnapshot }>(
-    `/api/tournaments/${tournamentId}`
+    `/api/tournaments/${tournamentId}`,
   );
 }
 
-export function registerForTournament(tournamentId: string, inviteCode?: string) {
+export function registerForTournament(
+  tournamentId: string,
+  inviteCode?: string,
+) {
   return request<{ tournament: TournamentSnapshot }>(
     `/api/tournaments/${tournamentId}/register`,
     {
       method: "POST",
       body: inviteCode ? { inviteCode } : undefined,
-    }
+    },
   );
 }
 
 export function unregisterFromTournament(tournamentId: string) {
   return request<{ tournament: TournamentSnapshot }>(
     `/api/tournaments/${tournamentId}/unregister`,
-    { method: "POST" }
+    { method: "POST" },
   );
 }
 
 export function startTournament(tournamentId: string) {
   return request<{ tournament: TournamentSnapshot }>(
     `/api/tournaments/${tournamentId}/start`,
-    { method: "POST" }
+    { method: "POST" },
   );
 }
 
 export function cancelTournament(tournamentId: string) {
   return request<{ tournament: TournamentSnapshot }>(
     `/api/tournaments/${tournamentId}/cancel`,
-    { method: "POST" }
+    { method: "POST" },
   );
 }
 
 export function updateTournamentSeeding(
   tournamentId: string,
-  seeds: { playerId: string; seed: number }[]
+  seeds: { playerId: string; seed: number }[],
 ) {
   return request<{ tournament: TournamentSnapshot }>(
     `/api/tournaments/${tournamentId}/seeding`,
     {
       method: "PUT",
       body: { seeds } as unknown as Record<string, unknown>,
-    }
+    },
   );
 }
 
 export function randomizeTournamentSeeding(tournamentId: string) {
   return request<{ tournament: TournamentSnapshot }>(
     `/api/tournaments/${tournamentId}/seeding/randomize`,
-    { method: "POST" }
+    { method: "POST" },
   );
 }
 
 export function setTournamentFeaturedMatch(
   tournamentId: string,
-  matchId: string | null
+  matchId: string | null,
 ) {
   return request<{ tournament: TournamentSnapshot }>(
     `/api/tournaments/${tournamentId}/featured-match`,
     {
       method: "PUT",
       body: { matchId },
-    }
+    },
   );
 }
 
 export function forfeitTournamentMatch(
   tournamentId: string,
   matchId: string,
-  loserId: string
+  loserId: string,
 ) {
   return request<{ tournament: TournamentSnapshot }>(
     `/api/tournaments/${tournamentId}/matches/${matchId}/forfeit`,
     {
       method: "POST",
       body: { loserId },
-    }
+    },
   );
 }

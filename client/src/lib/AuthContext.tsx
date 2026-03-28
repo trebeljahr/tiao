@@ -84,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
-    async function bootstrap(retries = 5, delayMs = 800) {
+    async function bootstrap() {
       setAuthLoading(true);
       setAppError(null);
 
@@ -132,12 +132,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (error) {
         if (cancelled) return;
-
-        if (isNetworkError(error) && retries > 0) {
-          await new Promise((r) => setTimeout(r, delayMs));
-          if (!cancelled) return bootstrap(retries - 1, delayMs * 1.5);
-          return;
-        }
 
         if (isNetworkError(error)) {
           toastError(error);

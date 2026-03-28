@@ -239,13 +239,13 @@ function PlayerSummary({ auth }: { auth: AuthResponse | null }) {
       <SoundToggle />
       <div className="flex max-w-[11.5rem] items-center gap-3 rounded-full border border-[#af8e5d]/35 bg-[rgba(255,248,232,0.94)] px-2.5 py-1.5 text-left text-[#28170e] shadow-[0_12px_26px_-20px_rgba(99,67,28,0.45)]">
         <PlayerOverviewAvatar
-          player={{ displayName: isAnonymous ? t("anonymous") : player.displayName, profilePicture: player?.profilePicture }}
+          player={{ displayName: player.displayName, profilePicture: player?.profilePicture }}
           anonymous={isAnonymous}
           className="h-10 w-10 border border-[#a37d48]/35 shadow-sm"
         />
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold">
-            {isAnonymous ? t("anonymous") : player.displayName}
+            {player.displayName}
           </p>
         </div>
       </div>
@@ -491,7 +491,7 @@ export function Navbar({
       <div className="mt-6 rounded-3xl border border-[#b69261]/22 bg-[rgba(255,248,232,0.94)] p-4 text-left">
         <div className="flex items-center gap-3 text-left">
           <PlayerIdentityRow
-            player={{ displayName: isAnonymous ? tCommon("anonymous") : player?.displayName, profilePicture: player?.profilePicture }}
+            player={{ displayName: player?.displayName, profilePicture: player?.profilePicture }}
             anonymous={isAnonymous}
             avatarClassName="h-10 w-10 border border-[#a37d48]/35 shadow-sm"
             nameClassName="text-base font-semibold"
