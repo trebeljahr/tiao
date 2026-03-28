@@ -199,11 +199,11 @@ function LanguagePicker() {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.92, y: -4 }}
+            initial={{ opacity: 0, scale: 0.92, y: -6 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.92, y: -4 }}
+            exit={{ opacity: 0, scale: 0.92, y: -6 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute right-0 bottom-full z-50 mb-1.5 min-w-[8.5rem] overflow-hidden rounded-xl border border-[#af8e5d]/35 bg-[rgba(255,248,232,0.97)] py-1 shadow-[0_12px_28px_-10px_rgba(99,67,28,0.35)] backdrop-blur"
+            className="absolute right-0 top-full z-50 mt-1.5 min-w-[8.5rem] overflow-hidden rounded-xl border border-[#af8e5d]/35 bg-[rgba(255,248,232,0.97)] py-1 shadow-[0_12px_28px_-10px_rgba(99,67,28,0.35)] backdrop-blur"
           >
             {routing.locales.map((loc) => (
               <button
@@ -439,7 +439,7 @@ export function Navbar({
     >
       <div
         className={cn(
-          "flex items-center gap-4",
+          "flex items-center",
           minimalMode
             ? "min-h-11 pl-[4.15rem] pr-2 sm:pl-[4.2rem]"
             : "justify-between"
@@ -450,16 +450,20 @@ export function Navbar({
           className={cn("shrink-0", minimalMode && "-translate-y-[2px]")}
           onClick={() => handleNav("/")}
         />
-        {!minimalMode ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-[#28170e]"
-            onClick={onCloseNav}
-          >
-            <HamburgerIcon open />
-          </Button>
-        ) : null}
+        <div className="ml-auto flex items-center gap-1">
+          <LanguagePicker />
+          <SoundToggle />
+          {!minimalMode && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-[#28170e]"
+              onClick={onCloseNav}
+            >
+              <HamburgerIcon open />
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="mt-6 space-y-2.5 text-left">
@@ -496,11 +500,6 @@ export function Navbar({
             className="min-w-0 flex-1 gap-3"
           />
         </div>
-        <div className="mt-2 flex items-center gap-1.5">
-          <LanguagePicker />
-          <SoundToggle />
-        </div>
-
         <div className="mt-4 grid gap-2">
           {player?.kind === "account" ? (
             <>
