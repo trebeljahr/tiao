@@ -285,7 +285,7 @@ export function TutorialPage() {
                 className="text-xs text-[#a08d78] hover:text-[#6e5b48]"
                 onClick={handleSkip}
               >
-                {t("skip")}
+                {t("skipTutorial")}
               </Button>
             )}
 

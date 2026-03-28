@@ -332,6 +332,7 @@
   "tutorial": {
     "back": "← Volver",
     "skip": "Omitir",
+    "skipTutorial": "Omitir tutorial",
     "letsGo": "¡Vamos!",
     "returnToLobby": "Volver al lobby →",
     "next": "Siguiente →",
