@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import type { TimeControl } from "@shared";
+import { TIME_CONTROL_PRESETS } from "@shared";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,11 +14,13 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Dialog } from "@/components/ui/dialog";
 import { Navbar } from "@/components/Navbar";
 import {
   getOpponentLabel,
   isSummaryYourTurn,
 } from "@/components/game/GameShared";
+import { GameConfigPanel } from "@/components/game/GameConfigPanel";
 import { useGamesIndex } from "@/lib/hooks/useGamesIndex";
 import { useSocialData } from "@/lib/hooks/useSocialData";
 import { useLobbyMessage } from "@/lib/LobbySocketContext";
@@ -24,54 +28,6 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { createMultiplayerGame, joinMultiplayerGame } from "@/lib/api";
 import { toastError } from "@/lib/errors";
-
-const TIME_CONTROL_PRESETS = [
-  {
-    label: "1+0",
-    category: "Bullet",
-    timeControl: { initialMs: 60_000, incrementMs: 0 },
-  },
-  {
-    label: "2+1",
-    category: "Bullet",
-    timeControl: { initialMs: 120_000, incrementMs: 1_000 },
-  },
-  {
-    label: "3+0",
-    category: "Blitz",
-    timeControl: { initialMs: 180_000, incrementMs: 0 },
-  },
-  {
-    label: "3+2",
-    category: "Blitz",
-    timeControl: { initialMs: 180_000, incrementMs: 2_000 },
-  },
-  {
-    label: "5+0",
-    category: "Blitz",
-    timeControl: { initialMs: 300_000, incrementMs: 0 },
-  },
-  {
-    label: "5+3",
-    category: "Blitz",
-    timeControl: { initialMs: 300_000, incrementMs: 3_000 },
-  },
-  {
-    label: "10+0",
-    category: "Rapid",
-    timeControl: { initialMs: 600_000, incrementMs: 0 },
-  },
-  {
-    label: "15+10",
-    category: "Rapid",
-    timeControl: { initialMs: 900_000, incrementMs: 10_000 },
-  },
-  {
-    label: "30+0",
-    category: "Classical",
-    timeControl: { initialMs: 1_800_000, incrementMs: 0 },
-  },
-] as const;
 
 export function LobbyPage() {
   const { auth, onOpenAuth, onLogout } = useAuth();
@@ -145,20 +101,10 @@ export function LobbyPage() {
   const [navOpen, setNavOpen] = useState(false);
   const [joinGameId, setJoinGameId] = useState("");
   const [multiplayerBusy, setMultiplayerBusy] = useState(false);
-  const [showGameSettings, setShowGameSettings] = useState(false);
-  const [boardSize, setBoardSize] = useState(19);
-  const [scoreToWin, setScoreToWin] = useState(10);
-  const [showLocalSettings, setShowLocalSettings] = useState(false);
-  const [localBoardSize, setLocalBoardSize] = useState(19);
-  const [localScoreToWin, setLocalScoreToWin] = useState(10);
-
-  function localGameSettingsParams() {
-    if (localBoardSize === 19 && localScoreToWin === 10) return "";
-    const params = new URLSearchParams();
-    if (localBoardSize !== 19) params.set("boardSize", String(localBoardSize));
-    if (localScoreToWin !== 10) params.set("scoreToWin", String(localScoreToWin));
-    return `?${params}`;
-  }
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [createBoardSize, setCreateBoardSize] = useState(19);
+  const [createScoreToWin, setCreateScoreToWin] = useState(10);
+  const [createTimeControl, setCreateTimeControl] = useState<TimeControl>(null);
 
   const activeGames = multiplayerGames.active ?? [];
   const finishedGames = multiplayerGames.finished ?? [];
@@ -196,11 +142,14 @@ export function LobbyPage() {
 
     setMultiplayerBusy(true);
     try {
-      const settings =
-        boardSize !== 19 || scoreToWin !== 10
-          ? { boardSize, scoreToWin }
-          : undefined;
-      const response = await createMultiplayerGame(settings);
+      const settings: Parameters<typeof createMultiplayerGame>[0] = {};
+      if (createBoardSize !== 19) settings.boardSize = createBoardSize;
+      if (createScoreToWin !== 10) settings.scoreToWin = createScoreToWin;
+      if (createTimeControl) settings.timeControl = createTimeControl;
+      const response = await createMultiplayerGame(
+        Object.keys(settings).length > 0 ? settings : undefined,
+      );
+      setShowCreateDialog(false);
       router.push(`/game/${response.snapshot.gameId}`);
     } catch (error) {
       toastError(error);
@@ -307,10 +256,7 @@ export function LobbyPage() {
                 <Button
                   size="lg"
                   className="w-full h-12 text-base"
-                  onClick={() => {
-                    const params = localGameSettingsParams();
-                    router.push(`/local${params}`);
-                  }}
+                  onClick={() => router.push("/local")}
                 >
                   Play with a Friend
                 </Button>
@@ -325,87 +271,10 @@ export function LobbyPage() {
                   size="lg"
                   variant="secondary"
                   className="w-full h-12 text-base border-[#dcc7a2]"
-                  onClick={() => {
-                    const params = localGameSettingsParams();
-                    router.push(`/computer${params}`);
-                  }}
+                  onClick={() => router.push("/computer")}
                 >
                   Play with a Bot
                 </Button>
-
-                <button
-                  type="button"
-                  className="flex w-full items-center justify-center gap-1.5 text-xs text-[#8d7760] hover:text-[#6e5437] transition-colors"
-                  onClick={() => setShowLocalSettings((v) => !v)}
-                >
-                  <svg
-                    viewBox="0 0 16 16"
-                    className={cn(
-                      "h-3 w-3 transition-transform",
-                      showLocalSettings && "rotate-90",
-                    )}
-                    fill="currentColor"
-                  >
-                    <path d="M6 3l5 5-5 5V3z" />
-                  </svg>
-                  Game Settings
-                  {(localBoardSize !== 19 || localScoreToWin !== 10) && (
-                    <span className="text-[#b98d49]">
-                      ({localBoardSize}x{localBoardSize}, {localScoreToWin} to win)
-                    </span>
-                  )}
-                </button>
-
-                {showLocalSettings && (
-                  <div className="space-y-3 rounded-lg border border-[#dcc7a2] bg-white/40 p-3">
-                    <div>
-                      <label className="mb-1.5 block text-xs font-medium text-[#6e5437]">
-                        Board Size
-                      </label>
-                      <div className="flex gap-2">
-                        {[9, 13, 19].map((size) => (
-                          <Button
-                            key={size}
-                            variant={localBoardSize === size ? "default" : "outline"}
-                            size="sm"
-                            className={cn(
-                              "flex-1",
-                              localBoardSize === size
-                                ? ""
-                                : "border-[#dcc7a2] hover:bg-[#faefd8]",
-                            )}
-                            onClick={() => setLocalBoardSize(size)}
-                          >
-                            {size}x{size}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="mb-1.5 block text-xs font-medium text-[#6e5437]">
-                        Score to Win
-                      </label>
-                      <div className="flex gap-2">
-                        {[5, 10, 15, 20].map((score) => (
-                          <Button
-                            key={score}
-                            variant={localScoreToWin === score ? "default" : "outline"}
-                            size="sm"
-                            className={cn(
-                              "flex-1",
-                              localScoreToWin === score
-                                ? ""
-                                : "border-[#dcc7a2] hover:bg-[#faefd8]",
-                            )}
-                            onClick={() => setLocalScoreToWin(score)}
-                          >
-                            {score}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
               </CardContent>
             </Card>
           </motion.div>
@@ -436,85 +305,11 @@ export function LobbyPage() {
                   <Button
                     size="lg"
                     className="w-full h-12 text-base"
-                    onClick={handleCreateRoom}
+                    onClick={() => setShowCreateDialog(true)}
                     disabled={multiplayerBusy}
                   >
-                    {multiplayerBusy ? "Creating..." : "Create a game"}
+                    Create a game
                   </Button>
-
-                  <button
-                    type="button"
-                    className="flex w-full items-center justify-center gap-1.5 text-xs text-[#8d7760] hover:text-[#6e5437] transition-colors"
-                    onClick={() => setShowGameSettings((v) => !v)}
-                  >
-                    <svg
-                      viewBox="0 0 16 16"
-                      className={cn(
-                        "h-3 w-3 transition-transform",
-                        showGameSettings && "rotate-90",
-                      )}
-                      fill="currentColor"
-                    >
-                      <path d="M6 3l5 5-5 5V3z" />
-                    </svg>
-                    Game Settings
-                    {(boardSize !== 19 || scoreToWin !== 10) && (
-                      <span className="text-[#b98d49]">
-                        ({boardSize}x{boardSize}, {scoreToWin} to win)
-                      </span>
-                    )}
-                  </button>
-
-                  {showGameSettings && (
-                    <div className="space-y-3 rounded-lg border border-[#dcc7a2] bg-white/40 p-3">
-                      <div>
-                        <label className="mb-1.5 block text-xs font-medium text-[#6e5437]">
-                          Board Size
-                        </label>
-                        <div className="flex gap-2">
-                          {[9, 13, 19].map((size) => (
-                            <Button
-                              key={size}
-                              variant={boardSize === size ? "default" : "outline"}
-                              size="sm"
-                              className={cn(
-                                "flex-1",
-                                boardSize === size
-                                  ? ""
-                                  : "border-[#dcc7a2] hover:bg-[#faefd8]",
-                              )}
-                              onClick={() => setBoardSize(size)}
-                            >
-                              {size}x{size}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="mb-1.5 block text-xs font-medium text-[#6e5437]">
-                          Score to Win
-                        </label>
-                        <div className="flex gap-2">
-                          {[5, 10, 15, 20].map((score) => (
-                            <Button
-                              key={score}
-                              variant={scoreToWin === score ? "default" : "outline"}
-                              size="sm"
-                              className={cn(
-                                "flex-1",
-                                scoreToWin === score
-                                  ? ""
-                                  : "border-[#dcc7a2] hover:bg-[#faefd8]",
-                              )}
-                              onClick={() => setScoreToWin(score)}
-                            >
-                              {score}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] text-[#8d7760]">
@@ -584,8 +379,8 @@ export function LobbyPage() {
                   </p>
                   <div className="grid grid-cols-3 gap-2">
                     {TIME_CONTROL_PRESETS.map((preset) => {
-                      const minutes = Math.floor(preset.timeControl.initialMs / 60_000);
-                      const increment = Math.floor(preset.timeControl.incrementMs / 1_000);
+                      const minutes = Math.floor(preset.initialMs / 60_000);
+                      const increment = Math.floor(preset.incrementMs / 1_000);
                       const tooltip = `${minutes} min${minutes !== 1 ? "s" : ""} per player${increment > 0 ? ` + ${increment}s added per move` : ", no increment"}`;
 
                       return (
@@ -595,7 +390,7 @@ export function LobbyPage() {
                           title={tooltip}
                           className="flex flex-col items-center gap-0.5 h-auto py-2.5 border-[#dcc7a2] hover:border-[#b98d49] hover:bg-[#fff8ee] transition-all"
                           onClick={() =>
-                            router.push(`/matchmaking?initial=${preset.timeControl.initialMs}&increment=${preset.timeControl.incrementMs}`)
+                            router.push(`/matchmaking?initial=${preset.initialMs}&increment=${preset.incrementMs}`)
                           }
                         >
                           <span className="text-sm font-bold text-[#2b1e14]">
@@ -881,6 +676,26 @@ export function LobbyPage() {
           .
         </p>
       </footer>
+
+      <Dialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        title="Create a Game"
+        description="Configure your game settings, then share the code with a friend."
+      >
+        <GameConfigPanel
+          mode="multiplayer"
+          boardSize={createBoardSize}
+          onBoardSizeChange={setCreateBoardSize}
+          scoreToWin={createScoreToWin}
+          onScoreToWinChange={setCreateScoreToWin}
+          timeControl={createTimeControl}
+          onTimeControlChange={setCreateTimeControl}
+          submitLabel="Create Game"
+          onSubmit={handleCreateRoom}
+          busy={multiplayerBusy}
+        />
+      </Dialog>
     </div>
   );
 }
