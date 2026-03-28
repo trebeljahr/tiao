@@ -453,17 +453,23 @@ export function ProfilePage() {
                         htmlFor="profile-display-name"
                         className="text-sm font-medium text-[#4e3d2c]"
                       >
-                        Display name
+                        Username
                       </label>
                       <Input
                         id="profile-display-name"
                         name="name"
                         value={displayName}
-                        onChange={(event) => setDisplayName(event.target.value)}
-                        placeholder="Your Name"
-                        autoComplete="name"
+                        onChange={(event) => setDisplayName(event.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
+                        placeholder="username"
+                        autoComplete="username"
+                        pattern="^[a-z0-9][a-z0-9_-]*$"
+                        minLength={3}
+                        title="Lowercase letters, numbers, hyphens, and underscores only"
                         required
                       />
+                      <p className="text-xs text-[#8d7760]">
+                        Lowercase letters, numbers, hyphens, and underscores only.
+                      </p>
                     </div>
 
                     <div className="grid gap-2">
