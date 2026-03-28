@@ -9,6 +9,9 @@ COPY package.json ./
 COPY shared ./shared
 COPY client ./client
 
+ARG API_URL=http://127.0.0.1:5005
+ENV API_URL=$API_URL
+
 RUN npm --prefix client run build
 
 FROM node:22.20.0-bookworm-slim AS runtime
