@@ -18,6 +18,7 @@ test.describe("Forfeit in multiplayer", () => {
 
     // Alice creates a game
     await alicePage.click('button:has-text("Create a game")');
+    await alicePage.click('button:has-text("Create Game")');
     await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/);
     const gameUrl = alicePage.url();
 

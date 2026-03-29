@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { waitForAppReady } from "./helpers";
 
 function cell(page: import("@playwright/test").Page, x: number, y: number) {
   return page.locator(`[data-testid="cell-${x}-${y}"]`);
@@ -29,6 +30,7 @@ test.describe("Computer game undo", () => {
 
   test("undo removes the human piece and lets the human place again", async ({ page }) => {
     await page.goto("/computer");
+    await waitForAppReady(page);
     await page.click('button:has-text("Easy")');
     await page.click('button:has-text("Start Game")');
     await expect(cell(page, 9, 9)).toBeVisible();
@@ -69,6 +71,7 @@ test.describe("Computer game undo", () => {
 
   test("undo after AI responds removes the round of moves", async ({ page }) => {
     await page.goto("/computer");
+    await waitForAppReady(page);
     await page.click('button:has-text("Easy")');
     await page.click('button:has-text("Start Game")');
     await expect(cell(page, 9, 9)).toBeVisible();
@@ -117,6 +120,7 @@ test.describe("Computer game undo", () => {
 
   test("multiple undo-place cycles work correctly", async ({ page }) => {
     await page.goto("/computer");
+    await waitForAppReady(page);
     await page.click('button:has-text("Easy")');
     await page.click('button:has-text("Start Game")');
     await expect(cell(page, 9, 9)).toBeVisible();
@@ -171,6 +175,7 @@ test.describe("Computer game undo", () => {
 
   test("last move indicators update correctly after undo", async ({ page }) => {
     await page.goto("/computer");
+    await waitForAppReady(page);
     await page.click('button:has-text("Easy")');
     await page.click('button:has-text("Start Game")');
     await expect(cell(page, 9, 9)).toBeVisible();
@@ -216,6 +221,7 @@ test.describe("Computer game undo", () => {
 
   test("undo goes back one round, not to the beginning (no restart)", async ({ page }) => {
     await page.goto("/computer");
+    await waitForAppReady(page);
     await page.click('button:has-text("Easy")');
     await page.click('button:has-text("Start Game")');
     await expect(cell(page, 9, 9)).toBeVisible();
@@ -286,6 +292,7 @@ test.describe("Computer game undo", () => {
 
   test("no stale pieces remain on the board after undo during AI thinking", async ({ page }) => {
     await page.goto("/computer");
+    await waitForAppReady(page);
     await page.click('button:has-text("Easy")');
     await page.click('button:has-text("Start Game")');
     await expect(cell(page, 9, 9)).toBeVisible();

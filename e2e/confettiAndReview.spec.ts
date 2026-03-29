@@ -18,6 +18,7 @@ test.describe("Game review from My Games page", () => {
 
     // Alice creates game, Bob joins
     await alicePage.click('button:has-text("Create a game")');
+    await alicePage.click('button:has-text("Create Game")');
     await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/);
     const gameUrl = alicePage.url();
     const gameId = gameUrl.split("/").pop()!;
@@ -89,6 +90,7 @@ test.describe("Game review from My Games page", () => {
 
     // Alice creates game, Bob joins
     await alicePage.click('button:has-text("Create a game")');
+    await alicePage.click('button:has-text("Create Game")');
     await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/);
     const gameUrl = alicePage.url();
     const gameId = gameUrl.split("/").pop()!;

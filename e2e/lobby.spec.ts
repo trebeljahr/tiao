@@ -12,6 +12,8 @@ test.describe("Lobby", () => {
     const username = `lobby_${Math.random().toString(36).slice(2, 7)}`;
     await signUpViaUI(page, username, "password123");
     await page.click('button:has-text("Create a game")');
+    // "Create a game" now opens a config dialog; submit it
+    await page.click('button:has-text("Create Game")');
     await expect(page).toHaveURL(/\/game\/[A-Z0-9]{6}/);
   });
 
@@ -23,8 +25,9 @@ test.describe("Lobby", () => {
     const username = `lobby_${Math.random().toString(36).slice(2, 7)}`;
     await signUpViaUI(page, username, "password123");
 
-    // Create game
+    // Create game (opens config dialog, then submit)
     await page.click('button:has-text("Create a game")');
+    await page.click('button:has-text("Create Game")');
     await expect(page).toHaveURL(/\/game\/[A-Z0-9]{6}/);
     const gameId = page.url().split("/").pop()!;
 

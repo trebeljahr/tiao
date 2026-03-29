@@ -20,6 +20,7 @@ test("game review mode shows review nav buttons and allows friend requests", asy
 
   // 3. Alice creates a game
   await alicePage.click('button:has-text("Create a game")');
+  await alicePage.click('button:has-text("Create Game")');
   await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/);
   const gameUrl = alicePage.url();
   const gameId = gameUrl.split("/").pop()!;
@@ -84,6 +85,7 @@ test("game review shows status title and allows returning to lobby", async ({ br
 
   // Alice creates game, Bob joins
   await alicePage.click('button:has-text("Create a game")');
+  await alicePage.click('button:has-text("Create Game")');
   await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/);
   const gameUrl = alicePage.url();
   const gameId = gameUrl.split("/").pop()!;

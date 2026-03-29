@@ -16,6 +16,7 @@ test("spectator can view an active game without joining", async ({ browser }) =>
 
   // Alice creates game
   await alicePage.click('button:has-text("Create a game")');
+  await alicePage.click('button:has-text("Create Game")');
   await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/);
   const gameUrl = alicePage.url();
 
@@ -51,6 +52,7 @@ test('spectator sees "Spectating" title and players see spectator badge', async 
   await signUpViaUI(alicePage, aliceUsername, "password123");
 
   await alicePage.click('button:has-text("Create a game")');
+  await alicePage.click('button:has-text("Create Game")');
   await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/);
   const gameUrl = alicePage.url();
 
@@ -103,6 +105,7 @@ test("spectating own game shows error toast and stays on lobby", async ({ browse
   await signUpViaUI(page, username, "password123");
 
   await page.click('button:has-text("Create a game")');
+  await page.click('button:has-text("Create Game")');
   await expect(page).toHaveURL(/\/game\/[A-Z0-9]{6}/);
 
   // Extract the game ID from the URL

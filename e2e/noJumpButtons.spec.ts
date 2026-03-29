@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { signUpViaUI } from "./helpers";
+import { signUpViaUI, waitForAppReady } from "./helpers";
 
 function cell(page: import("@playwright/test").Page, x: number, y: number) {
   return page.locator(`[data-testid="cell-${x}-${y}"]`);
@@ -10,6 +10,8 @@ test.describe("No Confirm/Undo jump buttons", () => {
     page,
   }) => {
     await page.goto("/local");
+    await waitForAppReady(page);
+    await page.click('button:has-text("Start Game")');
     await expect(cell(page, 9, 9)).toBeVisible();
 
     // Set up a jump scenario:
@@ -56,6 +58,7 @@ test.describe("No Confirm/Undo jump buttons", () => {
 
     // Alice creates game, Bob joins
     await alicePage.click('button:has-text("Create a game")');
+    await alicePage.click('button:has-text("Create Game")');
     await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/);
     const gameUrl = alicePage.url();
     await bobPage.goto(gameUrl);

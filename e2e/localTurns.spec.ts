@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { waitForAppReady } from "./helpers";
 
 /**
  * Helper to click a board cell at grid coordinates (x, y).
@@ -10,6 +11,9 @@ function cell(page: import("@playwright/test").Page, x: number, y: number) {
 test.describe("Local board – turn alternation", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/local");
+    await waitForAppReady(page);
+    // Submit the game config to start the game
+    await page.click('button:has-text("Start Game")');
     // Wait for the board to render
     await expect(cell(page, 9, 9)).toBeVisible();
   });

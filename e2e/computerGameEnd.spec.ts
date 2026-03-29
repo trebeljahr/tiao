@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { waitForAppReady } from "./helpers";
 
 function cell(page: import("@playwright/test").Page, x: number, y: number) {
   return page.locator(`[data-testid="cell-${x}-${y}"]`);
@@ -7,6 +8,7 @@ function cell(page: import("@playwright/test").Page, x: number, y: number) {
 test.describe("Computer game end dialog", () => {
   test("game over dialog appears with correct buttons when game ends", async ({ page }) => {
     await page.goto("/computer");
+    await waitForAppReady(page);
 
     // Select a difficulty to start the game
     await page.click('button:has-text("Easy")');
@@ -87,6 +89,7 @@ test.describe("Computer game end dialog", () => {
 
   test("clicking Back to lobby navigates to home", async ({ page }) => {
     await page.goto("/computer");
+    await waitForAppReady(page);
 
     // Select a difficulty to start the game
     await page.click('button:has-text("Easy")');

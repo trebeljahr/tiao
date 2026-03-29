@@ -1,4 +1,34 @@
-import { Page } from "@playwright/test";
+import { expect, Page } from "@playwright/test";
+
+/**
+ * Wait for the app loading screen ("Opening Tiao") to disappear.
+ * The AppShell shows a loading screen while auth bootstraps (creating
+ * an anonymous guest session on first visit). Call this after page.goto()
+ * when the test doesn't sign up/in (which already waits for the API).
+ */
+export async function waitForAppReady(page: Page) {
+  await expect(page.locator("text=Opening Tiao")).not.toBeVisible({ timeout: 15000 });
+}
+
+/**
+ * On mobile (touch) devices, Playwright's .tap() doesn't always generate the
+ * synthetic click event that TiaoBoard's onClick handler relies on for piece
+ * selection and jump execution. This helper first resets the touch-event
+ * suppress guard, then dispatches a click so the React handler fires.
+ */
+export async function mobileClickCell(page: Page, x: number, y: number) {
+  // Small delay to let any pending tap's click handler clear suppressClickRef
+  await page.waitForTimeout(50);
+  await page.evaluate(
+    ([cx, cy]) => {
+      const el = document.querySelector(`[data-testid="cell-${cx}-${cy}"]`) as HTMLButtonElement;
+      el?.click();
+    },
+    [x, y],
+  );
+  // Let React process the state update
+  await page.waitForTimeout(50);
+}
 
 /**
  * Opens the nav drawer (hamburger menu) and clicks "Sign up",

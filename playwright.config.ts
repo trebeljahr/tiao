@@ -34,7 +34,7 @@ export default defineConfig({
       command: "bash e2e/start-server.sh",
       url: `http://localhost:${E2E_SERVER_PORT}/api/player/me`,
       reuseExistingServer: !process.env.CI,
-      timeout: 60_000,
+      timeout: 120_000,
       env: {
         NODE_ENV: "test",
         MONGODB_URI: E2E_MONGO_URI,

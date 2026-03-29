@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { waitForAppReady } from "./helpers";
 
 function cell(page: import("@playwright/test").Page, x: number, y: number) {
   return page.locator(`[data-testid="cell-${x}-${y}"]`);
@@ -50,6 +51,7 @@ test.describe.configure({ retries: 1 });
 test("AI responds correctly over multiple rounds without getting stuck", async ({ page }) => {
   test.setTimeout(90000);
   await page.goto("/computer");
+  await waitForAppReady(page);
   await page.click('button:has-text("Easy")');
   await page.click('button:has-text("Start Game")');
   await expect(cell(page, 9, 9)).toBeVisible();

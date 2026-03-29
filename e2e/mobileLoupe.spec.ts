@@ -1,4 +1,5 @@
 import { test, expect, devices } from "@playwright/test";
+import { waitForAppReady } from "./helpers";
 
 function cell(page: import("@playwright/test").Page, x: number, y: number) {
   return page.locator(`[data-testid="cell-${x}-${y}"]`);
@@ -13,6 +14,8 @@ function board(page: import("@playwright/test").Page) {
 test.describe("Desktop – no loupe on click", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/local");
+    await waitForAppReady(page);
+    await page.click('button:has-text("Start Game")');
     await expect(cell(page, 9, 9)).toBeVisible();
   });
 
@@ -38,6 +41,8 @@ test.describe("Mobile loupe – stone placement", () => {
 
   test.beforeEach(async ({ page }) => {
     await page.goto("/local");
+    await waitForAppReady(page);
+    await page.click('button:has-text("Start Game")');
     await expect(cell(page, 9, 9)).toBeVisible();
   });
 
