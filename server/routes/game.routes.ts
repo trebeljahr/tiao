@@ -4,7 +4,7 @@ import { classifyMongoError } from "../error-handling";
 import { gameService, GameServiceError } from "../game/gameService";
 import { getPlayerFromRequest } from "../auth/sessionHelper";
 import GameInvitation from "../models/GameInvitation";
-import GameRoom from "../models/GameRoom";
+import GameRoom, { type IGameRoom } from "../models/GameRoom";
 import { PlayerIdentity } from "../../shared/src";
 
 const router = express.Router();
@@ -429,6 +429,50 @@ router.get("/games/:gameId", async (req: Request, res: Response) => {
     return res.status(200).json({ snapshot });
   } catch (error) {
     return respondWithGameServiceError(res, error, "Unable to load that game right now.");
+  }
+});
+
+/**
+ * Public endpoint returning minimal game metadata for OpenGraph tags.
+ * No authentication required so crawlers / SSR can fetch it.
+ */
+router.get("/games/:gameId/og", async (req: Request, res: Response) => {
+  if (!isValidGameId(req.params.gameId)) {
+    return res.status(400).json({ code: "INVALID_GAME_ID", message: "Invalid game ID." });
+  }
+
+  try {
+    const room = (await GameRoom.findOne(
+      { roomId: req.params.gameId.trim().toUpperCase() },
+      {
+        status: 1,
+        "state.boardSize": 1,
+        "state.scoreToWin": 1,
+        "state.score": 1,
+        "seats.white.displayName": 1,
+        "seats.black.displayName": 1,
+        timeControl: 1,
+        roomType: 1,
+      },
+    ).lean()) as IGameRoom | null;
+
+    if (!room) {
+      return res.status(404).json({ code: "NOT_FOUND", message: "Game not found." });
+    }
+
+    return res.status(200).json({
+      gameId: req.params.gameId.trim().toUpperCase(),
+      status: room.status,
+      boardSize: room.state?.boardSize,
+      scoreToWin: room.state?.scoreToWin,
+      score: room.state?.score,
+      white: room.seats?.white?.displayName ?? null,
+      black: room.seats?.black?.displayName ?? null,
+      timeControl: room.timeControl,
+      roomType: room.roomType,
+    });
+  } catch {
+    return res.status(500).json({ code: "INTERNAL_ERROR", message: "Unable to load game info." });
   }
 });
 

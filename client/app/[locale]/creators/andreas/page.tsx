@@ -1,46 +1,17 @@
-"use client";
+import type { Metadata } from "next";
+import AndreasCreator from "./AndreasCreator";
 
-import type { ReactNode } from "react";
-import { CreatorPage } from "@/views/CreatorPage";
-
-const linkClass =
-  "font-medium text-[#5d4732] underline decoration-[#d4c4a8] underline-offset-2 hover:text-[#3a2818]";
+export const metadata: Metadata = {
+  title: "Andreas Edmeier",
+  description:
+    "Andreas is the game designer and creator of Tiao. A game developer from Germany with a passion for board games and elegant mechanics.",
+  openGraph: {
+    title: "Andreas Edmeier -- Creator of Tiao",
+    description:
+      "Meet the mind behind Tiao. Game designer and developer with a passion for board games and elegant mechanics.",
+  },
+};
 
 export default function Page() {
-  return (
-    <CreatorPage
-      name="Andreas Edmeier"
-      username="Andreas Edmeier"
-      image="/creators/andreas.jpeg"
-      roleKey="andreasRole"
-      bioKey="andreasBio"
-      bioTags={{
-        nexus: (chunks: ReactNode) => (
-          <a
-            href="https://www.ubisoft.com/en-us/game/assassins-creed/nexus-vr"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={linkClass}
-          >
-            {chunks}
-          </a>
-        ),
-        avatar: (chunks: ReactNode) => (
-          <a
-            href="https://www.ubisoft.com/en-us/game/avatar/frontiers-of-pandora"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={linkClass}
-          >
-            {chunks}
-          </a>
-        ),
-      }}
-      links={[
-        { label: "Website", href: "https://www.assertores.me/" },
-        { label: "LinkedIn", href: "https://www.linkedin.com/in/andreas-edmeier/" },
-        { label: "GitHub", href: "https://github.com/Assertores" },
-      ]}
-    />
-  );
+  return <AndreasCreator />;
 }
