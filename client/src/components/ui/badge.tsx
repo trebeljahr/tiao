@@ -3,13 +3,16 @@ import { cn } from "@/lib/utils";
 
 export function Badge({
   className,
-  variant: _variant,
+  variant,
   ...props
-}: React.HTMLAttributes<HTMLDivElement> & { variant?: string }) {
+}: React.HTMLAttributes<HTMLDivElement> & { variant?: "default" | "outline" }) {
   return (
     <div
       className={cn(
-        "inline-flex items-center rounded-full border border-white/70 bg-white/[0.82] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-700 shadow-sm",
+        "inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] shadow-sm",
+        variant === "outline"
+          ? "border-[#d0bb94] bg-transparent text-slate-600"
+          : "border-white/70 bg-[#f0e6d4] text-slate-700",
         className,
       )}
       {...props}
