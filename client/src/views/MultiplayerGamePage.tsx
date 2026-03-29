@@ -49,6 +49,7 @@ import {
 } from "@/components/game/GameClock";
 import { cn } from "@/lib/utils";
 import { accessMultiplayerGame, getMultiplayerGame } from "@/lib/api";
+import { InviteFriendsModal } from "@/components/InviteFriendsModal";
 
 function AnimatedEllipsis() {
   const [dots, setDots] = useState(0);
@@ -109,6 +110,7 @@ export function MultiplayerGamePage() {
   const [forfeitDialogOpen, setForfeitDialogOpen] = useState(false);
   const [spectatorDialogOpen, setSpectatorDialogOpen] = useState(false);
   const [inviteBusy, setInviteBusy] = useState<string | null>(null);
+  const [revokeBusy, setRevokeBusy] = useState<string | null>(null);
 
   // Introduction modal for new players who haven't completed the tutorial (#25)
   const [rulesIntroOpen, setRulesIntroOpen] = useState(false);
@@ -145,6 +147,17 @@ export function MultiplayerGamePage() {
       // handleSendGameInvitation already toasts errors
     } finally {
       setInviteBusy(null);
+    }
+  }
+
+  async function handleRevokeInvite(invitationId: string) {
+    setRevokeBusy(invitationId);
+    try {
+      await social.handleRevokeGameInvitation(invitationId);
+    } catch {
+      // handleRevokeGameInvitation already toasts errors
+    } finally {
+      setRevokeBusy(null);
     }
   }
 
@@ -1360,58 +1373,17 @@ export function MultiplayerGamePage() {
         </section>
       </main>
 
-      <Dialog
+      <InviteFriendsModal
         open={inviteDialogOpen}
         onOpenChange={setInviteDialogOpen}
-        title={t("inviteFriend")}
-        description={t("inviteFriendDesc")}
-      >
-        <div className="space-y-2 max-h-[20rem] overflow-y-auto">
-          {liveSocialOverview.friends.length === 0 ? (
-            <p className="text-center text-sm text-[#6e5b48] py-6">{t("noFriendsYet")}</p>
-          ) : (
-            liveSocialOverview.friends.map((friend) => {
-              const alreadyInRoom = multiplayerSnapshot?.players.some(
-                (slot) => slot.player.playerId === friend.playerId,
-              );
-              const alreadyInvited = liveSocialOverview.outgoingInvitations.some(
-                (inv) => inv.recipient.playerId === friend.playerId && inv.gameId === gameId,
-              );
-              return (
-                <div
-                  key={friend.playerId}
-                  className="flex items-center justify-between rounded-2xl border border-[#d8c29c] bg-[#fffaf1] px-4 py-3"
-                >
-                  <PlayerIdentityRow
-                    player={friend}
-                    online={friend.online}
-                    nameClassName="text-sm font-semibold text-[#2b1e14]"
-                    className="gap-3"
-                  />
-                  {alreadyInRoom ? (
-                    <Badge variant="outline" className="text-xs text-[#43513f]">
-                      {t("inGame")}
-                    </Badge>
-                  ) : alreadyInvited ? (
-                    <Badge variant="outline" className="text-xs text-[#8d7760]">
-                      {t("invited")}
-                    </Badge>
-                  ) : (
-                    <Button
-                      size="sm"
-                      className="text-xs"
-                      onClick={() => handleInviteFriend(friend.playerId)}
-                      disabled={inviteBusy === friend.playerId}
-                    >
-                      {inviteBusy === friend.playerId ? t("sending") : t("invite")}
-                    </Button>
-                  )}
-                </div>
-              );
-            })
-          )}
-        </div>
-      </Dialog>
+        gameId={gameId}
+        socialOverview={liveSocialOverview}
+        playerIds={(multiplayerSnapshot?.players ?? []).map((s) => s.player.playerId)}
+        onInvite={handleInviteFriend}
+        onRevoke={handleRevokeInvite}
+        inviteBusy={inviteBusy}
+        revokeBusy={revokeBusy}
+      />
 
       <Dialog
         open={forfeitDialogOpen}
