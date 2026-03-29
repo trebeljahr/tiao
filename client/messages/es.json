@@ -511,7 +511,8 @@
     "signIn": "Iniciar sesión",
     "signUp": "Registrarse",
     "logout": "Cerrar sesión",
-    "changeLanguage": "Cambiar idioma"
+    "changeLanguage": "Cambiar idioma",
+    "reportIssue": "Reportar un problema"
   },
   "badges": {
     "supporter": "Colaborador",

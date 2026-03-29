@@ -515,7 +515,8 @@
     "signIn": "Sign in",
     "signUp": "Sign up",
     "logout": "Logout",
-    "changeLanguage": "Change language"
+    "changeLanguage": "Change language",
+    "reportIssue": "Report an Issue"
   },
   "badges": {
     "supporter": "Supporter",
