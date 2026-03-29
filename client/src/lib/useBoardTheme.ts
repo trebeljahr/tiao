@@ -56,3 +56,9 @@ export function useSetBoardTheme(): [string, (id: string) => void] {
 
   return [themeId, setTheme];
 }
+
+/** Clear the board theme from localStorage and notify subscribers. */
+export function resetBoardTheme(): void {
+  localStorage.removeItem(STORAGE_KEY);
+  emitChange();
+}

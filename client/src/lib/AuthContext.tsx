@@ -6,6 +6,8 @@ import type { AuthDialogMode } from "@/components/Navbar";
 import { authClient } from "@/lib/auth-client";
 import { login as loginWithUsername, getPlayerIdentity } from "@/lib/api";
 import { isNetworkError, readableError, toastError } from "@/lib/errors";
+import { resetBoardTheme } from "@/lib/useBoardTheme";
+import { resetActiveBadges } from "@/lib/useActiveBadge";
 
 export interface AuthContextValue {
   auth: AuthResponse | null;
@@ -257,6 +259,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const onLogout = useCallback(async () => {
     setAuth(null);
+    resetBoardTheme();
+    resetActiveBadges();
 
     const isInGame = typeof window !== "undefined" && window.location.pathname.startsWith("/game/");
 

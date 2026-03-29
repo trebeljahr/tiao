@@ -81,3 +81,9 @@ export function useSetActiveBadges(): [string[], (ids: BadgeId[]) => void] {
 
   return [activeBadges, setActiveBadges];
 }
+
+/** Clear all active badges from localStorage and notify subscribers. */
+export function resetActiveBadges(): void {
+  localStorage.removeItem(STORAGE_KEY);
+  emitChange();
+}
