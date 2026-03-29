@@ -553,6 +553,20 @@
     "champion": "Campeón",
     "creator": "Creador"
   },
+  "adminBadges": {
+    "title": "Gestión de insignias",
+    "forbidden": "No tienes permiso para acceder a esta página.",
+    "searchUsers": "Buscar usuarios",
+    "searchPlaceholder": "Buscar por nombre de usuario...",
+    "manageBadgesFor": "Gestionar insignias de @{name}",
+    "currentBadges": "Insignias actuales",
+    "allBadges": "Todos los tipos de insignias",
+    "active": "activa",
+    "grant": "Otorgar",
+    "revoke": "Revocar",
+    "badgeGranted": "Insignia \"{badge}\" otorgada correctamente.",
+    "badgeRevoked": "Insignia \"{badge}\" revocada correctamente."
+  },
   "error": {
     "somethingWentWrong": "Algo salió mal",
     "unexpectedError": "La aplicación encontró un error inesperado.",

@@ -557,6 +557,20 @@
     "champion": "Champion",
     "creator": "Creator"
   },
+  "adminBadges": {
+    "title": "Badge Management",
+    "forbidden": "You do not have permission to access this page.",
+    "searchUsers": "Search Users",
+    "searchPlaceholder": "Search by username...",
+    "manageBadgesFor": "Manage badges for @{name}",
+    "currentBadges": "Current Badges",
+    "allBadges": "All Badge Types",
+    "active": "active",
+    "grant": "Grant",
+    "revoke": "Revoke",
+    "badgeGranted": "Badge \"{badge}\" granted successfully.",
+    "badgeRevoked": "Badge \"{badge}\" revoked successfully."
+  },
   "error": {
     "somethingWentWrong": "Something went wrong",
     "unexpectedError": "The application encountered an unexpected error.",

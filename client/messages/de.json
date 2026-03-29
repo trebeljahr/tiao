@@ -557,6 +557,20 @@
     "champion": "Champion",
     "creator": "Erfinder"
   },
+  "adminBadges": {
+    "title": "Abzeichen-Verwaltung",
+    "forbidden": "Du hast keine Berechtigung, auf diese Seite zuzugreifen.",
+    "searchUsers": "Benutzer suchen",
+    "searchPlaceholder": "Nach Benutzername suchen...",
+    "manageBadgesFor": "Abzeichen verwalten für @{name}",
+    "currentBadges": "Aktuelle Abzeichen",
+    "allBadges": "Alle Abzeichen-Typen",
+    "active": "aktiv",
+    "grant": "Vergeben",
+    "revoke": "Entziehen",
+    "badgeGranted": "Abzeichen \"{badge}\" erfolgreich vergeben.",
+    "badgeRevoked": "Abzeichen \"{badge}\" erfolgreich entzogen."
+  },
   "error": {
     "somethingWentWrong": "Etwas ist schiefgelaufen",
     "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten.",

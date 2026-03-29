@@ -156,4 +156,39 @@ export async function installTestSessionMock(): Promise<void> {
     }
     return buildMockAccount(player);
   };
+
+  mod.requireAdmin = async (
+    req: { headers: { cookie?: string } },
+    res: { status: (code: number) => { json: (body: unknown) => void } },
+  ) => {
+    const player = getTestSession(req.headers.cookie);
+    if (!player) {
+      res.status(401).json({ code: "NOT_AUTHENTICATED", message: "Not authenticated." });
+      return null;
+    }
+    if (player.kind !== "account") {
+      res.status(403).json({ code: "ACCOUNT_REQUIRED", message: "Account required." });
+      return null;
+    }
+    // Check ADMIN_PLAYER_IDS env var
+    const adminIds = new Set(
+      (process.env.ADMIN_PLAYER_IDS ?? "").split(",").map((id) => id.trim()).filter(Boolean),
+    );
+    if (!adminIds.has(player.playerId)) {
+      res.status(403).json({ code: "FORBIDDEN", message: "Admin access required." });
+      return null;
+    }
+    return {
+      _id: player.playerId,
+      id: player.playerId,
+      displayName: player.displayName,
+      profilePicture: player.profilePicture,
+      badges: [],
+      activeBadges: [],
+      rating: { overall: { elo: 1500, gamesPlayed: 0 } },
+      hasSeenTutorial: false,
+      friends: [],
+      save: async () => {},
+    };
+  };
 }

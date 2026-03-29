@@ -450,3 +450,32 @@ export function forfeitTournamentMatch(tournamentId: string, matchId: string, lo
     },
   );
 }
+
+// ── Admin API ──
+
+export type AdminUserResult = {
+  playerId: string;
+  displayName: string;
+  badges: string[];
+  activeBadges: string[];
+};
+
+export function adminSearchUsers(query: string) {
+  return request<{ users: AdminUserResult[] }>(
+    `/api/player/admin/users/search?q=${encodeURIComponent(query)}`,
+  );
+}
+
+export function adminGrantBadge(playerId: string, badgeId: string) {
+  return request<{ badges: string[]; activeBadges: string[] }>("/api/player/admin/badges/grant", {
+    method: "POST",
+    body: { playerId, badgeId },
+  });
+}
+
+export function adminRevokeBadge(playerId: string, badgeId: string) {
+  return request<{ badges: string[]; activeBadges: string[] }>("/api/player/admin/badges/revoke", {
+    method: "POST",
+    body: { playerId, badgeId },
+  });
+}
