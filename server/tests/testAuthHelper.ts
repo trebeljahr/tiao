@@ -40,6 +40,7 @@ export function createTestGuest(displayName: string): {
 export function createTestAccount(
   displayName: string,
   email?: string,
+  options?: { badges?: string[]; activeBadges?: string[]; isAdmin?: boolean },
 ): {
   player: PlayerIdentity;
   cookie: string;
@@ -52,6 +53,9 @@ export function createTestAccount(
     displayName,
     kind: "account",
     email,
+    badges: options?.badges ?? [],
+    activeBadges: options?.activeBadges ?? [],
+    isAdmin: options?.isAdmin,
   };
 
   testSessions.set(playerId, player);
@@ -100,6 +104,23 @@ export async function installTestSessionMock(): Promise<void> {
     return getTestSession(req.headers?.cookie);
   };
 
+  function buildMockAccount(player: PlayerIdentity) {
+    const badges = [...(player.badges ?? [])];
+    const activeBadges = [...(player.activeBadges ?? [])];
+    return {
+      _id: player.playerId,
+      id: player.playerId,
+      displayName: player.displayName,
+      profilePicture: player.profilePicture,
+      badges,
+      activeBadges,
+      rating: { overall: { elo: 1500, gamesPlayed: 0 } },
+      hasSeenTutorial: false,
+      friends: [],
+      save: async () => {},
+    };
+  }
+
   mod.requireAccount = async (
     req: { headers: { cookie?: string } },
     res: { status: (code: number) => { json: (body: unknown) => void } },
@@ -113,18 +134,26 @@ export async function installTestSessionMock(): Promise<void> {
       res.status(403).json({ code: "ACCOUNT_REQUIRED", message: "Account required." });
       return null;
     }
-    // Return a minimal mock account document
-    return {
-      _id: player.playerId,
-      id: player.playerId,
-      displayName: player.displayName,
-      profilePicture: player.profilePicture,
-      badges: [],
-      activeBadges: [],
-      rating: { overall: { elo: 1500, gamesPlayed: 0 } },
-      hasSeenTutorial: false,
-      friends: [],
-      save: async () => {},
-    };
+    return buildMockAccount(player);
+  };
+
+  mod.requireAdmin = async (
+    req: { headers: { cookie?: string } },
+    res: { status: (code: number) => { json: (body: unknown) => void } },
+  ) => {
+    const player = getTestSession(req.headers.cookie);
+    if (!player) {
+      res.status(401).json({ code: "NOT_AUTHENTICATED", message: "Not authenticated." });
+      return null;
+    }
+    if (player.kind !== "account") {
+      res.status(403).json({ code: "ACCOUNT_REQUIRED", message: "Account required." });
+      return null;
+    }
+    if (!player.isAdmin) {
+      res.status(403).json({ code: "ADMIN_REQUIRED", message: "Admin access is required." });
+      return null;
+    }
+    return buildMockAccount(player);
   };
 }

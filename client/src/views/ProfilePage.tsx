@@ -16,7 +16,7 @@ import {
 } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { isNetworkError, readableError, toastError } from "@/lib/errors";
-import { getBadgesForPlayer, hasPreviewAccess, isAdmin } from "@/lib/featureGate";
+import { isAdmin } from "@/lib/featureGate";
 import { UserBadge, type BadgeId, BADGE_DEFINITIONS, ALL_BADGE_IDS } from "@/components/UserBadge";
 import { useSetActiveBadges } from "@/lib/useActiveBadge";
 import { updateActiveBadges } from "@/lib/api";
@@ -71,10 +71,10 @@ function resizeImage(
 
 function BadgeSelector({ auth }: { auth: AuthResponse | null }) {
   const t = useTranslations("profile");
-  const badges = getBadgesForPlayer(auth);
+  const badges = (auth?.player.badges ?? []) as BadgeId[];
   const [activeBadges, setActiveBadges] = useSetActiveBadges();
 
-  if (!hasPreviewAccess(auth) || badges.length === 0) return null;
+  if (badges.length === 0) return null;
 
   const selectBadge = (badgeId: BadgeId) => {
     // Single-select: clicking the already-active badge deselects it

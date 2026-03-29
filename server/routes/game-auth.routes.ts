@@ -5,10 +5,10 @@ import { Jimp } from "jimp";
 import mongoose from "mongoose";
 import GameAccount from "../models/GameAccount";
 import { auth } from "../auth/auth";
-import { getPlayerFromRequest, requireAccount } from "../auth/sessionHelper";
+import { getPlayerFromRequest, requireAccount, requireAdmin } from "../auth/sessionHelper";
 import { sanitizeDisplayName } from "../game/playerTokens";
 import { isValidUsername } from "../../shared/src";
-import { BUCKET_NAME, CLOUDFRONT_URL } from "../config/envVars";
+import { ADMIN_PLAYER_IDS, BUCKET_NAME, CLOUDFRONT_URL } from "../config/envVars";
 import { s3Client } from "../config/s3Client";
 import { classifyMongoError } from "../error-handling";
 import { profilePictureUpload } from "../middleware/multerUploadMiddleware";
@@ -78,6 +78,7 @@ function buildPlayerIdentityFromAccount(
     hasSeenTutorial: false,
     badges: account.badges ?? [],
     activeBadges: account.activeBadges ?? [],
+    ...(ADMIN_PLAYER_IDS.has(account.id) ? { isAdmin: true } : {}),
     rating: account.rating?.overall?.elo,
     ...(needsUsername ? { needsUsername: true } : {}),
   };
@@ -639,6 +640,82 @@ router.put("/badges/active", async (req: Request, res: Response) => {
     return res.status(200).json({ auth: { player }, activeBadges: validActive });
   } catch (error) {
     return handleRouteError(error, req, res, "Unable to update active badges right now.");
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Admin: badge management
+// ---------------------------------------------------------------------------
+
+router.post("/admin/badges/grant", async (req: Request, res: Response) => {
+  try {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+
+    const { playerId, badgeId } = req.body as { playerId?: string; badgeId?: string };
+
+    if (!playerId || typeof playerId !== "string" || !badgeId || typeof badgeId !== "string") {
+      return res.status(400).json({
+        code: "VALIDATION_ERROR",
+        message: "Provide playerId and badgeId.",
+      });
+    }
+
+    const target = await GameAccount.findById(playerId);
+    if (!target) {
+      return res.status(404).json({
+        code: "ACCOUNT_NOT_FOUND",
+        message: "Target account not found.",
+      });
+    }
+
+    if (!target.badges.includes(badgeId)) {
+      target.badges.push(badgeId);
+      await target.save();
+    }
+
+    return res.status(200).json({
+      badges: target.badges,
+      activeBadges: target.activeBadges,
+    });
+  } catch (error) {
+    return handleRouteError(error, req, res, "Unable to grant badge right now.");
+  }
+});
+
+router.post("/admin/badges/revoke", async (req: Request, res: Response) => {
+  try {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+
+    const { playerId, badgeId } = req.body as { playerId?: string; badgeId?: string };
+
+    if (!playerId || typeof playerId !== "string" || !badgeId || typeof badgeId !== "string") {
+      return res.status(400).json({
+        code: "VALIDATION_ERROR",
+        message: "Provide playerId and badgeId.",
+      });
+    }
+
+    const target = await GameAccount.findById(playerId);
+    if (!target) {
+      return res.status(404).json({
+        code: "ACCOUNT_NOT_FOUND",
+        message: "Target account not found.",
+      });
+    }
+
+    target.badges = target.badges.filter((id: string) => id !== badgeId);
+    // Also remove from activeBadges if it was displayed
+    target.activeBadges = target.activeBadges.filter((id: string) => id !== badgeId);
+    await target.save();
+
+    return res.status(200).json({
+      badges: target.badges,
+      activeBadges: target.activeBadges,
+    });
+  } catch (error) {
+    return handleRouteError(error, req, res, "Unable to revoke badge right now.");
   }
 });
 

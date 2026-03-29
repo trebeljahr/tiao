@@ -4,6 +4,7 @@ import { fromNodeHeaders } from "better-auth/node";
 import { auth } from "./auth";
 import GameAccount from "../models/GameAccount";
 import { PlayerIdentity, isValidUsername } from "../../shared/src";
+import { ADMIN_PLAYER_IDS } from "../config/envVars";
 
 async function toPlayerIdentity(user: {
   id: string;
@@ -33,6 +34,7 @@ async function toPlayerIdentity(user: {
     hasSeenTutorial: account?.hasSeenTutorial ?? false,
     badges: account?.badges ?? [],
     activeBadges: account?.activeBadges ?? [],
+    ...(ADMIN_PLAYER_IDS.has(user.id) ? { isAdmin: true } : {}),
     rating: account?.rating?.overall?.elo,
     ...(needsUsername ? { needsUsername: true } : {}),
   };
@@ -79,6 +81,25 @@ export async function requireAccount(req: Request, res: Response) {
     res.status(404).json({
       code: "ACCOUNT_NOT_FOUND",
       message: "That account could not be found.",
+    });
+    return null;
+  }
+
+  return account;
+}
+
+/**
+ * Like requireAccount but also checks that the caller is an admin
+ * (their player ID appears in the ADMIN_PLAYER_IDS env var).
+ */
+export async function requireAdmin(req: Request, res: Response) {
+  const account = await requireAccount(req, res);
+  if (!account) return null;
+
+  if (!ADMIN_PLAYER_IDS.has(account.id)) {
+    res.status(403).json({
+      code: "ADMIN_REQUIRED",
+      message: "Admin access is required.",
     });
     return null;
   }

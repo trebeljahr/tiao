@@ -44,6 +44,14 @@ const CORRECT_PATH = process.cwd();
 const FRONTEND_URL = process.env.FRONTEND_URL;
 const REDIS_URL = process.env.REDIS_URL;
 
+/** Comma-separated list of player IDs that have admin privileges. */
+const ADMIN_PLAYER_IDS = new Set(
+  (process.env.ADMIN_PLAYER_IDS ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean),
+);
+
 export {
   TOKEN_SECRET,
   MONGODB_URI,
@@ -55,4 +63,5 @@ export {
   S3_ENDPOINT,
   S3_FORCE_PATH_STYLE,
   REDIS_URL,
+  ADMIN_PLAYER_IDS,
 };

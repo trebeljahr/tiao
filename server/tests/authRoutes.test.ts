@@ -292,3 +292,72 @@ test("POST /logout route no longer exists (handled by better-auth)", async () =>
   );
   assert.equal(layer, undefined, "POST /logout should not exist");
 });
+
+// ─── Admin badge endpoints ──────────────────────────────────────────
+
+test("POST /admin/badges/grant route exists", async () => {
+  const layer = gameAuthRoutes.stack.find(
+    (entry) => entry.route?.path === "/admin/badges/grant" && entry.route.methods["post"],
+  );
+  assert.ok(layer?.route, "POST /admin/badges/grant route should exist");
+});
+
+test("POST /admin/badges/revoke route exists", async () => {
+  const layer = gameAuthRoutes.stack.find(
+    (entry) => entry.route?.path === "/admin/badges/revoke" && entry.route.methods["post"],
+  );
+  assert.ok(layer?.route, "POST /admin/badges/revoke route should exist");
+});
+
+test("POST /admin/badges/grant returns 401 without session", async () => {
+  const response = await invokeRoute<{ code: string }>(gameAuthRoutes, {
+    method: "post",
+    path: "/admin/badges/grant",
+    body: { playerId: "some-id", badgeId: "creator" },
+  });
+
+  assert.equal(response.status, 401);
+  assert.equal(response.body.code, "NOT_AUTHENTICATED");
+});
+
+test("POST /admin/badges/grant returns 403 for non-admin account", async () => {
+  const account = createTestAccount("regular-user");
+
+  const response = await invokeRoute<{ code: string }>(gameAuthRoutes, {
+    method: "post",
+    path: "/admin/badges/grant",
+    cookie: account.cookie,
+    body: { playerId: "some-id", badgeId: "creator" },
+  });
+
+  assert.equal(response.status, 403);
+  assert.equal(response.body.code, "ADMIN_REQUIRED");
+});
+
+test("POST /admin/badges/grant returns 400 for missing fields", async () => {
+  const admin = createTestAccount("admin-user", "admin@test.com", { isAdmin: true });
+
+  const response = await invokeRoute<{ code: string }>(gameAuthRoutes, {
+    method: "post",
+    path: "/admin/badges/grant",
+    cookie: admin.cookie,
+    body: {},
+  });
+
+  assert.equal(response.status, 400);
+  assert.equal(response.body.code, "VALIDATION_ERROR");
+});
+
+test("POST /admin/badges/revoke returns 403 for non-admin account", async () => {
+  const account = createTestAccount("regular-user-2");
+
+  const response = await invokeRoute<{ code: string }>(gameAuthRoutes, {
+    method: "post",
+    path: "/admin/badges/revoke",
+    cookie: account.cookie,
+    body: { playerId: "some-id", badgeId: "creator" },
+  });
+
+  assert.equal(response.status, 403);
+  assert.equal(response.body.code, "ADMIN_REQUIRED");
+});

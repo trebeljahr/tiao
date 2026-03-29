@@ -26,6 +26,8 @@ export type PlayerIdentity = {
   badges?: string[];
   /** Which badge(s) the player chose to display (empty = hidden). */
   activeBadges?: string[];
+  /** True when the player has admin privileges (set server-side). */
+  isAdmin?: boolean;
   rating?: number;
   /** True when the account's displayName doesn't meet username requirements (SSO users). */
   needsUsername?: boolean;
