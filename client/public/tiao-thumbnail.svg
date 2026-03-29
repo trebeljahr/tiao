@@ -1,3 +1,119 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:6b354e986b53ba9e8f6a99e294c793bd87f164977fd3e44d193cc2b42f1ddc0e
-size 3967
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#F4E7CF"/>
+  <rect x="26" y="26" width="1148" height="578" rx="58" fill="url(#bg)"/>
+  <rect x="58" y="58" width="486" height="514" rx="52" fill="#1C1510"/>
+  <rect x="92" y="92" width="418" height="446" rx="44" fill="url(#board)"/>
+  <rect x="116" y="116" width="370" height="398" rx="38" fill="url(#sheen)" fill-opacity="0.34"/>
+  <g opacity="0.26" stroke="#714C29" stroke-width="6">
+    <line x1="150" y1="160" x2="452" y2="160"/>
+    <line x1="150" y1="240" x2="452" y2="240"/>
+    <line x1="150" y1="320" x2="452" y2="320"/>
+    <line x1="150" y1="400" x2="452" y2="400"/>
+    <line x1="150" y1="480" x2="452" y2="480"/>
+    <line x1="150" y1="160" x2="150" y2="480"/>
+    <line x1="226" y1="160" x2="226" y2="480"/>
+    <line x1="302" y1="160" x2="302" y2="480"/>
+    <line x1="378" y1="160" x2="378" y2="480"/>
+    <line x1="452" y1="160" x2="452" y2="480"/>
+  </g>
+  <circle cx="226" cy="240" r="9" fill="#6D4927"/>
+  <circle cx="302" cy="320" r="9" fill="#6D4927"/>
+  <circle cx="378" cy="400" r="9" fill="#6D4927"/>
+  <text
+    x="302"
+    y="372"
+    text-anchor="middle"
+    font-size="228"
+    font-weight="700"
+    font-family="'Songti SC', 'Noto Serif CJK SC', serif"
+    fill="#18100B"
+    stroke="#FFF7E8"
+    stroke-opacity="0.26"
+    stroke-width="4.5"
+    paint-order="stroke fill"
+  >
+    跳
+  </text>
+  <text
+    x="598"
+    y="228"
+    font-size="118"
+    font-family="'Zen Old Mincho', 'Times New Roman', serif"
+    fill="#23170F"
+  >
+    Tiao
+  </text>
+  <text
+    x="600"
+    y="304"
+    font-size="30"
+    font-family="'Zen Kaku Gothic New', 'Helvetica Neue', sans-serif"
+    fill="#4B3A2C"
+  >
+    A strategy board game
+  </text>
+  <text
+    x="600"
+    y="346"
+    font-size="30"
+    font-family="'Zen Kaku Gothic New', 'Helvetica Neue', sans-serif"
+    fill="#4B3A2C"
+  >
+    of jumps and captures.
+  </text>
+  <text
+    x="600"
+    y="416"
+    font-size="24"
+    font-family="'Zen Kaku Gothic New', 'Helvetica Neue', sans-serif"
+    fill="#6D5A45"
+  >
+    Play online with friends,
+  </text>
+  <text
+    x="600"
+    y="450"
+    font-size="24"
+    font-family="'Zen Kaku Gothic New', 'Helvetica Neue', sans-serif"
+    fill="#6D5A45"
+  >
+    against AI, or over the board.
+  </text>
+  <circle cx="960" cy="180" r="74" fill="url(#blackStone)"/>
+  <circle cx="1060" cy="310" r="74" fill="url(#whiteStone)"/>
+  <!-- playtiao.com label -->
+  <text
+    x="600"
+    y="530"
+    font-size="26"
+    font-family="'Zen Kaku Gothic New', 'Helvetica Neue', sans-serif"
+    fill="#9A8568"
+    letter-spacing="2"
+  >
+    playtiao.com
+  </text>
+  <defs>
+    <linearGradient id="bg" x1="600" y1="26" x2="600" y2="604" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F9EFD9"/>
+      <stop offset="1" stop-color="#E4C895"/>
+    </linearGradient>
+    <linearGradient id="board" x1="301" y1="92" x2="301" y2="538" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8E8C2"/>
+      <stop offset="1" stop-color="#DAA95E"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="152" y1="116" x2="448" y2="514" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF8E8"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="blackStone" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(932 154) rotate(48.4156) scale(121.289)">
+      <stop stop-color="#625B56"/>
+      <stop offset="0.55" stop-color="#2B2622"/>
+      <stop offset="1" stop-color="#0D0B0A"/>
+    </radialGradient>
+    <radialGradient id="whiteStone" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1032 282) rotate(48.4156) scale(121.289)">
+      <stop stop-color="#FFFDF9"/>
+      <stop offset="0.62" stop-color="#F0E8DB"/>
+      <stop offset="1" stop-color="#D7CAB8"/>
+    </radialGradient>
+  </defs>
+</svg>
