@@ -1583,7 +1583,7 @@ export function MultiplayerGamePage() {
                 setRulesIntroOpen(false);
               }}
             >
-              {t("gotItPlay")}
+              {isSpectator ? t("startSpectating") : t("gotItPlay")}
             </Button>
             <Button variant="outline" onClick={() => router.push("/tutorial")}>
               {t("learnToPlay")}

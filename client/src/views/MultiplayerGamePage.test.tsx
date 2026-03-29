@@ -433,6 +433,60 @@ describe("MultiplayerGamePage", () => {
     expect(spectatingElements.length).toBeGreaterThan(0);
   });
 
+  it("shows 'Start Spectating' button in rules intro for spectators", async () => {
+    localStorage.removeItem("tiao:tutorialComplete");
+
+    const spectatorAuth: AuthResponse = {
+      player: {
+        kind: "guest",
+        playerId: "spectator-xyz",
+        displayName: "Watcher",
+      },
+    };
+
+    const authModule = await import("@/lib/AuthContext");
+    vi.spyOn(authModule, "useAuth").mockReturnValue({
+      auth: spectatorAuth,
+      authLoading: false,
+      appError: null,
+      authDialogOpen: false,
+      authDialogMode: "login",
+      authBusy: false,
+      authDialogError: null,
+      loginEmail: "",
+      loginPassword: "",
+      signupDisplayName: "",
+      signupEmail: "",
+      signupPassword: "",
+      signupConfirmPassword: "",
+      setAuth: vi.fn(),
+      setAuthDialogOpen: vi.fn(),
+      setAuthDialogMode: vi.fn(),
+      setAuthDialogError: vi.fn(),
+      setLoginEmail: vi.fn(),
+      setLoginPassword: vi.fn(),
+      setSignupDisplayName: vi.fn(),
+      setSignupEmail: vi.fn(),
+      setSignupPassword: vi.fn(),
+      setSignupConfirmPassword: vi.fn(),
+      onOpenAuth: vi.fn(),
+      handleLoginSubmit: vi.fn(),
+      handleSignupSubmit: vi.fn(),
+      handleForgotPassword: vi.fn(),
+      handleOAuthSignIn: vi.fn(),
+      onLogout: vi.fn(),
+      applyAuth: vi.fn(),
+    });
+
+    const snapshot = makeMatchmakingSnapshot({ spectators: [] });
+    await setupMocks(snapshot);
+    render(<MultiplayerGamePage />);
+
+    // The rules intro dialog should show "Start Spectating" instead of "Got it, let's play!"
+    expect(screen.getByRole("button", { name: "Start Spectating" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Got it, let's play!" })).not.toBeInTheDocument();
+  });
+
   it("shows 'Back to lobby' button for spectators", async () => {
     const spectatorAuth: AuthResponse = {
       player: {

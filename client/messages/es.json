@@ -227,6 +227,7 @@
     "ruleBorder": "Regla de borde",
     "ruleBorderDesc": "Solo se puede colocar en el borde para defender de un salto enemigo",
     "gotItPlay": "¡Entendido, a jugar!",
+    "startSpectating": "Empezar a observar",
     "learnToPlay": "Aprender a jugar primero",
     "ratingChange": "Puntuación",
     "ratingUp": "{rating} (+{delta})",

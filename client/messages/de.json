@@ -227,6 +227,7 @@
     "ruleBorder": "Randregel",
     "ruleBorderDesc": "Rand nur zur Verteidigung gegen einen gegnerischen Sprung",
     "gotItPlay": "Verstanden, los geht's!",
+    "startSpectating": "Zuschauen starten",
     "learnToPlay": "Erst die Regeln lernen",
     "ratingChange": "Wertung",
     "ratingUp": "{rating} (+{delta})",

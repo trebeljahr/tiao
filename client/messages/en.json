@@ -227,6 +227,7 @@
     "ruleBorder": "Border rule",
     "ruleBorderDesc": "Can only place on border to defend from enemy jump",
     "gotItPlay": "Got it, let's play!",
+    "startSpectating": "Start Spectating",
     "learnToPlay": "Learn to Play First",
     "ratingChange": "Rating",
     "ratingUp": "{rating} (+{delta})",
