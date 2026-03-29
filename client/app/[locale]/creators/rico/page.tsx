@@ -17,7 +17,7 @@ export default function Page() {
       bioTags={{
         liveAndLearn: (chunks: ReactNode) => (
           <a
-            href="https://newsletter.trebeljahr.com"
+            href="https://ricos.site/sub"
             target="_blank"
             rel="noopener noreferrer"
             className={linkClass}
@@ -27,7 +27,7 @@ export default function Page() {
         ),
         fractalGarden: (chunks: ReactNode) => (
           <a
-            href="https://fractal-garden.trebeljahr.com"
+            href="https://fractal.garden"
             target="_blank"
             rel="noopener noreferrer"
             className={linkClass}
