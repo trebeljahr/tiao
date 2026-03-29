@@ -333,6 +333,10 @@ export function MultiplayerGamePage() {
 
   const isDraw = multiplayerSnapshot ? isGameOver(multiplayerSnapshot.state) && !winner : false;
 
+  // Tournament post-game: auto-redirect countdown hooks (must be top-level)
+  const [tournamentRedirectSeconds, setTournamentRedirectSeconds] = useState<number | null>(null);
+  const tournamentRedirectCancelledRef = useRef(false);
+
   const gameOverTitle = isDraw
     ? t("draw")
     : playerWon
@@ -408,6 +412,52 @@ export function MultiplayerGamePage() {
       ? `/tournament/${multiplayerSnapshot.tournamentId}`
       : "/";
   const backLabel = isTournamentGame ? tCommon("backToTournament") : tCommon("backToLobby");
+
+  // Tournament post-game: opponent info for "add as friend"
+  const tournamentOpponent =
+    isTournamentGame && playerSeat && multiplayerSnapshot
+      ? (multiplayerSnapshot.seats[playerSeat === "white" ? "black" : "white"]?.player ?? null)
+      : null;
+  const tournamentOpponentIsFriend = tournamentOpponent
+    ? liveSocialOverview.friends.some((f) => f.playerId === tournamentOpponent.playerId)
+    : false;
+  const tournamentOpponentHasPending = tournamentOpponent
+    ? liveSocialOverview.outgoingFriendRequests.some(
+        (f) => f.playerId === tournamentOpponent.playerId,
+      )
+    : false;
+  const canAddTournamentOpponent =
+    tournamentOpponent &&
+    auth?.player.kind === "account" &&
+    tournamentOpponent.kind === "account" &&
+    !tournamentOpponentIsFriend &&
+    !tournamentOpponentHasPending &&
+    tournamentOpponent.playerId !== auth?.player.playerId;
+
+  // Tournament post-game: auto-redirect countdown (10 seconds)
+  useEffect(() => {
+    if (isTournamentGame && isMultiplayerParticipant && winner && !wasFinishedOnLoadRef.current) {
+      tournamentRedirectCancelledRef.current = false;
+      setTournamentRedirectSeconds(10);
+    }
+  }, [isTournamentGame, isMultiplayerParticipant, winner]);
+
+  useEffect(() => {
+    if (tournamentRedirectSeconds === null || tournamentRedirectCancelledRef.current) return;
+    if (tournamentRedirectSeconds <= 0) {
+      router.push(tournamentBackPath);
+      return;
+    }
+    const timer = setTimeout(() => {
+      setTournamentRedirectSeconds((s) => (s !== null ? s - 1 : null));
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [tournamentRedirectSeconds, router, tournamentBackPath]);
+
+  const cancelTournamentRedirect = useCallback(() => {
+    tournamentRedirectCancelledRef.current = true;
+    setTournamentRedirectSeconds(null);
+  }, []);
 
   // Toast for incoming takeback requests
   const lastTakebackToastRef = useRef<string | null>(null);
@@ -1130,7 +1180,47 @@ export function MultiplayerGamePage() {
                         isMultiplayerParticipant &&
                         connectionState === "connected" &&
                         multiplayerSnapshot.seats[playerSeat === "white" ? "black" : "white"]
-                          ?.online && (
+                          ?.online &&
+                        (isTournamentGame ? (
+                          <div className="grid gap-2 border-t border-[#dbc6a2] pt-4">
+                            <Button onClick={() => router.push(tournamentBackPath)}>
+                              {tCommon("backToTournament")}
+                            </Button>
+                            {canAddTournamentOpponent && tournamentOpponent && (
+                              <Button
+                                variant="secondary"
+                                onClick={() =>
+                                  social.handleSendFriendRequest(tournamentOpponent.playerId)
+                                }
+                                disabled={
+                                  social.socialActionBusyKey ===
+                                  `friend-send:${tournamentOpponent.playerId}`
+                                }
+                              >
+                                <PlayerOverviewAvatar
+                                  player={tournamentOpponent}
+                                  className="h-5 w-5 mr-1.5"
+                                />
+                                {t("addAsFriend", { name: tournamentOpponent.displayName })}
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline"
+                              onClick={() => router.push(tournamentBackPath)}
+                            >
+                              {t("goToNextMatch")}
+                            </Button>
+                            {tournamentRedirectSeconds !== null && (
+                              <button
+                                type="button"
+                                className="text-center text-xs text-[#6e5b48] hover:text-[#2b1e14] transition-colors"
+                                onClick={cancelTournamentRedirect}
+                              >
+                                {t("redirectingIn", { seconds: tournamentRedirectSeconds })}
+                              </button>
+                            )}
+                          </div>
+                        ) : (
                           <div className="grid gap-2 border-t border-[#dbc6a2] pt-4">
                             {multiplayerSnapshot.rematch?.requestedBy.includes(
                               playerSeat as PlayerColor,
@@ -1178,19 +1268,14 @@ export function MultiplayerGamePage() {
                                     {tCommon("decline")}
                                   </Button>
                                 ) : (
-                                  <Button
-                                    variant="outline"
-                                    onClick={() => router.push(tournamentBackPath)}
-                                  >
-                                    {isTournamentGame
-                                      ? tCommon("backToTournament")
-                                      : tCommon("lobby")}
+                                  <Button variant="outline" onClick={() => router.push("/")}>
+                                    {tCommon("lobby")}
                                   </Button>
                                 )}
                               </div>
                             )}
                           </div>
-                        )}
+                        ))}
 
                       {isReviewMode &&
                         !(isMultiplayerParticipant && connectionState === "connected") && (
@@ -1401,27 +1486,72 @@ export function MultiplayerGamePage() {
           {isMultiplayerParticipant &&
           connectionState === "connected" &&
           multiplayerSnapshot?.seats[playerSeat === "white" ? "black" : "white"]?.online ? (
-            <>
-              {multiplayerSnapshot?.rematch?.requestedBy.includes(playerSeat as PlayerColor) ? (
-                <p className="text-center text-sm font-medium text-[#56703f] py-2">
-                  {t("rematchRequestedWaiting")}
-                </p>
-              ) : (
+            isTournamentGame ? (
+              <>
                 <Button
                   onClick={() => {
-                    sendMultiplayerMessage({ type: "request-rematch" });
-                    if (!multiplayerSnapshot?.rematch?.requestedBy.length) {
-                      toast.success(t("rematchSent"));
-                    }
                     setGameOverDialogOpen(false);
+                    cancelTournamentRedirect();
+                    router.push(tournamentBackPath);
                   }}
                 >
-                  {multiplayerSnapshot?.rematch?.requestedBy.length
-                    ? t("acceptRematch")
-                    : t("rematch")}
+                  {tCommon("backToTournament")}
                 </Button>
-              )}
-            </>
+                {canAddTournamentOpponent && tournamentOpponent && (
+                  <Button
+                    variant="secondary"
+                    onClick={() => social.handleSendFriendRequest(tournamentOpponent.playerId)}
+                    disabled={
+                      social.socialActionBusyKey === `friend-send:${tournamentOpponent.playerId}`
+                    }
+                  >
+                    <PlayerOverviewAvatar player={tournamentOpponent} className="h-5 w-5 mr-1.5" />
+                    {t("addAsFriend", { name: tournamentOpponent.displayName })}
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setGameOverDialogOpen(false);
+                    cancelTournamentRedirect();
+                    router.push(tournamentBackPath);
+                  }}
+                >
+                  {t("goToNextMatch")}
+                </Button>
+                {tournamentRedirectSeconds !== null && (
+                  <button
+                    type="button"
+                    className="text-center text-xs text-[#6e5b48] hover:text-[#2b1e14] transition-colors"
+                    onClick={cancelTournamentRedirect}
+                  >
+                    {t("redirectingIn", { seconds: tournamentRedirectSeconds })}
+                  </button>
+                )}
+              </>
+            ) : (
+              <>
+                {multiplayerSnapshot?.rematch?.requestedBy.includes(playerSeat as PlayerColor) ? (
+                  <p className="text-center text-sm font-medium text-[#56703f] py-2">
+                    {t("rematchRequestedWaiting")}
+                  </p>
+                ) : (
+                  <Button
+                    onClick={() => {
+                      sendMultiplayerMessage({ type: "request-rematch" });
+                      if (!multiplayerSnapshot?.rematch?.requestedBy.length) {
+                        toast.success(t("rematchSent"));
+                      }
+                      setGameOverDialogOpen(false);
+                    }}
+                  >
+                    {multiplayerSnapshot?.rematch?.requestedBy.length
+                      ? t("acceptRematch")
+                      : t("rematch")}
+                  </Button>
+                )}
+              </>
+            )
           ) : null}
           <Button
             variant="ghost"

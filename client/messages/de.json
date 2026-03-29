@@ -235,7 +235,10 @@
     "ratingUp": "{rating} (+{delta})",
     "ratingDown": "{rating} ({delta})",
     "ratingUnchanged": "{rating} (±0)",
-    "unrated": "Ohne Wertung"
+    "unrated": "Ohne Wertung",
+    "addAsFriend": "{name} als Freund hinzufügen",
+    "goToNextMatch": "Zum nächsten Spiel",
+    "redirectingIn": "Weiterleitung in {seconds}s..."
   },
   "config": {
     "difficulty": "Schwierigkeit",

@@ -697,4 +697,106 @@ describe("MultiplayerGamePage", () => {
     fireEvent.click(backBtns[0]);
     expect(mockPush).toHaveBeenCalledWith("/tournament/tourney-123");
   });
+
+  it("shows tournament-specific actions instead of rematch for tournament games", async () => {
+    const accountAuth: AuthResponse = {
+      player: {
+        kind: "account",
+        playerId: "account-aaa",
+        displayName: "TourneyPlayer",
+      },
+    };
+
+    const authModule = await import("@/lib/AuthContext");
+    vi.spyOn(authModule, "useAuth").mockReturnValue({
+      auth: accountAuth,
+      authLoading: false,
+      appError: null,
+      authDialogOpen: false,
+      authDialogMode: "login",
+      authBusy: false,
+      authDialogError: null,
+      loginEmail: "",
+      loginPassword: "",
+      signupDisplayName: "",
+      signupEmail: "",
+      signupPassword: "",
+      signupConfirmPassword: "",
+      setAuth: vi.fn(),
+      setAuthDialogOpen: vi.fn(),
+      setAuthDialogMode: vi.fn(),
+      setAuthDialogError: vi.fn(),
+      setLoginEmail: vi.fn(),
+      setLoginPassword: vi.fn(),
+      setSignupDisplayName: vi.fn(),
+      setSignupEmail: vi.fn(),
+      setSignupPassword: vi.fn(),
+      setSignupConfirmPassword: vi.fn(),
+      onOpenAuth: vi.fn(),
+      handleLoginSubmit: vi.fn(),
+      handleSignupSubmit: vi.fn(),
+      handleForgotPassword: vi.fn(),
+      handleOAuthSignIn: vi.fn(),
+      onLogout: vi.fn(),
+      applyAuth: vi.fn(),
+    });
+
+    const state = createInitialGameState();
+    state.history = [{ type: "forfeit", color: "black" }];
+    state.score = { black: 0, white: 10 };
+
+    const snapshot: MultiplayerSnapshot = {
+      gameId: "ABC123",
+      roomType: "tournament",
+      tournamentId: "tourney-456",
+      status: "finished",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      state,
+      players: [
+        {
+          player: { playerId: "account-aaa", displayName: "TourneyPlayer", kind: "account" },
+          online: true,
+        },
+        {
+          player: { playerId: "account-bbb", displayName: "Opponent Bob", kind: "account" },
+          online: true,
+        },
+      ],
+      seats: {
+        white: {
+          player: { playerId: "account-aaa", displayName: "TourneyPlayer", kind: "account" },
+          online: true,
+        },
+        black: {
+          player: { playerId: "account-bbb", displayName: "Opponent Bob", kind: "account" },
+          online: true,
+        },
+      },
+      spectators: [],
+      rematch: null,
+      takeback: null,
+      timeControl: null,
+      clock: null,
+      firstMoveDeadline: null,
+    };
+
+    await setupMocks(snapshot);
+    render(<MultiplayerGamePage />);
+
+    // Should NOT show rematch button for tournament games
+    expect(screen.queryByRole("button", { name: "Rematch" })).not.toBeInTheDocument();
+
+    // Should show "Go to your next match" button
+    const nextMatchBtns = screen.getAllByRole("button", { name: "Go to your next match" });
+    expect(nextMatchBtns.length).toBeGreaterThan(0);
+
+    // Should show "Add Opponent Bob as a friend" button
+    const addFriendBtns = screen.getAllByRole("button", { name: /Add Opponent Bob as a friend/i });
+    expect(addFriendBtns.length).toBeGreaterThan(0);
+
+    // Should show "Back to tournament" buttons
+    const backBtns = screen.getAllByRole("button", { name: "Back to tournament" });
+    expect(backBtns.length).toBeGreaterThan(0);
+  });
 });

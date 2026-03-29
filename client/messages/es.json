@@ -235,7 +235,10 @@
     "ratingUp": "{rating} (+{delta})",
     "ratingDown": "{rating} ({delta})",
     "ratingUnchanged": "{rating} (±0)",
-    "unrated": "Sin puntuación"
+    "unrated": "Sin puntuación",
+    "addAsFriend": "Añadir a {name} como amigo",
+    "goToNextMatch": "Ir a tu siguiente partida",
+    "redirectingIn": "Redirigiendo en {seconds}s..."
   },
   "config": {
     "difficulty": "Dificultad",
