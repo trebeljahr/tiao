@@ -161,7 +161,9 @@ function LanguagePicker() {
   const intlRouter = useIntlRouter();
   const intlPathname = useIntlPathname();
   const [open, setOpen] = useState(false);
+  const [openAbove, setOpenAbove] = useState(false);
   const closeTimeout = useRef<ReturnType<typeof setTimeout>>();
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const handleSelect = useCallback(
     (newLocale: string) => {
@@ -181,11 +183,25 @@ function LanguagePicker() {
     clearTimeout(closeTimeout.current);
   }, []);
 
+  const handleToggle = useCallback(() => {
+    setOpen((prev) => {
+      if (!prev && triggerRef.current) {
+        // Estimate popup height (~3 items * 36px + padding)
+        const popupHeight = 130;
+        const rect = triggerRef.current.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        setOpenAbove(spaceBelow < popupHeight);
+      }
+      return !prev;
+    });
+  }, []);
+
   return (
     <div className="relative" onBlur={handleBlur} onFocus={handleFocus}>
       <button
+        ref={triggerRef}
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={handleToggle}
         className="relative flex h-8 w-8 items-center justify-center rounded-full text-[#6e5b48] transition-colors hover:bg-[rgba(0,0,0,0.06)] hover:text-[#28170e]"
         aria-label={t("changeLanguage")}
         aria-expanded={open}
@@ -204,11 +220,14 @@ function LanguagePicker() {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.92, y: -6 }}
+            initial={{ opacity: 0, scale: 0.92, y: openAbove ? 6 : -6 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.92, y: -6 }}
+            exit={{ opacity: 0, scale: 0.92, y: openAbove ? 6 : -6 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute right-0 top-full z-50 mt-1.5 min-w-[8.5rem] overflow-hidden rounded-xl border border-[#af8e5d]/35 bg-[rgba(255,248,232,0.97)] py-1 shadow-[0_12px_28px_-10px_rgba(99,67,28,0.35)] backdrop-blur"
+            className={cn(
+              "absolute right-0 z-50 min-w-[8.5rem] overflow-hidden rounded-xl border border-[#af8e5d]/35 bg-[rgba(255,248,232,0.97)] py-1 shadow-[0_12px_28px_-10px_rgba(99,67,28,0.35)] backdrop-blur",
+              openAbove ? "bottom-full mb-1.5" : "top-full mt-1.5",
+            )}
           >
             {routing.locales.map((loc) => (
               <button
