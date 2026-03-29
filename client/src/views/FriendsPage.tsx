@@ -153,33 +153,64 @@ export function FriendsPage() {
               <CardHeader>
                 <CardTitle>{t("pending")}</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
-                {social.socialOverview.incomingFriendRequests.map((req) => (
-                  <div
-                    key={req.playerId}
-                    className="flex items-center justify-between p-3 rounded-xl bg-white/40"
-                  >
-                    <PlayerIdentityRow player={req} nameClassName="font-medium" />
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() => social.handleAcceptFriendRequest(req.playerId)}
-                      >
-                        {tCommon("accept")}
-                      </Button>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-[#8d7760]">
+                    {t("incomingRequests")}
+                  </h4>
+                  {social.socialOverview.incomingFriendRequests.map((req) => (
+                    <div
+                      key={req.playerId}
+                      className="flex items-center justify-between p-3 rounded-xl bg-white/40"
+                    >
+                      <PlayerIdentityRow player={req} nameClassName="font-medium" />
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => social.handleAcceptFriendRequest(req.playerId)}
+                        >
+                          {tCommon("accept")}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => social.handleDeclineFriendRequest(req.playerId)}
+                        >
+                          {tCommon("decline")}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  {social.socialOverview.incomingFriendRequests.length === 0 && (
+                    <p className="text-sm text-[#6e5b48]">{t("noPendingRequests")}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-[#8d7760]">
+                    {t("outgoingRequests")}
+                  </h4>
+                  {social.socialOverview.outgoingFriendRequests.map((req) => (
+                    <div
+                      key={req.playerId}
+                      className="flex items-center justify-between p-3 rounded-xl bg-white/40"
+                    >
+                      <PlayerIdentityRow player={req} nameClassName="font-medium" />
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => social.handleDeclineFriendRequest(req.playerId)}
+                        className="text-xs text-[#8d7760] hover:text-red-600"
+                        onClick={() => social.handleCancelFriendRequest(req.playerId)}
+                        disabled={social.socialActionBusyKey === `friend-cancel:${req.playerId}`}
                       >
-                        {tCommon("decline")}
+                        {tCommon("cancel")}
                       </Button>
                     </div>
-                  </div>
-                ))}
-                {social.socialOverview.incomingFriendRequests.length === 0 && (
-                  <p className="text-sm text-[#6e5b48]">{t("noPendingRequests")}</p>
-                )}
+                  ))}
+                  {social.socialOverview.outgoingFriendRequests.length === 0 && (
+                    <p className="text-sm text-[#6e5b48]">{t("noOutgoingRequests")}</p>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
