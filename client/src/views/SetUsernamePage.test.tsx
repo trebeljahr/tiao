@@ -4,6 +4,11 @@ import { SetUsernamePage } from "./SetUsernamePage";
 
 const mockSetUsername = vi.fn();
 const mockApplyAuth = vi.fn();
+const mockReplace = vi.fn();
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: mockReplace }),
+}));
 
 vi.mock("@/lib/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/api")>();
@@ -89,6 +94,8 @@ describe("SetUsernamePage", () => {
         },
       });
     });
+
+    expect(mockReplace).toHaveBeenCalledWith("/");
   });
 
   it("shows error when API rejects", async () => {

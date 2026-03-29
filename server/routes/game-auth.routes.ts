@@ -65,6 +65,7 @@ function buildPlayerIdentityFromAccount(
     badges?: string[];
     activeBadges?: string[];
     rating?: { overall: { elo: number; gamesPlayed: number } };
+    isAdmin?: boolean;
   },
   email?: string,
 ) {

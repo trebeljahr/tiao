@@ -427,7 +427,7 @@ export function LobbyPage() {
           </motion.div>
         </section>
 
-        {auth && sortedActiveGames.length > 0 && (
+        {auth && (
           <section className="grid grid-cols-1 gap-6 md:mt-8 md:grid-cols-2">
             <motion.div
               initial={{ opacity: 0, y: 16 }}
@@ -638,7 +638,7 @@ export function LobbyPage() {
           </section>
         )}
 
-        <section className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 md:mx-auto md:max-w-3xl">
+        <section className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}

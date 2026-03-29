@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import { readableError, toastError } from "@/lib/errors";
 
 export function SetUsernamePage() {
   const t = useTranslations("onboarding");
+  const router = useRouter();
   const { applyAuth } = useAuth();
   const [username, setUsernameValue] = useState("");
   const [busy, setBusy] = useState(false);
@@ -29,6 +31,7 @@ export function SetUsernamePage() {
     try {
       const result = await setUsername(sanitized);
       applyAuth(result.auth);
+      router.replace("/");
     } catch (err: unknown) {
       const message = readableError(err);
       setError(message);
