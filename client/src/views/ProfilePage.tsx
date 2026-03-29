@@ -644,6 +644,23 @@ export function ProfilePage() {
                     )}
 
                     <div className="grid gap-3 rounded-2xl border border-[#dcc7a3] bg-[#fff9ef] px-4 py-3 text-sm text-[#6f5a45]">
+                      <div className="flex items-baseline justify-between">
+                        <span className="font-medium text-[#4e3d2c]">{t("rating")}</span>
+                        <span className="font-display text-lg font-bold text-[#2b1e14]">
+                          {profile?.rating ?? 1500}
+                        </span>
+                      </div>
+                      {(profile?.gamesPlayed ?? 0) > 0 && profile?.ratingPercentile != null && (
+                        <p className="text-xs text-[#8d7760]">
+                          {t("ratingPercentile", { percentile: 100 - profile.ratingPercentile })}
+                        </p>
+                      )}
+                      {(profile?.gamesPlayed ?? 0) === 0 && (
+                        <p className="text-xs text-[#8d7760]">{t("ratingProvisional")}</p>
+                      )}
+                    </div>
+
+                    <div className="grid gap-3 rounded-2xl border border-[#dcc7a3] bg-[#fff9ef] px-4 py-3 text-sm text-[#6f5a45]">
                       <p>
                         {t("created", { date: formatTimestamp(profile?.createdAt, t("justNow")) })}
                       </p>

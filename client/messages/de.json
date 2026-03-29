@@ -331,7 +331,10 @@
     "badgeTier": "Stufe {tier} — {id}",
     "failedToResizeImage": "Bild konnte nicht verkleinert werden",
     "failedToLoadImage": "Bild konnte nicht geladen werden",
-    "justNow": "Gerade eben"
+    "justNow": "Gerade eben",
+    "rating": "Wertung",
+    "ratingPercentile": "Top {percentile}%",
+    "ratingProvisional": "Vorl\u00e4ufig — spiele gewertete Partien zur Kalibrierung"
   },
   "friends": {
     "findPlayers": "Spieler finden",
@@ -439,7 +442,10 @@
   "publicProfile": {
     "loadingProfile": "Profil wird geladen...",
     "playerNotFound": "Spieler nicht gefunden.",
-    "playingSince": "Spielt seit {date}"
+    "playingSince": "Spielt seit {date}",
+    "rating": "Wertung",
+    "ratingPercentile": "Top {percentile}%",
+    "ratingProvisional": "Vorl\u00e4ufig"
   },
   "tutorial": {
     "back": "← Zurück",

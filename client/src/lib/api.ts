@@ -21,6 +21,9 @@ export type AccountProfile = {
   profilePicture?: string;
   badges?: string[];
   activeBadges?: string[];
+  rating?: number;
+  gamesPlayed?: number;
+  ratingPercentile?: number;
   createdAt?: string;
   updatedAt?: string;
   /** Auth providers linked to this account (e.g. "credential", "github", "google") */
@@ -313,6 +316,9 @@ export function getAccountProfile() {
 export type PublicProfile = {
   displayName: string;
   profilePicture?: string;
+  rating?: number;
+  gamesPlayed?: number;
+  ratingPercentile?: number;
   createdAt?: string;
 };
 

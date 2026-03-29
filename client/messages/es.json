@@ -331,7 +331,10 @@
     "badgeTier": "Nivel {tier} — {id}",
     "failedToResizeImage": "Error al redimensionar la imagen",
     "failedToLoadImage": "Error al cargar la imagen",
-    "justNow": "Ahora mismo"
+    "justNow": "Ahora mismo",
+    "rating": "Puntuaci\u00f3n",
+    "ratingPercentile": "Top {percentile}%",
+    "ratingProvisional": "Provisional — juega partidas clasificatorias para calibrar"
   },
   "friends": {
     "findPlayers": "Buscar jugadores",
@@ -439,7 +442,10 @@
   "publicProfile": {
     "loadingProfile": "Cargando perfil...",
     "playerNotFound": "Jugador no encontrado.",
-    "playingSince": "Jugando desde {date}"
+    "playingSince": "Jugando desde {date}",
+    "rating": "Puntuaci\u00f3n",
+    "ratingPercentile": "Top {percentile}%",
+    "ratingProvisional": "Provisional"
   },
   "tutorial": {
     "back": "← Volver",

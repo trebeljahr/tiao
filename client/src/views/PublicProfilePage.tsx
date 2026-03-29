@@ -86,8 +86,22 @@ export function PublicProfilePage() {
                 <h1 className="font-display text-3xl font-bold text-[#2b1e14]">
                   {profile.displayName}
                 </h1>
+                <div className="mt-3 inline-flex items-baseline gap-2 rounded-xl border border-[#dcc7a3] bg-[#fff9ef] px-4 py-2">
+                  <span className="text-sm font-medium text-[#4e3d2c]">{t("rating")}</span>
+                  <span className="font-display text-lg font-bold text-[#2b1e14]">
+                    {profile.rating ?? 1500}
+                  </span>
+                  {(profile.gamesPlayed ?? 0) > 0 && profile.ratingPercentile != null && (
+                    <span className="text-xs text-[#8d7760]">
+                      {t("ratingPercentile", { percentile: 100 - profile.ratingPercentile })}
+                    </span>
+                  )}
+                  {(profile.gamesPlayed ?? 0) === 0 && (
+                    <span className="text-xs text-[#8d7760]">{t("ratingProvisional")}</span>
+                  )}
+                </div>
                 {profile.createdAt && (
-                  <p className="mt-1 text-sm text-[#8d7760]">
+                  <p className="mt-2 text-sm text-[#8d7760]">
                     {t("playingSince", {
                       date: new Date(profile.createdAt).toLocaleDateString(undefined, {
                         month: "long",

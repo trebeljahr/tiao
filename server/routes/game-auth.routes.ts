@@ -89,11 +89,13 @@ function serializeAccountProfile(
     profilePicture?: string;
     badges?: string[];
     activeBadges?: string[];
+    rating?: { overall: { elo: number; gamesPlayed: number } };
     createdAt?: Date;
     updatedAt?: Date;
   },
   email?: string,
   providers?: string[],
+  ratingPercentile?: number,
 ) {
   return {
     displayName: account.displayName,
@@ -101,11 +103,28 @@ function serializeAccountProfile(
     profilePicture: account.profilePicture,
     badges: account.badges ?? [],
     activeBadges: account.activeBadges ?? [],
+    rating: account.rating?.overall?.elo ?? 1500,
+    gamesPlayed: account.rating?.overall?.gamesPlayed ?? 0,
+    ratingPercentile,
     createdAt: account.createdAt?.toISOString(),
     updatedAt: account.updatedAt?.toISOString(),
     /** Auth providers linked to this account (e.g. "credential", "github", "google") */
     providers: providers ?? [],
   };
+}
+
+/** Compute the percentile rank of a player's ELO among all players with at least 1 game. */
+async function computeRatingPercentile(elo: number): Promise<number | undefined> {
+  const totalPlayers = await GameAccount.countDocuments({
+    "rating.overall.gamesPlayed": { $gte: 1 },
+  });
+  if (totalPlayers === 0) return undefined;
+  const playersBelow = await GameAccount.countDocuments({
+    "rating.overall.gamesPlayed": { $gte: 1 },
+    "rating.overall.elo": { $lt: elo },
+  });
+  // percentile = share of players you are better than (higher = better)
+  return Math.round((playersBelow / totalPlayers) * 100);
 }
 
 /** Look up which auth providers are linked to an account. */
@@ -320,16 +339,25 @@ router.get("/profile", async (req: Request, res: Response) => {
     const account = await requireAccount(req, res);
     if (!account) return;
 
-    const [email, providers, ssoImage] = await Promise.all([
+    const elo = account.rating?.overall?.elo ?? 1500;
+    const gamesPlayed = account.rating?.overall?.gamesPlayed ?? 0;
+
+    const [email, providers, ssoImage, percentile] = await Promise.all([
       getEmailForAccount(account.id),
       getProvidersForAccount(account.id),
       getSsoImageForAccount(account.id),
+      gamesPlayed > 0 ? computeRatingPercentile(elo) : Promise.resolve(undefined),
     ]);
 
     // Use GameAccount.profilePicture as primary, fall back to SSO image
     const profilePicture = account.profilePicture || ssoImage || undefined;
     return res.status(200).json({
-      profile: serializeAccountProfile({ ...account.toObject(), profilePicture }, email, providers),
+      profile: serializeAccountProfile(
+        { ...account.toObject(), profilePicture },
+        email,
+        providers,
+        percentile,
+      ),
     });
   } catch (error) {
     handleRouteError(error, req, res, "Unable to load profile right now.");
@@ -364,10 +392,17 @@ router.get("/profile/:username", async (req: Request, res: Response) => {
       }
     }
 
+    const elo = account.rating?.overall?.elo ?? 1500;
+    const gamesPlayed = account.rating?.overall?.gamesPlayed ?? 0;
+    const percentile = gamesPlayed > 0 ? await computeRatingPercentile(elo) : undefined;
+
     return res.status(200).json({
       profile: {
         displayName: account.displayName,
         profilePicture,
+        rating: elo,
+        gamesPlayed,
+        ratingPercentile: percentile,
         createdAt: account.createdAt,
       },
     });
