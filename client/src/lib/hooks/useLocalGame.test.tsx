@@ -1,11 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useLocalGame } from "./useLocalGame";
-import {
-  createInitialGameState,
-  GameState,
-  getJumpTargets,
-} from "@shared";
+import { createInitialGameState, GameState, getJumpTargets } from "@shared";
 
 /**
  * Helper: build a game state where white and black pieces are positioned
@@ -247,6 +243,36 @@ describe("useLocalGame – lastMove tracking on undo", () => {
     if (result.current.lastMove!.type === "put") {
       expect(result.current.lastMove!.position).toEqual({ x: 7, y: 7 });
     }
+  });
+});
+
+describe("useLocalGame – placement blocked when piece with jump is selected", () => {
+  it("prevents placing a stone when a piece with available jumps is selected", () => {
+    const { result } = renderHook(() => useLocalGame());
+
+    const jumpState = stateWithJumpOpportunity();
+    act(() => result.current.setLocalGame(jumpState));
+
+    // Select white piece at (5,5) — it can jump over black at (6,5)
+    act(() => result.current.handleLocalBoardClick({ x: 5, y: 5 }));
+    expect(result.current.localSelection).toEqual({ x: 5, y: 5 });
+    expect(result.current.localJumpTargets.length).toBeGreaterThan(0);
+
+    // Try to place at (9,9) — an empty cell far away.
+    // This should be blocked because the selected piece has jump targets.
+    act(() => result.current.handleLocalBoardClick({ x: 9, y: 9 }));
+    expect(result.current.localGame.positions[9][9]).toBeNull();
+
+    // Selection should still be active (not cleared)
+    expect(result.current.localSelection).toEqual({ x: 5, y: 5 });
+  });
+
+  it("allows placement when no piece with jumps is selected", () => {
+    const { result } = renderHook(() => useLocalGame());
+
+    // On a fresh board, no pieces can jump. Place normally.
+    act(() => result.current.handleLocalBoardClick({ x: 9, y: 9 }));
+    expect(result.current.localGame.positions[9][9]).toBe("white");
   });
 });
 

@@ -124,6 +124,14 @@ export function useLocalGame(settings?: Partial<GameSettings>) {
           }
           return;
         }
+
+        // When the selected piece has available jumps, block any other
+        // action (placement or selecting a different piece).  The player
+        // must either execute a jump or deselect the piece first.  This
+        // prevents accidental placements when fat-fingering on mobile.
+        if (jumpTargets.length > 0) {
+          return;
+        }
       }
 
       // Don't allow selecting a different piece or placing during a pending
