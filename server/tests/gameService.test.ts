@@ -542,3 +542,83 @@ test("players are not listed as spectators when they connect", async () => {
   assert.equal(snapshot.spectators.length, 0);
   assert.equal(snapshot.players.length, 2);
 });
+
+test("migratePlayerIdentity updates ALL games including finished ones", async () => {
+  const store = new InMemoryGameRoomStore();
+  const service = new GameService(store);
+  const guest = createPlayer("guest-123", { displayName: "wistful-sage-deer", kind: "guest" });
+  const opponent = createPlayer("opponent");
+
+  // Create and finish a game (simulating match history)
+  const finishedGame = await service.createGame(guest);
+  await service.joinGame(finishedGame.gameId, opponent);
+  await finishRoom(store, finishedGame.gameId, "white");
+
+  // Create an active game
+  const activeGame = await service.createGame(guest);
+  await service.joinGame(activeGame.gameId, opponent);
+
+  // Migrate guest to a registered account
+  const newIdentity: PlayerIdentity = {
+    playerId: "registered-456",
+    displayName: "rico",
+    kind: "account",
+    profilePicture: "https://example.com/avatar.jpg",
+  };
+  const modified = await store.migratePlayerIdentity("guest-123", newIdentity);
+  assert.equal(modified, 2, "should migrate both active and finished games");
+
+  // Verify finished game was migrated
+  const finishedRooms = await store.listRoomsForPlayer("registered-456");
+  assert.equal(finishedRooms.length, 2, "both games should appear under new playerId");
+
+  const finishedRoom = finishedRooms.find((r) => r.id === finishedGame.gameId);
+  assert.ok(finishedRoom, "finished game should be found");
+  const migratedPlayer = finishedRoom.players.find((p) => p.playerId === "registered-456");
+  assert.ok(migratedPlayer, "migrated player should exist");
+  assert.equal(migratedPlayer.displayName, "rico");
+  assert.equal(migratedPlayer.kind, "account");
+  assert.equal(migratedPlayer.profilePicture, "https://example.com/avatar.jpg");
+
+  // Verify active game was also migrated
+  const activeRoom = finishedRooms.find((r) => r.id === activeGame.gameId);
+  assert.ok(activeRoom, "active game should be found");
+  const activePlayer = activeRoom.players.find((p) => p.playerId === "registered-456");
+  assert.ok(activePlayer, "migrated player in active game should exist");
+  assert.equal(activePlayer.displayName, "rico");
+  assert.equal(activePlayer.kind, "account");
+
+  // Verify old playerId no longer appears
+  const oldRooms = await store.listRoomsForPlayer("guest-123");
+  assert.equal(oldRooms.length, 0, "no games should remain under old guest playerId");
+});
+
+test("migratePlayerIdentity updates seat assignments", async () => {
+  const store = new InMemoryGameRoomStore();
+  const service = new GameService(store);
+  const guest = createPlayer("guest-abc", { displayName: "jolly-red-fox", kind: "guest" });
+  const opponent = createPlayer("opponent2");
+
+  const game = await service.createGame(guest);
+  await service.joinGame(game.gameId, opponent);
+
+  const newIdentity: PlayerIdentity = {
+    playerId: "registered-xyz",
+    displayName: "newuser",
+    kind: "account",
+    profilePicture: "https://example.com/pic.png",
+  };
+  await store.migratePlayerIdentity("guest-abc", newIdentity);
+
+  const room = await store.getRoom(game.gameId);
+  assert.ok(room);
+
+  // One of the seats should have the new identity
+  const whiteSeat = room.seats.white;
+  const blackSeat = room.seats.black;
+  const migratedSeat = whiteSeat?.playerId === "registered-xyz" ? whiteSeat : blackSeat;
+  assert.ok(migratedSeat, "one seat should have migrated playerId");
+  assert.equal(migratedSeat.displayName, "newuser");
+  assert.equal(migratedSeat.kind, "account");
+  assert.equal(migratedSeat.profilePicture, "https://example.com/pic.png");
+});

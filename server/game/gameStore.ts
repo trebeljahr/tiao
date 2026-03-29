@@ -356,12 +356,9 @@ export class MongoGameRoomStore implements GameRoomStore {
   }
 
   async migratePlayerIdentity(oldPlayerId: string, newIdentity: PlayerIdentity): Promise<number> {
-    // Update all unfinished rooms where the old player appears
+    // Update ALL rooms where the old player appears (including finished games)
     const result = await GameRoom.updateMany(
-      {
-        status: { $in: ["waiting", "active"] },
-        "players.playerId": oldPlayerId,
-      },
+      { "players.playerId": oldPlayerId },
       {
         $set: {
           "players.$[p].playerId": newIdentity.playerId,
@@ -377,7 +374,7 @@ export class MongoGameRoomStore implements GameRoomStore {
 
     // Also update seats
     await GameRoom.updateMany(
-      { status: { $in: ["waiting", "active"] }, "seats.white.playerId": oldPlayerId },
+      { "seats.white.playerId": oldPlayerId },
       {
         $set: {
           "seats.white.playerId": newIdentity.playerId,
@@ -389,7 +386,7 @@ export class MongoGameRoomStore implements GameRoomStore {
     );
 
     await GameRoom.updateMany(
-      { status: { $in: ["waiting", "active"] }, "seats.black.playerId": oldPlayerId },
+      { "seats.black.playerId": oldPlayerId },
       {
         $set: {
           "seats.black.playerId": newIdentity.playerId,
@@ -525,7 +522,6 @@ export class InMemoryGameRoomStore implements GameRoomStore {
   async migratePlayerIdentity(oldPlayerId: string, newIdentity: PlayerIdentity): Promise<number> {
     let count = 0;
     for (const [, room] of this.rooms) {
-      if (room.status === "finished") continue;
       let modified = false;
       for (const p of room.players) {
         if (p.playerId === oldPlayerId) {

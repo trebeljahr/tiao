@@ -97,6 +97,39 @@ export const auth = betterAuth({
   },
 
   databaseHooks: {
+    session: {
+      create: {
+        after: async (session) => {
+          // Sync SSO profile picture → GameAccount on every login.
+          // better-auth stores the SSO avatar in user.image; we keep
+          // GameAccount.profilePicture as the single source of truth for
+          // all downstream features (social, games, tournaments).
+          // Only overwrite when the user hasn't uploaded a custom picture
+          // (custom uploads go through CloudFront, SSO images are external URLs).
+          try {
+            const account = await GameAccount.findById(session.userId);
+            if (!account) return;
+
+            // If the user already has a custom-uploaded picture, don't overwrite
+            if (account.profilePicture && account.profilePicture.includes("cloudfront")) return;
+
+            const db = (await import("mongoose")).default.connection.getClient().db();
+            const baUser = await db
+              .collection("user")
+              .findOne({ _id: session.userId as any });
+            const ssoImage = baUser?.image as string | null | undefined;
+
+            if (ssoImage && ssoImage !== account.profilePicture) {
+              account.profilePicture = ssoImage;
+              await account.save();
+            }
+          } catch (err) {
+            // Non-critical — log and continue so login isn't blocked
+            console.warn("[auth] Failed to sync SSO profile picture:", err);
+          }
+        },
+      },
+    },
     user: {
       create: {
         before: async (user) => {
@@ -174,48 +207,43 @@ export const auth = betterAuth({
         return name;
       },
       onLinkAccount: async ({ anonymousUser, newUser }) => {
-        // Migrate guest's in-progress games to the new account
+        // Migrate ALL of the guest's games (including finished) to the new account
         const guestId = anonymousUser.user.id;
         const newId = newUser.user.id;
         const newDisplayName = (newUser.user as any).displayName || newUser.user.name;
+        const profilePicture = newUser.user.image || undefined;
 
         await GameRoom.updateMany(
-          {
-            status: { $in: ["waiting", "active"] },
-            "players.playerId": guestId,
-          },
+          { "players.playerId": guestId },
           {
             $set: {
               "players.$[p].playerId": newId,
               "players.$[p].displayName": newDisplayName,
               "players.$[p].kind": "account",
+              "players.$[p].profilePicture": profilePicture,
             },
           },
           { arrayFilters: [{ "p.playerId": guestId }] },
         );
         await GameRoom.updateMany(
-          {
-            status: { $in: ["waiting", "active"] },
-            "seats.white.playerId": guestId,
-          },
+          { "seats.white.playerId": guestId },
           {
             $set: {
               "seats.white.playerId": newId,
               "seats.white.displayName": newDisplayName,
               "seats.white.kind": "account",
+              "seats.white.profilePicture": profilePicture,
             },
           },
         );
         await GameRoom.updateMany(
-          {
-            status: { $in: ["waiting", "active"] },
-            "seats.black.playerId": guestId,
-          },
+          { "seats.black.playerId": guestId },
           {
             $set: {
               "seats.black.playerId": newId,
               "seats.black.displayName": newDisplayName,
               "seats.black.kind": "account",
+              "seats.black.profilePicture": profilePicture,
             },
           },
         );
