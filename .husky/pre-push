@@ -5,3 +5,9 @@ npm --prefix client run typecheck || { printf >&2 "\n[pre-push] Client typecheck
 
 printf "[pre-push] Typechecking server...\n"
 npm --prefix server run build || { printf >&2 "\n[pre-push] Server typecheck failed.\n"; exit 1; }
+
+printf "[pre-push] Building client (next build)...\n"
+npm --prefix client run build || { printf >&2 "\n[pre-push] Client build failed.\n"; exit 1; }
+
+printf "[pre-push] Running unit tests...\n"
+npm run test:unit || { printf >&2 "\n[pre-push] Unit tests failed.\n"; exit 1; }
