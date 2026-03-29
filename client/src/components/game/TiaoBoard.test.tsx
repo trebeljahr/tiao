@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { createInitialGameState, BOARD_SIZE } from "@shared";
+import { createInitialGameState, BOARD_SIZE, getJumpTargets } from "@shared";
 import { touchToGridPosition } from "./TiaoBoard";
 
 // ---------- touchToGridPosition unit tests ----------
@@ -335,6 +335,58 @@ describe("TiaoBoard – pending jump controls", () => {
 
     expect(screen.queryByLabelText("Undo last jump")).toBeNull();
     expect(screen.queryByLabelText("Confirm jump")).toBeNull();
+  });
+});
+
+describe("TiaoBoard – selectable glow only during pending jump", () => {
+  it("does not apply selectable glow when pieces can jump but no pending jump", async () => {
+    const { TiaoBoard } = await import("./TiaoBoard");
+    const state = createInitialGameState();
+    // Set up: white at (9,9), black at (9,8) — white can jump over black to (9,7)
+    state.positions[9][9] = "white";
+    state.positions[8][9] = "black";
+    state.currentTurn = "white";
+
+    // Verify there IS a jump target from (9,9)
+    expect(getJumpTargets(state, { x: 9, y: 9 }).length).toBeGreaterThan(0);
+
+    render(
+      <TiaoBoard state={state} selectedPiece={null} jumpTargets={[]} onPointClick={() => {}} />,
+    );
+
+    // The piece at (9,9) should NOT have the selectable glow (no 4px spread)
+    const cell = screen.getByTestId("cell-9-9");
+    const piece = cell.querySelector('[class*="rounded-full"][class*="z-10"]') as HTMLElement;
+    expect(piece).toBeTruthy();
+    expect(piece.style.boxShadow).not.toContain("0 0 0 4px");
+  });
+
+  it("applies selectable glow during a pending jump", async () => {
+    const { TiaoBoard } = await import("./TiaoBoard");
+    const state = createInitialGameState();
+    // Set up: white jumped from (9,9) over (9,8) to (9,7), and can continue jumping
+    state.positions[7][9] = "white"; // landed here
+    state.positions[6][9] = "black"; // can jump over this next
+    state.currentTurn = "white";
+    state.pendingJump = [
+      { from: { x: 9, y: 9 }, over: { x: 9, y: 8 }, to: { x: 9, y: 7 }, color: "white" },
+    ];
+    state.pendingCaptures = [{ x: 9, y: 8 }];
+
+    render(
+      <TiaoBoard
+        state={state}
+        selectedPiece={{ x: 9, y: 7 }}
+        jumpTargets={[{ x: 9, y: 5 }]}
+        onPointClick={() => {}}
+      />,
+    );
+
+    // The piece at (9,7) should have the selectable glow (forced origin)
+    const cell = screen.getByTestId("cell-9-7");
+    const piece = cell.querySelector('[class*="rounded-full"][class*="z-10"]') as HTMLElement;
+    expect(piece).toBeTruthy();
+    expect(piece.style.boxShadow).toContain("0 0 0 4px");
   });
 });
 

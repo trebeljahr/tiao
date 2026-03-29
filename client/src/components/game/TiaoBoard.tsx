@@ -753,7 +753,9 @@ export function TiaoBoard({
                       piece === "black" ? theme.blackPieceBorder : theme.whitePieceBorder,
                     background: piece === "black" ? theme.blackPieceBg : theme.whitePieceBg,
                     boxShadow:
-                      isSelectableOrigin && !disabled ? theme.selectableGlow : theme.pieceShadow,
+                      isSelectableOrigin && !disabled && hasPendingJump
+                        ? theme.selectableGlow
+                        : theme.pieceShadow,
                   }}
                 />
               ) : isHoveredEmpty ? (
