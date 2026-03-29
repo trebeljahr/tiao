@@ -28,6 +28,14 @@ function generateTournamentId(): string {
   return id;
 }
 
+function generateInviteCode(): string {
+  let code = "";
+  for (let i = 0; i < 8; i++) {
+    code += ID_CHARS[Math.floor(Math.random() * ID_CHARS.length)];
+  }
+  return code;
+}
+
 function generateMatchId(roundIndex: number, matchIndex: number, prefix = ""): string {
   return `${prefix}R${roundIndex}M${matchIndex}`;
 }
@@ -299,6 +307,11 @@ export class TournamentService implements TournamentGameCallback {
       );
     }
 
+    // Auto-generate invite code for private tournaments if not provided
+    if (settings.visibility === "private" && !settings.inviteCode) {
+      settings = { ...settings, inviteCode: generateInviteCode() };
+    }
+
     const tournamentId = generateTournamentId();
     return this.store.createTournament({
       tournamentId,
@@ -313,6 +326,7 @@ export class TournamentService implements TournamentGameCallback {
       groups: [],
       knockoutRounds: [],
       featuredMatchId: null,
+      invitedUserIds: [],
     });
   }
 
@@ -655,10 +669,51 @@ export class TournamentService implements TournamentGameCallback {
     });
   }
 
+  // ── Invite Link Access ──
+
+  async accessTournament(
+    tournamentId: string,
+    playerId: string,
+    inviteCode: string,
+  ): Promise<StoredTournament> {
+    const tournament = await this.getTournament(tournamentId);
+
+    if (tournament.settings.visibility !== "private") {
+      throw new GameServiceError(400, "NOT_PRIVATE", "This tournament is not private.");
+    }
+
+    if (tournament.settings.inviteCode && inviteCode !== tournament.settings.inviteCode) {
+      throw new GameServiceError(403, "INVALID_INVITE_CODE", "Invalid invite code.");
+    }
+
+    // Add user to invitedUserIds if not already present
+    if (!tournament.invitedUserIds.includes(playerId)) {
+      tournament.invitedUserIds.push(playerId);
+      return this.store.saveTournament(tournament);
+    }
+
+    return tournament;
+  }
+
   // ── Queries ──
 
-  async getTournamentSnapshot(tournamentId: string): Promise<TournamentSnapshot> {
+  async getTournamentSnapshot(
+    tournamentId: string,
+    requesterId?: string,
+  ): Promise<TournamentSnapshot> {
     const t = await this.getTournament(tournamentId);
+
+    // Private tournaments are only visible to creator, participants, and invited users
+    if (t.settings.visibility === "private" && requesterId) {
+      const isAllowed =
+        t.creatorId === requesterId ||
+        t.participants.some((p) => p.playerId === requesterId) ||
+        t.invitedUserIds.includes(requesterId);
+      if (!isAllowed) {
+        throw new GameServiceError(404, "TOURNAMENT_NOT_FOUND", "Tournament not found.");
+      }
+    }
+
     return this.toSnapshot(t);
   }
 

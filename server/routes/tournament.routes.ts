@@ -98,10 +98,35 @@ router.post("/tournaments", async (req: Request, res: Response) => {
 // GET /tournaments/:id — get tournament snapshot
 router.get("/tournaments/:id", async (req: Request, res: Response) => {
   try {
-    const snapshot = await tournamentService.getTournamentSnapshot(req.params.id);
+    const player = await getPlayerFromRequest(req);
+    const snapshot = await tournamentService.getTournamentSnapshot(
+      req.params.id,
+      player?.playerId,
+    );
     return res.status(200).json({ tournament: snapshot });
   } catch (error) {
     return respondWithError(res, error, "Unable to load tournament.");
+  }
+});
+
+// POST /tournaments/:id/access — access a private tournament via invite code
+router.post("/tournaments/:id/access", async (req: Request, res: Response) => {
+  const player = await getAccountPlayer(req, res);
+  if (!player) return;
+
+  try {
+    const { inviteCode } = req.body as { inviteCode: string };
+    if (!inviteCode || typeof inviteCode !== "string") {
+      return res
+        .status(400)
+        .json({ code: "VALIDATION_ERROR", message: "Invite code is required." });
+    }
+
+    await tournamentService.accessTournament(req.params.id, player.playerId, inviteCode);
+    const snapshot = await tournamentService.getTournamentSnapshot(req.params.id, player.playerId);
+    return res.status(200).json({ tournament: snapshot });
+  } catch (error) {
+    return respondWithError(res, error, "Unable to access tournament.");
   }
 });
 

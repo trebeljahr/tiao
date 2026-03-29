@@ -20,6 +20,7 @@ export interface ITournament extends Document {
   groups: TournamentGroup[];
   knockoutRounds: TournamentRound[];
   featuredMatchId: string | null;
+  invitedUserIds: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -208,6 +209,10 @@ const TournamentSchema = new Schema<ITournament>(
       type: String,
       default: null,
     },
+    invitedUserIds: {
+      type: [String],
+      default: [],
+    },
   },
   {
     timestamps: true,
@@ -216,6 +221,7 @@ const TournamentSchema = new Schema<ITournament>(
 
 TournamentSchema.index({ status: 1, "settings.visibility": 1, createdAt: -1 });
 TournamentSchema.index({ "participants.playerId": 1 });
+TournamentSchema.index({ invitedUserIds: 1 });
 
 const Tournament = models.Tournament || model<ITournament>("Tournament", TournamentSchema);
 

@@ -878,3 +878,155 @@ describe("Tournament rematch blocking", () => {
     );
   });
 });
+
+// ── Invite Links ──
+
+describe("Private tournament invite links", () => {
+  test("auto-generates invite code for private tournament without one", async () => {
+    const { tournamentService } = createServices();
+    const alice = createPlayer("alice");
+
+    const t = await tournamentService.createTournament(
+      alice,
+      defaultSettings({ visibility: "private" }),
+      "Auto Code",
+    );
+
+    const snapshot = await tournamentService.getTournamentSnapshot(t.tournamentId);
+    assert.ok(
+      snapshot.settings.inviteCode,
+      "invite code should be auto-generated for private tournaments",
+    );
+    assert.equal(snapshot.settings.inviteCode!.length, 8);
+  });
+
+  test("preserves user-provided invite code", async () => {
+    const { tournamentService } = createServices();
+    const alice = createPlayer("alice");
+
+    const t = await tournamentService.createTournament(
+      alice,
+      defaultSettings({ visibility: "private", inviteCode: "MYCODE" }),
+      "Custom Code",
+    );
+
+    const snapshot = await tournamentService.getTournamentSnapshot(t.tournamentId);
+    assert.equal(snapshot.settings.inviteCode, "MYCODE");
+  });
+
+  test("does not generate invite code for public tournament", async () => {
+    const { tournamentService } = createServices();
+    const alice = createPlayer("alice");
+
+    const t = await tournamentService.createTournament(
+      alice,
+      defaultSettings({ visibility: "public" }),
+      "Public",
+    );
+
+    const snapshot = await tournamentService.getTournamentSnapshot(t.tournamentId);
+    assert.equal(snapshot.settings.inviteCode, undefined);
+  });
+
+  test("accessTournament adds user to invitedUserIds", async () => {
+    const { tournamentService, tournamentStore } = createServices();
+    const alice = createPlayer("alice");
+
+    const t = await tournamentService.createTournament(
+      alice,
+      defaultSettings({ visibility: "private", inviteCode: "SECRET" }),
+      "Access Test",
+    );
+
+    await tournamentService.accessTournament(t.tournamentId, "bob", "SECRET");
+
+    const stored = await tournamentStore.getTournament(t.tournamentId);
+    assert.ok(stored);
+    assert.ok(stored.invitedUserIds.includes("bob"), "bob should be in invitedUserIds");
+  });
+
+  test("accessTournament rejects wrong invite code", async () => {
+    const { tournamentService } = createServices();
+    const alice = createPlayer("alice");
+
+    const t = await tournamentService.createTournament(
+      alice,
+      defaultSettings({ visibility: "private", inviteCode: "SECRET" }),
+      "Wrong Code",
+    );
+
+    await assert.rejects(
+      () => tournamentService.accessTournament(t.tournamentId, "bob", "WRONG"),
+      (error) => isGameServiceError(error, "INVALID_INVITE_CODE"),
+    );
+  });
+
+  test("accessTournament is idempotent", async () => {
+    const { tournamentService, tournamentStore } = createServices();
+    const alice = createPlayer("alice");
+
+    const t = await tournamentService.createTournament(
+      alice,
+      defaultSettings({ visibility: "private", inviteCode: "SECRET" }),
+      "Idempotent",
+    );
+
+    await tournamentService.accessTournament(t.tournamentId, "bob", "SECRET");
+    await tournamentService.accessTournament(t.tournamentId, "bob", "SECRET");
+
+    const stored = await tournamentStore.getTournament(t.tournamentId);
+    assert.ok(stored);
+    assert.equal(
+      stored.invitedUserIds.filter((id) => id === "bob").length,
+      1,
+      "bob should appear only once in invitedUserIds",
+    );
+  });
+
+  test("invited user sees tournament in my tournaments list", async () => {
+    const { tournamentService } = createServices();
+    const alice = createPlayer("alice");
+
+    const t = await tournamentService.createTournament(
+      alice,
+      defaultSettings({ visibility: "private", inviteCode: "SECRET" }),
+      "Invite List",
+    );
+
+    await tournamentService.accessTournament(t.tournamentId, "bob", "SECRET");
+
+    const bobList = await tournamentService.listMyTournaments("bob");
+    assert.equal(bobList.length, 1);
+    assert.equal(bobList[0].tournamentId, t.tournamentId);
+  });
+
+  test("private tournament not visible in public listing", async () => {
+    const { tournamentService } = createServices();
+    const alice = createPlayer("alice");
+
+    await tournamentService.createTournament(
+      alice,
+      defaultSettings({ visibility: "private" }),
+      "Hidden",
+    );
+
+    const list = await tournamentService.listPublicTournaments();
+    assert.equal(list.length, 0);
+  });
+
+  test("accessTournament rejects non-private tournament", async () => {
+    const { tournamentService } = createServices();
+    const alice = createPlayer("alice");
+
+    const t = await tournamentService.createTournament(
+      alice,
+      defaultSettings({ visibility: "public" }),
+      "Public",
+    );
+
+    await assert.rejects(
+      () => tournamentService.accessTournament(t.tournamentId, "bob", "anything"),
+      (error) => isGameServiceError(error, "NOT_PRIVATE"),
+    );
+  });
+});

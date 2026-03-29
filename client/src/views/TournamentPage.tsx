@@ -1,5 +1,5 @@
-import { useCallback, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import type { TournamentSnapshot } from "@shared";
 import { useAuth } from "@/lib/AuthContext";
@@ -14,6 +14,7 @@ import { StandingsTable } from "@/components/tournament/StandingsTable";
 import { MatchCard } from "@/components/tournament/MatchCard";
 import { useTournament } from "@/lib/hooks/useTournament";
 import {
+  accessTournament,
   registerForTournament,
   unregisterFromTournament,
   startTournament as apiStartTournament,
@@ -29,7 +30,9 @@ export function TournamentPage() {
   const tCommon = useTranslations("common");
   const { auth, onOpenAuth, onLogout } = useAuth();
   const params = useParams<{ tournamentId: string }>();
+  const searchParams = useSearchParams();
   const tournamentId = params?.tournamentId;
+  const inviteCodeFromUrl = searchParams?.get("code") ?? null;
   const router = useRouter();
   const playerId = auth?.player?.playerId;
   const isAccount = auth?.player?.kind === "account";
@@ -38,6 +41,7 @@ export function TournamentPage() {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [inviteCodeDialogOpen, setInviteCodeDialogOpen] = useState(false);
   const [inviteCodeInput, setInviteCodeInput] = useState("");
+  const accessAttempted = useRef(false);
 
   function formatLabel(format: string): string {
     switch (format) {
@@ -67,6 +71,28 @@ export function TournamentPage() {
   const { tournament, loading, error, refresh } = useTournament(auth, tournamentId ?? null, {
     onMatchReady,
   });
+
+  // Auto-access private tournament when invite code is in URL
+  useEffect(() => {
+    if (
+      !inviteCodeFromUrl ||
+      !tournamentId ||
+      !isAccount ||
+      !playerId ||
+      accessAttempted.current
+    ) {
+      return;
+    }
+    accessAttempted.current = true;
+    accessTournament(tournamentId, inviteCodeFromUrl)
+      .then(() => {
+        refresh({ silent: true });
+      })
+      .catch(() => {
+        // Access failed — user will see the tournament page normally
+        // (or get a 404 if they don't have permission)
+      });
+  }, [inviteCodeFromUrl, tournamentId, isAccount, playerId, refresh]);
 
   if (loading && !tournament) {
     return (
@@ -171,8 +197,15 @@ export function TournamentPage() {
               disabled={busy}
               onClick={() => {
                 if (tournament.settings.visibility === "private") {
-                  setInviteCodeInput("");
-                  setInviteCodeDialogOpen(true);
+                  if (inviteCodeFromUrl) {
+                    // Already have code from URL — use it directly
+                    handleAction(() =>
+                      registerForTournament(tournament.tournamentId, inviteCodeFromUrl),
+                    );
+                  } else {
+                    setInviteCodeInput("");
+                    setInviteCodeDialogOpen(true);
+                  }
                 } else {
                   handleAction(() => registerForTournament(tournament.tournamentId));
                 }
@@ -190,6 +223,21 @@ export function TournamentPage() {
               {t("leaveTournament")}
             </Button>
           )}
+          {isAdmin &&
+            tournament.settings.visibility === "private" &&
+            tournament.settings.inviteCode && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const url = `${window.location.origin}/tournament/${tournament.tournamentId}?code=${tournament.settings.inviteCode}`;
+                  navigator.clipboard.writeText(url).then(() => {
+                    toast.success(t("inviteLinkCopied"));
+                  });
+                }}
+              >
+                {t("copyInviteLink")}
+              </Button>
+            )}
           {canStart && (
             <Button
               disabled={busy}

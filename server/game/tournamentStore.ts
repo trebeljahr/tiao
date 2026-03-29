@@ -20,6 +20,7 @@ export type StoredTournament = {
   groups: TournamentGroup[];
   knockoutRounds: TournamentRound[];
   featuredMatchId: string | null;
+  invitedUserIds: string[];
   createdAt: Date;
   updatedAt: Date;
 };
@@ -34,6 +35,7 @@ export interface TournamentStore {
   listTournamentsForPlayer(playerId: string): Promise<StoredTournament[]>;
   findTournamentByMatchRoomId(roomId: string): Promise<StoredTournament | null>;
   findRegistrationTournamentsByParticipant(playerId: string): Promise<StoredTournament[]>;
+  listTournamentsForInvitedUser(playerId: string): Promise<StoredTournament[]>;
 }
 
 function toStoredTournament(doc: any): StoredTournament {
@@ -51,6 +53,7 @@ function toStoredTournament(doc: any): StoredTournament {
     groups: obj.groups ?? [],
     knockoutRounds: obj.knockoutRounds ?? [],
     featuredMatchId: obj.featuredMatchId ?? null,
+    invitedUserIds: obj.invitedUserIds ?? [],
     createdAt: new Date(obj.createdAt),
     updatedAt: new Date(obj.updatedAt),
   };
@@ -83,6 +86,7 @@ export class MongoTournamentStore implements TournamentStore {
           groups: tournament.groups,
           knockoutRounds: tournament.knockoutRounds,
           featuredMatchId: tournament.featuredMatchId,
+          invitedUserIds: tournament.invitedUserIds,
         },
       },
       { new: true },
@@ -112,8 +116,22 @@ export class MongoTournamentStore implements TournamentStore {
 
   async listTournamentsForPlayer(playerId: string): Promise<StoredTournament[]> {
     const docs = await Tournament.find({
-      $or: [{ "participants.playerId": playerId }, { creatorId: playerId }],
+      $or: [
+        { "participants.playerId": playerId },
+        { creatorId: playerId },
+        { invitedUserIds: playerId },
+      ],
     })
+      .sort({ updatedAt: -1 })
+      .limit(50)
+      .lean()
+      .exec();
+
+    return docs.map(toStoredTournament);
+  }
+
+  async listTournamentsForInvitedUser(playerId: string): Promise<StoredTournament[]> {
+    const docs = await Tournament.find({ invitedUserIds: playerId })
       .sort({ updatedAt: -1 })
       .limit(50)
       .lean()
@@ -203,8 +221,17 @@ export class InMemoryTournamentStore implements TournamentStore {
   async listTournamentsForPlayer(playerId: string): Promise<StoredTournament[]> {
     return Array.from(this.tournaments.values())
       .filter(
-        (t) => t.creatorId === playerId || t.participants.some((p) => p.playerId === playerId),
+        (t) =>
+          t.creatorId === playerId ||
+          t.participants.some((p) => p.playerId === playerId) ||
+          t.invitedUserIds.includes(playerId),
       )
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+  }
+
+  async listTournamentsForInvitedUser(playerId: string): Promise<StoredTournament[]> {
+    return Array.from(this.tournaments.values())
+      .filter((t) => t.invitedUserIds.includes(playerId))
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
   }
 
