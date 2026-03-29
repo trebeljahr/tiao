@@ -205,9 +205,6 @@ export function TutorialPage() {
   // Interactive steps on first playthrough: hide Next (auto-advance handles it).
   // Interactive steps when revisiting (back-navigation): show Next button.
   const showNextButton = !isInteractive || (isInteractive && isRevisiting);
-  // For keyboard navigation, still allow advancing when step is done
-  const canAdvance = !isInteractive || isStepDone;
-
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-4 py-8">
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[24rem] bg-[radial-gradient(circle_at_top,_rgba(255,247,231,0.76),_transparent_58%)]" />
