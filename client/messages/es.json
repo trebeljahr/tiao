@@ -192,6 +192,7 @@
     "opponentCapturedDesc": "Tu rival capturó suficientes de tus piedras.",
     "youForfeitedDesc": "Abandonaste la partida.",
     "youTimedOutDesc": "Se te acabó el tiempo.",
+    "spectatorPlayingAsWon": "Jugando como {color} — Ganó",
     "spectatorCaptured": "{color} capturó suficientes piedras.",
     "spectatorForfeit": "{color} abandonó la partida.",
     "spectatorTimeout": "A {color} se le acabó el tiempo.",

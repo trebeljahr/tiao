@@ -192,6 +192,7 @@
     "opponentCapturedDesc": "Your opponent captured enough of your stones.",
     "youForfeitedDesc": "You forfeited the game.",
     "youTimedOutDesc": "You ran out of time.",
+    "spectatorPlayingAsWon": "Playing as {color} — Won",
     "spectatorCaptured": "{color} captured enough stones.",
     "spectatorForfeit": "{color} forfeited the game.",
     "spectatorTimeout": "{color} ran out of time.",

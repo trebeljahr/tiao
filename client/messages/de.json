@@ -192,6 +192,7 @@
     "opponentCapturedDesc": "Dein Gegner hat genug deiner Steine gefangen.",
     "youForfeitedDesc": "Du hast aufgegeben.",
     "youTimedOutDesc": "Dir ist die Zeit abgelaufen.",
+    "spectatorPlayingAsWon": "Spielt als {color} — Gewonnen",
     "spectatorCaptured": "{color} hat genug Steine gefangen.",
     "spectatorForfeit": "{color} hat aufgegeben.",
     "spectatorTimeout": "{color} ist die Zeit abgelaufen.",

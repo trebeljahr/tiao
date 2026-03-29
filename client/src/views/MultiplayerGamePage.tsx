@@ -260,6 +260,8 @@ export function MultiplayerGamePage() {
   const fireModalConfetti = useCallback(
     (canvas: HTMLCanvasElement | null) => {
       if (!canvas) return;
+      // No confetti for spectators
+      if (!playerSeat) return;
       const fire = confetti.create(canvas, { resize: true });
       const playerLost = playerSeat !== null && winner !== null && winner !== playerSeat;
 
@@ -1339,6 +1341,23 @@ export function MultiplayerGamePage() {
         description={gameOverDescription}
       >
         <div className="grid gap-2">
+          {/* Spectator: show winner's profile picture + name + color */}
+          {isSpectator && winner && multiplayerSnapshot?.seats[winner] && (
+            <div className="flex items-center justify-center gap-3 py-2">
+              <PlayerOverviewAvatar
+                player={multiplayerSnapshot.seats[winner]!.player}
+                className="h-10 w-10"
+              />
+              <div className="text-sm">
+                <p className="font-semibold text-[#2b1e14]">
+                  {multiplayerSnapshot.seats[winner]!.player.displayName}
+                </p>
+                <p className="text-[#6e5b48]">
+                  {t("spectatorPlayingAsWon", { color: formatPlayerColor(winner)! })}
+                </p>
+              </div>
+            </div>
+          )}
           {/* Elo rating change after game */}
           {multiplayerSnapshot?.ratingAfter &&
             multiplayerSnapshot?.ratingBefore &&

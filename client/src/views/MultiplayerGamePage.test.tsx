@@ -537,4 +537,139 @@ describe("MultiplayerGamePage", () => {
 
     expect(screen.getByRole("button", { name: "Back to lobby" })).toBeInTheDocument();
   });
+
+  it("shows winner info (not 'you lost') in game-over dialog for spectators", async () => {
+    const spectatorAuth: AuthResponse = {
+      player: {
+        kind: "guest",
+        playerId: "spectator-xyz",
+        displayName: "Watcher",
+      },
+    };
+
+    const authModule = await import("@/lib/AuthContext");
+    vi.spyOn(authModule, "useAuth").mockReturnValue({
+      auth: spectatorAuth,
+      authLoading: false,
+      appError: null,
+      authDialogOpen: false,
+      authDialogMode: "login",
+      authBusy: false,
+      authDialogError: null,
+      loginEmail: "",
+      loginPassword: "",
+      signupDisplayName: "",
+      signupEmail: "",
+      signupPassword: "",
+      signupConfirmPassword: "",
+      setAuth: vi.fn(),
+      setAuthDialogOpen: vi.fn(),
+      setAuthDialogMode: vi.fn(),
+      setAuthDialogError: vi.fn(),
+      setLoginEmail: vi.fn(),
+      setLoginPassword: vi.fn(),
+      setSignupDisplayName: vi.fn(),
+      setSignupEmail: vi.fn(),
+      setSignupPassword: vi.fn(),
+      setSignupConfirmPassword: vi.fn(),
+      onOpenAuth: vi.fn(),
+      handleLoginSubmit: vi.fn(),
+      handleSignupSubmit: vi.fn(),
+      handleForgotPassword: vi.fn(),
+      handleOAuthSignIn: vi.fn(),
+      onLogout: vi.fn(),
+      applyAuth: vi.fn(),
+    });
+
+    // Create a finished game where white won (spectator is not a participant)
+    const state = createInitialGameState();
+    state.history = [{ type: "forfeit", color: "black" }];
+    state.score = { black: 0, white: 10 };
+
+    const snapshot = makeMatchmakingSnapshot({
+      status: "finished",
+      state,
+      seats: {
+        white: {
+          player: { playerId: "player-1", displayName: "Alice", kind: "account" },
+          online: true,
+        },
+        black: {
+          player: { playerId: "player-2", displayName: "Bob", kind: "account" },
+          online: true,
+        },
+      },
+    });
+
+    await setupMocks(snapshot);
+    render(<MultiplayerGamePage />);
+
+    // The dialog title should NOT say "You lost!" — it should say "White wins!"
+    expect(screen.queryByText("You lost!")).not.toBeInTheDocument();
+    // "White wins" should appear as the card title (always visible in side panel)
+    expect(screen.getByText("White wins")).toBeInTheDocument();
+  });
+
+  it("does not fire confetti for spectators", async () => {
+    const confettiModule = await import("canvas-confetti");
+    const mockCreate = confettiModule.default.create as ReturnType<typeof vi.fn>;
+    mockCreate.mockClear();
+
+    const spectatorAuth: AuthResponse = {
+      player: {
+        kind: "guest",
+        playerId: "spectator-xyz",
+        displayName: "Watcher",
+      },
+    };
+
+    const authModule = await import("@/lib/AuthContext");
+    vi.spyOn(authModule, "useAuth").mockReturnValue({
+      auth: spectatorAuth,
+      authLoading: false,
+      appError: null,
+      authDialogOpen: false,
+      authDialogMode: "login",
+      authBusy: false,
+      authDialogError: null,
+      loginEmail: "",
+      loginPassword: "",
+      signupDisplayName: "",
+      signupEmail: "",
+      signupPassword: "",
+      signupConfirmPassword: "",
+      setAuth: vi.fn(),
+      setAuthDialogOpen: vi.fn(),
+      setAuthDialogMode: vi.fn(),
+      setAuthDialogError: vi.fn(),
+      setLoginEmail: vi.fn(),
+      setLoginPassword: vi.fn(),
+      setSignupDisplayName: vi.fn(),
+      setSignupEmail: vi.fn(),
+      setSignupPassword: vi.fn(),
+      setSignupConfirmPassword: vi.fn(),
+      onOpenAuth: vi.fn(),
+      handleLoginSubmit: vi.fn(),
+      handleSignupSubmit: vi.fn(),
+      handleForgotPassword: vi.fn(),
+      handleOAuthSignIn: vi.fn(),
+      onLogout: vi.fn(),
+      applyAuth: vi.fn(),
+    });
+
+    const state = createInitialGameState();
+    state.history = [{ type: "forfeit", color: "black" }];
+    state.score = { black: 0, white: 10 };
+
+    const snapshot = makeMatchmakingSnapshot({
+      status: "finished",
+      state,
+    });
+
+    await setupMocks(snapshot);
+    render(<MultiplayerGamePage />);
+
+    // confetti.create should NOT be called for spectators
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
 });
