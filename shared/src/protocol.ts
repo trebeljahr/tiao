@@ -137,6 +137,22 @@ export type MultiplayerGamesIndex = {
   finished: MultiplayerGameSummary[];
 };
 
+export type FriendActiveGameSummary = {
+  gameId: string;
+  roomType: MultiplayerRoomType;
+  status: MultiplayerStatus;
+  createdAt: string;
+  updatedAt: string;
+  currentTurn: PlayerColor;
+  score: ScoreState;
+  boardSize: number;
+  scoreToWin: number;
+  timeControl: TimeControl;
+  clockMs: { white: number; black: number } | null;
+  seats: Record<PlayerColor, PlayerSlot | null>;
+  ratingBefore?: { white: number; black: number } | null;
+};
+
 export type MatchmakingState =
   | {
       status: "idle";

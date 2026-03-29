@@ -1111,6 +1111,34 @@ router.post(
   },
 );
 
+router.get(
+  "/player/social/friends/:friendId/active-games",
+  async (req: Request, res: Response) => {
+    try {
+      const account = await requireAccount(req, res);
+      if (!account) {
+        return;
+      }
+
+      const friendId = req.params.friendId;
+      if (!friendId || !mongoose.Types.ObjectId.isValid(friendId)) {
+        return res.status(400).json({ message: "Invalid account ID." });
+      }
+
+      if (!containsAccountId(account.friends, friendId)) {
+        return res.status(403).json({
+          message: "You can only view active games of your friends.",
+        });
+      }
+
+      const games = await gameService.listActiveGamesForPlayer(friendId);
+      return res.status(200).json({ games });
+    } catch (error) {
+      return handleRouteError(error, req, res, "Unable to load active games right now.");
+    }
+  },
+);
+
 router.post("/player/social/friends/:accountId/remove", async (req: Request, res: Response) => {
   try {
     const account = await requireAccount(req, res);

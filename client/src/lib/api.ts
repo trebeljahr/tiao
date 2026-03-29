@@ -1,5 +1,6 @@
 import type {
   AuthResponse,
+  FriendActiveGameSummary,
   MatchmakingState,
   MultiplayerGamesIndex,
   MultiplayerSnapshot,
@@ -264,6 +265,12 @@ export function removeFriend(accountId: string) {
   });
 }
 
+export function getFriendActiveGames(friendId: string) {
+  return request<{ games: FriendActiveGameSummary[] }>(
+    `/api/player/social/friends/${friendId}/active-games`,
+  );
+}
+
 export function sendGameInvitation(body: {
   gameId: string;
   recipientId: string;
@@ -366,6 +373,13 @@ export function createTournament(body: {
 
 export function getTournament(tournamentId: string) {
   return request<{ tournament: TournamentSnapshot }>(`/api/tournaments/${tournamentId}`);
+}
+
+export function accessTournament(tournamentId: string, inviteCode: string) {
+  return request<{ tournament: TournamentSnapshot }>(`/api/tournaments/${tournamentId}/access`, {
+    method: "POST",
+    body: { inviteCode },
+  });
 }
 
 export function registerForTournament(tournamentId: string, inviteCode?: string) {

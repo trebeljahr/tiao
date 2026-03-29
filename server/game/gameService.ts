@@ -2,6 +2,7 @@ import WebSocket from "ws";
 import {
   ClientToServerMessage,
   FinishReason,
+  FriendActiveGameSummary,
   MatchmakingState,
   MultiplayerGameSummary,
   MultiplayerGamesIndex,
@@ -296,6 +297,34 @@ export class GameService {
       active: summaries.filter((game) => game.status !== "finished"),
       finished: summaries.filter((game) => game.status === "finished"),
     };
+  }
+
+  async listActiveGamesForPlayer(playerId: string): Promise<FriendActiveGameSummary[]> {
+    const rooms = await this.store.listActiveRoomsForPlayer(playerId);
+    return rooms.map((room) => {
+      const derived = this.deriveRoomStatus(room);
+      return {
+        gameId: derived.id,
+        roomType: derived.roomType,
+        status: derived.status,
+        createdAt: derived.createdAt.toISOString(),
+        updatedAt: derived.updatedAt.toISOString(),
+        currentTurn: derived.state.currentTurn,
+        score: {
+          black: derived.state.score.black,
+          white: derived.state.score.white,
+        },
+        boardSize: derived.state.boardSize,
+        scoreToWin: derived.state.scoreToWin,
+        timeControl: derived.timeControl,
+        clockMs: derived.clockMs ?? null,
+        seats: {
+          white: this.toSeatSlot(derived, "white"),
+          black: this.toSeatSlot(derived, "black"),
+        },
+        ratingBefore: derived.ratingBefore ?? null,
+      };
+    });
   }
 
   async connect(gameId: string, player: PlayerIdentity, socket: WebSocket): Promise<void> {

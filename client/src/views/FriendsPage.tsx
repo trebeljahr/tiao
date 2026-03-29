@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog } from "@/components/ui/dialog";
 import { Navbar } from "@/components/Navbar";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
+import { FriendActiveGamesModal } from "@/components/FriendActiveGamesModal";
 import { useSocialData } from "@/lib/hooks/useSocialData";
 import { useLobbyMessage } from "@/lib/LobbySocketContext";
 import { createMultiplayerGame } from "@/lib/api";
@@ -27,11 +28,16 @@ export function FriendsPage() {
   const social = useSocialData(auth, false);
   const [inviteBusy, setInviteBusy] = useState<string | null>(null);
   const [inviteDialogFriendId, setInviteDialogFriendId] = useState<string | null>(null);
+  const [activeGamesFriendId, setActiveGamesFriendId] = useState<string | null>(null);
   const [inviteBoardSize, setInviteBoardSize] = useState(19);
   const [inviteScoreToWin, setInviteScoreToWin] = useState(10);
 
   const inviteDialogFriend = inviteDialogFriendId
     ? social.socialOverview.friends.find((f) => f.playerId === inviteDialogFriendId)
+    : null;
+
+  const activeGamesFriend = activeGamesFriendId
+    ? social.socialOverview.friends.find((f) => f.playerId === activeGamesFriendId) ?? null
     : null;
 
   function openInviteDialog(friendId: string) {
@@ -234,6 +240,14 @@ export function FriendsPage() {
                         size="sm"
                         variant="secondary"
                         className="text-xs"
+                        onClick={() => setActiveGamesFriendId(friend.playerId)}
+                      >
+                        {t("seeActiveGames")}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="text-xs"
                         onClick={() => openInviteDialog(friend.playerId)}
                       >
                         {t("inviteToGame")}
@@ -317,6 +331,14 @@ export function FriendsPage() {
           </Button>
         </div>
       </Dialog>
+
+      <FriendActiveGamesModal
+        friend={activeGamesFriend}
+        open={!!activeGamesFriendId}
+        onOpenChange={(open) => {
+          if (!open) setActiveGamesFriendId(null);
+        }}
+      />
     </div>
   );
 }

@@ -64,6 +64,7 @@ export interface GameRoomStore {
   getRoom(roomId: string): Promise<StoredMultiplayerRoom | null>;
   saveRoom(room: StoredMultiplayerRoom): Promise<StoredMultiplayerRoom>;
   listRoomsForPlayer(playerId: string): Promise<StoredMultiplayerRoom[]>;
+  listActiveRoomsForPlayer(playerId: string): Promise<StoredMultiplayerRoom[]>;
   findUnfinishedRoomByPlayer(playerId: string): Promise<StoredMultiplayerRoom | null>;
   findRoomByTournamentMatch(
     tournamentId: string,
@@ -323,6 +324,23 @@ export class MongoGameRoomStore implements GameRoomStore {
     return rooms.map(toStoredRoom);
   }
 
+  async listActiveRoomsForPlayer(playerId: string): Promise<StoredMultiplayerRoom[]> {
+    const rooms = await GameRoom.find({
+      status: { $in: ["waiting", "active"] },
+      $or: [
+        { "players.playerId": playerId },
+        { "seats.white.playerId": playerId },
+        { "seats.black.playerId": playerId },
+      ],
+    })
+      .sort({ updatedAt: -1 })
+      .limit(50)
+      .lean<PersistedGameRoom[]>()
+      .exec();
+
+    return rooms.map(toStoredRoom);
+  }
+
   async findUnfinishedRoomByPlayer(playerId: string): Promise<StoredMultiplayerRoom | null> {
     const room = await GameRoom.findOne({
       status: {
@@ -492,6 +510,18 @@ export class InMemoryGameRoomStore implements GameRoomStore {
   async listRoomsForPlayer(playerId: string): Promise<StoredMultiplayerRoom[]> {
     const rooms = Array.from(this.rooms.values())
       .filter((room) => room.players.some((player) => player.playerId === playerId))
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+
+    return rooms.map(cloneStoredRoom);
+  }
+
+  async listActiveRoomsForPlayer(playerId: string): Promise<StoredMultiplayerRoom[]> {
+    const rooms = Array.from(this.rooms.values())
+      .filter(
+        (room) =>
+          room.status !== "finished" &&
+          room.players.some((player) => player.playerId === playerId),
+      )
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 
     return rooms.map(cloneStoredRoom);
