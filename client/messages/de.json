@@ -41,6 +41,7 @@
     "failedToCopy": "Kopieren fehlgeschlagen",
     "invitationSent": "Einladung gesendet!",
     "failedToLoadGame": "Spiel konnte nicht geladen werden",
+    "spectateNotAvailable": "Dieses Spiel wartet noch auf Spieler. Du kannst zuschauen, sobald es beginnt.",
     "passwordsMismatch": "Passwörter stimmen nicht überein.",
     "lobby": "Lobby",
     "mLeft": "noch {n}m",

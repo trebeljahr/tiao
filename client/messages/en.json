@@ -41,6 +41,7 @@
     "failedToCopy": "Failed to copy",
     "invitationSent": "Invitation sent!",
     "failedToLoadGame": "Failed to load game",
+    "spectateNotAvailable": "This game is still waiting for players. You can spectate once it starts.",
     "passwordsMismatch": "Passwords do not match.",
     "lobby": "Lobby",
     "mLeft": "{n}m left",

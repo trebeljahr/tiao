@@ -48,7 +48,7 @@ import {
   formatClockTime,
 } from "@/components/game/GameClock";
 import { cn } from "@/lib/utils";
-import { accessMultiplayerGame } from "@/lib/api";
+import { accessMultiplayerGame, getMultiplayerGame } from "@/lib/api";
 
 function AnimatedEllipsis() {
   const [dots, setDots] = useState(0);
@@ -70,9 +70,11 @@ export function MultiplayerGamePage() {
   const [navOpen, setNavOpen] = useState(false);
 
   const websocketDebugEnabled = searchParams?.has("wsDebug") ?? false;
+  const spectateOnly = searchParams?.has("spectate") ?? false;
 
   const multi = useMultiplayerGame(auth, gameId ?? null, {
     websocketDebugEnabled,
+    spectateOnly,
     onRematchStarted: (newGameId) => {
       router.replace(`/game/${newGameId}`);
     },
@@ -153,7 +155,17 @@ export function MultiplayerGamePage() {
     async function loadGame() {
       setMultiplayerBusy(true);
       try {
-        const response = await accessMultiplayerGame(gameId);
+        const fetchGame = spectateOnly ? getMultiplayerGame : accessMultiplayerGame;
+        const response = await fetchGame(gameId);
+
+        if (spectateOnly && response.snapshot.status === "waiting") {
+          if (!cancelled) {
+            toast.error(tCommon("spectateNotAvailable"));
+            router.push("/");
+          }
+          return;
+        }
+
         if (!cancelled) {
           connectToRoom(response.snapshot);
         }
@@ -174,7 +186,7 @@ export function MultiplayerGamePage() {
     return () => {
       cancelled = true;
     };
-  }, [auth, gameId, connectionState, connectToRoom, router, setMultiplayerBusy]);
+  }, [auth, gameId, connectionState, connectToRoom, router, setMultiplayerBusy, spectateOnly]);
 
   useStonePlacementSound(multiplayerSnapshot?.state ?? null);
   const winner = multiplayerSnapshot

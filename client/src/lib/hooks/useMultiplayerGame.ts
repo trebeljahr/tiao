@@ -13,7 +13,7 @@ import {
   undoPendingJumpStep,
   getPendingJumpDestination,
 } from "@shared";
-import { buildWebSocketUrl, accessMultiplayerGame } from "../api";
+import { buildWebSocketUrl, accessMultiplayerGame, getMultiplayerGame } from "../api";
 import { readableError, isNetworkError } from "../errors";
 import { createReconnectScheduler } from "../reconnect";
 import { createOptimisticSnapshot } from "../../components/game/GameShared";
@@ -34,6 +34,7 @@ export function useMultiplayerGame(
     onRematchStarted?: (newGameId: string) => void;
     onGameAborted?: (info: GameAbortedInfo) => void;
     websocketDebugEnabled?: boolean;
+    spectateOnly?: boolean;
   } = {},
 ) {
   const [multiplayerSnapshot, setMultiplayerSnapshot] = useState<MultiplayerSnapshot | null>(null);
@@ -339,7 +340,8 @@ export function useMultiplayerGame(
     });
 
     try {
-      const response = await accessMultiplayerGame(snapshot.gameId);
+      const fetchGame = options.spectateOnly ? getMultiplayerGame : accessMultiplayerGame;
+      const response = await fetchGame(snapshot.gameId);
       connectToRoom(response.snapshot, {
         preserveView: true,
       });

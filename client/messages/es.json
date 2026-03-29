@@ -41,6 +41,7 @@
     "failedToCopy": "Error al copiar",
     "invitationSent": "¡Invitación enviada!",
     "failedToLoadGame": "Error al cargar la partida",
+    "spectateNotAvailable": "Esta partida aún espera jugadores. Podrás observar cuando comience.",
     "passwordsMismatch": "Las contraseñas no coinciden.",
     "lobby": "Sala",
     "mLeft": "Quedan {n}m",

@@ -73,7 +73,7 @@ export function FriendActiveGamesModal({
 
   function handleSpectate(gameId: string) {
     onOpenChange(false);
-    router.push(`/game/${gameId}`);
+    router.push(`/game/${gameId}?spectate=true`);
   }
 
   return (
@@ -97,10 +97,7 @@ export function FriendActiveGamesModal({
           const black = game.seats.black;
 
           return (
-            <div
-              key={game.gameId}
-              className="space-y-2 rounded-xl bg-white/40 p-3"
-            >
+            <div key={game.gameId} className="space-y-2 rounded-xl bg-white/40 p-3">
               {/* Players row */}
               <div className="flex items-center gap-2 text-sm">
                 {white ? (
