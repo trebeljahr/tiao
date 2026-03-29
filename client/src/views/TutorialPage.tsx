@@ -92,6 +92,8 @@ export function TutorialPage() {
   const [completing, setCompleting] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [resetKeys, setResetKeys] = useState<number[]>(() => steps.map(() => 0));
+  // Tracks whether the user navigated back to an already-completed step
+  const [isRevisiting, setIsRevisiting] = useState(false);
 
   const step = steps[currentStep];
   const isLastStep = currentStep === steps.length - 1;
@@ -103,6 +105,8 @@ export function TutorialPage() {
       if (index === currentStep) return;
       setDirection(index > currentStep ? 1 : -1);
       setCurrentStep(index);
+      // Mark as revisiting if the target step was already completed
+      setIsRevisiting(completedSteps.has(index));
       // Reset the board when navigating to an interactive step (for visual replay)
       if (steps[index].board) {
         setResetKeys((prev) => {
@@ -112,7 +116,7 @@ export function TutorialPage() {
         });
       }
     },
-    [currentStep],
+    [currentStep, completedSteps],
   );
 
   const goNext = useCallback(() => {
@@ -197,6 +201,11 @@ export function TutorialPage() {
   };
 
   // Can the user advance?
+  // Non-interactive steps: always show Next button.
+  // Interactive steps on first playthrough: hide Next (auto-advance handles it).
+  // Interactive steps when revisiting (back-navigation): show Next button.
+  const showNextButton = !isInteractive || (isInteractive && isRevisiting);
+  // For keyboard navigation, still allow advancing when step is done
   const canAdvance = !isInteractive || isStepDone;
 
   return (
@@ -312,7 +321,7 @@ export function TutorialPage() {
                   {t("orGoToLobby")}
                 </button>
               </div>
-            ) : canAdvance ? (
+            ) : showNextButton ? (
               <Button
                 size="lg"
                 className="min-w-[120px] h-12 shadow-md bg-[linear-gradient(180deg,#4b3726,#2b1e14)] hover:shadow-lg transition-all"
