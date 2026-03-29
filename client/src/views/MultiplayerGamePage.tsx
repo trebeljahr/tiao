@@ -236,9 +236,9 @@ export function MultiplayerGamePage() {
 
   const playerSeat =
     multiplayerSnapshot && auth
-      ? (Object.entries(multiplayerSnapshot.seats).find(
+      ? ((Object.entries(multiplayerSnapshot.seats).find(
           ([, seat]) => seat?.player.playerId === auth.player.playerId,
-        )?.[0] as PlayerColor | undefined)
+        )?.[0] as PlayerColor | undefined) ?? null)
       : null;
 
   const [gameOverDialogOpen, setGameOverDialogOpen] = useState(false);
