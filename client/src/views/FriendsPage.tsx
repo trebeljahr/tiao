@@ -37,7 +37,7 @@ export function FriendsPage() {
     : null;
 
   const activeGamesFriend = activeGamesFriendId
-    ? social.socialOverview.friends.find((f) => f.playerId === activeGamesFriendId) ?? null
+    ? (social.socialOverview.friends.find((f) => f.playerId === activeGamesFriendId) ?? null)
     : null;
 
   function openInviteDialog(friendId: string) {
@@ -226,10 +226,7 @@ export function FriendsPage() {
               </CardHeader>
               <CardContent className="space-y-2">
                 {social.socialOverview.friends.map((friend) => (
-                  <div
-                    key={friend.playerId}
-                    className="flex items-center justify-between p-3 rounded-xl bg-white/40"
-                  >
+                  <div key={friend.playerId} className="space-y-2 p-3 rounded-xl bg-white/40">
                     <PlayerIdentityRow
                       player={friend}
                       online={friend.online}
