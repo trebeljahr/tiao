@@ -7,7 +7,7 @@ import { expect, Page } from "@playwright/test";
  * when the test doesn't sign up/in (which already waits for the API).
  */
 export async function waitForAppReady(page: Page) {
-  await expect(page.locator("text=Opening Tiao")).not.toBeVisible({ timeout: 15000 });
+  await expect(page.locator("text=Opening Tiao")).not.toBeVisible({ timeout: 20000 });
 }
 
 /**

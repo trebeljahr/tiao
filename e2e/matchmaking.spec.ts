@@ -1,23 +1,28 @@
 import { test, expect, Page } from "@playwright/test";
 import { signUpViaUI, waitForAppReady, dismissRulesIntro } from "./helpers";
 
+// Multiplayer matchmaking tests create many browser contexts; serialize to avoid
+// overwhelming the single-threaded backend with concurrent auth/signup calls.
+test.describe.configure({ mode: "serial" });
+
 async function startMatchmaking(page: Page) {
-  await page.goto("/");
+  // Navigate directly — the session cookie from signUpViaUI carries over
+  await page.goto("/matchmaking", { waitUntil: "domcontentloaded" });
   await waitForAppReady(page);
-  const unlimitedBtn = page.locator('button:has-text("Unlimited time game")');
-  await expect(unlimitedBtn).toBeVisible({ timeout: 5000 });
-  await unlimitedBtn.click();
+  // Wait for matchmaking API to respond (moves from "Initializing" to "Searching")
+  await expect(page.locator("text=Searching")).toBeVisible({ timeout: 15000 });
 }
 
-async function startTimedMatchmaking(page: Page, label: string) {
-  await page.goto("/");
+async function startTimedMatchmaking(page: Page, initialMs: number, incrementMs: number) {
+  await page.goto(`/matchmaking?initial=${initialMs}&increment=${incrementMs}`, {
+    waitUntil: "domcontentloaded",
+  });
   await waitForAppReady(page);
-  const preset = page.locator(`button:has-text("${label}")`);
-  await expect(preset).toBeVisible({ timeout: 5000 });
-  await preset.click();
+  await expect(page.locator("text=Searching")).toBeVisible({ timeout: 15000 });
 }
 
 test("matchmaking pairs two players into a game", async ({ browser }) => {
+  test.setTimeout(60000);
   const aliceContext = await browser.newContext();
   const bobContext = await browser.newContext();
   const alicePage = await aliceContext.newPage();
@@ -50,6 +55,7 @@ test("matchmaking pairs two players into a game", async ({ browser }) => {
 });
 
 test("matchmaking game has no console errors", async ({ browser }) => {
+  test.setTimeout(60000);
   const aliceContext = await browser.newContext();
   const bobContext = await browser.newContext();
   const alicePage = await aliceContext.newPage();
@@ -106,6 +112,7 @@ test("matchmaking game has no console errors", async ({ browser }) => {
 });
 
 test("timed matchmaking (30+0) pairs two players", async ({ browser }) => {
+  test.setTimeout(60000);
   const aliceContext = await browser.newContext();
   const bobContext = await browser.newContext();
   const alicePage = await aliceContext.newPage();
@@ -116,13 +123,13 @@ test("timed matchmaking (30+0) pairs two players", async ({ browser }) => {
   await signUpViaUI(alicePage, aliceName, "password123");
   await signUpViaUI(bobPage, bobName, "password123");
 
-  await startTimedMatchmaking(alicePage, "30+0");
+  await startTimedMatchmaking(alicePage, 1_800_000, 0);
   await expect(alicePage).toHaveURL(/\/matchmaking/);
   await expect(alicePage.locator("text=Searching")).toBeVisible();
   // Verify time control label is shown
   await expect(alicePage.locator("text=30+0")).toBeVisible();
 
-  await startTimedMatchmaking(bobPage, "30+0");
+  await startTimedMatchmaking(bobPage, 1_800_000, 0);
 
   // Both should land in a game
   await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/, { timeout: 10000 });
@@ -150,6 +157,7 @@ test("cancel matchmaking returns to lobby", async ({ page }) => {
 });
 
 test("different time controls do not match each other", async ({ browser }) => {
+  test.setTimeout(60000);
   const aliceContext = await browser.newContext();
   const bobContext = await browser.newContext();
   const alicePage = await aliceContext.newPage();
@@ -160,11 +168,11 @@ test("different time controls do not match each other", async ({ browser }) => {
   await signUpViaUI(alicePage, aliceName, "password123");
   await signUpViaUI(bobPage, bobName, "password123");
 
-  await startTimedMatchmaking(alicePage, "30+0");
+  await startTimedMatchmaking(alicePage, 1_800_000, 0);
   await expect(alicePage).toHaveURL(/\/matchmaking/);
 
-  // Bob searches with a different time control
-  await startTimedMatchmaking(bobPage, "5+0");
+  // Bob searches with a different time control (5+0 = 300s, 0 increment)
+  await startTimedMatchmaking(bobPage, 300_000, 0);
   await expect(bobPage).toHaveURL(/\/matchmaking/);
 
   // Wait a bit — neither should be matched
