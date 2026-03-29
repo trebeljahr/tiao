@@ -23,7 +23,7 @@ export function PublicProfilePage() {
     if (!params?.username) return;
     setLoading(true);
     setError(null);
-    getPublicProfile(params.username)
+    getPublicProfile(decodeURIComponent(params.username))
       .then((res) => setProfile(res.profile))
       .catch(() => setError("not-found"))
       .finally(() => setLoading(false));
