@@ -626,8 +626,10 @@ export class TournamentService implements TournamentGameCallback {
       match.winner = winnerSeat.player.playerId;
       match.status = "finished";
 
-      // Update score and game details from game state
-      match.score = [room.state.score.white, room.state.score.black];
+      // Update score aligned to player slots (not color slots)
+      const p0Color = match.playerColors?.[0] ?? "white";
+      const p1Color = match.playerColors?.[1] ?? "black";
+      match.score = [room.state.score[p0Color], room.state.score[p1Color]];
       match.finishReason = getFinishReason(room.state);
       match.historyLength = room.state.history.length;
 
