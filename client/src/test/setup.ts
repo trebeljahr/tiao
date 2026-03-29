@@ -21,6 +21,20 @@ vi.mock("next/navigation", () => ({
   useSelectedLayoutSegments: () => [],
 }));
 
+// Mock @/i18n/navigation — provides locale-aware navigation hooks used by Navbar
+vi.mock("@/i18n/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    back: vi.fn(),
+    refresh: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+  usePathname: () => "/",
+  Link: "a",
+  redirect: vi.fn(),
+}));
+
 // Mock next-intl — return actual English translations so tests can match rendered text
 vi.mock("next-intl", () => {
   const messages = enMessages as Record<string, Record<string, string>>;

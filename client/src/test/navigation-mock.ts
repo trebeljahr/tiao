@@ -19,3 +19,18 @@ vi.mock("next/navigation", () => ({
   useSelectedLayoutSegment: () => null,
   useSelectedLayoutSegments: () => [],
 }));
+
+export const mockIntlPush = vi.fn();
+export const mockIntlReplace = vi.fn();
+vi.mock("@/i18n/navigation", () => ({
+  useRouter: () => ({
+    push: mockIntlPush,
+    replace: mockIntlReplace,
+    back: vi.fn(),
+    refresh: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+  usePathname: () => "/",
+  Link: "a",
+  redirect: vi.fn(),
+}));

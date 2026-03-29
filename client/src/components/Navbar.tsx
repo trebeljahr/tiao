@@ -1,6 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
-import { useRouter, usePathname } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import type { AuthResponse } from "@shared";
 import { Button } from "@/components/ui/button";
@@ -328,8 +327,8 @@ export function Navbar({
   onLogout,
 }: NavbarProps) {
   const t = useTranslations("nav");
-  const router = useRouter();
-  const pathname = usePathname();
+  const intlRouter = useIntlRouter();
+  const pathname = useIntlPathname();
   const { pendingFriendRequestCount, incomingInvitationCount } = useSocialNotifications();
   const player = auth?.player;
   const isAccount = player?.kind === "account";
@@ -344,7 +343,7 @@ export function Navbar({
 
   const handleNav = (path: string) => {
     onCloseNav();
-    router.push(path);
+    intlRouter.push(path);
   };
 
   const navItems = [
