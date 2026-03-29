@@ -4,6 +4,7 @@ import express, { Request, Response } from "express";
 import { Jimp } from "jimp";
 import mongoose from "mongoose";
 import GameAccount from "../models/GameAccount";
+import GameRoom from "../models/GameRoom";
 import { auth } from "../auth/auth";
 import { getPlayerFromRequest, requireAccount, requireAdmin } from "../auth/sessionHelper";
 import { sanitizeDisplayName } from "../game/playerTokens";
@@ -64,8 +65,8 @@ function buildPlayerIdentityFromAccount(
     profilePicture?: string;
     badges?: string[];
     activeBadges?: string[];
-    rating?: { overall: { elo: number; gamesPlayed: number } };
     isAdmin?: boolean;
+    rating?: { overall: { elo: number; gamesPlayed: number } };
   },
   email?: string,
 ) {
@@ -91,6 +92,7 @@ function serializeAccountProfile(
     profilePicture?: string;
     badges?: string[];
     activeBadges?: string[];
+    bio?: string;
     rating?: { overall: { elo: number; gamesPlayed: number } };
     createdAt?: Date;
     updatedAt?: Date;
@@ -105,6 +107,7 @@ function serializeAccountProfile(
     profilePicture: account.profilePicture,
     badges: account.badges ?? [],
     activeBadges: account.activeBadges ?? [],
+    bio: account.bio || "",
     rating: account.rating?.overall?.elo ?? 1500,
     gamesPlayed: account.rating?.overall?.gamesPlayed ?? 0,
     ratingPercentile,
@@ -397,15 +400,112 @@ router.get("/profile/:username", async (req: Request, res: Response) => {
     const elo = account.rating?.overall?.elo ?? 1500;
     const gamesPlayed = account.rating?.overall?.gamesPlayed ?? 0;
     const percentile = gamesPlayed > 0 ? await computeRatingPercentile(elo) : undefined;
+    const playerId = String(account._id);
+
+    // Compute game stats from GameRoom collection
+    let gamesWon = 0;
+    let gamesLost = 0;
+    let favoriteBoard: number | undefined;
+    let favoriteTimeControl: string | undefined;
+    let favoriteScore: number | undefined;
+
+    if (gamesPlayed > 0) {
+      const finishedGames = await GameRoom.find(
+        { "players.playerId": playerId, status: "finished" },
+        {
+          "seats.white.playerId": 1,
+          "seats.black.playerId": 1,
+          "state.score": 1,
+          "state.scoreToWin": 1,
+          "state.boardSize": 1,
+          timeControl: 1,
+          ratingBefore: 1,
+          ratingAfter: 1,
+        },
+      )
+        .lean()
+        .limit(1000);
+
+      const boardCounts: Record<number, number> = {};
+      const scoreCounts: Record<number, number> = {};
+      const tcCounts: Record<string, number> = {};
+
+      for (const game of finishedGames) {
+        const isWhite = game.seats?.white?.playerId === playerId;
+        const isBlack = game.seats?.black?.playerId === playerId;
+        if (!isWhite && !isBlack) continue;
+
+        const mySeat = isWhite ? "white" : "black";
+
+        // Use ratingAfter vs ratingBefore as the reliable win indicator
+        const rBefore = game.ratingBefore as { white: number; black: number } | null;
+        const rAfter = game.ratingAfter as { white: number; black: number } | null;
+        if (rBefore && rAfter) {
+          const myBefore = rBefore[mySeat as "white" | "black"];
+          const myAfter = rAfter[mySeat as "white" | "black"];
+          if (myAfter > myBefore) gamesWon++;
+          else gamesLost++;
+        } else {
+          // Fallback to score comparison for unrated games
+          const score = game.state?.score as { white: number; black: number } | undefined;
+          const scoreToWin = game.state?.scoreToWin as number | undefined;
+          if (score && scoreToWin) {
+            const myScore = isWhite ? score.white : score.black;
+            const theirScore = isWhite ? score.black : score.white;
+            if (myScore >= scoreToWin || myScore > theirScore) gamesWon++;
+            else gamesLost++;
+          }
+        }
+
+        const bs = game.state?.boardSize as number | undefined;
+        if (bs) boardCounts[bs] = (boardCounts[bs] ?? 0) + 1;
+
+        const stw = game.state?.scoreToWin as number | undefined;
+        if (stw) scoreCounts[stw] = (scoreCounts[stw] ?? 0) + 1;
+
+        const tc = game.timeControl;
+        const tcKey = tc ? `${tc.initialMs / 60_000}+${tc.incrementMs / 1_000}` : "unlimited";
+        tcCounts[tcKey] = (tcCounts[tcKey] ?? 0) + 1;
+      }
+
+      const maxBy = (counts: Record<string, number>) => {
+        let maxKey: string | undefined;
+        let maxVal = 0;
+        for (const [key, val] of Object.entries(counts)) {
+          if (val > maxVal) {
+            maxKey = key;
+            maxVal = val;
+          }
+        }
+        return maxKey;
+      };
+
+      const favBoard = maxBy(boardCounts);
+      if (favBoard) favoriteBoard = Number(favBoard);
+      favoriteTimeControl = maxBy(tcCounts);
+      const favScore = maxBy(scoreCounts);
+      if (favScore) favoriteScore = Number(favScore);
+    }
+
+    // Use GameRoom-derived totals so won+lost always equals played
+    const totalFromGames = gamesWon + gamesLost;
 
     return res.status(200).json({
       profile: {
         displayName: account.displayName,
         profilePicture,
         rating: elo,
-        gamesPlayed,
+        gamesPlayed: totalFromGames > 0 ? totalFromGames : gamesPlayed,
+        gamesWon,
+        gamesLost,
         ratingPercentile: percentile,
         createdAt: account.createdAt,
+        bio: account.bio || undefined,
+        badges: account.badges,
+        activeBadges: account.activeBadges,
+        favoriteBoard,
+        favoriteTimeControl,
+        favoriteScore,
       },
     });
   } catch (error) {
@@ -418,19 +518,24 @@ router.put("/profile", async (req: Request, res: Response) => {
     const account = await requireAccount(req, res);
     if (!account) return;
 
-    const { displayName, password, currentPassword } = req.body as {
+    const { displayName, password, currentPassword, bio } = req.body as {
       displayName?: string;
       password?: string;
       currentPassword?: string;
+      bio?: string;
     };
 
     const sanitizedDisplayName = displayName?.trim().toLowerCase();
 
-    if (!sanitizedDisplayName && !password) {
+    if (!sanitizedDisplayName && !password && bio === undefined) {
       return res.status(400).json({
         code: "VALIDATION_ERROR",
-        message: "Provide a display name or password to update.",
+        message: "Provide a display name, password, or bio to update.",
       });
+    }
+
+    if (bio !== undefined) {
+      account.bio = (bio || "").slice(0, 500).trim();
     }
 
     if (sanitizedDisplayName !== undefined) {

@@ -40,11 +40,15 @@ function toSocialPlayerSummary(account: {
   displayName: string;
   profilePicture?: string;
   email?: string;
+  rating?: { overall?: { elo?: number } };
+  activeBadges?: string[];
 }): SocialPlayerSummary {
   return {
     playerId: account.id ?? (account._id ? String(account._id) : ""),
     displayName: account.displayName,
     profilePicture: account.profilePicture,
+    rating: account.rating?.overall?.elo,
+    activeBadges: account.activeBadges,
   };
 }
 
@@ -56,9 +60,7 @@ function toSocialPlayerSummary(account: {
 async function fetchSsoProfilePictures(
   accounts: Pick<IGameAccount, "_id" | "profilePicture">[],
 ): Promise<Map<string, string>> {
-  const missingPicIds = accounts
-    .filter((a) => !a.profilePicture)
-    .map((a) => String(a._id));
+  const missingPicIds = accounts.filter((a) => !a.profilePicture).map((a) => String(a._id));
 
   if (missingPicIds.length === 0) return new Map();
 
@@ -69,11 +71,7 @@ async function fetchSsoProfilePictures(
       .find({ _id: { $in: missingPicIds } as any, image: { $ne: null } })
       .project({ _id: 1, image: 1 })
       .toArray();
-    return new Map(
-      baUsers
-        .filter((u) => u.image)
-        .map((u) => [String(u._id), u.image as string]),
-    );
+    return new Map(baUsers.filter((u) => u.image).map((u) => [String(u._id), u.image as string]));
   } catch {
     // Non-critical — return empty map so callers still work
     return new Map();
@@ -1111,33 +1109,30 @@ router.post(
   },
 );
 
-router.get(
-  "/player/social/friends/:friendId/active-games",
-  async (req: Request, res: Response) => {
-    try {
-      const account = await requireAccount(req, res);
-      if (!account) {
-        return;
-      }
-
-      const friendId = req.params.friendId;
-      if (!friendId || !mongoose.Types.ObjectId.isValid(friendId)) {
-        return res.status(400).json({ message: "Invalid account ID." });
-      }
-
-      if (!containsAccountId(account.friends, friendId)) {
-        return res.status(403).json({
-          message: "You can only view active games of your friends.",
-        });
-      }
-
-      const games = await gameService.listActiveGamesForPlayer(friendId);
-      return res.status(200).json({ games });
-    } catch (error) {
-      return handleRouteError(error, req, res, "Unable to load active games right now.");
+router.get("/player/social/friends/:friendId/active-games", async (req: Request, res: Response) => {
+  try {
+    const account = await requireAccount(req, res);
+    if (!account) {
+      return;
     }
-  },
-);
+
+    const friendId = req.params.friendId;
+    if (!friendId || !mongoose.Types.ObjectId.isValid(friendId)) {
+      return res.status(400).json({ message: "Invalid account ID." });
+    }
+
+    if (!containsAccountId(account.friends, friendId)) {
+      return res.status(403).json({
+        message: "You can only view active games of your friends.",
+      });
+    }
+
+    const games = await gameService.listActiveGamesForPlayer(friendId);
+    return res.status(200).json({ games });
+  } catch (error) {
+    return handleRouteError(error, req, res, "Unable to load active games right now.");
+  }
+});
 
 router.post("/player/social/friends/:accountId/remove", async (req: Request, res: Response) => {
   try {

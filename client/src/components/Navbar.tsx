@@ -10,6 +10,8 @@ import { ThemePicker } from "@/components/game/ThemePicker";
 import { hasPreviewAccess } from "@/lib/featureGate";
 import { PlayerOverviewAvatar } from "@/components/game/GameShared";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
+import { UserBadge, type BadgeId } from "@/components/UserBadge";
+import { useActiveBadgeId } from "@/lib/useActiveBadge";
 import { useRouter as useIntlRouter, usePathname as useIntlPathname } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 
@@ -254,12 +256,13 @@ function LanguagePicker() {
 function PlayerSummary({ auth }: { auth: AuthResponse | null }) {
   const player = auth?.player;
   const isAnonymous = player?.kind !== "account";
+  const activeBadgeId = useActiveBadgeId();
 
   return (
     <div className="flex items-center gap-1.5">
       <LanguagePicker />
       <SoundToggle />
-      <div className="flex max-w-[11.5rem] items-center gap-3 rounded-full border border-[#af8e5d]/35 bg-[rgba(255,248,232,0.94)] px-2.5 py-1.5 text-left text-[#28170e] shadow-[0_12px_26px_-20px_rgba(99,67,28,0.45)]">
+      <div className="flex max-w-[14rem] items-center gap-3 rounded-full border border-[#af8e5d]/35 bg-[rgba(255,248,232,0.94)] px-2.5 py-1.5 text-left text-[#28170e] shadow-[0_12px_26px_-20px_rgba(99,67,28,0.45)]">
         <PlayerOverviewAvatar
           player={{
             displayName: player?.displayName ?? "Guest",
@@ -268,8 +271,9 @@ function PlayerSummary({ auth }: { auth: AuthResponse | null }) {
           anonymous={isAnonymous}
           className="h-10 w-10 border border-[#a37d48]/35 shadow-sm"
         />
-        <div className="min-w-0">
+        <div className="flex min-w-0 items-center gap-1.5">
           <p className="truncate text-sm font-semibold">{player?.displayName ?? "Guest"}</p>
+          {activeBadgeId && <UserBadge badge={activeBadgeId as BadgeId} compact />}
         </div>
       </div>
     </div>

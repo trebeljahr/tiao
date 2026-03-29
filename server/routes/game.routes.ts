@@ -4,6 +4,7 @@ import { classifyMongoError } from "../error-handling";
 import { gameService, GameServiceError } from "../game/gameService";
 import { getPlayerFromRequest } from "../auth/sessionHelper";
 import GameInvitation from "../models/GameInvitation";
+import GameAccount from "../models/GameAccount";
 import GameRoom, { type IGameRoom } from "../models/GameRoom";
 import { PlayerIdentity } from "../../shared/src";
 
@@ -450,7 +451,9 @@ router.get("/games/:gameId/og", async (req: Request, res: Response) => {
         "state.scoreToWin": 1,
         "state.score": 1,
         "seats.white.displayName": 1,
+        "seats.white.playerId": 1,
         "seats.black.displayName": 1,
+        "seats.black.playerId": 1,
         timeControl: 1,
         roomType: 1,
       },
@@ -458,6 +461,22 @@ router.get("/games/:gameId/og", async (req: Request, res: Response) => {
 
     if (!room) {
       return res.status(404).json({ code: "NOT_FOUND", message: "Game not found." });
+    }
+
+    // For waiting games, look up the host's ELO
+    let whiteRating: number | undefined;
+    let blackRating: number | undefined;
+
+    if (room.status === "waiting") {
+      const hostId = room.seats?.white?.playerId ?? room.seats?.black?.playerId;
+      if (hostId) {
+        const hostAccount = await GameAccount.findById(hostId, {
+          "rating.overall.elo": 1,
+        }).lean();
+        const elo = (hostAccount as any)?.rating?.overall?.elo;
+        if (room.seats?.white?.playerId === hostId) whiteRating = elo;
+        else blackRating = elo;
+      }
     }
 
     return res.status(200).json({
@@ -468,6 +487,8 @@ router.get("/games/:gameId/og", async (req: Request, res: Response) => {
       score: room.state?.score,
       white: room.seats?.white?.displayName ?? null,
       black: room.seats?.black?.displayName ?? null,
+      whiteRating,
+      blackRating,
       timeControl: room.timeControl,
       roomType: room.roomType,
     });

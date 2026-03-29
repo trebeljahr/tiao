@@ -21,6 +21,7 @@ export type AccountProfile = {
   profilePicture?: string;
   badges?: string[];
   activeBadges?: string[];
+  bio?: string;
   rating?: number;
   gamesPlayed?: number;
   ratingPercentile?: number;
@@ -318,8 +319,16 @@ export type PublicProfile = {
   profilePicture?: string;
   rating?: number;
   gamesPlayed?: number;
+  gamesWon?: number;
+  gamesLost?: number;
   ratingPercentile?: number;
   createdAt?: string;
+  bio?: string;
+  badges?: string[];
+  activeBadges?: string[];
+  favoriteBoard?: number;
+  favoriteTimeControl?: string;
+  favoriteScore?: number;
 };
 
 export function getPublicProfile(username: string) {
@@ -331,6 +340,7 @@ export function updateAccountProfile(body: {
   email?: string;
   password?: string;
   currentPassword?: string;
+  bio?: string;
 }) {
   return request<{ auth: AuthResponse; profile: AccountProfile }>("/api/player/profile", {
     method: "PUT",

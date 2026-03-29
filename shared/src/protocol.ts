@@ -175,6 +175,8 @@ export type SocialPlayerSummary = {
   profilePicture?: string;
   email?: string;
   online?: boolean;
+  rating?: number;
+  activeBadges?: string[];
 };
 
 export type SocialSearchRelationship = "none" | "friend" | "incoming-request" | "outgoing-request";

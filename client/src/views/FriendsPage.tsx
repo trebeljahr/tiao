@@ -13,6 +13,8 @@ import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { FriendActiveGamesModal } from "@/components/FriendActiveGamesModal";
 import { useSocialData } from "@/lib/hooks/useSocialData";
 import { useLobbyMessage } from "@/lib/LobbySocketContext";
+import { GameConfigPanel } from "@/components/game/GameConfigPanel";
+import type { TimeControl } from "@shared";
 import { createMultiplayerGame } from "@/lib/api";
 import { toastError } from "@/lib/errors";
 import { useTranslations } from "next-intl";
@@ -21,7 +23,6 @@ export function FriendsPage() {
   const t = useTranslations("friends");
   const tCommon = useTranslations("common");
   const tLobby = useTranslations("lobby");
-  const tConfig = useTranslations("config");
   const { auth, onOpenAuth, onLogout } = useAuth();
   const router = useRouter();
   const [navOpen, setNavOpen] = useState(false);
@@ -32,6 +33,7 @@ export function FriendsPage() {
   const [activeGamesFriendId, setActiveGamesFriendId] = useState<string | null>(null);
   const [inviteBoardSize, setInviteBoardSize] = useState(19);
   const [inviteScoreToWin, setInviteScoreToWin] = useState(10);
+  const [inviteTimeControl, setInviteTimeControl] = useState<TimeControl>(null);
 
   const inviteDialogFriend = inviteDialogFriendId
     ? social.socialOverview.friends.find((f) => f.playerId === inviteDialogFriendId)
@@ -45,17 +47,24 @@ export function FriendsPage() {
     setInviteDialogFriendId(friendId);
     setInviteBoardSize(19);
     setInviteScoreToWin(10);
+    setInviteTimeControl(null);
   }
 
   async function handleInviteToGame() {
     if (!inviteDialogFriendId) return;
     setInviteBusy(inviteDialogFriendId);
     try {
-      const settings =
-        inviteBoardSize !== 19 || inviteScoreToWin !== 10
-          ? { boardSize: inviteBoardSize, scoreToWin: inviteScoreToWin }
-          : undefined;
-      const response = await createMultiplayerGame(settings);
+      const settings: {
+        boardSize?: number;
+        scoreToWin?: number;
+        timeControl?: { initialMs: number; incrementMs: number };
+      } = {};
+      if (inviteBoardSize !== 19) settings.boardSize = inviteBoardSize;
+      if (inviteScoreToWin !== 10) settings.scoreToWin = inviteScoreToWin;
+      if (inviteTimeControl) settings.timeControl = inviteTimeControl;
+      const response = await createMultiplayerGame(
+        Object.keys(settings).length > 0 ? settings : undefined,
+      );
       const gameId = response.snapshot.gameId;
       await social.handleSendGameInvitation(gameId, inviteDialogFriendId, 60);
       toast.success(tLobby("inviteSent"));
@@ -127,7 +136,7 @@ export function FriendsPage() {
                     key={result.player.playerId}
                     className="flex items-center justify-between p-2 rounded-xl bg-white/40"
                   >
-                    <PlayerIdentityRow player={result.player} />
+                    <PlayerIdentityRow player={result.player} linkToProfile />
                     {result.relationship === "friend" ? (
                       <Badge variant="outline">{t("friend")}</Badge>
                     ) : result.relationship === "outgoing-request" ? (
@@ -170,7 +179,7 @@ export function FriendsPage() {
                       key={req.playerId}
                       className="flex items-center justify-between p-3 rounded-xl bg-white/40"
                     >
-                      <PlayerIdentityRow player={req} nameClassName="font-medium" />
+                      <PlayerIdentityRow player={req} nameClassName="font-medium" linkToProfile />
                       <div className="flex gap-2">
                         <Button
                           size="sm"
@@ -202,7 +211,7 @@ export function FriendsPage() {
                       key={req.playerId}
                       className="flex items-center justify-between p-3 rounded-xl bg-white/40"
                     >
-                      <PlayerIdentityRow player={req} nameClassName="font-medium" />
+                      <PlayerIdentityRow player={req} nameClassName="font-medium" linkToProfile />
                       <Button
                         size="sm"
                         variant="ghost"
@@ -232,6 +241,7 @@ export function FriendsPage() {
                       player={friend}
                       online={friend.online}
                       nameClassName="font-medium"
+                      linkToProfile
                     />
                     <div className="flex items-center gap-2">
                       <Button
@@ -283,51 +293,18 @@ export function FriendsPage() {
             : undefined
         }
       >
-        <div className="space-y-4">
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-[#6e5437]">
-              {tConfig("boardSize")}
-            </label>
-            <div className="flex gap-2">
-              {[9, 13, 19].map((size) => (
-                <Button
-                  key={size}
-                  variant={inviteBoardSize === size ? "default" : "outline"}
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => setInviteBoardSize(size)}
-                >
-                  {size}x{size}
-                </Button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-[#6e5437]">
-              {tConfig("scoreToWin")}
-            </label>
-            <div className="flex gap-2">
-              {[5, 10, 15, 20].map((score) => (
-                <Button
-                  key={score}
-                  variant={inviteScoreToWin === score ? "default" : "outline"}
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => setInviteScoreToWin(score)}
-                >
-                  {score}
-                </Button>
-              ))}
-            </div>
-          </div>
-          <Button
-            className="w-full"
-            onClick={handleInviteToGame}
-            disabled={inviteBusy === inviteDialogFriendId}
-          >
-            {inviteBusy === inviteDialogFriendId ? tCommon("creating") : t("createAndInvite")}
-          </Button>
-        </div>
+        <GameConfigPanel
+          mode="multiplayer"
+          boardSize={inviteBoardSize}
+          onBoardSizeChange={setInviteBoardSize}
+          scoreToWin={inviteScoreToWin}
+          onScoreToWinChange={setInviteScoreToWin}
+          timeControl={inviteTimeControl}
+          onTimeControlChange={setInviteTimeControl}
+          submitLabel={t("createAndInvite")}
+          onSubmit={handleInviteToGame}
+          busy={inviteBusy === inviteDialogFriendId}
+        />
       </Dialog>
 
       <FriendActiveGamesModal

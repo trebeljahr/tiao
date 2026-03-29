@@ -322,6 +322,7 @@ export function ProfilePage() {
   const [pageError, setPageError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState("");
+  const [bio, setBio] = useState("");
   const [email, setEmail] = useState("");
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -355,6 +356,7 @@ export function ProfilePage() {
 
         setProfile(response.profile);
         setDisplayName(response.profile.displayName);
+        setBio(response.profile.bio ?? "");
         setEmail(response.profile.email ?? "");
       } catch (error) {
         if (!cancelled) {
@@ -419,7 +421,7 @@ export function ProfilePage() {
     setPageError(null);
 
     try {
-      const body: { displayName?: string; email?: string } = { displayName };
+      const body: { displayName?: string; email?: string; bio?: string } = { displayName, bio };
       // Only send email if the user has a credential provider (OAuth emails are managed by the provider)
       if (hasCredentialProvider || !hasOAuthProvider) {
         body.email = email || undefined;
@@ -428,6 +430,7 @@ export function ProfilePage() {
       onAuthChange(response.auth);
       setProfile(response.profile);
       setDisplayName(response.profile.displayName);
+      setBio(response.profile.bio ?? "");
       setEmail(response.profile.email || "");
       setSuccessMessage(t("profileSaved"));
     } catch (error) {
@@ -712,6 +715,24 @@ export function ProfilePage() {
                         required
                       />
                       <p className="text-xs text-[#8d7760]">{t("usernameHint")}</p>
+                    </div>
+
+                    <div className="grid gap-2">
+                      <label htmlFor="profile-bio" className="text-sm font-medium text-[#4e3d2c]">
+                        {t("bio")}
+                      </label>
+                      <textarea
+                        id="profile-bio"
+                        value={bio}
+                        onChange={(e) => setBio(e.target.value.slice(0, 500))}
+                        placeholder={t("bioPlaceholder")}
+                        rows={3}
+                        maxLength={500}
+                        className="flex w-full rounded-xl border border-[#dcc7a3] bg-[#fffdf8] px-3 py-2 text-sm text-[#2b1e14] shadow-sm placeholder:text-[#b8a68e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b08440] disabled:cursor-not-allowed disabled:opacity-50"
+                      />
+                      <p className="text-xs text-[#8d7760]">
+                        {t("bioHint", { count: bio.length, max: 500 })}
+                      </p>
                     </div>
 
                     <div className="grid gap-2">

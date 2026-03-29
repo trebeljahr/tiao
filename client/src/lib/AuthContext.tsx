@@ -262,7 +262,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     resetBoardTheme();
     resetActiveBadges();
 
-    const isInGame = typeof window !== "undefined" && window.location.pathname.startsWith("/game/");
+    const isInGame = typeof window !== "undefined" && /\/game\//.test(window.location.pathname);
 
     try {
       await authClient.signOut();

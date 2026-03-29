@@ -5,6 +5,7 @@ import { PlayerOverviewAvatar, ConnectionDot } from "@/components/game/GameShare
 import { UserBadge, type BadgeId } from "@/components/UserBadge";
 import { resolvePlayerBadges } from "@/lib/featureGate";
 import { useActiveBadgeId } from "@/lib/useActiveBadge";
+import { Link } from "@/i18n/navigation";
 
 type PlayerIdentityRowProps = {
   player: {
@@ -18,6 +19,8 @@ type PlayerIdentityRowProps = {
   currentPlayerId?: string;
   avatarClassName?: string;
   online?: boolean | null;
+  /** Wrap the avatar + name in a link to the player's public profile. */
+  linkToProfile?: boolean;
   showFriendBadge?: boolean;
   showAddFriend?: boolean;
   onAddFriend?: () => void;
@@ -37,6 +40,7 @@ export function PlayerIdentityRow({
   currentPlayerId,
   avatarClassName,
   online,
+  linkToProfile,
   showFriendBadge,
   showAddFriend,
   onAddFriend,
@@ -56,16 +60,34 @@ export function PlayerIdentityRow({
   const badgesToShow =
     isYou && myBadgeFromStorage !== null ? [myBadgeFromStorage] : resolvePlayerBadges(player);
 
-  return (
-    <div className={cn("flex items-center gap-2", className)}>
+  const canLink = linkToProfile && player.displayName && !anonymous;
+  const avatarAndName = (
+    <>
       <PlayerOverviewAvatar player={player} anonymous={anonymous} className={avatarClassName} />
-      <span className={cn("truncate text-sm font-medium", nameClassName)}>
+      <span
+        className={cn("truncate text-sm font-medium", canLink && "hover:underline", nameClassName)}
+      >
         {player.displayName ?? t("player")}
         {isYou && <span className="opacity-60"> {t("you")}</span>}
         {player.rating != null && (
           <span className="ml-1 text-xs font-normal opacity-50">({player.rating})</span>
         )}
       </span>
+    </>
+  );
+
+  return (
+    <div className={cn("flex items-center gap-2", className)}>
+      {canLink ? (
+        <Link
+          href={`/profile/${encodeURIComponent(player.displayName!)}`}
+          className="flex min-w-0 items-center gap-2"
+        >
+          {avatarAndName}
+        </Link>
+      ) : (
+        avatarAndName
+      )}
 
       {badgesToShow.map((id) => (
         <UserBadge key={id} badge={id as BadgeId} compact />

@@ -20,6 +20,8 @@ async function fetchGameOg(gameId: string) {
       score: { white: number; black: number };
       white: string | null;
       black: string | null;
+      whiteRating?: number;
+      blackRating?: number;
       timeControl: { initialMs: number; incrementMs: number } | null;
       roomType: string;
     };
@@ -53,7 +55,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const scoreToWin = game.scoreToWin ?? 10;
 
   if (game.status === "waiting") {
-    const host = game.white || game.black || "Someone";
+    const hostName = game.white || game.black || "Someone";
+    const hostRating = game.whiteRating ?? game.blackRating;
+    const host = hostRating ? `${hostName} (${hostRating})` : hostName;
     title = t("gameTitle", { gameId: id });
     description = t("gameWaiting", { host });
   } else if (game.status === "active") {
@@ -73,10 +77,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     });
   }
 
-  const ogDescription = t("gameDescription", {
-    boardSize: String(boardSize),
-    scoreToWin: String(scoreToWin),
-  });
+  const tc = game.timeControl;
+  const tcLabel = tc
+    ? `${Math.floor(tc.initialMs / 60_000)}+${Math.round(tc.incrementMs / 1_000)}`
+    : undefined;
+
+  const ogDescription = tcLabel
+    ? t("gameDescriptionTimed", {
+        boardSize: String(boardSize),
+        scoreToWin: String(scoreToWin),
+        timeControl: tcLabel,
+      })
+    : t("gameDescription", {
+        boardSize: String(boardSize),
+        scoreToWin: String(scoreToWin),
+      });
 
   return {
     title,

@@ -18,6 +18,8 @@ export interface IGameAccount extends Document {
   activeBadges: string[];
   /** Whether this account has admin privileges. */
   isAdmin: boolean;
+  /** Short user-written bio for their public profile. */
+  bio: string;
   rating: {
     overall: IRatingEntry;
   };
@@ -73,6 +75,12 @@ const GameAccountSchema = new Schema<IGameAccount>(
     isAdmin: {
       type: Boolean,
       default: false,
+    },
+    bio: {
+      type: String,
+      trim: true,
+      maxlength: 500,
+      default: "",
     },
     rating: {
       overall: {
