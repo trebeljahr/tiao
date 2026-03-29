@@ -11,11 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog } from "@/components/ui/dialog";
 import { Navbar } from "@/components/Navbar";
-import {
-  getOpponentLabel,
-  isSummaryYourTurn,
-  translatePlayerColor,
-} from "@/components/game/GameShared";
+import { isSummaryYourTurn, translatePlayerColor } from "@/components/game/GameShared";
 import { GameConfigPanel } from "@/components/game/GameConfigPanel";
 import { GameConfigBadge } from "@/components/game/GameConfigBadge";
 import { useGamesIndex } from "@/lib/hooks/useGamesIndex";
@@ -435,7 +431,9 @@ export function LobbyPage() {
                 <CardContent className="space-y-3 pt-6">
                   {sortedActiveGames.slice(0, 3).map((game) => {
                     const isYourTurn = isSummaryYourTurn(game);
+                    const isWaiting = game.status === "waiting";
                     const opponentSeat = game.yourSeat === "white" ? "black" : "white";
+                    const opponent = game.seats[opponentSeat]?.player ?? null;
                     const opponentOnline = game.seats[opponentSeat]?.online ?? false;
                     const hasRematchRequest =
                       game.status === "finished" && !!game.rematch?.requestedBy.length;
@@ -444,7 +442,7 @@ export function LobbyPage() {
                         key={game.gameId}
                         data-testid={`lobby-game-${game.gameId}`}
                         className={cn(
-                          "flex items-center justify-between rounded-2xl border p-4 shadow-sm hover:border-[#b98d49] transition-colors group",
+                          "flex flex-col gap-3 rounded-2xl border p-4 shadow-sm hover:border-[#b98d49] transition-colors group",
                           hasRematchRequest
                             ? "border-[#d4b87a] bg-[#fdf6e8]"
                             : opponentOnline
@@ -452,68 +450,79 @@ export function LobbyPage() {
                               : "border-[#d7c39e] bg-[#fffaf3]",
                         )}
                       >
-                        <div className="flex items-center gap-4">
-                          <div className="flex flex-col gap-0.5">
-                            <div className="flex items-center gap-2">
-                              {game.yourSeat && (
-                                <span
-                                  className={cn(
-                                    "inline-block h-3 w-3 shrink-0 rounded-full border",
-                                    game.yourSeat === "white"
-                                      ? "border-[#ddd2bf] bg-[radial-gradient(circle_at_30%_28%,#fffdfa,#f4eee3_58%,#d9ccb8)]"
-                                      : "border-[#191410] bg-[radial-gradient(circle_at_30%_28%,#5d554f,#2d2622_58%,#0f0c0b)]",
-                                  )}
-                                  title={tc("playingAs", {
-                                    color:
-                                      translatePlayerColor(game.yourSeat ?? null, tGame) ??
-                                      game.yourSeat,
-                                  })}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-4">
+                            <div className="flex flex-col gap-0.5">
+                              <div className="flex items-center gap-2">
+                                {game.yourSeat && (
+                                  <span
+                                    className={cn(
+                                      "inline-block h-3 w-3 shrink-0 rounded-full border",
+                                      game.yourSeat === "white"
+                                        ? "border-[#ddd2bf] bg-[radial-gradient(circle_at_30%_28%,#fffdfa,#f4eee3_58%,#d9ccb8)]"
+                                        : "border-[#191410] bg-[radial-gradient(circle_at_30%_28%,#5d554f,#2d2622_58%,#0f0c0b)]",
+                                    )}
+                                    title={tc("playingAs", { color: translatePlayerColor(game.yourSeat ?? null, tGame) ?? game.yourSeat })}
+                                  />
+                                )}
+                                <p className="font-mono text-lg font-bold text-[#2b1e14]">
+                                  {t("gamePrefix", { gameId: game.gameId })}
+                                </p>
+                              </div>
+                              <p className="text-sm text-[#6e5b48]">
+                                {opponent && (
+                                  <>
+                                    {tc("vs", { opponent: opponent.displayName })}
+                                    {opponentOnline && (
+                                      <span
+                                        className="ml-1.5 inline-block h-2 w-2 rounded-full bg-[#6ba34a]"
+                                        title={t("opponentOnline")}
+                                      />
+                                    )}
+                                  </>
+                                )}
+                                {!opponent && isWaiting && tGame("waitingForOpponent")}
+                                {!opponent && !isWaiting && tGame("openSeat")}
+                                <span className="ml-2 text-xs text-[#8d7760]">
+                                  {game.score.white}-{game.score.black} ·{" "}
+                                  {tc("moves", { count: game.historyLength })}
+                                </span>
+                                <GameConfigBadge
+                                  boardSize={game.boardSize}
+                                  scoreToWin={game.scoreToWin}
+                                  timeControl={game.timeControl}
+                                  roomType={game.roomType}
+                                  compact
                                 />
-                              )}
-                              <p className="font-mono text-lg font-bold text-[#2b1e14]">
-                                {game.gameId}
                               </p>
                             </div>
-                            <p className="text-sm text-[#6e5b48]">
-                              vs {getOpponentLabel(game, auth.player.playerId, tGame)}
-                              {opponentOnline && (
-                                <span
-                                  className="ml-1.5 inline-block h-2 w-2 rounded-full bg-[#6ba34a]"
-                                  title={t("opponentOnline")}
-                                />
-                              )}
-                              <span className="ml-2 text-xs text-[#8d7760]">
-                                {game.score.white}-{game.score.black} ·{" "}
-                                {tc("moves", { count: game.historyLength })}
-                              </span>
-                              <GameConfigBadge
-                                boardSize={game.boardSize}
-                                scoreToWin={game.scoreToWin}
-                                timeControl={game.timeControl}
-                                roomType={game.roomType}
-                                compact
-                              />
-                            </p>
                           </div>
-                          <Badge
-                            className={cn(
-                              "ml-2 px-3 py-1",
-                              hasRematchRequest
-                                ? "bg-[#f5ead4] text-[#8d6a2f] animate-pulse"
+                          {!isWaiting && (
+                            <Badge
+                              className={cn(
+                                "shrink-0 px-3 py-1",
+                                hasRematchRequest
+                                  ? "bg-[#f5ead4] text-[#8d6a2f] animate-pulse"
+                                  : isYourTurn
+                                    ? "bg-[#e8f2d8] text-[#4b6537] animate-pulse"
+                                    : "bg-[#f3e7d5] text-[#6b563e]",
+                              )}
+                            >
+                              {hasRematchRequest
+                                ? t("rematchRequested")
                                 : isYourTurn
-                                  ? "bg-[#e8f2d8] text-[#4b6537] animate-pulse"
-                                  : "bg-[#f3e7d5] text-[#6b563e]",
-                            )}
-                          >
-                            {hasRematchRequest
-                              ? t("rematchRequested")
-                              : isYourTurn
-                                ? t("yourMove")
-                                : t("theirMove")}
-                          </Badge>
+                                  ? t("yourMove")
+                                  : t("theirMove")}
+                            </Badge>
+                          )}
+                          {isWaiting && (
+                            <Badge className="shrink-0 px-3 py-1 bg-[#f3e7d5] text-[#6b563e]">
+                              {tGame("waiting")}
+                            </Badge>
+                          )}
                         </div>
-                        <div className="flex items-center gap-2">
-                          {game.status === "waiting" && (
+                        <div className="flex items-center gap-2 sm:justify-end">
+                          {isWaiting && (
                             <Button
                               size="sm"
                               variant="ghost"
@@ -522,14 +531,14 @@ export function LobbyPage() {
                                 e.stopPropagation();
                                 try {
                                   await cancelMultiplayerGame(game.gameId);
-                                  toast.success(t("gameCancelled"));
+                                  toast.success(t("gameDeleted"));
                                   void refreshMultiplayerGames({ silent: true });
                                 } catch (err) {
                                   toastError(err);
                                 }
                               }}
                             >
-                              {tc("cancel")}
+                              {tc("delete")}
                             </Button>
                           )}
                           <Button
@@ -537,7 +546,7 @@ export function LobbyPage() {
                             className="shadow-sm group-hover:scale-105 transition-transform"
                             onClick={() => router.push(`/game/${game.gameId}`)}
                           >
-                            {hasRematchRequest ? tc("view") : tc("resume")}
+                            {hasRematchRequest ? tc("view") : isWaiting ? tc("view") : tc("resume")}
                           </Button>
                         </div>
                       </div>

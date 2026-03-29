@@ -16,6 +16,7 @@ vi.mock("@/lib/hooks/useSocialData", () => ({
 vi.mock("@/lib/api", () => ({
   createMultiplayerGame: vi.fn(),
   joinMultiplayerGame: vi.fn(),
+  cancelMultiplayerGame: vi.fn(),
 }));
 
 vi.mock("sonner", () => ({
@@ -143,6 +144,7 @@ describe("LobbyPage", () => {
       socialLoading: false,
       socialLoaded: false,
       refreshSocialOverview: vi.fn(),
+      handleDeclineGameInvitation: vi.fn(),
     });
   }
 
@@ -236,6 +238,98 @@ describe("LobbyPage", () => {
     expect(toast.error).toHaveBeenCalledWith(
       "That's your own game! Use the game list above to rejoin it.",
     );
+  });
+
+  it("shows 'Waiting' badge instead of 'Their move' for waiting games", async () => {
+    const waitingGame = makeGameSummary({
+      gameId: "WAIT01",
+      status: "waiting",
+      currentTurn: "white",
+      yourSeat: "white",
+      seats: {
+        white: {
+          player: {
+            playerId: "user-123",
+            displayName: "TestUser",
+            kind: "account",
+          },
+          online: true,
+        },
+        black: null as any,
+      },
+    });
+
+    await setupMocks({ active: [waitingGame] });
+    render(<LobbyPage />);
+
+    const gameCard = screen.getByTestId("lobby-game-WAIT01");
+    expect(gameCard).toBeInTheDocument();
+    expect(gameCard).toHaveTextContent("Waiting");
+    expect(gameCard).not.toHaveTextContent("Their move");
+  });
+
+  it("shows 'Waiting for opponent' instead of 'vs' for waiting games without opponent", async () => {
+    const waitingGame = makeGameSummary({
+      gameId: "WAIT02",
+      status: "waiting",
+      currentTurn: "white",
+      yourSeat: "white",
+      seats: {
+        white: {
+          player: {
+            playerId: "user-123",
+            displayName: "TestUser",
+            kind: "account",
+          },
+          online: true,
+        },
+        black: null as any,
+      },
+    });
+
+    await setupMocks({ active: [waitingGame] });
+    render(<LobbyPage />);
+
+    const gameCard = screen.getByTestId("lobby-game-WAIT02");
+    expect(gameCard).toHaveTextContent("Waiting for opponent");
+    // Should not show "vs" prefix when no opponent
+    expect(gameCard).not.toHaveTextContent(/vs /);
+  });
+
+  it("shows Delete button instead of Cancel for waiting games", async () => {
+    const waitingGame = makeGameSummary({
+      gameId: "WAIT03",
+      status: "waiting",
+      currentTurn: "white",
+      yourSeat: "white",
+      seats: {
+        white: {
+          player: {
+            playerId: "user-123",
+            displayName: "TestUser",
+            kind: "account",
+          },
+          online: true,
+        },
+        black: null as any,
+      },
+    });
+
+    await setupMocks({ active: [waitingGame] });
+    render(<LobbyPage />);
+
+    const gameCard = screen.getByTestId("lobby-game-WAIT03");
+    expect(gameCard).toHaveTextContent("Delete");
+    expect(gameCard).not.toHaveTextContent("Cancel");
+  });
+
+  it("shows 'Game:' prefix before game ID", async () => {
+    const activeGame = makeGameSummary({ gameId: "ABC123", status: "active" });
+    await setupMocks({ active: [activeGame] });
+    render(<LobbyPage />);
+
+    const gameCard = screen.getByTestId("lobby-game-ABC123");
+    expect(gameCard).toHaveTextContent("Game: ABC123");
   });
 
   it("allows spectating a game that is not yours", async () => {
