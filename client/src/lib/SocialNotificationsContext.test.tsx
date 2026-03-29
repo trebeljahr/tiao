@@ -60,9 +60,7 @@ const emptyOverview: SocialOverview = {
 };
 
 function wrapper({ children }: { children: React.ReactNode }) {
-  return (
-    <SocialNotificationsProvider auth={accountAuth}>{children}</SocialNotificationsProvider>
-  );
+  return <SocialNotificationsProvider auth={accountAuth}>{children}</SocialNotificationsProvider>;
 }
 
 function simulateLobbyMessage(payload: Record<string, unknown>) {
@@ -83,9 +81,7 @@ describe("SocialNotificationsContext", () => {
   it("provides pending friend request count from overview", async () => {
     const overview: SocialOverview = {
       ...emptyOverview,
-      incomingFriendRequests: [
-        { playerId: "req-1", displayName: "Alice" },
-      ],
+      incomingFriendRequests: [{ playerId: "req-1", displayName: "Alice" }],
     };
     mockGetSocialOverview.mockResolvedValue({ overview });
 
@@ -109,9 +105,7 @@ describe("SocialNotificationsContext", () => {
     // Simulate a social-update with a new friend request
     const updatedOverview: SocialOverview = {
       ...emptyOverview,
-      incomingFriendRequests: [
-        { playerId: "alice-id", displayName: "Alice" },
-      ],
+      incomingFriendRequests: [{ playerId: "alice-id", displayName: "Alice" }],
     };
 
     simulateLobbyMessage({ type: "social-update", overview: updatedOverview });
@@ -129,9 +123,7 @@ describe("SocialNotificationsContext", () => {
     // Start with one incoming friend request
     const initialOverview: SocialOverview = {
       ...emptyOverview,
-      incomingFriendRequests: [
-        { playerId: "alice-id", displayName: "Alice" },
-      ],
+      incomingFriendRequests: [{ playerId: "alice-id", displayName: "Alice" }],
     };
     mockGetSocialOverview.mockResolvedValue({ overview: initialOverview });
 
@@ -157,9 +149,7 @@ describe("SocialNotificationsContext", () => {
   it("dismisses friend request toast when request is declined elsewhere", async () => {
     const initialOverview: SocialOverview = {
       ...emptyOverview,
-      incomingFriendRequests: [
-        { playerId: "bob-id", displayName: "Bob" },
-      ],
+      incomingFriendRequests: [{ playerId: "bob-id", displayName: "Bob" }],
     };
     mockGetSocialOverview.mockResolvedValue({ overview: initialOverview });
 
@@ -194,9 +184,7 @@ describe("SocialNotificationsContext", () => {
     // Only alice's request is accepted; bob's remains
     const updatedOverview: SocialOverview = {
       ...emptyOverview,
-      incomingFriendRequests: [
-        { playerId: "bob-id", displayName: "Bob" },
-      ],
+      incomingFriendRequests: [{ playerId: "bob-id", displayName: "Bob" }],
     };
 
     simulateLobbyMessage({ type: "social-update", overview: updatedOverview });
@@ -212,7 +200,7 @@ describe("SocialNotificationsContext", () => {
         {
           id: "inv-1",
           gameId: "game-1",
-          roomType: "multiplayer",
+          roomType: "direct",
           createdAt: "2026-01-01T00:00:00Z",
           expiresAt: "2026-01-02T00:00:00Z",
           sender: { playerId: "carol-id", displayName: "Carol" },
@@ -247,9 +235,7 @@ describe("SocialNotificationsContext", () => {
     // No previous IDs to dismiss, and new request appears
     const updatedOverview: SocialOverview = {
       ...emptyOverview,
-      incomingFriendRequests: [
-        { playerId: "alice-id", displayName: "Alice" },
-      ],
+      incomingFriendRequests: [{ playerId: "alice-id", displayName: "Alice" }],
     };
 
     simulateLobbyMessage({ type: "social-update", overview: updatedOverview });
@@ -278,7 +264,7 @@ describe("SocialNotificationsContext", () => {
         {
           id: "inv-99",
           gameId: "game-99",
-          roomType: "multiplayer",
+          roomType: "direct",
           createdAt: "2026-01-01T00:00:00Z",
           expiresAt: "2026-01-02T00:00:00Z",
           sender: { playerId: "dave-id", displayName: "Dave" },

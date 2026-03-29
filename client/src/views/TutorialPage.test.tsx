@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import { TutorialPage } from "./TutorialPage";
 
@@ -13,10 +13,7 @@ vi.mock("@/components/Navbar", () => ({
 // Mock framer-motion to render children immediately without animation
 vi.mock("framer-motion", () => ({
   motion: {
-    div: ({
-      children,
-      ...props
-    }: React.PropsWithChildren<Record<string, unknown>>) => (
+    div: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => (
       <div {...filterDomProps(props)}>{children}</div>
     ),
   },

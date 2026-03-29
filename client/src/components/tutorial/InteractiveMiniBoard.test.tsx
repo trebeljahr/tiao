@@ -33,7 +33,7 @@ vi.mock("framer-motion", () => ({
               htmlProps[k] = v;
             }
           }
-          return <Tag {...htmlProps}>{children}</Tag>;
+          return <Tag {...(htmlProps as any)}>{children}</Tag>;
         };
       },
     },
