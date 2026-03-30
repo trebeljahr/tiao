@@ -1,3 +1,4 @@
+import React from "react";
 import { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 import { toast } from "sonner";
 import type { AuthResponse, SocialOverview } from "@shared";
@@ -10,6 +11,7 @@ import {
 } from "./api";
 import { toastError } from "./errors";
 import { useLobbyMessage } from "./LobbySocketContext";
+import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 
 type SocialNotificationsContextValue = {
   pendingFriendRequestCount: number;
@@ -93,35 +95,47 @@ export function SocialNotificationsProvider({
         if (!prevRequestIdsRef.current.has(req.playerId)) {
           const reqPlayerId = req.playerId;
           const reqName = req.displayName || "Someone";
-          toast(`${reqName} sent you a friend request`, {
-            id: `friend-request:${reqPlayerId}`,
-            duration: 15000,
-            action: {
-              label: "Accept",
-              onClick: () => {
-                void (async () => {
-                  try {
-                    await acceptFriendRequest(reqPlayerId);
-                    toast.success(`You are now friends with ${reqName}`);
-                  } catch (e) {
-                    toastError(e);
-                  }
-                })();
+          toast(
+            <div className="flex items-center gap-2">
+              <PlayerIdentityRow
+                player={req}
+                linkToProfile={false}
+                avatarClassName="h-6 w-6"
+                friendVariant="light"
+                nameClassName="text-sm font-medium"
+              />
+            </div>,
+            {
+              id: `friend-request:${reqPlayerId}`,
+              description: "sent you a friend request",
+              duration: 15000,
+              action: {
+                label: "Accept",
+                onClick: () => {
+                  void (async () => {
+                    try {
+                      await acceptFriendRequest(reqPlayerId);
+                      toast.success(`You are now friends with ${reqName}`);
+                    } catch (e) {
+                      toastError(e);
+                    }
+                  })();
+                },
+              },
+              cancel: {
+                label: "Decline",
+                onClick: () => {
+                  void (async () => {
+                    try {
+                      await declineFriendRequest(reqPlayerId);
+                    } catch (e) {
+                      toastError(e);
+                    }
+                  })();
+                },
               },
             },
-            cancel: {
-              label: "Decline",
-              onClick: () => {
-                void (async () => {
-                  try {
-                    await declineFriendRequest(reqPlayerId);
-                  } catch (e) {
-                    toastError(e);
-                  }
-                })();
-              },
-            },
-          });
+          );
         }
       }
     }
@@ -159,22 +173,34 @@ export function SocialNotificationsProvider({
           details.push(`first to ${score}`);
           const suffix = ` (${details.join(", ")})`;
 
-          toast(`${senderName} invited you to a game${suffix}`, {
-            id: `game-invitation:${invId}`,
-            duration: 15000,
-            action: {
-              label: "Join",
-              onClick: () => {
-                window.location.assign(`/game/${invGameId}`);
+          toast(
+            <div className="flex items-center gap-2">
+              <PlayerIdentityRow
+                player={typeof sender === "object" ? sender : { displayName: senderName }}
+                linkToProfile={false}
+                avatarClassName="h-6 w-6"
+                friendVariant="light"
+                nameClassName="text-sm font-medium"
+              />
+            </div>,
+            {
+              id: `game-invitation:${invId}`,
+              description: `invited you to a game${suffix}`,
+              duration: 15000,
+              action: {
+                label: "Join",
+                onClick: () => {
+                  window.location.assign(`/game/${invGameId}`);
+                },
+              },
+              cancel: {
+                label: "Decline",
+                onClick: () => {
+                  void declineGameInvitation(invId).then(() => fetchOverview());
+                },
               },
             },
-            cancel: {
-              label: "Decline",
-              onClick: () => {
-                void declineGameInvitation(invId).then(() => fetchOverview());
-              },
-            },
-          });
+          );
         }
       }
     }
