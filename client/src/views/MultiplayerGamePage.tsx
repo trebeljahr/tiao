@@ -594,9 +594,12 @@ export function MultiplayerGamePage() {
   const lastRematchToastRef = useRef(false);
   const initialRematchSuppressedRef = useRef(false);
   useEffect(() => {
+    // Spectators should never see rematch toasts
+    if (!playerSeat) return;
+
     const rematchRequesters = multiplayerSnapshot?.rematch?.requestedBy ?? [];
     const opponentRequested = rematchRequesters.some((color) => color !== playerSeat);
-    const weAlreadyRequested = playerSeat ? rematchRequesters.includes(playerSeat) : false;
+    const weAlreadyRequested = rematchRequesters.includes(playerSeat);
 
     const rematchToastId = `rematch-${multiplayerSnapshot?.gameId ?? "unknown"}`;
     if (opponentRequested && !weAlreadyRequested && !lastRematchToastRef.current) {
