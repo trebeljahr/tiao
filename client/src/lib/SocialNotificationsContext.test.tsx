@@ -282,4 +282,41 @@ describe("SocialNotificationsContext", () => {
       }),
     );
   });
+
+  it("includes game config details in invitation toast", async () => {
+    mockGetSocialOverview.mockResolvedValue({ overview: emptyOverview });
+
+    renderHook(() => useSocialNotifications(), { wrapper });
+
+    await waitFor(() => {
+      expect(mockGetSocialOverview).toHaveBeenCalled();
+    });
+
+    const updatedOverview: SocialOverview = {
+      ...emptyOverview,
+      incomingInvitations: [
+        {
+          id: "inv-detail",
+          gameId: "game-detail",
+          roomType: "direct",
+          createdAt: "2026-01-01T00:00:00Z",
+          expiresAt: "2026-01-02T00:00:00Z",
+          sender: { playerId: "eve-id", displayName: "Eve" },
+          recipient: { playerId: "my-player", displayName: "Me" },
+          boardSize: 13,
+          timeControl: { initialMs: 300_000, incrementMs: 2_000 },
+          scoreToWin: 5,
+        },
+      ],
+    };
+
+    simulateLobbyMessage({ type: "social-update", overview: updatedOverview });
+
+    expect(toast).toHaveBeenCalledWith(
+      "Eve invited you to a game (13×13, 5+2, first to 5)",
+      expect.objectContaining({
+        id: "game-invitation:inv-detail",
+      }),
+    );
+  });
 });
