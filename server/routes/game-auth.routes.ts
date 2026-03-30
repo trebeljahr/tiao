@@ -630,11 +630,14 @@ router.put("/profile", async (req: Request, res: Response) => {
 
     await account.save();
 
-    const email = await getEmailForAccount(account.id);
+    const [email, providers] = await Promise.all([
+      getEmailForAccount(account.id),
+      getProvidersForAccount(account.id),
+    ]);
     const player = buildPlayerIdentityFromAccount(account, email);
     return res.status(200).json({
       auth: { player },
-      profile: serializeAccountProfile(account, email),
+      profile: serializeAccountProfile(account, email, providers),
     });
   } catch (error: any) {
     if (error?.status === 401 || error?.statusCode === 401) {
@@ -700,11 +703,14 @@ router.post(
       account.profilePicture = `${CLOUDFRONT_URL}/${fileName}`;
       await account.save();
 
-      const email = await getEmailForAccount(account.id);
+      const [email, providers] = await Promise.all([
+        getEmailForAccount(account.id),
+        getProvidersForAccount(account.id),
+      ]);
       const player = buildPlayerIdentityFromAccount(account, email);
       return res.status(200).json({
         auth: { player },
-        profile: serializeAccountProfile(account, email),
+        profile: serializeAccountProfile(account, email, providers),
       });
     } catch (error) {
       console.error("Error uploading game account profile picture:", error);
