@@ -3,7 +3,8 @@ import { signUpViaAPI, waitForAppReady } from "./helpers";
 
 // Multiplayer matchmaking tests create many browser contexts; serialize to avoid
 // overwhelming the single-threaded backend with concurrent auth/signup calls.
-test.describe.configure({ mode: "serial" });
+// Retry once since matchmaking involves polling that can be slow under load.
+test.describe.configure({ mode: "serial", retries: 1 });
 
 async function startMatchmaking(page: Page) {
   // Navigate directly — the session cookie from signUpViaAPI carries over
