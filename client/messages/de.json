@@ -477,7 +477,11 @@
     "favoriteTimeControl": "{tc} Zeitkontrolle",
     "favoriteScore": "Zuerst auf {score}",
     "badges": "Abzeichen",
-    "viewGameHistory": "Spielverlauf ansehen"
+    "viewGameHistory": "Spielverlauf ansehen",
+    "addFriend": "Freund hinzufügen",
+    "requestSent": "Anfrage gesendet",
+    "alreadyFriends": "Freunde",
+    "acceptRequest": "Anfrage annehmen"
   },
   "tutorial": {
     "back": "← Zurück",

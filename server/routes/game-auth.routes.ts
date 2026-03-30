@@ -508,6 +508,43 @@ router.get("/profile/:username", async (req: Request, res: Response) => {
     // Use GameRoom-derived totals so won+lost always equals played
     const totalFromGames = gamesWon + gamesLost;
 
+    // Determine friendship status if viewer is logged in
+    let friendshipStatus:
+      | "none"
+      | "friend"
+      | "outgoing-request"
+      | "incoming-request"
+      | "self"
+      | undefined;
+    try {
+      const viewer = await getPlayerFromRequest(req);
+      if (viewer) {
+        if (viewer.playerId === playerId) {
+          friendshipStatus = "self";
+        } else {
+          const viewerAccount = await GameAccount.findById(viewer.playerId);
+          if (viewerAccount) {
+            const targetId = playerId;
+            if (viewerAccount.friends.some((id: any) => String(id) === targetId)) {
+              friendshipStatus = "friend";
+            } else if (
+              viewerAccount.sentFriendRequests.some((id: any) => String(id) === targetId)
+            ) {
+              friendshipStatus = "outgoing-request";
+            } else if (
+              viewerAccount.receivedFriendRequests.some((id: any) => String(id) === targetId)
+            ) {
+              friendshipStatus = "incoming-request";
+            } else {
+              friendshipStatus = "none";
+            }
+          }
+        }
+      }
+    } catch {
+      // Non-critical — viewer just won't see friendship status
+    }
+
     return res.status(200).json({
       profile: {
         displayName: account.displayName,
@@ -524,6 +561,8 @@ router.get("/profile/:username", async (req: Request, res: Response) => {
         favoriteBoard,
         favoriteTimeControl,
         favoriteScore,
+        playerId,
+        friendshipStatus,
       },
     });
   } catch (error) {

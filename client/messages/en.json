@@ -477,7 +477,11 @@
     "favoriteTimeControl": "{tc} time",
     "favoriteScore": "First to {score}",
     "badges": "Badges",
-    "viewGameHistory": "View game history"
+    "viewGameHistory": "View game history",
+    "addFriend": "Add Friend",
+    "requestSent": "Request Sent",
+    "alreadyFriends": "Friends",
+    "acceptRequest": "Accept Request"
   },
   "tutorial": {
     "back": "← Back",

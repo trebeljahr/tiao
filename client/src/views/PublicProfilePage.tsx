@@ -5,7 +5,12 @@ import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/lib/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getPublicProfile, type PublicProfile } from "@/lib/api";
+import {
+  getPublicProfile,
+  sendFriendRequest,
+  acceptFriendRequest,
+  type PublicProfile,
+} from "@/lib/api";
 import { PlayerOverviewAvatar } from "@/components/game/GameShared";
 import { UserBadge, type BadgeId, BADGE_DEFINITIONS } from "@/components/UserBadge";
 import { resolvePlayerBadges } from "@/lib/featureGate";
@@ -22,13 +27,18 @@ export function PublicProfilePage() {
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [friendStatus, setFriendStatus] = useState<PublicProfile["friendshipStatus"]>();
+  const [friendActionBusy, setFriendActionBusy] = useState(false);
 
   useEffect(() => {
     if (!params?.username) return;
     setLoading(true);
     setError(null);
     getPublicProfile(decodeURIComponent(params.username))
-      .then((res) => setProfile(res.profile))
+      .then((res) => {
+        setProfile(res.profile);
+        setFriendStatus(res.profile.friendshipStatus);
+      })
       .catch(() => setError("not-found"))
       .finally(() => setLoading(false));
   }, [params?.username]);
@@ -133,6 +143,54 @@ export function PublicProfilePage() {
                         }),
                         days: memberDays ?? 0,
                       })}
+                    </p>
+                  )}
+
+                  {auth?.player && friendStatus === "none" && profile.playerId && (
+                    <Button
+                      className="mt-4"
+                      disabled={friendActionBusy}
+                      onClick={async () => {
+                        setFriendActionBusy(true);
+                        try {
+                          await sendFriendRequest(profile.playerId!);
+                          setFriendStatus("outgoing-request");
+                        } finally {
+                          setFriendActionBusy(false);
+                        }
+                      }}
+                    >
+                      {t("addFriend")}
+                    </Button>
+                  )}
+
+                  {auth?.player && friendStatus === "incoming-request" && profile.playerId && (
+                    <Button
+                      className="mt-4"
+                      disabled={friendActionBusy}
+                      onClick={async () => {
+                        setFriendActionBusy(true);
+                        try {
+                          await acceptFriendRequest(profile.playerId!);
+                          setFriendStatus("friend");
+                        } finally {
+                          setFriendActionBusy(false);
+                        }
+                      }}
+                    >
+                      {t("acceptRequest")}
+                    </Button>
+                  )}
+
+                  {friendStatus === "outgoing-request" && (
+                    <p className="mt-4 inline-flex items-center rounded-xl border border-[#dcc7a3] bg-[#fff9ef] px-4 py-2 text-sm font-medium text-[#4e3d2c]">
+                      {t("requestSent")}
+                    </p>
+                  )}
+
+                  {friendStatus === "friend" && (
+                    <p className="mt-4 inline-flex items-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700">
+                      {t("alreadyFriends")}
                     </p>
                   )}
                 </div>

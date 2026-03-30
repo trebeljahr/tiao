@@ -477,7 +477,11 @@
     "favoriteTimeControl": "Tiempo {tc}",
     "favoriteScore": "Primero a {score}",
     "badges": "Insignias",
-    "viewGameHistory": "Ver historial de partidas"
+    "viewGameHistory": "Ver historial de partidas",
+    "addFriend": "Agregar amigo",
+    "requestSent": "Solicitud enviada",
+    "alreadyFriends": "Amigos",
+    "acceptRequest": "Aceptar solicitud"
   },
   "tutorial": {
     "back": "← Volver",
