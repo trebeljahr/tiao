@@ -254,7 +254,7 @@ export function LobbyPage() {
         {/* Banner Section — hidden for users who completed the tutorial */}
         {!(
           (auth?.player.kind === "account" && auth.player.hasSeenTutorial) ||
-          localStorage.getItem("tiao:tutorialComplete")
+          (typeof window !== "undefined" && localStorage.getItem("tiao:tutorialComplete"))
         ) && (
           <section className="relative flex flex-col items-center justify-center py-4 text-center sm:py-12">
             <motion.div

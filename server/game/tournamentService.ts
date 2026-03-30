@@ -1203,13 +1203,13 @@ export class TournamentService implements TournamentGameCallback {
 
     // Find the match across all round arrays (including group-stage rounds)
     let match: TournamentMatch | undefined;
-    const allRounds = [
+    const allRounds: TournamentRound[] = [
       ...tournament.rounds,
       ...tournament.knockoutRounds,
       ...(tournament.groups ?? []).flatMap((g: any) => g.rounds ?? []),
     ];
     for (const round of allRounds) {
-      match = round.matches.find((m) => m.matchId === matchId);
+      match = round.matches.find((m: TournamentMatch) => m.matchId === matchId);
       if (match) break;
     }
     if (!match) return;
