@@ -273,7 +273,7 @@ function handleRouteError(error: unknown, req: Request, res: Response, fallbackM
   });
 }
 
-async function notifyLobbyUpdate(playerId: string) {
+export async function notifyLobbyUpdate(playerId: string) {
   const account = await GameAccount.findById(playerId);
   if (!account) return;
 

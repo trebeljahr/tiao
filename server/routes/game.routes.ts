@@ -8,6 +8,7 @@ import GameInvitation from "../models/GameInvitation";
 import GameAccount from "../models/GameAccount";
 import GameRoom, { type IGameRoom } from "../models/GameRoom";
 import { PlayerIdentity } from "../../shared/src";
+import { notifyLobbyUpdate } from "./social.routes";
 
 const router = express.Router();
 
@@ -127,12 +128,14 @@ async function revokeAllPendingInvitationsForGame(gameId: string) {
     affectedPlayerIds.add(inv.recipientId.toString());
   }
 
-  // Notify each affected player via lobby websocket
-  for (const playerId of affectedPlayerIds) {
-    gameService.broadcastLobby(playerId, {
-      type: "social-update",
-    });
-  }
+  // Send full social overview so clients update immediately without a re-fetch
+  await Promise.all(
+    Array.from(affectedPlayerIds).map((playerId) =>
+      notifyLobbyUpdate(playerId).catch((err) => {
+        console.error("[game] Failed to notify lobby update for", playerId, err);
+      }),
+    ),
+  );
 }
 
 /**
