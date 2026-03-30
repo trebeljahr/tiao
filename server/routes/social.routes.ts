@@ -179,8 +179,8 @@ async function loadInvitationSummaries(
   filter: Record<string, unknown>,
 ): Promise<GameInvitationSummary[]> {
   const invitations = await GameInvitation.find(filter)
-    .populate("senderId", "displayName profilePicture email")
-    .populate("recipientId", "displayName profilePicture email")
+    .populate("senderId", "displayName profilePicture email rating activeBadges")
+    .populate("recipientId", "displayName profilePicture email rating activeBadges")
     .sort({ createdAt: -1 })
     .limit(50)
     .exec();
