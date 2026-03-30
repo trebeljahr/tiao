@@ -3,7 +3,6 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { RequireAccount } from "@/components/RequireAccount";
 import { useAuth } from "@/lib/AuthContext";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MatchHistoryCard } from "@/components/game/MatchHistoryCard";
 import { ActiveGameCard } from "@/components/game/ActiveGameCard";
@@ -16,7 +15,6 @@ import { useTranslations } from "next-intl";
 
 export function GamesPage() {
   const t = useTranslations("games");
-  const tCommon = useTranslations("common");
   const { auth, onOpenAuth, onLogout } = useAuth();
   const router = useRouter();
   const [navOpen, setNavOpen] = useState(false);

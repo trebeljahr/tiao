@@ -45,7 +45,6 @@ const FILES = [
   "client/src/lib/hooks/useMultiplayerGame.test.ts",
   "client/src/lib/hooks/useMatchmakingData.test.ts",
   "client/src/lib/hooks/useSocialData.test.ts",
-  "client/src/lib/hooks/useLobbySocket.test.ts",
 
   // Test files — E2E
   "e2e/localTurns.spec.ts",
@@ -60,7 +59,7 @@ const FILES = [
 
   // Config files
   "server/package.json",
-  "client/vite.config.mts",
+  "client/vitest.config.mts",
   "playwright.config.ts",
 
   // AI engine files

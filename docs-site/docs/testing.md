@@ -10,7 +10,7 @@ Tiao uses three test frameworks across three layers:
 | Layer             | Framework                                                                                                              | Config                                                   |
 | ----------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | Server unit tests | Node.js built-in [`node:test`](https://nodejs.org/docs/latest-v22.x/api/test.html)                                     | [`server/package.json`][fn-package.json] ("test" script) |
-| Client unit tests | [Vitest](https://vitest.dev/) + [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) | [`client/vite.config.mts`][fn-vite.config.mts]           |
+| Client unit tests | [Vitest](https://vitest.dev/) + [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) | [`client/vitest.config.mts`][fn-vitest.config.mts]       |
 | E2E tests         | [Playwright](https://playwright.dev/)                                                                                  | [`playwright.config.ts`][fn-playwright.config.ts]        |
 
 ## Running Tests
