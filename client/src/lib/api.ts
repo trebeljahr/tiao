@@ -316,6 +316,7 @@ export function getAccountProfile() {
 }
 
 export type PublicProfile = {
+  playerId: string;
   displayName: string;
   profilePicture?: string;
   rating?: number;

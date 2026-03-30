@@ -37,6 +37,7 @@
     "friend": "Freund",
     "pending": "Ausstehend",
     "addFriend": "Freund hinzufügen",
+    "unfriend": "Entfreunden",
     "copied": "Kopiert",
     "copiedGameId": "Spiel-ID {gameId} kopiert",
     "copiedShareLink": "Link kopiert",

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/lib/AuthContext";
@@ -19,7 +19,10 @@ import { PlayerOverviewAvatar } from "@/components/game/GameShared";
 import { MatchHistoryCard } from "@/components/game/MatchHistoryCard";
 import { UserBadge, type BadgeId, BADGE_DEFINITIONS } from "@/components/UserBadge";
 import { resolvePlayerBadges } from "@/lib/featureGate";
+import { Link } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
+import { useSocialData } from "@/lib/hooks/useSocialData";
+import { useLobbyMessage } from "@/lib/LobbySocketContext";
 
 export function PublicProfilePage() {
   const t = useTranslations("publicProfile");
@@ -40,6 +43,31 @@ export function PublicProfilePage() {
   const [matchLoading, setMatchLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const locale = useLocale();
+
+  const social = useSocialData(auth, false);
+
+  // Auto-refresh social data when a social-update arrives via WebSocket
+  useLobbyMessage((payload) => {
+    if (payload.type === "social-update") {
+      void social.refreshSocialOverview({ silent: true });
+    }
+  });
+
+  // Derive friend relationship
+  const profileId = profile?.playerId;
+  const isOwnProfile = auth?.player.playerId === profileId;
+  const isAccount = auth?.player.kind === "account";
+
+  const friendRelationship = useMemo(() => {
+    if (!profileId || isOwnProfile || !isAccount) return "none" as const;
+    if (social.socialOverview.friends.some((f) => f.playerId === profileId))
+      return "friend" as const;
+    if (social.socialOverview.outgoingFriendRequests.some((f) => f.playerId === profileId))
+      return "outgoing" as const;
+    if (social.socialOverview.incomingFriendRequests.some((f) => f.playerId === profileId))
+      return "incoming" as const;
+    return "none" as const;
+  }, [profileId, isOwnProfile, isAccount, social.socialOverview]);
 
   useEffect(() => {
     if (!params?.username) return;
@@ -157,6 +185,67 @@ export function PublicProfilePage() {
                       <UserBadge key={id} badge={id as BadgeId} />
                     ))}
                   </div>
+
+                  {/* Friend action buttons */}
+                  {isAccount && !isOwnProfile && profileId && (
+                    <div className="mt-3 flex items-center justify-center gap-2">
+                      {friendRelationship === "none" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-xs"
+                          onClick={() => social.handleSendFriendRequest(profileId)}
+                          disabled={social.socialActionBusyKey === `friend-send:${profileId}`}
+                        >
+                          {tCommon("addFriend")}
+                        </Button>
+                      )}
+                      {friendRelationship === "outgoing" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-xs text-[#8d7760]"
+                          onClick={() => social.handleCancelFriendRequest(profileId)}
+                          disabled={social.socialActionBusyKey === `friend-cancel:${profileId}`}
+                        >
+                          {tCommon("pending")} &times;
+                        </Button>
+                      )}
+                      {friendRelationship === "incoming" && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                            onClick={() => social.handleAcceptFriendRequest(profileId)}
+                            disabled={social.socialActionBusyKey === `friend-accept:${profileId}`}
+                          >
+                            {tCommon("accept")}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs text-[#8d7760]"
+                            onClick={() => social.handleDeclineFriendRequest(profileId)}
+                            disabled={social.socialActionBusyKey === `friend-decline:${profileId}`}
+                          >
+                            {tCommon("decline")}
+                          </Button>
+                        </>
+                      )}
+                      {friendRelationship === "friend" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-xs text-red-600 hover:bg-red-50 hover:border-red-300"
+                          onClick={() => social.handleRemoveFriend(profileId)}
+                          disabled={social.socialActionBusyKey === `friend-remove:${profileId}`}
+                        >
+                          {tCommon("unfriend")}
+                        </Button>
+                      )}
+                    </div>
+                  )}
 
                   {profile.bio && (
                     <p className="mt-3 max-w-md text-sm text-[#6e5b48]">{profile.bio}</p>

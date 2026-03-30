@@ -37,6 +37,7 @@
     "friend": "Friend",
     "pending": "Pending",
     "addFriend": "Add friend",
+    "unfriend": "Unfriend",
     "copied": "Copied",
     "copiedGameId": "Copied Game ID {gameId}",
     "copiedShareLink": "Copied Share Link",
