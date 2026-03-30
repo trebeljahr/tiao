@@ -249,22 +249,17 @@ export function MatchHistoryCard({
           {tCommon("moves", { count: game.historyLength ?? 0 })}
         </span>
         <div className="flex items-center gap-1.5">
-          {game.boardSize && (
-            <span className="rounded-full border border-[#d7c39e] bg-[#fff9ef] px-2 py-0.5 text-[10px] font-medium text-[#6b5a45]">
-              {game.boardSize}x{game.boardSize}
-            </span>
-          )}
-          {game.timeControl && (
-            <span className="rounded-full border border-[#d7c39e] bg-[#fff9ef] px-2 py-0.5 text-[10px] font-medium text-[#6b5a45]">
-              {Math.floor(game.timeControl.initialMs / 60_000)}+
-              {Math.round(game.timeControl.incrementMs / 1_000)}
-            </span>
-          )}
-          {game.scoreToWin && game.scoreToWin !== 10 && (
-            <span className="rounded-full border border-[#d7c39e] bg-[#fff9ef] px-2 py-0.5 text-[10px] font-medium text-[#6b5a45]">
-              {t("nPts", { n: game.scoreToWin })}
-            </span>
-          )}
+          <span className="rounded-full border border-[#d7c39e] bg-[#fff9ef] px-2 py-0.5 text-[10px] font-medium text-[#6b5a45]">
+            {game.boardSize ?? 19}x{game.boardSize ?? 19}
+          </span>
+          <span className="rounded-full border border-[#d7c39e] bg-[#fff9ef] px-2 py-0.5 text-[10px] font-medium text-[#6b5a45]">
+            {game.timeControl
+              ? `${Math.floor(game.timeControl.initialMs / 60_000)}+${Math.round(game.timeControl.incrementMs / 1_000)}`
+              : t("unlimitedTime")}
+          </span>
+          <span className="rounded-full border border-[#d7c39e] bg-[#fff9ef] px-2 py-0.5 text-[10px] font-medium text-[#6b5a45]">
+            {t("nPts", { n: game.scoreToWin ?? 10 })}
+          </span>
           <GameConfigBadge roomType={game.roomType} />
         </div>
       </div>

@@ -192,6 +192,7 @@
     "nMin": "{n} min",
     "nToWin": "{n} to win",
     "nPts": "{n}pts",
+    "unlimitedTime": "Unlimited",
     "game": "Game",
     "drawTitle": "Draw",
     "colorWins": "{color} wins",

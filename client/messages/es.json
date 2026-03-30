@@ -191,6 +191,7 @@
     "nMin": "{n} min",
     "nToWin": "{n} para ganar",
     "nPts": "{n}pts",
+    "unlimitedTime": "Sin límite",
     "game": "Partida",
     "drawTitle": "Empate",
     "colorWins": "{color} gana",
