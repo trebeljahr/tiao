@@ -948,7 +948,7 @@ export function MultiplayerGamePage() {
                               ? setSpectatorDialogOpen(true)
                               : handleCopySpectateLink()
                           }
-                          className="flex items-center gap-1.5 rounded-full border border-[#d8c29c] bg-[#fff8ee]/96 px-2.5 py-1.5 text-xs font-semibold text-[#5d4732] transition-colors hover:bg-[#f5e8d4]"
+                          className="mr-1 inline-flex h-10 items-center gap-1.5 rounded-full border border-black/10 bg-[linear-gradient(180deg,#39312b,#16110d)] px-3.5 text-xs font-semibold text-[#f9f2e8] shadow-[0_18px_32px_-26px_rgba(0,0,0,0.9)] transition-transform hover:-translate-y-0.5"
                           title={
                             spectatorCount > 0
                               ? `${spectatorCount} spectator${spectatorCount !== 1 ? "s" : ""}`
