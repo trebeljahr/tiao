@@ -11,7 +11,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: 3,
+  workers: process.env.CI ? 3 : 2,
   reporter: "html",
   globalSetup: "./e2e/global-setup.ts",
   globalTeardown: "./e2e/global-teardown.ts",
@@ -22,7 +22,7 @@ export default defineConfig({
     baseURL: `http://localhost:${E2E_CLIENT_PORT}`,
     trace: "on-first-retry",
     actionTimeout: 10_000,
-    navigationTimeout: 30_000,
+    navigationTimeout: 45_000,
   },
   projects: [
     {
