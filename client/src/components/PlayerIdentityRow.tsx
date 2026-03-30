@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils";
 import { PlayerOverviewAvatar, ConnectionDot } from "@/components/game/GameShared";
 import { UserBadge, type BadgeId } from "@/components/UserBadge";
 import { resolvePlayerBadges } from "@/lib/featureGate";
-import { useActiveBadgeId } from "@/lib/useActiveBadge";
 import { Link } from "@/i18n/navigation";
 
 type PlayerIdentityRowProps = {
@@ -55,10 +54,7 @@ export function PlayerIdentityRow({
 }: PlayerIdentityRowProps) {
   const t = useTranslations("common");
   const isYou = currentPlayerId != null && player.playerId === currentPlayerId;
-  const myBadgeFromStorage = useActiveBadgeId();
-  // Resolve badges: localStorage (if "you") > auto-resolve from player data
-  const badgesToShow =
-    isYou && myBadgeFromStorage !== null ? [myBadgeFromStorage] : resolvePlayerBadges(player);
+  const badgesToShow = resolvePlayerBadges(player);
 
   const canLink = linkToProfile && player.displayName && !anonymous;
   const avatarAndName = (

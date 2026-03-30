@@ -21,7 +21,6 @@ import { cn } from "@/lib/utils";
 import { isNetworkError, readableError, toastError } from "@/lib/errors";
 import { isAdmin } from "@/lib/featureGate";
 import { UserBadge, type BadgeId, BADGE_DEFINITIONS, ALL_BADGE_IDS } from "@/components/UserBadge";
-import { useSetActiveBadges } from "@/lib/useActiveBadge";
 import { updateActiveBadges } from "@/lib/api";
 import { useTranslations } from "next-intl";
 
@@ -72,24 +71,34 @@ function resizeImage(
   });
 }
 
-function BadgeSelector({ auth }: { auth: AuthResponse | null }) {
+function BadgeSelector({
+  auth,
+  onAuthChange,
+}: {
+  auth: AuthResponse | null;
+  onAuthChange: (auth: AuthResponse) => void;
+}) {
   const t = useTranslations("profile");
   const badges = (auth?.player.badges ?? []) as BadgeId[];
-  const [activeBadges, setActiveBadges] = useSetActiveBadges();
+  const activeBadges = (auth?.player.activeBadges ?? []) as string[];
 
   if (badges.length === 0) return null;
+
+  const updateBadges = (next: string[]) => {
+    if (auth) {
+      onAuthChange({ ...auth, player: { ...auth.player, activeBadges: next } });
+    }
+    void updateActiveBadges(next);
+  };
 
   const selectBadge = (badgeId: BadgeId) => {
     // Single-select: clicking the already-active badge deselects it
     const next = activeBadges.includes(badgeId) ? [] : [badgeId];
-    setActiveBadges(next as BadgeId[]);
-    // Fire-and-forget server sync
-    void updateActiveBadges(next);
+    updateBadges(next);
   };
 
   const hideAll = () => {
-    setActiveBadges([]);
-    void updateActiveBadges([]);
+    updateBadges([]);
   };
 
   return (
@@ -833,7 +842,7 @@ export function ProfilePage() {
               }}
             />
 
-            <BadgeSelector auth={auth} />
+            <BadgeSelector auth={auth} onAuthChange={onAuthChange} />
           </div>
         ) : null}
       </main>

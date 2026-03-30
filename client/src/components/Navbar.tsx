@@ -11,7 +11,6 @@ import { hasPreviewAccess } from "@/lib/featureGate";
 import { PlayerOverviewAvatar } from "@/components/game/GameShared";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { UserBadge, type BadgeId } from "@/components/UserBadge";
-import { useActiveBadgeId } from "@/lib/useActiveBadge";
 import { useRouter as useIntlRouter, usePathname as useIntlPathname } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 
@@ -256,7 +255,7 @@ function LanguagePicker() {
 function PlayerSummary({ auth }: { auth: AuthResponse | null }) {
   const player = auth?.player;
   const isAnonymous = player?.kind !== "account";
-  const activeBadgeId = useActiveBadgeId();
+  const activeBadgeId = player?.activeBadges?.[0] ?? null;
 
   return (
     <div className="flex items-center gap-1.5">
