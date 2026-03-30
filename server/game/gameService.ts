@@ -1038,12 +1038,8 @@ export class GameService {
       });
     }
 
-    // Update Elo ratings when a matchmaking game finishes
-    if (
-      saved.status === "finished" &&
-      previousStatus !== "finished" &&
-      saved.roomType === "matchmaking"
-    ) {
+    // Update Elo ratings when any multiplayer game finishes
+    if (saved.status === "finished" && previousStatus !== "finished") {
       void this.updateEloRatings(saved).catch((err) => {
         console.error("[game] Elo update failed for room", saved.id, err);
       });
