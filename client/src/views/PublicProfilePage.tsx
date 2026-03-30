@@ -7,10 +7,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getPublicProfile, getPlayerMatchHistory, type PublicProfile } from "@/lib/api";
 import type { MultiplayerGameSummary } from "@shared";
-import { PlayerOverviewAvatar } from "@/components/game/GameShared";
 import { MatchHistoryCard } from "@/components/game/MatchHistoryCard";
 import { UserBadge, type BadgeId, BADGE_DEFINITIONS } from "@/components/UserBadge";
-import { resolvePlayerBadges } from "@/lib/featureGate";
+import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { useLocale, useTranslations } from "next-intl";
 import { useSocialData } from "@/lib/hooks/useSocialData";
 import { useLobbyMessage } from "@/lib/LobbySocketContext";
@@ -104,7 +103,6 @@ export function PublicProfilePage() {
   const paperCard =
     "border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]";
 
-  const activeBadges = resolvePlayerBadges(profile);
   const allBadges = (profile?.badges ?? []).filter((id) => BADGE_DEFINITIONS[id as BadgeId]);
 
   const memberDays = profile?.createdAt
@@ -154,25 +152,21 @@ export function PublicProfilePage() {
             {/* Header card with avatar, name, badge, rating */}
             <Card className={paperCard + " w-full"}>
               <CardContent className="flex flex-col items-center gap-6 pt-8 pb-8">
-                <PlayerOverviewAvatar
-                  player={profile}
-                  className="h-24 w-24 border-4 border-[#e8d9c0] shadow-[0_20px_40px_-20px_rgba(63,37,17,0.4)]"
-                />
-
                 <div className="text-center">
                   {isOwnProfile && (
                     <span className="mb-2 inline-flex items-center rounded-full border border-[#dcc7a3] bg-[#fff9ef] px-3 py-1 text-xs font-semibold text-[#6b5630]">
                       {t("yourProfile")}
                     </span>
                   )}
-                  <div className="flex items-center justify-center gap-2">
-                    <h1 className="font-display text-3xl font-bold text-[#2b1e14]">
-                      {profile.displayName}
-                    </h1>
-                    {activeBadges.map((id) => (
-                      <UserBadge key={id} badge={id as BadgeId} />
-                    ))}
-                  </div>
+                  <PlayerIdentityRow
+                    player={profile}
+                    currentPlayerId={auth?.player.playerId}
+                    avatarClassName="h-24 w-24 border-4 border-[#e8d9c0] shadow-[0_20px_40px_-20px_rgba(63,37,17,0.4)]"
+                    linkToProfile={false}
+                    friendVariant="light"
+                    nameClassName="font-display text-3xl font-bold text-[#2b1e14]"
+                    className="justify-center gap-4"
+                  />
 
                   {/* Friend action buttons */}
                   {isAccount && !isOwnProfile && profileId && (

@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { isAdmin } from "@/lib/featureGate";
 import { UserBadge, type BadgeId, BADGE_DEFINITIONS, ALL_BADGE_IDS } from "@/components/UserBadge";
+import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import {
   adminSearchUsers,
   adminGrantBadge,
@@ -188,12 +189,12 @@ export function AdminBadgesPage() {
                         : "border-[#d0bb94]/50 bg-white/40 hover:bg-[#f5edd8]/50"
                     }`}
                   >
-                    <span className="font-medium text-[#5c4a32]">@{user.displayName}</span>
-                    <span className="flex gap-1">
-                      {user.activeBadges.map((badge) => (
-                        <UserBadge key={badge} badge={badge as BadgeId} compact />
-                      ))}
-                    </span>
+                    <PlayerIdentityRow
+                      player={user}
+                      linkToProfile={false}
+                      friendVariant="light"
+                      nameClassName="font-medium text-[#5c4a32]"
+                    />
                   </button>
                 ))}
               </div>
@@ -244,9 +245,7 @@ export function AdminBadgesPage() {
                           <UserBadge badge={badgeId} />
                           <span className="text-sm text-[#5c4a32]">
                             {badgeId}
-                            <span className="ml-2 text-xs text-[#8b7356]">
-                              (T{def.tier})
-                            </span>
+                            <span className="ml-2 text-xs text-[#8b7356]">(T{def.tier})</span>
                           </span>
                         </div>
                         <Button
@@ -254,17 +253,9 @@ export function AdminBadgesPage() {
                           variant={hasIt ? "danger" : "default"}
                           disabled={busy === badgeId}
                           onClick={() => (hasIt ? handleRevoke(badgeId) : handleGrant(badgeId))}
-                          className={
-                            hasIt
-                              ? ""
-                              : "bg-[#8b7356] text-white hover:bg-[#6d5a42]"
-                          }
+                          className={hasIt ? "" : "bg-[#8b7356] text-white hover:bg-[#6d5a42]"}
                         >
-                          {busy === badgeId
-                            ? tCommon("loading")
-                            : hasIt
-                              ? t("revoke")
-                              : t("grant")}
+                          {busy === badgeId ? tCommon("loading") : hasIt ? t("revoke") : t("grant")}
                         </Button>
                       </div>
                     );

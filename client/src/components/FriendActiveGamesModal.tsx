@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { getFriendActiveGames } from "@/lib/api";
 import { toastError } from "@/lib/errors";
 import { useAuth } from "@/lib/AuthContext";
-import { PlayerOverviewAvatar, EmptySeatAvatar } from "@/components/game/GameShared";
+import { EmptySeatAvatar } from "@/components/game/GameShared";
 import { GameConfigBadge } from "@/components/game/GameConfigBadge";
+import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { cn } from "@/lib/utils";
 
 type FriendActiveGamesModalProps = {
@@ -35,40 +36,51 @@ function ActiveGamePlayerRow({
   color,
   score,
   scoreToWin,
-  isYou,
+  currentPlayerId,
   online,
-  youLabel,
 }: {
-  player: { displayName?: string; profilePicture?: string } | null;
+  player: {
+    playerId?: string;
+    displayName?: string;
+    profilePicture?: string;
+    activeBadges?: string[];
+  } | null;
   color: PlayerColor;
   score: number;
   scoreToWin: number;
-  isYou: boolean;
+  currentPlayerId?: string;
   online: boolean;
-  youLabel: string;
 }) {
   return (
     <div className="flex items-center gap-2.5 rounded-xl px-3 py-2">
       <ColorDot color={color} />
       {player ? (
-        <PlayerOverviewAvatar player={player} className="h-6 w-6" />
+        <PlayerIdentityRow
+          player={player}
+          currentPlayerId={currentPlayerId}
+          avatarClassName="h-6 w-6"
+          online={online}
+          friendVariant="light"
+          className="min-w-0 flex-1"
+          nameClassName="text-sm font-medium text-[#2b1e14]"
+        >
+          <span className="font-mono text-sm tabular-nums text-[#9a8770]">
+            {score}
+            <span className="text-xs font-normal opacity-50">/{scoreToWin}</span>
+          </span>
+        </PlayerIdentityRow>
       ) : (
-        <EmptySeatAvatar className="h-6 w-6" />
+        <>
+          <EmptySeatAvatar className="h-6 w-6" />
+          <span className="min-w-0 flex-1 truncate text-sm font-medium text-[#2b1e14]">
+            Unknown
+          </span>
+          <span className="font-mono text-sm tabular-nums text-[#9a8770]">
+            {score}
+            <span className="text-xs font-normal opacity-50">/{scoreToWin}</span>
+          </span>
+        </>
       )}
-      <span className="min-w-0 flex-1 truncate text-sm font-medium text-[#2b1e14]">
-        {player?.displayName ?? "Unknown"}
-        {isYou && <span className="ml-1 text-[#8d7760]">{youLabel}</span>}
-      </span>
-      <span
-        className={cn(
-          "inline-block h-2 w-2 shrink-0 rounded-full",
-          online ? "bg-emerald-500" : "bg-stone-300",
-        )}
-      />
-      <span className="font-mono text-sm tabular-nums text-[#9a8770]">
-        {score}
-        <span className="text-xs font-normal opacity-50">/{scoreToWin}</span>
-      </span>
     </div>
   );
 }
@@ -153,9 +165,8 @@ export function FriendActiveGamesModal({
           const black = game.seats.black;
           const whitePlayer = white?.player ?? null;
           const blackPlayer = black?.player ?? null;
-          const isYouWhite = whitePlayer?.playerId === currentPlayerId;
-          const isYouBlack = blackPlayer?.playerId === currentPlayerId;
-          const isYouPlaying = isYouWhite || isYouBlack;
+          const isYouPlaying =
+            whitePlayer?.playerId === currentPlayerId || blackPlayer?.playerId === currentPlayerId;
 
           const statusBorder =
             game.status === "active" ? "border-[#a3c98a]/40" : "border-[#d7c39e]";
@@ -187,18 +198,16 @@ export function FriendActiveGamesModal({
                   color="white"
                   score={game.score.white}
                   scoreToWin={game.scoreToWin}
-                  isYou={isYouWhite}
+                  currentPlayerId={currentPlayerId}
                   online={white?.online ?? false}
-                  youLabel={tCommon("you")}
                 />
                 <ActiveGamePlayerRow
                   player={blackPlayer}
                   color="black"
                   score={game.score.black}
                   scoreToWin={game.scoreToWin}
-                  isYou={isYouBlack}
+                  currentPlayerId={currentPlayerId}
                   online={black?.online ?? false}
-                  youLabel={tCommon("you")}
                 />
               </div>
 

@@ -20,9 +20,7 @@ import {
   RoomCodeCopyPill,
   ShareLinkCopyPill,
   SpectateButton,
-  PlayerOverviewAvatar,
   EmptySeatAvatar,
-  formatPlayerName,
 } from "@/components/game/GameShared";
 import { useMultiplayerGame } from "@/lib/hooks/useMultiplayerGame";
 import { useSocialData } from "@/lib/hooks/useSocialData";
@@ -1095,27 +1093,21 @@ export function MultiplayerGamePage() {
                                   key={`lobby-player-${index}`}
                                   className="flex items-center justify-between gap-3 rounded-3xl border border-[#d8c29c] bg-[#fffaf1] px-4 py-3"
                                 >
-                                  <div className="flex items-center gap-3">
-                                    {slot ? (
-                                      <PlayerOverviewAvatar player={slot.player} />
-                                    ) : (
+                                  {slot ? (
+                                    <PlayerIdentityRow
+                                      player={slot.player}
+                                      currentPlayerId={auth?.player.playerId}
+                                      online={slot.online}
+                                      friendVariant="light"
+                                      linkToProfile={false}
+                                      className="min-w-0 flex-1 gap-3"
+                                    />
+                                  ) : (
+                                    <div className="flex items-center gap-3">
                                       <EmptySeatAvatar />
-                                    )}
-                                    <div>
-                                      <p className="text-sm font-semibold text-[#2b1e14]">
-                                        {index === 0 ? t("lobbyHost") : t("secondPlayer")}
-                                      </p>
-                                      <p className="text-sm text-[#7a6656]">
-                                        {slot
-                                          ? formatPlayerName(
-                                              slot.player,
-                                              auth?.player.playerId,
-                                              tCommon("you"),
-                                            )
-                                          : t("waitingToJoin")}
-                                      </p>
+                                      <p className="text-sm text-[#7a6656]">{t("waitingToJoin")}</p>
                                     </div>
-                                  </div>
+                                  )}
                                   <Badge
                                     className={cn(
                                       slot?.online
@@ -1336,11 +1328,13 @@ export function MultiplayerGamePage() {
                                   `friend-send:${tournamentOpponent.playerId}`
                                 }
                               >
-                                <PlayerOverviewAvatar
+                                <PlayerIdentityRow
                                   player={tournamentOpponent}
-                                  className="h-5 w-5 mr-1.5"
+                                  avatarClassName="h-5 w-5"
+                                  linkToProfile={false}
+                                  friendVariant="light"
+                                  nameClassName="text-sm"
                                 />
-                                {t("addAsFriend", { name: tournamentOpponent.displayName })}
                               </Button>
                             )}
                             <Button
@@ -1548,18 +1542,13 @@ export function MultiplayerGamePage() {
           {/* Spectator: show winner's profile picture + name + color */}
           {isSpectator && winner && multiplayerSnapshot?.seats[winner] && (
             <div className="flex items-center justify-center gap-3 py-2">
-              <PlayerOverviewAvatar
+              <PlayerIdentityRow
                 player={multiplayerSnapshot.seats[winner]!.player}
-                className="h-10 w-10"
+                avatarClassName="h-10 w-10"
+                linkToProfile={false}
+                friendVariant="light"
+                nameClassName="font-semibold text-[#2b1e14]"
               />
-              <div className="text-sm">
-                <p className="font-semibold text-[#2b1e14]">
-                  {multiplayerSnapshot.seats[winner]!.player.displayName}
-                </p>
-                <p className="text-[#6e5b48]">
-                  {t("spectatorPlayingAsWon", { color: translatePlayerColor(winner, t)! })}
-                </p>
-              </div>
             </div>
           )}
           {/* Elo rating change after game */}
@@ -1599,8 +1588,13 @@ export function MultiplayerGamePage() {
                       social.socialActionBusyKey === `friend-send:${tournamentOpponent.playerId}`
                     }
                   >
-                    <PlayerOverviewAvatar player={tournamentOpponent} className="h-5 w-5 mr-1.5" />
-                    {t("addAsFriend", { name: tournamentOpponent.displayName })}
+                    <PlayerIdentityRow
+                      player={tournamentOpponent}
+                      avatarClassName="h-5 w-5"
+                      linkToProfile={false}
+                      friendVariant="light"
+                      nameClassName="text-sm"
+                    />
                   </Button>
                 )}
                 <Button
