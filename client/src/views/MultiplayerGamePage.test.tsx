@@ -912,6 +912,68 @@ describe("MultiplayerGamePage", () => {
     expect(screen.getByRole("button", { name: "Invite a Friend" })).toBeInTheDocument();
   });
 
+  it("shows invite button for account creator before seats are assigned", async () => {
+    const accountAuth: AuthResponse = {
+      player: {
+        kind: "account",
+        playerId: "account-aaa",
+        displayName: "Alice",
+      },
+    };
+
+    const authModule = await import("@/lib/AuthContext");
+    vi.spyOn(authModule, "useAuth").mockReturnValue({
+      auth: accountAuth,
+      authLoading: false,
+      appError: null,
+      authDialogOpen: false,
+      authDialogMode: "login",
+      authBusy: false,
+      authDialogError: null,
+      loginEmail: "",
+      loginPassword: "",
+      signupDisplayName: "",
+      signupEmail: "",
+      signupPassword: "",
+      signupConfirmPassword: "",
+      setAuth: vi.fn(),
+      setAuthDialogOpen: vi.fn(),
+      setAuthDialogMode: vi.fn(),
+      setAuthDialogError: vi.fn(),
+      setLoginEmail: vi.fn(),
+      setLoginPassword: vi.fn(),
+      setSignupDisplayName: vi.fn(),
+      setSignupEmail: vi.fn(),
+      setSignupPassword: vi.fn(),
+      setSignupConfirmPassword: vi.fn(),
+      onOpenAuth: vi.fn(),
+      handleLoginSubmit: vi.fn(),
+      handleSignupSubmit: vi.fn(),
+      handleForgotPassword: vi.fn(),
+      handleOAuthSignIn: vi.fn(),
+      onLogout: vi.fn(),
+      applyAuth: vi.fn(),
+    });
+
+    // Creator is in players list but seats are NOT yet assigned (the regression scenario)
+    const snapshot = makeMatchmakingSnapshot({
+      roomType: "direct",
+      status: "waiting",
+      players: [
+        {
+          player: { playerId: "account-aaa", displayName: "Alice", kind: "account" },
+          online: true,
+        },
+      ],
+      seats: { white: null, black: null },
+    });
+
+    await setupMocks(snapshot);
+    render(<MultiplayerGamePage />);
+
+    expect(screen.getByRole("button", { name: "Invite a Friend" })).toBeInTheDocument();
+  });
+
   it("does not show invite button for guest creator in a waiting game", async () => {
     // guestAuth is the default mock — kind: "guest"
     const snapshot = makeMatchmakingSnapshot({
