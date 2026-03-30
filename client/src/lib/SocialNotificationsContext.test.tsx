@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+import { renderHook, act, waitFor } from "@testing-library/react";
 import { toast } from "sonner";
 import type { AuthResponse, SocialOverview } from "@shared";
 import { SocialNotificationsProvider, useSocialNotifications } from "./SocialNotificationsContext";
@@ -87,7 +87,7 @@ describe("SocialNotificationsContext", () => {
 
     const { result } = renderHook(() => useSocialNotifications(), { wrapper });
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(result.current.pendingFriendRequestCount).toBe(1);
     });
   });
@@ -98,7 +98,7 @@ describe("SocialNotificationsContext", () => {
     renderHook(() => useSocialNotifications(), { wrapper });
 
     // Wait for initial hydration
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(mockGetSocialOverview).toHaveBeenCalled();
     });
 
@@ -130,7 +130,7 @@ describe("SocialNotificationsContext", () => {
     renderHook(() => useSocialNotifications(), { wrapper });
 
     // Wait for hydration
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(mockGetSocialOverview).toHaveBeenCalled();
     });
 
@@ -155,7 +155,7 @@ describe("SocialNotificationsContext", () => {
 
     renderHook(() => useSocialNotifications(), { wrapper });
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(mockGetSocialOverview).toHaveBeenCalled();
     });
 
@@ -177,7 +177,7 @@ describe("SocialNotificationsContext", () => {
 
     renderHook(() => useSocialNotifications(), { wrapper });
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(mockGetSocialOverview).toHaveBeenCalled();
     });
 
@@ -212,7 +212,7 @@ describe("SocialNotificationsContext", () => {
 
     renderHook(() => useSocialNotifications(), { wrapper });
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(mockGetSocialOverview).toHaveBeenCalled();
     });
 
@@ -228,7 +228,7 @@ describe("SocialNotificationsContext", () => {
 
     renderHook(() => useSocialNotifications(), { wrapper });
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(mockGetSocialOverview).toHaveBeenCalled();
     });
 
@@ -254,7 +254,7 @@ describe("SocialNotificationsContext", () => {
 
     renderHook(() => useSocialNotifications(), { wrapper });
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(mockGetSocialOverview).toHaveBeenCalled();
     });
 

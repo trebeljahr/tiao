@@ -1,10 +1,14 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { captureLog, logBuffer, LOG_BUFFER_SIZE, dump, installDump } from "./dump";
+import { afterEach, describe, it, expect, beforeEach, vi } from "vitest";
+import { captureLog, logBuffer, LOG_BUFFER_SIZE, dump, installDump, originalConsole } from "./dump";
 
 describe("dump", () => {
   beforeEach(() => {
     // Clear the log buffer between tests
     logBuffer.length = 0;
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   describe("captureLog", () => {
@@ -33,6 +37,7 @@ describe("dump", () => {
 
   describe("dump()", () => {
     it("returns an object with version, userAgent, url, screen, and logs", () => {
+      vi.spyOn(originalConsole, "log").mockImplementation(() => {});
       captureLog("error", ["test error"]);
       const result = dump();
 
@@ -49,6 +54,7 @@ describe("dump", () => {
     });
 
     it("returns a snapshot of logs (not a reference)", () => {
+      vi.spyOn(originalConsole, "log").mockImplementation(() => {});
       captureLog("info", ["before"]);
       const result = dump();
       captureLog("info", ["after"]);
@@ -65,6 +71,7 @@ describe("dump", () => {
     });
 
     it("intercepts console.log to capture entries", () => {
+      vi.spyOn(originalConsole, "log").mockImplementation(() => {});
       installDump();
       const before = logBuffer.length;
       console.log("intercepted-test-message");
