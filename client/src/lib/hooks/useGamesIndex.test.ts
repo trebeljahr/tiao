@@ -21,6 +21,19 @@ vi.mock("../errors", () => ({
   toastError: vi.fn(),
 }));
 
+// Mock fetchWithRetry to skip delays in tests but still retry
+vi.mock("../fetchWithRetry", () => ({
+  fetchWithRetry: async (fn: () => Promise<unknown>) => {
+    for (let i = 0; i <= 3; i++) {
+      try {
+        return await fn();
+      } catch (error) {
+        if (i === 3) throw error;
+      }
+    }
+  },
+}));
+
 beforeEach(() => {
   mockListMultiplayerGames.mockReset();
 });
@@ -129,22 +142,25 @@ describe("useGamesIndex", () => {
     expect(mockListMultiplayerGames).toHaveBeenCalledTimes(2);
   });
 
-  it("does not retry infinitely when API returns an error", async () => {
+  it("retries up to 3 times then stops on persistent error", async () => {
     mockListMultiplayerGames.mockRejectedValue(new Error("502 Bad Gateway"));
 
     const { result } = renderHook(() => useGamesIndex(mockAuth));
 
-    // Wait for the first (and only) fetch attempt to complete
-    await waitFor(() => {
-      expect(result.current.multiplayerGamesLoaded).toBe(true);
-    });
+    // Wait for all retries to complete (1 initial + 3 retries = 4 calls)
+    await waitFor(
+      () => {
+        expect(result.current.multiplayerGamesLoaded).toBe(true);
+      },
+      { timeout: 15000 },
+    );
 
-    // Should have been called exactly once — no infinite retry loop
-    expect(mockListMultiplayerGames).toHaveBeenCalledTimes(1);
+    // Should have been called 4 times total (1 + 3 retries), not infinitely
+    expect(mockListMultiplayerGames).toHaveBeenCalledTimes(4);
 
     // Wait extra time to confirm no additional calls are made
-    await new Promise((r) => setTimeout(r, 100));
-    expect(mockListMultiplayerGames).toHaveBeenCalledTimes(1);
+    await new Promise((r) => setTimeout(r, 200));
+    expect(mockListMultiplayerGames).toHaveBeenCalledTimes(4);
   });
 
   it("refreshMultiplayerGames resets state when auth becomes null", async () => {

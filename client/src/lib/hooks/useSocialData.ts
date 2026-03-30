@@ -13,6 +13,7 @@ import {
   declineGameInvitation,
 } from "../api";
 import { toastError } from "../errors";
+import { fetchWithRetry } from "../fetchWithRetry";
 import { useSocialNotifications } from "../SocialNotificationsContext";
 
 export function useSocialData(auth: AuthResponse | null, canToastIncomingInvites: boolean) {
@@ -76,15 +77,14 @@ export function useSocialData(auth: AuthResponse | null, canToastIncomingInvites
       setSocialLoading(true);
 
       try {
-        const response = await getSocialOverview();
+        const response = options.silent
+          ? await getSocialOverview()
+          : await fetchWithRetry(() => getSocialOverview(), "social");
         applySocialOverview(response.overview, options.allowInviteToast ?? false);
         refreshNotifications();
-      } catch (error) {
+      } catch {
         // Mark as loaded even on error to prevent infinite retry loops
         setSocialLoaded(true);
-        if (!options.silent) {
-          toastError(error);
-        }
       } finally {
         setSocialLoading(false);
       }

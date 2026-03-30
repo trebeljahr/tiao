@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { AuthResponse, MultiplayerGamesIndex } from "@shared";
 import { listMultiplayerGames } from "../api";
-import { toastError } from "../errors";
+import { fetchWithRetry } from "../fetchWithRetry";
 
 export function useGamesIndex(auth: AuthResponse | null) {
   const [multiplayerGames, setMultiplayerGames] = useState<MultiplayerGamesIndex>({
@@ -46,14 +46,13 @@ export function useGamesIndex(auth: AuthResponse | null) {
       setMultiplayerGamesLoading(true);
 
       try {
-        const response = await listMultiplayerGames();
+        const response = options.silent
+          ? await listMultiplayerGames()
+          : await fetchWithRetry(() => listMultiplayerGames(), "games");
         applyMultiplayerGamesIndex(response.games);
-      } catch (error) {
+      } catch {
         // Mark as loaded even on error to prevent infinite retry loops
         setMultiplayerGamesLoaded(true);
-        if (!options.silent) {
-          toastError(error);
-        }
       } finally {
         setMultiplayerGamesLoading(false);
       }
