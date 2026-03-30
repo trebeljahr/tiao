@@ -5,7 +5,7 @@ import type {
   TournamentRound,
   TournamentGroup,
 } from "../../shared/src";
-import Tournament from "../models/Tournament";
+import Tournament, { ITournament } from "../models/Tournament";
 
 export type StoredTournament = {
   tournamentId: string;
@@ -38,8 +38,11 @@ export interface TournamentStore {
   listTournamentsForInvitedUser(playerId: string): Promise<StoredTournament[]>;
 }
 
-function toStoredTournament(doc: any): StoredTournament {
-  const obj = doc.toObject ? doc.toObject() : doc;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toStoredTournament(
+  doc: ITournament | StoredTournament | Record<string, any>,
+): StoredTournament {
+  const obj = "toObject" in doc && typeof doc.toObject === "function" ? doc.toObject() : doc;
   return {
     tournamentId: obj.tournamentId,
     name: obj.name,

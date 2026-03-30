@@ -5,7 +5,7 @@ title: Architecture
 
 # Tiao Architecture
 
-This document describes the system architecture for contributors.
+Tiao is an open-source multiplayer board game platform — think "lichess for Tiao." This document describes the system architecture for contributors.
 
 ## Table of Contents
 
@@ -28,8 +28,8 @@ tiao/
 ├── server/          Express + WebSocket backend
 ├── shared/          Pure TypeScript game engine + protocol types
 ├── e2e/             Playwright end-to-end tests
-├── docs/            Markdown documentation
-└── docs-site/       Docusaurus documentation site (you are here)
+├── docs/            Markdown documentation (you are here)
+└── docs-site/       Docusaurus documentation site
 ```
 
 The three runtime packages — `shared`, `server`, and `client` — form a dependency chain:
@@ -63,16 +63,16 @@ type GameState = {
 
 ### Key Functions
 
-| Function                                                  | Purpose                              |
-| --------------------------------------------------------- | ------------------------------------ |
-| [`placePiece`][fn-placePiece]                             | Place a stone on the board           |
-| [`jumpPiece`][fn-jumpPiece]                               | Execute a jump move                  |
-| [`confirmPendingJump`][fn-confirmPendingJump]             | Finalize a multi-step jump sequence  |
-| [`undoPendingJumpStep`][fn-undoPendingJumpStep]           | Roll back one step of a pending jump |
-| [`undoLastTurn`][fn-undoLastTurn]                         | Undo the most recent completed turn  |
-| [`canPlacePiece`][fn-canPlacePiece]                       | Check if a placement is legal        |
-| [`getJumpTargets`][fn-getJumpTargets]                     | Get valid destinations for a jump    |
-| [`getSelectableJumpOrigins`][fn-getSelectableJumpOrigins] | Get pieces that can initiate a jump  |
+| Function                   | Purpose                              |
+| -------------------------- | ------------------------------------ |
+| `placePiece`               | Place a stone on the board           |
+| `jumpPiece`                | Execute a jump move                  |
+| `confirmPendingJump`       | Finalize a multi-step jump sequence  |
+| `undoPendingJumpStep`      | Roll back one step of a pending jump |
+| `undoLastTurn`             | Undo the most recent completed turn  |
+| `canPlacePiece`            | Check if a placement is legal        |
+| `getJumpTargets`           | Get valid destinations for a jump    |
+| `getSelectableJumpOrigins` | Get pieces that can initiate a jump  |
 
 ### Result Type
 
@@ -215,7 +215,7 @@ Custom routes in `server/routes/game-auth.routes.ts` extend better-auth for Tiao
 
 ### Badge System
 
-Players can earn and display badges on their profiles. Badges are stored in `GameAccount.badges[]` and the active badge in `GameAccount.activeBadges[]`. Admins can grant and revoke badges.
+Players can earn and display badges on their profiles. Badges are stored in `GameAccount.badges[]` and the active badge in `GameAccount.activeBadges[]`. Admins can grant and revoke badges. During preview, badge entitlements are hardcoded client-side; once Stripe entitlements are wired up, validation will use the account's owned badges.
 
 ---
 
@@ -252,6 +252,8 @@ Tiao uses MongoDB. Application collections are managed by Tiao; auth collections
   rematch         Rematch tracking metadata
   timeControl     { initialMs, incrementMs } | null
   tournamentId    Reference to Tournament (if tournament match)
+  tournamentMatchId
+  ratingBefore, ratingAfter
 }
 ```
 
@@ -270,10 +272,16 @@ Tiao uses MongoDB. Application collections are managed by Tiao; auth collections
 ```
 {
   tournamentId    unique string ID
-  name, description, creatorId,
+  name, description,
+  creatorId       Reference to GameAccount
   status          "open" | "active" | "finished" | "cancelled"
   settings        TournamentSettings (format, maxParticipants, etc.)
-  participants[], rounds[], groups[], knockoutRounds[]
+  participants[]  Registered players with seeds
+  rounds[]        Bracket rounds with matches
+  groups[]        Group stage data (if applicable)
+  knockoutRounds[] Knockout bracket data
+  featuredMatchId Currently featured match for spectators
+  inviteCode      For private tournaments
 }
 ```
 
@@ -328,14 +336,6 @@ Key properties:
 
 ---
 
-## Tooling
-
-### Code Formatting
-
-All code is formatted with [Prettier](https://prettier.io/). A pre-commit hook (via Husky + lint-staged) automatically formats staged files on every commit. A pre-push hook runs TypeScript type-checking on both the client and server before allowing a push. All tooling is installed and configured automatically by `npm install` -- no manual setup required.
-
----
-
 ## Deployment
 
 ### Container Architecture
@@ -369,6 +369,18 @@ Both containers are deployed as Docker images. The client container runs a Node.
 
 When Redis is available, the server can scale horizontally — matchmaking state and locks are shared across instances rather than held in a single process. Set the `REDIS_URL` environment variable to configure the connection. Without Redis, the server runs as a single instance with in-memory state, which is sufficient for low-traffic deployments.
 
+### Game Review & Move History
+
+When a game is finished, players can review it from the "My Games" page. The review mode provides:
+
+- **Move history panel** — A scrollable list of all moves in algebraic notation (see [GAME_RULES.md](GAME_RULES.md#move-notation)), displayed as a two-column table (White/Black)
+- **Board navigation** — Step forward/backward through the game using navigation buttons or by clicking individual moves in the history
+- **Board reconstruction** — The `replayToMove(history, moveIndex)` function in `shared/src/tiao.ts` replays `TurnRecord[]` entries up to a given index, producing the exact `GameState` at that point
+- **Friend requests** — The same friend request button from live games appears in review mode for logged-in opponents
+- **No rematch in review** — Rematch buttons only appear when the player has an active WebSocket connection (i.e., they're still in the game session, not reviewing later)
+
+Move history is stored as part of `GameState.history` in the `GameRoom.state` field (MongoDB). No separate collection is needed — the history grows as moves are made and persists with the game record.
+
 ### CI/CD Pipeline
 
 The GitHub Actions pipeline runs on every push:
@@ -380,4 +392,4 @@ build --> test --> push images to GHCR --> deploy via Coolify API
 1. **Build** — compile shared, server, and client packages
 2. **Test** — run unit tests and Playwright E2E tests
 3. **Push** — publish Docker images to GitHub Container Registry
-4. **Deploy** — trigger deployment through [Coolify webhooks](https://coolify.io/docs/knowledge-base/webhooks)
+4. **Deploy** — trigger deployment through the Coolify API

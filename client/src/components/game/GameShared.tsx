@@ -11,6 +11,22 @@ import { cn } from "@/lib/utils";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { formatClockTime } from "./GameClock";
 
+// --- Color Dot ---
+
+export function ColorDot({ color, className }: { color: PlayerColor; className?: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-block h-4 w-4 shrink-0 rounded-full border",
+        color === "white"
+          ? "border-[#ddd2bf] bg-[radial-gradient(circle_at_30%_28%,#fffdfa,#f4eee3_58%,#d9ccb8)]"
+          : "border-[#191410] bg-[radial-gradient(circle_at_30%_28%,#5d554f,#2d2622_58%,#0f0c0b)]",
+        className,
+      )}
+    />
+  );
+}
+
 // --- Icons ---
 
 export function CopyIcon({ className }: { className?: string }) {
@@ -151,7 +167,7 @@ export function getOpponentLabel(
 
 export function getSummaryStatusLabel(
   summary: MultiplayerGameSummary,
-  t?: (key: string, values?: any) => string,
+  t?: (key: string, values?: Record<string, string | number | null>) => string,
 ) {
   if (summary.status === "finished") {
     const color = t
@@ -170,7 +186,10 @@ export function getSummaryStatusLabel(
   return t ? t("opponentsTurn") : "Opponent's turn";
 }
 
-export function formatRelativeExpiry(value: string, t?: (key: string, values?: any) => string) {
+export function formatRelativeExpiry(
+  value: string,
+  t?: (key: string, values?: Record<string, string | number | null>) => string,
+) {
   const remainingMs = new Date(value).getTime() - Date.now();
   const remainingMinutes = Math.max(0, Math.round(remainingMs / 60000));
 
@@ -227,7 +246,7 @@ export function createOptimisticSnapshot(
 export function formatFinishReason(
   reason: FinishReason | null,
   scoreToWin?: number,
-  t?: (key: string, values?: any) => string,
+  t?: (key: string, values?: Record<string, string | number | null>) => string,
 ): string {
   switch (reason) {
     case "captured":

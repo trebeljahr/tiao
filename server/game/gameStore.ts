@@ -135,16 +135,19 @@ function dehydrateGameState(state: GameState): DehydratedGameState {
   };
 }
 
+type RawGameState = DehydratedGameState | GameState;
+
 function hydrateGameState(raw: Record<string, unknown>): GameState {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const r = raw as any;
+  const r = raw as RawGameState;
 
   // Hydrate positions
   const positions =
-    "stones" in r && !("positions" in r) ? sparseToPositions(r.stones, r.boardSize) : r.positions;
+    "stones" in r && !("positions" in r)
+      ? sparseToPositions(r.stones, (r as DehydratedGameState).boardSize)
+      : (r as GameState).positions;
 
   // Hydrate history
-  const history = "h" in r && !("history" in r) ? compactToHistory(r.h) : r.history;
+  const history = "h" in r && !("history" in r) ? compactToHistory(r.h) : (r as GameState).history;
 
   return { ...r, positions, history } as GameState;
 }

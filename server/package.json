@@ -28,6 +28,7 @@
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
     "rate-limit-redis": "^4.3.1",
+    "resend": "^6.9.4",
     "ws": "^8.20.0"
   },
   "devDependencies": {

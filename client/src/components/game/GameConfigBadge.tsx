@@ -7,6 +7,8 @@ type GameConfigBadgeProps = {
   timeControl?: TimeControl;
   roomType?: MultiplayerRoomType;
   compact?: boolean;
+  /** When true, show all settings even when they match defaults (19x19, 10 pts, unlimited). */
+  showAll?: boolean;
 };
 
 export function GameConfigBadge({
@@ -15,6 +17,7 @@ export function GameConfigBadge({
   timeControl,
   roomType,
   compact,
+  showAll,
 }: GameConfigBadgeProps) {
   const tGame = useTranslations("game");
   const tTournament = useTranslations("tournament");
@@ -33,11 +36,11 @@ export function GameConfigBadge({
     }
   }
 
-  if (boardSize && boardSize !== 19) {
+  if (boardSize && (showAll || boardSize !== 19)) {
     parts.push(`${boardSize}x${boardSize}`);
   }
 
-  if (scoreToWin && scoreToWin !== 10) {
+  if (scoreToWin && (showAll || scoreToWin !== 10)) {
     parts.push(compact ? tGame("nPts", { n: scoreToWin }) : tGame("nToWin", { n: scoreToWin }));
   }
 
@@ -46,6 +49,8 @@ export function GameConfigBadge({
     const incSec = Math.round(timeControl.incrementMs / 1_000);
     const tcLabel = incSec > 0 ? `${mins}+${incSec}` : tGame("nMin", { n: mins });
     parts.push(tcLabel);
+  } else if (showAll) {
+    parts.push(tGame("unlimitedTime"));
   }
 
   if (parts.length === 0) return null;

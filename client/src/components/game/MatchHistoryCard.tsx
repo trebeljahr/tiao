@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  ColorDot,
   translatePlayerColor,
   formatGameTimestamp,
   describeResult,
@@ -23,19 +24,6 @@ type MatchHistoryCardProps = {
   onCopy: () => void;
   onReview: () => void;
 };
-
-function ColorDot({ color }: { color: PlayerColor }) {
-  return (
-    <span
-      className={cn(
-        "inline-block h-4 w-4 shrink-0 rounded-full border",
-        color === "white"
-          ? "border-[#ddd2bf] bg-[radial-gradient(circle_at_30%_28%,#fffdfa,#f4eee3_58%,#d9ccb8)]"
-          : "border-[#191410] bg-[radial-gradient(circle_at_30%_28%,#5d554f,#2d2622_58%,#0f0c0b)]",
-      )}
-    />
-  );
-}
 
 function PlayerRow({
   player,
@@ -248,20 +236,14 @@ export function MatchHistoryCard({
           {formatGameTimestamp(game.updatedAt)} ·{" "}
           {tCommon("moves", { count: game.historyLength ?? 0 })}
         </span>
-        <div className="flex items-center gap-1.5">
-          <span className="rounded-full border border-[#d7c39e] bg-[#fff9ef] px-2 py-0.5 text-[10px] font-medium text-[#6b5a45]">
-            {game.boardSize ?? 19}x{game.boardSize ?? 19}
-          </span>
-          <span className="rounded-full border border-[#d7c39e] bg-[#fff9ef] px-2 py-0.5 text-[10px] font-medium text-[#6b5a45]">
-            {game.timeControl
-              ? `${Math.floor(game.timeControl.initialMs / 60_000)}+${Math.round(game.timeControl.incrementMs / 1_000)}`
-              : t("unlimitedTime")}
-          </span>
-          <span className="rounded-full border border-[#d7c39e] bg-[#fff9ef] px-2 py-0.5 text-[10px] font-medium text-[#6b5a45]">
-            {t("nPts", { n: game.scoreToWin ?? 10 })}
-          </span>
-          <GameConfigBadge roomType={game.roomType} />
-        </div>
+        <GameConfigBadge
+          boardSize={game.boardSize}
+          scoreToWin={game.scoreToWin}
+          timeControl={game.timeControl}
+          roomType={game.roomType}
+          showAll
+          compact
+        />
       </div>
     </div>
   );

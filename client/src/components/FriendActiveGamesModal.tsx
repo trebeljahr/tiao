@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { getFriendActiveGames } from "@/lib/api";
 import { toastError } from "@/lib/errors";
 import { useAuth } from "@/lib/AuthContext";
-import { EmptySeatAvatar } from "@/components/game/GameShared";
+import { ColorDot, EmptySeatAvatar } from "@/components/game/GameShared";
 import { GameConfigBadge } from "@/components/game/GameConfigBadge";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { cn } from "@/lib/utils";
@@ -17,19 +17,6 @@ type FriendActiveGamesModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
-
-function ColorDot({ color }: { color: PlayerColor }) {
-  return (
-    <span
-      className={cn(
-        "inline-block h-4 w-4 shrink-0 rounded-full border",
-        color === "white"
-          ? "border-[#ddd2bf] bg-[radial-gradient(circle_at_30%_28%,#fffdfa,#f4eee3_58%,#d9ccb8)]"
-          : "border-[#191410] bg-[radial-gradient(circle_at_30%_28%,#5d554f,#2d2622_58%,#0f0c0b)]",
-      )}
-    />
-  );
-}
 
 function ActiveGamePlayerRow({
   player,

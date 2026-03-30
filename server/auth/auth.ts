@@ -8,6 +8,7 @@ import GameAccount from "../models/GameAccount";
 import GameRoom from "../models/GameRoom";
 import { generateFunAnonymousName } from "../game/playerTokens";
 import { FRONTEND_URL, MONGODB_URI, TOKEN_SECRET, PORT } from "../config/envVars";
+import { sendPasswordResetEmail, sendVerificationEmail } from "./email";
 
 const SALT_ROUNDS = 10;
 
@@ -31,15 +32,13 @@ export const auth = betterAuth({
       verify: ({ hash, password }) => bcrypt.compare(password, hash),
     },
     sendResetPassword: async ({ user, url }) => {
-      // TODO: integrate Resend email service
-      console.info(`[auth] Password reset requested for ${user.email}: ${url}`);
+      await sendPasswordResetEmail(user.email, url);
     },
   },
 
   emailVerification: {
     sendVerificationEmail: async ({ user, url }) => {
-      // TODO: integrate Resend email service
-      console.info(`[auth] Verification email for ${user.email}: ${url}`);
+      await sendVerificationEmail(user.email, url);
     },
   },
 
@@ -209,9 +208,9 @@ export const auth = betterAuth({
               displayName,
               profilePicture: user.image || undefined,
             });
-          } catch (err: any) {
+          } catch (err: unknown) {
             // Duplicate key on displayName is fine — generate a unique fallback
-            if (err?.code === 11000) {
+            if (err instanceof Error && "code" in err && (err as { code: number }).code === 11000) {
               await GameAccount.create({
                 _id: user.id,
                 displayName: `${displayName}-${user.id.slice(0, 6)}`,
@@ -237,7 +236,8 @@ export const auth = betterAuth({
         // Migrate ALL of the guest's games (including finished) to the new account
         const guestId = anonymousUser.user.id;
         const newId = newUser.user.id;
-        const newDisplayName = (newUser.user as any).displayName || newUser.user.name;
+        const newDisplayName =
+          (newUser.user as { displayName?: string }).displayName || newUser.user.name;
         const profilePicture = newUser.user.image || undefined;
 
         await GameRoom.updateMany(

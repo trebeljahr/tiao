@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import type { AuthResponse, TournamentSnapshot } from "@shared";
+import type {
+  AuthResponse,
+  TournamentGroup,
+  TournamentMatch,
+  TournamentRound,
+  TournamentSnapshot,
+} from "@shared";
 import { getTournament } from "@/lib/api";
 import { useLobbyMessage } from "@/lib/LobbySocketContext";
 
@@ -24,8 +30,8 @@ export function useTournament(
       try {
         const { tournament } = await getTournament(tournamentId);
         setTournament(tournament);
-      } catch (err: any) {
-        setError(err.message ?? "Failed to load tournament.");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to load tournament.");
       } finally {
         setLoading(false);
       }
@@ -61,13 +67,15 @@ export function useTournament(
           setTournament((prev) => {
             if (!prev) return prev;
             const updated = structuredClone(prev);
-            const allRounds = [
+            const allRounds: TournamentRound[] = [
               ...(updated.rounds ?? []),
               ...(updated.knockoutRounds ?? []),
-              ...(updated.groups ?? []).flatMap((g: any) => g.rounds ?? []),
+              ...(updated.groups ?? []).flatMap((g: TournamentGroup) => g.rounds ?? []),
             ];
             for (const round of allRounds) {
-              const match = round.matches.find((m: any) => m.matchId === payload.matchId);
+              const match = round.matches.find(
+                (m: TournamentMatch) => m.matchId === payload.matchId,
+              );
               if (match) {
                 match.score = payload.score as [number, number];
                 break;
