@@ -44,8 +44,36 @@ export async function dismissRulesIntro(page: Page) {
 }
 
 /**
+ * Create a test user via the fast /api/test-auth endpoint and set the
+ * session cookie on the browser context. This bypasses the full UI signup
+ * flow (which is tested separately in auth.spec.ts) and avoids the slow
+ * auth bootstrap that causes flaky timeouts under parallel load.
+ *
+ * The endpoint also marks hasSeenTutorial=true so the rules intro modal
+ * doesn't block game tests.
+ */
+export async function signUpViaAPI(page: Page, username: string, password: string, email?: string) {
+  const testEmail = email || `${username}@test.tiao.local`;
+
+  // Call the test-auth endpoint to create a user and get session token
+  const response = await page.request.post("/api/test-auth", {
+    data: { username, password, email: testEmail },
+  });
+
+  if (!response.ok()) {
+    const body = await response.text();
+    throw new Error(`test-auth failed (${response.status()}): ${body}`);
+  }
+
+  // Navigate to the lobby so the page is ready for interaction
+  await page.goto("/");
+  await waitForAppReady(page);
+}
+
+/**
  * Opens the nav drawer (hamburger menu) and clicks "Sign up",
  * fills in the form, and submits. Waits for the signup API to succeed.
+ * Use signUpViaAPI for faster non-auth tests.
  */
 export async function signUpViaUI(page: Page, username: string, password: string, email?: string) {
   const testEmail = email || `${username}@test.tiao.local`;

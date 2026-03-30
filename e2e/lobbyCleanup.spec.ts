@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { signUpViaUI, waitForAppReady } from "./helpers";
+import { signUpViaAPI, waitForAppReady } from "./helpers";
 
 test.describe("Lobby cleanup — no Refresh buttons", () => {
   test("My Games page does NOT have a Refresh button", async ({ browser }) => {
@@ -8,7 +8,7 @@ test.describe("Lobby cleanup — no Refresh buttons", () => {
 
     // Sign up to access My Games
     const username = `lobby_cl_${Math.random().toString(36).slice(2, 7)}`;
-    await signUpViaUI(page, username, "password123");
+    await signUpViaAPI(page, username, "password123");
 
     // Navigate to My Games
     await page.goto("/games");
@@ -27,7 +27,7 @@ test.describe("Lobby cleanup — no Refresh buttons", () => {
 
     // Sign up to see the lobby with invitations
     const username = `lobby_cl2_${Math.random().toString(36).slice(2, 7)}`;
-    await signUpViaUI(page, username, "password123");
+    await signUpViaAPI(page, username, "password123");
 
     // Go to lobby
     await page.goto("/");

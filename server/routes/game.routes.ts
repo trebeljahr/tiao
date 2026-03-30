@@ -692,4 +692,86 @@ router.post("/games/:gameId/test-finish", async (req: Request, res: Response) =>
   }
 });
 
+/**
+ * POST /api/test-auth
+ * Test-only endpoint: creates an account user and returns session cookies
+ * in a single request, bypassing the multi-step browser auth flow.
+ * This makes e2e tests fast and deterministic — the real auth flow is
+ * tested separately in auth.spec.ts.
+ *
+ * Internally calls better-auth's signUpEmail API so the session cookie
+ * is set in exactly the same format as the real signup flow.
+ */
+router.post("/test-auth", async (req: Request, res: Response) => {
+  if (process.env.NODE_ENV !== "test") {
+    return res
+      .status(403)
+      .json({ code: "FORBIDDEN", message: "Only available in test environment." });
+  }
+
+  const { username, password, email } = req.body as {
+    username: string;
+    password: string;
+    email?: string;
+  };
+
+  if (!username || !password) {
+    return res.status(400).json({
+      code: "VALIDATION_ERROR",
+      message: "username and password are required.",
+    });
+  }
+
+  try {
+    const { auth: betterAuth } = await import("../auth/auth");
+    const testEmail = email || `${username}@test.tiao.local`;
+
+    // Call better-auth's signup as an internal HTTP request so it sets
+    // cookies in the exact same format as the real signup flow.
+    const origin = `http://localhost:${req.socket.localPort}`;
+    const signupResponse = await betterAuth.handler(
+      new Request(`${origin}/api/auth/sign-up/email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", origin },
+        body: JSON.stringify({
+          name: username,
+          email: testEmail,
+          password,
+          displayName: username,
+        }),
+      }),
+    );
+
+    if (!signupResponse.ok) {
+      const body = await signupResponse.text();
+      return res.status(signupResponse.status).json({
+        code: "SIGNUP_FAILED",
+        message: body,
+      });
+    }
+
+    // Forward better-auth's Set-Cookie headers to the response
+    const setCookies = signupResponse.headers.getSetCookie();
+    for (const cookie of setCookies) {
+      res.append("Set-Cookie", cookie);
+    }
+
+    // Mark the user as having seen the tutorial to skip the rules intro
+    const result = (await signupResponse.json()) as { user?: { id?: string } };
+    if (result?.user?.id) {
+      const GameAccountModel = (await import("../models/GameAccount")).default;
+      await GameAccountModel.findByIdAndUpdate(result.user.id, {
+        hasSeenTutorial: true,
+      });
+    }
+
+    return res.status(200).json(result);
+  } catch (error: any) {
+    return res.status(500).json({
+      code: "INTERNAL_ERROR",
+      message: error?.message || "Failed to create test user.",
+    });
+  }
+});
+
 export default router;

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { signUpViaUI } from "./helpers";
+import { signUpViaAPI } from "./helpers";
 
 test.describe("Lobby", () => {
   test("lobby shows create game and find match buttons", async ({ page }) => {
@@ -10,7 +10,7 @@ test.describe("Lobby", () => {
 
   test("creating a game navigates to game page", async ({ page }) => {
     const username = `lobby_${Math.random().toString(36).slice(2, 7)}`;
-    await signUpViaUI(page, username, "password123");
+    await signUpViaAPI(page, username, "password123");
     await page.click('button:has-text("Create a game")');
     // "Create a game" now opens a config dialog; submit it
     await page.click('button:has-text("Create Game")');
@@ -23,7 +23,7 @@ test.describe("Lobby", () => {
 
     // Sign up (needed to see games list)
     const username = `lobby_${Math.random().toString(36).slice(2, 7)}`;
-    await signUpViaUI(page, username, "password123");
+    await signUpViaAPI(page, username, "password123");
 
     // Create game (opens config dialog, then submit)
     await page.click('button:has-text("Create a game")');

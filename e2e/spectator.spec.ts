@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { signUpViaUI, waitForAppReady } from "./helpers";
+import { signUpViaAPI, waitForAppReady } from "./helpers";
 
 test("spectator can view an active game without joining", async ({ browser }) => {
   const aliceContext = await browser.newContext();
@@ -12,7 +12,7 @@ test("spectator can view an active game without joining", async ({ browser }) =>
 
   // Alice signs up and creates a game
   const aliceUsername = `alice_spec_${Math.random().toString(36).slice(2, 7)}`;
-  await signUpViaUI(alicePage, aliceUsername, "password123");
+  await signUpViaAPI(alicePage, aliceUsername, "password123");
 
   // Alice creates game
   await alicePage.click('button:has-text("Create a game")');
@@ -22,7 +22,7 @@ test("spectator can view an active game without joining", async ({ browser }) =>
 
   // Bob signs up and joins
   const bobUsername = `bob_spec_${Math.random().toString(36).slice(2, 7)}`;
-  await signUpViaUI(bobPage, bobUsername, "password123");
+  await signUpViaAPI(bobPage, bobUsername, "password123");
 
   await bobPage.goto(gameUrl);
   await expect(bobPage.locator("text=Live match")).toBeVisible();
@@ -49,7 +49,7 @@ test('spectator sees "Spectating" title and players see spectator badge', async 
 
   // Alice signs up and creates a game
   const aliceUsername = `alice_badge_${Math.random().toString(36).slice(2, 7)}`;
-  await signUpViaUI(alicePage, aliceUsername, "password123");
+  await signUpViaAPI(alicePage, aliceUsername, "password123");
 
   await alicePage.click('button:has-text("Create a game")');
   await alicePage.click('button:has-text("Create Game")');
@@ -58,7 +58,7 @@ test('spectator sees "Spectating" title and players see spectator badge', async 
 
   // Bob signs up and joins
   const bobUsername = `bob_badge_${Math.random().toString(36).slice(2, 7)}`;
-  await signUpViaUI(bobPage, bobUsername, "password123");
+  await signUpViaAPI(bobPage, bobUsername, "password123");
   await bobPage.goto(gameUrl);
   await expect(bobPage.locator("text=Live match")).toBeVisible();
 
@@ -102,7 +102,7 @@ test("spectating own game shows error toast and stays on lobby", async ({ browse
 
   // Sign up and create a game
   const username = `own_spec_${Math.random().toString(36).slice(2, 7)}`;
-  await signUpViaUI(page, username, "password123");
+  await signUpViaAPI(page, username, "password123");
 
   await page.click('button:has-text("Create a game")');
   await page.click('button:has-text("Create Game")');

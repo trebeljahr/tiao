@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { signUpViaUI, dismissRulesIntro } from "./helpers";
+import { signUpViaAPI } from "./helpers";
 
 test("multiplayer rematch decline flow", async ({ browser }) => {
   const aliceContext = await browser.newContext();
@@ -10,11 +10,11 @@ test("multiplayer rematch decline flow", async ({ browser }) => {
 
   // Alice signs up
   const aliceUsername = `alice_dec_${Math.random().toString(36).slice(2, 7)}`;
-  await signUpViaUI(alicePage, aliceUsername, "password123");
+  await signUpViaAPI(alicePage, aliceUsername, "password123");
 
   // Bob signs up
   const bobUsername = `bob_dec_${Math.random().toString(36).slice(2, 7)}`;
-  await signUpViaUI(bobPage, bobUsername, "password123");
+  await signUpViaAPI(bobPage, bobUsername, "password123");
 
   // Alice creates game, Bob joins
   await alicePage.click('button:has-text("Create a game")');
@@ -24,8 +24,6 @@ test("multiplayer rematch decline flow", async ({ browser }) => {
   const gameId = gameUrl.split("/").pop()!;
 
   await bobPage.goto(gameUrl);
-  await dismissRulesIntro(alicePage);
-  await dismissRulesIntro(bobPage);
   await expect(bobPage.locator("text=Live match")).toBeVisible();
 
   // Force finish the game

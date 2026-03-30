@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { signUpViaUI, waitForAppReady, dismissRulesIntro } from "./helpers";
+import { signUpViaAPI, waitForAppReady } from "./helpers";
 
 test("game review mode shows review nav buttons and allows friend requests", async ({
   browser,
@@ -13,11 +13,11 @@ test("game review mode shows review nav buttons and allows friend requests", asy
 
   // 1. Alice signs up
   const aliceUsername = `alice_${Math.random().toString(36).slice(2, 7)}`;
-  await signUpViaUI(alicePage, aliceUsername, "password123");
+  await signUpViaAPI(alicePage, aliceUsername, "password123");
 
   // 2. Bob signs up
   const bobUsername = `bob_${Math.random().toString(36).slice(2, 7)}`;
-  await signUpViaUI(bobPage, bobUsername, "password123");
+  await signUpViaAPI(bobPage, bobUsername, "password123");
 
   // 3. Alice creates a game
   await alicePage.click('button:has-text("Create a game")');
@@ -28,8 +28,6 @@ test("game review mode shows review nav buttons and allows friend requests", asy
 
   // 4. Bob joins the game
   await bobPage.goto(gameUrl);
-  await dismissRulesIntro(alicePage);
-  await dismissRulesIntro(bobPage);
   await expect(bobPage.locator("text=Live match")).toBeVisible();
   await expect(alicePage.locator("text=Live match")).toBeVisible();
 
@@ -83,10 +81,10 @@ test("game review shows status title and allows returning to lobby", async ({ br
 
   // Setup: Alice and Bob sign up
   const aliceUsername = `alice_${Math.random().toString(36).slice(2, 7)}`;
-  await signUpViaUI(alicePage, aliceUsername, "password123");
+  await signUpViaAPI(alicePage, aliceUsername, "password123");
 
   const bobUsername = `bob_${Math.random().toString(36).slice(2, 7)}`;
-  await signUpViaUI(bobPage, bobUsername, "password123");
+  await signUpViaAPI(bobPage, bobUsername, "password123");
 
   // Alice creates game, Bob joins
   await alicePage.click('button:has-text("Create a game")');
@@ -95,8 +93,6 @@ test("game review shows status title and allows returning to lobby", async ({ br
   const gameUrl = alicePage.url();
   const gameId = gameUrl.split("/").pop()!;
   await bobPage.goto(gameUrl);
-  await dismissRulesIntro(alicePage);
-  await dismissRulesIntro(bobPage);
   await expect(bobPage.locator("text=Live match")).toBeVisible();
 
   // Force finish

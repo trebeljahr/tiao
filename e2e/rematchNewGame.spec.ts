@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { signUpViaUI, dismissRulesIntro } from "./helpers";
+import { signUpViaAPI } from "./helpers";
 
 test("rematch creates a new game URL with fresh scores", async ({ browser }) => {
   const aliceContext = await browser.newContext();
@@ -9,11 +9,11 @@ test("rematch creates a new game URL with fresh scores", async ({ browser }) => 
 
   // Alice signs up
   const aliceUsername = `alice_rn_${Math.random().toString(36).slice(2, 7)}`;
-  await signUpViaUI(alicePage, aliceUsername, "password123");
+  await signUpViaAPI(alicePage, aliceUsername, "password123");
 
   // Bob signs up
   const bobUsername = `bob_rn_${Math.random().toString(36).slice(2, 7)}`;
-  await signUpViaUI(bobPage, bobUsername, "password123");
+  await signUpViaAPI(bobPage, bobUsername, "password123");
 
   // Alice creates a game
   await alicePage.click('button:has-text("Create a game")');
@@ -24,8 +24,6 @@ test("rematch creates a new game URL with fresh scores", async ({ browser }) => 
 
   // Bob joins the game
   await bobPage.goto(originalGameUrl);
-  await dismissRulesIntro(alicePage);
-  await dismissRulesIntro(bobPage);
   await expect(bobPage.locator("text=Live match")).toBeVisible();
   await expect(alicePage.locator("text=Live match")).toBeVisible();
 

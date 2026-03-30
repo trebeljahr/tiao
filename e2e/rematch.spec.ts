@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { signUpViaUI, dismissRulesIntro } from "./helpers";
+import { signUpViaAPI } from "./helpers";
 
 test("multiplayer rematch flow", async ({ browser }) => {
   const aliceContext = await browser.newContext();
@@ -10,11 +10,11 @@ test("multiplayer rematch flow", async ({ browser }) => {
 
   // 1. Alice signs up
   const aliceUsername = `alice_${Math.random().toString(36).slice(2, 7)}`;
-  await signUpViaUI(alicePage, aliceUsername, "password123");
+  await signUpViaAPI(alicePage, aliceUsername, "password123");
 
   // 2. Bob signs up
   const bobUsername = `bob_${Math.random().toString(36).slice(2, 7)}`;
-  await signUpViaUI(bobPage, bobUsername, "password123");
+  await signUpViaAPI(bobPage, bobUsername, "password123");
 
   // 3. Alice creates a game
   await alicePage.click('button:has-text("Create a game")');
@@ -25,8 +25,6 @@ test("multiplayer rematch flow", async ({ browser }) => {
 
   // 4. Bob joins the game via URL
   await bobPage.goto(gameUrl);
-  await dismissRulesIntro(alicePage);
-  await dismissRulesIntro(bobPage);
   await expect(bobPage.locator("text=Live match")).toBeVisible();
   await expect(alicePage.locator("text=Live match")).toBeVisible();
 

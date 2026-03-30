@@ -1,5 +1,5 @@
 import { test, expect, Page } from "@playwright/test";
-import { signUpViaUI } from "./helpers";
+import { signUpViaAPI } from "./helpers";
 
 function uniqueName(prefix: string) {
   return `${prefix}_${Math.random().toString(36).slice(2, 7)}`;
@@ -74,7 +74,7 @@ test.describe("Tournament list page", () => {
     const context = await browser.newContext();
     const page = await context.newPage();
     const username = uniqueName("tourney");
-    await signUpViaUI(page, username, "password123");
+    await signUpViaAPI(page, username, "password123");
 
     await page.goto("/tournaments");
     await expect(page.locator('button:has-text("Create Tournament")')).toBeVisible();
@@ -88,7 +88,7 @@ test.describe("Tournament list page", () => {
     const context = await browser.newContext();
     const page = await context.newPage();
     const username = uniqueName("tourney");
-    await signUpViaUI(page, username, "password123");
+    await signUpViaAPI(page, username, "password123");
 
     const tournamentId = await createTournamentViaApi(page, "Test Cup");
 
@@ -105,7 +105,7 @@ test.describe("Tournament page", () => {
     const context = await browser.newContext();
     const page = await context.newPage();
     const username = uniqueName("tourney");
-    await signUpViaUI(page, username, "password123");
+    await signUpViaAPI(page, username, "password123");
 
     const tournamentId = await createTournamentViaApi(page, "Detail Cup");
 
@@ -125,7 +125,7 @@ test.describe("Tournament page", () => {
     const context = await browser.newContext();
     const page = await context.newPage();
     const username = uniqueName("tourney");
-    await signUpViaUI(page, username, "password123");
+    await signUpViaAPI(page, username, "password123");
 
     const tournamentId = await createTournamentViaApi(page, "Join Cup");
 
@@ -150,7 +150,7 @@ test.describe("Tournament page", () => {
     const context = await browser.newContext();
     const page = await context.newPage();
     const username = uniqueName("tourney");
-    await signUpViaUI(page, username, "password123");
+    await signUpViaAPI(page, username, "password123");
 
     const tournamentId = await createTournamentViaApi(page, "Leave Cup");
 
@@ -174,7 +174,7 @@ test.describe("Tournament page", () => {
     const context = await browser.newContext();
     const page = await context.newPage();
     const username = uniqueName("tourney");
-    await signUpViaUI(page, username, "password123");
+    await signUpViaAPI(page, username, "password123");
 
     const tournamentId = await createTournamentViaApi(page, "Cancel Cup");
 
@@ -210,8 +210,8 @@ test.describe("Tournament with multiple players", () => {
     const aliceName = uniqueName("alice");
     const bobName = uniqueName("bob");
 
-    await signUpViaUI(alicePage, aliceName, "password123");
-    await signUpViaUI(bobPage, bobName, "password123");
+    await signUpViaAPI(alicePage, aliceName, "password123");
+    await signUpViaAPI(bobPage, bobName, "password123");
 
     // Use the helper to create, register both, and start via API
     const { tournamentId } = await startTwoPlayerTournament(alicePage, bobPage, "Bracket Cup");
@@ -240,7 +240,7 @@ test.describe("Tournament with multiple players", () => {
     page.on("pageerror", (err) => errors.push(err.message));
 
     const username = uniqueName("tourney");
-    await signUpViaUI(page, username, "password123");
+    await signUpViaAPI(page, username, "password123");
 
     // Visit tournament list
     await page.goto("/tournaments");
@@ -274,8 +274,8 @@ test.describe("Tournament game lifecycle", () => {
 
     const aliceName = uniqueName("alice");
     const bobName = uniqueName("bob");
-    await signUpViaUI(alicePage, aliceName, "password123");
-    await signUpViaUI(bobPage, bobName, "password123");
+    await signUpViaAPI(alicePage, aliceName, "password123");
+    await signUpViaAPI(bobPage, bobName, "password123");
 
     const { roomId } = await startTwoPlayerTournament(alicePage, bobPage, "Timer Overlay Test", {
       initialMs: 300000,
@@ -305,8 +305,8 @@ test.describe("Tournament game lifecycle", () => {
 
     const aliceName = uniqueName("alice");
     const bobName = uniqueName("bob");
-    await signUpViaUI(alicePage, aliceName, "password123");
-    await signUpViaUI(bobPage, bobName, "password123");
+    await signUpViaAPI(alicePage, aliceName, "password123");
+    await signUpViaAPI(bobPage, bobName, "password123");
 
     const { roomId } = await startTwoPlayerTournament(alicePage, bobPage, "Both Connect Test", {
       initialMs: 300000,
@@ -343,8 +343,8 @@ test.describe("Tournament game lifecycle", () => {
 
     const aliceName = uniqueName("alice");
     const bobName = uniqueName("bob");
-    await signUpViaUI(alicePage, aliceName, "password123");
-    await signUpViaUI(bobPage, bobName, "password123");
+    await signUpViaAPI(alicePage, aliceName, "password123");
+    await signUpViaAPI(bobPage, bobName, "password123");
 
     const { roomId } = await startTwoPlayerTournament(
       alicePage,
@@ -368,7 +368,7 @@ test.describe("Tournament navigation", () => {
     const context = await browser.newContext();
     const page = await context.newPage();
     const username = uniqueName("tourney");
-    await signUpViaUI(page, username, "password123");
+    await signUpViaAPI(page, username, "password123");
 
     await page.goto("/");
 
@@ -389,7 +389,7 @@ test.describe("Tournament navigation", () => {
     const context = await browser.newContext();
     const page = await context.newPage();
     const username = uniqueName("tourney");
-    await signUpViaUI(page, username, "password123");
+    await signUpViaAPI(page, username, "password123");
 
     const tournamentId = await createTournamentViaApi(page, "Nav Cup");
 
