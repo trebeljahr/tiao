@@ -68,6 +68,9 @@ export function SetUsernamePage() {
   const ssoImage = auth?.player.profilePicture ?? null;
   const profileImage = previewUrl || ssoImage;
 
+  // Show the SSO profile picture if available (synced from the SSO provider)
+  const ssoProfilePicture = auth?.player.profilePicture;
+
   const sanitized = username.toLowerCase().replace(/[^a-z0-9_-]/g, "");
   const valid = isValidUsername(sanitized);
 
@@ -124,6 +127,12 @@ export function SetUsernamePage() {
 
         <Card className={paperCard + " w-full"}>
           <CardContent className="flex flex-col gap-5 pt-8 pb-8">
+            {ssoProfilePicture && (
+              <div className="mx-auto h-20 w-20 overflow-hidden rounded-2xl border-2 border-[#d4bd94] shadow-[0_12px_30px_-18px_rgba(58,35,16,0.6)]">
+                <img src={ssoProfilePicture} alt="" className="h-full w-full object-cover" />
+              </div>
+            )}
+
             <div className="text-center">
               <h1 className="font-display text-2xl font-bold text-[#2b1e14]">{t("title")}</h1>
               <p className="mt-2 text-sm text-[#8d7760]">{t("description")}</p>

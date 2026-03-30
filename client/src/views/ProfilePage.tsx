@@ -559,7 +559,7 @@ export function ProfilePage() {
     return () => window.removeEventListener("paste", handlePaste);
   }, [handleImageFile]);
 
-  const profileImage = previewUrl || profile?.profilePicture;
+  const profileImage = previewUrl || profile?.profilePicture || auth?.player.profilePicture;
   const paperCard =
     "border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]";
 
