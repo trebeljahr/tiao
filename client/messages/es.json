@@ -39,6 +39,7 @@
     "copied": "Copiado",
     "copiedGameId": "ID de partida {gameId} copiado",
     "copiedShareLink": "Enlace copiado",
+    "spectateLinkCopied": "Enlace de espectador copiado",
     "failedToCopy": "Error al copiar",
     "invitationSent": "¡Invitación enviada!",
     "failedToLoadGame": "Error al cargar la partida",

@@ -39,6 +39,7 @@
     "copied": "Kopiert",
     "copiedGameId": "Spiel-ID {gameId} kopiert",
     "copiedShareLink": "Link kopiert",
+    "spectateLinkCopied": "Zuschauerlink kopiert",
     "failedToCopy": "Kopieren fehlgeschlagen",
     "invitationSent": "Einladung gesendet!",
     "failedToLoadGame": "Spiel konnte nicht geladen werden",

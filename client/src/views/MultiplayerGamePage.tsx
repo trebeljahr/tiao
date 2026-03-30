@@ -652,6 +652,17 @@ export function MultiplayerGamePage() {
     }
   }
 
+  async function handleCopySpectateLink() {
+    if (!multiplayerSnapshot) return;
+    try {
+      const url = `${window.location.origin}/game/${multiplayerSnapshot.gameId}`;
+      await copyToClipboard(url);
+      toast.success(tCommon("spectateLinkCopied"));
+    } catch {
+      toast.error(tCommon("failedToCopy"));
+    }
+  }
+
   const multiplayerJumpTargets =
     multiplayerSelection && displayState && !isReviewMode
       ? getJumpTargets(displayState, multiplayerSelection, displayState.currentTurn)
@@ -908,30 +919,36 @@ export function MultiplayerGamePage() {
                           copied={copyFeedbackKey === "share-link" && !!copyFeedback}
                           onCopy={handleCopyGameLink}
                         />
-                        {spectatorCount > 0 && (
-                          <button
-                            type="button"
-                            onClick={() => setSpectatorDialogOpen(true)}
-                            className="flex items-center gap-1.5 rounded-full border border-[#d8c29c] bg-[#fff8ee]/96 px-2.5 py-1.5 text-xs font-semibold text-[#5d4732] transition-colors hover:bg-[#f5e8d4]"
-                            title={`${spectatorCount} spectator${spectatorCount !== 1 ? "s" : ""}`}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            spectatorCount > 0
+                              ? setSpectatorDialogOpen(true)
+                              : handleCopySpectateLink()
+                          }
+                          className="flex items-center gap-1.5 rounded-full border border-[#d8c29c] bg-[#fff8ee]/96 px-2.5 py-1.5 text-xs font-semibold text-[#5d4732] transition-colors hover:bg-[#f5e8d4]"
+                          title={
+                            spectatorCount > 0
+                              ? `${spectatorCount} spectator${spectatorCount !== 1 ? "s" : ""}`
+                              : "Copy spectate link"
+                          }
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
                           >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="14"
-                              height="14"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
-                              <circle cx="12" cy="12" r="3" />
-                            </svg>
-                            {spectatorCount}
-                          </button>
-                        )}
+                            <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                          {spectatorCount > 0 && spectatorCount}
+                        </button>
                       </div>
                     )}
                     <div className="space-y-1 sm:order-1">

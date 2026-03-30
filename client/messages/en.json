@@ -39,6 +39,7 @@
     "copied": "Copied",
     "copiedGameId": "Copied Game ID {gameId}",
     "copiedShareLink": "Copied Share Link",
+    "spectateLinkCopied": "Spectate link copied",
     "failedToCopy": "Failed to copy",
     "invitationSent": "Invitation sent!",
     "failedToLoadGame": "Failed to load game",
