@@ -181,6 +181,8 @@ const pruneHandle = setInterval(
 
 pruneHandle.unref();
 
+gameService.startMatchmakingSweep();
+
 let isShuttingDown = false;
 
 function closeHttpServer(): Promise<void> {

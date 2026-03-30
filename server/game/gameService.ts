@@ -79,6 +79,7 @@ export class GameService {
   private readonly firstMoveTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private tournamentCallback: TournamentGameCallback | null = null;
   private readonly lobbyDisconnectCallbacks: Array<(playerId: string) => void> = [];
+  private matchmakingSweepTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(
     private readonly store: GameRoomStore = new MongoGameRoomStore(),
@@ -826,6 +827,61 @@ export class GameService {
     await this.withLock(this.matchmakingLockKey(), async () => {
       await this.matchmaking.removeFromQueue(player.playerId);
       await this.matchmaking.deleteMatch(player.playerId);
+    });
+  }
+
+  /** Periodically re-check the queue for players whose Elo windows have expanded enough to match. */
+  startMatchmakingSweep(intervalMs = 5_000): void {
+    if (this.matchmakingSweepTimer) return;
+    this.matchmakingSweepTimer = setInterval(() => {
+      void this.sweepMatchmakingQueue();
+    }, intervalMs);
+    if (this.matchmakingSweepTimer.unref) this.matchmakingSweepTimer.unref();
+  }
+
+  stopMatchmakingSweep(): void {
+    if (this.matchmakingSweepTimer) {
+      clearInterval(this.matchmakingSweepTimer);
+      this.matchmakingSweepTimer = null;
+    }
+  }
+
+  private async sweepMatchmakingQueue(): Promise<void> {
+    await this.withLock(this.matchmakingLockKey(), async () => {
+      const entries = await this.matchmaking.getAllEntries();
+      if (entries.length < 2) return;
+
+      for (const entry of entries) {
+        // Re-check if still in queue (may have been matched in this sweep)
+        const still = await this.matchmaking.findEntry(entry.player.playerId);
+        if (!still) continue;
+
+        const opponent = await this.matchmaking.findAndRemoveOpponent(
+          entry.player.playerId,
+          entry.timeControl,
+          entry.rating,
+        );
+        if (!opponent) continue;
+
+        // Remove the current entry from queue too
+        await this.matchmaking.removeFromQueue(entry.player.playerId);
+
+        // Create game
+        await this.withLocks(
+          [this.playerLockKey(entry.player.playerId), this.playerLockKey(opponent.player.playerId)],
+          async () => {
+            const room = await this.createRoomRecord({
+              players: [entry.player, opponent.player],
+              roomType: "matchmaking",
+              assignSeats: true,
+              timeControl: entry.timeControl,
+            });
+
+            await this.matchmaking.setMatch(entry.player.playerId, room.id);
+            await this.matchmaking.setMatch(opponent.player.playerId, room.id);
+          },
+        );
+      }
     });
   }
 

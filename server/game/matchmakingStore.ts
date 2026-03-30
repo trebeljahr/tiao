@@ -21,6 +21,7 @@ export interface MatchmakingStore {
   setMatch(playerId: string, gameId: string): Promise<void>;
   getMatch(playerId: string): Promise<string | null>;
   deleteMatch(playerId: string): Promise<void>;
+  getAllEntries(): Promise<MatchmakingQueueEntry[]>;
 }
 
 function timeControlsMatch(a: TimeControl, b: TimeControl): boolean {
@@ -108,6 +109,10 @@ export class InMemoryMatchmakingStore implements MatchmakingStore {
   async deleteMatch(playerId: string): Promise<void> {
     this.matches.delete(playerId);
   }
+
+  async getAllEntries(): Promise<MatchmakingQueueEntry[]> {
+    return [...this.queue];
+  }
 }
 
 const QUEUE_KEY = "tiao:matchmaking:queue";
@@ -189,5 +194,10 @@ export class RedisMatchmakingStore implements MatchmakingStore {
 
   async deleteMatch(playerId: string): Promise<void> {
     await this.redis.del(`${MATCH_PREFIX}${playerId}`);
+  }
+
+  async getAllEntries(): Promise<MatchmakingQueueEntry[]> {
+    const members = await this.redis.zrange(QUEUE_KEY, 0, -1);
+    return members.map((raw) => JSON.parse(raw) as MatchmakingQueueEntry);
   }
 }
