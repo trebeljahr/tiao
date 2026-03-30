@@ -17,6 +17,13 @@ export function isNetworkError(error: unknown) {
   return error instanceof ApiError && error.status === 0;
 }
 
+/** Returns true for errors that are likely transient and worth retrying
+ *  (network failures + server errors 5xx). */
+export function isRetryableError(error: unknown) {
+  if (isNetworkError(error)) return true;
+  return error instanceof ApiError && error.status >= 500;
+}
+
 export function toastError(error: unknown) {
   toast.error(readableError(error));
 }

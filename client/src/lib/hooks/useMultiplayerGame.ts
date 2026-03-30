@@ -14,7 +14,7 @@ import {
   getPendingJumpDestination,
 } from "@shared";
 import { buildWebSocketUrl, accessMultiplayerGame, getMultiplayerGame } from "../api";
-import { readableError, isNetworkError } from "../errors";
+import { readableError, isRetryableError } from "../errors";
 import { createReconnectScheduler } from "../reconnect";
 import { createOptimisticSnapshot } from "../../components/game/GameShared";
 
@@ -293,6 +293,12 @@ export function useMultiplayerGame(
             restoreConfirmedSnapshot();
           }
 
+          // Show a toast for rematch-specific errors so the user sees the reason
+          // even after the rematch UI resets.
+          if (payload.code === "REMATCH_EXPIRED") {
+            toast.error(payload.message);
+          }
+
           setMultiplayerError(payload.message);
         }
       });
@@ -350,7 +356,7 @@ export function useMultiplayerGame(
         toast.success("Reconnected!");
       }
     } catch (error) {
-      if (isNetworkError(error)) {
+      if (isRetryableError(error)) {
         setConnectionState("disconnected");
         reconnectRef.current.schedule();
         return;
