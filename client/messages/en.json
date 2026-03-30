@@ -146,6 +146,8 @@
     "whiteYou": "White (You)",
     "waitingForOpponent": "Waiting for opponent",
     "waitingForGameToStart": "Waiting for the game to start",
+    "yourTurn": "Your turn",
+    "opponentsTurn": "Opponent's turn",
     "openSeat": "Open seat",
     "waiting": "Waiting",
     "won": "Won",

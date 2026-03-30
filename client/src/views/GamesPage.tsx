@@ -141,9 +141,9 @@ export function GamesPage() {
                           </div>
                         </div>
                         {/* Player info: playing as color vs opponent */}
-                        <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex flex-col gap-1">
                           {game.yourSeat && (
-                            <>
+                            <div className="flex items-center gap-2">
                               <span className="shrink-0 text-xs text-[#6b563e]">
                                 {tCommon("playingAs", { color: "" })}
                               </span>
@@ -158,17 +158,19 @@ export function GamesPage() {
                               <span className="shrink-0 text-xs font-medium text-[#2b1e14]">
                                 {yourColor}
                               </span>
-                              <span className="shrink-0 text-xs text-[#8d7760]">vs.</span>
-                            </>
+                            </div>
                           )}
                           {opponent && (
-                            <PlayerIdentityRow
-                              player={opponent}
-                              linkToProfile={false}
-                              className="min-w-0"
-                              avatarClassName="h-5 w-5"
-                              nameClassName="text-xs"
-                            />
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="shrink-0 text-xs text-[#8d7760]">vs.</span>
+                              <PlayerIdentityRow
+                                player={opponent}
+                                linkToProfile={false}
+                                className="min-w-0"
+                                avatarClassName="h-5 w-5"
+                                nameClassName="text-xs"
+                              />
+                            </div>
                           )}
                         </div>
                         {/* Game settings */}

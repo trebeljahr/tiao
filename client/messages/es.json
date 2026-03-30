@@ -145,6 +145,8 @@
     "whiteYou": "Blancas (Tú)",
     "waitingForOpponent": "Esperando al rival",
     "waitingForGameToStart": "Esperando a que comience la partida",
+    "yourTurn": "Tu turno",
+    "opponentsTurn": "Turno del rival",
     "openSeat": "Puesto libre",
     "waiting": "Esperando",
     "won": "Victoria",

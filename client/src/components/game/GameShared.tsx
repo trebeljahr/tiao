@@ -165,9 +165,9 @@ export function getSummaryStatusLabel(
   }
 
   if (isSummaryYourTurn(summary)) {
-    return t ? t("yourMove") : "Your move";
+    return t ? t("yourTurn") : "Your turn";
   }
-  return t ? t("waitingForOpponent") : "Waiting for opponent";
+  return t ? t("opponentsTurn") : "Opponent's turn";
 }
 
 export function formatRelativeExpiry(value: string, t?: (key: string, values?: any) => string) {
