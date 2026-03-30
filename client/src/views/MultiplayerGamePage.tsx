@@ -867,7 +867,7 @@ export function MultiplayerGamePage() {
         <section className="grid gap-3 xl:min-h-[calc(100dvh-1rem)] xl:content-center xl:gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(24rem,30rem)] xl:items-start">
           <div className="flex items-center justify-center xl:items-start xl:justify-end">
             <div
-              className="relative isolate mx-auto w-full max-w-[min(100%,calc(100svh-15rem))] xl:max-w-[min(100%,calc(100svh-5rem))]"
+              className="relative isolate mx-auto w-full max-w-[min(100%,calc(100svh-10rem))] xl:max-w-[min(100%,calc(100svh-5rem))]"
               style={boardWrapStyle}
             >
               {displayState && (
@@ -913,7 +913,7 @@ export function MultiplayerGamePage() {
             </div>
           </div>
 
-          <div className="mx-auto w-full max-w-[calc(100dvh-5rem)] space-y-4 xl:mx-0 xl:w-auto xl:min-w-[22rem] xl:max-w-[30rem]">
+          <div className="mx-auto w-full max-w-[calc(100svh-10rem)] space-y-4 xl:mx-0 xl:w-auto xl:min-w-[22rem] xl:max-w-[30rem]">
             <div className="mx-auto w-full xl:mx-0">
               <Card
                 className={cn(
