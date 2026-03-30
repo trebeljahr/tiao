@@ -77,11 +77,11 @@ if (process.env.API_PORT) {
 const host = lanMode ? "0.0.0.0" : "127.0.0.1";
 
 console.log(`\n  Mode:   ${fixedMode ? "fixed" : "random"}${lanMode ? " (LAN)" : ""}`);
-console.log(`  Client: http://${host}:${clientPort}`);
+console.log(`  Client: http://localhost:${clientPort}`);
 if (includeDocs) {
-  console.log(`  Docs:   http://${host}:${docsPort}`);
+  console.log(`  Docs:   http://localhost:${docsPort}`);
 }
-console.log(`  Server: http://${host}:${apiPort}`);
+console.log(`  Server: http://localhost:${apiPort}`);
 if (lanMode) {
   try {
     const lanIp = execSync("ipconfig getifaddr en0", { encoding: "utf8" }).trim();
