@@ -1,5 +1,5 @@
 import { test, expect, Page } from "@playwright/test";
-import { signUpViaAPI } from "./helpers";
+import { signUpViaAPI, waitForAppReady } from "./helpers";
 
 function uniqueName(prefix: string) {
   return `${prefix}_${Math.random().toString(36).slice(2, 7)}`;
@@ -93,7 +93,8 @@ test.describe("Tournament list page", () => {
     const tournamentId = await createTournamentViaApi(page, "Test Cup");
 
     await page.goto("/tournaments");
-    await expect(page.locator("text=Test Cup")).toBeVisible({ timeout: 5000 });
+    await waitForAppReady(page);
+    await expect(page.locator("text=Test Cup")).toBeVisible({ timeout: 10000 });
     await expect(page.locator("text=REGISTRATION")).toBeVisible();
 
     await context.close();

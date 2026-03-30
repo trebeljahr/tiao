@@ -166,10 +166,11 @@ test("different time controls do not match each other", async ({ browser }) => {
   await startTimedMatchmaking(bobPage, 300_000, 0);
   await expect(bobPage).toHaveURL(/\/matchmaking/);
 
-  // Wait a bit — neither should be matched
-  await alicePage.waitForTimeout(4000);
-  await expect(alicePage).toHaveURL(/\/matchmaking/);
-  await expect(bobPage).toHaveURL(/\/matchmaking/);
+  // Wait — neither should be matched (different time controls)
+  await alicePage.waitForTimeout(6000);
+  // Both should still be searching, not redirected to a game
+  await expect(alicePage.locator("text=Searching")).toBeVisible();
+  await expect(bobPage.locator("text=Searching")).toBeVisible();
 
   await aliceContext.close();
   await bobContext.close();
