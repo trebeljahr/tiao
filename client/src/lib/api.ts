@@ -331,7 +331,6 @@ export type PublicProfile = {
   favoriteBoard?: number;
   favoriteTimeControl?: string;
   favoriteScore?: number;
-  playerId?: string;
   friendshipStatus?: "none" | "friend" | "outgoing-request" | "incoming-request" | "self";
 };
 

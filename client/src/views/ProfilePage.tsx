@@ -261,7 +261,7 @@ function LinkedAccounts({
 
     setSavingPassword(true);
     try {
-      const { error } = await authClient.setPassword({ newPassword });
+      const { error } = await (authClient as any).setPassword({ newPassword });
       if (error) {
         setPasswordError(readableError(error));
       } else {
