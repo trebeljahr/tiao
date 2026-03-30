@@ -322,4 +322,44 @@ describe("AI Difficulty Presets (#66)", () => {
     expect(intermediate!.depth).toBeGreaterThanOrEqual(easy!.depth);
     expect(hard!.depth).toBeGreaterThanOrEqual(intermediate!.depth);
   });
+
+  it("intermediate and hard AI always take an obvious jump when available", () => {
+    // Black at (9,9), white at (10,9) — black can jump to (11,9)
+    const state = setupBoard([
+      { x: 9, y: 9, color: "black" },
+      { x: 10, y: 9, color: "white" },
+    ]);
+
+    // Easy (level 1) has skipProb and high noise — intentionally weak.
+    // Intermediate and hard must always take obvious captures.
+    for (const level of [2, 3] as const) {
+      for (let i = 0; i < 10; i++) {
+        const result = findBestMove(state, { level, color: "black" }, { aborted: false });
+        expect(result, `level ${level} run ${i}: should return a result`).not.toBeNull();
+        expect(
+          result!.move.type,
+          `level ${level} run ${i}: should jump, not place (score=${result!.score} depth=${result!.depth})`,
+        ).toBe("jump");
+      }
+    }
+  });
+
+  it("intermediate AI does not place adjacent to opponent piece (giving free capture)", () => {
+    // Human (white) placed at center. AI (black) should not place adjacent
+    // because white could jump over it on the next move.
+    const state = setupBoard([{ x: 9, y: 9, color: "white" }], "black");
+
+    // Run multiple times to account for evalNoise randomness
+    for (let i = 0; i < 10; i++) {
+      const result = findBestMove(state, { level: 2, color: "black" }, { aborted: false });
+      expect(result).not.toBeNull();
+      expect(result!.move.type).toBe("place");
+
+      if (result!.move.type === "place") {
+        const { x, y } = result!.move.position;
+        const isAdjacent = (Math.abs(x - 9) === 1 && y === 9) || (Math.abs(y - 9) === 1 && x === 9);
+        expect(isAdjacent).toBe(false);
+      }
+    }
+  });
 });

@@ -79,7 +79,7 @@ const MAX_MOVES = 50; // limit moves considered per node to keep search tractabl
 
 const LEVEL_PRESETS: LevelPreset[] = [
   { maxDepth: 2, timeMs: 1000, evalNoise: 150, skipProb: 0.3, nullMove: false, quiescence: false },
-  { maxDepth: 6, timeMs: 5000, evalNoise: 2, skipProb: 0, nullMove: true, quiescence: true },
+  { maxDepth: 5, timeMs: 5000, evalNoise: 0, skipProb: 0, nullMove: true, quiescence: true },
   { maxDepth: 7, timeMs: 6000, evalNoise: 0, skipProb: 0, nullMove: true, quiescence: true },
 ];
 
