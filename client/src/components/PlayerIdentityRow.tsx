@@ -18,7 +18,7 @@ type PlayerIdentityRowProps = {
   currentPlayerId?: string;
   avatarClassName?: string;
   online?: boolean | null;
-  /** Wrap the avatar + name in a link to the player's public profile (default: true). */
+  /** Wrap the avatar, name, and badges in a link to the player's public profile (default: true). */
   linkToProfile?: boolean;
   showFriendBadge?: boolean;
   showAddFriend?: boolean;
@@ -57,7 +57,7 @@ export function PlayerIdentityRow({
   const badgesToShow = resolvePlayerBadges(player);
 
   const canLink = linkToProfile && player.displayName && !anonymous;
-  const avatarAndName = (
+  const identityContent = (
     <>
       <PlayerOverviewAvatar player={player} anonymous={anonymous} className={avatarClassName} />
       <span
@@ -69,6 +69,9 @@ export function PlayerIdentityRow({
           <span className="ml-1 text-xs font-normal opacity-50">({player.rating})</span>
         )}
       </span>
+      {badgesToShow.map((id) => (
+        <UserBadge key={id} badge={id as BadgeId} compact />
+      ))}
     </>
   );
 
@@ -79,15 +82,11 @@ export function PlayerIdentityRow({
           href={`/profile/${encodeURIComponent(player.displayName!)}`}
           className="flex min-w-0 items-center gap-2"
         >
-          {avatarAndName}
+          {identityContent}
         </Link>
       ) : (
-        avatarAndName
+        <div className="flex min-w-0 items-center gap-2">{identityContent}</div>
       )}
-
-      {badgesToShow.map((id) => (
-        <UserBadge key={id} badge={id as BadgeId} compact />
-      ))}
 
       {online != null && <ConnectionDot online={online} />}
 
