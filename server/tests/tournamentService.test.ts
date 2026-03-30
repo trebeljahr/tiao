@@ -1030,3 +1030,129 @@ describe("Private tournament invite links", () => {
     );
   });
 });
+
+// ── #89: Tournament Live Scores ──
+
+describe("Tournament live scores", () => {
+  test("broadcastLiveScore method exists on TournamentService", () => {
+    const { tournamentService } = createServices();
+    assert.equal(typeof (tournamentService as any).broadcastLiveScore, "function");
+  });
+
+  test("broadcastLiveScore broadcasts to all tournament participants", async () => {
+    const { tournamentService, gameService } = createServices();
+    const alice = createPlayer("alice");
+    const bob = createPlayer("bob");
+    const charlie = createPlayer("charlie");
+
+    const t = await tournamentService.createTournament(alice, defaultSettings(), "Live Score Test");
+    await tournamentService.registerPlayer(t.tournamentId, alice);
+    await tournamentService.registerPlayer(t.tournamentId, bob);
+    await tournamentService.registerPlayer(t.tournamentId, charlie);
+
+    const broadcastCalls: Array<{ playerId: string; payload: Record<string, unknown> }> = [];
+    const originalBroadcast = gameService.broadcastLobby.bind(gameService);
+    gameService.broadcastLobby = (playerId: string, payload: Record<string, unknown>) => {
+      broadcastCalls.push({ playerId, payload });
+      originalBroadcast(playerId, payload);
+    };
+
+    // Call broadcastLiveScore with match data
+    (tournamentService as any).broadcastLiveScore(t, "R0M0", [3, 1]);
+
+    // Filter for score-update messages
+    const scoreUpdates = broadcastCalls.filter((c) => c.payload.type === "tournament-score-update");
+
+    // Should broadcast to all participants (alice, bob, charlie)
+    const notifiedPlayerIds = new Set(scoreUpdates.map((c) => c.playerId));
+    assert.ok(notifiedPlayerIds.has("alice"), "alice should be notified");
+    assert.ok(notifiedPlayerIds.has("bob"), "bob should be notified");
+    assert.ok(notifiedPlayerIds.has("charlie"), "charlie should be notified");
+  });
+
+  test("broadcastLiveScore correctly maps white/black scores to player slot order", async () => {
+    const { tournamentService, gameService } = createServices();
+    const alice = createPlayer("alice");
+    const bob = createPlayer("bob");
+
+    const t = await tournamentService.createTournament(alice, defaultSettings(), "Score Map Test");
+    await tournamentService.registerPlayer(t.tournamentId, alice);
+    await tournamentService.registerPlayer(t.tournamentId, bob);
+
+    const broadcastCalls: Array<{ playerId: string; payload: Record<string, unknown> }> = [];
+    gameService.broadcastLobby = (playerId: string, payload: Record<string, unknown>) => {
+      broadcastCalls.push({ playerId, payload });
+    };
+
+    // Scores should be aligned to player slot order, not color order
+    (tournamentService as any).broadcastLiveScore(t, "R0M0", [5, 2]);
+
+    const scoreUpdates = broadcastCalls.filter((c) => c.payload.type === "tournament-score-update");
+
+    // All score updates should have the same score array aligned to slot order
+    for (const update of scoreUpdates) {
+      assert.deepEqual(update.payload.score, [5, 2], "score should be in player slot order");
+      assert.equal(update.payload.matchId, "R0M0");
+      assert.equal(update.payload.tournamentId, t.tournamentId);
+    }
+  });
+
+  test("broadcastLiveScore searches group-stage rounds for the match", async () => {
+    const { tournamentService, gameService } = createServices();
+    const alice = createPlayer("alice");
+    const bob = createPlayer("bob");
+    const charlie = createPlayer("charlie");
+    const dave = createPlayer("dave");
+
+    const t = await tournamentService.createTournament(
+      alice,
+      defaultSettings({ format: "groups-knockout", minPlayers: 4, maxPlayers: 8 }),
+      "Group Stage Test",
+    );
+    await tournamentService.registerPlayer(t.tournamentId, alice);
+    await tournamentService.registerPlayer(t.tournamentId, bob);
+    await tournamentService.registerPlayer(t.tournamentId, charlie);
+    await tournamentService.registerPlayer(t.tournamentId, dave);
+
+    const broadcastCalls: Array<{ playerId: string; payload: Record<string, unknown> }> = [];
+    gameService.broadcastLobby = (playerId: string, payload: Record<string, unknown>) => {
+      broadcastCalls.push({ playerId, payload });
+    };
+
+    // If group-stage matches exist, broadcastLiveScore should find them
+    // even though they live in group rounds rather than top-level rounds
+    (tournamentService as any).broadcastLiveScore(t, "G0R0M0", [1, 0]);
+
+    const scoreUpdates = broadcastCalls.filter((c) => c.payload.type === "tournament-score-update");
+
+    // Should have broadcast to participants
+    assert.ok(scoreUpdates.length > 0, "should broadcast score updates for group-stage matches");
+  });
+
+  test("creator does not receive duplicate broadcasts when also a participant", async () => {
+    const { tournamentService, gameService } = createServices();
+    const alice = createPlayer("alice");
+    const bob = createPlayer("bob");
+
+    const t = await tournamentService.createTournament(alice, defaultSettings(), "Dedup Test");
+    await tournamentService.registerPlayer(t.tournamentId, alice);
+    await tournamentService.registerPlayer(t.tournamentId, bob);
+
+    const broadcastCalls: Array<{ playerId: string; payload: Record<string, unknown> }> = [];
+    gameService.broadcastLobby = (playerId: string, payload: Record<string, unknown>) => {
+      broadcastCalls.push({ playerId, payload });
+    };
+
+    (tournamentService as any).broadcastLiveScore(t, "R0M0", [2, 3]);
+
+    const scoreUpdates = broadcastCalls.filter((c) => c.payload.type === "tournament-score-update");
+
+    // Alice is both creator and participant — should only get one broadcast
+    const aliceUpdates = scoreUpdates.filter((c) => c.playerId === "alice");
+    assert.equal(
+      aliceUpdates.length,
+      1,
+      "creator who is also participant should receive exactly one broadcast",
+    );
+  });
+});

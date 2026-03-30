@@ -1,8 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  createInitialGameState,
-  type GameState,
-} from "@shared";
+import { createInitialGameState, type GameState } from "@shared";
 import {
   generateMoves,
   evaluate,
@@ -10,10 +7,8 @@ import {
   computeZobristHash,
   findBestMove,
   type EngineMove,
+  AI_DIFFICULTY_LABELS,
 } from "./tiao-engine";
-
-
-
 
 function setupBoard(
   pieces: Array<{ x: number; y: number; color: "black" | "white" }>,
@@ -207,11 +202,7 @@ describe("Search", () => {
     const state = createInitialGameState();
     state.currentTurn = "black";
     const abort = { aborted: true };
-    findBestMove(
-      state,
-      { level: 3, color: "black" },
-      abort,
-    );
+    findBestMove(state, { level: 3, color: "black" }, abort);
     // Should still return something from depth 1 if it manages to start
     // but importantly should not hang
     expect(true).toBe(true); // just ensure it completes
@@ -260,5 +251,75 @@ describe("Difficulty Levels", () => {
     expect(result1).not.toBeNull();
     expect(result4).not.toBeNull();
     expect(result4!.depth).toBeGreaterThanOrEqual(result1!.depth);
+  });
+});
+
+describe("AI Difficulty Presets (#66)", () => {
+  it("has three difficulty labels: Easy, Intermediate, Hard", () => {
+    expect(AI_DIFFICULTY_LABELS[1]).toBe("Easy");
+    expect(AI_DIFFICULTY_LABELS[2]).toBe("Intermediate");
+    expect(AI_DIFFICULTY_LABELS[3]).toBe("Hard");
+  });
+
+  it("intermediate level (2) produces a valid move", () => {
+    const state = createInitialGameState();
+    state.currentTurn = "black";
+    const result = findBestMove(state, { level: 2, color: "black" }, { aborted: false });
+    expect(result).not.toBeNull();
+    expect(result!.move.type).toBe("place");
+  });
+
+  it("intermediate level searches deeper than easy level", () => {
+    const state = setupBoard([
+      { x: 9, y: 9, color: "black" },
+      { x: 10, y: 9, color: "white" },
+      { x: 5, y: 5, color: "white" },
+      { x: 6, y: 6, color: "black" },
+    ]);
+    const resultEasy = findBestMove(state, { level: 1, color: "black" }, { aborted: false });
+    const resultIntermediate = findBestMove(
+      state,
+      { level: 2, color: "black" },
+      { aborted: false },
+    );
+    expect(resultEasy).not.toBeNull();
+    expect(resultIntermediate).not.toBeNull();
+    expect(resultIntermediate!.depth).toBeGreaterThanOrEqual(resultEasy!.depth);
+  });
+
+  it("hard level searches at least as deep as intermediate", () => {
+    const state = setupBoard([
+      { x: 9, y: 9, color: "black" },
+      { x: 10, y: 9, color: "white" },
+      { x: 5, y: 5, color: "white" },
+      { x: 6, y: 6, color: "black" },
+    ]);
+    const resultIntermediate = findBestMove(
+      state,
+      { level: 2, color: "black" },
+      { aborted: false },
+    );
+    const resultHard = findBestMove(state, { level: 3, color: "black" }, { aborted: false });
+    expect(resultIntermediate).not.toBeNull();
+    expect(resultHard).not.toBeNull();
+    expect(resultHard!.depth).toBeGreaterThanOrEqual(resultIntermediate!.depth);
+  });
+
+  it("difficulty ordering: easy is weakest, hard is strongest (by search depth)", () => {
+    const state = setupBoard([
+      { x: 9, y: 9, color: "black" },
+      { x: 10, y: 9, color: "white" },
+    ]);
+    const easy = findBestMove(state, { level: 1, color: "black" }, { aborted: false });
+    const intermediate = findBestMove(state, { level: 2, color: "black" }, { aborted: false });
+    const hard = findBestMove(state, { level: 3, color: "black" }, { aborted: false });
+
+    expect(easy).not.toBeNull();
+    expect(intermediate).not.toBeNull();
+    expect(hard).not.toBeNull();
+
+    // Depths should be ordered: easy <= intermediate <= hard
+    expect(intermediate!.depth).toBeGreaterThanOrEqual(easy!.depth);
+    expect(hard!.depth).toBeGreaterThanOrEqual(intermediate!.depth);
   });
 });
