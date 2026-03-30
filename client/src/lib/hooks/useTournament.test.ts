@@ -120,7 +120,8 @@ describe("useTournament — #89 tournament live scores", () => {
       groups: [
         {
           groupId: "G0",
-          name: "Group A",
+          label: "Group A",
+          participantIds: ["player-1", "player-2"],
           rounds: [
             {
               roundIndex: 0,

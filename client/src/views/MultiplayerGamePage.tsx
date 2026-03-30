@@ -430,12 +430,6 @@ export function MultiplayerGamePage() {
   const isAwaitingFirstMove = firstMoveCountdownMs !== null && firstMoveCountdownMs > 0;
 
   const isMultiplayerParticipant = !!playerSeat;
-  const isInPlayerList =
-    isMultiplayerParticipant ||
-    (multiplayerSnapshot &&
-      auth &&
-      multiplayerSnapshot.players.some((p) => p.player.playerId === auth.player.playerId)) ||
-    false;
   const isSpectator = multiplayerSnapshot && !isMultiplayerParticipant;
   const spectatorCount = multiplayerSnapshot?.spectators.length ?? 0;
   const isTournamentGame = multiplayerSnapshot?.roomType === "tournament";
