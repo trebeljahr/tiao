@@ -1119,12 +1119,14 @@ export class GameService {
     const whitePlayer = room.seats.white;
     const blackPlayer = room.seats.black;
 
-    // Only rate games where both players are accounts
+    // Only rate games where both players are accounts with valid IDs
     if (
       !whitePlayer ||
       !blackPlayer ||
       whitePlayer.kind !== "account" ||
-      blackPlayer.kind !== "account"
+      blackPlayer.kind !== "account" ||
+      !isValidObjectId(whitePlayer.playerId) ||
+      !isValidObjectId(blackPlayer.playerId)
     ) {
       return;
     }
