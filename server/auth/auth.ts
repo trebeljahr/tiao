@@ -61,6 +61,20 @@ export const auth = betterAuth({
     },
   },
 
+  account: {
+    accountLinking: {
+      enabled: true,
+      // Allow linking SSO providers that use a different email than the
+      // password-based account.  SSO emails live in their own namespace
+      // inside better-auth's `account` collection, so there is no
+      // collision with password-based emails.
+      allowDifferentEmails: true,
+      // NEVER auto-link accounts just because the emails match.
+      // Linking must always be an explicit user action via linkSocial().
+      disableImplicitLinking: true,
+    },
+  },
+
   session: {
     expiresIn: 60 * 60 * 24 * 30, // 30 days
     updateAge: 60 * 60 * 24, // refresh after 1 day of activity

@@ -203,9 +203,15 @@ function LinkedAccounts({
 }) {
   const t = useTranslations("profile");
   const [busy, setBusy] = useState<string | null>(null);
+  const [setPasswordOpen, setSetPasswordOpen] = useState(false);
+  const [newPassword, setNewPasswordValue] = useState("");
+  const [confirmPassword, setConfirmPasswordValue] = useState("");
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [savingPassword, setSavingPassword] = useState(false);
 
   const linkedProviders = providers.filter((p) => p !== "credential");
   const unlinkableProviders = providers.length > 1;
+  const hasCredential = providers.includes("credential");
 
   async function handleLink(provider: "github" | "google" | "discord") {
     setBusy(provider);
@@ -240,80 +246,201 @@ function LinkedAccounts({
     }
   }
 
+  async function handleSetPassword() {
+    setPasswordError(null);
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError(t("passwordMismatch"));
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setPasswordError(t("passwordTooShort"));
+      return;
+    }
+
+    setSavingPassword(true);
+    try {
+      const { error } = await authClient.setPassword({ newPassword });
+      if (error) {
+        setPasswordError(readableError(error));
+      } else {
+        setSetPasswordOpen(false);
+        setNewPasswordValue("");
+        setConfirmPasswordValue("");
+        toast.success(t("passwordSet"));
+        onProvidersChange();
+      }
+    } catch (error) {
+      setPasswordError(readableError(error));
+    } finally {
+      setSavingPassword(false);
+    }
+  }
+
   return (
-    <Card className="border-[#dcc7a3]/60 bg-[linear-gradient(180deg,rgba(255,250,235,0.98),rgba(248,238,215,0.98))] shadow-[0_32px_72px_-28px_rgba(80,52,18,0.26)]">
-      <CardHeader>
-        <CardTitle>{t("linkedAccounts")}</CardTitle>
-        <CardDescription>{t("linkedAccountsDesc")}</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Currently linked providers */}
-        {linkedProviders.length > 0 && (
-          <div className="space-y-2">
-            {linkedProviders.map((providerId) => {
-              const meta = SOCIAL_PROVIDERS.find((p) => p.id === providerId);
-              const Icon = meta?.icon;
-              return (
-                <div
-                  key={providerId}
-                  className="flex items-center justify-between rounded-xl border border-[#dcc7a3] bg-white px-4 py-2.5"
+    <>
+      <Card className="border-[#dcc7a3]/60 bg-[linear-gradient(180deg,rgba(255,250,235,0.98),rgba(248,238,215,0.98))] shadow-[0_32px_72px_-28px_rgba(80,52,18,0.26)]">
+        <CardHeader>
+          <CardTitle>{t("linkedAccounts")}</CardTitle>
+          <CardDescription>{t("linkedAccountsDesc")}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Password/credential provider */}
+          {hasCredential && (
+            <div className="flex items-center justify-between rounded-xl border border-[#dcc7a3] bg-white px-4 py-2.5">
+              <span className="text-sm font-medium text-[#4e3d2c]">{t("passwordLogin")}</span>
+              {unlinkableProviders && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={busy === "credential"}
+                  onClick={() => void handleUnlink("credential")}
+                  className="text-xs text-[#9a8670] hover:text-red-600"
                 >
-                  <span className="inline-flex items-center gap-2 text-sm font-medium text-[#4e3d2c]">
-                    {Icon && <Icon className="h-4 w-4" />}
-                    {meta?.label ?? providerId}
-                  </span>
-                  {unlinkableProviders && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      disabled={busy === providerId}
-                      onClick={() => void handleUnlink(providerId)}
-                      className="text-xs text-[#9a8670] hover:text-red-600"
-                    >
-                      {busy === providerId ? t("unlinking") : t("unlink")}
-                    </Button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
+                  {busy === "credential" ? t("unlinking") : t("unlink")}
+                </Button>
+              )}
+            </div>
+          )}
 
-        {providers.includes("credential") && (
-          <div className="flex items-center gap-2 rounded-xl border border-[#dcc7a3] bg-white px-4 py-2.5">
-            <span className="text-sm font-medium text-[#4e3d2c]">{t("passwordLogin")}</span>
-          </div>
-        )}
+          {/* Currently linked SSO providers */}
+          {linkedProviders.length > 0 && (
+            <div className="space-y-2">
+              {linkedProviders.map((providerId) => {
+                const meta = SOCIAL_PROVIDERS.find((p) => p.id === providerId);
+                const Icon = meta?.icon;
+                return (
+                  <div
+                    key={providerId}
+                    className="flex items-center justify-between rounded-xl border border-[#dcc7a3] bg-white px-4 py-2.5"
+                  >
+                    <span className="inline-flex items-center gap-2 text-sm font-medium text-[#4e3d2c]">
+                      {Icon && <Icon className="h-4 w-4" />}
+                      {meta?.label ?? providerId}
+                    </span>
+                    {unlinkableProviders && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled={busy === providerId}
+                        onClick={() => void handleUnlink(providerId)}
+                        className="text-xs text-[#9a8670] hover:text-red-600"
+                      >
+                        {busy === providerId ? t("unlinking") : t("unlink")}
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
-        {/* Link new providers */}
-        {SOCIAL_PROVIDERS.filter((p) => !providers.includes(p.id)).length > 0 && (
-          <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-wider text-[#7b6550]">
-              {t("linkNewAccount")}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {SOCIAL_PROVIDERS.filter((p) => !providers.includes(p.id)).map(
-                ({ id, label, icon: Icon }) => (
+          {/* Link new providers */}
+          {(SOCIAL_PROVIDERS.some((p) => !providers.includes(p.id)) || !hasCredential) && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[#7b6550]">
+                {t("linkNewAccount")}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {!hasCredential && (
                   <Button
-                    key={id}
                     type="button"
                     variant="outline"
                     size="sm"
-                    disabled={busy === id}
-                    onClick={() => void handleLink(id)}
+                    onClick={() => {
+                      setPasswordError(null);
+                      setNewPasswordValue("");
+                      setConfirmPasswordValue("");
+                      setSetPasswordOpen(true);
+                    }}
                     className="gap-2"
                   >
-                    <Icon className="h-4 w-4" />
-                    {busy === id ? t("linking") : label}
+                    {t("addPasswordLogin")}
                   </Button>
-                ),
-              )}
+                )}
+                {SOCIAL_PROVIDERS.filter((p) => !providers.includes(p.id)).map(
+                  ({ id, label, icon: Icon }) => (
+                    <Button
+                      key={id}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={busy === id}
+                      onClick={() => void handleLink(id)}
+                      className="gap-2"
+                    >
+                      <Icon className="h-4 w-4" />
+                      {busy === id ? t("linking") : label}
+                    </Button>
+                  ),
+                )}
+              </div>
             </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog
+        open={setPasswordOpen}
+        onOpenChange={setSetPasswordOpen}
+        title={t("setPasswordTitle")}
+        description={t("setPasswordDesc")}
+      >
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void handleSetPassword();
+          }}
+          className="space-y-4"
+        >
+          <div className="grid gap-2">
+            <label htmlFor="set-new-password" className="text-sm font-medium text-[#4e3d2c]">
+              {t("newPassword")}
+            </label>
+            <PasswordInput
+              id="set-new-password"
+              value={newPassword}
+              onChange={(e) => setNewPasswordValue(e.target.value)}
+              placeholder="••••••••••••"
+              autoComplete="new-password"
+              required
+            />
           </div>
-        )}
-      </CardContent>
-    </Card>
+
+          <div className="grid gap-2">
+            <label htmlFor="set-confirm-password" className="text-sm font-medium text-[#4e3d2c]">
+              {t("confirmNewPassword")}
+            </label>
+            <PasswordInput
+              id="set-confirm-password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPasswordValue(e.target.value)}
+              placeholder="••••••••••••"
+              autoComplete="new-password"
+              required
+            />
+          </div>
+
+          {passwordError ? (
+            <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {passwordError}
+            </p>
+          ) : null}
+
+          <div className="flex gap-3 pt-2">
+            <Button type="submit" disabled={savingPassword}>
+              {savingPassword ? t("linking") : t("setPassword")}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => setSetPasswordOpen(false)}>
+              {t("cancelLabel")}
+            </Button>
+          </div>
+        </form>
+      </Dialog>
+    </>
   );
 }
 
