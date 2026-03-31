@@ -1565,12 +1565,22 @@ export class GameService {
       return newRoom;
     }
 
-    return this.saveRoom({
+    const savedRoom = await this.saveRoom({
       ...room,
       rematch: {
         requestedBy,
       },
     });
+
+    // Notify lobby so players who left the game page still see the rematch request
+    for (const player of savedRoom.players) {
+      this.broadcastLobby(player.playerId, {
+        type: "game-update",
+        summary: this.toSummary(savedRoom, player.playerId),
+      });
+    }
+
+    return savedRoom;
   }
 
   private async declineRematch(
@@ -1597,10 +1607,20 @@ export class GameService {
       );
     }
 
-    return this.saveRoom({
+    const savedRoom = await this.saveRoom({
       ...room,
       rematch: null,
     });
+
+    // Notify lobby so players who left the game page see the decline
+    for (const player of savedRoom.players) {
+      this.broadcastLobby(player.playerId, {
+        type: "game-update",
+        summary: this.toSummary(savedRoom, player.playerId),
+      });
+    }
+
+    return savedRoom;
   }
 
   private async cancelRematch(
@@ -1621,10 +1641,20 @@ export class GameService {
       return room;
     }
 
-    return this.saveRoom({
+    const savedRoom = await this.saveRoom({
       ...room,
       rematch: null,
     });
+
+    // Notify lobby so players who left the game page see the cancellation
+    for (const player of savedRoom.players) {
+      this.broadcastLobby(player.playerId, {
+        type: "game-update",
+        summary: this.toSummary(savedRoom, player.playerId),
+      });
+    }
+
+    return savedRoom;
   }
 
   private async requestTakeback(
