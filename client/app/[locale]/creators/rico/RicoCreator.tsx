@@ -11,6 +11,7 @@ export default function RicoCreator() {
     <CreatorPage
       name="Rico Trebeljahr"
       playerId={process.env.NEXT_PUBLIC_CREATOR_RICO_ID}
+      fallbackUsername="ricotrebeljahr"
       image="/creators/rico.jpeg"
       roleKey="ricoRole"
       bioKey="ricoBio"

@@ -11,6 +11,7 @@ export default function AndreasCreator() {
     <CreatorPage
       name="Andreas Edmeier"
       playerId={process.env.NEXT_PUBLIC_CREATOR_ANDREAS_ID}
+      fallbackUsername="assertores"
       image="/creators/andreas.jpeg"
       roleKey="andreasRole"
       bioKey="andreasBio"

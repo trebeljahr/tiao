@@ -4,6 +4,15 @@ import "@/test/navigation-mock";
 import type { AuthResponse } from "@shared";
 import { ProfilePage } from "./ProfilePage";
 
+const mockToastError = vi.fn();
+vi.mock("@/lib/errors", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/errors")>();
+  return {
+    ...actual,
+    toastError: (...args: unknown[]) => mockToastError(...args),
+  };
+});
+
 const mockUpdateAccountProfile = vi.fn();
 const mockDeleteAccount = vi.fn();
 const mockApplyAuth = vi.fn();
@@ -384,6 +393,111 @@ describe("ProfilePage delete account (#91)", () => {
 
     await waitFor(() => {
       expect(mockDeleteAccount).toHaveBeenCalled();
+    });
+  });
+});
+
+describe("ProfilePage OAuth linking (#98, #100)", () => {
+  const originalLocation = window.location;
+  const replaceStateSpy = vi.spyOn(window.history, "replaceState");
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Reset location.search to empty
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: {
+        ...originalLocation,
+        search: "",
+        pathname: "/profile",
+        origin: "http://localhost",
+        href: "http://localhost/profile",
+      },
+    });
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, "location", { writable: true, value: originalLocation });
+  });
+
+  it("shows a toast when ?error= is present in URL on mount (#98)", async () => {
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: {
+        ...originalLocation,
+        search: "?error=account_already_linked_to_different_user",
+        pathname: "/profile",
+        origin: "http://localhost",
+        href: "http://localhost/profile?error=account_already_linked_to_different_user",
+      },
+    });
+
+    render(<ProfilePage />);
+
+    await waitFor(() => {
+      expect(mockToastError).toHaveBeenCalledWith(
+        "That account is already linked to a different user.",
+      );
+    });
+  });
+
+  it("cleans the URL after showing the error toast (#98)", async () => {
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: {
+        ...originalLocation,
+        search: "?error=some_error",
+        pathname: "/profile",
+        origin: "http://localhost",
+        href: "http://localhost/profile?error=some_error",
+      },
+    });
+
+    render(<ProfilePage />);
+
+    await waitFor(() => {
+      expect(replaceStateSpy).toHaveBeenCalledWith({}, "", "/profile");
+    });
+  });
+
+  it("shows raw error code for unknown errors (#98)", async () => {
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: {
+        ...originalLocation,
+        search: "?error=unknown_code",
+        pathname: "/profile",
+        origin: "http://localhost",
+        href: "http://localhost/profile?error=unknown_code",
+      },
+    });
+
+    render(<ProfilePage />);
+
+    await waitFor(() => {
+      expect(mockToastError).toHaveBeenCalledWith("unknown_code");
+    });
+  });
+
+  it("passes callbackURL pointing to /profile when linking (#100)", async () => {
+    const { authClient } = await import("@/lib/auth-client");
+
+    render(<ProfilePage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /github/i })).toBeInTheDocument();
+    });
+
+    // The providers mock returns ["credential"], so GitHub should be available to link
+    fireEvent.click(screen.getByRole("button", { name: /github/i }));
+
+    await waitFor(() => {
+      expect(authClient.linkSocial).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: "github",
+          callbackURL: "http://localhost/profile",
+        }),
+      );
     });
   });
 });

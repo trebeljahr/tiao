@@ -7,7 +7,7 @@ import GameAccount from "../models/GameAccount";
 import GameInvitation from "../models/GameInvitation";
 import GameRoom from "../models/GameRoom";
 import Tournament from "../models/Tournament";
-import { gameService } from "../game/gameService";
+import { gameService, DELETED_PLAYER_NAME } from "../game/gameService";
 import { auth } from "../auth/auth";
 import { getPlayerFromRequest, requireAccount, requireAdmin } from "../auth/sessionHelper";
 import { sanitizeDisplayName } from "../game/playerTokens";
@@ -1083,17 +1083,23 @@ router.delete("/account", async (req: Request, res: Response) => {
               },
             },
           );
+          forfeitedGameIds.push(game.roomId);
         }
       }
     }
 
     // (b) Anonymize game history (GDPR) — replace user identity in finished games
-    const ANON_NAME = "Deleted Player";
+    const ANON_NAME = DELETED_PLAYER_NAME;
     await GameRoom.updateMany(
       { "players.playerId": accountId, status: "finished" },
       {
-        $set: { "players.$[p].displayName": ANON_NAME },
-        $unset: { "players.$[p].profilePicture": "" },
+        $set: { "players.$[p].displayName": ANON_NAME, "players.$[p].kind": "guest" },
+        $unset: {
+          "players.$[p].profilePicture": "",
+          "players.$[p].email": "",
+          "players.$[p].badges": "",
+          "players.$[p].activeBadges": "",
+        },
       },
       { arrayFilters: [{ "p.playerId": accountId }] },
     );
@@ -1103,8 +1109,14 @@ router.delete("/account", async (req: Request, res: Response) => {
       {
         $set: {
           "seats.white.displayName": ANON_NAME,
+          "seats.white.kind": "guest",
         },
-        $unset: { "seats.white.profilePicture": "" },
+        $unset: {
+          "seats.white.profilePicture": "",
+          "seats.white.email": "",
+          "seats.white.badges": "",
+          "seats.white.activeBadges": "",
+        },
       },
     );
     await GameRoom.updateMany(
@@ -1112,8 +1124,14 @@ router.delete("/account", async (req: Request, res: Response) => {
       {
         $set: {
           "seats.black.displayName": ANON_NAME,
+          "seats.black.kind": "guest",
         },
-        $unset: { "seats.black.profilePicture": "" },
+        $unset: {
+          "seats.black.profilePicture": "",
+          "seats.black.email": "",
+          "seats.black.badges": "",
+          "seats.black.activeBadges": "",
+        },
       },
     );
 

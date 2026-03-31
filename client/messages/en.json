@@ -393,7 +393,8 @@
     "deleteAccountWarning": "This action is permanent and cannot be undone.",
     "typeNameToConfirm": "Type your display name to confirm: {name}",
     "deleteMyAccount": "Delete My Account",
-    "deleting": "Deleting..."
+    "deleting": "Deleting...",
+    "errorAccountAlreadyLinked": "That account is already linked to a different user."
   },
   "friends": {
     "findPlayers": "Find players",

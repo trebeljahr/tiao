@@ -53,6 +53,9 @@ import { isValidObjectId } from "mongoose";
 
 type RoomConnections = Map<WebSocket, string>;
 
+/** Sentinel display name set during account deletion (GDPR anonymization). */
+export const DELETED_PLAYER_NAME = "Deleted Player";
+
 const GUEST_ABANDON_TIMEOUT_MS = 5 * 60 * 1000;
 const FIRST_MOVE_TIMEOUT_MS = 30 * 1000;
 const TOURNAMENT_FIRST_MOVE_TIMEOUT_MS = 60 * 1000;
@@ -1493,6 +1496,18 @@ export class GameService {
         409,
         "WAITING_FOR_OPPONENT",
         "A rematch needs both players to still be seated.",
+      );
+    }
+
+    // Verify both players' accounts still exist (e.g. opponent may have been deleted).
+    // After account deletion the seat displayName is anonymized to DELETED_PLAYER_NAME.
+    const opponentColor = playerColor === "white" ? "black" : "white";
+    const opponentSeat = room.seats[opponentColor]!;
+    if (opponentSeat.displayName === DELETED_PLAYER_NAME) {
+      throw new GameServiceError(
+        410,
+        "OPPONENT_ACCOUNT_DELETED",
+        "Your opponent's account no longer exists. A rematch is not possible.",
       );
     }
 

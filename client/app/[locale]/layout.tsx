@@ -38,9 +38,7 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
-  appleWebApp: {
-    title: "Tiao",
-  },
+  appleWebApp: false,
 };
 
 export const viewport: Viewport = {

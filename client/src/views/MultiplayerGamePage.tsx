@@ -774,7 +774,7 @@ export function MultiplayerGamePage() {
   async function handleCopySpectateLink() {
     if (!multiplayerSnapshot) return;
     try {
-      const url = `${window.location.origin}/game/${multiplayerSnapshot.gameId}?spectate`;
+      const url = `${window.location.origin}/game/${multiplayerSnapshot.gameId}?spectate=true`;
       await copyToClipboard(url);
       setCopyFeedback(tCommon("spectateLinkCopied"));
       setCopyFeedbackKey("spectate-link");
@@ -1743,7 +1743,7 @@ export function MultiplayerGamePage() {
                 variant="outline"
                 size="sm"
                 className="flex-1 text-xs"
-                onClick={handleCopyGameLink}
+                onClick={handleCopySpectateLink}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -1760,7 +1760,7 @@ export function MultiplayerGamePage() {
                   <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
                   <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
                 </svg>
-                {copyFeedbackKey === "share-link" && copyFeedback ? copyFeedback : t("copyLink")}
+                {copyFeedbackKey === "spectate-link" && copyFeedback ? copyFeedback : t("copyLink")}
               </Button>
               {typeof navigator !== "undefined" && "share" in navigator && (
                 <Button
@@ -1768,7 +1768,7 @@ export function MultiplayerGamePage() {
                   size="sm"
                   className="flex-1 text-xs"
                   onClick={() => {
-                    const url = `${window.location.origin}/game/${multiplayerSnapshot?.gameId}`;
+                    const url = `${window.location.origin}/game/${multiplayerSnapshot?.gameId}?spectate`;
                     void navigator.share({
                       title: t("shareTitle"),
                       text: t("shareText"),

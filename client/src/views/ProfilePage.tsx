@@ -218,7 +218,7 @@ function LinkedAccounts({
     try {
       const { error } = await authClient.linkSocial({
         provider,
-        callbackURL: window.location.href,
+        callbackURL: window.location.origin + "/profile",
       });
       if (error) {
         toastError(readableError(error));
@@ -534,6 +534,21 @@ export function ProfilePage() {
       cancelled = true;
     };
   }, [auth]);
+
+  // Show toast for OAuth linking errors returned via ?error= query param
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get("error");
+    if (!error) return;
+
+    const ERROR_MESSAGES: Record<string, string> = {
+      account_already_linked_to_different_user: t("errorAccountAlreadyLinked"),
+    };
+    toastError(ERROR_MESSAGES[error] ?? error);
+
+    // Clean the URL so the error doesn't re-appear on refresh
+    window.history.replaceState({}, "", window.location.pathname);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const providers = profile?.providers ?? [];
   const hasCredentialProvider = providers.includes("credential");

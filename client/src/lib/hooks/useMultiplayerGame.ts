@@ -295,7 +295,7 @@ export function useMultiplayerGame(
 
           // Show a toast for rematch-specific errors so the user sees the reason
           // even after the rematch UI resets.
-          if (payload.code === "REMATCH_EXPIRED") {
+          if (payload.code === "REMATCH_EXPIRED" || payload.code === "OPPONENT_ACCOUNT_DELETED") {
             toast.error(payload.message);
           }
 

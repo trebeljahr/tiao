@@ -15,6 +15,8 @@ type CreatorPageProps = {
   name: string;
   /** Stable player ID for profile links. */
   playerId?: string;
+  /** Fallback username for profile links when playerId is unavailable or lookup fails. */
+  fallbackUsername?: string;
   image: string;
   roleKey: string;
   bioKey: string;
@@ -25,6 +27,7 @@ type CreatorPageProps = {
 export function CreatorPage({
   name,
   playerId,
+  fallbackUsername,
   image,
   roleKey,
   bioKey,
@@ -37,15 +40,30 @@ export function CreatorPage({
   const router = useRouter();
   const [navOpen, setNavOpen] = useState(false);
   const [profileName, setProfileName] = useState<string | null>(null);
+  const [profileSlug, setProfileSlug] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!playerId) return;
+    if (!playerId) {
+      // No env var — use fallback username directly
+      if (fallbackUsername) {
+        setProfileName(fallbackUsername);
+        setProfileSlug(fallbackUsername);
+      }
+      return;
+    }
     getPublicProfile(playerId)
       .then(({ profile }) => {
         setProfileName(profile.displayName);
+        setProfileSlug(profile.displayName);
       })
-      .catch(() => {});
-  }, [playerId]);
+      .catch(() => {
+        // Lookup failed — fall back to username
+        if (fallbackUsername) {
+          setProfileName(fallbackUsername);
+          setProfileSlug(fallbackUsername);
+        }
+      });
+  }, [playerId, fallbackUsername]);
 
   const paperCard =
     "border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]";
@@ -118,14 +136,14 @@ export function CreatorPage({
               ))}
             </div>
 
-            {playerId && (
+            {profileSlug && (
               <div className="w-full border-t border-[#dbc6a2] pt-4">
                 <p className="text-center text-sm text-[#8d7760]">
                   {t("seeProfile")}{" "}
                   <button
                     type="button"
                     className="font-semibold text-[#5d4732] underline decoration-[#d4c4a8] underline-offset-2 hover:text-[#3a2818]"
-                    onClick={() => router.push(`/profile/${encodeURIComponent(playerId)}`)}
+                    onClick={() => router.push(`/profile/${encodeURIComponent(profileSlug)}`)}
                   >
                     @{profileName ?? name}
                   </button>

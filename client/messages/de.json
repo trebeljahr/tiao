@@ -393,7 +393,8 @@
     "deleteAccountWarning": "Diese Aktion ist dauerhaft und kann nicht rückgängig gemacht werden.",
     "typeNameToConfirm": "Gib deinen Anzeigenamen zur Bestätigung ein: {name}",
     "deleteMyAccount": "Mein Konto löschen",
-    "deleting": "Wird gelöscht..."
+    "deleting": "Wird gelöscht...",
+    "errorAccountAlreadyLinked": "Dieses Konto ist bereits mit einem anderen Benutzer verknüpft."
   },
   "friends": {
     "findPlayers": "Spieler finden",

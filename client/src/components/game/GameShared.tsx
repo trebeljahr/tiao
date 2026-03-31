@@ -11,6 +11,10 @@ import { cn } from "@/lib/utils";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { formatClockTime } from "./GameClock";
 
+/** Loose translation function type compatible with next-intl's Translator. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type TranslateFn = (key: string, values?: Record<string, any>) => string;
+
 // --- Color Dot ---
 
 export function ColorDot({ color, className }: { color: PlayerColor; className?: string }) {
@@ -165,10 +169,7 @@ export function getOpponentLabel(
   return summary.seats[opponentColor]?.player.displayName || (t ? t("openSeat") : "Open seat");
 }
 
-export function getSummaryStatusLabel(
-  summary: MultiplayerGameSummary,
-  t?: (key: string, values?: Record<string, string | number | null>) => string,
-) {
+export function getSummaryStatusLabel(summary: MultiplayerGameSummary, t?: TranslateFn) {
   if (summary.status === "finished") {
     const color = t
       ? (translatePlayerColor(summary.winner, t) ?? "")
@@ -186,10 +187,7 @@ export function getSummaryStatusLabel(
   return t ? t("opponentsTurn") : "Opponent's turn";
 }
 
-export function formatRelativeExpiry(
-  value: string,
-  t?: (key: string, values?: Record<string, string | number | null>) => string,
-) {
+export function formatRelativeExpiry(value: string, t?: TranslateFn) {
   const remainingMs = new Date(value).getTime() - Date.now();
   const remainingMinutes = Math.max(0, Math.round(remainingMs / 60000));
 
@@ -246,7 +244,7 @@ export function createOptimisticSnapshot(
 export function formatFinishReason(
   reason: FinishReason | null,
   scoreToWin?: number,
-  t?: (key: string, values?: Record<string, string | number | null>) => string,
+  t?: TranslateFn,
 ): string {
   switch (reason) {
     case "captured":

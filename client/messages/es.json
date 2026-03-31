@@ -386,7 +386,8 @@
     "deleteAccountWarning": "Esta accion es permanente y no se puede deshacer.",
     "typeNameToConfirm": "Escribe tu nombre para confirmar: {name}",
     "deleteMyAccount": "Eliminar mi cuenta",
-    "deleting": "Eliminando..."
+    "deleting": "Eliminando...",
+    "errorAccountAlreadyLinked": "Esa cuenta ya esta vinculada a otro usuario."
   },
   "friends": {
     "findPlayers": "Buscar jugadores",

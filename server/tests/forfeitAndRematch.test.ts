@@ -3,7 +3,7 @@ import { test } from "node:test";
 import WebSocket from "ws";
 import type { PlayerIdentity } from "../../shared/src";
 import { SCORE_TO_WIN, getWinner } from "../../shared/src";
-import { GameService, GameServiceError } from "../game/gameService";
+import { GameService, GameServiceError, DELETED_PLAYER_NAME } from "../game/gameService";
 import { InMemoryGameRoomStore } from "../game/gameStore";
 
 function createPlayer(playerId: string, options: Partial<PlayerIdentity> = {}): PlayerIdentity {
@@ -295,4 +295,33 @@ test("the new rematch room has both players assigned to seats", async () => {
   // Both alice and bob should be in the new game
   const playerIds = newSnapshot.players.map((p) => p.player.playerId).sort();
   assert.deepEqual(playerIds, ["alice", "bob"]);
+});
+
+// ---------------------------------------------------------------------------
+// Rematch — Deleted Opponent (#147)
+// ---------------------------------------------------------------------------
+
+test("rematch is rejected when the opponent's account has been deleted", async () => {
+  const store = new InMemoryGameRoomStore();
+  const service = new GameService(store, () => 0);
+  const alice = createPlayer("alice");
+  const bob = createPlayer("bob");
+
+  const created = await service.createGame(alice);
+  await service.joinGame(created.gameId, bob);
+  await finishRoom(store, created.gameId, "white");
+
+  // Simulate account deletion anonymizing the opponent (bob = black seat)
+  const room = await store.getRoom(created.gameId);
+  assert.ok(room);
+  room.seats.black = { ...room.seats.black!, displayName: DELETED_PLAYER_NAME };
+  await store.saveRoom(room);
+
+  await assert.rejects(
+    () =>
+      service.applyAction(created.gameId, alice, {
+        type: "request-rematch",
+      }),
+    (error) => isGameServiceError(error, "OPPONENT_ACCOUNT_DELETED"),
+  );
 });
