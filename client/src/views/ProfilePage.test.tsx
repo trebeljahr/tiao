@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@/test/navigation-mock";
 import type { AuthResponse } from "@shared";
@@ -475,7 +475,7 @@ describe("ProfilePage OAuth linking (#98, #100)", () => {
     render(<ProfilePage />);
 
     await waitFor(() => {
-      expect(mockToastError).toHaveBeenCalledWith("unknown_code");
+      expect(mockToastError).toHaveBeenCalledWith("unknown code");
     });
   });
 

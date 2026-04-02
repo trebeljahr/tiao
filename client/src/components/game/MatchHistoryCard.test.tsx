@@ -37,13 +37,13 @@ vi.mock("framer-motion", () => ({
 const whitePlayer = {
   playerId: "p1",
   displayName: "Alice",
-  kind: "google" as const,
+  kind: "account" as const,
 };
 
 const blackPlayer = {
   playerId: "p2",
   displayName: "Bob",
-  kind: "google" as const,
+  kind: "account" as const,
 };
 
 const baseGame: MultiplayerGameSummary = {

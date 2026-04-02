@@ -55,7 +55,12 @@
     "reconnected": "Reconectado!",
     "inviteToSpectate": "Invitar a ver",
     "cancelInvitation": "Cancelar",
-    "somethingWentWrong": "Algo salió mal."
+    "somethingWentWrong": "Algo salió mal.",
+    "oauthErrorAlreadyLinked": "Esa cuenta ya está vinculada a otro usuario.",
+    "oauthErrorAlreadyLinkedSelf": "Esa cuenta ya está vinculada a tu perfil.",
+    "oauthErrorUserExists": "Ya existe una cuenta con ese correo electrónico. Intenta iniciar sesión.",
+    "oauthErrorCreateFailed": "No se pudo crear tu cuenta. Por favor, inténtalo de nuevo.",
+    "oauthErrorAccessDenied": "Acceso denegado. Inténtalo de nuevo y autoriza la aplicación."
   },
   "lobby": {
     "tagline": "Un elegante juego abstracto de estrategia. Juega en línea, con amigos o contra la IA.",

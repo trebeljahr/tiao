@@ -20,6 +20,7 @@ import {
 } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { isNetworkError, readableError, toastError } from "@/lib/errors";
+import { getOAuthErrorMessage } from "@/lib/oauthErrors";
 import { isAdmin } from "@/lib/featureGate";
 import { UserBadge, type BadgeId, BADGE_DEFINITIONS, ALL_BADGE_IDS } from "@/components/UserBadge";
 import { updateActiveBadges, setAccountPassword } from "@/lib/api";
@@ -541,10 +542,7 @@ export function ProfilePage() {
     const error = params.get("error");
     if (!error) return;
 
-    const ERROR_MESSAGES: Record<string, string> = {
-      account_already_linked_to_different_user: t("errorAccountAlreadyLinked"),
-    };
-    toastError(ERROR_MESSAGES[error] ?? error);
+    toastError(getOAuthErrorMessage(error, tCommon));
 
     // Clean the URL so the error doesn't re-appear on refresh
     window.history.replaceState({}, "", window.location.pathname);

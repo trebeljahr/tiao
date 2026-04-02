@@ -18,10 +18,8 @@ vi.mock("@/components/PlayerIdentityRow", () => ({
 
 vi.mock("framer-motion", () => ({
   motion: {
-    div: ({ children, ...props }: Record<string, unknown>) => (
-      <div>{children as React.ReactNode}</div>
-    ),
-    p: ({ children, ...props }: Record<string, unknown>) => <p>{children as React.ReactNode}</p>,
+    div: ({ children }: Record<string, unknown>) => <div>{children as React.ReactNode}</div>,
+    p: ({ children }: Record<string, unknown>) => <p>{children as React.ReactNode}</p>,
   },
   useAnimationControls: () => ({ start: vi.fn(), set: vi.fn() }),
   AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
@@ -42,11 +40,11 @@ const baseGame: MultiplayerGameSummary = {
   players: [],
   seats: {
     white: {
-      player: { playerId: "me", displayName: "Me", kind: "google" },
+      player: { playerId: "me", displayName: "Me", kind: "account" },
       online: true,
     },
     black: {
-      player: { playerId: "opp", displayName: "Opponent", kind: "google" },
+      player: { playerId: "opp", displayName: "Opponent", kind: "account" },
       online: true,
     },
   },
@@ -130,7 +128,7 @@ describe("ActiveGameCard", () => {
       seats: {
         white: baseGame.seats.white,
         black: {
-          player: { playerId: "opp", displayName: "Opponent", kind: "google" },
+          player: { playerId: "opp", displayName: "Opponent", kind: "account" },
           online: false,
         },
       },

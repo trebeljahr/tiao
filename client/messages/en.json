@@ -56,7 +56,12 @@
     "reconnected": "Reconnected!",
     "inviteToSpectate": "Invite to spectate",
     "cancelInvitation": "Cancel",
-    "somethingWentWrong": "Something went wrong."
+    "somethingWentWrong": "Something went wrong.",
+    "oauthErrorAlreadyLinked": "That account is already linked to a different user.",
+    "oauthErrorAlreadyLinkedSelf": "That account is already linked to your profile.",
+    "oauthErrorUserExists": "An account with that email already exists. Try signing in instead.",
+    "oauthErrorCreateFailed": "Could not create your account. Please try again.",
+    "oauthErrorAccessDenied": "Access was denied. Please try again and authorize the app."
   },
   "lobby": {
     "tagline": "A beautiful abstract strategy game. Play online, with friends, or against an AI.",

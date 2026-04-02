@@ -3,6 +3,7 @@
 import "@/lib/dump";
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Toaster, toast } from "sonner";
 import { AuthProvider, useAuth } from "@/lib/AuthContext";
@@ -13,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { LobbySocketProvider } from "@/lib/LobbySocketContext";
 import { SocialNotificationsProvider } from "@/lib/SocialNotificationsContext";
+import { getOAuthErrorMessage } from "@/lib/oauthErrors";
 import { FaGithub, FaGoogle, FaDiscord } from "react-icons/fa";
 
 function OAuthButtons() {
@@ -359,6 +361,25 @@ function UsernameOnboardingGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function OAuthErrorHandler() {
+  const tCommon = useTranslations("common");
+  const pathname = usePathname();
+
+  useEffect(() => {
+    // ProfilePage handles its own ?error= params for account linking
+    if (pathname?.endsWith("/profile")) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get("error");
+    if (!error) return;
+
+    toast.error(getOAuthErrorMessage(error, tCommon));
+    window.history.replaceState({}, "", window.location.pathname);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return null;
+}
+
 function AppShell({ children }: { children: React.ReactNode }) {
   const { auth } = useAuth();
 
@@ -370,6 +391,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
             <main className="min-h-screen">{children}</main>
           </UsernameOnboardingGuard>
           <AuthDialog />
+          <OAuthErrorHandler />
           <Toaster
             richColors
             position="top-right"

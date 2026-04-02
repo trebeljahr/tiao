@@ -56,7 +56,12 @@
     "reconnected": "Wieder verbunden!",
     "inviteToSpectate": "Zum Zuschauen einladen",
     "cancelInvitation": "Abbrechen",
-    "somethingWentWrong": "Etwas ist schiefgelaufen."
+    "somethingWentWrong": "Etwas ist schiefgelaufen.",
+    "oauthErrorAlreadyLinked": "Dieses Konto ist bereits mit einem anderen Benutzer verknüpft.",
+    "oauthErrorAlreadyLinkedSelf": "Dieses Konto ist bereits mit deinem Profil verknüpft.",
+    "oauthErrorUserExists": "Ein Konto mit dieser E-Mail existiert bereits. Versuche dich stattdessen anzumelden.",
+    "oauthErrorCreateFailed": "Konto konnte nicht erstellt werden. Bitte versuche es erneut.",
+    "oauthErrorAccessDenied": "Zugriff verweigert. Bitte versuche es erneut und autorisiere die App."
   },
   "lobby": {
     "tagline": "Ein wunderschönes abstraktes Strategiespiel. Spiele online, mit Freunden oder gegen eine KI.",

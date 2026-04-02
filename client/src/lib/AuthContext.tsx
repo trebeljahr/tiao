@@ -251,7 +251,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleOAuthSignIn = useCallback(async (provider: "github" | "google" | "discord") => {
     try {
-      await authClient.signIn.social({ provider });
+      await authClient.signIn.social({
+        provider,
+        callbackURL: window.location.origin + window.location.pathname,
+      });
     } catch (error) {
       toastError(readableError(error));
     }
