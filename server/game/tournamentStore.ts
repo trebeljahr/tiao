@@ -12,7 +12,6 @@ export type StoredTournament = {
   name: string;
   description?: string;
   creatorId: string;
-  creatorDisplayName: string;
   status: TournamentStatus;
   settings: TournamentSettings;
   participants: TournamentParticipant[];
@@ -48,7 +47,6 @@ function toStoredTournament(
     name: obj.name,
     description: obj.description,
     creatorId: obj.creatorId,
-    creatorDisplayName: obj.creatorDisplayName,
     status: obj.status,
     settings: obj.settings,
     participants: obj.participants ?? [],

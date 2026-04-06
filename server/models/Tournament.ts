@@ -12,7 +12,6 @@ export interface ITournament extends Document {
   name: string;
   description?: string;
   creatorId: string;
-  creatorDisplayName: string;
   status: TournamentStatus;
   settings: TournamentSettings;
   participants: TournamentParticipant[];
@@ -28,7 +27,6 @@ export interface ITournament extends Document {
 const _TournamentMatchPlayerSchema = new Schema(
   {
     playerId: { type: String, required: true },
-    displayName: { type: String, required: true },
     seed: { type: Number, required: true },
   },
   { _id: false },
@@ -77,7 +75,6 @@ const TournamentRoundSchema = new Schema(
 const TournamentGroupStandingSchema = new Schema(
   {
     playerId: { type: String, required: true },
-    displayName: { type: String, required: true },
     seed: { type: Number, required: true },
     wins: { type: Number, default: 0 },
     losses: { type: Number, default: 0 },
@@ -140,7 +137,6 @@ const TournamentSettingsSchema = new Schema(
 const TournamentParticipantSchema = new Schema(
   {
     playerId: { type: String, required: true },
-    displayName: { type: String, required: true },
     seed: { type: Number, required: true },
     status: {
       type: String,
@@ -173,11 +169,6 @@ const TournamentSchema = new Schema<ITournament>(
       type: String,
       required: true,
       index: true,
-    },
-    creatorDisplayName: {
-      type: String,
-      required: true,
-      trim: true,
     },
     status: {
       type: String,
@@ -222,6 +213,7 @@ const TournamentSchema = new Schema<ITournament>(
 TournamentSchema.index({ status: 1, "settings.visibility": 1, createdAt: -1 });
 TournamentSchema.index({ "participants.playerId": 1 });
 TournamentSchema.index({ invitedUserIds: 1 });
+TournamentSchema.index({ status: 1, creatorId: 1 });
 
 const Tournament = models.Tournament || model<ITournament>("Tournament", TournamentSchema);
 

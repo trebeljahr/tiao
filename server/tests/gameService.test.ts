@@ -575,19 +575,25 @@ test("migratePlayerIdentity updates ALL games including finished ones", async ()
 
   const finishedRoom = finishedRooms.find((r) => r.id === finishedGame.gameId);
   assert.ok(finishedRoom, "finished game should be found");
-  const migratedPlayer = finishedRoom.players.find((p) => p.playerId === "registered-456");
-  assert.ok(migratedPlayer, "migrated player should exist");
-  assert.equal(migratedPlayer.displayName, "rico");
-  assert.equal(migratedPlayer.kind, "account");
-  assert.equal(migratedPlayer.profilePicture, "https://example.com/avatar.jpg");
+  // Check the migrated player via seats (players array removed)
+  const migratedSeat =
+    finishedRoom.seats.white?.playerId === "registered-456"
+      ? finishedRoom.seats.white
+      : finishedRoom.seats.black;
+  assert.ok(migratedSeat, "migrated player should be in a seat");
+  assert.equal(migratedSeat.displayName, "rico");
+  assert.equal(migratedSeat.kind, "account");
 
   // Verify active game was also migrated
   const activeRoom = finishedRooms.find((r) => r.id === activeGame.gameId);
   assert.ok(activeRoom, "active game should be found");
-  const activePlayer = activeRoom.players.find((p) => p.playerId === "registered-456");
-  assert.ok(activePlayer, "migrated player in active game should exist");
-  assert.equal(activePlayer.displayName, "rico");
-  assert.equal(activePlayer.kind, "account");
+  const activeSeat =
+    activeRoom.seats.white?.playerId === "registered-456"
+      ? activeRoom.seats.white
+      : activeRoom.seats.black;
+  assert.ok(activeSeat, "migrated player in active game should be in a seat");
+  assert.equal(activeSeat.displayName, "rico");
+  assert.equal(activeSeat.kind, "account");
 
   // Verify old playerId no longer appears
   const oldRooms = await store.listRoomsForPlayer("guest-123");
@@ -603,11 +609,10 @@ test("migratePlayerIdentity updates seat assignments", async () => {
   const game = await service.createGame(guest);
   await service.joinGame(game.gameId, opponent);
 
-  const newIdentity: PlayerIdentity = {
+  const newIdentity = {
     playerId: "registered-xyz",
     displayName: "newuser",
-    kind: "account",
-    profilePicture: "https://example.com/pic.png",
+    kind: "account" as const,
   };
   await store.migratePlayerIdentity("guest-abc", newIdentity);
 
@@ -621,5 +626,4 @@ test("migratePlayerIdentity updates seat assignments", async () => {
   assert.ok(migratedSeat, "one seat should have migrated playerId");
   assert.equal(migratedSeat.displayName, "newuser");
   assert.equal(migratedSeat.kind, "account");
-  assert.equal(migratedSeat.profilePicture, "https://example.com/pic.png");
 });

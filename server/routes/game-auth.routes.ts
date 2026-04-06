@@ -8,6 +8,7 @@ import GameInvitation from "../models/GameInvitation";
 import GameRoom from "../models/GameRoom";
 import Tournament from "../models/Tournament";
 import { gameService, DELETED_PLAYER_NAME } from "../game/gameService";
+import { invalidatePlayerProfile } from "../cache/playerIdentityCache";
 import { auth } from "../auth/auth";
 import { getPlayerFromRequest, requireAccount, requireAdmin } from "../auth/sessionHelper";
 import { sanitizeDisplayName } from "../game/playerTokens";
@@ -452,7 +453,10 @@ router.get("/profile/:username", async (req: Request, res: Response) => {
 
     if (gamesPlayed > 0) {
       const finishedGames = await GameRoom.find(
-        { "players.playerId": playerId, status: "finished" },
+        {
+          status: "finished",
+          $or: [{ "seats.white.playerId": playerId }, { "seats.black.playerId": playerId }],
+        },
         {
           "seats.white.playerId": 1,
           "seats.black.playerId": 1,
@@ -1057,8 +1061,8 @@ router.delete("/account", async (req: Request, res: Response) => {
 
     // (a) Forfeit active games (via gameService for real-time broadcast) and delete waiting games
     const activeOrWaitingGames = await GameRoom.find({
-      "players.playerId": accountId,
       status: { $in: ["waiting", "active"] },
+      $or: [{ "seats.white.playerId": accountId }, { "seats.black.playerId": accountId }],
     });
 
     const forfeitedGameIds: string[] = [];
@@ -1090,50 +1094,26 @@ router.delete("/account", async (req: Request, res: Response) => {
 
     // (b) Anonymize game history (GDPR) — replace user identity in finished games
     const ANON_NAME = DELETED_PLAYER_NAME;
-    await GameRoom.updateMany(
-      { "players.playerId": accountId, status: "finished" },
-      {
-        $set: { "players.$[p].displayName": ANON_NAME, "players.$[p].kind": "guest" },
-        $unset: {
-          "players.$[p].profilePicture": "",
-          "players.$[p].email": "",
-          "players.$[p].badges": "",
-          "players.$[p].activeBadges": "",
+    await Promise.all([
+      GameRoom.updateMany(
+        { "seats.white.playerId": accountId, status: "finished" },
+        {
+          $set: {
+            "seats.white.displayName": ANON_NAME,
+            "seats.white.kind": "guest",
+          },
         },
-      },
-      { arrayFilters: [{ "p.playerId": accountId }] },
-    );
-    // Also anonymize in seats
-    await GameRoom.updateMany(
-      { "seats.white.playerId": accountId, status: "finished" },
-      {
-        $set: {
-          "seats.white.displayName": ANON_NAME,
-          "seats.white.kind": "guest",
+      ),
+      GameRoom.updateMany(
+        { "seats.black.playerId": accountId, status: "finished" },
+        {
+          $set: {
+            "seats.black.displayName": ANON_NAME,
+            "seats.black.kind": "guest",
+          },
         },
-        $unset: {
-          "seats.white.profilePicture": "",
-          "seats.white.email": "",
-          "seats.white.badges": "",
-          "seats.white.activeBadges": "",
-        },
-      },
-    );
-    await GameRoom.updateMany(
-      { "seats.black.playerId": accountId, status: "finished" },
-      {
-        $set: {
-          "seats.black.displayName": ANON_NAME,
-          "seats.black.kind": "guest",
-        },
-        $unset: {
-          "seats.black.profilePicture": "",
-          "seats.black.email": "",
-          "seats.black.badges": "",
-          "seats.black.activeBadges": "",
-        },
-      },
-    );
+      ),
+    ]);
 
     // Re-broadcast snapshots for forfeited games so opponents see "Deleted Player" immediately
     for (const roomId of forfeitedGameIds) {
@@ -1144,47 +1124,10 @@ router.delete("/account", async (req: Request, res: Response) => {
       }
     }
 
-    // (c) Anonymize tournaments — replace identity in participants and match players
-    const tournaments = await Tournament.find({ "participants.playerId": accountId });
-    for (const tournament of tournaments) {
-      // Anonymize participant entries
-      for (const participant of tournament.participants) {
-        if (participant.playerId === accountId) {
-          participant.displayName = ANON_NAME;
-          participant.profilePicture = undefined;
-        }
-      }
-      // Anonymize match player entries in rounds
-      const allRounds = [
-        ...tournament.rounds,
-        ...tournament.knockoutRounds,
-        ...tournament.groups.flatMap((g: any) => g.rounds),
-      ];
-      for (const round of allRounds) {
-        for (const match of round.matches) {
-          const players = match.players as Array<{
-            playerId: string;
-            displayName: string;
-            profilePicture?: string;
-          } | null>;
-          for (const player of players) {
-            if (player && player.playerId === accountId) {
-              player.displayName = ANON_NAME;
-              player.profilePicture = undefined;
-            }
-          }
-        }
-      }
-      // Anonymize group standings
-      for (const group of tournament.groups) {
-        for (const standing of group.standings) {
-          if (standing.playerId === accountId) {
-            standing.displayName = ANON_NAME;
-          }
-        }
-      }
-      await tournament.save();
-    }
+    // (c) Tournament identity is resolved from cache at read time.
+    // Since the GameAccount is deleted and cache invalidated above,
+    // the enrichment step in toSnapshot() will return no data for this player,
+    // effectively anonymizing them without needing to update tournament docs.
 
     // (d) Remove user's ID from all other accounts' friend lists
     await GameAccount.updateMany(
@@ -1220,8 +1163,9 @@ router.delete("/account", async (req: Request, res: Response) => {
       }
     }
 
-    // (g) Delete the GameAccount document
+    // (g) Delete the GameAccount document and invalidate cache
     await GameAccount.deleteOne({ _id: account._id });
+    invalidatePlayerProfile(accountId);
 
     // (h) Delete better-auth data (user, session, account, verification collections)
     const db = mongoose.connection.getClient().db();

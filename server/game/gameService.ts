@@ -8,7 +8,6 @@ import {
   MultiplayerGamesIndex,
   MultiplayerRematchState,
   MultiplayerRoomType,
-  MultiplayerSeatAssignments,
   MultiplayerSnapshot,
   MultiplayerStatus,
   GameSettings,
@@ -31,8 +30,17 @@ import {
   GameRoomStore,
   MongoGameRoomStore,
   StoredMultiplayerRoom,
+  StoredPlayerIdentity,
+  StoredSeatAssignments,
   getPlayerColorForRoom,
 } from "./gameStore";
+import {
+  getPlayerProfile,
+  getPlayerProfiles,
+  invalidatePlayerProfile,
+  enrichIdentity,
+  type CachedPlayerProfile,
+} from "../cache/playerIdentityCache";
 
 export class GameServiceError extends Error {
   status: number;
@@ -50,6 +58,7 @@ import { InMemoryMatchmakingStore, MatchmakingStore } from "./matchmakingStore";
 import { computeNewRatings, DEFAULT_RATING } from "./elo";
 import GameAccount from "../models/GameAccount";
 import { isValidObjectId } from "mongoose";
+import type { RatingStatus } from "../models/GameRoom";
 
 type RoomConnections = Map<WebSocket, string>;
 
@@ -116,22 +125,28 @@ export class GameService {
     // Tournament games defer the first-move deadline until both players connect
     const firstMoveDeadline = null;
 
+    const toSlim = (p: PlayerIdentity): StoredPlayerIdentity => ({
+      playerId: p.playerId,
+      displayName: p.displayName,
+      kind: p.kind,
+    });
+
     for (let attempt = 0; attempt < 12; attempt += 1) {
       const room = this.deriveRoomStatus({
         id: this.generateRoomId(),
         roomType: "tournament",
         status: "waiting",
         state: createInitialGameState(),
-        players: [{ ...player1 }, { ...player2 }],
         rematch: null,
         takeback: null,
-        seats: this.assignSeats(player1, player2),
+        seats: this.assignSeats(toSlim(player1), toSlim(player2)),
         timeControl: tc,
         clockMs,
         lastMoveAt: null,
         firstMoveDeadline,
         ratingBefore: null,
         ratingAfter: null,
+        ratingStatus: null,
         tournamentId,
         tournamentMatchId: matchId,
         createdAt: new Date(),
@@ -144,7 +159,6 @@ export class GameService {
           roomType: room.roomType,
           status: room.status,
           state: room.state,
-          players: room.players,
           rematch: room.rematch,
           takeback: room.takeback,
           seats: room.seats,
@@ -226,8 +240,12 @@ export class GameService {
     } = {},
   ): Promise<MultiplayerSnapshot> {
     return this.withLocks([this.playerLockKey(creator.playerId)], async () => {
+      const slimCreator: StoredPlayerIdentity = {
+        playerId: creator.playerId,
+        displayName: creator.displayName,
+        kind: creator.kind,
+      };
       const room = await this.createRoomRecord({
-        players: [creator],
         roomType: options.roomType ?? "direct",
         assignSeats: false,
         gameSettings: options.gameSettings,
@@ -239,8 +257,8 @@ export class GameService {
       const seatedRoom = await this.saveRoom({
         ...room,
         seats: {
-          white: creatorSeat === "white" ? creator : null,
-          black: creatorSeat === "black" ? creator : null,
+          white: creatorSeat === "white" ? slimCreator : null,
+          black: creatorSeat === "black" ? slimCreator : null,
         },
       });
 
@@ -256,11 +274,12 @@ export class GameService {
         throw new GameServiceError(409, "GAME_NOT_WAITING", "Only waiting games can be cancelled.");
       }
 
-      if (!room.players.some((p) => p.playerId === player.playerId)) {
+      if (!this.isPlayerInRoom(room, player.playerId)) {
         throw new GameServiceError(403, "NOT_IN_GAME", "You are not a player in this game.");
       }
 
-      if (room.players.length <= 1) {
+      const seatCount = (room.seats.white ? 1 : 0) + (room.seats.black ? 1 : 0);
+      if (seatCount <= 1) {
         // Only player in the game — delete it entirely so it doesn't appear in history
         await this.store.deleteRoom(gameId);
       } else {
@@ -281,7 +300,7 @@ export class GameService {
         const room = await this.getRoom(gameId);
 
         const savedRoom = await this.joinRoom(room, player);
-        this.broadcastSnapshot(savedRoom);
+        await this.broadcastSnapshot(savedRoom);
         return this.toSnapshot(savedRoom);
       },
     );
@@ -297,12 +316,12 @@ export class GameService {
           return this.toSnapshot(room);
         }
 
-        if (room.players.length >= 2) {
+        if (room.seats.white && room.seats.black) {
           return this.toSnapshot(room);
         }
 
         const savedRoom = await this.joinRoom(room, player);
-        this.broadcastSnapshot(savedRoom);
+        await this.broadcastSnapshot(savedRoom);
         return this.toSnapshot(savedRoom);
       },
     );
@@ -316,7 +335,7 @@ export class GameService {
   async rebroadcastSnapshot(gameId: string): Promise<void> {
     const room = await this.store.getRoom(gameId);
     if (!room) return;
-    this.broadcastSnapshot(this.deriveRoomStatus(room));
+    await this.broadcastSnapshot(this.deriveRoomStatus(room));
   }
 
   /**
@@ -338,11 +357,11 @@ export class GameService {
       if (!result.ok) return;
       derived.state = result.value;
       const savedRoom = await this.saveRoom(derived);
-      this.broadcastSnapshot(savedRoom);
+      void this.broadcastSnapshot(savedRoom);
     });
   }
 
-  /** Enrich game summaries with fresh player data from GameAccount (profile picture, badges, etc.). */
+  /** Enrich game summaries with fresh player data from the identity cache. */
   private async enrichSummaries(summaries: MultiplayerGameSummary[]): Promise<void> {
     const playerIds = new Set<string>();
     for (const s of summaries) {
@@ -353,28 +372,34 @@ export class GameService {
     }
     if (playerIds.size === 0) return;
 
-    const validIds = [...playerIds].filter(isValidObjectId);
-    if (validIds.length === 0) return;
-
-    const accounts = await GameAccount.find(
-      { _id: { $in: validIds } },
-      { displayName: 1, profilePicture: 1, activeBadges: 1, badges: 1, rating: 1 },
-    ).lean();
-    const accountMap = new Map(accounts.map((a) => [String(a._id), a]));
+    const profiles = await getPlayerProfiles([...playerIds]);
 
     for (const s of summaries) {
       for (const color of ["white", "black"] as const) {
         const slot = s.seats[color];
         if (!slot) continue;
-        const fresh = accountMap.get(slot.player.playerId);
-        if (!fresh) continue;
+        const profile = profiles.get(slot.player.playerId);
+        if (!profile) continue;
         slot.player = {
           ...slot.player,
-          displayName: fresh.displayName ?? slot.player.displayName,
-          profilePicture: fresh.profilePicture ?? slot.player.profilePicture,
-          activeBadges: fresh.activeBadges ?? slot.player.activeBadges,
-          badges: fresh.badges ?? slot.player.badges,
-          rating: fresh.rating?.overall?.elo ?? slot.player.rating,
+          displayName: profile.displayName,
+          profilePicture: profile.profilePicture,
+          activeBadges: profile.activeBadges,
+          badges: profile.badges,
+          rating: profile.rating,
+        };
+      }
+      // Also enrich the players list (derived from seats)
+      for (const slot of s.players) {
+        const profile = profiles.get(slot.player.playerId);
+        if (!profile) continue;
+        slot.player = {
+          ...slot.player,
+          displayName: profile.displayName,
+          profilePicture: profile.profilePicture,
+          activeBadges: profile.activeBadges,
+          badges: profile.badges,
+          rating: profile.rating,
         };
       }
     }
@@ -382,10 +407,9 @@ export class GameService {
 
   async listGames(player: PlayerIdentity): Promise<MultiplayerGamesIndex> {
     const rooms = await this.store.listRoomsForPlayer(player.playerId);
-    const summaries = rooms.map((room) =>
-      this.toSummary(this.deriveRoomStatus(room), player.playerId),
+    const summaries = await Promise.all(
+      rooms.map((room) => this.toSummary(this.deriveRoomStatus(room), player.playerId)),
     );
-    await this.enrichSummaries(summaries);
 
     return {
       active: summaries.filter((game) => game.status !== "finished"),
@@ -401,15 +425,32 @@ export class GameService {
     const rooms = await this.store.listFinishedRoomsForPlayer(playerId, limit + 1, beforeDate);
     const hasMore = rooms.length > limit;
     const trimmed = hasMore ? rooms.slice(0, limit) : rooms;
-    const games = trimmed.map((room) => this.toSummary(this.deriveRoomStatus(room), playerId));
-    await this.enrichSummaries(games);
+    const games = await Promise.all(
+      trimmed.map((room) => this.toSummary(this.deriveRoomStatus(room), playerId)),
+    );
     return { games, hasMore };
   }
 
   async listActiveGamesForPlayer(playerId: string): Promise<FriendActiveGameSummary[]> {
     const rooms = await this.store.listActiveRoomsForPlayer(playerId);
+
+    // Batch-resolve all player profiles for efficiency
+    const allPlayerIds = new Set<string>();
+    for (const room of rooms) {
+      if (room.seats.white) allPlayerIds.add(room.seats.white.playerId);
+      if (room.seats.black) allPlayerIds.add(room.seats.black.playerId);
+    }
+    const profiles = await getPlayerProfiles([...allPlayerIds]);
+
     return rooms.map((room) => {
       const derived = this.deriveRoomStatus(room);
+
+      const enrichSeat = (color: PlayerColor): PlayerSlot | null => {
+        const seat = derived.seats[color];
+        if (!seat) return null;
+        return this.toPlayerSlot(derived.id, this.resolveIdentity(seat, profiles));
+      };
+
       return {
         gameId: derived.id,
         roomType: derived.roomType,
@@ -426,22 +467,30 @@ export class GameService {
         timeControl: derived.timeControl,
         clockMs: derived.clockMs ?? null,
         seats: {
-          white: this.toSeatSlot(derived, "white"),
-          black: this.toSeatSlot(derived, "black"),
+          white: enrichSeat("white"),
+          black: enrichSeat("black"),
         },
         ratingBefore: derived.ratingBefore ?? null,
       };
     });
   }
 
-  /** Refresh a player's identity in all active rooms and broadcast updated snapshots. */
+  /** Invalidate a player's cached identity and re-broadcast snapshots for their active rooms. */
   async refreshPlayerInActiveRooms(player: PlayerIdentity): Promise<void> {
+    invalidatePlayerProfile(player.playerId);
     const rooms = await this.store.listActiveRoomsForPlayer(player.playerId);
     for (const room of rooms) {
-      this.refreshPlayerIdentity(room, player);
-      const savedRoom = await this.store.saveRoom(room);
-      this.broadcastSnapshot(savedRoom);
+      void this.broadcastSnapshot(room);
     }
+    // Broadcast identity update to lobby so tournament UIs and social lists update in real-time
+    this.broadcastLobby(player.playerId, {
+      type: "player-identity-update",
+      playerId: player.playerId,
+      displayName: player.displayName,
+      profilePicture: player.profilePicture,
+      rating: player.rating,
+      activeBadges: player.activeBadges,
+    });
   }
 
   async connect(gameId: string, player: PlayerIdentity, socket: WebSocket): Promise<void> {
@@ -461,10 +510,6 @@ export class GameService {
         this.spectatorIdentities.set(room.id, roomSpectators);
       }
       roomSpectators.set(player.playerId, player);
-    } else {
-      // Refresh the player's identity (profile picture, display name, etc.)
-      // so snapshots reflect the latest data from their session.
-      this.refreshPlayerIdentity(room, player);
     }
 
     // For timed tournament games: start the first-move timer when both players connect
@@ -487,7 +532,7 @@ export class GameService {
           firstMoveDeadline: deadline,
         });
         this.scheduleFirstMoveTimer(savedRoom);
-        this.broadcastSnapshot(savedRoom);
+        void this.broadcastSnapshot(savedRoom);
       });
       return;
     }
@@ -503,7 +548,7 @@ export class GameService {
       this.scheduleClockTimer(room);
     }
 
-    this.broadcastSnapshot(room);
+    await this.broadcastSnapshot(room);
   }
 
   async disconnect(socket: WebSocket): Promise<void> {
@@ -563,7 +608,7 @@ export class GameService {
       });
     }
 
-    this.broadcastSnapshot(derivedRoom);
+    void this.broadcastSnapshot(derivedRoom);
 
     // Start abandon timer for guest players who fully disconnect from an active game
     if (
@@ -571,10 +616,13 @@ export class GameService {
       derivedRoom.status === "active" &&
       !this.isPlayerOnline(roomId, disconnectedPlayerId)
     ) {
-      const disconnectedPlayer = derivedRoom.players.find(
-        (p) => p.playerId === disconnectedPlayerId,
-      );
-      if (disconnectedPlayer?.kind === "guest") {
+      const disconnectedSeat =
+        derivedRoom.seats.white?.playerId === disconnectedPlayerId
+          ? derivedRoom.seats.white
+          : derivedRoom.seats.black?.playerId === disconnectedPlayerId
+            ? derivedRoom.seats.black
+            : null;
+      if (disconnectedSeat?.kind === "guest") {
         this.startAbandonTimer(roomId, disconnectedPlayerId);
       }
     }
@@ -597,32 +645,32 @@ export class GameService {
       switch (message.type) {
         case "request-rematch": {
           const savedRoom = await this.requestRematch(room, playerColor);
-          this.broadcastSnapshot(savedRoom);
+          void this.broadcastSnapshot(savedRoom);
           return this.toSnapshot(savedRoom);
         }
         case "decline-rematch": {
           const savedRoom = await this.declineRematch(room, playerColor);
-          this.broadcastSnapshot(savedRoom);
+          void this.broadcastSnapshot(savedRoom);
           return this.toSnapshot(savedRoom);
         }
         case "cancel-rematch": {
           const savedRoom = await this.cancelRematch(room, playerColor);
-          this.broadcastSnapshot(savedRoom);
+          void this.broadcastSnapshot(savedRoom);
           return this.toSnapshot(savedRoom);
         }
         case "request-takeback": {
           const savedRoom = await this.requestTakeback(room, playerColor);
-          this.broadcastSnapshot(savedRoom);
+          void this.broadcastSnapshot(savedRoom);
           return this.toSnapshot(savedRoom);
         }
         case "accept-takeback": {
           const savedRoom = await this.acceptTakeback(room, playerColor);
-          this.broadcastSnapshot(savedRoom);
+          void this.broadcastSnapshot(savedRoom);
           return this.toSnapshot(savedRoom);
         }
         case "decline-takeback": {
           const savedRoom = await this.declineTakeback(room, playerColor);
-          this.broadcastSnapshot(savedRoom);
+          void this.broadcastSnapshot(savedRoom);
           return this.toSnapshot(savedRoom);
         }
         case "forfeit": {
@@ -694,7 +742,7 @@ export class GameService {
               lastMoveAt: now,
             });
             this.clearClockTimer(room.id);
-            this.broadcastSnapshot(flaggedRoom);
+            void this.broadcastSnapshot(flaggedRoom);
             return this.toSnapshot(flaggedRoom);
           }
         }
@@ -729,7 +777,7 @@ export class GameService {
       // Schedule flag timer for the next player
       this.scheduleClockTimer(savedRoom);
 
-      this.broadcastSnapshot(savedRoom);
+      await this.broadcastSnapshot(savedRoom);
 
       // Broadcast live score to tournament participants
       if (savedRoom.tournamentId && savedRoom.tournamentMatchId && this.tournamentCallback) {
@@ -777,10 +825,20 @@ export class GameService {
         const snapshot = await this.withLocks(
           [this.playerLockKey(player.playerId), this.playerLockKey(opponentEntry.player.playerId)],
           async () => {
+            const slimOpponent: StoredPlayerIdentity = {
+              playerId: opponentEntry.player.playerId,
+              displayName: opponentEntry.player.displayName,
+              kind: opponentEntry.player.kind,
+            };
+            const slimPlayer: StoredPlayerIdentity = {
+              playerId: player.playerId,
+              displayName: player.displayName,
+              kind: player.kind,
+            };
             const room = await this.createRoomRecord({
-              players: [opponentEntry.player, player],
               roomType: "matchmaking",
               assignSeats: true,
+              seats: this.assignSeats(slimOpponent, slimPlayer),
               timeControl,
             });
 
@@ -884,10 +942,20 @@ export class GameService {
         await this.withLocks(
           [this.playerLockKey(entry.player.playerId), this.playerLockKey(opponent.player.playerId)],
           async () => {
+            const slim1: StoredPlayerIdentity = {
+              playerId: entry.player.playerId,
+              displayName: entry.player.displayName,
+              kind: entry.player.kind,
+            };
+            const slim2: StoredPlayerIdentity = {
+              playerId: opponent.player.playerId,
+              displayName: opponent.player.displayName,
+              kind: opponent.player.kind,
+            };
             const room = await this.createRoomRecord({
-              players: [entry.player, opponent.player],
               roomType: "matchmaking",
               assignSeats: true,
+              seats: this.assignSeats(slim1, slim2),
               timeControl: entry.timeControl,
             });
 
@@ -907,7 +975,7 @@ export class GameService {
       room.state.score[winner] = 10;
       room.status = "finished";
       const savedRoom = await this.saveRoom(room);
-      this.broadcastSnapshot(savedRoom);
+      void this.broadcastSnapshot(savedRoom);
     });
   }
 
@@ -916,9 +984,9 @@ export class GameService {
   }
 
   private async createRoomRecord(options: {
-    players: PlayerIdentity[];
     roomType: MultiplayerRoomType;
     assignSeats: boolean;
+    seats?: StoredSeatAssignments;
     timeControl?: TimeControl;
     gameSettings?: Partial<GameSettings>;
   }): Promise<StoredMultiplayerRoom> {
@@ -926,7 +994,8 @@ export class GameService {
     const clockMs = tc ? { white: tc.initialMs, black: tc.initialMs } : null;
 
     // Set a first-move deadline for timed games that start with both players seated
-    const willBeActive = options.assignSeats && options.players.length >= 2;
+    const seats = options.seats ?? { white: null, black: null };
+    const willBeActive = options.assignSeats && seats.white && seats.black;
     const firstMoveDeadline =
       tc && willBeActive ? new Date(Date.now() + FIRST_MOVE_TIMEOUT_MS) : null;
 
@@ -936,21 +1005,16 @@ export class GameService {
         roomType: options.roomType,
         status: "waiting",
         state: createInitialGameState(options.gameSettings),
-        players: options.players.map((player) => ({ ...player })),
         rematch: null,
         takeback: null,
-        seats: options.assignSeats
-          ? this.assignSeats(options.players[0], options.players[1])
-          : {
-              white: null,
-              black: null,
-            },
+        seats,
         timeControl: tc,
         clockMs,
         lastMoveAt: null,
         firstMoveDeadline,
         ratingBefore: null,
         ratingAfter: null,
+        ratingStatus: null,
         tournamentId: null,
         tournamentMatchId: null,
         createdAt: new Date(),
@@ -963,7 +1027,6 @@ export class GameService {
           roomType: room.roomType,
           status: room.status,
           state: room.state,
-          players: room.players,
           rematch: room.rematch,
           takeback: room.takeback,
           seats: room.seats,
@@ -996,9 +1059,9 @@ export class GameService {
   }
 
   private assignSeats(
-    firstPlayer: PlayerIdentity,
-    secondPlayer: PlayerIdentity,
-  ): MultiplayerSeatAssignments {
+    firstPlayer: StoredPlayerIdentity,
+    secondPlayer: StoredPlayerIdentity,
+  ): StoredSeatAssignments {
     if (this.seatRandom() < 0.5) {
       return {
         white: firstPlayer,
@@ -1020,64 +1083,36 @@ export class GameService {
       return room;
     }
 
-    if (room.players.length >= 2) {
+    if (room.seats.white && room.seats.black) {
       throw new GameServiceError(409, "ROOM_FULL", "That game already has two players.");
     }
 
-    const players = [...room.players, player];
-    let seats: MultiplayerSeatAssignments;
-    if (players.length === 2 && !room.seats.white && !room.seats.black) {
-      // Neither seat taken — random assignment (e.g. matchmaking)
-      seats = this.assignSeats(players[0], players[1]);
-    } else if (players.length === 2 && (room.seats.white || room.seats.black)) {
+    const slimPlayer: StoredPlayerIdentity = {
+      playerId: player.playerId,
+      displayName: player.displayName,
+      kind: player.kind,
+    };
+
+    let seats: StoredSeatAssignments;
+    if (!room.seats.white && !room.seats.black) {
+      // Neither seat taken — shouldn't happen normally, but handle it
+      seats = { white: slimPlayer, black: null };
+    } else {
       // One seat pre-filled (creator) — assign joiner to the empty seat
       seats = {
-        white: room.seats.white ?? player,
-        black: room.seats.black ?? player,
+        white: room.seats.white ?? slimPlayer,
+        black: room.seats.black ?? slimPlayer,
       };
-    } else {
-      seats = room.seats;
     }
 
     return this.saveRoom({
       ...room,
-      players,
       seats,
     });
   }
 
   private isPlayerInRoom(room: StoredMultiplayerRoom, playerId: string): boolean {
-    return room.players.some((player) => player.playerId === playerId);
-  }
-
-  /** Update a player's mutable identity fields (display name, profile picture)
-   *  in the room's players array and seat assignments so snapshots stay fresh. */
-  private refreshPlayerIdentity(room: StoredMultiplayerRoom, fresh: PlayerIdentity): void {
-    for (let i = 0; i < room.players.length; i++) {
-      if (room.players[i].playerId === fresh.playerId) {
-        room.players[i] = {
-          ...room.players[i],
-          displayName: fresh.displayName,
-          profilePicture: fresh.profilePicture,
-          rating: fresh.rating,
-          badges: fresh.badges,
-          activeBadges: fresh.activeBadges,
-        };
-      }
-    }
-    for (const color of ["white", "black"] as const) {
-      const seat = room.seats[color];
-      if (seat?.playerId === fresh.playerId) {
-        room.seats[color] = {
-          ...seat,
-          displayName: fresh.displayName,
-          profilePicture: fresh.profilePicture,
-          rating: fresh.rating,
-          badges: fresh.badges,
-          activeBadges: fresh.activeBadges,
-        };
-      }
-    }
+    return room.seats.white?.playerId === playerId || room.seats.black?.playerId === playerId;
   }
 
   private async getRoom(gameId: string): Promise<StoredMultiplayerRoom> {
@@ -1110,6 +1145,7 @@ export class GameService {
 
     // Update Elo ratings when any multiplayer game finishes
     if (saved.status === "finished" && previousStatus !== "finished") {
+      saved.ratingStatus = "pending";
       void this.updateEloRatings(saved).catch((err) => {
         console.error("[game] Elo update failed for room", saved.id, err);
       });
@@ -1171,10 +1207,11 @@ export class GameService {
     // Store rating snapshots on the room
     room.ratingBefore = { white: whiteElo, black: blackElo };
     room.ratingAfter = { white: newRatingA, black: newRatingB };
+    room.ratingStatus = "completed";
 
-    // Update player identity ratings so the snapshot reflects new ELO
-    if (room.seats.white) room.seats.white.rating = newRatingA;
-    if (room.seats.black) room.seats.black.rating = newRatingB;
+    // Invalidate cached profiles so the snapshot picks up new ratings
+    invalidatePlayerProfile(whitePlayer.playerId);
+    invalidatePlayerProfile(blackPlayer.playerId);
 
     await this.store.saveRoom(room);
 
@@ -1183,23 +1220,15 @@ export class GameService {
     );
 
     // Re-broadcast the snapshot so clients receive the rating data
-    this.broadcastSnapshot(room);
+    void this.broadcastSnapshot(room);
   }
 
   private deriveRoomStatus(room: StoredMultiplayerRoom): StoredMultiplayerRoom {
-    const players = this.normalizePlayers(room.players, room.seats);
-    // Validate seats: keep a seat only if the seated player is still in the room
     const seats = {
-      white:
-        room.seats.white && players.some((player) => player.playerId === room.seats.white?.playerId)
-          ? { ...room.seats.white }
-          : null,
-      black:
-        room.seats.black && players.some((player) => player.playerId === room.seats.black?.playerId)
-          ? { ...room.seats.black }
-          : null,
+      white: room.seats.white ? { ...room.seats.white } : null,
+      black: room.seats.black ? { ...room.seats.black } : null,
     };
-    const status = this.getStatus(room.state, players, seats);
+    const status = this.getStatus(room.state, seats);
     const rematch = status === "finished" ? this.normalizeRematch(room.rematch, seats) : null;
 
     // Clear takeback state if game is not active
@@ -1208,7 +1237,6 @@ export class GameService {
     return {
       ...room,
       roomType: room.roomType ?? "direct",
-      players,
       rematch,
       takeback,
       seats,
@@ -1218,7 +1246,7 @@ export class GameService {
 
   private normalizeRematch(
     rematch: MultiplayerRematchState | null,
-    seats: MultiplayerSeatAssignments,
+    seats: StoredSeatAssignments,
   ): MultiplayerRematchState | null {
     if (!rematch) {
       return null;
@@ -1236,45 +1264,15 @@ export class GameService {
     };
   }
 
-  private normalizePlayers(
-    players: PlayerIdentity[] | undefined,
-    seats: MultiplayerSeatAssignments,
-  ): PlayerIdentity[] {
-    const nextPlayers: PlayerIdentity[] = [];
-    const seen = new Set<string>();
-
-    for (const player of players ?? []) {
-      if (seen.has(player.playerId)) {
-        continue;
-      }
-
-      seen.add(player.playerId);
-      nextPlayers.push({ ...player });
-    }
-
-    for (const color of ["white", "black"] as PlayerColor[]) {
-      const player = seats[color];
-      if (!player || seen.has(player.playerId)) {
-        continue;
-      }
-
-      seen.add(player.playerId);
-      nextPlayers.push({ ...player });
-    }
-
-    return nextPlayers;
-  }
-
   private getStatus(
     state: StoredMultiplayerRoom["state"],
-    players: PlayerIdentity[],
-    seats: MultiplayerSeatAssignments,
+    seats: StoredSeatAssignments,
   ): MultiplayerStatus {
     if (isGameOver(state)) {
       return "finished";
     }
 
-    if (players.length >= 2 && seats.white && seats.black) {
+    if (seats.white && seats.black) {
       return "active";
     }
 
@@ -1301,20 +1299,47 @@ export class GameService {
     };
   }
 
-  private toSeatSlot(room: StoredMultiplayerRoom, color: PlayerColor): PlayerSlot | null {
-    const player = room.seats[color];
-    if (!player) {
-      return null;
-    }
-
-    return this.toPlayerSlot(room.id, player);
+  /** Resolve a stored slim seat identity into a full PlayerIdentity using cached profile data. */
+  private resolveIdentity(
+    stored: StoredPlayerIdentity,
+    profiles: Map<string, CachedPlayerProfile>,
+  ): PlayerIdentity {
+    return enrichIdentity(stored, profiles.get(stored.playerId) ?? null);
   }
 
-  private toSnapshot(room: StoredMultiplayerRoom): MultiplayerSnapshot {
+  /** Batch-resolve profiles for all seated players in a room. */
+  private async resolveRoomProfiles(
+    room: StoredMultiplayerRoom,
+  ): Promise<Map<string, CachedPlayerProfile>> {
+    const ids: string[] = [];
+    if (room.seats.white) ids.push(room.seats.white.playerId);
+    if (room.seats.black) ids.push(room.seats.black.playerId);
+    return ids.length > 0 ? getPlayerProfiles(ids) : new Map();
+  }
+
+  private async toSnapshot(room: StoredMultiplayerRoom): Promise<MultiplayerSnapshot> {
+    const profiles = await this.resolveRoomProfiles(room);
+
     const roomSpectators = this.spectatorIdentities.get(room.id);
     const spectators: PlayerSlot[] = roomSpectators
       ? Array.from(roomSpectators.values()).map((identity) => this.toPlayerSlot(room.id, identity))
       : [];
+
+    // Build players list from seats (replaces old room.players)
+    const players: PlayerSlot[] = [];
+    for (const color of ["white", "black"] as const) {
+      const seat = room.seats[color];
+      if (seat) {
+        const identity = this.resolveIdentity(seat, profiles);
+        players.push(this.toPlayerSlot(room.id, identity));
+      }
+    }
+
+    const enrichSeat = (color: PlayerColor): PlayerSlot | null => {
+      const seat = room.seats[color];
+      if (!seat) return null;
+      return this.toPlayerSlot(room.id, this.resolveIdentity(seat, profiles));
+    };
 
     return {
       gameId: room.id,
@@ -1323,13 +1348,13 @@ export class GameService {
       createdAt: room.createdAt.toISOString(),
       updatedAt: room.updatedAt.toISOString(),
       state: room.state,
-      players: room.players.map((player) => this.toPlayerSlot(room.id, player)),
+      players,
       spectators,
       rematch: room.rematch,
       takeback: room.takeback,
       seats: {
-        white: this.toSeatSlot(room, "white"),
-        black: this.toSeatSlot(room, "black"),
+        white: enrichSeat("white"),
+        black: enrichSeat("black"),
       },
       timeControl: room.timeControl,
       clock: this.computeLiveClock(room),
@@ -1412,7 +1437,28 @@ export class GameService {
     return null;
   }
 
-  private toSummary(room: StoredMultiplayerRoom, playerId: string): MultiplayerGameSummary {
+  private async toSummary(
+    room: StoredMultiplayerRoom,
+    playerId: string,
+    profiles?: Map<string, CachedPlayerProfile>,
+  ): Promise<MultiplayerGameSummary> {
+    const profs = profiles ?? (await this.resolveRoomProfiles(room));
+
+    const players: PlayerSlot[] = [];
+    for (const color of ["white", "black"] as const) {
+      const seat = room.seats[color];
+      if (seat) {
+        const identity = this.resolveIdentity(seat, profs);
+        players.push(this.toPlayerSlot(room.id, identity));
+      }
+    }
+
+    const enrichSeat = (color: PlayerColor): PlayerSlot | null => {
+      const seat = room.seats[color];
+      if (!seat) return null;
+      return this.toPlayerSlot(room.id, this.resolveIdentity(seat, profs));
+    };
+
     return {
       gameId: room.id,
       roomType: room.roomType,
@@ -1428,10 +1474,10 @@ export class GameService {
         black: room.state.score.black,
         white: room.state.score.white,
       },
-      players: room.players.map((player) => this.toPlayerSlot(room.id, player)),
+      players,
       seats: {
-        white: this.toSeatSlot(room, "white"),
-        black: this.toSeatSlot(room, "black"),
+        white: enrichSeat("white"),
+        black: enrichSeat("black"),
       },
       rematch: room.status === "finished" ? (room.rematch ?? null) : null,
       boardSize: room.state.boardSize,
@@ -1538,9 +1584,12 @@ export class GameService {
       const whitePlayer = room.seats.white;
       const blackPlayer = room.seats.black;
       const newRoom = await this.createRoomRecord({
-        players: [whitePlayer, blackPlayer],
         roomType: room.roomType,
         assignSeats: true,
+        seats:
+          whitePlayer && blackPlayer
+            ? this.assignSeats(whitePlayer, blackPlayer)
+            : { white: null, black: null },
         timeControl: room.timeControl ?? undefined,
         gameSettings: {
           boardSize: room.state.boardSize,
@@ -1563,11 +1612,13 @@ export class GameService {
       }
 
       // Also notify via lobby for players who may not be connected to the game
-      for (const player of room.players) {
-        this.broadcastLobby(player.playerId, {
-          type: "game-update",
-          summary: this.toSummary(newRoom, player.playerId),
-        });
+      for (const color of ["white", "black"] as const) {
+        const seat = room.seats[color];
+        if (seat) {
+          void this.toSummary(newRoom, seat.playerId).then((summary) => {
+            this.broadcastLobby(seat.playerId, { type: "game-update", summary });
+          });
+        }
       }
 
       // Mark old room rematch as null (completed)
@@ -1588,11 +1639,13 @@ export class GameService {
     });
 
     // Notify lobby so players who left the game page still see the rematch request
-    for (const player of savedRoom.players) {
-      this.broadcastLobby(player.playerId, {
-        type: "game-update",
-        summary: this.toSummary(savedRoom, player.playerId),
-      });
+    for (const color of ["white", "black"] as const) {
+      const seat = savedRoom.seats[color];
+      if (seat) {
+        void this.toSummary(savedRoom, seat.playerId).then((summary) => {
+          this.broadcastLobby(seat.playerId, { type: "game-update", summary });
+        });
+      }
     }
 
     return savedRoom;
@@ -1628,11 +1681,13 @@ export class GameService {
     });
 
     // Notify lobby so players who left the game page see the decline
-    for (const player of savedRoom.players) {
-      this.broadcastLobby(player.playerId, {
-        type: "game-update",
-        summary: this.toSummary(savedRoom, player.playerId),
-      });
+    for (const color of ["white", "black"] as const) {
+      const seat = savedRoom.seats[color];
+      if (seat) {
+        void this.toSummary(savedRoom, seat.playerId).then((summary) => {
+          this.broadcastLobby(seat.playerId, { type: "game-update", summary });
+        });
+      }
     }
 
     return savedRoom;
@@ -1662,11 +1717,13 @@ export class GameService {
     });
 
     // Notify lobby so players who left the game page see the cancellation
-    for (const player of savedRoom.players) {
-      this.broadcastLobby(player.playerId, {
-        type: "game-update",
-        summary: this.toSummary(savedRoom, player.playerId),
-      });
+    for (const color of ["white", "black"] as const) {
+      const seat = savedRoom.seats[color];
+      if (seat) {
+        void this.toSummary(savedRoom, seat.playerId).then((summary) => {
+          this.broadcastLobby(seat.playerId, { type: "game-update", summary });
+        });
+      }
     }
 
     return savedRoom;
@@ -1843,8 +1900,9 @@ export class GameService {
     });
   }
 
-  private broadcastSnapshot(room: StoredMultiplayerRoom): void {
-    const snapshot = this.toSnapshot(room);
+  private async broadcastSnapshot(room: StoredMultiplayerRoom): Promise<void> {
+    const profiles = await this.resolveRoomProfiles(room);
+    const snapshot = await this.toSnapshot(room);
     const message = JSON.stringify({
       type: "snapshot",
       snapshot,
@@ -1868,12 +1926,16 @@ export class GameService {
       }
     }
 
-    // Also notify lobby for participants
-    for (const player of room.players) {
-      this.broadcastLobby(player.playerId, {
-        type: "game-update",
-        summary: this.toSummary(room, player.playerId),
-      });
+    // Also notify lobby for seated players
+    for (const color of ["white", "black"] as const) {
+      const seat = room.seats[color];
+      if (seat) {
+        const summary = await this.toSummary(room, seat.playerId, profiles);
+        this.broadcastLobby(seat.playerId, {
+          type: "game-update",
+          summary,
+        });
+      }
     }
   }
 
@@ -1947,7 +2009,7 @@ export class GameService {
         if (!abandonResult.ok) return;
         derived.state = abandonResult.value;
         const savedRoom = await this.saveRoom(derived);
-        this.broadcastSnapshot(savedRoom);
+        void this.broadcastSnapshot(savedRoom);
       });
     } catch {
       // Best-effort cleanup; don't crash the server.
@@ -1998,7 +2060,7 @@ export class GameService {
             lastMoveAt: new Date(),
           });
 
-          this.broadcastSnapshot(savedRoom);
+          void this.broadcastSnapshot(savedRoom);
         });
       } catch {
         // Best-effort; don't crash the server.
@@ -2129,7 +2191,7 @@ export class GameService {
       }
 
       // Broadcast updated snapshot so game shows as finished
-      this.broadcastSnapshot(savedRoom);
+      void this.broadcastSnapshot(savedRoom);
 
       // Re-enter the opponent into matchmaking (skip for tournament games)
       if (!isTournament && opponentPlayer) {

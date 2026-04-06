@@ -2,11 +2,9 @@ import {
   GameState,
   MultiplayerRematchState,
   MultiplayerTakebackState,
-  MultiplayerSeatAssignments,
   MultiplayerRoomType,
   MultiplayerStatus,
   PlayerColor,
-  PlayerIdentity,
   TimeControl,
   cloneGameState,
   SparsePositions,
@@ -16,17 +14,30 @@ import {
   historyToCompact,
   compactToHistory,
 } from "../../shared/src";
+import type { RatingStatus } from "../models/GameRoom";
 import GameRoom from "../models/GameRoom";
+
+/**
+ * Slim stored identity — only what we persist in the DB.
+ * Full profile (profilePicture, rating, badges, etc.) is resolved
+ * from the player identity cache at read time.
+ */
+export type StoredPlayerIdentity = {
+  playerId: string;
+  displayName: string;
+  kind: "guest" | "account";
+};
+
+export type StoredSeatAssignments = Record<PlayerColor, StoredPlayerIdentity | null>;
 
 export type StoredMultiplayerRoom = {
   id: string;
   roomType: MultiplayerRoomType;
   status: MultiplayerStatus;
   state: GameState;
-  players: PlayerIdentity[];
   rematch: MultiplayerRematchState | null;
   takeback: MultiplayerTakebackState | null;
-  seats: MultiplayerSeatAssignments;
+  seats: StoredSeatAssignments;
   timeControl: TimeControl;
   clockMs: { white: number; black: number } | null;
   lastMoveAt: Date | null;
@@ -34,6 +45,7 @@ export type StoredMultiplayerRoom = {
   firstMoveDeadline: Date | null;
   ratingBefore: { white: number; black: number } | null;
   ratingAfter: { white: number; black: number } | null;
+  ratingStatus: RatingStatus;
   tournamentId: string | null;
   tournamentMatchId: string | null;
   createdAt: Date;
@@ -45,16 +57,16 @@ export type CreateStoredMultiplayerRoomInput = {
   roomType: MultiplayerRoomType;
   status: MultiplayerStatus;
   state: GameState;
-  players: PlayerIdentity[];
   rematch: MultiplayerRematchState | null;
   takeback: MultiplayerTakebackState | null;
-  seats: MultiplayerSeatAssignments;
+  seats: StoredSeatAssignments;
   timeControl: TimeControl;
   clockMs: { white: number; black: number } | null;
   lastMoveAt: Date | null;
   firstMoveDeadline: Date | null;
   ratingBefore?: { white: number; black: number } | null;
   ratingAfter?: { white: number; black: number } | null;
+  ratingStatus?: RatingStatus;
   tournamentId?: string | null;
   tournamentMatchId?: string | null;
 };
@@ -77,7 +89,8 @@ export interface GameRoomStore {
   ): Promise<StoredMultiplayerRoom[]>;
   deleteRoom(roomId: string): Promise<void>;
   findActiveTimedRooms(): Promise<StoredMultiplayerRoom[]>;
-  migratePlayerIdentity(oldPlayerId: string, newIdentity: PlayerIdentity): Promise<number>;
+  migratePlayerIdentity(oldPlayerId: string, newIdentity: StoredPlayerIdentity): Promise<number>;
+  findRoomsWithPendingRatings(): Promise<StoredMultiplayerRoom[]>;
   unlinkTournamentGames(tournamentId: string): Promise<number>;
 }
 
@@ -85,15 +98,11 @@ function normalizeRoomId(roomId: string): string {
   return roomId.trim().toUpperCase();
 }
 
-function cloneSeats(seats: MultiplayerSeatAssignments): MultiplayerSeatAssignments {
+function cloneSeats(seats: StoredSeatAssignments): StoredSeatAssignments {
   return {
     white: seats.white ? { ...seats.white } : null,
     black: seats.black ? { ...seats.black } : null,
   };
-}
-
-function clonePlayers(players: PlayerIdentity[]): PlayerIdentity[] {
-  return players.map((player) => ({ ...player }));
 }
 
 function cloneRematch(rematch: MultiplayerRematchState | null): MultiplayerRematchState | null {
@@ -121,23 +130,32 @@ function cloneTakeback(
 
 // --- Sparse board persistence helpers ---
 
+/** State stored in the `state` field — positions are sparse, history is EXCLUDED. */
 type DehydratedGameState = Omit<GameState, "positions" | "history"> & {
   stones: SparsePositions;
-  h: CompactHistory;
 };
 
+/** Legacy format that included compact history inline in state. */
+type LegacyDehydratedGameState = DehydratedGameState & { h: CompactHistory };
+
 function dehydrateGameState(state: GameState): DehydratedGameState {
-  const { positions, history, ...rest } = state;
+  const { positions, history: _history, ...rest } = state;
   return {
     ...rest,
     stones: positionsToSparse(positions),
-    h: historyToCompact(history),
   };
 }
 
-type RawGameState = DehydratedGameState | GameState;
+type RawGameState = DehydratedGameState | LegacyDehydratedGameState | GameState;
 
-function hydrateGameState(raw: Record<string, unknown>): GameState {
+/**
+ * Hydrate a stored game state, optionally merging in separate moveHistory.
+ * Handles both legacy (history inline as `h`) and new (separate moveHistory) formats.
+ */
+function hydrateGameState(
+  raw: Record<string, unknown>,
+  moveHistory?: CompactHistory | null,
+): GameState {
   const r = raw as RawGameState;
 
   // Hydrate positions
@@ -146,8 +164,15 @@ function hydrateGameState(raw: Record<string, unknown>): GameState {
       ? sparseToPositions(r.stones, (r as DehydratedGameState).boardSize)
       : (r as GameState).positions;
 
-  // Hydrate history
-  const history = "h" in r && !("history" in r) ? compactToHistory(r.h) : (r as GameState).history;
+  // Hydrate history: prefer separate moveHistory, fall back to inline `h`, then inline `history`
+  let history: GameState["history"];
+  if (moveHistory && moveHistory.m.length > 0) {
+    history = compactToHistory(moveHistory);
+  } else if ("h" in r && !("history" in r)) {
+    history = compactToHistory((r as LegacyDehydratedGameState).h);
+  } else {
+    history = (r as GameState).history ?? [];
+  }
 
   return { ...r, positions, history } as GameState;
 }
@@ -158,7 +183,6 @@ export function cloneStoredRoom(room: StoredMultiplayerRoom): StoredMultiplayerR
     roomType: room.roomType,
     status: room.status,
     state: cloneGameState(room.state),
-    players: clonePlayers(room.players),
     rematch: cloneRematch(room.rematch),
     takeback: cloneTakeback(room.takeback),
     seats: cloneSeats(room.seats),
@@ -168,6 +192,7 @@ export function cloneStoredRoom(room: StoredMultiplayerRoom): StoredMultiplayerR
     firstMoveDeadline: room.firstMoveDeadline ? new Date(room.firstMoveDeadline) : null,
     ratingBefore: room.ratingBefore ? { ...room.ratingBefore } : null,
     ratingAfter: room.ratingAfter ? { ...room.ratingAfter } : null,
+    ratingStatus: room.ratingStatus,
     tournamentId: room.tournamentId,
     tournamentMatchId: room.tournamentMatchId,
     createdAt: new Date(room.createdAt),
@@ -180,16 +205,17 @@ type PersistedGameRoom = {
   roomType?: MultiplayerRoomType;
   status: MultiplayerStatus;
   state: GameState;
-  players?: PlayerIdentity[];
+  moveHistory?: CompactHistory | null;
   rematch?: MultiplayerRematchState | null;
   takeback?: MultiplayerTakebackState | null;
-  seats: MultiplayerSeatAssignments;
+  seats: StoredSeatAssignments;
   timeControl?: TimeControl;
   clockMs?: { white: number; black: number } | null;
   lastMoveAt?: Date | null;
   firstMoveDeadline?: Date | null;
   ratingBefore?: { white: number; black: number } | null;
   ratingAfter?: { white: number; black: number } | null;
+  ratingStatus?: RatingStatus;
   tournamentId?: string | null;
   tournamentMatchId?: string | null;
   createdAt: Date;
@@ -197,22 +223,14 @@ type PersistedGameRoom = {
 };
 
 function toStoredRoom(room: PersistedGameRoom): StoredMultiplayerRoom {
-  const players = clonePlayers(room.players ?? []);
-
-  for (const color of ["white", "black"] as PlayerColor[]) {
-    const seatedPlayer = room.seats[color];
-
-    if (seatedPlayer && !players.some((player) => player.playerId === seatedPlayer.playerId)) {
-      players.push({ ...seatedPlayer });
-    }
-  }
-
+  const state = cloneGameState(
+    hydrateGameState(room.state as unknown as Record<string, unknown>, room.moveHistory),
+  );
   return {
     id: room.roomId,
     roomType: room.roomType ?? "direct",
     status: room.status,
-    state: cloneGameState(hydrateGameState(room.state as unknown as Record<string, unknown>)),
-    players,
+    state,
     rematch: cloneRematch(room.rematch ?? null),
     takeback: cloneTakeback(room.takeback ?? null),
     seats: cloneSeats(room.seats),
@@ -222,11 +240,24 @@ function toStoredRoom(room: PersistedGameRoom): StoredMultiplayerRoom {
     firstMoveDeadline: room.firstMoveDeadline ? new Date(room.firstMoveDeadline) : null,
     ratingBefore: room.ratingBefore ?? null,
     ratingAfter: room.ratingAfter ?? null,
+    ratingStatus: room.ratingStatus ?? null,
     tournamentId: room.tournamentId ?? null,
     tournamentMatchId: room.tournamentMatchId ?? null,
     createdAt: new Date(room.createdAt),
     updatedAt: new Date(room.updatedAt),
   };
+}
+
+/** Query filter: room has this player seated (white or black). */
+function seatedPlayerFilter(playerId: string) {
+  return {
+    $or: [{ "seats.white.playerId": playerId }, { "seats.black.playerId": playerId }],
+  };
+}
+
+/** Check if a player is seated in a room (in-memory). */
+function isSeated(room: StoredMultiplayerRoom, playerId: string): boolean {
+  return room.seats.white?.playerId === playerId || room.seats.black?.playerId === playerId;
 }
 
 export class MongoGameRoomStore implements GameRoomStore {
@@ -236,7 +267,7 @@ export class MongoGameRoomStore implements GameRoomStore {
       roomType: room.roomType,
       status: room.status,
       state: dehydrateGameState(room.state),
-      players: clonePlayers(room.players),
+      moveHistory: historyToCompact(room.state.history),
       rematch: cloneRematch(room.rematch),
       takeback: cloneTakeback(room.takeback),
       seats: cloneSeats(room.seats),
@@ -246,6 +277,7 @@ export class MongoGameRoomStore implements GameRoomStore {
       firstMoveDeadline: room.firstMoveDeadline,
       ratingBefore: room.ratingBefore ?? null,
       ratingAfter: room.ratingAfter ?? null,
+      ratingStatus: room.ratingStatus ?? null,
       tournamentId: room.tournamentId ?? null,
       tournamentMatchId: room.tournamentMatchId ?? null,
       staleAt: room.status === "waiting" ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : null,
@@ -256,7 +288,6 @@ export class MongoGameRoomStore implements GameRoomStore {
       roomType: createdRoom.roomType,
       status: createdRoom.status,
       state: createdRoom.state,
-      players: createdRoom.players,
       rematch: createdRoom.rematch,
       takeback: createdRoom.takeback,
       seats: createdRoom.seats,
@@ -264,6 +295,7 @@ export class MongoGameRoomStore implements GameRoomStore {
       clockMs: createdRoom.clockMs,
       lastMoveAt: createdRoom.lastMoveAt,
       firstMoveDeadline: createdRoom.firstMoveDeadline,
+      ratingStatus: createdRoom.ratingStatus,
       createdAt: createdRoom.createdAt,
       updatedAt: createdRoom.updatedAt,
     });
@@ -297,15 +329,13 @@ export class MongoGameRoomStore implements GameRoomStore {
 
   async saveRoom(room: StoredMultiplayerRoom): Promise<StoredMultiplayerRoom> {
     const updatedRoom = await GameRoom.findOneAndUpdate(
-      {
-        roomId: normalizeRoomId(room.id),
-      },
+      { roomId: normalizeRoomId(room.id) },
       {
         $set: {
           roomType: room.roomType,
           status: room.status,
           state: dehydrateGameState(room.state),
-          players: clonePlayers(room.players),
+          moveHistory: historyToCompact(room.state.history),
           rematch: cloneRematch(room.rematch),
           takeback: cloneTakeback(room.takeback),
           seats: cloneSeats(room.seats),
@@ -315,14 +345,13 @@ export class MongoGameRoomStore implements GameRoomStore {
           firstMoveDeadline: room.firstMoveDeadline,
           ratingBefore: room.ratingBefore,
           ratingAfter: room.ratingAfter,
+          ratingStatus: room.ratingStatus,
           tournamentId: room.tournamentId,
           tournamentMatchId: room.tournamentMatchId,
           staleAt: room.status === "waiting" ? undefined : null,
         },
       },
-      {
-        new: true,
-      },
+      { new: true },
     )
       .lean<PersistedGameRoom>()
       .exec();
@@ -335,13 +364,7 @@ export class MongoGameRoomStore implements GameRoomStore {
   }
 
   async listRoomsForPlayer(playerId: string): Promise<StoredMultiplayerRoom[]> {
-    const rooms = await GameRoom.find({
-      $or: [
-        { "players.playerId": playerId },
-        { "seats.white.playerId": playerId },
-        { "seats.black.playerId": playerId },
-      ],
-    })
+    const rooms = await GameRoom.find(seatedPlayerFilter(playerId))
       .sort({ updatedAt: -1 })
       .limit(100)
       .lean<PersistedGameRoom[]>()
@@ -353,11 +376,7 @@ export class MongoGameRoomStore implements GameRoomStore {
   async listActiveRoomsForPlayer(playerId: string): Promise<StoredMultiplayerRoom[]> {
     const rooms = await GameRoom.find({
       status: { $in: ["waiting", "active"] },
-      $or: [
-        { "players.playerId": playerId },
-        { "seats.white.playerId": playerId },
-        { "seats.black.playerId": playerId },
-      ],
+      ...seatedPlayerFilter(playerId),
     })
       .sort({ updatedAt: -1 })
       .limit(50)
@@ -374,11 +393,7 @@ export class MongoGameRoomStore implements GameRoomStore {
   ): Promise<StoredMultiplayerRoom[]> {
     const filter: Record<string, unknown> = {
       status: "finished",
-      $or: [
-        { "players.playerId": playerId },
-        { "seats.white.playerId": playerId },
-        { "seats.black.playerId": playerId },
-      ],
+      ...seatedPlayerFilter(playerId),
     };
     if (beforeDate) {
       filter.updatedAt = { $lt: beforeDate };
@@ -398,11 +413,7 @@ export class MongoGameRoomStore implements GameRoomStore {
       status: {
         $in: ["waiting", "active"],
       },
-      $or: [
-        { "players.playerId": playerId },
-        { "seats.white.playerId": playerId },
-        { "seats.black.playerId": playerId },
-      ],
+      ...seatedPlayerFilter(playerId),
     })
       .sort({ updatedAt: -1 })
       .lean<PersistedGameRoom>()
@@ -425,55 +436,46 @@ export class MongoGameRoomStore implements GameRoomStore {
     return room ? toStoredRoom(room) : null;
   }
 
-  async migratePlayerIdentity(oldPlayerId: string, newIdentity: PlayerIdentity): Promise<number> {
-    // Update ALL rooms where the old player appears (including finished games)
-    const result = await GameRoom.updateMany(
-      { "players.playerId": oldPlayerId },
-      {
-        $set: {
-          "players.$[p].playerId": newIdentity.playerId,
-          "players.$[p].displayName": newIdentity.displayName,
-          "players.$[p].kind": newIdentity.kind,
-          "players.$[p].profilePicture": newIdentity.profilePicture,
-          "players.$[p].badges": newIdentity.badges,
-          "players.$[p].activeBadges": newIdentity.activeBadges,
+  async migratePlayerIdentity(
+    oldPlayerId: string,
+    newIdentity: StoredPlayerIdentity,
+  ): Promise<number> {
+    // Update seats where old player is seated
+    const [whiteResult, blackResult] = await Promise.all([
+      GameRoom.updateMany(
+        { "seats.white.playerId": oldPlayerId },
+        {
+          $set: {
+            "seats.white.playerId": newIdentity.playerId,
+            "seats.white.displayName": newIdentity.displayName,
+            "seats.white.kind": newIdentity.kind,
+          },
         },
-      },
-      {
-        arrayFilters: [{ "p.playerId": oldPlayerId }],
-      },
-    );
-
-    // Also update seats
-    await GameRoom.updateMany(
-      { "seats.white.playerId": oldPlayerId },
-      {
-        $set: {
-          "seats.white.playerId": newIdentity.playerId,
-          "seats.white.displayName": newIdentity.displayName,
-          "seats.white.kind": newIdentity.kind,
-          "seats.white.profilePicture": newIdentity.profilePicture,
-          "seats.white.badges": newIdentity.badges,
-          "seats.white.activeBadges": newIdentity.activeBadges,
+      ),
+      GameRoom.updateMany(
+        { "seats.black.playerId": oldPlayerId },
+        {
+          $set: {
+            "seats.black.playerId": newIdentity.playerId,
+            "seats.black.displayName": newIdentity.displayName,
+            "seats.black.kind": newIdentity.kind,
+          },
         },
-      },
-    );
+      ),
+    ]);
 
-    await GameRoom.updateMany(
-      { "seats.black.playerId": oldPlayerId },
-      {
-        $set: {
-          "seats.black.playerId": newIdentity.playerId,
-          "seats.black.displayName": newIdentity.displayName,
-          "seats.black.kind": newIdentity.kind,
-          "seats.black.profilePicture": newIdentity.profilePicture,
-          "seats.black.badges": newIdentity.badges,
-          "seats.black.activeBadges": newIdentity.activeBadges,
-        },
-      },
-    );
+    return whiteResult.modifiedCount + blackResult.modifiedCount;
+  }
 
-    return result.modifiedCount;
+  async findRoomsWithPendingRatings(): Promise<StoredMultiplayerRoom[]> {
+    const rooms = await GameRoom.find({
+      status: "finished",
+      ratingStatus: "pending",
+    })
+      .lean<PersistedGameRoom[]>()
+      .exec();
+
+    return rooms.map(toStoredRoom);
   }
 
   async unlinkTournamentGames(tournamentId: string): Promise<number> {
@@ -508,7 +510,6 @@ export class InMemoryGameRoomStore implements GameRoomStore {
       roomType: room.roomType,
       status: room.status,
       state: cloneGameState(room.state),
-      players: clonePlayers(room.players),
       rematch: cloneRematch(room.rematch),
       takeback: cloneTakeback(room.takeback),
       seats: cloneSeats(room.seats),
@@ -518,6 +519,7 @@ export class InMemoryGameRoomStore implements GameRoomStore {
       firstMoveDeadline: room.firstMoveDeadline ? new Date(room.firstMoveDeadline) : null,
       ratingBefore: room.ratingBefore ?? null,
       ratingAfter: room.ratingAfter ?? null,
+      ratingStatus: room.ratingStatus ?? null,
       tournamentId: room.tournamentId ?? null,
       tournamentMatchId: room.tournamentMatchId ?? null,
       createdAt: now,
@@ -549,7 +551,6 @@ export class InMemoryGameRoomStore implements GameRoomStore {
       roomType: room.roomType,
       status: room.status,
       state: cloneGameState(room.state),
-      players: clonePlayers(room.players),
       rematch: cloneRematch(room.rematch),
       takeback: cloneTakeback(room.takeback),
       seats: cloneSeats(room.seats),
@@ -559,6 +560,7 @@ export class InMemoryGameRoomStore implements GameRoomStore {
       firstMoveDeadline: room.firstMoveDeadline ? new Date(room.firstMoveDeadline) : null,
       ratingBefore: room.ratingBefore ? { ...room.ratingBefore } : null,
       ratingAfter: room.ratingAfter ? { ...room.ratingAfter } : null,
+      ratingStatus: room.ratingStatus,
       tournamentId: room.tournamentId,
       tournamentMatchId: room.tournamentMatchId,
       createdAt: new Date(existingRoom.createdAt),
@@ -571,7 +573,7 @@ export class InMemoryGameRoomStore implements GameRoomStore {
 
   async listRoomsForPlayer(playerId: string): Promise<StoredMultiplayerRoom[]> {
     const rooms = Array.from(this.rooms.values())
-      .filter((room) => room.players.some((player) => player.playerId === playerId))
+      .filter((room) => isSeated(room, playerId))
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 
     return rooms.map(cloneStoredRoom);
@@ -579,10 +581,7 @@ export class InMemoryGameRoomStore implements GameRoomStore {
 
   async listActiveRoomsForPlayer(playerId: string): Promise<StoredMultiplayerRoom[]> {
     const rooms = Array.from(this.rooms.values())
-      .filter(
-        (room) =>
-          room.status !== "finished" && room.players.some((player) => player.playerId === playerId),
-      )
+      .filter((room) => room.status !== "finished" && isSeated(room, playerId))
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 
     return rooms.map(cloneStoredRoom);
@@ -594,10 +593,7 @@ export class InMemoryGameRoomStore implements GameRoomStore {
     beforeDate?: Date,
   ): Promise<StoredMultiplayerRoom[]> {
     let rooms = Array.from(this.rooms.values())
-      .filter(
-        (room) =>
-          room.status === "finished" && room.players.some((player) => player.playerId === playerId),
-      )
+      .filter((room) => room.status === "finished" && isSeated(room, playerId))
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 
     if (beforeDate) {
@@ -609,11 +605,7 @@ export class InMemoryGameRoomStore implements GameRoomStore {
 
   async findUnfinishedRoomByPlayer(playerId: string): Promise<StoredMultiplayerRoom | null> {
     const room = Array.from(this.rooms.values())
-      .filter(
-        (candidate) =>
-          candidate.status !== "finished" &&
-          candidate.players.some((player) => player.playerId === playerId),
-      )
+      .filter((candidate) => candidate.status !== "finished" && isSeated(candidate, playerId))
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0];
 
     return room ? cloneStoredRoom(room) : null;
@@ -637,32 +629,31 @@ export class InMemoryGameRoomStore implements GameRoomStore {
       .map(cloneStoredRoom);
   }
 
-  async migratePlayerIdentity(oldPlayerId: string, newIdentity: PlayerIdentity): Promise<number> {
+  async migratePlayerIdentity(
+    oldPlayerId: string,
+    newIdentity: StoredPlayerIdentity,
+  ): Promise<number> {
     let count = 0;
     for (const [, room] of this.rooms) {
       let modified = false;
-      for (const p of room.players) {
-        if (p.playerId === oldPlayerId) {
-          p.playerId = newIdentity.playerId;
-          p.displayName = newIdentity.displayName;
-          p.kind = newIdentity.kind;
-          p.profilePicture = newIdentity.profilePicture;
-          modified = true;
-        }
-      }
       for (const color of ["white", "black"] as const) {
         const seat = room.seats[color];
         if (seat?.playerId === oldPlayerId) {
           seat.playerId = newIdentity.playerId;
           seat.displayName = newIdentity.displayName;
           seat.kind = newIdentity.kind;
-          seat.profilePicture = newIdentity.profilePicture;
           modified = true;
         }
       }
       if (modified) count++;
     }
     return count;
+  }
+
+  async findRoomsWithPendingRatings(): Promise<StoredMultiplayerRoom[]> {
+    return Array.from(this.rooms.values())
+      .filter((room) => room.status === "finished" && room.ratingStatus === "pending")
+      .map(cloneStoredRoom);
   }
 
   async unlinkTournamentGames(tournamentId: string): Promise<number> {
@@ -680,7 +671,7 @@ export class InMemoryGameRoomStore implements GameRoomStore {
 }
 
 export function getPlayerColorForRoom(
-  room: { seats: MultiplayerSeatAssignments },
+  room: { seats: StoredSeatAssignments },
   playerId: string,
 ): PlayerColor | null {
   if (room.seats.white?.playerId === playerId) {

@@ -8,13 +8,14 @@ import type {
   TournamentSettings,
   TournamentSnapshot,
   TournamentListItem,
+  TournamentPlayerIdentity,
   TournamentStatus,
 } from "../../shared/src";
 import { GameService, GameServiceError, TournamentGameCallback } from "./gameService";
 import { LockProvider, InMemoryLockProvider } from "./lockProvider";
 import { TournamentStore, StoredTournament, MongoTournamentStore } from "./tournamentStore";
 import { getWinner, getFinishReason } from "../../shared/src";
-import GameAccount from "../models/GameAccount";
+import { getPlayerProfiles, type CachedPlayerProfile } from "../cache/playerIdentityCache";
 
 // ── Helpers ──
 
@@ -40,29 +41,8 @@ function generateMatchId(roundIndex: number, matchIndex: number, prefix = ""): s
   return `${prefix}R${roundIndex}M${matchIndex}`;
 }
 
-type PlayerProfile = { displayName: string; profilePicture?: string };
-
-async function fetchPlayerProfiles(playerIds: string[]): Promise<Map<string, PlayerProfile>> {
-  const map = new Map<string, PlayerProfile>();
-  if (playerIds.length === 0) return map;
-  try {
-    const accounts = await GameAccount.find(
-      { _id: { $in: playerIds } },
-      { displayName: 1, profilePicture: 1 },
-    )
-      .lean()
-      .exec();
-    for (const a of accounts) {
-      map.set(String(a._id), { displayName: a.displayName, profilePicture: a.profilePicture });
-    }
-  } catch {
-    // Graceful fallback when DB is unavailable (e.g. in-memory test stores)
-  }
-  return map;
-}
-
 function participantToMatchPlayer(p: TournamentParticipant): TournamentMatchPlayer {
-  return { playerId: p.playerId, displayName: p.displayName, seed: p.seed };
+  return { playerId: p.playerId, seed: p.seed };
 }
 
 // ── Bracket Generation: Round Robin (circle method) ──
@@ -247,10 +227,9 @@ function generateGroups(
       }
     }
 
-    // Initialize standings
+    // Initialize standings (displayName resolved at snapshot time from cache)
     group.standings = groupParticipants.map((p) => ({
       playerId: p.playerId,
-      displayName: p.displayName,
       seed: p.seed,
       wins: 0,
       losses: 0,
@@ -318,7 +297,6 @@ export class TournamentService implements TournamentGameCallback {
       name,
       description,
       creatorId: creator.playerId,
-      creatorDisplayName: creator.displayName,
       status: "registration",
       settings,
       participants: [],
@@ -368,7 +346,6 @@ export class TournamentService implements TournamentGameCallback {
 
       tournament.participants.push({
         playerId: player.playerId,
-        displayName: player.displayName,
         seed: tournament.participants.length + 1,
         status: "registered",
       });
@@ -719,12 +696,12 @@ export class TournamentService implements TournamentGameCallback {
 
   async listPublicTournaments(status?: TournamentStatus): Promise<TournamentListItem[]> {
     const tournaments = await this.store.listPublicTournaments(status ? { status } : undefined);
-    return tournaments.map(this.toListItem);
+    return this.toListItems(tournaments);
   }
 
   async listMyTournaments(playerId: string): Promise<TournamentListItem[]> {
     const tournaments = await this.store.listTournamentsForPlayer(playerId);
-    return tournaments.map(this.toListItem);
+    return this.toListItems(tournaments);
   }
 
   // ── Private Helpers ──
@@ -1093,7 +1070,7 @@ export class TournamentService implements TournamentGameCallback {
         if (match.players[1]) playerIds.add(match.players[1].playerId);
       }
     }
-    const profiles = await fetchPlayerProfiles([...playerIds]);
+    const profiles = await getPlayerProfiles([...playerIds]);
 
     for (const round of allRounds) {
       if (round.status !== "active") continue;
@@ -1111,13 +1088,13 @@ export class TournamentService implements TournamentGameCallback {
         try {
           const identity1: PlayerIdentity = {
             playerId: p0.playerId,
-            displayName: prof1?.displayName ?? p0.displayName,
+            displayName: prof1?.displayName ?? p0.displayName ?? "Player",
             kind: "account",
             profilePicture: prof1?.profilePicture,
           };
           const identity2: PlayerIdentity = {
             playerId: p1.playerId,
-            displayName: prof2?.displayName ?? p1.displayName,
+            displayName: prof2?.displayName ?? p1.displayName ?? "Player",
             kind: "account",
             profilePicture: prof2?.profilePicture,
           };
@@ -1239,8 +1216,9 @@ export class TournamentService implements TournamentGameCallback {
   // ── Serialization ──
 
   private async toSnapshot(t: StoredTournament): Promise<TournamentSnapshot> {
-    // Collect all unique player IDs across participants, matches, and standings
+    // Collect all unique player IDs across participants, matches, standings, and creator
     const playerIds = new Set<string>();
+    playerIds.add(t.creatorId);
     for (const p of t.participants) playerIds.add(p.playerId);
     const collectFromRounds = (rounds: TournamentRound[]) => {
       for (const round of rounds) {
@@ -1258,17 +1236,29 @@ export class TournamentService implements TournamentGameCallback {
       for (const s of group.standings) playerIds.add(s.playerId);
     }
 
-    // Batch-fetch fresh profiles
-    const profiles = await fetchPlayerProfiles([...playerIds]);
-    const enrich = (id: string, fallbackName: string) => {
+    // Batch-fetch fresh profiles from identity cache
+    const profiles = await getPlayerProfiles([...playerIds]);
+
+    // Build the playerIdentities map for the client
+    const playerIdentities: Record<string, TournamentPlayerIdentity> = {};
+    for (const [id, p] of profiles) {
+      playerIdentities[id] = {
+        displayName: p.displayName,
+        profilePicture: p.profilePicture,
+        rating: p.rating,
+        activeBadges: p.activeBadges,
+      };
+    }
+
+    const enrich = (id: string) => {
       const p = profiles.get(id);
-      return { displayName: p?.displayName ?? fallbackName, profilePicture: p?.profilePicture };
+      return p ? { displayName: p.displayName, profilePicture: p.profilePicture } : {};
     };
 
-    // Enrich participants
+    // Enrich participants (backfill displayName/profilePicture for backward compat)
     const participants: TournamentParticipant[] = t.participants.map((p) => ({
       ...p,
-      ...enrich(p.playerId, p.displayName),
+      ...enrich(p.playerId),
     }));
 
     // Enrich match players in rounds
@@ -1278,7 +1268,7 @@ export class TournamentService implements TournamentGameCallback {
         matches: round.matches.map((match) => ({
           ...match,
           players: match.players.map((mp) =>
-            mp ? { ...mp, ...enrich(mp.playerId, mp.displayName) } : null,
+            mp ? { ...mp, ...enrich(mp.playerId) } : null,
           ) as TournamentMatch["players"],
         })),
       }));
@@ -1289,7 +1279,7 @@ export class TournamentService implements TournamentGameCallback {
       rounds: enrichRounds(group.rounds),
       standings: group.standings.map((s) => ({
         ...s,
-        ...enrich(s.playerId, s.displayName),
+        ...enrich(s.playerId),
       })),
     }));
 
@@ -1305,24 +1295,31 @@ export class TournamentService implements TournamentGameCallback {
       groups,
       knockoutRounds: enrichRounds(t.knockoutRounds),
       featuredMatchId: t.featuredMatchId,
+      playerIdentities,
       createdAt: t.createdAt.toISOString(),
       updatedAt: t.updatedAt.toISOString(),
     };
   }
 
-  private toListItem = (t: StoredTournament): TournamentListItem => ({
-    tournamentId: t.tournamentId,
-    name: t.name,
-    creatorId: t.creatorId,
-    creatorDisplayName: t.creatorDisplayName,
-    status: t.status,
-    format: t.settings.format,
-    visibility: t.settings.visibility,
-    playerCount: t.participants.length,
-    maxPlayers: t.settings.maxPlayers,
-    timeControl: t.settings.timeControl,
-    createdAt: t.createdAt.toISOString(),
-  });
+  private async toListItems(tournaments: StoredTournament[]): Promise<TournamentListItem[]> {
+    // Batch-resolve creator profiles
+    const creatorIds = [...new Set(tournaments.map((t) => t.creatorId))];
+    const profiles = await getPlayerProfiles(creatorIds);
+
+    return tournaments.map((t) => ({
+      tournamentId: t.tournamentId,
+      name: t.name,
+      creatorId: t.creatorId,
+      creatorDisplayName: profiles.get(t.creatorId)?.displayName ?? "Unknown",
+      status: t.status,
+      format: t.settings.format,
+      visibility: t.settings.visibility,
+      playerCount: t.participants.length,
+      maxPlayers: t.settings.maxPlayers,
+      timeControl: t.settings.timeControl,
+      createdAt: t.createdAt.toISOString(),
+    }));
+  }
 
   // ── Locking ──
 

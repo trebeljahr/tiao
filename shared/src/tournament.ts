@@ -37,7 +37,8 @@ export type TournamentParticipantStatus = "registered" | "eliminated" | "active"
 
 export type TournamentParticipant = {
   playerId: string;
-  displayName: string;
+  /** Resolved dynamically from playerIdentities map — optional in DB. */
+  displayName?: string;
   profilePicture?: string;
   seed: number;
   status: TournamentParticipantStatus;
@@ -49,7 +50,8 @@ export type TournamentMatchStatus = "pending" | "active" | "finished" | "forfeit
 
 export type TournamentMatchPlayer = {
   playerId: string;
-  displayName: string;
+  /** Resolved dynamically from playerIdentities map — optional in DB. */
+  displayName?: string;
   profilePicture?: string;
   seed: number;
 };
@@ -87,7 +89,8 @@ export type TournamentRound = {
 
 export type TournamentGroupStanding = {
   playerId: string;
-  displayName: string;
+  /** Resolved dynamically from playerIdentities map — optional in DB. */
+  displayName?: string;
   profilePicture?: string;
   seed: number;
   wins: number;
@@ -107,6 +110,14 @@ export type TournamentGroup = {
 
 // ── Snapshot (full tournament state for clients) ──
 
+/** Player identity data resolved from the server's identity cache. */
+export type TournamentPlayerIdentity = {
+  displayName: string;
+  profilePicture?: string;
+  rating?: number;
+  activeBadges?: string[];
+};
+
 export type TournamentSnapshot = {
   tournamentId: string;
   name: string;
@@ -122,6 +133,8 @@ export type TournamentSnapshot = {
   /** Knockout rounds after group stage (only for groups-knockout) */
   knockoutRounds: TournamentRound[];
   featuredMatchId: string | null;
+  /** Identity map: playerId → resolved identity. Use this for display names/pictures. */
+  playerIdentities: Record<string, TournamentPlayerIdentity>;
   createdAt: string;
   updatedAt: string;
 };

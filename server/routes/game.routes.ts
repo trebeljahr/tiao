@@ -30,7 +30,9 @@ const GUEST_GAME_LIMIT = 10;
 async function checkGuestGameLimit(player: PlayerIdentity, res: Response): Promise<boolean> {
   if (player.kind !== "guest") return true;
   if (process.env.NODE_ENV === "test") return true;
-  const count = await GameRoom.countDocuments({ "players.playerId": player.playerId });
+  const count = await GameRoom.countDocuments({
+    $or: [{ "seats.white.playerId": player.playerId }, { "seats.black.playerId": player.playerId }],
+  });
   if (count >= GUEST_GAME_LIMIT) {
     res.status(403).json({
       code: "GUEST_LIMIT_REACHED",

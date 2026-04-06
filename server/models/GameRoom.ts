@@ -1,15 +1,19 @@
 import { Document, Schema, model, models } from "mongoose";
-import {
+import type {
   GameState,
   MultiplayerRematchState,
   MultiplayerTakebackState,
   MultiplayerSeatAssignments,
   MultiplayerRoomType,
   MultiplayerStatus,
-  PlayerIdentity,
 } from "../../shared/src";
 
-const PlayerIdentitySchema = new Schema<PlayerIdentity>(
+/**
+ * Slim stored identity — only playerId, kind, and displayName are persisted.
+ * Full profile data (profilePicture, rating, badges, etc.) is resolved from
+ * the player identity cache at read time.
+ */
+const PlayerIdentitySchema = new Schema(
   {
     playerId: {
       type: String,
@@ -26,37 +30,20 @@ const PlayerIdentitySchema = new Schema<PlayerIdentity>(
       required: true,
       enum: ["guest", "account"],
     },
-    email: {
-      type: String,
-      trim: true,
-    },
-    profilePicture: {
-      type: String,
-      trim: true,
-    },
-    rating: {
-      type: Number,
-    },
-    badges: {
-      type: [String],
-      default: undefined,
-    },
-    activeBadges: {
-      type: [String],
-      default: undefined,
-    },
   },
   {
     _id: false,
   },
 );
 
+export type RatingStatus = "pending" | "completed" | "skipped" | null;
+
 export interface IGameRoom extends Document {
   roomId: string;
   roomType: MultiplayerRoomType;
   status: MultiplayerStatus;
   state: GameState;
-  players: PlayerIdentity[];
+  moveHistory: unknown;
   rematch: MultiplayerRematchState | null;
   takeback: MultiplayerTakebackState | null;
   seats: MultiplayerSeatAssignments;
@@ -66,6 +53,7 @@ export interface IGameRoom extends Document {
   firstMoveDeadline: Date | null;
   ratingBefore: { white: number; black: number } | null;
   ratingAfter: { white: number; black: number } | null;
+  ratingStatus: RatingStatus;
   tournamentId: string | null;
   tournamentMatchId: string | null;
   staleAt: Date | null;
@@ -99,9 +87,10 @@ const GameRoomSchema = new Schema<IGameRoom>(
       type: Schema.Types.Mixed,
       required: true,
     },
-    players: {
-      type: [PlayerIdentitySchema],
-      default: [],
+    /** Compact move history, stored separately from state so the state field is fixed-size. */
+    moveHistory: {
+      type: Schema.Types.Mixed,
+      default: null,
     },
     rematch: {
       type: new Schema<MultiplayerRematchState>(
@@ -202,6 +191,11 @@ const GameRoomSchema = new Schema<IGameRoom>(
       default: null,
       sparse: true,
     },
+    ratingStatus: {
+      type: String,
+      enum: ["pending", "completed", "skipped", null],
+      default: null,
+    },
     /** Auto-delete waiting rooms that have gone stale. Null for active/finished rooms. */
     staleAt: {
       type: Date,
@@ -213,9 +207,16 @@ const GameRoomSchema = new Schema<IGameRoom>(
   },
 );
 
-GameRoomSchema.index({ "players.playerId": 1, status: 1, updatedAt: -1 });
+// Player-centric queries via seats (replaces old players.playerId index)
+GameRoomSchema.index({ "seats.white.playerId": 1, status: 1, updatedAt: -1 });
+GameRoomSchema.index({ "seats.black.playerId": 1, status: 1, updatedAt: -1 });
 GameRoomSchema.index({ tournamentId: 1, tournamentMatchId: 1 }, { sparse: true });
 GameRoomSchema.index({ staleAt: 1 }, { expireAfterSeconds: 0, sparse: true });
+// Active timed games for clock tick processing
+GameRoomSchema.index(
+  { status: 1, clockMs: 1, lastMoveAt: 1 },
+  { partialFilterExpression: { status: "active" } },
+);
 
 const GameRoom = models.GameRoom || model<IGameRoom>("GameRoom", GameRoomSchema);
 
