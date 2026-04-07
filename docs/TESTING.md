@@ -41,6 +41,8 @@ For E2E tests, the Playwright config auto-starts both servers (`npm run server` 
 | `gameService.test.ts`          | 9     | Service layer: room persistence, seat randomization, guest limits, game library, spectators, online status, matchmaking, rematch flow                                           |
 | `gameServiceActions.test.ts`   | 10    | Game actions via service: place-piece, turn enforcement, spectator rejection, jump+confirm capture, undo, broadcasts, rematch guards                                            |
 | `matchmakingEdgeCases.test.ts` | 8     | Matchmaking: double-join, leave queue, matched state cleanup, guest limits, three-player queue                                                                                  |
+| `achievementService.test.ts`   | 12    | Achievement definitions: unique IDs, required fields, valid tiers/categories, lookup helpers, progressive thresholds, secret category, ascending order                          |
+| `achievementRoutes.test.ts`    | 10    | Achievement routes: auth enforcement, own/public achievement fetch, AI win reporting, duplicate handling, definitions included in response                                      |
 | `boardHarness.ts`              | —     | Test utility (not a test file)                                                                                                                                                  |
 
 ### Client Tests (`client/src/`)
