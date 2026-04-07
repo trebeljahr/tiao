@@ -1,4 +1,4 @@
-FROM node:22.20.0-bookworm-slim AS deps
+FROM node:24.14.1-bookworm-slim AS deps
 WORKDIR /app
 
 COPY server/package*.json server/
@@ -14,7 +14,7 @@ COPY server ./server
 RUN npm --prefix server run build
 RUN npm --prefix server prune --omit=dev
 
-FROM node:22.20.0-bookworm-slim AS runtime
+FROM node:24.14.1-bookworm-slim AS runtime
 WORKDIR /app/server
 
 ENV NODE_ENV=production

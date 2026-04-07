@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
@@ -197,9 +197,10 @@ export function MultiplayerGamePage() {
   // pressing "Got it, let's play!" (#154)
   const [readyToJoin, setReadyToJoin] = useState(false);
 
-  // Show rules intro once when the game loads and the player hasn't seen the tutorial
+  // Determine immediately whether we need the rules intro or can join right away.
+  // This must NOT depend on multiplayerSnapshot (which requires joining first).
   useEffect(() => {
-    if (!multiplayerSnapshot || !auth) return;
+    if (!auth) return;
 
     // Spectators always join immediately — they just watch, no intro needed
     if (spectateOnly) {
@@ -219,7 +220,7 @@ export function MultiplayerGamePage() {
     } else {
       setReadyToJoin(true);
     }
-  }, [multiplayerSnapshot, auth, spectateOnly]);
+  }, [auth, spectateOnly]);
 
   // Close invite modal, scroll to board, and notify when both seats are filled
   const bothSeated = !!(multiplayerSnapshot?.seats.white && multiplayerSnapshot?.seats.black);

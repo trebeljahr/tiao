@@ -4,7 +4,7 @@ printf "\n[pre-push] Typechecking client + server (parallel)...\n"
 npm run typecheck || { printf >&2 "\n[pre-push] Typecheck failed.\n"; exit 1; }
 
 printf "[pre-push] Building client + running server tests (parallel)...\n"
-npx concurrently --kill-others-on-fail \
+concurrently --kill-others-on-fail \
   -n build,test -c blue,green \
   "npm --prefix client run build" \
   "npm --prefix server test" \

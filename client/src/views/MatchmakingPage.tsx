@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import type { MultiplayerSnapshot, TimeControl } from "@shared";

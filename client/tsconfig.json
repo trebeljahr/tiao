@@ -11,7 +11,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "paths": {
       "@/*": ["./src/*"],
       "@shared": ["../shared/src/index.ts"],
@@ -30,6 +30,14 @@
     "allowJs": true,
     "esModuleInterop": true
   },
-  "include": ["next-env.d.ts", "src", "app", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "src",
+    "app",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
   "exclude": ["node_modules", ".next"]
 }

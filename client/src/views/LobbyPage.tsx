@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";

@@ -14,7 +14,6 @@ import { createServer, request as httpRequest } from "http";
 import { request as httpsRequest } from "https";
 import { existsSync, statSync, createReadStream } from "fs";
 import { join, extname, resolve } from "path";
-import { parse } from "url";
 import next from "next";
 
 const MIME_TYPES = {
@@ -177,24 +176,24 @@ await app.prepare();
 console.log(`> API proxy target: ${apiTarget}`);
 
 const httpServer = createServer((req, res) => {
-  const { pathname } = parse(req.url, true);
+  const url = new URL(req.url, `http://${req.headers.host}`);
 
-  if (pathname.startsWith("/api/") || pathname.startsWith("/ws/")) {
+  if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/ws/")) {
     proxyRequest(req, res);
     return;
   }
 
   // Serve static files from public/ directly (fixes Docker path mismatch)
-  if (servePublicFile(req, res, pathname)) {
+  if (servePublicFile(req, res, url.pathname)) {
     return;
   }
 
-  handle(req, res, parse(req.url, true));
+  handle(req, res);
 });
 
 // Proxy WebSocket upgrade requests to the backend
 httpServer.on("upgrade", (req, socket, head) => {
-  const { pathname } = parse(req.url, true);
+  const { pathname } = new URL(req.url, `http://${req.headers.host}`);
 
   if (pathname.startsWith("/api/") || pathname.startsWith("/ws/")) {
     proxyWebSocketUpgrade(req, socket, head);

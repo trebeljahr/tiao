@@ -29,9 +29,18 @@ function getAppVersion() {
 const nextConfig = {
   reactStrictMode: true,
   allowedDevOrigins: ["192.168.1.0/24", "localhost"],
+  outputFileTracingRoot: path.resolve(__dirname, ".."),
   env: {
     APP_VERSION: getAppVersion(),
   },
+  // Turbopack config (default bundler in Next.js 16 dev)
+  turbopack: {
+    resolveAlias: {
+      "@shared": "../shared/src",
+      "@shared/*": ["../shared/src/*"],
+    },
+  },
+  // Webpack config (used for production builds via `next build --webpack`)
   webpack: (config) => {
     config.resolve.alias["@shared"] = sharedDir;
 
@@ -49,6 +58,9 @@ const nextConfig = {
         });
       }
     });
+
+    // Suppress next-intl dynamic import parsing warning (cosmetic, no functional impact)
+    config.ignoreWarnings = [...(config.ignoreWarnings || []), { module: /next-intl/ }];
 
     return config;
   },

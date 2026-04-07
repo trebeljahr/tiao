@@ -54,7 +54,7 @@ body:
     attributes:
       label: Environment
       description: Browser, OS, device, or any other relevant context.
-      placeholder: "e.g. Chrome 125 on macOS, iPhone 15 Safari, Node 22.20"
+      placeholder: "e.g. Chrome 125 on macOS, iPhone 15 Safari, Node 24.14"
 
   - type: textarea
     id: screenshots

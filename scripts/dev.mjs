@@ -14,7 +14,7 @@
 //   npm run dev:docs:fixed              Fixed ports (client + server + docs)
 
 import { createServer } from "net";
-import { execSync } from "child_process";
+import { execSync, spawn } from "child_process";
 
 const fixedMode = process.argv.includes("--fixed");
 const includeDocs = process.argv.includes("--docs");
@@ -105,11 +105,17 @@ if (includeDocs) {
   colors.push("magenta");
 }
 
-try {
-  execSync(
-    `npx concurrently -k -n ${names.join(",")} -c ${colors.join(",")}` + ` ${processes.join(" ")}`,
-    { stdio: "inherit" },
-  );
-} catch {
-  process.exit(1);
+const concurrentlyBin = new URL("../node_modules/.bin/concurrently", import.meta.url).pathname;
+
+const child = spawn(
+  concurrentlyBin,
+  ["-k", "-n", names.join(","), "-c", colors.join(","), ...processes],
+  { stdio: "inherit" },
+);
+
+// Forward SIGINT/SIGTERM so a single Ctrl+C stops everything
+for (const sig of ["SIGINT", "SIGTERM"]) {
+  process.on(sig, () => child.kill(sig));
 }
+
+child.on("exit", (code) => process.exit(code ?? 1));

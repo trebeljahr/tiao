@@ -47,4 +47,5 @@ docs-site/source-links.json
 .husky/_/
 
 # claude code
+.claude/settings.local.json
 .claude/worktrees/

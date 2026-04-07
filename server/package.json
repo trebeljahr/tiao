@@ -2,14 +2,14 @@
   "name": "tiao-server",
   "version": "0.1.0",
   "engines": {
-    "node": "22.20.x"
+    "node": "24.14.x"
   },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "eslint": "eslint .",
     "start": "NODE_ENV=production node dist/server/index.js",
-    "dev": "NODE_ENV=development nodemon --watch . --watch ../shared --ext ts index.ts",
+    "dev": "NODE_ENV=development NODE_OPTIONS='--no-deprecation' nodemon --watch . --watch ../shared --ext ts index.ts",
     "dev:e2e": "NODE_ENV=test nodemon --watch . --watch ../shared --ext ts index.ts",
     "test": "NODE_ENV=test npm run build && NODE_ENV=test node --test --test-reporter=spec dist/server/tests/*.test.js",
     "prod": "pm2 restart ecosystem.config.js"

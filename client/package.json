@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": "22.20.x"
+    "node": "24.14.x"
   },
   "scripts": {
     "dev": "node server.mjs",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "node server.mjs",
     "typecheck": "tsc",
     "eslint": "eslint src/",
@@ -20,7 +20,7 @@
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
     "framer-motion": "^12.0.0",
-    "next": "^15.5.14",
+    "next": "^16.2.2",
     "next-intl": "^4.9.0",
     "react": "^19.0.4",
     "react-dom": "^19.0.4",

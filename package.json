@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "npm@11.8.0",
   "engines": {
-    "node": "22.20.x"
+    "node": "24.14.x"
   },
   "scripts": {
     "postinstall": "npm --prefix client install && npm --prefix server install && npm --prefix docs-site install",
@@ -24,11 +24,11 @@
     "eslint:server": "npm --prefix server run eslint",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "concurrently \"npm --prefix server test\" \"npm --prefix client test\"",
-    "test:e2e": "npx playwright test",
+    "test:e2e": "playwright test",
     "client": "npm --prefix client run dev",
     "server": "npm --prefix server run dev",
     "docs": "npm --prefix docs-site start",
-    "docs:build": "npx tsx server/scripts/generate-openapi.ts && npm --prefix docs-site run generate:api-docs && npm --prefix docs-site run build",
+    "docs:build": "tsx server/scripts/generate-openapi.ts && npm --prefix docs-site run generate:api-docs && npm --prefix docs-site run build",
     "dev:infra": "docker-compose -f docker-compose.dev.yml up -d",
     "dev:infra:stop": "docker-compose -f docker-compose.dev.yml down",
     "dev:infra:reset": "docker-compose -f docker-compose.dev.yml down -v",

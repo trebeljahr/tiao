@@ -1,4 +1,4 @@
-FROM node:22.20.0-bookworm-slim AS build
+FROM node:24.14.1-bookworm-slim AS build
 WORKDIR /app
 
 ARG APP_VERSION
@@ -14,7 +14,7 @@ COPY client ./client
 
 RUN npm --prefix client run build
 
-FROM node:22.20.0-bookworm-slim AS runtime
+FROM node:24.14.1-bookworm-slim AS runtime
 WORKDIR /app
 
 COPY --from=build /app/client/.next ./.next

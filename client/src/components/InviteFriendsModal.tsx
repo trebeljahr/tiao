@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import type { SocialOverview, SocialPlayerSummary, GameInvitationSummary } from "@shared";
 import { Dialog } from "@/components/ui/dialog";
