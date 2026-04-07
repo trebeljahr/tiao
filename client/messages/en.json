@@ -664,6 +664,11 @@
     "genericError": "Something went wrong.",
     "selectImage": "Please select an image file."
   },
+  "authError": {
+    "title": "Sign-in error",
+    "goHome": "Go Home",
+    "goBack": "Go Back"
+  },
   "og": {
     "siteDescription": "A beautiful abstract strategy board game. Play online with friends, against AI, or over the board.",
     "lobbyTitle": "Tiao — Play Online",

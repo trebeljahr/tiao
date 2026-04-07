@@ -88,6 +88,13 @@ export const auth = betterAuth({
     },
   },
 
+  onAPIError: {
+    // Redirect to the frontend root with ?error= param instead of showing
+    // Better Auth's default error page.  The OAuthErrorHandler in providers.tsx
+    // picks up the query param and redirects to the styled /auth/error page.
+    errorURL: FRONTEND_URL || "http://localhost:3000",
+  },
+
   advanced: {
     cookiePrefix: "tiao",
   },

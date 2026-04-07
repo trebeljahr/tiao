@@ -3,7 +3,6 @@
 import "@/lib/dump";
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Toaster, toast } from "sonner";
 import { AuthProvider, useAuth } from "@/lib/AuthContext";
@@ -14,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { LobbySocketProvider } from "@/lib/LobbySocketContext";
 import { SocialNotificationsProvider } from "@/lib/SocialNotificationsContext";
-import { getOAuthErrorMessage } from "@/lib/oauthErrors";
 import { FaGithub, FaGoogle, FaDiscord } from "react-icons/fa";
 
 function OAuthButtons() {
@@ -366,7 +364,7 @@ function UsernameOnboardingGuard({ children }: { children: React.ReactNode }) {
 }
 
 function OAuthErrorHandler() {
-  const tCommon = useTranslations("common");
+  const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
@@ -377,8 +375,11 @@ function OAuthErrorHandler() {
     const error = params.get("error");
     if (!error) return;
 
-    toast.error(getOAuthErrorMessage(error, tCommon));
-    window.history.replaceState({}, "", window.location.pathname);
+    // Redirect to the styled auth error page instead of showing a toast
+    const errorDescription = params.get("error_description");
+    const q = new URLSearchParams({ error });
+    if (errorDescription) q.set("error_description", errorDescription);
+    router.replace(`/auth/error?${q.toString()}`);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return null;

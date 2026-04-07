@@ -664,6 +664,11 @@
     "genericError": "Algo salió mal.",
     "selectImage": "Por favor selecciona un archivo de imagen."
   },
+  "authError": {
+    "title": "Error de inicio de sesion",
+    "goHome": "Ir al inicio",
+    "goBack": "Volver"
+  },
   "og": {
     "siteDescription": "Un hermoso juego de estrategia abstracto. Juega en línea con amigos, contra IA o en la misma pantalla.",
     "lobbyTitle": "Tiao — Jugar en línea",

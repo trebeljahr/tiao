@@ -664,6 +664,11 @@
     "genericError": "Etwas ist schiefgelaufen.",
     "selectImage": "Bitte wähle eine Bilddatei aus."
   },
+  "authError": {
+    "title": "Anmeldefehler",
+    "goHome": "Zur Startseite",
+    "goBack": "Zurück"
+  },
   "og": {
     "siteDescription": "Ein wunderschönes abstraktes Strategiespiel. Spiele online mit Freunden, gegen KI oder am gleichen Bildschirm.",
     "lobbyTitle": "Tiao — Online spielen",
