@@ -5,6 +5,7 @@ import { TournamentPage } from "@/views/TournamentPage";
 type Props = { params: Promise<{ locale: string; tournamentId: string }> };
 
 async function fetchTournament(tournamentId: string) {
+  if (process.env.NODE_ENV === "development") return null;
   const apiBase = process.env.API_URL || `http://127.0.0.1:${process.env.API_PORT || "5005"}`;
   try {
     const res = await fetch(`${apiBase}/api/tournaments/${encodeURIComponent(tournamentId)}`, {

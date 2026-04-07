@@ -4,8 +4,10 @@ import { MultiplayerGamePage } from "@/views/MultiplayerGamePage";
 
 type Props = { params: Promise<{ locale: string; gameId: string }> };
 
-/** Server-side fetch to the backend for public game OG metadata. */
+/** Server-side fetch to the backend for public game OG metadata.
+ *  Skipped in dev to avoid blocking page loads with server-to-server HTTP. */
 async function fetchGameOg(gameId: string) {
+  if (process.env.NODE_ENV === "development") return null;
   const apiBase = process.env.API_URL || `http://127.0.0.1:${process.env.API_PORT || "5005"}`;
   try {
     const res = await fetch(`${apiBase}/api/games/${encodeURIComponent(gameId)}/og`, {
