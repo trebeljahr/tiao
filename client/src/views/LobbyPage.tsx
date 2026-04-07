@@ -57,6 +57,7 @@ function LobbySectionSkeleton() {
 
 export function LobbyPage() {
   const { auth, authLoading, onOpenAuth, onLogout } = useAuth();
+  const isGuest = auth?.player.kind === "guest";
   const router = useRouter();
   const t = useTranslations("lobby");
   const tc = useTranslations("common");
@@ -194,10 +195,7 @@ export function LobbyPage() {
   }
 
   async function handleCreateRoom() {
-    if (!auth) {
-      onOpenAuth("login");
-      return;
-    }
+    if (!auth || isGuest) return;
     if (!checkGuestLimit()) return;
 
     setMultiplayerBusy(true);
@@ -242,10 +240,7 @@ export function LobbyPage() {
   }
 
   async function handleJoinRoom() {
-    if (!auth) {
-      onOpenAuth("login");
-      return;
-    }
+    if (!auth || isGuest) return;
     if (!checkGuestLimit()) return;
 
     if (!joinGameId.trim()) {
@@ -371,42 +366,87 @@ export function LobbyPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6 pb-6">
-                <div className="space-y-3">
-                  <Button
-                    size="lg"
-                    className="w-full h-12 text-base"
-                    onClick={() => setShowCreateDialog(true)}
-                    disabled={multiplayerBusy}
-                  >
-                    {t("createGame")}
-                  </Button>
-                </div>
+                {isGuest ? (
+                  <div className="space-y-4">
+                    <div
+                      className="space-y-3 opacity-40 pointer-events-none select-none"
+                      aria-hidden
+                    >
+                      <Button size="lg" className="w-full h-12 text-base" disabled>
+                        {t("createGame")}
+                      </Button>
+                      <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] text-[#8d7760]">
+                        <span className="h-px flex-1 bg-[#dcc7a2]" />
+                        {t("orJoinOne")}
+                        <span className="h-px flex-1 bg-[#dcc7a2]" />
+                      </div>
+                      <div className="flex gap-2">
+                        <Input
+                          disabled
+                          placeholder={tc("gameId")}
+                          className="h-12 font-mono bg-white/60 border-[#dcc7a2]"
+                        />
+                        <Button variant="outline" className="h-12 px-6 border-[#dcc7a2]" disabled>
+                          {tc("join")}
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="text-sm text-center text-[#6e5b48]">
+                      {t("customGameRequiresAccount")}
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        className="flex-1 border-[#dcc7a2] hover:bg-[#faefd8]"
+                        onClick={() => onOpenAuth("login")}
+                      >
+                        {tc("signIn")}
+                      </Button>
+                      <Button className="flex-1" onClick={() => onOpenAuth("signup")}>
+                        {tc("signUp")}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="space-y-3">
+                      <Button
+                        size="lg"
+                        className="w-full h-12 text-base"
+                        onClick={() => setShowCreateDialog(true)}
+                        disabled={multiplayerBusy}
+                      >
+                        {t("createGame")}
+                      </Button>
+                    </div>
 
-                <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] text-[#8d7760]">
-                  <span className="h-px flex-1 bg-[#dcc7a2]" />
-                  {t("orJoinOne")}
-                  <span className="h-px flex-1 bg-[#dcc7a2]" />
-                </div>
+                    <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] text-[#8d7760]">
+                      <span className="h-px flex-1 bg-[#dcc7a2]" />
+                      {t("orJoinOne")}
+                      <span className="h-px flex-1 bg-[#dcc7a2]" />
+                    </div>
 
-                <div className="flex gap-2">
-                  <Input
-                    value={joinGameId}
-                    onChange={(e) =>
-                      setJoinGameId(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))
-                    }
-                    placeholder={tc("gameId")}
-                    maxLength={6}
-                    className="h-12 font-mono bg-white/60 border-[#dcc7a2] focus:ring-[#b98d49]"
-                  />
-                  <Button
-                    variant="outline"
-                    className="h-12 px-6 border-[#dcc7a2] hover:bg-[#faefd8]"
-                    onClick={handleJoinRoom}
-                    disabled={multiplayerBusy || !joinGameId}
-                  >
-                    {tc("join")}
-                  </Button>
-                </div>
+                    <div className="flex gap-2">
+                      <Input
+                        value={joinGameId}
+                        onChange={(e) =>
+                          setJoinGameId(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))
+                        }
+                        placeholder={tc("gameId")}
+                        maxLength={6}
+                        className="h-12 font-mono bg-white/60 border-[#dcc7a2] focus:ring-[#b98d49]"
+                      />
+                      <Button
+                        variant="outline"
+                        className="h-12 px-6 border-[#dcc7a2] hover:bg-[#faefd8]"
+                        onClick={handleJoinRoom}
+                        disabled={multiplayerBusy || !joinGameId}
+                      >
+                        {tc("join")}
+                      </Button>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </motion.div>

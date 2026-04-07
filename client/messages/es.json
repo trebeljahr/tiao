@@ -123,7 +123,8 @@
     "localGameDesc": "Configura los ajustes del juego local.",
     "computerGameTitle": "Jugar contra la IA",
     "computerGameDesc": "Elige tu dificultad y ajustes.",
-    "startGame": "Iniciar partida"
+    "startGame": "Iniciar partida",
+    "customGameRequiresAccount": "Inicia sesión o crea una cuenta para crear y unirte a partidas personalizadas."
   },
   "game": {
     "white": "Blancas",

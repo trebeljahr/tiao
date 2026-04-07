@@ -123,7 +123,8 @@
     "localGameDesc": "Konfiguriere deine lokalen Spieleinstellungen.",
     "computerGameTitle": "Gegen einen Bot spielen",
     "computerGameDesc": "Wähle deine Schwierigkeit und Einstellungen.",
-    "startGame": "Spiel starten"
+    "startGame": "Spiel starten",
+    "customGameRequiresAccount": "Melde dich an oder erstelle ein Konto, um eigene Spiele zu erstellen und beizutreten."
   },
   "game": {
     "white": "Weiß",

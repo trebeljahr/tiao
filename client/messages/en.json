@@ -123,7 +123,8 @@
     "localGameDesc": "Configure your local game settings.",
     "computerGameTitle": "Play against a Bot",
     "computerGameDesc": "Choose your difficulty and settings.",
-    "startGame": "Start Game"
+    "startGame": "Start Game",
+    "customGameRequiresAccount": "Sign in or create an account to create and join custom games."
   },
   "game": {
     "white": "White",
