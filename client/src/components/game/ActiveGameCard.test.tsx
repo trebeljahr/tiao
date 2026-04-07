@@ -79,18 +79,18 @@ describe("ActiveGameCard", () => {
     expect(screen.getByText("view")).toBeInTheDocument();
   });
 
-  it("shows cancel button for waiting games with onDelete", () => {
+  it("shows delete button for waiting games with onDelete", () => {
     const waitingGame = { ...baseGame, status: "waiting" as const };
     const onDelete = vi.fn();
     render(<ActiveGameCard game={waitingGame} onResume={vi.fn()} onDelete={onDelete} />);
-    expect(screen.getByText("cancel")).toBeInTheDocument();
+    expect(screen.getByText("delete")).toBeInTheDocument();
   });
 
-  it("calls onDelete when cancel button clicked", () => {
+  it("calls onDelete when delete button clicked", () => {
     const waitingGame = { ...baseGame, status: "waiting" as const };
     const onDelete = vi.fn();
     render(<ActiveGameCard game={waitingGame} onResume={vi.fn()} onDelete={onDelete} />);
-    fireEvent.click(screen.getByText("cancel"));
+    fireEvent.click(screen.getByText("delete"));
     expect(onDelete).toHaveBeenCalledTimes(1);
   });
 
