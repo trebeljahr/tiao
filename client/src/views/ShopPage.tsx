@@ -127,30 +127,49 @@ export function ShopPage() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Fire confetti + scroll once the purchased item is in the DOM (after auth + catalog load)
+  // Fire confetti + scroll once the purchased item element appears in the DOM
   useEffect(() => {
-    if (!purchasedItem || loading || authLoading) return;
+    if (!purchasedItem) return;
 
-    const el = document.getElementById(purchasedItem);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
-      // Fire confetti after scroll settles
-      setTimeout(() => {
-        const rect = el.getBoundingClientRect();
-        const x = (rect.left + rect.width / 2) / window.innerWidth;
-        const y = (rect.top + rect.height / 2) / window.innerHeight;
-        fireConfettiBurst(x, y);
-        el.classList.add("shop-item-highlight");
-        el.addEventListener("animationend", () => el.classList.remove("shop-item-highlight"), {
-          once: true,
-        });
-      }, 400);
-    } else {
-      // Element not found — fire from center
-      fireConfettiBurst(0.5, 0.45);
+    let cancelled = false;
+    let attempts = 0;
+    const maxAttempts = 30; // 30 × 200ms = 6s max wait
+
+    function tryScrollAndConfetti() {
+      if (cancelled) return;
+      const el = document.getElementById(purchasedItem!);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        setTimeout(() => {
+          if (cancelled) return;
+          const rect = el.getBoundingClientRect();
+          const x = (rect.left + rect.width / 2) / window.innerWidth;
+          const y = (rect.top + rect.height / 2) / window.innerHeight;
+          fireConfettiBurst(x, y);
+          el.classList.add("shop-item-highlight");
+          el.addEventListener("animationend", () => el.classList.remove("shop-item-highlight"), {
+            once: true,
+          });
+        }, 500);
+        setPurchasedItem(null);
+        return;
+      }
+
+      attempts++;
+      if (attempts >= maxAttempts) {
+        // Give up finding element — fire from center
+        fireConfettiBurst(0.5, 0.45);
+        setPurchasedItem(null);
+      } else {
+        setTimeout(tryScrollAndConfetti, 200);
+      }
     }
-    setPurchasedItem(null);
-  }, [purchasedItem, loading, authLoading]);
+
+    tryScrollAndConfetti();
+    return () => {
+      cancelled = true;
+    };
+  }, [purchasedItem]);
 
   // Scroll to and highlight the target element from the URL hash
   useEffect(() => {
