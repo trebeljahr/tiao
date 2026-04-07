@@ -20,6 +20,7 @@ import { getShopCatalog, createCheckoutSession, type ShopCatalogItem } from "@/l
 import { isAdmin } from "@/lib/featureGate";
 import { toastError } from "@/lib/errors";
 import { Link } from "@/i18n/navigation";
+import confetti from "canvas-confetti";
 
 const BADGE_DESCRIPTION_KEYS: Record<string, string> = {
   supporter: "supporterDesc",
@@ -28,6 +29,73 @@ const BADGE_DESCRIPTION_KEYS: Record<string, string> = {
   "official-champion": "championDesc",
   creator: "creatorDesc",
 };
+
+const PURCHASE_CONFETTI_COLORS = [
+  "#ffd700",
+  "#ffb347",
+  "#ff6b6b",
+  "#48dbfb",
+  "#ff9ff3",
+  "#54a0ff",
+  "#5f27cd",
+  "#01a3a4",
+  "#f368e0",
+  "#ff9f43",
+];
+
+function firePurchaseConfetti(elementId: string) {
+  // Wait a tick for the catalog to re-render with "Owned" state
+  setTimeout(() => {
+    const el = document.getElementById(elementId);
+    if (!el) {
+      // Fallback: fire from center
+      confetti({
+        particleCount: 100,
+        spread: 360,
+        startVelocity: 40,
+        origin: { x: 0.5, y: 0.5 },
+        colors: PURCHASE_CONFETTI_COLORS,
+        scalar: 1.1,
+        gravity: 0.7,
+        ticks: 180,
+        shapes: ["circle", "square"],
+      });
+      return;
+    }
+
+    const rect = el.getBoundingClientRect();
+    const x = (rect.left + rect.width / 2) / window.innerWidth;
+    const y = (rect.top + rect.height / 2) / window.innerHeight;
+
+    // Burst 1: fast outward spray
+    confetti({
+      particleCount: 80,
+      spread: 360,
+      startVelocity: 30,
+      origin: { x, y },
+      colors: PURCHASE_CONFETTI_COLORS,
+      scalar: 1.0,
+      gravity: 0.8,
+      ticks: 160,
+      shapes: ["circle", "square"],
+    });
+
+    // Burst 2: slower sparkle follow-up
+    setTimeout(() => {
+      confetti({
+        particleCount: 50,
+        spread: 280,
+        startVelocity: 20,
+        origin: { x, y },
+        colors: PURCHASE_CONFETTI_COLORS,
+        scalar: 0.8,
+        gravity: 0.6,
+        ticks: 200,
+        shapes: ["circle"],
+      });
+    }, 150);
+  }, 300);
+}
 
 function formatPrice(cents: number, currency: string): string {
   return new Intl.NumberFormat("en-US", {
@@ -74,7 +142,9 @@ export function ShopPage() {
 
     if (success === "true") {
       toast.success(t("purchaseSuccess", { item: item ?? "" }));
-      void fetchCatalog();
+      void fetchCatalog().then(() => {
+        if (item) firePurchaseConfetti(item);
+      });
       window.history.replaceState({}, "", window.location.pathname);
     } else if (cancelled === "true") {
       toast(t("purchaseCancelled"));

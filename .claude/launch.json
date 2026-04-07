@@ -3,15 +3,15 @@
   "configurations": [
     {
       "name": "dev",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["scripts/dev.mjs"],
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "source ~/.nvm/nvm.sh && node scripts/dev.mjs"],
       "port": 3100,
       "autoPort": true
     },
     {
       "name": "docs",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "docs-site", "start", "--", "--port", "4100"],
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "source ~/.nvm/nvm.sh && npm --prefix docs-site start -- --port 4100"],
       "port": 4100,
       "autoPort": true
     }
