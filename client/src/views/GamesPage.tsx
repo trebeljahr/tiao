@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { RequireAccount } from "@/components/RequireAccount";
 import { useAuth } from "@/lib/AuthContext";
@@ -7,12 +7,11 @@ import { CardContent, CardDescription, CardHeader, CardTitle } from "@/component
 import { PaperCard } from "@/components/ui/paper-card";
 import { AnimatedCard } from "@/components/ui/animated-card";
 import { MatchHistoryCard } from "@/components/game/MatchHistoryCard";
-import { ActiveGameCard } from "@/components/game/ActiveGameCard";
-import { isSummaryYourTurn } from "@/components/game/GameShared";
+import { ActiveGamesList } from "@/components/game/ActiveGamesList";
 import { Navbar } from "@/components/Navbar";
+import { SkeletonCard } from "@/components/ui/skeleton";
 import { useGamesIndex } from "@/lib/hooks/useGamesIndex";
 import { useLobbyMessage } from "@/lib/LobbySocketContext";
-import { cancelMultiplayerGame, cancelRematchRequest } from "@/lib/api";
 import { useTranslations } from "next-intl";
 
 export function GamesPage() {
@@ -22,7 +21,7 @@ export function GamesPage() {
   const [navOpen, setNavOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const { multiplayerGames, refreshMultiplayerGames } = useGamesIndex(auth);
+  const { multiplayerGames, multiplayerGamesLoaded, refreshMultiplayerGames } = useGamesIndex(auth);
 
   // Real-time updates for games page
   useLobbyMessage((payload) => {
@@ -31,37 +30,9 @@ export function GamesPage() {
     }
   });
 
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [cancellingRematchId, setCancellingRematchId] = useState<string | null>(null);
-
-  const handleDeleteGame = useCallback(
-    async (gameId: string) => {
-      setDeletingId(gameId);
-      try {
-        await cancelMultiplayerGame(gameId);
-        void refreshMultiplayerGames({ silent: true });
-      } catch {
-        // best-effort
-      } finally {
-        setDeletingId(null);
-      }
-    },
-    [refreshMultiplayerGames],
-  );
-
-  const handleCancelRematch = useCallback(
-    async (gameId: string) => {
-      setCancellingRematchId(gameId);
-      try {
-        await cancelRematchRequest(gameId);
-        void refreshMultiplayerGames({ silent: true });
-      } catch {
-        // best-effort
-      } finally {
-        setCancellingRematchId(null);
-      }
-    },
-    [refreshMultiplayerGames],
+  const finishedGamesWithRematch = useMemo(
+    () => multiplayerGames.finished.filter((g) => g.rematch?.requestedBy.length && g.yourSeat),
+    [multiplayerGames.finished],
   );
 
   const handleCopy = useCallback((gameId: string) => {
@@ -92,70 +63,57 @@ export function GamesPage() {
             </div>
 
             <section className="space-y-6">
-              <AnimatedCard delay={0}>
-                <PaperCard>
-                  <CardHeader>
-                    <CardTitle>{t("activeGames")}</CardTitle>
-                    <CardDescription>{t("activeGamesDesc")}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="grid gap-3 sm:grid-cols-2">
-                    {[...multiplayerGames.active]
-                      .sort((a, b) => {
-                        const aYourTurn = isSummaryYourTurn(a) ? 1 : 0;
-                        const bYourTurn = isSummaryYourTurn(b) ? 1 : 0;
-                        if (aYourTurn !== bYourTurn) return bYourTurn - aYourTurn;
-                        const aOpponentOnline =
-                          (a.yourSeat === "white" ? a.seats.black : a.seats.white)?.online ?? false;
-                        const bOpponentOnline =
-                          (b.yourSeat === "white" ? b.seats.black : b.seats.white)?.online ?? false;
-                        if (aOpponentOnline !== bOpponentOnline) return aOpponentOnline ? -1 : 1;
-                        return 0;
-                      })
-                      .map((game) => (
-                        <ActiveGameCard
-                          key={game.gameId}
-                          game={game}
-                          onResume={() => router.push(`/game/${game.gameId}`)}
-                          onDelete={() => handleDeleteGame(game.gameId)}
-                          deleting={deletingId === game.gameId}
-                          onCancelRematch={() => handleCancelRematch(game.gameId)}
-                          cancellingRematch={cancellingRematchId === game.gameId}
+              {!multiplayerGamesLoaded ? (
+                <>
+                  <SkeletonCard rows={2} />
+                  <SkeletonCard rows={3} />
+                </>
+              ) : (
+                <>
+                  <AnimatedCard delay={0}>
+                    <PaperCard>
+                      <CardHeader>
+                        <CardTitle>{t("activeGames")}</CardTitle>
+                        <CardDescription>{t("activeGamesDesc")}</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ActiveGamesList
+                          games={multiplayerGames.active}
+                          finishedGamesWithRematch={finishedGamesWithRematch}
+                          refreshGames={refreshMultiplayerGames}
+                          gridClassName="sm:grid-cols-2"
                         />
-                      ))}
-                    {multiplayerGames.active.length === 0 && (
-                      <p className="col-span-full py-8 text-center text-sm text-[#6e5b48]">
-                        {t("noActiveGames")}
-                      </p>
-                    )}
-                  </CardContent>
-                </PaperCard>
-              </AnimatedCard>
+                      </CardContent>
+                    </PaperCard>
+                  </AnimatedCard>
 
-              <AnimatedCard delay={0.05}>
-                <PaperCard>
-                  <CardHeader>
-                    <CardTitle>{t("matchHistory")}</CardTitle>
-                    <CardDescription>{t("matchHistoryDesc")}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="grid gap-3">
-                    {multiplayerGames.finished.map((game) => (
-                      <MatchHistoryCard
-                        key={game.gameId}
-                        game={game}
-                        playerId={auth!.player.playerId}
-                        copiedId={copiedId}
-                        onCopy={() => handleCopy(game.gameId)}
-                        onReview={() => router.push(`/game/${game.gameId}`)}
-                      />
-                    ))}
-                    {multiplayerGames.finished.length === 0 && (
-                      <p className="col-span-full py-8 text-center text-sm text-[#6e5b48]">
-                        {t("noMatchHistory")}
-                      </p>
-                    )}
-                  </CardContent>
-                </PaperCard>
-              </AnimatedCard>
+                  <AnimatedCard delay={0.05}>
+                    <PaperCard>
+                      <CardHeader>
+                        <CardTitle>{t("matchHistory")}</CardTitle>
+                        <CardDescription>{t("matchHistoryDesc")}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="grid gap-3">
+                        {multiplayerGames.finished.map((game) => (
+                          <MatchHistoryCard
+                            key={game.gameId}
+                            game={game}
+                            playerId={auth!.player.playerId}
+                            copiedId={copiedId}
+                            onCopy={() => handleCopy(game.gameId)}
+                            onReview={() => router.push(`/game/${game.gameId}`)}
+                          />
+                        ))}
+                        {multiplayerGames.finished.length === 0 && (
+                          <p className="col-span-full py-8 text-center text-sm text-[#6e5b48]">
+                            {t("noMatchHistory")}
+                          </p>
+                        )}
+                      </CardContent>
+                    </PaperCard>
+                  </AnimatedCard>
+                </>
+              )}
             </section>
           </main>
         </div>

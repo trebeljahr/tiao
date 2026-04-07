@@ -144,6 +144,7 @@ describe("LobbyPage", () => {
         active: options?.active ?? [],
         finished: options?.finished ?? [],
       },
+      multiplayerGamesLoaded: true,
       refreshMultiplayerGames: vi.fn(),
     });
 

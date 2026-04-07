@@ -13,11 +13,11 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog } from "@/components/ui/dialog";
 import { Navbar } from "@/components/Navbar";
-import { isSummaryYourTurn, translatePlayerColor, ColorDot } from "@/components/game/GameShared";
+import { translatePlayerColor, ColorDot } from "@/components/game/GameShared";
 import { GameConfigBadge } from "@/components/game/GameConfigBadge";
 import { GameConfigDialog } from "@/components/game/GameConfigDialog";
 import { useGameConfig } from "@/lib/hooks/useGameConfig";
-import { ActiveGameCard } from "@/components/game/ActiveGameCard";
+import { ActiveGamesList } from "@/components/game/ActiveGamesList";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { useGamesIndex } from "@/lib/hooks/useGamesIndex";
 import { useSocialData } from "@/lib/hooks/useSocialData";
@@ -25,12 +25,7 @@ import { useTournamentList } from "@/lib/hooks/useTournamentList";
 import { useLobbyMessage } from "@/lib/LobbySocketContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import {
-  createMultiplayerGame,
-  joinMultiplayerGame,
-  cancelMultiplayerGame,
-  cancelRematchRequest,
-} from "@/lib/api";
+import { createMultiplayerGame, joinMultiplayerGame } from "@/lib/api";
 import { toastError } from "@/lib/errors";
 import { SkeletonCard } from "@/components/ui/skeleton";
 
@@ -43,7 +38,7 @@ export function LobbyPage() {
   const tConfig = useTranslations("config");
   const tGame = useTranslations("game");
   const tNav = useTranslations("nav");
-  const { multiplayerGames, refreshMultiplayerGames } = useGamesIndex(auth);
+  const { multiplayerGames, multiplayerGamesLoaded, refreshMultiplayerGames } = useGamesIndex(auth);
 
   const { socialOverview, refreshSocialOverview, handleDeclineGameInvitation } = useSocialData(
     auth,
@@ -51,7 +46,7 @@ export function LobbyPage() {
   );
 
   const tTournament = useTranslations("tournament");
-  const { publicTournaments, myTournaments } = useTournamentList(auth);
+  const { publicTournaments, myTournaments, loading: tournamentsLoading } = useTournamentList(auth);
   const lobbyTournaments = useMemo(() => {
     // Merge and deduplicate, preferring "my" entries
     const myIds = new Set(myTournaments.map((t) => t.tournamentId));
@@ -108,7 +103,6 @@ export function LobbyPage() {
   });
 
   const [navOpen, setNavOpen] = useState(false);
-  const [cancellingRematchId, setCancellingRematchId] = useState<string | null>(null);
   const [joinGameId, setJoinGameId] = useState("");
   const [multiplayerBusy, setMultiplayerBusy] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -125,21 +119,6 @@ export function LobbyPage() {
   const rematchGames = useMemo(() => {
     return finishedGames.filter((g) => g.rematch?.requestedBy.length && g.yourSeat);
   }, [finishedGames]);
-  const sortedActiveGames = useMemo(() => {
-    const combined = [...activeGames, ...rematchGames];
-    return combined.sort((a, b) => {
-      // Rematch requests at the top
-      const aRematch = a.status === "finished" && !!a.rematch?.requestedBy.length;
-      const bRematch = b.status === "finished" && !!b.rematch?.requestedBy.length;
-      if (aRematch && !bRematch) return -1;
-      if (!aRematch && bRematch) return 1;
-      const aYourTurn = isSummaryYourTurn(a);
-      const bYourTurn = isSummaryYourTurn(b);
-      if (aYourTurn && !bYourTurn) return -1;
-      if (!aYourTurn && bYourTurn) return 1;
-      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-    });
-  }, [activeGames, rematchGames]);
 
   const GUEST_GAME_LIMIT = 10;
   const guestGameCount = multiplayerGames.active.length + multiplayerGames.finished.length;
@@ -457,7 +436,7 @@ export function LobbyPage() {
 
         {(auth || authLoading) && (
           <section className="grid grid-cols-1 gap-6 md:mt-8 md:grid-cols-2">
-            {authLoading ? (
+            {authLoading || !multiplayerGamesLoaded ? (
               <>
                 <SkeletonCard />
                 <SkeletonCard />
@@ -478,40 +457,14 @@ export function LobbyPage() {
                       </Button>
                     </CardHeader>
                     <CardContent className="space-y-3 pt-6">
-                      {sortedActiveGames.slice(0, 3).map((game) => (
-                        <ActiveGameCard
-                          key={game.gameId}
-                          game={game}
-                          data-testid={`lobby-game-${game.gameId}`}
-                          onResume={() => router.push(`/game/${game.gameId}`)}
-                          onDelete={async () => {
-                            try {
-                              await cancelMultiplayerGame(game.gameId);
-                              toast.success(t("gameDeleted"));
-                              void refreshMultiplayerGames({ silent: true });
-                            } catch (err) {
-                              toastError(err);
-                            }
-                          }}
-                          onCancelRematch={async () => {
-                            setCancellingRematchId(game.gameId);
-                            try {
-                              await cancelRematchRequest(game.gameId);
-                              void refreshMultiplayerGames({ silent: true });
-                            } catch (err) {
-                              toastError(err);
-                            } finally {
-                              setCancellingRematchId(null);
-                            }
-                          }}
-                          cancellingRematch={cancellingRematchId === game.gameId}
-                        />
-                      ))}
-                      {sortedActiveGames.length === 0 && (
-                        <p className="text-center text-sm text-[#6e5b48] py-8 bg-white/20 rounded-2xl border border-dashed border-[#dcc7a2]">
-                          {t("noActiveGames")}
-                        </p>
-                      )}
+                      <ActiveGamesList
+                        games={activeGames}
+                        finishedGamesWithRematch={rematchGames}
+                        refreshGames={refreshMultiplayerGames}
+                        limit={3}
+                        data-testid-prefix="lobby-game-"
+                        emptyClassName="bg-white/20 rounded-2xl border border-dashed border-[#dcc7a2]"
+                      />
                     </CardContent>
                   </PaperCard>
                 </AnimatedCard>
@@ -649,7 +602,7 @@ export function LobbyPage() {
           </AnimatedCard>
 
           {(auth || authLoading) &&
-            (authLoading ? (
+            (authLoading || tournamentsLoading ? (
               <SkeletonCard />
             ) : (
               <AnimatedCard delay={0.25} className="flex flex-col">
