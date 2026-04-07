@@ -7,7 +7,8 @@ import { toast } from "sonner";
 import type { PlayerColor, Position } from "@shared";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PaperCard } from "@/components/ui/paper-card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog } from "@/components/ui/dialog";
 import { Navbar } from "@/components/Navbar";
@@ -867,9 +868,6 @@ export function MultiplayerGamePage() {
     setMultiplayerSelection(null);
   };
 
-  const paperCard =
-    "border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]";
-
   const boardWrapStyle = {
     aspectRatio: "1/1",
   };
@@ -947,9 +945,8 @@ export function MultiplayerGamePage() {
 
           <div className="mx-auto w-full max-w-[calc(100svh-8rem)] space-y-4 xl:mx-0 xl:w-auto xl:min-w-88 xl:max-w-120">
             <div className="mx-auto w-full xl:mx-0">
-              <Card
+              <PaperCard
                 className={cn(
-                  paperCard,
                   multiplayerYourTurn &&
                     "border-[#b7cb8d] bg-[linear-gradient(180deg,rgba(251,255,243,0.98),rgba(240,248,224,0.96))]",
                 )}
@@ -1522,7 +1519,7 @@ export function MultiplayerGamePage() {
                     </div>
                   ) : null}
                 </CardContent>
-              </Card>
+              </PaperCard>
             </div>
           </div>
         </section>

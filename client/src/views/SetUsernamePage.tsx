@@ -2,7 +2,8 @@
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { PaperCard } from "@/components/ui/paper-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { setUsername, uploadAccountProfilePicture } from "@/lib/api";
@@ -113,9 +114,6 @@ export function SetUsernamePage() {
     }
   }
 
-  const paperCard =
-    "border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]";
-
   return (
     <div className="relative min-h-screen overflow-hidden">
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(circle_at_top,rgba(255,247,231,0.76),transparent_58%)]" />
@@ -125,7 +123,7 @@ export function SetUsernamePage() {
           跳
         </div>
 
-        <Card className={paperCard + " w-full"}>
+        <PaperCard className="w-full">
           <CardContent className="flex flex-col gap-5 pt-8 pb-8">
             {ssoProfilePicture && (
               <div className="mx-auto h-20 w-20 overflow-hidden rounded-2xl border-2 border-[#d4bd94] shadow-[0_12px_30px_-18px_rgba(58,35,16,0.6)]">
@@ -224,7 +222,7 @@ export function SetUsernamePage() {
               </Button>
             </form>
           </CardContent>
-        </Card>
+        </PaperCard>
       </main>
     </div>
   );

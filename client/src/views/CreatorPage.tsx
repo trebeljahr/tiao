@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/lib/AuthContext";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { PaperCard } from "@/components/ui/paper-card";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
 import { getPublicProfile } from "@/lib/api";
@@ -65,9 +66,6 @@ export function CreatorPage({
       });
   }, [playerId, fallbackUsername]);
 
-  const paperCard =
-    "border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]";
-
   return (
     <div className="relative min-h-screen overflow-hidden">
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(circle_at_top,rgba(255,247,231,0.76),transparent_58%)]" />
@@ -87,7 +85,7 @@ export function CreatorPage({
           &larr; {tCommon("back")}
         </Button>
 
-        <Card className={paperCard + " w-full"}>
+        <PaperCard className="w-full">
           <CardContent className="flex flex-col items-center gap-6 pt-8 pb-8">
             <img
               src={image}
@@ -147,7 +145,7 @@ export function CreatorPage({
               </div>
             )}
           </CardContent>
-        </Card>
+        </PaperCard>
       </main>
     </div>
   );

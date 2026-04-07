@@ -7,10 +7,11 @@ import {
   SocialSearchRelationship,
   SocialSearchResult,
 } from "../../shared/src";
-import { classifyMongoError } from "../error-handling";
 import { fetchSsoProfilePictures } from "../auth/ssoProfilePicture";
-import { GameServiceError, gameService } from "../game/gameService";
-import { getPlayerFromRequest } from "../auth/sessionHelper";
+import { gameService } from "../game/gameService";
+import { getPlayerFromRequest, requireAccount } from "../auth/sessionHelper";
+import { handleRouteError } from "../error-handling/routeError";
+import { escapeRegExp } from "../error-handling/escapeRegExp";
 import GameAccount, { IGameAccount } from "../models/GameAccount";
 import GameInvitation from "../models/GameInvitation";
 import GameRoom from "../models/GameRoom";
@@ -21,6 +22,15 @@ const router = express.Router();
 function isDatabaseReady(): boolean {
   return mongoose.connection.readyState === 1;
 }
+
+router.use((req, res, next) => {
+  if (!isDatabaseReady()) {
+    return res.status(503).json({
+      message: "Account social features are unavailable right now. You can still play as a guest.",
+    });
+  }
+  next();
+});
 
 function containsAccountId(
   accountIds: ReadonlyArray<{ toString(): string }>,
@@ -76,10 +86,6 @@ function applySsoFallback(
   });
 }
 
-function escapeRegExp(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 async function expireStaleInvitations() {
   await GameInvitation.updateMany(
     {
@@ -94,40 +100,6 @@ async function expireStaleInvitations() {
       },
     },
   );
-}
-
-async function requireAccount(req: Request, res: Response) {
-  if (!isDatabaseReady()) {
-    res.status(503).json({
-      message: "Account social features are unavailable right now. You can still play as a guest.",
-    });
-    return null;
-  }
-
-  const player = await getPlayerFromRequest(req);
-  if (!player) {
-    res.status(401).json({
-      message: "Not authenticated.",
-    });
-    return null;
-  }
-
-  if (player.kind !== "account") {
-    res.status(403).json({
-      message: "Sign in with an account to use friends and invitations.",
-    });
-    return null;
-  }
-
-  const account = await GameAccount.findById(player.playerId);
-  if (!account) {
-    res.status(404).json({
-      message: "That account could not be found.",
-    });
-    return null;
-  }
-
-  return account;
 }
 
 function getSearchRelationship(account: IGameAccount, targetId: string): SocialSearchRelationship {
@@ -249,30 +221,6 @@ async function loadInvitationSummaries(
   });
 }
 
-function handleRouteError(error: unknown, req: Request, res: Response, fallbackMessage: string) {
-  if (error instanceof GameServiceError) {
-    return res.status(error.status).json({
-      code: error.code,
-      message: error.message,
-    });
-  }
-
-  const mongoError = classifyMongoError(error);
-  if (mongoError) {
-    console.warn(`[${req.method} ${req.path}] MongoDB ${mongoError.code}:`, error);
-    return res.status(mongoError.status).json({
-      code: mongoError.code,
-      message: mongoError.message,
-    });
-  }
-
-  console.error(`[${req.method} ${req.path}] Unhandled error:`, error);
-  return res.status(500).json({
-    code: "INTERNAL_ERROR",
-    message: fallbackMessage,
-  });
-}
-
 export async function notifyLobbyUpdate(playerId: string) {
   const account = await GameAccount.findById(playerId);
   if (!account) return;
@@ -386,7 +334,7 @@ router.get("/player/social/overview", async (req: Request, res: Response) => {
 
     return res.status(200).json({ overview });
   } catch (error) {
-    return handleRouteError(error, req, res, "Unable to load social overview right now.");
+    return handleRouteError(res, error, "Unable to load social overview right now.", req);
   }
 });
 
@@ -498,7 +446,7 @@ router.get("/player/social/search", userSearchRateLimiter, async (req: Request, 
 
     return res.status(200).json({ results });
   } catch (error) {
-    return handleRouteError(error, req, res, "Unable to search for players right now.");
+    return handleRouteError(res, error, "Unable to search for players right now.", req);
   }
 });
 
@@ -598,7 +546,7 @@ router.post("/player/social/friend-requests", async (req: Request, res: Response
       message: "Friend request sent.",
     });
   } catch (error) {
-    return handleRouteError(error, req, res, "Unable to send friend request right now.");
+    return handleRouteError(res, error, "Unable to send friend request right now.", req);
   }
 });
 
@@ -686,7 +634,7 @@ router.post(
         message: "Friend request accepted.",
       });
     } catch (error) {
-      return handleRouteError(error, req, res, "Unable to accept friend request right now.");
+      return handleRouteError(res, error, "Unable to accept friend request right now.", req);
     }
   },
 );
@@ -767,7 +715,7 @@ router.post(
         message: "Friend request declined.",
       });
     } catch (error) {
-      return handleRouteError(error, req, res, "Unable to decline friend request right now.");
+      return handleRouteError(res, error, "Unable to decline friend request right now.", req);
     }
   },
 );
@@ -848,7 +796,7 @@ router.post(
         message: "Friend request cancelled.",
       });
     } catch (error) {
-      return handleRouteError(error, req, res, "Unable to cancel friend request right now.");
+      return handleRouteError(res, error, "Unable to cancel friend request right now.", req);
     }
   },
 );
@@ -1000,7 +948,7 @@ router.post("/player/social/game-invitations", async (req: Request, res: Respons
       message: "Invitation sent.",
     });
   } catch (error) {
-    return handleRouteError(error, req, res, "Unable to create that invitation right now.");
+    return handleRouteError(res, error, "Unable to create that invitation right now.", req);
   }
 });
 
@@ -1070,7 +1018,7 @@ router.post(
         message: "Invitation revoked.",
       });
     } catch (error) {
-      return handleRouteError(error, req, res, "Unable to revoke invitation right now.");
+      return handleRouteError(res, error, "Unable to revoke invitation right now.", req);
     }
   },
 );
@@ -1113,7 +1061,7 @@ router.post(
         message: "Invitation declined.",
       });
     } catch (error) {
-      return handleRouteError(error, req, res, "Unable to decline invitation right now.");
+      return handleRouteError(res, error, "Unable to decline invitation right now.", req);
     }
   },
 );
@@ -1139,7 +1087,7 @@ router.get("/player/social/friends/:friendId/active-games", async (req: Request,
     const games = await gameService.listActiveGamesForPlayer(friendId);
     return res.status(200).json({ games });
   } catch (error) {
-    return handleRouteError(error, req, res, "Unable to load active games right now.");
+    return handleRouteError(res, error, "Unable to load active games right now.", req);
   }
 });
 
@@ -1182,7 +1130,7 @@ router.post("/player/social/friends/:accountId/remove", async (req: Request, res
       message: "Friend removed.",
     });
   } catch (error) {
-    return handleRouteError(error, req, res, "Unable to remove friend right now.");
+    return handleRouteError(res, error, "Unable to remove friend right now.", req);
   }
 });
 

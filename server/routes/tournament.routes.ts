@@ -1,8 +1,7 @@
 import express, { Request, Response } from "express";
-import { GameServiceError } from "../game/gameService";
 import { tournamentService } from "../game/tournamentService";
 import { getPlayerFromRequest } from "../auth/sessionHelper";
-import { classifyMongoError } from "../error-handling";
+import { handleRouteError } from "../error-handling/routeError";
 import type { TournamentSettings, TournamentStatus } from "../../shared/src";
 
 const router = express.Router();
@@ -20,18 +19,21 @@ async function getAccountPlayer(req: Request, res: Response) {
   return player;
 }
 
-function respondWithError(res: Response, error: unknown, fallback: string) {
-  if (error instanceof GameServiceError) {
-    return res.status(error.status).json({ code: error.code, message: error.message });
-  }
-  const mongoError = classifyMongoError(error);
-  if (mongoError) {
-    return res
-      .status(mongoError.status)
-      .json({ code: mongoError.code, message: mongoError.message });
-  }
-  console.error("[tournament-routes] Unhandled error:", error);
-  return res.status(500).json({ code: "INTERNAL_ERROR", message: fallback });
+function tournamentAction(
+  action: (tournamentId: string, playerId: string) => Promise<unknown>,
+  errorMsg: string,
+) {
+  return async (req: Request, res: Response) => {
+    const player = await getAccountPlayer(req, res);
+    if (!player) return;
+    try {
+      await action(req.params.id as string, player.playerId);
+      const snapshot = await tournamentService.getTournamentSnapshot(req.params.id as string);
+      return res.status(200).json({ tournament: snapshot });
+    } catch (error) {
+      return handleRouteError(res, error, errorMsg, req);
+    }
+  };
 }
 
 // GET /tournaments — list public tournaments
@@ -41,7 +43,7 @@ router.get("/tournaments", async (req: Request, res: Response) => {
     const tournaments = await tournamentService.listPublicTournaments(status);
     return res.status(200).json({ tournaments });
   } catch (error) {
-    return respondWithError(res, error, "Unable to list tournaments.");
+    return handleRouteError(res, error, "Unable to list tournaments.", req);
   }
 });
 
@@ -54,7 +56,7 @@ router.get("/tournaments/my", async (req: Request, res: Response) => {
     const tournaments = await tournamentService.listMyTournaments(player.playerId);
     return res.status(200).json({ tournaments });
   } catch (error) {
-    return respondWithError(res, error, "Unable to list your tournaments.");
+    return handleRouteError(res, error, "Unable to list your tournaments.", req);
   }
 });
 
@@ -91,7 +93,7 @@ router.post("/tournaments", async (req: Request, res: Response) => {
     );
     return res.status(201).json({ tournament: tournamentToSnapshot(tournament) });
   } catch (error) {
-    return respondWithError(res, error, "Unable to create tournament.");
+    return handleRouteError(res, error, "Unable to create tournament.", req);
   }
 });
 
@@ -105,7 +107,7 @@ router.get("/tournaments/:id", async (req: Request, res: Response) => {
     );
     return res.status(200).json({ tournament: snapshot });
   } catch (error) {
-    return respondWithError(res, error, "Unable to load tournament.");
+    return handleRouteError(res, error, "Unable to load tournament.", req);
   }
 });
 
@@ -129,7 +131,7 @@ router.post("/tournaments/:id/access", async (req: Request, res: Response) => {
     );
     return res.status(200).json({ tournament: snapshot });
   } catch (error) {
-    return respondWithError(res, error, "Unable to access tournament.");
+    return handleRouteError(res, error, "Unable to access tournament.", req);
   }
 });
 
@@ -144,51 +146,36 @@ router.post("/tournaments/:id/register", async (req: Request, res: Response) => 
     const snapshot = await tournamentService.getTournamentSnapshot(req.params.id as string);
     return res.status(200).json({ tournament: snapshot });
   } catch (error) {
-    return respondWithError(res, error, "Unable to register for tournament.");
+    return handleRouteError(res, error, "Unable to register for tournament.", req);
   }
 });
 
 // POST /tournaments/:id/unregister — unregister
-router.post("/tournaments/:id/unregister", async (req: Request, res: Response) => {
-  const player = await getAccountPlayer(req, res);
-  if (!player) return;
-
-  try {
-    await tournamentService.unregisterPlayer(req.params.id as string, player.playerId);
-    const snapshot = await tournamentService.getTournamentSnapshot(req.params.id as string);
-    return res.status(200).json({ tournament: snapshot });
-  } catch (error) {
-    return respondWithError(res, error, "Unable to unregister from tournament.");
-  }
-});
+router.post(
+  "/tournaments/:id/unregister",
+  tournamentAction(
+    (id, playerId) => tournamentService.unregisterPlayer(id, playerId),
+    "Unable to unregister from tournament.",
+  ),
+);
 
 // POST /tournaments/:id/start — start tournament (admin)
-router.post("/tournaments/:id/start", async (req: Request, res: Response) => {
-  const player = await getAccountPlayer(req, res);
-  if (!player) return;
-
-  try {
-    await tournamentService.startTournament(req.params.id as string, player.playerId);
-    const snapshot = await tournamentService.getTournamentSnapshot(req.params.id as string);
-    return res.status(200).json({ tournament: snapshot });
-  } catch (error) {
-    return respondWithError(res, error, "Unable to start tournament.");
-  }
-});
+router.post(
+  "/tournaments/:id/start",
+  tournamentAction(
+    (id, playerId) => tournamentService.startTournament(id, playerId),
+    "Unable to start tournament.",
+  ),
+);
 
 // POST /tournaments/:id/cancel — cancel tournament (admin)
-router.post("/tournaments/:id/cancel", async (req: Request, res: Response) => {
-  const player = await getAccountPlayer(req, res);
-  if (!player) return;
-
-  try {
-    await tournamentService.cancelTournament(req.params.id as string, player.playerId);
-    const snapshot = await tournamentService.getTournamentSnapshot(req.params.id as string);
-    return res.status(200).json({ tournament: snapshot });
-  } catch (error) {
-    return respondWithError(res, error, "Unable to cancel tournament.");
-  }
-});
+router.post(
+  "/tournaments/:id/cancel",
+  tournamentAction(
+    (id, playerId) => tournamentService.cancelTournament(id, playerId),
+    "Unable to cancel tournament.",
+  ),
+);
 
 // PUT /tournaments/:id/seeding — update seeds (admin)
 router.put("/tournaments/:id/seeding", async (req: Request, res: Response) => {
@@ -207,23 +194,18 @@ router.put("/tournaments/:id/seeding", async (req: Request, res: Response) => {
     const snapshot = await tournamentService.getTournamentSnapshot(req.params.id as string);
     return res.status(200).json({ tournament: snapshot });
   } catch (error) {
-    return respondWithError(res, error, "Unable to update seeding.");
+    return handleRouteError(res, error, "Unable to update seeding.", req);
   }
 });
 
 // POST /tournaments/:id/seeding/randomize — randomize seeds (admin)
-router.post("/tournaments/:id/seeding/randomize", async (req: Request, res: Response) => {
-  const player = await getAccountPlayer(req, res);
-  if (!player) return;
-
-  try {
-    await tournamentService.randomizeSeeding(req.params.id as string, player.playerId);
-    const snapshot = await tournamentService.getTournamentSnapshot(req.params.id as string);
-    return res.status(200).json({ tournament: snapshot });
-  } catch (error) {
-    return respondWithError(res, error, "Unable to randomize seeding.");
-  }
-});
+router.post(
+  "/tournaments/:id/seeding/randomize",
+  tournamentAction(
+    (id, playerId) => tournamentService.randomizeSeeding(id, playerId),
+    "Unable to randomize seeding.",
+  ),
+);
 
 // PUT /tournaments/:id/featured-match — set featured match (admin)
 router.put("/tournaments/:id/featured-match", async (req: Request, res: Response) => {
@@ -236,7 +218,7 @@ router.put("/tournaments/:id/featured-match", async (req: Request, res: Response
     const snapshot = await tournamentService.getTournamentSnapshot(req.params.id as string);
     return res.status(200).json({ tournament: snapshot });
   } catch (error) {
-    return respondWithError(res, error, "Unable to set featured match.");
+    return handleRouteError(res, error, "Unable to set featured match.", req);
   }
 });
 
@@ -260,7 +242,7 @@ router.post("/tournaments/:id/matches/:matchId/forfeit", async (req: Request, re
     const snapshot = await tournamentService.getTournamentSnapshot(req.params.id as string);
     return res.status(200).json({ tournament: snapshot });
   } catch (error) {
-    return respondWithError(res, error, "Unable to forfeit match.");
+    return handleRouteError(res, error, "Unable to forfeit match.", req);
   }
 });
 

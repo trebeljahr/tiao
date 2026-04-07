@@ -5,7 +5,8 @@ import { RequireAccount } from "@/components/RequireAccount";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PaperCard } from "@/components/ui/paper-card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog } from "@/components/ui/dialog";
@@ -85,9 +86,6 @@ export function FriendsPage() {
     }
   });
 
-  const paperCard =
-    "border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]";
-
   return (
     <RequireAccount>
       {() => (
@@ -106,7 +104,7 @@ export function FriendsPage() {
 
           <main className="mx-auto flex max-w-5xl flex-col gap-5 px-4 pb-5 pt-20 sm:px-6 lg:px-8 lg:pb-6 lg:pt-20">
             <div className="grid gap-5 lg:grid-cols-[1fr_1.5fr]">
-              <Card className={paperCard}>
+              <PaperCard>
                 <CardHeader>
                   <CardTitle>{t("findPlayers")}</CardTitle>
                   <CardDescription>{t("findPlayersDesc")}</CardDescription>
@@ -155,10 +153,10 @@ export function FriendsPage() {
                     ))}
                   </div>
                 </CardContent>
-              </Card>
+              </PaperCard>
 
               <div className="space-y-5">
-                <Card className={paperCard}>
+                <PaperCard>
                   <CardHeader>
                     <CardTitle>{t("pending")}</CardTitle>
                   </CardHeader>
@@ -231,9 +229,9 @@ export function FriendsPage() {
                       )}
                     </div>
                   </CardContent>
-                </Card>
+                </PaperCard>
 
-                <Card className={paperCard}>
+                <PaperCard>
                   <CardHeader>
                     <CardTitle>{t("friends")}</CardTitle>
                   </CardHeader>
@@ -280,7 +278,7 @@ export function FriendsPage() {
                       <p className="text-sm text-[#6e5b48]">{t("emptyFriendList")}</p>
                     )}
                   </CardContent>
-                </Card>
+                </PaperCard>
               </div>
             </div>
           </main>

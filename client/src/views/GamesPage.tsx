@@ -3,7 +3,8 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { RequireAccount } from "@/components/RequireAccount";
 import { useAuth } from "@/lib/AuthContext";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PaperCard } from "@/components/ui/paper-card";
 import { MatchHistoryCard } from "@/components/game/MatchHistoryCard";
 import { ActiveGameCard } from "@/components/game/ActiveGameCard";
 import { isSummaryYourTurn } from "@/components/game/GameShared";
@@ -68,9 +69,6 @@ export function GamesPage() {
     setTimeout(() => setCopiedId((prev) => (prev === gameId ? null : prev)), 1800);
   }, []);
 
-  const paperCard =
-    "border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]";
-
   return (
     <RequireAccount>
       {() => (
@@ -93,7 +91,7 @@ export function GamesPage() {
             </div>
 
             <section className="space-y-6">
-              <Card className={paperCard}>
+              <PaperCard>
                 <CardHeader>
                   <CardTitle>{t("activeGames")}</CardTitle>
                   <CardDescription>{t("activeGamesDesc")}</CardDescription>
@@ -128,9 +126,9 @@ export function GamesPage() {
                     </p>
                   )}
                 </CardContent>
-              </Card>
+              </PaperCard>
 
-              <Card className={paperCard}>
+              <PaperCard>
                 <CardHeader>
                   <CardTitle>{t("matchHistory")}</CardTitle>
                   <CardDescription>{t("matchHistoryDesc")}</CardDescription>
@@ -152,7 +150,7 @@ export function GamesPage() {
                     </p>
                   )}
                 </CardContent>
-              </Card>
+              </PaperCard>
             </section>
           </main>
         </div>

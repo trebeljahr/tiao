@@ -3,7 +3,8 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/lib/AuthContext";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { PaperCard } from "@/components/ui/paper-card";
 import { Button } from "@/components/ui/button";
 import { getPublicProfile, getPlayerMatchHistory, type PublicProfile } from "@/lib/api";
 import type { MultiplayerGameSummary } from "@shared";
@@ -100,9 +101,6 @@ export function PublicProfilePage() {
     setTimeout(() => setCopiedId((prev) => (prev === gameId ? null : prev)), 1800);
   };
 
-  const paperCard =
-    "border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]";
-
   const allBadges = (profile?.badges ?? []).filter((id) => BADGE_DEFINITIONS[id as BadgeId]);
 
   const memberDays = profile?.createdAt
@@ -129,28 +127,28 @@ export function PublicProfilePage() {
         </Button>
 
         {loading && (
-          <Card className={paperCard + " w-full"}>
+          <PaperCard className="w-full">
             <CardContent className="flex items-center justify-center py-16">
               <p className="text-sm text-[#8d7760]">{t("loadingProfile")}</p>
             </CardContent>
-          </Card>
+          </PaperCard>
         )}
 
         {error && (
-          <Card className={paperCard + " w-full"}>
+          <PaperCard className="w-full">
             <CardContent className="flex flex-col items-center gap-4 py-16">
               <p className="text-sm text-[#8d7760]">{t("playerNotFound")}</p>
               <Button variant="secondary" onClick={() => router.push("/")}>
                 {tCommon("backToLobby")}
               </Button>
             </CardContent>
-          </Card>
+          </PaperCard>
         )}
 
         {profile && (
           <>
             {/* Header card with avatar, name, badge, rating */}
-            <Card className={paperCard + " w-full"}>
+            <PaperCard className="w-full">
               <CardContent className="flex flex-col items-center gap-6 pt-8 pb-8">
                 <div className="text-center">
                   {isOwnProfile && (
@@ -261,11 +259,11 @@ export function PublicProfilePage() {
                   )}
                 </div>
               </CardContent>
-            </Card>
+            </PaperCard>
 
             {/* Stats card */}
             {(profile.gamesPlayed ?? 0) > 0 && (
-              <Card className={paperCard + " w-full"}>
+              <PaperCard className="w-full">
                 <CardContent className="py-6">
                   <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[#8d7760]">
                     {t("stats")}
@@ -321,12 +319,12 @@ export function PublicProfilePage() {
                     </div>
                   )}
                 </CardContent>
-              </Card>
+              </PaperCard>
             )}
 
             {/* Badges card */}
             {allBadges.length > 0 && (
-              <Card className={paperCard + " w-full"}>
+              <PaperCard className="w-full">
                 <CardContent className="py-6">
                   <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[#8d7760]">
                     {t("badges")}
@@ -337,12 +335,12 @@ export function PublicProfilePage() {
                     ))}
                   </div>
                 </CardContent>
-              </Card>
+              </PaperCard>
             )}
 
             {/* Match history */}
             {matchHistory.length > 0 && (matchPlayerId || auth?.player.playerId) && (
-              <Card className={paperCard + " w-full"}>
+              <PaperCard className="w-full">
                 <CardContent className="py-6">
                   <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[#8d7760]">
                     {t("matchHistory")}
@@ -373,7 +371,7 @@ export function PublicProfilePage() {
                     </div>
                   )}
                 </CardContent>
-              </Card>
+              </PaperCard>
             )}
           </>
         )}

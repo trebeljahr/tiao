@@ -1,7 +1,8 @@
 import type { GameState, PlayerColor, TimeControl } from "@shared";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PaperCard } from "@/components/ui/paper-card";
 import { Badge } from "@/components/ui/badge";
 import { GamePanelBrand, AnimatedScoreTile, type AnimatedScoreTilePlayerInfo } from "./GameShared";
 import { formatClockTime } from "./GameClock";
@@ -36,9 +37,6 @@ type GameSidePanelProps = {
   headerExtra?: React.ReactNode;
 };
 
-const paperCard =
-  "border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]";
-
 function formatBadgeTimeControl(tc: TimeControl): string {
   if (!tc) return "";
   const mins = Math.floor(tc.initialMs / 60_000);
@@ -72,9 +70,8 @@ export function GameSidePanel({
   return (
     <div className="mx-auto w-full max-w-[calc(100dvh-5rem)] space-y-4 xl:mx-0 xl:w-auto xl:min-w-[20rem] xl:max-w-md">
       <div className="mx-auto w-full xl:mx-0">
-        <Card
+        <PaperCard
           className={cn(
-            paperCard,
             yourTurnHighlight &&
               "border-[#b7cb8d] bg-[linear-gradient(180deg,rgba(251,255,243,0.98),rgba(240,248,224,0.96))]",
           )}
@@ -130,7 +127,7 @@ export function GameSidePanel({
               <div className="grid gap-2 border-t border-[#dbc6a2] pt-4">{gameOverActions}</div>
             )}
           </CardContent>
-        </Card>
+        </PaperCard>
       </div>
     </div>
   );

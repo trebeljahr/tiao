@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import mongoose from "mongoose";
-import { classifyMongoError } from "../error-handling";
-import { gameService, GameServiceError } from "../game/gameService";
+import { handleRouteError } from "../error-handling/routeError";
+import { gameService } from "../game/gameService";
 import { getPlayerFromRequest } from "../auth/sessionHelper";
 import { applySsoProfilePicturesToSummaries } from "../auth/ssoProfilePicture";
 import GameInvitation from "../models/GameInvitation";
@@ -66,30 +66,6 @@ const GAME_ID_PATTERN = /^[A-Z2-9]{6}$/;
 
 function isValidGameId(gameId: string): boolean {
   return GAME_ID_PATTERN.test(gameId.trim().toUpperCase());
-}
-
-function respondWithGameServiceError(res: Response, error: unknown, fallbackMessage: string) {
-  if (error instanceof GameServiceError) {
-    return res.status(error.status).json({
-      code: error.code,
-      message: error.message,
-    });
-  }
-
-  const mongoError = classifyMongoError(error);
-  if (mongoError) {
-    console.warn(`[game-routes] MongoDB ${mongoError.code}:`, error);
-    return res.status(mongoError.status).json({
-      code: mongoError.code,
-      message: mongoError.message,
-    });
-  }
-
-  console.error("[game-routes] Unhandled error:", error);
-  return res.status(500).json({
-    code: "INTERNAL_ERROR",
-    message: fallbackMessage,
-  });
 }
 
 async function acceptPendingInvitationsForPlayer(gameId: string, playerId: string) {
@@ -196,11 +172,7 @@ router.get("/games", async (req: Request, res: Response) => {
     await applySsoProfilePicturesToSummaries([...games.active, ...games.finished]);
     return res.status(200).json({ games });
   } catch (error) {
-    return respondWithGameServiceError(
-      res,
-      error,
-      "Unable to load your multiplayer games right now.",
-    );
+    return handleRouteError(res, error, "Unable to load your multiplayer games right now.", req);
   }
 });
 
@@ -260,11 +232,7 @@ router.post("/games", async (req: Request, res: Response) => {
     });
     return res.status(201).json({ snapshot });
   } catch (error) {
-    return respondWithGameServiceError(
-      res,
-      error,
-      "Unable to create a multiplayer game right now.",
-    );
+    return handleRouteError(res, error, "Unable to create a multiplayer game right now.", req);
   }
 });
 
@@ -280,7 +248,7 @@ router.delete("/games/:gameId", async (req: Request, res: Response) => {
     await gameService.cancelWaitingRoom(gameId, player);
     return res.status(200).json({ message: "Game cancelled." });
   } catch (error) {
-    return respondWithGameServiceError(res, error, "Unable to cancel that game.");
+    return handleRouteError(res, error, "Unable to cancel that game.", req);
   }
 });
 
@@ -338,7 +306,7 @@ router.post("/games/:gameId/join", async (req: Request, res: Response) => {
 
     return res.status(200).json({ snapshot });
   } catch (error) {
-    return respondWithGameServiceError(res, error, "Unable to join that game right now.");
+    return handleRouteError(res, error, "Unable to join that game right now.", req);
   }
 });
 
@@ -400,7 +368,7 @@ router.post("/games/:gameId/access", async (req: Request, res: Response) => {
 
     return res.status(200).json({ snapshot });
   } catch (error) {
-    return respondWithGameServiceError(res, error, "Unable to open that game right now.");
+    return handleRouteError(res, error, "Unable to open that game right now.", req);
   }
 });
 
@@ -449,7 +417,7 @@ router.delete("/games/:gameId", async (req: Request, res: Response) => {
     void revokeAllPendingInvitationsForGame(req.params.gameId as string);
     return res.status(204).send();
   } catch (error) {
-    return respondWithGameServiceError(res, error, "Unable to cancel that game right now.");
+    return handleRouteError(res, error, "Unable to cancel that game right now.", req);
   }
 });
 
@@ -467,7 +435,7 @@ router.get("/games/:gameId", async (req: Request, res: Response) => {
     const snapshot = await gameService.getSnapshot(req.params.gameId as string);
     return res.status(200).json({ snapshot });
   } catch (error) {
-    return respondWithGameServiceError(res, error, "Unable to load that game right now.");
+    return handleRouteError(res, error, "Unable to load that game right now.", req);
   }
 });
 
@@ -592,7 +560,7 @@ router.post("/matchmaking", async (req: Request, res: Response) => {
     const matchmaking = await gameService.enterMatchmaking(player, timeControl);
     return res.status(200).json({ matchmaking });
   } catch (error) {
-    return respondWithGameServiceError(res, error, "Unable to enter matchmaking right now.");
+    return handleRouteError(res, error, "Unable to enter matchmaking right now.", req);
   }
 });
 
@@ -630,7 +598,7 @@ router.get("/matchmaking", async (req: Request, res: Response) => {
     const matchmaking = await gameService.getMatchmakingState(player);
     return res.status(200).json({ matchmaking });
   } catch (error) {
-    return respondWithGameServiceError(res, error, "Unable to load matchmaking right now.");
+    return handleRouteError(res, error, "Unable to load matchmaking right now.", req);
   }
 });
 
@@ -661,7 +629,7 @@ router.delete("/matchmaking", async (req: Request, res: Response) => {
     await gameService.leaveMatchmaking(player);
     return res.status(204).send();
   } catch (error) {
-    return respondWithGameServiceError(res, error, "Unable to leave matchmaking right now.");
+    return handleRouteError(res, error, "Unable to leave matchmaking right now.", req);
   }
 });
 

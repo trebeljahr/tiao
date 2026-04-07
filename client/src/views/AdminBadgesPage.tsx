@@ -7,7 +7,8 @@ import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PaperCard } from "@/components/ui/paper-card";
 import { Input } from "@/components/ui/input";
 import { isAdmin } from "@/lib/featureGate";
 import { UserBadge, type BadgeId, BADGE_DEFINITIONS, ALL_BADGE_IDS } from "@/components/UserBadge";
@@ -168,18 +169,15 @@ export function AdminBadgesPage() {
           onLogout={onLogout}
         />
         <main className="mx-auto flex max-w-2xl flex-col items-center gap-6 px-4 pb-12 pt-20 sm:px-6 lg:pt-24">
-          <Card className="w-full border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]">
+          <PaperCard className="w-full">
             <CardContent className="py-12 text-center">
               <p className="text-lg font-semibold text-[#5c4a32]">{t("forbidden")}</p>
             </CardContent>
-          </Card>
+          </PaperCard>
         </main>
       </div>
     );
   }
-
-  const paperCard =
-    "border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]";
 
   return (
     <div className="relative min-h-screen">
@@ -203,7 +201,7 @@ export function AdminBadgesPage() {
         <h1 className="text-2xl font-bold text-[#5c4a32]">{t("title")}</h1>
 
         {/* Search */}
-        <Card className={paperCard}>
+        <PaperCard>
           <CardHeader>
             <CardTitle className="text-[#5c4a32]">{t("searchUsers")}</CardTitle>
           </CardHeader>
@@ -251,11 +249,11 @@ export function AdminBadgesPage() {
               </div>
             )}
           </CardContent>
-        </Card>
+        </PaperCard>
 
         {/* Badge management for selected user */}
         {selectedUser && (
-          <Card className={paperCard}>
+          <PaperCard>
             <CardHeader>
               <CardTitle className="text-[#5c4a32]">
                 {t("manageBadgesFor", { name: selectedUser.displayName })}
@@ -314,12 +312,12 @@ export function AdminBadgesPage() {
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </PaperCard>
         )}
 
         {/* Board theme management for selected user */}
         {selectedUser && (
-          <Card className={paperCard}>
+          <PaperCard>
             <CardHeader>
               <CardTitle className="text-[#5c4a32]">{t("boardThemes")}</CardTitle>
             </CardHeader>
@@ -382,7 +380,7 @@ export function AdminBadgesPage() {
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </PaperCard>
         )}
       </main>
     </div>

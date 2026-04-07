@@ -3,19 +3,19 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import type { TimeControl, PlayerColor } from "@shared";
 import { TIME_CONTROL_PRESETS } from "@shared";
-import type { AIDifficulty } from "@/lib/computer-ai";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PaperCard } from "@/components/ui/paper-card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog } from "@/components/ui/dialog";
 import { Navbar } from "@/components/Navbar";
 import { isSummaryYourTurn, translatePlayerColor, ColorDot } from "@/components/game/GameShared";
-import { GameConfigPanel } from "@/components/game/GameConfigPanel";
 import { GameConfigBadge } from "@/components/game/GameConfigBadge";
+import { GameConfigDialog } from "@/components/game/GameConfigDialog";
+import { useGameConfig } from "@/lib/hooks/useGameConfig";
 import { ActiveGameCard } from "@/components/game/ActiveGameCard";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { useGamesIndex } from "@/lib/hooks/useGamesIndex";
@@ -33,11 +33,9 @@ import {
 import { toastError } from "@/lib/errors";
 
 function LobbySectionSkeleton() {
-  const paperCard =
-    "border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]";
   return (
     <div className="flex flex-col animate-pulse">
-      <Card className={cn("overflow-hidden shadow-lg flex-1", paperCard)}>
+      <PaperCard className="overflow-hidden shadow-lg flex-1">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-black/5 bg-black/2 py-4">
           <div className="h-7 w-32 rounded-lg bg-[#e8dcc8]" />
         </CardHeader>
@@ -55,7 +53,7 @@ function LobbySectionSkeleton() {
             </div>
           ))}
         </CardContent>
-      </Card>
+      </PaperCard>
     </div>
   );
 }
@@ -138,21 +136,13 @@ export function LobbyPage() {
   const [joinGameId, setJoinGameId] = useState("");
   const [multiplayerBusy, setMultiplayerBusy] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [createBoardSize, setCreateBoardSize] = useState(19);
-  const [createScoreToWin, setCreateScoreToWin] = useState(10);
-  const [createTimeControl, setCreateTimeControl] = useState<TimeControl>(null);
-  const [createColor, setCreateColor] = useState<PlayerColor | "random">("random");
+  const multiplayerConfig = useGameConfig("multiplayer");
 
   const [showLocalDialog, setShowLocalDialog] = useState(false);
-  const [localBoardSize, setLocalBoardSize] = useState(19);
-  const [localScoreToWin, setLocalScoreToWin] = useState(10);
-  const [localTimeControl, setLocalTimeControl] = useState<TimeControl>(null);
+  const localConfig = useGameConfig("local");
 
   const [showComputerDialog, setShowComputerDialog] = useState(false);
-  const [computerBoardSize, setComputerBoardSize] = useState(19);
-  const [computerScoreToWin, setComputerScoreToWin] = useState(10);
-  const [computerDifficulty, setComputerDifficulty] = useState<AIDifficulty>(2);
-  const [computerColor, setComputerColor] = useState<PlayerColor | "random">("random");
+  const computerConfig = useGameConfig("computer");
 
   const activeGames = multiplayerGames.active ?? [];
   const finishedGames = multiplayerGames.finished ?? [];
@@ -203,14 +193,7 @@ export function LobbyPage() {
 
     setMultiplayerBusy(true);
     try {
-      const settings: Parameters<typeof createMultiplayerGame>[0] = {};
-      if (createBoardSize !== 19) settings.boardSize = createBoardSize;
-      if (createScoreToWin !== 10) settings.scoreToWin = createScoreToWin;
-      if (createTimeControl) settings.timeControl = createTimeControl;
-      if (createColor !== "random") settings.creatorColor = createColor;
-      const response = await createMultiplayerGame(
-        Object.keys(settings).length > 0 ? settings : undefined,
-      );
+      const response = await createMultiplayerGame(multiplayerConfig.buildMultiplayerSettings());
       setShowCreateDialog(false);
       router.push(`/game/${response.snapshot.gameId}`);
     } catch (error) {
@@ -222,24 +205,12 @@ export function LobbyPage() {
 
   function handleStartLocal() {
     setShowLocalDialog(false);
-    const params = new URLSearchParams({ autostart: "1" });
-    if (localBoardSize !== 19) params.set("boardSize", String(localBoardSize));
-    if (localScoreToWin !== 10) params.set("scoreToWin", String(localScoreToWin));
-    if (localTimeControl) {
-      params.set("tcInitial", String(localTimeControl.initialMs));
-      params.set("tcIncrement", String(localTimeControl.incrementMs));
-    }
-    router.push(`/local?${params}`);
+    router.push(`/local?${localConfig.buildLocalParams()}`);
   }
 
   function handleStartComputer() {
     setShowComputerDialog(false);
-    const params = new URLSearchParams({ autostart: "1" });
-    if (computerBoardSize !== 19) params.set("boardSize", String(computerBoardSize));
-    if (computerScoreToWin !== 10) params.set("scoreToWin", String(computerScoreToWin));
-    params.set("difficulty", String(computerDifficulty));
-    if (computerColor !== "random") params.set("color", computerColor);
-    router.push(`/computer?${params}`);
+    router.push(`/computer?${computerConfig.buildComputerParams()}`);
   }
 
   async function handleJoinRoom() {
@@ -260,9 +231,6 @@ export function LobbyPage() {
       setMultiplayerBusy(false);
     }
   }
-
-  const paperCard =
-    "border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]";
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -314,7 +282,7 @@ export function LobbyPage() {
             animate={{ opacity: 1, y: 0 }}
             className="break-inside-avoid xl:flex xl:flex-col"
           >
-            <Card className={cn("overflow-hidden shadow-xl xl:flex-1", paperCard)}>
+            <PaperCard className="overflow-hidden shadow-xl xl:flex-1">
               <div className="h-2 bg-[linear-gradient(90deg,#4b3726,#b98d49)]" />
               <CardHeader className="pb-6">
                 <Badge className="w-fit bg-[#f4e8d2] text-[#6c543c] mb-2">{t("local")}</Badge>
@@ -347,7 +315,7 @@ export function LobbyPage() {
                   {t("playWithBot")}
                 </Button>
               </CardContent>
-            </Card>
+            </PaperCard>
           </motion.div>
 
           {/* Online — Play Against Someone Specific */}
@@ -357,7 +325,7 @@ export function LobbyPage() {
             transition={{ delay: 0.05 }}
             className="break-inside-avoid xl:flex xl:flex-col"
           >
-            <Card className={cn("overflow-hidden shadow-xl xl:flex-1", paperCard)}>
+            <PaperCard className="overflow-hidden shadow-xl xl:flex-1">
               <div className="h-2 bg-[linear-gradient(90deg,#6e4f29,#d2a661)]" />
               <CardHeader className="pb-6">
                 <Badge className="w-fit bg-[#f5ead8] text-[#6e5437] mb-2">{t("online")}</Badge>
@@ -451,7 +419,7 @@ export function LobbyPage() {
                   </>
                 )}
               </CardContent>
-            </Card>
+            </PaperCard>
           </motion.div>
 
           {/* Online — Matchmaking */}
@@ -461,7 +429,7 @@ export function LobbyPage() {
             transition={{ delay: 0.1 }}
             className="break-inside-avoid"
           >
-            <Card className={cn("overflow-hidden shadow-xl", paperCard)}>
+            <PaperCard className="overflow-hidden shadow-xl">
               <div className="h-2 bg-[linear-gradient(90deg,#6e4f29,#d2a661)]" />
               <CardHeader className="pb-6">
                 <Badge className="w-fit bg-[#f5ead8] text-[#6e5437] mb-2">{t("online")}</Badge>
@@ -521,7 +489,7 @@ export function LobbyPage() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </PaperCard>
           </motion.div>
         </section>
 
@@ -539,7 +507,7 @@ export function LobbyPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="flex flex-col"
                 >
-                  <Card className={cn("overflow-hidden shadow-lg flex-1", paperCard)}>
+                  <PaperCard className="overflow-hidden shadow-lg flex-1">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-black/5 bg-black/2 py-4">
                       <CardTitle className="text-2xl text-[#2b1e14]">{t("activeGames")}</CardTitle>
                       <Button
@@ -587,7 +555,7 @@ export function LobbyPage() {
                         </p>
                       )}
                     </CardContent>
-                  </Card>
+                  </PaperCard>
                 </motion.div>
 
                 <motion.div
@@ -595,7 +563,7 @@ export function LobbyPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="flex flex-col"
                 >
-                  <Card className={cn("overflow-hidden shadow-lg flex-1", paperCard)}>
+                  <PaperCard className="overflow-hidden shadow-lg flex-1">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-black/5 bg-black/2 py-4">
                       <CardTitle className="text-2xl text-[#2b1e14]">{t("invitations")}</CardTitle>
                     </CardHeader>
@@ -655,7 +623,7 @@ export function LobbyPage() {
                         </p>
                       )}
                     </CardContent>
-                  </Card>
+                  </PaperCard>
                 </motion.div>
               </>
             )}
@@ -669,7 +637,7 @@ export function LobbyPage() {
             transition={{ delay: 0.2 }}
             className="flex flex-col"
           >
-            <Card className={cn("overflow-hidden shadow-lg flex-1", paperCard)}>
+            <PaperCard className="overflow-hidden shadow-lg flex-1">
               <CardHeader className="pb-3">
                 <Badge className="w-fit bg-[#e8e0f4] text-[#5a4570] mb-2">{t("spectate")}</Badge>
                 <CardTitle className="text-2xl text-[#2b1e14]">{t("watchGame")}</CardTitle>
@@ -728,7 +696,7 @@ export function LobbyPage() {
                   </Button>
                 </form>
               </CardContent>
-            </Card>
+            </PaperCard>
           </motion.div>
 
           {(auth || authLoading) &&
@@ -741,7 +709,7 @@ export function LobbyPage() {
                 transition={{ delay: 0.25 }}
                 className="flex flex-col"
               >
-                <Card className={cn("overflow-hidden shadow-lg flex-1", paperCard)}>
+                <PaperCard className="overflow-hidden shadow-lg flex-1">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-black/5 bg-black/2 py-4">
                     <CardTitle className="text-2xl text-[#2b1e14]">{t("tournaments")}</CardTitle>
                     <Button
@@ -803,7 +771,7 @@ export function LobbyPage() {
                       </div>
                     ))}
                   </CardContent>
-                </Card>
+                </PaperCard>
               </motion.div>
             ))}
         </section>
@@ -854,69 +822,36 @@ export function LobbyPage() {
         </p>
       </footer>
 
-      <Dialog
+      <GameConfigDialog
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
         title={t("createGameTitle")}
         description={t("createGameDesc")}
-      >
-        <GameConfigPanel
-          mode="multiplayer"
-          boardSize={createBoardSize}
-          onBoardSizeChange={setCreateBoardSize}
-          scoreToWin={createScoreToWin}
-          onScoreToWinChange={setCreateScoreToWin}
-          timeControl={createTimeControl}
-          onTimeControlChange={setCreateTimeControl}
-          selectedColor={createColor}
-          onColorChange={setCreateColor}
-          submitLabel={t("createGameButton")}
-          onSubmit={handleCreateRoom}
-          busy={multiplayerBusy}
-        />
-      </Dialog>
+        config={multiplayerConfig}
+        submitLabel={t("createGameButton")}
+        onSubmit={handleCreateRoom}
+        busy={multiplayerBusy}
+      />
 
-      <Dialog
+      <GameConfigDialog
         open={showLocalDialog}
         onOpenChange={setShowLocalDialog}
         title={t("localGameTitle")}
         description={t("localGameDesc")}
-      >
-        <GameConfigPanel
-          mode="local"
-          boardSize={localBoardSize}
-          onBoardSizeChange={setLocalBoardSize}
-          scoreToWin={localScoreToWin}
-          onScoreToWinChange={setLocalScoreToWin}
-          timeControl={localTimeControl}
-          onTimeControlChange={setLocalTimeControl}
-          submitLabel={t("startGame")}
-          onSubmit={handleStartLocal}
-        />
-      </Dialog>
+        config={localConfig}
+        submitLabel={t("startGame")}
+        onSubmit={handleStartLocal}
+      />
 
-      <Dialog
+      <GameConfigDialog
         open={showComputerDialog}
         onOpenChange={setShowComputerDialog}
         title={t("computerGameTitle")}
         description={t("computerGameDesc")}
-      >
-        <GameConfigPanel
-          mode="computer"
-          boardSize={computerBoardSize}
-          onBoardSizeChange={setComputerBoardSize}
-          scoreToWin={computerScoreToWin}
-          onScoreToWinChange={setComputerScoreToWin}
-          timeControl={null}
-          onTimeControlChange={() => {}}
-          difficulty={computerDifficulty}
-          onDifficultyChange={setComputerDifficulty}
-          selectedColor={computerColor}
-          onColorChange={setComputerColor}
-          submitLabel={t("startGame")}
-          onSubmit={handleStartComputer}
-        />
-      </Dialog>
+        config={computerConfig}
+        submitLabel={t("startGame")}
+        onSubmit={handleStartComputer}
+      />
 
       {/* Guest game limit dialog */}
       <Dialog

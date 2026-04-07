@@ -4,11 +4,8 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import type { AuthResponse } from "@shared";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-
-const paperCard =
-  "border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]";
+import { CardHeader, CardContent } from "@/components/ui/card";
+import { PaperCard } from "@/components/ui/paper-card";
 
 function PageSkeleton() {
   return (
@@ -23,7 +20,7 @@ function PageSkeleton() {
       {/* Content skeleton */}
       <main className="mx-auto flex max-w-5xl flex-col gap-6 px-4 pb-12 pt-8 sm:px-6 lg:px-8 animate-pulse">
         <div className="h-8 w-48 rounded-lg bg-[#e8dcc8]" />
-        <Card className={cn("overflow-hidden shadow-lg", paperCard)}>
+        <PaperCard className="overflow-hidden shadow-lg">
           <CardHeader className="border-b border-black/5 bg-black/2 py-4">
             <div className="h-7 w-32 rounded-lg bg-[#e8dcc8]" />
           </CardHeader>
@@ -41,7 +38,7 @@ function PageSkeleton() {
               </div>
             ))}
           </CardContent>
-        </Card>
+        </PaperCard>
       </main>
     </div>
   );

@@ -15,28 +15,13 @@ import { sanitizeDisplayName } from "../game/playerTokens";
 import { isValidUsername } from "../../shared/src";
 import { BUCKET_NAME, CLOUDFRONT_URL } from "../config/envVars";
 import { s3Client } from "../config/s3Client";
-import { classifyMongoError } from "../error-handling";
+import { handleRouteError } from "../error-handling/routeError";
+import { escapeRegExp } from "../error-handling/escapeRegExp";
+import { grantBadge, revokeBadge } from "../game/badgeService";
 import { profilePictureUpload } from "../middleware/multerUploadMiddleware";
 import { authRateLimiter } from "../middleware/rateLimiter";
 
 const router = express.Router();
-
-function handleRouteError(error: unknown, req: Request, res: Response, fallbackMessage: string) {
-  const mongoError = classifyMongoError(error);
-  if (mongoError) {
-    console.warn(`[${req.method} ${req.path}] MongoDB ${mongoError.code}:`, error);
-    return res.status(mongoError.status).json({
-      code: mongoError.code,
-      message: mongoError.message,
-    });
-  }
-
-  console.error(`[${req.method} ${req.path}] Unhandled error:`, error);
-  return res.status(500).json({
-    code: "INTERNAL_ERROR",
-    message: fallbackMessage,
-  });
-}
 
 function isDatabaseReady(): boolean {
   if (process.env.NODE_ENV === "test") return true;
@@ -267,7 +252,7 @@ router.post("/login", authRateLimiter, async (req: Request, res: Response) => {
         message: "Invalid credentials.",
       });
     }
-    return handleRouteError(error, req, res, "Unable to log in right now.");
+    return handleRouteError(res, error, "Unable to log in right now.", req);
   }
 });
 
@@ -287,7 +272,7 @@ router.get("/me", async (req: Request, res: Response) => {
 
     return res.status(200).json({ player });
   } catch (error) {
-    handleRouteError(error, req, res, "Unable to load player session right now.");
+    handleRouteError(res, error, "Unable to load player session right now.", req);
   }
 });
 
@@ -349,7 +334,7 @@ router.post("/set-username", async (req: Request, res: Response) => {
     const player = buildPlayerIdentityFromAccount(account, email);
     return res.status(200).json({ auth: { player } });
   } catch (error) {
-    return handleRouteError(error, req, res, "Unable to set username right now.");
+    return handleRouteError(res, error, "Unable to set username right now.", req);
   }
 });
 
@@ -369,7 +354,7 @@ router.post("/tutorial-complete", async (req: Request, res: Response) => {
     const player = buildPlayerIdentityFromAccount(account, email);
     return res.status(200).json({ auth: { player } });
   } catch (error) {
-    handleRouteError(error, req, res, "Unable to update tutorial status right now.");
+    handleRouteError(res, error, "Unable to update tutorial status right now.", req);
   }
 });
 
@@ -403,7 +388,7 @@ router.get("/profile", async (req: Request, res: Response) => {
       ),
     });
   } catch (error) {
-    handleRouteError(error, req, res, "Unable to load profile right now.");
+    handleRouteError(res, error, "Unable to load profile right now.", req);
   }
 });
 
@@ -421,7 +406,7 @@ router.get("/profile/:username", async (req: Request, res: Response) => {
     if (!account) {
       account = await GameAccount.findOne({
         displayName: {
-          $regex: new RegExp(`^${username.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i"),
+          $regex: new RegExp(`^${escapeRegExp(username)}$`, "i"),
         },
       });
     }
@@ -595,7 +580,7 @@ router.get("/profile/:username", async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    handleRouteError(error, req, res, "Unable to load profile right now.");
+    handleRouteError(res, error, "Unable to load profile right now.", req);
   }
 });
 
@@ -612,7 +597,7 @@ router.get("/profile/:username/games", async (req: Request, res: Response) => {
     if (!account) {
       account = await GameAccount.findOne({
         displayName: {
-          $regex: new RegExp(`^${username.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i"),
+          $regex: new RegExp(`^${escapeRegExp(username)}$`, "i"),
         },
       });
     }
@@ -631,7 +616,7 @@ router.get("/profile/:username/games", async (req: Request, res: Response) => {
 
     res.json({ playerId, games: result.games, hasMore: result.hasMore });
   } catch (error) {
-    handleRouteError(error, req, res, "Unable to load match history right now.");
+    handleRouteError(res, error, "Unable to load match history right now.", req);
   }
 });
 
@@ -756,7 +741,7 @@ router.put("/profile", async (req: Request, res: Response) => {
         message: "Current password is incorrect.",
       });
     }
-    return handleRouteError(error, req, res, "Unable to update profile right now.");
+    return handleRouteError(res, error, "Unable to update profile right now.", req);
   }
 });
 
@@ -868,7 +853,7 @@ router.post("/set-password", async (req: Request, res: Response) => {
     const updatedProviders = await getProvidersForAccount(account.id);
     return res.status(200).json({ providers: updatedProviders });
   } catch (error) {
-    return handleRouteError(error, req, res, "Unable to set password right now.");
+    return handleRouteError(res, error, "Unable to set password right now.", req);
   }
 });
 
@@ -1010,7 +995,7 @@ router.put("/badges/active", async (req: Request, res: Response) => {
 
     return res.status(200).json({ auth: { player }, activeBadges: validActive });
   } catch (error) {
-    return handleRouteError(error, req, res, "Unable to update active badges right now.");
+    return handleRouteError(res, error, "Unable to update active badges right now.", req);
   }
 });
 
@@ -1022,35 +1007,15 @@ router.post("/admin/badges/grant", async (req: Request, res: Response) => {
   try {
     const admin = await requireAdmin(req, res);
     if (!admin) return;
-
     const { playerId, badgeId } = req.body as { playerId?: string; badgeId?: string };
-
     if (!playerId || typeof playerId !== "string" || !badgeId || typeof badgeId !== "string") {
-      return res.status(400).json({
-        code: "VALIDATION_ERROR",
-        message: "Provide playerId and badgeId.",
-      });
+      return res
+        .status(400)
+        .json({ code: "VALIDATION_ERROR", message: "Provide playerId and badgeId." });
     }
-
-    const target = await GameAccount.findById(playerId);
-    if (!target) {
-      return res.status(404).json({
-        code: "ACCOUNT_NOT_FOUND",
-        message: "Target account not found.",
-      });
-    }
-
-    if (!target.badges.includes(badgeId)) {
-      target.badges.push(badgeId);
-      await target.save();
-    }
-
-    return res.status(200).json({
-      badges: target.badges,
-      activeBadges: target.activeBadges,
-    });
+    return res.status(200).json(await grantBadge(playerId, badgeId));
   } catch (error) {
-    return handleRouteError(error, req, res, "Unable to grant badge right now.");
+    return handleRouteError(res, error, "Unable to grant badge right now.", req);
   }
 });
 
@@ -1058,35 +1023,15 @@ router.post("/admin/badges/revoke", async (req: Request, res: Response) => {
   try {
     const admin = await requireAdmin(req, res);
     if (!admin) return;
-
     const { playerId, badgeId } = req.body as { playerId?: string; badgeId?: string };
-
     if (!playerId || typeof playerId !== "string" || !badgeId || typeof badgeId !== "string") {
-      return res.status(400).json({
-        code: "VALIDATION_ERROR",
-        message: "Provide playerId and badgeId.",
-      });
+      return res
+        .status(400)
+        .json({ code: "VALIDATION_ERROR", message: "Provide playerId and badgeId." });
     }
-
-    const target = await GameAccount.findById(playerId);
-    if (!target) {
-      return res.status(404).json({
-        code: "ACCOUNT_NOT_FOUND",
-        message: "Target account not found.",
-      });
-    }
-
-    target.badges = target.badges.filter((id: string) => id !== badgeId);
-    // Also remove from activeBadges if it was displayed
-    target.activeBadges = target.activeBadges.filter((id: string) => id !== badgeId);
-    await target.save();
-
-    return res.status(200).json({
-      badges: target.badges,
-      activeBadges: target.activeBadges,
-    });
+    return res.status(200).json(await revokeBadge(playerId, badgeId));
   } catch (error) {
-    return handleRouteError(error, req, res, "Unable to revoke badge right now.");
+    return handleRouteError(res, error, "Unable to revoke badge right now.", req);
   }
 });
 
@@ -1230,7 +1175,7 @@ router.delete("/account", async (req: Request, res: Response) => {
 
     return res.status(200).json({ message: "Account deleted successfully." });
   } catch (error) {
-    return handleRouteError(error, req, res, "Unable to delete account right now.");
+    return handleRouteError(res, error, "Unable to delete account right now.", req);
   }
 });
 

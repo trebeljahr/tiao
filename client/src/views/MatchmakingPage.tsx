@@ -5,7 +5,8 @@ import { motion } from "framer-motion";
 import type { MultiplayerSnapshot, TimeControl } from "@shared";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PaperCard } from "@/components/ui/paper-card";
 import { Navbar } from "@/components/Navbar";
 import { HourglassSpinner } from "@/components/game/GameShared";
 import { useMatchmakingData } from "@/lib/hooks/useMatchmakingData";
@@ -52,9 +53,6 @@ export function MatchmakingPage() {
     }
   }, [auth, matchmaking.status, matchmakingBusy, handleEnterMatchmaking, locationTimeControl]);
 
-  const paperCard =
-    "border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]";
-
   return (
     <div className="relative min-h-screen overflow-hidden">
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(circle_at_top,rgba(255,247,231,0.76),transparent_58%)]" />
@@ -71,7 +69,7 @@ export function MatchmakingPage() {
 
       <main className="mx-auto flex max-w-2xl flex-col gap-5 px-4 pb-5 pt-20 sm:px-6 lg:px-8 lg:pb-6 lg:pt-20">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-          <Card className={paperCard}>
+          <PaperCard>
             <CardHeader className="text-center">
               <CardTitle className="text-4xl text-[#2b1e14]">{t("title")}</CardTitle>
               <CardDescription className="text-[#6e5b48]">{t("description")}</CardDescription>
@@ -123,7 +121,7 @@ export function MatchmakingPage() {
                 </div>
               )}
             </CardContent>
-          </Card>
+          </PaperCard>
         </motion.div>
       </main>
     </div>

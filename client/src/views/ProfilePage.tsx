@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PaperCard } from "@/components/ui/paper-card";
 import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
@@ -754,8 +755,6 @@ export function ProfilePage() {
   }, [handleImageFile]);
 
   const profileImage = previewUrl || profile?.profilePicture || auth?.player.profilePicture;
-  const paperCard =
-    "border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]";
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -777,7 +776,7 @@ export function ProfilePage() {
         </Button>
 
         {auth?.player.kind !== "account" ? (
-          <Card className={paperCard}>
+          <PaperCard>
             <CardHeader>
               <CardTitle>{t("title")}</CardTitle>
               <CardDescription>{t("description")}</CardDescription>
@@ -793,12 +792,12 @@ export function ProfilePage() {
                 </Button>
               </div>
             </CardContent>
-          </Card>
+          </PaperCard>
         ) : null}
 
         {auth?.player.kind === "account" ? (
           <div className="grid gap-5 lg:grid-cols-[320px_minmax(0,1fr)]">
-            <Card className={paperCard}>
+            <PaperCard>
               <CardHeader>
                 <CardTitle>{t("picture")}</CardTitle>
                 <CardDescription>{t("pictureDesc")}</CardDescription>
@@ -889,9 +888,9 @@ export function ProfilePage() {
 
                 <p className="text-center text-xs text-[#8b7659]">{t("pictureHint")}</p>
               </CardContent>
-            </Card>
+            </PaperCard>
 
-            <Card className={paperCard}>
+            <PaperCard>
               <CardHeader>
                 <CardTitle>{t("basicInfo")}</CardTitle>
                 <CardDescription>{t("basicInfoDesc")}</CardDescription>
@@ -1054,7 +1053,7 @@ export function ProfilePage() {
                   </p>
                 ) : null}
               </CardContent>
-            </Card>
+            </PaperCard>
 
             <LinkedAccounts
               providers={providers}

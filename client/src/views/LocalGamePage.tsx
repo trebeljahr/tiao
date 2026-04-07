@@ -5,7 +5,8 @@ import { useTranslations } from "next-intl";
 import type { TimeControl } from "@shared";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PaperCard } from "@/components/ui/paper-card";
 import { Dialog } from "@/components/ui/dialog";
 import { Navbar } from "@/components/Navbar";
 import { TiaoBoard } from "@/components/game/TiaoBoard";
@@ -16,8 +17,8 @@ import { useLocalGame } from "@/lib/hooks/useLocalGame";
 import { useLocalClock } from "@/lib/hooks/useLocalClock";
 import { useStonePlacementSound } from "@/lib/useStonePlacementSound";
 import { useWinConfetti } from "@/lib/useWinConfetti";
+import { useGameOverDialog } from "@/lib/hooks/useGameOverDialog";
 import { isGameOver, getWinner } from "@shared";
-import { cn } from "@/lib/utils";
 
 export function LocalGamePage() {
   const { auth, onOpenAuth, onLogout } = useAuth();
@@ -76,20 +77,8 @@ export function LocalGamePage() {
   useStonePlacementSound(local.localGame);
   useWinConfetti(effectiveWinner);
 
-  const [gameOverDialogOpen, setGameOverDialogOpen] = useState(false);
-  const prevGameOverRef = useRef(false);
-
-  useEffect(() => {
-    if (effectiveGameOver && !prevGameOverRef.current) {
-      prevGameOverRef.current = true;
-      const id = setTimeout(() => setGameOverDialogOpen(true), 600);
-      return () => clearTimeout(id);
-    }
-    if (!effectiveGameOver) {
-      prevGameOverRef.current = false;
-      setGameOverDialogOpen(false);
-    }
-  }, [effectiveGameOver]);
+  const { open: gameOverDialogOpen, setOpen: setGameOverDialogOpen } =
+    useGameOverDialog(effectiveGameOver);
 
   const localStatusTitle = isDraw
     ? t("draw")
@@ -98,9 +87,6 @@ export function LocalGamePage() {
       : winner
         ? t("wins", { color: translatePlayerColor(winner!, t) as string })
         : t("toMove", { color: translatePlayerColor(local.localGame.currentTurn, t) as string });
-
-  const paperCard =
-    "border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.96),rgba(244,231,207,0.94))]";
 
   const boardWrapStyle = {
     maxWidth: "min(100%, calc(100dvh - 5rem))",
@@ -136,7 +122,7 @@ export function LocalGamePage() {
       <main className="mx-auto flex max-w-416 flex-col gap-5 px-4 pb-3 pt-16 sm:px-6 sm:pt-5 lg:px-6 lg:pb-4 xl:pt-2">
         {configuring ? (
           <section className="flex items-center justify-center py-12">
-            <Card className={cn(paperCard, "w-full max-w-md")}>
+            <PaperCard className="w-full max-w-md">
               <CardHeader>
                 <GamePanelBrand />
                 <CardTitle className="text-[#2b1e14]">{t("gameSetup")}</CardTitle>
@@ -154,7 +140,7 @@ export function LocalGamePage() {
                   onSubmit={handleStartGame}
                 />
               </CardContent>
-            </Card>
+            </PaperCard>
           </section>
         ) : (
           <section className="grid gap-3 xl:min-h-[calc(100dvh-1rem)] xl:content-center xl:gap-5 xl:grid-cols-[minmax(0,1fr)_24rem] xl:items-start">
