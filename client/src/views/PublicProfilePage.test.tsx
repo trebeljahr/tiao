@@ -9,6 +9,7 @@ const mockAcceptFriendRequest = vi.fn();
 vi.mock("@/lib/api", () => ({
   getPublicProfile: (...args: unknown[]) => mockGetPublicProfile(...args),
   getPlayerMatchHistory: vi.fn().mockResolvedValue({ games: [], playerId: null, hasMore: false }),
+  getPlayerAchievements: vi.fn().mockResolvedValue({ achievements: [] }),
   sendFriendRequest: (...args: unknown[]) => mockSendFriendRequest(...args),
   acceptFriendRequest: (...args: unknown[]) => mockAcceptFriendRequest(...args),
 }));
