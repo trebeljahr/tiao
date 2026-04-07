@@ -132,9 +132,6 @@ export function ShopPage() {
     if (!purchasedItem) return;
 
     let cancelled = false;
-    let attempts = 0;
-    const maxAttempts = 30; // 30 × 200ms = 6s max wait
-
     let checks = 0;
 
     function poll() {
