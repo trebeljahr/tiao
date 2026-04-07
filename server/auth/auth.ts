@@ -245,20 +245,6 @@ export const auth = betterAuth({
         const newId = newUser.user.id;
         const newDisplayName =
           (newUser.user as { displayName?: string }).displayName || newUser.user.name;
-        const profilePicture = newUser.user.image || undefined;
-
-        await GameRoom.updateMany(
-          { "players.playerId": guestId },
-          {
-            $set: {
-              "players.$[p].playerId": newId,
-              "players.$[p].displayName": newDisplayName,
-              "players.$[p].kind": "account",
-              "players.$[p].profilePicture": profilePicture,
-            },
-          },
-          { arrayFilters: [{ "p.playerId": guestId }] },
-        );
         await GameRoom.updateMany(
           { "seats.white.playerId": guestId },
           {
@@ -266,7 +252,6 @@ export const auth = betterAuth({
               "seats.white.playerId": newId,
               "seats.white.displayName": newDisplayName,
               "seats.white.kind": "account",
-              "seats.white.profilePicture": profilePicture,
             },
           },
         );
@@ -277,7 +262,6 @@ export const auth = betterAuth({
               "seats.black.playerId": newId,
               "seats.black.displayName": newDisplayName,
               "seats.black.kind": "account",
-              "seats.black.profilePicture": profilePicture,
             },
           },
         );
