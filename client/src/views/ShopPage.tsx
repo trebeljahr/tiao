@@ -182,21 +182,27 @@ export function ShopPage() {
     };
   }, [purchasedItem]);
 
-  // Scroll to and highlight the target element from the URL hash
+  // Scroll to and highlight the target element from the URL hash.
+  // Wait until catalog is loaded so the target element exists in the DOM.
   useEffect(() => {
+    if (loading) return; // catalog hasn't loaded yet
     const hash = window.location.hash.slice(1);
     if (!hash) return;
-    // Wait a tick for the DOM to render
+
     const timer = setTimeout(() => {
       const el = document.getElementById(hash);
       if (!el) return;
       el.scrollIntoView({ behavior: "smooth", block: "center" });
-      el.classList.add("shop-item-highlight");
-      const cleanup = () => el.classList.remove("shop-item-highlight");
-      el.addEventListener("animationend", cleanup, { once: true });
-    }, 200);
+      // Delay adding the class so scroll finishes before the animation plays
+      setTimeout(() => {
+        el.classList.add("shop-item-highlight");
+        el.addEventListener("animationend", () => el.classList.remove("shop-item-highlight"), {
+          once: true,
+        });
+      }, 400);
+    }, 100);
     return () => clearTimeout(timer);
-  }, []);
+  }, [loading]);
 
   async function handleBuy(item: ShopCatalogItem) {
     if (!isAccount) {

@@ -204,25 +204,35 @@ layer(base);
   animation: ping-slow 2s ease-in-out infinite;
 }
 
-/* Subtle bounce + glow when an element is linked to via #hash */
+/* Bounce + glow when an element is linked to via #hash */
 @keyframes target-attention {
   0% {
-    box-shadow: 0 0 0 0 rgba(185, 141, 73, 0.5);
+    box-shadow: 0 0 0 0 rgba(185, 141, 73, 0);
     transform: scale(1);
   }
-  15% {
-    box-shadow: 0 0 0 6px rgba(185, 141, 73, 0.3);
+  10% {
+    box-shadow:
+      0 0 0 4px rgba(185, 141, 73, 0.5),
+      0 0 20px rgba(185, 141, 73, 0.25);
+    transform: scale(1.035);
+  }
+  25% {
+    transform: scale(0.985);
+  }
+  40% {
+    box-shadow:
+      0 0 0 3px rgba(185, 141, 73, 0.35),
+      0 0 14px rgba(185, 141, 73, 0.15);
     transform: scale(1.02);
   }
-  30% {
-    transform: scale(0.99);
-  }
-  45% {
-    box-shadow: 0 0 0 4px rgba(185, 141, 73, 0.2);
-    transform: scale(1.01);
+  55% {
+    transform: scale(0.995);
   }
   70% {
-    transform: scale(1);
+    box-shadow:
+      0 0 0 2px rgba(185, 141, 73, 0.2),
+      0 0 8px rgba(185, 141, 73, 0.1);
+    transform: scale(1.005);
   }
   100% {
     box-shadow: 0 0 0 0 rgba(185, 141, 73, 0);
@@ -230,7 +240,7 @@ layer(base);
   }
 }
 .shop-item-highlight {
-  animation: target-attention 1s ease-out;
+  animation: target-attention 1.2s ease-out both;
 }
 @keyframes purchase-wiggle {
   0% {
@@ -259,7 +269,7 @@ layer(base);
   }
 }
 .shop-purchase-wiggle {
-  animation: purchase-wiggle 0.7s ease-out;
+  animation: purchase-wiggle 0.7s ease-out both;
   box-shadow:
     0 0 20px rgba(255, 215, 0, 0.4),
     0 0 40px rgba(255, 215, 0, 0.15);
