@@ -121,6 +121,16 @@ layer(base);
     color: inherit;
     text-decoration: none;
   }
+
+  button,
+  [role="button"],
+  a,
+  label[for],
+  select,
+  summary,
+  [tabindex]:not([tabindex="-1"]) {
+    cursor: pointer;
+  }
 }
 
 @keyframes heartbeat {
