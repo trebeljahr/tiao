@@ -97,36 +97,46 @@ export function PlayerIdentityRow({
   const identityContent = (
     <>
       <PlayerOverviewAvatar player={player} anonymous={anonymous} className={avatarClassName} />
-      <span
-        className={cn("truncate text-sm font-medium", canLink && "hover:underline", nameClassName)}
-      >
-        {player.displayName ?? t("player")}
-        {isYou && <span className="opacity-60"> {t("you")}</span>}
-        {player.rating != null && (
-          <span className="ml-1 text-xs font-normal opacity-50">({player.rating})</span>
-        )}
-      </span>
-      {anonymous && (
-        <InfoTooltip
-          text={t("guestPlayerTooltip")}
-          className="shrink-0"
-          iconClassName="opacity-50"
-        />
-      )}
-      {deleted && (
-        <InfoTooltip
-          text={t("deletedPlayerTooltip")}
+      <div className="flex min-w-0 flex-col">
+        <span
           className={cn(
-            "shrink-0",
-            friendVariant === "light"
-              ? "text-black/40 hover:text-black/60"
-              : "text-white/40 hover:text-white/60",
+            "truncate text-sm font-medium leading-tight",
+            canLink && "hover:underline",
+            nameClassName,
           )}
-        />
-      )}
-      {badgesToShow.map((id) => (
-        <UserBadge key={id} badge={id as BadgeId} compact />
-      ))}
+        >
+          {player.displayName ?? t("player")}
+          {isYou && <span className="opacity-60"> {t("you")}</span>}
+          {player.rating != null && (
+            <span className="ml-1 text-xs font-normal opacity-50">({player.rating})</span>
+          )}
+          {anonymous && (
+            <InfoTooltip
+              text={t("guestPlayerTooltip")}
+              className="shrink-0"
+              iconClassName="opacity-50"
+            />
+          )}
+          {deleted && (
+            <InfoTooltip
+              text={t("deletedPlayerTooltip")}
+              className={cn(
+                "shrink-0",
+                friendVariant === "light"
+                  ? "text-black/40 hover:text-black/60"
+                  : "text-white/40 hover:text-white/60",
+              )}
+            />
+          )}
+        </span>
+        {badgesToShow.length > 0 && (
+          <div className="flex items-center gap-1">
+            {badgesToShow.map((id) => (
+              <UserBadge key={id} badge={id as BadgeId} compact />
+            ))}
+          </div>
+        )}
+      </div>
     </>
   );
 
