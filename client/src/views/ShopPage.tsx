@@ -139,11 +139,8 @@ export function ShopPage() {
       if (cancelled) return;
       const el = document.getElementById(purchasedItem!);
       if (el) {
-        // Scroll to the element instantly
-        el.scrollIntoView({ behavior: "instant", block: "center" });
-
-        // Re-query the element after a delay — React re-renders from fetchCatalog
-        // replace the DOM node, making the original `el` reference stale (zero-size).
+        // Re-query after a delay — fetchCatalog re-renders and replaces DOM nodes.
+        // The fresh element will have correct dimensions.
         setTimeout(() => {
           const freshEl = document.getElementById(purchasedItem!);
           if (!freshEl) {
@@ -152,23 +149,29 @@ export function ShopPage() {
             return;
           }
 
-          const rect = freshEl.getBoundingClientRect();
-          const cx = rect.left + rect.width / 2;
-          const cy = rect.top + rect.height / 2;
-          const vw = window.innerWidth;
-          const vh = window.innerHeight;
+          // Scroll the fresh element into view
+          freshEl.scrollIntoView({ behavior: "smooth", block: "center" });
 
-          const x = Math.max(0.05, Math.min(0.95, cx / vw));
-          const y = Math.max(0.05, Math.min(0.95, cy / vh));
+          // Wait for scroll to settle, then fire confetti
+          setTimeout(() => {
+            const rect = freshEl.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
 
-          fireConfettiBurst(x, y);
-          freshEl.classList.add("shop-purchase-wiggle");
-          freshEl.addEventListener(
-            "animationend",
-            () => freshEl.classList.remove("shop-purchase-wiggle"),
-            { once: true },
-          );
-          setPurchasedItem(null);
+            const x = Math.max(0.05, Math.min(0.95, cx / vw));
+            const y = Math.max(0.05, Math.min(0.95, cy / vh));
+
+            fireConfettiBurst(x, y);
+            freshEl.classList.add("shop-purchase-wiggle");
+            freshEl.addEventListener(
+              "animationend",
+              () => freshEl.classList.remove("shop-purchase-wiggle"),
+              { once: true },
+            );
+            setPurchasedItem(null);
+          }, 600);
         }, 500);
         return;
       }

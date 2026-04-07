@@ -45,9 +45,33 @@ export interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const AUTH_CACHE_KEY = "tiao:auth-cache";
+
+function getCachedAuth(): AuthResponse | null {
+  try {
+    const raw = sessionStorage.getItem(AUTH_CACHE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as AuthResponse;
+  } catch {
+    return null;
+  }
+}
+
+function setCachedAuth(auth: AuthResponse | null) {
+  try {
+    if (auth) {
+      sessionStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(auth));
+    } else {
+      sessionStorage.removeItem(AUTH_CACHE_KEY);
+    }
+  } catch {
+    /* best-effort */
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [auth, setAuth] = useState<AuthResponse | null>(null);
-  const [authLoading, setAuthLoading] = useState(true);
+  const [auth, setAuth] = useState<AuthResponse | null>(() => getCachedAuth());
+  const [authLoading, setAuthLoading] = useState(() => getCachedAuth() === null);
   const [appError, setAppError] = useState<string | null>(null);
 
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
@@ -103,6 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (cancelled) return;
 
           if (player) {
+            setCachedAuth({ player });
             setAuth({ player });
             setAuthLoading(false);
             return;
@@ -122,16 +147,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (cancelled) return;
 
         if (player) {
+          setCachedAuth({ player });
           setAuth({ player });
         } else {
           // Fallback: build a minimal guest identity from the anonymous user
-          setAuth({
+          const fallback = {
             player: {
               playerId: anonData.user.id,
               displayName: anonData.user.name,
-              kind: "guest",
+              kind: "guest" as const,
             },
-          });
+          };
+          setCachedAuth(fallback);
+          setAuth(fallback);
         }
       } catch (error) {
         if (cancelled) return;
@@ -153,11 +181,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const applyAuth = useCallback((nextAuth: AuthResponse) => {
+  // Wrap setAuth to also persist to sessionStorage
+  const updateAuth = useCallback((nextAuth: AuthResponse | null) => {
     setAuth(nextAuth);
-    setAppError(null);
-    setAuthDialogError(null);
+    setCachedAuth(nextAuth);
   }, []);
+
+  const applyAuth = useCallback(
+    (nextAuth: AuthResponse) => {
+      updateAuth(nextAuth);
+      setAppError(null);
+      setAuthDialogError(null);
+    },
+    [updateAuth],
+  );
 
   const onOpenAuth = useCallback((mode: AuthDialogMode, options?: { forced?: boolean }) => {
     setAuthDialogMode(mode);
@@ -265,6 +302,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const onLogout = useCallback(async () => {
     setAuth(null);
+    setCachedAuth(null);
     resetBoardTheme();
     resetActiveBadges();
 
