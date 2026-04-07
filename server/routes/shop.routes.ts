@@ -51,19 +51,19 @@ router.get("/catalog", async (req: Request, res: Response) => {
 
 router.post("/checkout", async (req: Request, res: Response) => {
   try {
-    const stripe = getStripe();
-    if (!stripe) {
-      return res.status(503).json({
-        code: "STRIPE_NOT_CONFIGURED",
-        message: "Payments are not configured on this server.",
-      });
-    }
-
     const player = await getPlayerFromRequest(req);
     if (!player || player.kind !== "account") {
       return res.status(401).json({
         code: "ACCOUNT_REQUIRED",
         message: "You must be signed in to make a purchase.",
+      });
+    }
+
+    const stripe = getStripe();
+    if (!stripe) {
+      return res.status(503).json({
+        code: "STRIPE_NOT_CONFIGURED",
+        message: "Payments are not configured on this server.",
       });
     }
 

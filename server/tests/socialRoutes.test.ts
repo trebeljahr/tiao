@@ -370,6 +370,10 @@ async function installServiceMocks() {
   // Mock notifyLobbyUpdate to be a no-op (prevents fire-and-forget Mongoose calls)
   const socialModule = (await import("../routes/social.routes")) as Record<string, unknown>;
   socialModule.notifyLobbyUpdate = async () => {};
+
+  // Mock achievementService to prevent Achievement model access
+  const achievementModule = (await import("../game/achievementService")) as Record<string, unknown>;
+  achievementModule.onFriendAdded = async () => {};
 }
 
 // ─── Test setup ──────────────────────────────────────────────────────
