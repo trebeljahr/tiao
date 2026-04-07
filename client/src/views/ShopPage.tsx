@@ -139,22 +139,34 @@ export function ShopPage() {
       if (cancelled) return;
       const el = document.getElementById(purchasedItem!);
       if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-        // Wait for smooth scroll to finish, then read position and fire
-        setTimeout(() => {
-          // Force a layout read after scroll has settled
-          requestAnimationFrame(() => {
-            const rect = el.getBoundingClientRect();
-            const x = (rect.left + rect.width / 2) / window.innerWidth;
-            const y = (rect.top + rect.height / 2) / window.innerHeight;
+        // Calculate where to scroll so the element is vertically centered
+        const initialRect = el.getBoundingClientRect();
+        const scrollTarget =
+          window.scrollY + initialRect.top - window.innerHeight / 2 + initialRect.height / 2;
+        window.scrollTo({ top: Math.max(0, scrollTarget), behavior: "smooth" });
+
+        // Poll until the element is visible near viewport center
+        let scrollChecks = 0;
+        const checkVisible = () => {
+          scrollChecks++;
+          const r = el.getBoundingClientRect();
+          const centerY = r.top + r.height / 2;
+          const inCenter = centerY > window.innerHeight * 0.2 && centerY < window.innerHeight * 0.8;
+          if (inCenter || scrollChecks > 30) {
+            const finalRect = el.getBoundingClientRect();
+            const x = (finalRect.left + finalRect.width / 2) / window.innerWidth;
+            const y = (finalRect.top + finalRect.height / 2) / window.innerHeight;
             fireConfettiBurst(x, y);
             el.classList.add("shop-purchase-wiggle");
             el.addEventListener("animationend", () => el.classList.remove("shop-purchase-wiggle"), {
               once: true,
             });
             setPurchasedItem(null);
-          });
-        }, 800);
+          } else {
+            requestAnimationFrame(checkVisible);
+          }
+        };
+        setTimeout(() => requestAnimationFrame(checkVisible), 50);
         return;
       }
 
