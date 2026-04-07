@@ -139,34 +139,31 @@ export function ShopPage() {
       if (cancelled) return;
       const el = document.getElementById(purchasedItem!);
       if (el) {
-        // Calculate where to scroll so the element is vertically centered
-        const initialRect = el.getBoundingClientRect();
-        const scrollTarget =
-          window.scrollY + initialRect.top - window.innerHeight / 2 + initialRect.height / 2;
-        window.scrollTo({ top: Math.max(0, scrollTarget), behavior: "smooth" });
+        // Instant scroll to center the element, then fire confetti
+        el.scrollIntoView({ behavior: "instant", block: "center" });
 
-        // Poll until the element is visible near viewport center
-        let scrollChecks = 0;
-        const checkVisible = () => {
-          scrollChecks++;
-          const r = el.getBoundingClientRect();
-          const centerY = r.top + r.height / 2;
-          const inCenter = centerY > window.innerHeight * 0.2 && centerY < window.innerHeight * 0.8;
-          if (inCenter || scrollChecks > 30) {
-            const finalRect = el.getBoundingClientRect();
-            const x = (finalRect.left + finalRect.width / 2) / window.innerWidth;
-            const y = (finalRect.top + finalRect.height / 2) / window.innerHeight;
-            fireConfettiBurst(x, y);
-            el.classList.add("shop-purchase-wiggle");
-            el.addEventListener("animationend", () => el.classList.remove("shop-purchase-wiggle"), {
-              once: true,
-            });
-            setPurchasedItem(null);
-          } else {
-            requestAnimationFrame(checkVisible);
-          }
-        };
-        setTimeout(() => requestAnimationFrame(checkVisible), 50);
+        // Use a generous delay to let the browser paint after instant scroll
+        setTimeout(() => {
+          const rect = el.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const vw = window.innerWidth;
+          const vh = window.innerHeight;
+
+          // Debug: log to help diagnose position issues
+          console.log("[shop-confetti]", { cx, cy, vw, vh, x: cx / vw, y: cy / vh, rect });
+
+          // Clamp to valid range
+          const x = Math.max(0.05, Math.min(0.95, cx / vw));
+          const y = Math.max(0.05, Math.min(0.95, cy / vh));
+
+          fireConfettiBurst(x, y);
+          el.classList.add("shop-purchase-wiggle");
+          el.addEventListener("animationend", () => el.classList.remove("shop-purchase-wiggle"), {
+            once: true,
+          });
+          setPurchasedItem(null);
+        }, 100);
         return;
       }
 
