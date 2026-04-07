@@ -10,6 +10,7 @@ type DialogProps = {
   description?: string;
   children: React.ReactNode;
   className?: string;
+  closeable?: boolean;
 };
 
 export function Dialog({
@@ -19,6 +20,7 @@ export function Dialog({
   description,
   children,
   className,
+  closeable = true,
 }: DialogProps) {
   // Track whether the mousedown started on the backdrop (not inside the dialog content).
   // Only close when both mousedown AND mouseup (click) happen on the backdrop, so that
@@ -35,7 +37,7 @@ export function Dialog({
     document.body.style.overflow = "hidden";
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      if (event.key === "Escape" && closeable) {
         onOpenChange(false);
       }
     };
@@ -45,7 +47,7 @@ export function Dialog({
       window.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = prevOverflow;
     };
-  }, [open, onOpenChange]);
+  }, [open, onOpenChange, closeable]);
 
   const handleBackdropMouseDown = useCallback((event: React.MouseEvent) => {
     // Only flag when the mousedown target is the backdrop itself
@@ -57,12 +59,12 @@ export function Dialog({
   const handleBackdropClick = useCallback(
     (event: React.MouseEvent) => {
       // Close only if the click target is the backdrop AND mousedown started on the backdrop
-      if (event.target === event.currentTarget && mouseDownOnBackdrop.current) {
+      if (event.target === event.currentTarget && mouseDownOnBackdrop.current && closeable) {
         onOpenChange(false);
       }
       mouseDownOnBackdrop.current = false;
     },
-    [onOpenChange],
+    [onOpenChange, closeable],
   );
 
   if (!open) {
@@ -94,9 +96,11 @@ export function Dialog({
               <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
             ) : null}
           </div>
-          <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
-            x
-          </Button>
+          {closeable ? (
+            <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
+              x
+            </Button>
+          ) : null}
         </div>
         {children}
       </motion.div>

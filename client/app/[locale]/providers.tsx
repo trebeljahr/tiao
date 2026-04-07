@@ -60,6 +60,7 @@ function OAuthButtons() {
 
 function AuthDialog() {
   const {
+    auth,
     authDialogOpen,
     authDialogMode,
     authBusy,
@@ -83,6 +84,8 @@ function AuthDialog() {
     handleForgotPassword,
   } = useAuth();
 
+  const isGuest = !auth || auth.player.kind === "guest";
+
   const [forgotMode, setForgotMode] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotBusy, setForgotBusy] = useState(false);
@@ -100,6 +103,7 @@ function AuthDialog() {
         setAuthDialogOpen(open);
         if (!open) setForgotMode(false);
       }}
+      closeable={!isGuest}
       title={dialogTitle}
       description={
         forgotMode
