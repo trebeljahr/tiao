@@ -1,7 +1,9 @@
-"use client";
+import { cn } from "@/lib/utils";
 
-import { motion } from "framer-motion";
-
+/**
+ * Pure-CSS fade+slide-up entrance animation. No JS hydration needed —
+ * the animation runs from the server-rendered HTML via CSS @keyframes.
+ */
 export function AnimatedCard({
   children,
   delay = 0,
@@ -12,13 +14,11 @@ export function AnimatedCard({
   className?: string;
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay }}
-      className={className}
+    <div
+      className={cn("animate-card-in", className)}
+      style={delay > 0 ? { animationDelay: `${delay}s` } : undefined}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }

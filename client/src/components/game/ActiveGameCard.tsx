@@ -138,7 +138,8 @@ export function ActiveGameCard({
           <span className="shrink-0 text-xs text-[#8d7760]">vs.</span>
           <PlayerIdentityRow
             player={opponent}
-            linkToProfile={false}
+            linkToProfile
+            anonymous={opponent.kind === "guest"}
             className="min-w-0"
             avatarClassName="h-5 w-5"
             nameClassName="text-xs"

@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
 import type { MultiplayerSnapshot, TimeControl } from "@shared";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -85,11 +84,7 @@ export function MatchmakingPage() {
                 <div className="flex flex-col items-center gap-4">
                   <div className="relative">
                     <HourglassSpinner className="h-16 w-16 text-[#a6824d]" />
-                    <motion.div
-                      className="absolute inset-0 rounded-full border-4 border-[#a6824d]/20"
-                      animate={{ scale: [1, 1.2, 1], opacity: [1, 0, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    />
+                    <div className="absolute inset-0 rounded-full border-4 border-[#a6824d]/20 animate-ping-slow" />
                   </div>
                   <p className="text-lg font-semibold text-[#5d4732]">{t("searching")}</p>
                   <p

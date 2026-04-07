@@ -3,7 +3,7 @@ import { useSetBoardTheme } from "@/lib/useBoardTheme";
 import { cn } from "@/lib/utils";
 
 /** Mini board preview rendered as a tiny visual swatch for a theme. */
-function ThemeSwatch({ theme }: { theme: BoardTheme }) {
+export function ThemeSwatch({ theme }: { theme: BoardTheme }) {
   return (
     <div
       className="relative aspect-square w-full overflow-hidden rounded-lg border"

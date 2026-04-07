@@ -94,64 +94,69 @@ export function PlayerIdentityRow({
   const deleted = isDeletedPlayer(player);
 
   const canLink = linkToProfile && player.displayName && !anonymous && !deleted;
-  const identityContent = (
+
+  const nameContent = (
     <>
-      <PlayerOverviewAvatar player={player} anonymous={anonymous} className={avatarClassName} />
-      <div className="flex min-w-0 flex-col gap-1">
-        <span
-          className={cn(
-            "truncate text-sm font-medium leading-tight",
-            canLink && "hover:underline",
-            nameClassName,
-          )}
-        >
-          {player.displayName ?? t("player")}
-          {isYou && <span className="opacity-60"> {t("you")}</span>}
-          {player.rating != null && (
-            <span className="ml-1 text-xs font-normal opacity-50">({player.rating})</span>
-          )}
-          {anonymous && (
-            <InfoTooltip
-              text={t("guestPlayerTooltip")}
-              className="shrink-0"
-              iconClassName="opacity-50"
-            />
-          )}
-          {deleted && (
-            <InfoTooltip
-              text={t("deletedPlayerTooltip")}
-              className={cn(
-                "shrink-0",
-                friendVariant === "light"
-                  ? "text-black/40 hover:text-black/60"
-                  : "text-white/40 hover:text-white/60",
-              )}
-            />
-          )}
-        </span>
-        {badgesToShow.length > 0 && (
-          <div className="flex items-center gap-1">
-            {badgesToShow.map((id) => (
-              <UserBadge key={id} badge={id as BadgeId} compact />
-            ))}
-          </div>
-        )}
-      </div>
+      {player.displayName ?? t("player")}
+      {isYou && <span className="opacity-60"> {t("you")}</span>}
+      {player.rating != null && (
+        <span className="ml-1 text-xs font-normal opacity-50">({player.rating})</span>
+      )}
     </>
   );
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      {canLink ? (
-        <Link
-          href={`/profile/${encodeURIComponent(player.displayName!)}`}
-          className="flex min-w-0 items-center gap-2"
-        >
-          {identityContent}
-        </Link>
-      ) : (
-        <div className="flex min-w-0 items-center gap-2">{identityContent}</div>
-      )}
+      <div className="flex min-w-0 items-center gap-2">
+        <PlayerOverviewAvatar player={player} anonymous={anonymous} className={avatarClassName} />
+        <div className="flex min-w-0 flex-col gap-1">
+          <div className="flex min-w-0 items-center gap-1">
+            {canLink ? (
+              <Link
+                href={`/profile/${encodeURIComponent(player.displayName!)}`}
+                className={cn(
+                  "truncate text-sm font-medium leading-tight hover:underline",
+                  nameClassName,
+                )}
+              >
+                {nameContent}
+              </Link>
+            ) : (
+              <span className={cn("truncate text-sm font-medium leading-tight", nameClassName)}>
+                {nameContent}
+              </span>
+            )}
+            {anonymous && (
+              <InfoTooltip
+                text={t("guestPlayerTooltip")}
+                className="shrink-0"
+                iconClassName="opacity-50"
+              />
+            )}
+            {deleted && (
+              <InfoTooltip
+                text={t("deletedPlayerTooltip")}
+                className={cn(
+                  "shrink-0",
+                  friendVariant === "light"
+                    ? "text-black/40 hover:text-black/60"
+                    : "text-white/40 hover:text-white/60",
+                )}
+              />
+            )}
+          </div>
+          {badgesToShow.length > 0 && (
+            <Link
+              href="/shop"
+              className="flex items-center gap-1 hover:opacity-80 transition-opacity"
+            >
+              {badgesToShow.map((id) => (
+                <UserBadge key={id} badge={id as BadgeId} compact />
+              ))}
+            </Link>
+          )}
+        </div>
+      </div>
 
       {online != null && <ConnectionDot online={online} />}
 
