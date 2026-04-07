@@ -239,34 +239,33 @@ export function FriendsPage() {
                   </CardHeader>
                   <CardContent className="space-y-2">
                     {social.socialOverview.friends.map((friend) => (
-                      <div key={friend.playerId} className="space-y-2 p-3 rounded-xl bg-white/40">
+                      <div
+                        key={friend.playerId}
+                        className="flex items-center justify-between gap-3 rounded-xl bg-white/40 p-3"
+                      >
                         <PlayerIdentityRow
                           player={friend}
                           online={friend.online}
                           nameClassName="font-medium"
                           linkToProfile
+                          className="min-w-0"
                         />
-                        <div className="flex items-center gap-2">
+                        <div className="flex shrink-0 items-center gap-2">
                           <Button
                             size="sm"
-                            variant="secondary"
-                            className="text-xs"
+                            variant="outline"
+                            className="border-[#dcc7a2] hover:bg-[#faefd8]"
                             onClick={() => setActiveGamesFriendId(friend.playerId)}
                           >
                             {t("seeActiveGames")}
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            className="text-xs"
-                            onClick={() => openInviteDialog(friend.playerId)}
-                          >
+                          <Button size="sm" onClick={() => openInviteDialog(friend.playerId)}>
                             {t("inviteToGame")}
                           </Button>
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="text-xs text-[#8d7760] hover:text-red-600"
+                            className="text-[#8d7760] hover:text-red-600"
                             onClick={() => social.handleRemoveFriend(friend.playerId)}
                             disabled={
                               social.socialActionBusyKey === `friend-remove:${friend.playerId}`
