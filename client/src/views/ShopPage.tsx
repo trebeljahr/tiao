@@ -73,34 +73,6 @@ function fireConfettiBurst(x: number, y: number) {
   }, 150);
 }
 
-function firePurchaseConfetti(elementId: string) {
-  let attempts = 0;
-  const maxAttempts = 10;
-
-  function tryFire() {
-    const el = document.getElementById(elementId);
-    if (el) {
-      const rect = el.getBoundingClientRect();
-      const x = (rect.left + rect.width / 2) / window.innerWidth;
-      const y = (rect.top + rect.height / 2) / window.innerHeight;
-      fireConfettiBurst(x, y);
-      return;
-    }
-
-    attempts++;
-    if (attempts < maxAttempts) {
-      // Retry — catalog may still be loading
-      setTimeout(tryFire, 300);
-    } else {
-      // Fallback: fire from center
-      fireConfettiBurst(0.5, 0.45);
-    }
-  }
-
-  // Start trying after a short delay for initial render
-  setTimeout(tryFire, 200);
-}
-
 function formatPrice(cents: number, currency: string): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -136,7 +108,9 @@ export function ShopPage() {
     void fetchCatalog();
   }, [fetchCatalog, auth]);
 
-  // Handle Stripe redirect
+  // Handle Stripe redirect — track the purchased item for confetti after load
+  const [purchasedItem, setPurchasedItem] = useState<string | null>(null);
+
   useEffect(() => {
     const success = searchParams?.get("success");
     const cancelled = searchParams?.get("cancelled");
@@ -144,8 +118,7 @@ export function ShopPage() {
 
     if (success === "true") {
       toast.success(t("purchaseSuccess", { item: item ?? "" }));
-      // Fire confetti immediately — don't wait for catalog refetch
-      if (item) firePurchaseConfetti(item);
+      if (item) setPurchasedItem(item);
       void fetchCatalog();
       window.history.replaceState({}, "", window.location.pathname);
     } else if (cancelled === "true") {
@@ -153,6 +126,31 @@ export function ShopPage() {
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fire confetti + scroll once the purchased item is in the DOM (after auth + catalog load)
+  useEffect(() => {
+    if (!purchasedItem || loading || authLoading) return;
+
+    const el = document.getElementById(purchasedItem);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      // Fire confetti after scroll settles
+      setTimeout(() => {
+        const rect = el.getBoundingClientRect();
+        const x = (rect.left + rect.width / 2) / window.innerWidth;
+        const y = (rect.top + rect.height / 2) / window.innerHeight;
+        fireConfettiBurst(x, y);
+        el.classList.add("shop-item-highlight");
+        el.addEventListener("animationend", () => el.classList.remove("shop-item-highlight"), {
+          once: true,
+        });
+      }, 400);
+    } else {
+      // Element not found — fire from center
+      fireConfettiBurst(0.5, 0.45);
+    }
+    setPurchasedItem(null);
+  }, [purchasedItem, loading, authLoading]);
 
   // Scroll to and highlight the target element from the URL hash
   useEffect(() => {
