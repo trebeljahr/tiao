@@ -141,7 +141,6 @@ export function ShopPage() {
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "center" });
         setTimeout(() => {
-          if (cancelled) return;
           const rect = el.getBoundingClientRect();
           const x = (rect.left + rect.width / 2) / window.innerWidth;
           const y = (rect.top + rect.height / 2) / window.innerHeight;
@@ -150,8 +149,8 @@ export function ShopPage() {
           el.addEventListener("animationend", () => el.classList.remove("shop-item-highlight"), {
             once: true,
           });
+          setPurchasedItem(null);
         }, 500);
-        setPurchasedItem(null);
         return;
       }
 
