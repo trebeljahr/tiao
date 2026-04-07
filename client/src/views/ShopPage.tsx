@@ -140,17 +140,21 @@ export function ShopPage() {
       const el = document.getElementById(purchasedItem!);
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "center" });
+        // Wait for smooth scroll to finish, then read position and fire
         setTimeout(() => {
-          const rect = el.getBoundingClientRect();
-          const x = (rect.left + rect.width / 2) / window.innerWidth;
-          const y = (rect.top + rect.height / 2) / window.innerHeight;
-          fireConfettiBurst(x, y);
-          el.classList.add("shop-item-highlight");
-          el.addEventListener("animationend", () => el.classList.remove("shop-item-highlight"), {
-            once: true,
+          // Force a layout read after scroll has settled
+          requestAnimationFrame(() => {
+            const rect = el.getBoundingClientRect();
+            const x = (rect.left + rect.width / 2) / window.innerWidth;
+            const y = (rect.top + rect.height / 2) / window.innerHeight;
+            fireConfettiBurst(x, y);
+            el.classList.add("shop-purchase-wiggle");
+            el.addEventListener("animationend", () => el.classList.remove("shop-purchase-wiggle"), {
+              once: true,
+            });
+            setPurchasedItem(null);
           });
-          setPurchasedItem(null);
-        }, 500);
+        }, 800);
         return;
       }
 

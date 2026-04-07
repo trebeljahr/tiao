@@ -232,3 +232,36 @@ layer(base);
 .shop-item-highlight {
   animation: target-attention 1s ease-out;
 }
+@keyframes purchase-wiggle {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  10% {
+    transform: scale(1.04) rotate(-1.5deg);
+  }
+  20% {
+    transform: scale(1.06) rotate(1.5deg);
+  }
+  30% {
+    transform: scale(1.04) rotate(-1deg);
+  }
+  40% {
+    transform: scale(1.03) rotate(1deg);
+  }
+  50% {
+    transform: scale(1.02) rotate(-0.5deg);
+  }
+  60% {
+    transform: scale(1.01) rotate(0.5deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+.shop-purchase-wiggle {
+  animation: purchase-wiggle 0.7s ease-out;
+  box-shadow:
+    0 0 20px rgba(255, 215, 0, 0.4),
+    0 0 40px rgba(255, 215, 0, 0.15);
+  border-color: rgba(255, 215, 0, 0.5) !important;
+}
