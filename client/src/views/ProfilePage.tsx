@@ -110,6 +110,18 @@ function LinkedAccounts({
     setBusy(provider);
     try {
       const settingsURL = window.location.origin + "/settings";
+      // Stash the origin path so the global OAuthErrorHandler can bounce the
+      // user back here even when better-auth falls back to its global error
+      // URL (e.g. on state-mismatch / `please_restart_the_process`, which
+      // redirects to FRONTEND_URL `/` before `errorCallbackURL` is consulted).
+      try {
+        // Store the fully-qualified pathname (incl. locale prefix) so the
+        // error handler can bounce back to e.g. /en/settings, not bare
+        // /settings which would route through the default locale.
+        sessionStorage.setItem("oauthLinkReturnPath", window.location.pathname);
+      } catch {
+        // sessionStorage unavailable (private mode, etc.) — ignore
+      }
       const { error } = await authClient.linkSocial({
         provider,
         callbackURL: settingsURL,
@@ -117,10 +129,13 @@ function LinkedAccounts({
       });
       if (error) {
         toastError(readableError(error));
+        setBusy(null);
       }
+      // On success we intentionally leave `busy` set so the button keeps
+      // showing "Linking…" until the OAuth redirect navigates away (or the
+      // user cancels and comes back, at which point a remount clears state).
     } catch (error) {
       toastError(readableError(error));
-    } finally {
       setBusy(null);
     }
   }
@@ -499,6 +514,18 @@ export function ProfilePage() {
       cancelled = true;
     };
   }, [auth]);
+
+  // Drop any stale OAuth return path stashed for the error handler. If we
+  // reached /settings without an `?error=` param, the link flow either
+  // succeeded or was never started from here — either way the entry is no
+  // longer needed and shouldn't linger to hijack an unrelated future error.
+  useEffect(() => {
+    try {
+      sessionStorage.removeItem("oauthLinkReturnPath");
+    } catch {
+      // ignore
+    }
+  }, []);
 
   // Show toast for ?emailChange=success|expired|invalid|error from the email
   // change flow. OAuth ?error= params are handled globally by OAuthErrorHandler
@@ -928,7 +955,7 @@ export function ProfilePage() {
             </PaperCard>
           </AnimatedCard>
 
-          <AnimatedCard delay={0.05}>
+          <AnimatedCard delay={0.05} className="lg:row-span-2">
             <PaperCard>
               <CardHeader>
                 <CardTitle>{t("basicInfo")}</CardTitle>
@@ -1180,8 +1207,6 @@ export function ProfilePage() {
             }}
           />
 
-          <BadgeSelector auth={auth} onAuthChange={onAuthChange} delay={0.15} />
-
           <Card className="border-red-300 bg-red-50/50">
             <CardHeader>
               <CardTitle className="text-red-700">{t("deleteAccount")}</CardTitle>
@@ -1202,6 +1227,8 @@ export function ProfilePage() {
               </Button>
             </CardContent>
           </Card>
+
+          <BadgeSelector auth={auth} onAuthChange={onAuthChange} delay={0.15} />
         </div>
       ) : null}
       <Dialog

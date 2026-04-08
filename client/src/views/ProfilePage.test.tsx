@@ -500,4 +500,73 @@ describe("ProfilePage OAuth linking (#98, #100)", () => {
       );
     });
   });
+
+  it("stashes current pathname in sessionStorage before linking so the error handler can bounce back", async () => {
+    sessionStorage.removeItem("oauthLinkReturnPath");
+
+    render(<ProfilePage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /github/i })).toBeInTheDocument();
+    });
+
+    // ProfilePage's cleanup effect runs on mount and clears any stale value
+    // before the user clicks. Confirm the click itself is what populates it.
+    expect(sessionStorage.getItem("oauthLinkReturnPath")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: /github/i }));
+
+    await waitFor(() => {
+      expect(sessionStorage.getItem("oauthLinkReturnPath")).toBe("/settings");
+    });
+  });
+
+  it("keeps the link button in the linking state after linkSocial resolves successfully (no flicker back to idle before the OAuth redirect navigates away)", async () => {
+    const { authClient } = await import("@/lib/auth-client");
+    // A successful linkSocial resolves with no error — the page is about to
+    // be replaced by the OAuth provider redirect, so the button must stay
+    // in "Linking…" until navigation happens, not snap back to its label.
+    vi.mocked(authClient.linkSocial).mockResolvedValueOnce({ data: { url: "" } } as never);
+
+    render(<ProfilePage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /github/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /github/i }));
+
+    await waitFor(() => {
+      expect(authClient.linkSocial).toHaveBeenCalled();
+    });
+
+    // The label should have become "Linking…" and stayed there — the GitHub
+    // label should no longer be present on the button.
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /linking/i })).toBeInTheDocument();
+    });
+    expect(screen.queryByRole("button", { name: /^github$/i })).not.toBeInTheDocument();
+  });
+
+  it("clears the busy state when linkSocial resolves with an error", async () => {
+    const { authClient } = await import("@/lib/auth-client");
+    vi.mocked(authClient.linkSocial).mockResolvedValueOnce({
+      data: null,
+      error: { code: "access_denied", message: "nope" },
+    } as never);
+
+    render(<ProfilePage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /github/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /github/i }));
+
+    // After error, the button returns to the "GitHub" label so the user can
+    // retry immediately in-place.
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /^github$/i })).toBeInTheDocument();
+    });
+  });
 });

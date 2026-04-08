@@ -404,6 +404,7 @@ function UsernameOnboardingGuard({ children }: { children: React.ReactNode }) {
 
 function OAuthErrorHandler() {
   const tCommon = useTranslations("common");
+  const router = useRouter();
   // Captured during render (not in an effect) so React Strict Mode's
   // double-invocation of the effect body doesn't wipe the error before
   // we get a chance to toast it: the first render's effect cleans the
@@ -425,6 +426,32 @@ function OAuthErrorHandler() {
     const pending = pendingErrorRef.current;
     if (!pending) return;
     pendingErrorRef.current = null;
+
+    // Bounce back to the page that initiated the OAuth flow.
+    //
+    // `errorCallbackURL` passed to better-auth's linkSocial/signIn is only
+    // honored once the OAuth state cookie has been parsed successfully. On
+    // state-mismatch / `please_restart_the_process` and similar early
+    // failures (e.g. a Discord "Cancel" click that invalidates the state),
+    // better-auth falls back to its global `onAPIError.errorURL`, which is
+    // just FRONTEND_URL (`/`). That lands the user on the homepage instead
+    // of the settings/auth page they came from.
+    //
+    // Flows that care about returning to a specific page stash the origin
+    // in sessionStorage before starting the OAuth dance; consume it here.
+    if (typeof window !== "undefined") {
+      try {
+        const returnPath = sessionStorage.getItem("oauthLinkReturnPath");
+        if (returnPath) {
+          sessionStorage.removeItem("oauthLinkReturnPath");
+          if (window.location.pathname !== returnPath) {
+            router.replace(returnPath);
+          }
+        }
+      } catch {
+        // sessionStorage unavailable — ignore
+      }
+    }
 
     // Surface OAuth/link failures as a toast on whatever page the user
     // initiated the flow from (better-auth honors errorCallbackURL), so
