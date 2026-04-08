@@ -151,8 +151,13 @@ export function useLocalGame(settings?: Partial<GameSettings>) {
         // to clear the selection.  On desktop we allow reselection (clicking
         // on another own piece with jumps switches selection) and otherwise
         // deselect.
+        //
+        // During an ongoing multi-jump (hasPending), the piece is locked in
+        // as the forced origin — deselecting or switching pieces isn't
+        // allowed anyway, so clicking away must leave the selection intact
+        // so the player can still see the continuation highlights.
         if (jumpTargets.length > 0) {
-          if (isTouchDevice()) {
+          if (isTouchDevice() || hasPending) {
             return;
           }
           const tile = localGame.positions[position.y]?.[position.x];

@@ -955,6 +955,13 @@ export function MultiplayerGamePage() {
       return;
     }
 
+    // Keep the piece selected during an ongoing multi-jump so the player can
+    // still see continuation highlights after a stray click — the forced
+    // origin is locked in anyway, so deselecting is never desirable here.
+    if (state.pendingJump.length > 0) {
+      return;
+    }
+
     setMultiplayerSelection(null);
   };
 
