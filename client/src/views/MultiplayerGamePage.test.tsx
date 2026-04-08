@@ -1404,6 +1404,61 @@ describe("MultiplayerGamePage", () => {
     expect(screen.getByText("Loading...")).toBeInTheDocument();
   });
 
+  it("renders LoadingBoardSkeleton behind rules intro modal for new players", async () => {
+    // Regression: new players (no `tiao:knowsHowToPlay`) saw a blank white
+    // page behind the rules intro modal while the game snapshot was still
+    // loading, because the skeleton early-return explicitly excluded the
+    // rulesIntroOpen case. The fix stacks the modal on top of the skeleton.
+    localStorage.removeItem("tiao:knowsHowToPlay");
+
+    const newAccountAuth: AuthResponse = {
+      player: {
+        kind: "account",
+        playerId: "new-account-xyz",
+        displayName: "newuser",
+        email: "new@test.com",
+        hasSeenTutorial: false,
+        badges: [],
+        activeBadges: [],
+        unlockedThemes: [],
+        rating: 1500,
+      },
+    };
+
+    const authModule = await import("@/lib/AuthContext");
+    const useAuthSpy = vi.spyOn(authModule, "useAuth").mockReturnValue({
+      auth: newAccountAuth,
+      authLoading: false,
+      onOpenAuth: vi.fn(),
+      onLogout: vi.fn(),
+      applyAuth: vi.fn(),
+    } as ReturnType<typeof authModule.useAuth>);
+
+    const { useMultiplayerGame } = await import("@/lib/hooks/useMultiplayerGame");
+    (useMultiplayerGame as ReturnType<typeof vi.fn>).mockReturnValue({
+      multiplayerSnapshot: null,
+      multiplayerSelection: null,
+      connectionState: "idle",
+      connectToRoom: mockConnectToRoom,
+      sendMultiplayerMessage: mockSendMultiplayerMessage,
+      setMultiplayerSelection: mockSetMultiplayerSelection,
+      multiplayerBusy: false,
+      setMultiplayerBusy: mockSetMultiplayerBusy,
+      multiplayerError: null,
+    });
+    const { useSocialData } = await import("@/lib/hooks/useSocialData");
+    (useSocialData as ReturnType<typeof vi.fn>).mockReturnValue(defaultSocialMock);
+
+    render(<MultiplayerGamePage />);
+
+    // Modal visible
+    expect(screen.getByText("Welcome to Tiao!")).toBeInTheDocument();
+    // Skeleton "Loading..." label is ALSO visible behind the modal.
+    expect(screen.getByText("Loading...")).toBeInTheDocument();
+
+    useAuthSpy.mockRestore();
+  });
+
   it("displays spectator count next to eye icon when spectatorCount > 0", async () => {
     const snapshot = makeMatchmakingSnapshot({
       spectators: [

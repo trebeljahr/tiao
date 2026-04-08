@@ -968,16 +968,88 @@ export function MultiplayerGamePage() {
     aspectRatio: "1/1",
   };
 
+  // Rules intro modal extracted into a variable so it can render BOTH on top
+  // of the loading skeleton (while the snapshot is still fetching) and on top
+  // of the real game page (once the snapshot arrives). Previously the skeleton
+  // early-return excluded the modal case, which meant new players who hadn't
+  // completed the tutorial saw a white page behind the modal instead of the
+  // board skeleton.
+  const rulesIntroDialog = (
+    <Dialog
+      open={rulesIntroOpen}
+      onOpenChange={setRulesIntroOpen}
+      title={t("welcomeToTiao")}
+      description={t("welcomeToTiaoDesc")}
+      closeable={false}
+    >
+      <div className="space-y-4">
+        <div className="rounded-2xl border border-[#d7c39e] bg-[#fffaf3] overflow-hidden">
+          <table className="w-full text-sm">
+            <tbody>
+              {(
+                [
+                  [t("ruleGeneral"), t("ruleGeneralDesc")],
+                  [t("ruleWin"), t("ruleWinDesc")],
+                  [t("rulePlace"), t("rulePlaceDesc")],
+                  [t("ruleJump"), t("ruleJumpDesc")],
+                  [t("ruleCluster"), t("ruleClusterDesc")],
+                  [t("ruleBorder"), t("ruleBorderDesc")],
+                ] as const
+              ).map(([rule, desc]) => (
+                <tr key={rule} className="border-b border-[#e8dcc8] last:border-0">
+                  <td className="px-3 py-2 font-semibold text-[#2b1e14] whitespace-nowrap">
+                    {rule}
+                  </td>
+                  <td className="px-3 py-2 text-[#6e5b48]">{desc}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="grid gap-3">
+          <Button onClick={() => router.push("/tutorial?from=game")}>{t("learnToPlay")}</Button>
+          {!(isSpectator && !isInPlayerList) && (
+            <button
+              type="button"
+              className="text-center text-sm text-[#6e5b48] underline underline-offset-4 hover:text-[#2b1e14] transition-colors"
+              onClick={() => {
+                localStorage.setItem("tiao:knowsHowToPlay", "1");
+                setRulesIntroOpen(false);
+                setReadyToJoin(true);
+              }}
+            >
+              {t("iKnowHowToPlay")}
+            </button>
+          )}
+          {isSpectator && !isInPlayerList && (
+            <Button
+              variant="outline"
+              onClick={() => {
+                localStorage.setItem("tiao:knowsHowToPlay", "1");
+                setRulesIntroOpen(false);
+                setReadyToJoin(true);
+              }}
+            >
+              {t("startSpectating")}
+            </Button>
+          )}
+        </div>
+      </div>
+    </Dialog>
+  );
+
   // Show the loading skeleton from the very first render until the snapshot
-  // is available, instead of only while `multiplayerBusy` is true. The previous
-  // condition (`multiplayerBusy && !multiplayerSnapshot`) missed the initial
-  // frame — on first render `multiplayerBusy` is still false (the loadGame
-  // effect hasn't run yet), so the main return body rendered with an empty
-  // board area, producing a white flash before the skeleton appeared.
-  // The rules-intro modal is intentionally excluded so it can still render
-  // over the empty page when a new player needs to acknowledge the rules.
-  if (!multiplayerSnapshot && !rulesIntroOpen) {
-    return <LoadingBoardSkeleton />;
+  // is available. New players who haven't completed the tutorial see the
+  // rules intro dialog stacked on top of the skeleton, so the background is
+  // the board skeleton rather than a blank white page.
+  if (!multiplayerSnapshot) {
+    return (
+      <>
+        <LoadingBoardSkeleton />
+        {rulesIntroDialog}
+      </>
+    );
   }
 
   return (
@@ -1942,68 +2014,7 @@ export function MultiplayerGamePage() {
           the underlined link below the primary CTA. This prevents the "Game started!"
           toast from firing for players who casually dismissed an earlier "Got it"
           button without ever learning the rules. */}
-      <Dialog
-        open={rulesIntroOpen}
-        onOpenChange={setRulesIntroOpen}
-        title={t("welcomeToTiao")}
-        description={t("welcomeToTiaoDesc")}
-        closeable={false}
-      >
-        <div className="space-y-4">
-          <div className="rounded-2xl border border-[#d7c39e] bg-[#fffaf3] overflow-hidden">
-            <table className="w-full text-sm">
-              <tbody>
-                {(
-                  [
-                    [t("ruleGeneral"), t("ruleGeneralDesc")],
-                    [t("ruleWin"), t("ruleWinDesc")],
-                    [t("rulePlace"), t("rulePlaceDesc")],
-                    [t("ruleJump"), t("ruleJumpDesc")],
-                    [t("ruleCluster"), t("ruleClusterDesc")],
-                    [t("ruleBorder"), t("ruleBorderDesc")],
-                  ] as const
-                ).map(([rule, desc]) => (
-                  <tr key={rule} className="border-b border-[#e8dcc8] last:border-0">
-                    <td className="px-3 py-2 font-semibold text-[#2b1e14] whitespace-nowrap">
-                      {rule}
-                    </td>
-                    <td className="px-3 py-2 text-[#6e5b48]">{desc}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="grid gap-3">
-            <Button onClick={() => router.push("/tutorial?from=game")}>{t("learnToPlay")}</Button>
-            {!(isSpectator && !isInPlayerList) && (
-              <button
-                type="button"
-                className="text-center text-sm text-[#6e5b48] underline underline-offset-4 hover:text-[#2b1e14] transition-colors"
-                onClick={() => {
-                  localStorage.setItem("tiao:knowsHowToPlay", "1");
-                  setRulesIntroOpen(false);
-                  setReadyToJoin(true);
-                }}
-              >
-                {t("iKnowHowToPlay")}
-              </button>
-            )}
-            {isSpectator && !isInPlayerList && (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  localStorage.setItem("tiao:knowsHowToPlay", "1");
-                  setRulesIntroOpen(false);
-                  setReadyToJoin(true);
-                }}
-              >
-                {t("startSpectating")}
-              </Button>
-            )}
-          </div>
-        </div>
-      </Dialog>
+      {rulesIntroDialog}
     </div>
   );
 }
