@@ -254,7 +254,7 @@ export function useComputerGame(difficulty: AIDifficulty = 3, settings?: Partial
   ]);
 
   const resetComputerGame = useCallback(
-    (preferredComputerColor?: PlayerColor) => {
+    (preferredComputerColor?: PlayerColor, settingsOverrides?: Partial<GameSettings>) => {
       if (cancelRef.current) {
         cancelRef.current();
         cancelRef.current = null;
@@ -263,7 +263,7 @@ export function useComputerGame(difficulty: AIDifficulty = 3, settings?: Partial
       searchedForRef.current = -1;
       setResetGeneration((g) => g + 1);
       setComputerColor(preferredComputerColor ?? randomComputerColor());
-      local.resetLocalGame();
+      local.resetLocalGame(settingsOverrides);
     },
     [local.resetLocalGame],
   );

@@ -36,6 +36,9 @@ export function LocalGamePage() {
   const [scoreToWin, setScoreToWin] = useState(10);
   const [timeControl, setTimeControl] = useState<TimeControl>(null);
 
+  const gameSettings = { boardSize, scoreToWin };
+  const local = useLocalGame(gameSettings);
+
   // Auto-start from query params (e.g. from lobby dialog)
   const autoStartRef = useRef(false);
   useEffect(() => {
@@ -51,12 +54,10 @@ export function LocalGamePage() {
       if (tcInitial && tcIncrement) {
         setTimeControl({ initialMs: Number(tcInitial), incrementMs: Number(tcIncrement) });
       }
+      local.resetLocalGame({ boardSize: bs, scoreToWin: stw });
       setConfiguring(false);
     }
-  }, [searchParams]);
-
-  const gameSettings = { boardSize, scoreToWin };
-  const local = useLocalGame(gameSettings);
+  }, [searchParams, local.resetLocalGame]);
 
   const gameOver = isGameOver(local.localGame);
   const winner = gameOver ? getWinner(local.localGame) : null;

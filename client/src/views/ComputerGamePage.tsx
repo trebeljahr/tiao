@@ -69,7 +69,10 @@ export function ComputerGamePage() {
       setBoardSize(bs);
       setScoreToWin(stw);
       setDifficulty(d);
-      computer.resetLocalGame(c === "white" ? "black" : "white");
+      computer.resetLocalGame(c === "white" ? "black" : "white", {
+        boardSize: bs,
+        scoreToWin: stw,
+      });
     }
   }, [searchParams, computer.resetLocalGame]);
 

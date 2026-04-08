@@ -63,12 +63,15 @@ export function useLocalGame(settings?: Partial<GameSettings>) {
     localHistoryLengthRef.current = localGame.history.length;
   }, [localGame]);
 
-  const resetLocalGame = useCallback(() => {
-    setLocalGame(createInitialGameState(settings));
-    setLocalSelection(null);
-    setLocalError(null);
-    setLastMove(null);
-  }, [settings]);
+  const resetLocalGame = useCallback(
+    (overrides?: Partial<GameSettings>) => {
+      setLocalGame(createInitialGameState(overrides ?? settings));
+      setLocalSelection(null);
+      setLocalError(null);
+      setLastMove(null);
+    },
+    [settings],
+  );
 
   const handleLocalConfirmPendingJump = useCallback(() => {
     const result = confirmPendingJump(localGame);
