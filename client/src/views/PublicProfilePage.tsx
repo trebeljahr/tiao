@@ -16,8 +16,8 @@ import {
   type PlayerAchievement,
 } from "@/lib/api";
 import type { MultiplayerGameSummary } from "@shared";
-import { ACHIEVEMENTS, type AchievementDefinition, type AchievementTier } from "@shared";
-import { AchievementIcon } from "@/components/AchievementIcon";
+import { ACHIEVEMENTS } from "@shared";
+import { AchievementCard } from "@/components/AchievementCard";
 import { MatchHistoryCard } from "@/components/game/MatchHistoryCard";
 import { UserBadge, type BadgeId, BADGE_DEFINITIONS } from "@/components/UserBadge";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
@@ -349,11 +349,18 @@ export function PublicProfilePage() {
                       {tCommon("view")} &rarr;
                     </button>
                   </div>
-                  <div className="grid gap-2 sm:grid-cols-2">
+                  <div className="grid gap-3 sm:grid-cols-2">
                     {playerAchievements.slice(0, 6).map((pa) => {
                       const def = ACHIEVEMENTS.find((a) => a.id === pa.achievementId);
                       if (!def) return null;
-                      return <ProfileAchievementBadge key={pa.achievementId} def={def} />;
+                      return (
+                        <AchievementCard
+                          key={pa.achievementId}
+                          def={def}
+                          unlocked
+                          unlockedAt={pa.unlockedAt}
+                        />
+                      );
                     })}
                   </div>
                   {playerAchievements.length > 6 && (
@@ -404,27 +411,5 @@ export function PublicProfilePage() {
         </>
       )}
     </PageLayout>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Compact achievement badge for profiles
-// ---------------------------------------------------------------------------
-
-const TIER_COLORS: Record<AchievementTier, string> = {
-  bronze: "border-amber-700/30 bg-amber-800/10 text-amber-800",
-  silver: "border-slate-400/30 bg-slate-300/15 text-slate-600",
-  gold: "border-yellow-500/30 bg-yellow-400/15 text-yellow-700",
-  platinum: "border-cyan-400/30 bg-cyan-300/15 text-cyan-700",
-};
-
-function ProfileAchievementBadge({ def }: { def: AchievementDefinition }) {
-  return (
-    <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 ${TIER_COLORS[def.tier]}`}>
-      <AchievementIcon id={def.id} tier={def.tier} className="h-4 w-4 shrink-0" />
-      <div className="min-w-0">
-        <p className="truncate text-xs font-semibold">{def.name}</p>
-      </div>
-    </div>
   );
 }
