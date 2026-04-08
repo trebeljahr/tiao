@@ -1,12 +1,7 @@
 import { Router, Request, Response } from "express";
 import { getPlayerFromRequest } from "../auth/sessionHelper";
 import GameAccount from "../models/GameAccount";
-import {
-  getPlayerAchievements,
-  onAIGameWon,
-  onLocalGameCompleted,
-  type LocalGameReport,
-} from "../game/achievementService";
+import { getPlayerAchievements, onAIGameWon } from "../game/achievementService";
 import { ACHIEVEMENTS } from "../../shared/src/achievements";
 
 const router = Router();
@@ -74,37 +69,6 @@ router.post("/achievements/ai-win", async (req: Request, res: Response) => {
   } catch (error) {
     console.error("[achievements] Error reporting AI win:", error);
     return res.status(500).json({ error: "Unable to process AI win." });
-  }
-});
-
-// ---------------------------------------------------------------------------
-// POST /achievements/local-game — report a local/computer game completion
-// ---------------------------------------------------------------------------
-
-router.post("/achievements/local-game", async (req: Request, res: Response) => {
-  try {
-    const player = await getPlayerFromRequest(req);
-    if (!player || player.kind !== "account") {
-      return res.status(401).json({ error: "Authentication required." });
-    }
-
-    const report = req.body as LocalGameReport;
-    if (
-      typeof report.won !== "boolean" ||
-      typeof report.scoreToWin !== "number" ||
-      typeof report.maxChainLength !== "number" ||
-      typeof report.durationMs !== "number" ||
-      !report.score ||
-      !report.playerColor
-    ) {
-      return res.status(400).json({ error: "Invalid game report." });
-    }
-
-    await onLocalGameCompleted(player.playerId, report);
-    return res.json({ ok: true });
-  } catch (error) {
-    console.error("[achievements] Error reporting local game:", error);
-    return res.status(500).json({ error: "Unable to process game report." });
   }
 });
 

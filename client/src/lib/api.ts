@@ -614,20 +614,3 @@ export function reportAIWin(difficulty: 1 | 2 | 3) {
     body: { difficulty },
   });
 }
-
-export type LocalGameReport = {
-  won: boolean;
-  score: { white: number; black: number };
-  scoreToWin: number;
-  playerColor: "white" | "black";
-  maxChainLength: number;
-  opponentScoredZero: boolean;
-  durationMs: number;
-};
-
-export function reportLocalGame(report: LocalGameReport) {
-  return request<{ ok: boolean }>("/api/player/achievements/local-game", {
-    method: "POST",
-    body: report as unknown as Record<string, unknown>,
-  });
-}

@@ -25,8 +25,7 @@ import { useWinConfetti } from "@/lib/useWinConfetti";
 import { useGameOverDialog } from "@/lib/hooks/useGameOverDialog";
 import { isGameOver, getWinner } from "@shared";
 import type { AIDifficulty } from "@/lib/computer-ai";
-import { reportAIWin, reportLocalGame } from "@/lib/api";
-import type { JumpTurn } from "@shared";
+import { reportAIWin } from "@/lib/api";
 
 export function ComputerGamePage() {
   const { auth, onOpenAuth, onLogout } = useAuth();
@@ -44,10 +43,7 @@ export function ComputerGamePage() {
   const gameSettings = { boardSize, scoreToWin };
   const computer = useComputerGame(difficulty ?? 3, gameSettings);
 
-  const gameStartRef = React.useRef(Date.now());
-
   const handleStartGame = useCallback(() => {
-    gameStartRef.current = Date.now();
     setDifficulty(selectedDifficulty);
     const playerColorChoice = selectedColor === "random" ? undefined : selectedColor;
     const computerCol = playerColorChoice
@@ -96,32 +92,14 @@ export function ComputerGamePage() {
 
   const playerWon = winner !== null && winner !== computer.computerColor;
 
-  // Report game completion for achievements
+  // Report AI win for achievements
   const reportedRef = React.useRef(false);
   useEffect(() => {
-    if (gameOver && auth?.player.kind === "account" && !reportedRef.current) {
+    if (playerWon && difficulty && auth?.player.kind === "account" && !reportedRef.current) {
       reportedRef.current = true;
-      const game = computer.localGame;
-      const jumps = game.history.filter(
-        (t): t is JumpTurn => t.type === "jump" && t.color === playerColor,
-      );
-      const maxChain = jumps.reduce((max, j) => Math.max(max, j.jumps.length), 0);
-      const opponentColor = playerColor === "white" ? "black" : "white";
-
-      if (playerWon && difficulty) {
-        void reportAIWin(difficulty);
-      }
-      void reportLocalGame({
-        won: playerWon,
-        score: game.score,
-        scoreToWin: game.scoreToWin,
-        playerColor,
-        maxChainLength: maxChain,
-        opponentScoredZero: game.score[opponentColor] === 0,
-        durationMs: Date.now() - gameStartRef.current,
-      });
+      void reportAIWin(difficulty);
     }
-  }, [gameOver, auth?.player.kind]);
+  }, [playerWon, difficulty, auth?.player.kind]);
 
   const gameOverTitle = isDraw ? t("draw") : playerWon ? t("youWon") : t("youLost");
   const gameOverDescription = isDraw ? t("drawNoMoves") : playerWon ? t("wonDesc") : t("lostDesc");

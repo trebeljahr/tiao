@@ -345,65 +345,6 @@ export async function onAIGameWon(playerId: string, difficulty: 1 | 2 | 3): Prom
 }
 
 // ---------------------------------------------------------------------------
-// Event: Local/Computer Game Completed (reported by client)
-// ---------------------------------------------------------------------------
-
-export type LocalGameReport = {
-  won: boolean;
-  score: { white: number; black: number };
-  scoreToWin: number;
-  playerColor: "white" | "black";
-  /** Max chain jump length (captures) in a single turn by the player */
-  maxChainLength: number;
-  /** Whether the opponent scored 0 */
-  opponentScoredZero: boolean;
-  /** Duration in ms */
-  durationMs: number;
-};
-
-export async function onLocalGameCompleted(
-  playerId: string,
-  report: LocalGameReport,
-): Promise<void> {
-  // First Blood — captured at least one piece
-  if (report.score[report.playerColor] > 0) {
-    void grant(playerId, "first-blood");
-  }
-
-  // Chain Reaction — 5+ captures in a single chain jump
-  if (report.maxChainLength >= 5) {
-    void grant(playerId, "chain-reaction");
-  }
-
-  // One Jump Wonder — won the game from a single chain jump scoring all points
-  if (report.won && report.maxChainLength >= report.scoreToWin) {
-    void grant(playerId, "one-jump-wonder");
-  }
-
-  // Flawless Victory — won without opponent scoring
-  if (report.won && report.opponentScoredZero) {
-    void grant(playerId, "flawless-victory");
-  }
-
-  // Speedrun — won in under 30 seconds
-  if (report.won && report.durationMs < 30_000) {
-    void grant(playerId, "speedrun");
-  }
-
-  // Night Owl — played between 2-5 AM
-  const hour = new Date().getHours();
-  if (hour >= 2 && hour < 5) {
-    void grant(playerId, "night-owl");
-  }
-
-  // Comeback Kid — won after opponent scored 3+
-  const opponentColor = report.playerColor === "white" ? "black" : "white";
-  if (report.won && report.score[opponentColor] >= 3) {
-    void grant(playerId, "comeback-kid");
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
