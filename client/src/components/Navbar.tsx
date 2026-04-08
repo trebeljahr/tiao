@@ -251,6 +251,44 @@ function LanguagePicker() {
   );
 }
 
+/**
+ * Persistent player chip rendered at fixed top-right whenever the navbar is
+ * in "minimal" mode (lobby / multiplayer / tutorial — i.e. every page). The
+ * full sticky `<nav>` with its embedded PlayerSummary is only used in the
+ * non-minimal branch, which no route currently takes, so without this pill
+ * the logged-in user's rating (and name, and avatar) is completely hidden
+ * until they open the drawer. Clicking the pill toggles the drawer, so it
+ * pulls double-duty as a second "open navigation" affordance.
+ */
+function MinimalPlayerPill({ auth, onClick }: { auth: AuthResponse | null; onClick: () => void }) {
+  const player = auth?.player;
+  if (!player) return null;
+  const isAnonymous = player.kind !== "account";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={player.displayName ?? "Player"}
+      className="fixed right-3 top-3 z-60 inline-flex max-w-[min(18rem,calc(100vw-5rem))] items-center rounded-2xl border border-[#af8a56]/35 bg-[rgba(255,248,232,0.88)] px-2.5 py-1.5 text-left text-[#28170e] shadow-[0_14px_28px_-18px_rgba(75,49,20,0.46)] backdrop-blur-sm transition-colors hover:bg-[rgba(255,252,245,0.96)]"
+    >
+      <PlayerIdentityRow
+        player={{
+          displayName: player.displayName,
+          profilePicture: player.profilePicture,
+          activeBadges: player.activeBadges,
+          rating: isAnonymous ? undefined : (player.rating ?? 1500),
+        }}
+        anonymous={isAnonymous}
+        linkToProfile={false}
+        avatarClassName="h-8 w-8 border border-[#a37d48]/35 shadow-xs"
+        nameClassName="text-sm font-semibold"
+        friendVariant="light"
+        className="min-w-0 gap-2.5"
+      />
+    </button>
+  );
+}
+
 function PlayerSummary({ auth }: { auth: AuthResponse | null }) {
   const player = auth?.player;
   const isAnonymous = player?.kind !== "account";
@@ -727,15 +765,18 @@ export function Navbar({
   return (
     <>
       {minimalMode ? (
-        <button
-          type="button"
-          className="fixed left-3 top-3 z-60 inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#af8a56]/35 bg-[rgba(255,248,232,0.88)] text-[#28170e] shadow-[0_14px_28px_-18px_rgba(75,49,20,0.46)] backdrop-blur-sm transition-colors hover:bg-[rgba(255,252,245,0.96)]"
-          aria-label={t("openNavigation")}
-          aria-expanded={navOpen}
-          onClick={onToggleNav}
-        >
-          <HamburgerIcon open={navOpen} />
-        </button>
+        <>
+          <button
+            type="button"
+            className="fixed left-3 top-3 z-60 inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#af8a56]/35 bg-[rgba(255,248,232,0.88)] text-[#28170e] shadow-[0_14px_28px_-18px_rgba(75,49,20,0.46)] backdrop-blur-sm transition-colors hover:bg-[rgba(255,252,245,0.96)]"
+            aria-label={t("openNavigation")}
+            aria-expanded={navOpen}
+            onClick={onToggleNav}
+          >
+            <HamburgerIcon open={navOpen} />
+          </button>
+          <MinimalPlayerPill auth={auth} onClick={onToggleNav} />
+        </>
       ) : (
         <nav className="sticky top-0 z-40 border-b border-[#af8a56]/35 bg-[linear-gradient(180deg,rgba(245,223,178,0.97),rgba(225,189,119,0.98))] shadow-[0_20px_40px_-28px_rgba(96,63,24,0.4)] backdrop-blur-sm">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
