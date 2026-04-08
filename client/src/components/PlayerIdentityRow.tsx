@@ -107,7 +107,7 @@ export function PlayerIdentityRow({
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <div className="flex min-w-0 items-center gap-2">
+      <div className="flex min-w-0 flex-1 items-center gap-2">
         <PlayerOverviewAvatar player={player} anonymous={anonymous} className={avatarClassName} />
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex min-w-0 items-center gap-1">
@@ -147,7 +147,7 @@ export function PlayerIdentityRow({
           </div>
           {badgesToShow.length > 0 &&
             (isDevFeatureEnabled() ? (
-              <div className="flex items-center gap-1">
+              <div className="flex min-w-0 flex-wrap items-center gap-1 overflow-hidden">
                 {badgesToShow.map((id) => (
                   <Link
                     key={id}
@@ -159,7 +159,7 @@ export function PlayerIdentityRow({
                 ))}
               </div>
             ) : (
-              <div className="flex items-center gap-1">
+              <div className="flex min-w-0 flex-wrap items-center gap-1 overflow-hidden">
                 {badgesToShow.map((id) => (
                   <UserBadge key={id} badge={id as BadgeId} compact />
                 ))}

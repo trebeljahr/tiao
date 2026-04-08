@@ -78,7 +78,7 @@ function PlayerRow({
         </span>
       )}
       {clockMs != null && (
-        <span className="flex items-center gap-1 font-mono text-xs tabular-nums text-[#6b5a45]">
+        <span className="hidden items-center gap-1 font-mono text-xs tabular-nums text-[#6b5a45] sm:flex">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 16 16"
@@ -107,7 +107,7 @@ function PlayerRow({
   );
 
   return (
-    <div className="flex items-center gap-2.5 rounded-xl px-3 py-2">
+    <div className="flex min-w-0 items-center gap-2.5 rounded-xl px-3 py-2">
       <ColorDot color={color} />
       {player ? (
         <PlayerIdentityRow
@@ -177,7 +177,7 @@ export function MatchHistoryCard({
   })();
 
   return (
-    <div className={cn("rounded-2xl border p-3 space-y-3 sm:p-4", resultBg)}>
+    <div className={cn("overflow-hidden rounded-2xl border p-3 space-y-3 sm:p-4", resultBg)}>
       {/* Header: result badge + reason + actions */}
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
