@@ -77,7 +77,9 @@ async function getSsoImageForAccount(accountId: string): Promise<string | undefi
   }
 }
 
-function buildPlayerIdentityFromAccount(
+// Exported for unit testing. Converts a GameAccount document into the
+// wire-format PlayerIdentity we return from /login and /me.
+export function buildPlayerIdentityFromAccount(
   account: {
     id: string;
     displayName: string;
@@ -86,6 +88,7 @@ function buildPlayerIdentityFromAccount(
     activeBadges?: string[];
     unlockedThemes?: string[];
     isAdmin?: boolean;
+    hasSeenTutorial?: boolean;
     rating?: { overall: { elo: number; gamesPlayed: number } };
   },
   email?: string,
@@ -97,7 +100,12 @@ function buildPlayerIdentityFromAccount(
     displayName: account.displayName,
     kind: "account" as const,
     profilePicture: account.profilePicture,
-    hasSeenTutorial: false,
+    // Previously hard-coded to false, which made the client think every
+    // login was a fresh account and re-show the rules-intro modal even
+    // for users who had already completed the tutorial. Read the real
+    // flag so post-login modal decisions (see MultiplayerGamePage) are
+    // correct the first time.
+    hasSeenTutorial: account.hasSeenTutorial ?? false,
     badges: account.badges ?? [],
     activeBadges: account.activeBadges ?? [],
     unlockedThemes: account.unlockedThemes ?? [],

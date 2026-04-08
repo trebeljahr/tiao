@@ -202,6 +202,52 @@ test("/me returns account player identity", async () => {
   assert.equal(response.body.player.kind, "account");
 });
 
+// ─── buildPlayerIdentityFromAccount tests ──────────────────────────
+// Guards against the hard-coded `hasSeenTutorial: false` regression that
+// made every post-login PlayerIdentity look like a fresh account, which
+// in turn caused the MultiplayerGamePage rules-intro modal to appear
+// even for accounts that had already completed the tutorial.
+
+test("buildPlayerIdentityFromAccount propagates hasSeenTutorial=true", async () => {
+  const { buildPlayerIdentityFromAccount } = await import("../routes/game-auth.routes");
+  const identity = buildPlayerIdentityFromAccount(
+    {
+      id: "acc-1",
+      displayName: "veteran",
+      hasSeenTutorial: true,
+    },
+    "veteran@test.local",
+  );
+  assert.equal(identity.hasSeenTutorial, true);
+  assert.equal(identity.kind, "account");
+  assert.equal(identity.playerId, "acc-1");
+});
+
+test("buildPlayerIdentityFromAccount propagates hasSeenTutorial=false", async () => {
+  const { buildPlayerIdentityFromAccount } = await import("../routes/game-auth.routes");
+  const identity = buildPlayerIdentityFromAccount(
+    {
+      id: "acc-2",
+      displayName: "newbie",
+      hasSeenTutorial: false,
+    },
+    "newbie@test.local",
+  );
+  assert.equal(identity.hasSeenTutorial, false);
+});
+
+test("buildPlayerIdentityFromAccount defaults hasSeenTutorial to false when undefined", async () => {
+  const { buildPlayerIdentityFromAccount } = await import("../routes/game-auth.routes");
+  const identity = buildPlayerIdentityFromAccount(
+    {
+      id: "acc-3",
+      displayName: "unknown",
+    },
+    "unknown@test.local",
+  );
+  assert.equal(identity.hasSeenTutorial, false);
+});
+
 // ─── Custom login wrapper tests ─────────────────────────────────────
 
 test("login returns 400 for missing identifier", async () => {
