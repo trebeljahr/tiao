@@ -489,15 +489,15 @@ function ChainReactionIcon({ color }: IconProps) {
 function OneJumpWonderIcon({ color }: IconProps) {
   return (
     <>
-      {/* Explosion / starburst */}
+      {/* Rounded square burst — spikes on each side and corner */}
       <path
         stroke={color}
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M12 2l1.5 4.5L18 4l-2.5 4 4.5 1.5L16 12l4 2.5-4.5 1.5L18 20l-4.5-2.5L12 22l-1.5-4.5L6 20l2.5-4L4 14.5 8 12 4 9.5 8.5 8 6 4l4.5 2.5z"
+        d="M12 1l1 4 3.5-2.5-1 4 4-1L17 9l4 3-4 3 2.5 3.5-4-1 1 4L13 19l-1 4-1-4-3.5 2.5 1-4-4 1L7 15l-4-3 4-3-2.5-3.5 4 1-1-4L11 5l1-4z"
       />
-      {/* Number 1 in center */}
-      <path stroke={color} strokeLinecap="round" strokeWidth={2} d="M11 9l1.5-1V16" />
+      {/* Number 1 — centered with breathing room */}
+      <path stroke={color} strokeLinecap="round" strokeWidth={2.2} d="M10.5 10l2-1.5v7" />
     </>
   );
 }
