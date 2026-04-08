@@ -65,7 +65,7 @@ import {
   setAchievementNotifier,
   setAchievementChangeNotifier,
 } from "./achievementService";
-import { isValidObjectId } from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 import type { RatingStatus } from "../models/GameRoom";
 
 type RoomConnections = Map<WebSocket, string>;
@@ -842,9 +842,13 @@ export class GameService {
 
       // First Blood achievement: fire as soon as a player captures a piece,
       // not at game end. Score increments only on confirm-jump.
+      // Skip when Mongoose isn't connected (unit tests with no DB) so we
+      // never schedule async DB work that triggers an unhandledRejection
+      // after the test ends.
       if (
         message.type === "confirm-jump" &&
-        result.value.score[playerColor] > room.state.score[playerColor]
+        result.value.score[playerColor] > room.state.score[playerColor] &&
+        mongoose.connection.readyState === 1
       ) {
         const seat = playerColor === "white" ? savedRoom.seats.white : savedRoom.seats.black;
         if (seat?.kind === "account") {
