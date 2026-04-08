@@ -1261,7 +1261,19 @@ export class TournamentService implements TournamentGameCallback {
 
     const enrich = (id: string) => {
       const p = profiles.get(id);
-      return p ? { displayName: p.displayName, profilePicture: p.profilePicture } : {};
+      if (!p) return {};
+      return {
+        displayName: p.displayName,
+        profilePicture: p.profilePicture,
+        // Previously only displayName + profilePicture were projected onto
+        // each participant/match-player/standings row, which dropped the
+        // player's activeBadges and rating — PlayerIdentityRow then saw
+        // `activeBadges: undefined` and resolvePlayerBadges returned [],
+        // so achievement badges never rendered next to other players in
+        // the tournament standings table or match bracket.
+        activeBadges: p.activeBadges,
+        rating: p.rating,
+      };
     };
 
     // Enrich participants (backfill displayName/profilePicture for backward compat)

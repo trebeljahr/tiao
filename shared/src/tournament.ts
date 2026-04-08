@@ -37,9 +37,11 @@ export type TournamentParticipantStatus = "registered" | "eliminated" | "active"
 
 export type TournamentParticipant = {
   playerId: string;
-  /** Resolved dynamically from playerIdentities map — optional in DB. */
+  /** Resolved dynamically from identity cache — optional in DB. */
   displayName?: string;
   profilePicture?: string;
+  activeBadges?: string[];
+  rating?: number;
   seed: number;
   status: TournamentParticipantStatus;
 };
@@ -50,9 +52,11 @@ export type TournamentMatchStatus = "pending" | "active" | "finished" | "forfeit
 
 export type TournamentMatchPlayer = {
   playerId: string;
-  /** Resolved dynamically from playerIdentities map — optional in DB. */
+  /** Resolved dynamically from identity cache — optional in DB. */
   displayName?: string;
   profilePicture?: string;
+  activeBadges?: string[];
+  rating?: number;
   seed: number;
 };
 
@@ -89,9 +93,11 @@ export type TournamentRound = {
 
 export type TournamentGroupStanding = {
   playerId: string;
-  /** Resolved dynamically from playerIdentities map — optional in DB. */
+  /** Resolved dynamically from identity cache — optional in DB. */
   displayName?: string;
   profilePicture?: string;
+  activeBadges?: string[];
+  rating?: number;
   seed: number;
   wins: number;
   losses: number;
