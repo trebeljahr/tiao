@@ -183,25 +183,29 @@ export function AchievementsPage() {
   const [achievements, setAchievements] = useState<PlayerAchievement[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchAchievements = useCallback(() => {
-    if (!auth || auth.player.kind !== "account") {
-      setLoading(false);
-      return;
-    }
-    void getMyAchievements().then((data) => {
-      setAchievements(data.achievements);
-      setLoading(false);
-    });
-  }, [auth]);
+  const fetchAchievements = useCallback(
+    (silent = false) => {
+      if (!auth || auth.player.kind !== "account") {
+        setLoading(false);
+        return;
+      }
+      if (!silent) setLoading(true);
+      void getMyAchievements().then((data) => {
+        setAchievements(data.achievements);
+        setLoading(false);
+      });
+    },
+    [auth],
+  );
 
   useEffect(() => {
     fetchAchievements();
   }, [fetchAchievements]);
 
-  // Refresh when an achievement is unlocked via WebSocket
+  // Refresh when an achievement is unlocked via WebSocket (silent — no skeleton)
   useLobbyMessage((payload) => {
     if (payload.type === "achievement-unlocked") {
-      fetchAchievements();
+      fetchAchievements(true);
     }
   });
 
