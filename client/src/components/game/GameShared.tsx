@@ -33,6 +33,26 @@ export function ColorDot({ color, className }: { color: PlayerColor; className?:
 
 // --- Icons ---
 
+/**
+ * Bullseye icon used to label score values ("race to N"). Stroke-only so the
+ * two outer rings read clearly at the 12px size used in game cards.
+ */
+export function ScoreTargetIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      aria-hidden="true"
+      className={cn("h-3 w-3", className)}
+    >
+      <circle cx="8" cy="8" r="6.5" strokeWidth="1.25" />
+      <circle cx="8" cy="8" r="3.5" strokeWidth="1.25" />
+      <circle cx="8" cy="8" r="1.1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 export function CopyIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className={cn("h-4 w-4", className)}>

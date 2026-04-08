@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   ColorDot,
+  ScoreTargetIcon,
   getSummaryStatusLabel,
   isSummaryYourTurn,
   translatePlayerColor,
@@ -126,7 +127,8 @@ export function ActiveGameCard({
           <ColorDot color={game.yourSeat} className="h-2.5 w-2.5" />
           <span className="text-xs text-[#6b563e]">{tCommon("playingAs", { color: "" })}</span>
           <span className="text-xs font-medium text-[#2b1e14]">{yourColor}</span>
-          <span className="ml-auto font-mono text-xs tabular-nums text-[#6b563e]">
+          <span className="ml-auto inline-flex items-center gap-1 font-mono text-xs tabular-nums text-[#6b563e]">
+            <ScoreTargetIcon className="opacity-50" />
             {yourScore}
             <span className="font-normal opacity-50">/{scoreToWin}</span>
           </span>
@@ -152,7 +154,8 @@ export function ActiveGameCard({
               title={tLobby("opponentOnline")}
             />
           )}
-          <span className="ml-auto shrink-0 font-mono text-xs tabular-nums text-[#8d7760]">
+          <span className="ml-auto inline-flex shrink-0 items-center gap-1 font-mono text-xs tabular-nums text-[#8d7760]">
+            <ScoreTargetIcon className="opacity-50" />
             {opponentScore}
             <span className="font-normal opacity-50">/{scoreToWin}</span>
           </span>

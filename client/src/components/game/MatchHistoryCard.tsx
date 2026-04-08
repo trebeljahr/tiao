@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   ColorDot,
+  ScoreTargetIcon,
   translatePlayerColor,
   formatGameTimestamp,
   describeResult,
@@ -95,10 +96,11 @@ function PlayerRow({
       )}
       <span
         className={cn(
-          "font-mono text-sm tabular-nums",
+          "inline-flex items-center gap-1 font-mono text-sm tabular-nums",
           isWinner ? "font-bold text-[#1a1008]" : "text-[#6b5a45]",
         )}
       >
+        <ScoreTargetIcon className="opacity-50" />
         {score}
         <span className="text-xs font-normal opacity-50">/{scoreToWin}</span>
       </span>
