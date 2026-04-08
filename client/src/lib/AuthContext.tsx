@@ -333,7 +333,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // previous account's "already saw the tutorial" state and the
     // rules intro / lobby tutorial banner never appears for them.
     if (typeof window !== "undefined") {
-      localStorage.removeItem("tiao:tutorialComplete");
+      localStorage.removeItem("tiao:knowsHowToPlay");
     }
 
     try {
