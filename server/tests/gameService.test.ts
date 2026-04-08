@@ -39,6 +39,11 @@ class FakeSocket {
   send(message: string) {
     this.messages.push(message);
   }
+
+  // connectLobby attaches a "close" listener; tests don't need to fire it.
+  on(_event: string, _listener: (...args: unknown[]) => void) {
+    return this;
+  }
 }
 
 test("rooms persist across service instances and randomize seats on second join", async () => {
@@ -172,6 +177,43 @@ test("online seat indicators update when sockets connect and disconnect", async 
   snapshot = await service.getSnapshot(created.gameId);
   assert.equal(snapshot.seats.white?.online, false);
   assert.equal(snapshot.seats.black?.online, true);
+});
+
+test("broadcastLobbyToAll fans a payload out to every connected lobby socket", async () => {
+  const store = new InMemoryGameRoomStore();
+  const service = new GameService(store, () => 0);
+  const alice = createPlayer("alice");
+  const bob = createPlayer("bob");
+  const carol = createPlayer("carol");
+
+  const aliceSocket = new FakeSocket();
+  const bobSocket = new FakeSocket();
+  const carolSocket = new FakeSocket();
+  const carolSocket2 = new FakeSocket();
+
+  await service.connectLobby(alice, aliceSocket as unknown as WebSocket);
+  await service.connectLobby(bob, bobSocket as unknown as WebSocket);
+  await service.connectLobby(carol, carolSocket as unknown as WebSocket);
+  await service.connectLobby(carol, carolSocket2 as unknown as WebSocket);
+
+  service.broadcastLobbyToAll({
+    type: "player-identity-update",
+    playerId: "alice",
+    activeBadges: ["super-supporter"],
+  });
+
+  const expected = JSON.stringify({
+    type: "player-identity-update",
+    playerId: "alice",
+    activeBadges: ["super-supporter"],
+  });
+
+  // Every connected socket — including the player's own and carol's two
+  // simultaneous sessions — should receive the update exactly once.
+  assert.deepEqual(aliceSocket.messages, [expected]);
+  assert.deepEqual(bobSocket.messages, [expected]);
+  assert.deepEqual(carolSocket.messages, [expected]);
+  assert.deepEqual(carolSocket2.messages, [expected]);
 });
 
 test("matchmaking pairs the next two players into a live room", async () => {

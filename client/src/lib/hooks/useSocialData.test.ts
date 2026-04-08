@@ -27,6 +27,23 @@ vi.mock("../errors", () => ({
   toastError: vi.fn(),
 }));
 
+// Capture lobby message handlers so tests can simulate WebSocket events.
+const lobbyMessageHandlers: Array<(payload: Record<string, unknown>) => void> = [];
+
+vi.mock("../LobbySocketContext", () => ({
+  useLobbyMessage: (handler: (payload: Record<string, unknown>) => void) => {
+    lobbyMessageHandlers.push(handler);
+  },
+}));
+
+function simulateLobbyMessage(payload: Record<string, unknown>) {
+  act(() => {
+    for (const handler of lobbyMessageHandlers) {
+      handler(payload);
+    }
+  });
+}
+
 // Mock fetchWithRetry to skip delays in tests but still retry
 vi.mock("../fetchWithRetry", () => ({
   fetchWithRetry: async (fn: () => Promise<unknown>) => {
@@ -74,6 +91,7 @@ describe("useSocialData", () => {
     mockCancelFriendRequest.mockReset();
     mockSendGameInvitation.mockReset();
     mockRevokeGameInvitation.mockReset();
+    lobbyMessageHandlers.length = 0;
   });
 
   it("initializes with empty social overview", () => {
@@ -280,6 +298,65 @@ describe("useSocialData", () => {
     // Wait extra time to confirm no additional calls are made
     await new Promise((r) => setTimeout(r, 200));
     expect(mockGetSocialOverview).toHaveBeenCalledTimes(4);
+  });
+
+  it("patches a player-identity-update into the cached friends list", async () => {
+    const overview: SocialOverview = {
+      ...emptyOverview,
+      friends: [
+        {
+          playerId: "friend-1",
+          displayName: "Alice",
+          activeBadges: [],
+        },
+        {
+          playerId: "friend-2",
+          displayName: "Bob",
+          activeBadges: ["supporter"],
+        },
+      ],
+    };
+    mockGetSocialOverview.mockResolvedValue({ overview });
+
+    const { result } = renderHook(() => useSocialData(mockAuth, false));
+
+    await waitFor(() => {
+      expect(result.current.socialLoaded).toBe(true);
+    });
+
+    // Alice equips a new badge in the shop — server broadcasts update
+    simulateLobbyMessage({
+      type: "player-identity-update",
+      playerId: "friend-1",
+      activeBadges: ["super-supporter"],
+    });
+
+    expect(result.current.socialOverview.friends[0].activeBadges).toEqual(["super-supporter"]);
+    // Bob is untouched
+    expect(result.current.socialOverview.friends[1].activeBadges).toEqual(["supporter"]);
+    // No extra API fetch was needed — the cache was patched in place
+    expect(mockGetSocialOverview).toHaveBeenCalledTimes(1);
+  });
+
+  it("leaves the overview unchanged when the update targets a non-friend", async () => {
+    const overview: SocialOverview = {
+      ...emptyOverview,
+      friends: [{ playerId: "friend-1", displayName: "Alice", activeBadges: [] }],
+    };
+    mockGetSocialOverview.mockResolvedValue({ overview });
+
+    const { result } = renderHook(() => useSocialData(mockAuth, false));
+    await waitFor(() => expect(result.current.socialLoaded).toBe(true));
+
+    const before = result.current.socialOverview;
+    simulateLobbyMessage({
+      type: "player-identity-update",
+      playerId: "random-stranger",
+      activeBadges: ["supporter"],
+    });
+
+    // Reference equality: nothing was touched
+    expect(result.current.socialOverview).toBe(before);
   });
 
   it("does not trigger social actions for guest players", async () => {

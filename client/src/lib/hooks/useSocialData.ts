@@ -1,5 +1,11 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { AuthResponse, SocialOverview, SocialSearchResult, EMPTY_SOCIAL_OVERVIEW } from "@shared";
+import {
+  AuthResponse,
+  SocialOverview,
+  SocialSearchResult,
+  SocialPlayerSummary,
+  EMPTY_SOCIAL_OVERVIEW,
+} from "@shared";
 import {
   getSocialOverview,
   searchPlayers,
@@ -15,6 +21,31 @@ import {
 import { toastError } from "../errors";
 import { fetchWithRetry } from "../fetchWithRetry";
 import { useSocialNotifications } from "../SocialNotificationsContext";
+import { useLobbyMessage } from "../LobbySocketContext";
+
+/** Shape of the player-identity-update broadcast sent from gameService. */
+type PlayerIdentityUpdatePayload = {
+  type: "player-identity-update";
+  playerId: string;
+  displayName?: string;
+  profilePicture?: string;
+  rating?: number;
+  activeBadges?: string[];
+};
+
+function patchSocialSummary(
+  summary: SocialPlayerSummary,
+  patch: PlayerIdentityUpdatePayload,
+): SocialPlayerSummary {
+  if (summary.playerId !== patch.playerId) return summary;
+  return {
+    ...summary,
+    displayName: patch.displayName ?? summary.displayName,
+    profilePicture: patch.profilePicture ?? summary.profilePicture,
+    rating: patch.rating ?? summary.rating,
+    activeBadges: patch.activeBadges ?? summary.activeBadges,
+  };
+}
 
 export function useSocialData(auth: AuthResponse | null, canToastIncomingInvites: boolean) {
   const { refreshNotifications } = useSocialNotifications();
@@ -287,6 +318,52 @@ export function useSocialData(auth: AuthResponse | null, canToastIncomingInvites
       void refreshSocialRef.current({ allowInviteToast: true });
     }
   }, [auth, socialLoaded, socialLoading]);
+
+  // Patch identity updates (badge equip, display-name change, etc.) into the
+  // cached overview so friends / pending requests / invitations update live.
+  useLobbyMessage((payload) => {
+    if (payload.type !== "player-identity-update") return;
+    const patch = payload as PlayerIdentityUpdatePayload;
+    if (!patch.playerId) return;
+
+    setSocialOverview((prev) => {
+      let touched = false;
+      const mapSummaries = (list: SocialPlayerSummary[]) =>
+        list.map((summary) => {
+          if (summary.playerId !== patch.playerId) return summary;
+          touched = true;
+          return patchSocialSummary(summary, patch);
+        });
+
+      const nextFriends = mapSummaries(prev.friends);
+      const nextIncoming = mapSummaries(prev.incomingFriendRequests);
+      const nextOutgoing = mapSummaries(prev.outgoingFriendRequests);
+      const nextIncomingInvites = prev.incomingInvitations.map((inv) => {
+        const sender = patchSocialSummary(inv.sender, patch);
+        const recipient = patchSocialSummary(inv.recipient, patch);
+        if (sender === inv.sender && recipient === inv.recipient) return inv;
+        touched = true;
+        return { ...inv, sender, recipient };
+      });
+      const nextOutgoingInvites = prev.outgoingInvitations.map((inv) => {
+        const sender = patchSocialSummary(inv.sender, patch);
+        const recipient = patchSocialSummary(inv.recipient, patch);
+        if (sender === inv.sender && recipient === inv.recipient) return inv;
+        touched = true;
+        return { ...inv, sender, recipient };
+      });
+
+      if (!touched) return prev;
+      return {
+        ...prev,
+        friends: nextFriends,
+        incomingFriendRequests: nextIncoming,
+        outgoingFriendRequests: nextOutgoing,
+        incomingInvitations: nextIncomingInvites,
+        outgoingInvitations: nextOutgoingInvites,
+      };
+    });
+  });
 
   return {
     socialOverview,

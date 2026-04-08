@@ -264,6 +264,23 @@ export class GameService {
     }
   }
 
+  /**
+   * Broadcast a payload to every currently-connected lobby socket (every user,
+   * not just one). Use for updates that any viewer might be rendering right now
+   * — e.g. a player equipping a new badge should update everyone who currently
+   * has that player on screen (lobby active-games list, friends list, profile).
+   */
+  broadcastLobbyToAll(payload: Record<string, unknown>): void {
+    const message = JSON.stringify(payload);
+    for (const userSockets of this.lobbyConnections.values()) {
+      for (const socket of userSockets) {
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.send(message);
+        }
+      }
+    }
+  }
+
   async unlinkTournamentGames(tournamentId: string): Promise<number> {
     return this.store.unlinkTournamentGames(tournamentId);
   }
@@ -521,8 +538,12 @@ export class GameService {
     for (const room of rooms) {
       void this.broadcastSnapshot(room);
     }
-    // Broadcast identity update to lobby so tournament UIs and social lists update in real-time
-    this.broadcastLobby(player.playerId, {
+    // Broadcast the identity update to EVERY connected lobby socket so any
+    // viewer currently rendering this player — active-games list, friends
+    // list, tournament UI, profile — patches their cached copy in place.
+    // (Previously this sent only to the player's own socket, which meant
+    // nobody else ever saw the update until they hard-refreshed.)
+    this.broadcastLobbyToAll({
       type: "player-identity-update",
       playerId: player.playerId,
       displayName: player.displayName,
