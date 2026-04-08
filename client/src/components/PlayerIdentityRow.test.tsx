@@ -71,6 +71,22 @@ describe("PlayerIdentityRow (#94)", () => {
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
+  it("places the online indicator on the same row as the player name (next to it)", () => {
+    render(
+      <PlayerIdentityRow
+        player={{ playerId: "p1", displayName: "alice", activeBadges: ["early-adopter"] }}
+        linkToProfile={true}
+        online={true}
+      />,
+    );
+
+    const dot = screen.getByTestId("connection-dot");
+    const link = screen.getByRole("link");
+    // The dot must share an immediate parent with the name link (the name row),
+    // not sit at the outer row alongside the badges container.
+    expect(dot.parentElement).toBe(link.parentElement);
+  });
+
   it("renders badges separately from the profile link", () => {
     render(
       <PlayerIdentityRow

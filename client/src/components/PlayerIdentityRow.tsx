@@ -144,6 +144,7 @@ export function PlayerIdentityRow({
                 )}
               />
             )}
+            {online != null && <ConnectionDot online={online} />}
           </div>
           {badgesToShow.length > 0 &&
             (isDevFeatureEnabled() ? (
@@ -167,8 +168,6 @@ export function PlayerIdentityRow({
             ))}
         </div>
       </div>
-
-      {online != null && <ConnectionDot online={online} />}
 
       {showFriendBadge && (
         <span
