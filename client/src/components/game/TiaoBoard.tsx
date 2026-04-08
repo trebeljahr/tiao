@@ -704,21 +704,26 @@ export function TiaoBoard({
                     boxShadow: `0 0 0 2.5px ${theme.forcedOriginBorder}44`,
                   }}
                 />
+              ) : isSelected && isSelectableOrigin ? (
+                // Selected piece that can jump: draw a green ring AROUND the
+                // piece (inset [3%], same placement as the last-move ring)
+                // instead of inside it, so the outline is actually visible
+                // against the board surface.  The green matches the
+                // jump-preview arrows so the selection ties into the same
+                // visual language as the jump targets.
+                <span
+                  className="pointer-events-none absolute inset-[3%] rounded-full border-[2.5px]"
+                  style={{
+                    borderColor: theme.jumpTrailBrightGreen,
+                    boxShadow: `0 0 0 3px ${theme.jumpTrailBrightGreen}40`,
+                  }}
+                />
               ) : isSelected ? (
                 <span
                   className="pointer-events-none absolute inset-[6.5%] rounded-full border-[2.5px]"
                   style={{
-                    // When the selected piece can jump, use a subtle green
-                    // outline that visually ties the selection to the green
-                    // jump-preview arrows.  Otherwise fall back to the
-                    // default selection color (e.g. multiplayer where a
-                    // non-jumpable piece can still be selected).
-                    borderColor: isSelectableOrigin
-                      ? `${theme.jumpArrowGreenFill}b3`
-                      : theme.selectedBorder,
-                    boxShadow: isSelectableOrigin
-                      ? `0 0 0 3px ${theme.jumpArrowGreenFill}2e`
-                      : `0 0 0 4px ${theme.selectedBorder}33`,
+                    borderColor: theme.selectedBorder,
+                    boxShadow: `0 0 0 4px ${theme.selectedBorder}33`,
                   }}
                 />
               ) : isLastMove && piece ? (
