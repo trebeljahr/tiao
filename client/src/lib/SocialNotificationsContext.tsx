@@ -2,6 +2,7 @@ import React from "react";
 import { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import type { AuthResponse, SocialOverview } from "@shared";
 import { EMPTY_SOCIAL_OVERVIEW } from "@shared";
 import {
@@ -83,6 +84,7 @@ export function SocialNotificationsProvider({
   const t = useTranslations("lobby");
   const tGame = useTranslations("game");
   const tCommon = useTranslations("common");
+  const router = useRouter();
   const [overview, setOverview] = useState<SocialOverview>(EMPTY_SOCIAL_OVERVIEW);
   const prevRequestIdsRef = useRef<Set<string>>(new Set());
   const prevInvitationIdsRef = useRef<Set<string>>(new Set());
@@ -460,10 +462,20 @@ export function SocialNotificationsProvider({
       {
         id: `achievement-${achievement.id}`,
         description: achievement.description,
-        duration: 8000,
+        duration: Infinity,
+        dismissible: true,
         action: {
           label: "View",
-          onClick: () => window.location.assign("/achievements"),
+          onClick: (event) => {
+            event.preventDefault();
+            router.push("/achievements");
+          },
+        },
+        cancel: {
+          label: "Dismiss",
+          onClick: () => {
+            toast.dismiss(`achievement-${achievement.id}`);
+          },
         },
       },
     );
