@@ -79,22 +79,21 @@ export function ThemePicker({
   const [activeId, setTheme] = useSetBoardTheme();
   const isDev = isDevFeatureEnabled();
 
+  // Guests and users without any purchased themes get only the default theme.
+  // `unlockedThemeIds === undefined` (guest) is treated the same as `[]` (account
+  // with no purchases) — not as "everything unlocked".
+  const ownsTheme = (themeId: string): boolean =>
+    themeId === DEFAULT_THEME_ID || (unlockedThemeIds?.includes(themeId) ?? false);
+
   // In production, only show owned themes. In dev, show all with locked ones greyed out.
-  const themesToShow = isDev
-    ? THEMES
-    : THEMES.filter(
-        (t) => !unlockedThemeIds || t.id === DEFAULT_THEME_ID || unlockedThemeIds.includes(t.id),
-      );
+  const themesToShow = isDev ? THEMES : THEMES.filter((t) => ownsTheme(t.id));
 
   return (
     <div className="flex flex-col gap-3">
       <h3 className="text-sm font-semibold text-foreground/80">Board theme</h3>
       <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-5">
         {themesToShow.map((theme) => {
-          const isOwned =
-            !unlockedThemeIds ||
-            theme.id === DEFAULT_THEME_ID ||
-            unlockedThemeIds.includes(theme.id);
+          const isOwned = ownsTheme(theme.id);
           const isActive = theme.id === activeId;
 
           if (isOwned) {
