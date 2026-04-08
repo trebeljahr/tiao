@@ -1,7 +1,7 @@
 "use client";
 
 import "@/lib/dump";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -404,22 +404,46 @@ function UsernameOnboardingGuard({ children }: { children: React.ReactNode }) {
 
 function OAuthErrorHandler() {
   const tCommon = useTranslations("common");
-
-  useEffect(() => {
+  // Captured during render (not in an effect) so React Strict Mode's
+  // double-invocation of the effect body doesn't wipe the error before
+  // we get a chance to toast it: the first render's effect cleans the
+  // URL, the second render sees an empty search string. Reading here
+  // — once, during the first render — freezes the error for later.
+  const pendingErrorRef = useRef<{ message: string } | null>(null);
+  if (pendingErrorRef.current === null && typeof window !== "undefined") {
     const params = new URLSearchParams(window.location.search);
     const error = params.get("error");
-    if (!error) return;
+    if (error) {
+      const errorDescription = params.get("error_description");
+      pendingErrorRef.current = {
+        message: errorDescription || getOAuthErrorMessage(error, tCommon),
+      };
+    }
+  }
+
+  useEffect(() => {
+    const pending = pendingErrorRef.current;
+    if (!pending) return;
+    pendingErrorRef.current = null;
 
     // Surface OAuth/link failures as a toast on whatever page the user
     // initiated the flow from (better-auth honors errorCallbackURL), so
     // they stay in context — e.g. inside a game modal or the settings
     // page — and can retry immediately instead of being bounced to a
     // dedicated error page.
-    const errorDescription = params.get("error_description");
-    toastError(errorDescription || getOAuthErrorMessage(error, tCommon));
+    //
+    // Defer the toast to the next tick: sonner's <Toaster> mounts in
+    // the same render as this handler and its listener subscription
+    // runs in a useEffect whose order relative to ours isn't
+    // guaranteed. If we fire `toast.error` synchronously during mount,
+    // the toast gets queued into sonner's internal state before the
+    // Toaster has attached its renderer and nothing ever shows up in
+    // the DOM. One tick of deferral lets the Toaster subscribe first,
+    // then the toast renders as expected.
+    window.setTimeout(() => toastError(pending.message), 0);
 
-    // Clean the URL so the toast doesn't re-fire on refresh. Preserve any
-    // other query params that might be in play.
+    // Clean the URL so the toast doesn't re-fire on refresh. Preserve
+    // any other query params that might be in play.
     const url = new URL(window.location.href);
     url.searchParams.delete("error");
     url.searchParams.delete("error_description");
