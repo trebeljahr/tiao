@@ -169,6 +169,21 @@ html [data-sonner-toaster][dir="ltr"] {
   --toast-close-button-end: 0;
   --toast-close-button-transform: translate(35%, -35%);
 }
+/* Keep the close X visually consistent across every rich-color toast type.
+   Sonner paints the X background/border to match the toast tint (success
+   = green, error = red, info = blue, warning = yellow) via per-type
+   selectors of specificity (0, 4, 0). Using !important is simpler than
+   writing four separate per-type overrides that beat that specificity,
+   and it makes the intent obvious: the X should always look the same. */
+[data-sonner-toast] [data-close-button] {
+  background: #f5e6d0 !important;
+  border-color: #dbc6a2 !important;
+  color: #4a3728 !important;
+}
+[data-sonner-toast] [data-close-button]:hover {
+  background: #ecd4a6 !important;
+  border-color: #b98d49 !important;
+}
 
 /* Card entrance animation — pure CSS, no JS hydration needed */
 @keyframes card-in {
