@@ -691,7 +691,7 @@ router.put("/profile", async (req: Request, res: Response) => {
       await db
         .collection("user")
         .updateOne(
-          { _id: account._id },
+          { _id: account.id as any },
           { $set: { name: account.displayName, displayName: account.displayName } },
         );
     }
@@ -812,11 +812,12 @@ router.post("/set-password", async (req: Request, res: Response) => {
 
     const db = mongoose.connection.getClient().db();
 
-    // If email was provided, update it in better-auth's user collection
+    // If email was provided, update it in better-auth's user collection.
+    // Use account.id (string) to match better-auth's stored _id format.
     if (typeof newEmail === "string" && newEmail.trim()) {
       await db
         .collection("user")
-        .updateOne({ _id: account._id }, { $set: { email: newEmail.trim() } });
+        .updateOne({ _id: account.id as any }, { $set: { email: newEmail.trim() } });
     }
 
     // Also sync displayName to better-auth's user collection if changed
@@ -824,7 +825,7 @@ router.post("/set-password", async (req: Request, res: Response) => {
       await db
         .collection("user")
         .updateOne(
-          { _id: account._id },
+          { _id: account.id as any },
           { $set: { name: account.displayName, displayName: account.displayName } },
         );
     }
@@ -833,8 +834,10 @@ router.post("/set-password", async (req: Request, res: Response) => {
     const bcrypt = await import("bcrypt");
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Get the user's email from better-auth (may have just been updated above)
-    const email = await getEmailForAccount(account.id);
+    // Use the email the user just provided if available; fall back to DB lookup.
+    // This avoids a silent failure if the updateOne above matched 0 documents.
+    const email =
+      (typeof newEmail === "string" && newEmail.trim()) || (await getEmailForAccount(account.id));
     if (!email) {
       return res.status(400).json({
         code: "NO_EMAIL",

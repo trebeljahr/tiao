@@ -85,6 +85,7 @@ function AuthDialog() {
   const [forgotMode, setForgotMode] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotBusy, setForgotBusy] = useState(false);
+  const [signupPasswordVisible, setSignupPasswordVisible] = useState(false);
 
   const dialogTitle = forgotMode
     ? "Reset password"
@@ -244,7 +245,7 @@ function AuthDialog() {
                   </label>
                   <Input
                     id="signup-display-name"
-                    name="name"
+                    name="username"
                     value={signupDisplayName}
                     onChange={(event) =>
                       setSignupDisplayName(
@@ -252,7 +253,7 @@ function AuthDialog() {
                       )
                     }
                     placeholder="username"
-                    autoComplete="name"
+                    autoComplete="username"
                     pattern="^[a-z0-9][a-z0-9_\-]*$"
                     minLength={3}
                     maxLength={32}
@@ -287,11 +288,13 @@ function AuthDialog() {
                   </label>
                   <PasswordInput
                     id="signup-password"
-                    name="password"
+                    name="new-password"
                     value={signupPassword}
                     onChange={(event) => setSignupPassword(event.target.value)}
                     placeholder="••••••••••••"
                     autoComplete="new-password"
+                    visible={signupPasswordVisible}
+                    onVisibilityChange={setSignupPasswordVisible}
                     required
                   />
                 </div>
@@ -304,11 +307,13 @@ function AuthDialog() {
                   </label>
                   <PasswordInput
                     id="signup-confirm-password"
-                    name="confirm-password"
+                    name="new-password"
                     value={signupConfirmPassword}
                     onChange={(event) => setSignupConfirmPassword(event.target.value)}
                     placeholder="••••••••••••"
                     autoComplete="new-password"
+                    visible={signupPasswordVisible}
+                    onVisibilityChange={setSignupPasswordVisible}
                     required
                   />
                 </div>

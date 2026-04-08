@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { PasswordInput } from "./password-input";
 
@@ -72,5 +72,23 @@ describe("PasswordInput", () => {
     render(<PasswordInput />);
     const toggle = screen.getByRole("button", { name: "Show password" });
     expect(toggle.tabIndex).toBe(-1);
+  });
+
+  it("uses controlled visibility when visible prop is provided", () => {
+    const onVisibilityChange = vi.fn();
+    const { rerender } = render(
+      <PasswordInput visible={false} onVisibilityChange={onVisibilityChange} />,
+    );
+    const input = document.querySelector("input")!;
+    expect(input.type).toBe("password");
+
+    // Clicking should call the callback but NOT toggle internally
+    fireEvent.click(screen.getByRole("button", { name: "Show password" }));
+    expect(onVisibilityChange).toHaveBeenCalledWith(true);
+    expect(input.type).toBe("password"); // still password — controlled
+
+    // Parent re-renders with visible=true
+    rerender(<PasswordInput visible={true} onVisibilityChange={onVisibilityChange} />);
+    expect(input.type).toBe("text");
   });
 });

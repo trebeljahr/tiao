@@ -98,6 +98,7 @@ function LinkedAccounts({
   const [setPasswordUsername, setSetPasswordUsername] = useState("");
   const [newPassword, setNewPasswordValue] = useState("");
   const [confirmPassword, setConfirmPasswordValue] = useState("");
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [savingPassword, setSavingPassword] = useState(false);
 
@@ -308,6 +309,7 @@ function LinkedAccounts({
             </label>
             <Input
               id="set-username"
+              name="username"
               value={setPasswordUsername}
               onChange={(e) =>
                 setSetPasswordUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))
@@ -328,6 +330,7 @@ function LinkedAccounts({
             </label>
             <Input
               id="set-email"
+              name="email"
               type="email"
               value={setPasswordEmail}
               onChange={(e) => setSetPasswordEmail(e.target.value)}
@@ -343,10 +346,13 @@ function LinkedAccounts({
             </label>
             <PasswordInput
               id="set-new-password"
+              name="new-password"
               value={newPassword}
               onChange={(e) => setNewPasswordValue(e.target.value)}
               placeholder="••••••••••••"
               autoComplete="new-password"
+              visible={passwordVisible}
+              onVisibilityChange={setPasswordVisible}
               required
             />
           </div>
@@ -357,10 +363,13 @@ function LinkedAccounts({
             </label>
             <PasswordInput
               id="set-confirm-password"
+              name="new-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPasswordValue(e.target.value)}
               placeholder="••••••••••••"
               autoComplete="new-password"
+              visible={passwordVisible}
+              onVisibilityChange={setPasswordVisible}
               required
             />
           </div>
@@ -488,7 +497,9 @@ export function ProfilePage() {
   const providers = profile?.providers ?? [];
   const hasCredentialProvider = providers.includes("credential");
   const hasOAuthProvider = providers.some((p) => p !== "credential");
-  const oauthProviderLabel = providers.find((p) => p !== "credential") ?? "OAuth";
+  const oauthProviderId = providers.find((p) => p !== "credential");
+  const oauthProviderLabel =
+    SOCIAL_PROVIDERS.find((p) => p.id === oauthProviderId)?.label ?? oauthProviderId ?? "OAuth";
 
   useEffect(() => {
     return () => {
@@ -812,7 +823,7 @@ export function ProfilePage() {
                         </label>
                         <Input
                           id="profile-display-name"
-                          name="name"
+                          name="username"
                           value={displayName}
                           onChange={(event) =>
                             setDisplayName(

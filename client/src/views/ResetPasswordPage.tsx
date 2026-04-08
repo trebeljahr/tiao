@@ -15,6 +15,7 @@ export function ResetPasswordPage() {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [passwordVisible, setPasswordVisible] = useState(false);
 
   if (!token) {
     return (
@@ -105,10 +106,13 @@ export function ResetPasswordPage() {
             </label>
             <PasswordInput
               id="new-password"
+              name="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••••••"
               autoComplete="new-password"
+              visible={passwordVisible}
+              onVisibilityChange={setPasswordVisible}
               required
             />
           </div>
@@ -121,10 +125,13 @@ export function ResetPasswordPage() {
             </label>
             <PasswordInput
               id="confirm-new-password"
+              name="new-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="••••••••••••"
               autoComplete="new-password"
+              visible={passwordVisible}
+              onVisibilityChange={setPasswordVisible}
               required
             />
           </div>
