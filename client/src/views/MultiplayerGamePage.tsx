@@ -210,9 +210,15 @@ export function MultiplayerGamePage() {
       return;
     }
 
+    // The localStorage key is "tiao:knowsHowToPlay" (bumped from the old
+    // "tiao:tutorialComplete") so that anyone who casually clicked the previous
+    // "Got it, let's play" dismiss button gets re-prompted by the new modal —
+    // the new flow forces a deliberate choice between learning and acknowledging
+    // prior experience, which prevents the "Game started!" toast from firing
+    // for someone who never saw the rules.
     const needsIntro =
       !auth.player.hasSeenTutorial &&
-      !localStorage.getItem("tiao:tutorialComplete") &&
+      !localStorage.getItem("tiao:knowsHowToPlay") &&
       !rulesIntroShownRef.current;
 
     if (needsIntro) {
@@ -1834,12 +1840,18 @@ export function MultiplayerGamePage() {
         </div>
       </Dialog>
 
-      {/* Rules introduction modal for players who haven't completed the tutorial (#25) */}
+      {/* Rules introduction modal for players who haven't completed the tutorial (#25).
+          Non-dismissible (no X, no escape, no outside-click): the only ways out are
+          going through the tutorial or explicitly acknowledging prior experience via
+          the underlined link below the primary CTA. This prevents the "Game started!"
+          toast from firing for players who casually dismissed an earlier "Got it"
+          button without ever learning the rules. */}
       <Dialog
         open={rulesIntroOpen}
         onOpenChange={setRulesIntroOpen}
         title={t("welcomeToTiao")}
         description={t("welcomeToTiaoDesc")}
+        closeable={false}
       >
         <div className="space-y-4">
           <div className="rounded-2xl border border-[#d7c39e] bg-[#fffaf3] overflow-hidden">
@@ -1866,19 +1878,33 @@ export function MultiplayerGamePage() {
             </table>
           </div>
 
-          <div className="grid gap-2">
-            <Button
-              onClick={() => {
-                localStorage.setItem("tiao:tutorialComplete", "1");
-                setRulesIntroOpen(false);
-                setReadyToJoin(true);
-              }}
-            >
-              {isSpectator && !isInPlayerList ? t("startSpectating") : t("gotItPlay")}
-            </Button>
-            <Button variant="outline" onClick={() => router.push("/tutorial?from=game")}>
-              {t("learnToPlay")}
-            </Button>
+          <div className="grid gap-3">
+            <Button onClick={() => router.push("/tutorial?from=game")}>{t("learnToPlay")}</Button>
+            {!(isSpectator && !isInPlayerList) && (
+              <button
+                type="button"
+                className="text-center text-sm text-[#6e5b48] underline underline-offset-4 hover:text-[#2b1e14] transition-colors"
+                onClick={() => {
+                  localStorage.setItem("tiao:knowsHowToPlay", "1");
+                  setRulesIntroOpen(false);
+                  setReadyToJoin(true);
+                }}
+              >
+                {t("iKnowHowToPlay")}
+              </button>
+            )}
+            {isSpectator && !isInPlayerList && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  localStorage.setItem("tiao:knowsHowToPlay", "1");
+                  setRulesIntroOpen(false);
+                  setReadyToJoin(true);
+                }}
+              >
+                {t("startSpectating")}
+              </Button>
+            )}
           </div>
         </div>
       </Dialog>

@@ -128,7 +128,7 @@ export function LobbyPage() {
 
   useEffect(() => {
     const seenViaAccount = auth?.player.kind === "account" && auth.player.hasSeenTutorial;
-    const seenViaLocal = localStorage.getItem("tiao:tutorialComplete");
+    const seenViaLocal = localStorage.getItem("tiao:knowsHowToPlay");
     if (!seenViaAccount && !seenViaLocal) {
       setShowTutorialBanner(true);
     }

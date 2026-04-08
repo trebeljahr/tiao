@@ -501,7 +501,7 @@ describe("MultiplayerGamePage", () => {
   });
 
   it("shows 'Start Spectating' button in rules intro for spectators", async () => {
-    localStorage.removeItem("tiao:tutorialComplete");
+    localStorage.removeItem("tiao:knowsHowToPlay");
 
     const spectatorAuth: AuthResponse = {
       player: {
@@ -550,9 +550,10 @@ describe("MultiplayerGamePage", () => {
     await setupMocks(snapshot);
     render(<MultiplayerGamePage />);
 
-    // The rules intro dialog should show "Start Spectating" instead of "Got it, let's play!"
+    // The rules intro dialog should show "Start Spectating" instead of the
+    // "Learn how to play first" / "I've played before" CTAs that players see.
     expect(screen.getByRole("button", { name: "Start Spectating" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Got it, let's play!" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /I've played before/i })).not.toBeInTheDocument();
   });
 
   it("shows 'Back to lobby' button for spectators", async () => {

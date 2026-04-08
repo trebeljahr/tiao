@@ -159,7 +159,11 @@ function TutorialPageInner() {
   const isReplay = auth?.player.kind === "account" && auth.player.hasSeenTutorial;
 
   function completeTutorial() {
-    localStorage.setItem("tiao:tutorialComplete", "1");
+    // Bumped from "tiao:tutorialComplete" — see MultiplayerGamePage rules-intro
+    // gating for why. Both the tutorial-completed path and the explicit "I've
+    // played before" path write this key so the rules-intro modal stays hidden
+    // for users who have committed one way or the other.
+    localStorage.setItem("tiao:knowsHowToPlay", "1");
 
     if (auth?.player.kind === "account" && !isReplay) {
       markTutorialComplete()
