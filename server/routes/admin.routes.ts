@@ -32,7 +32,7 @@ router.get("/users/search", async (req: Request, res: Response) => {
     const escapedQuery = escapeRegExp(query);
     const accounts = await GameAccount.find(
       { displayName: { $regex: escapedQuery, $options: "i" } },
-      { displayName: 1, badges: 1, activeBadges: 1, unlockedThemes: 1 },
+      { displayName: 1, profilePicture: 1, badges: 1, activeBadges: 1, unlockedThemes: 1 },
     )
       .limit(20)
       .lean();
@@ -41,6 +41,7 @@ router.get("/users/search", async (req: Request, res: Response) => {
       accounts.map(async (account: any) => ({
         playerId: String(account._id),
         displayName: account.displayName,
+        profilePicture: account.profilePicture,
         badges: account.badges ?? [],
         activeBadges: account.activeBadges ?? [],
         unlockedThemes: account.unlockedThemes ?? [],

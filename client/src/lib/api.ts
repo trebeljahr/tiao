@@ -529,6 +529,7 @@ export function forfeitTournamentMatch(tournamentId: string, matchId: string, lo
 export type AdminUserResult = {
   playerId: string;
   displayName: string;
+  profilePicture?: string;
   badges: string[];
   activeBadges: string[];
   unlockedThemes: string[];
