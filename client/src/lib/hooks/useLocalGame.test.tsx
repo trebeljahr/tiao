@@ -322,7 +322,7 @@ describe("useLocalGame – desktop deselect/reselect behavior", () => {
     expect(result.current.localSelection).toBeNull();
   });
 
-  it("deselects when clicking an empty non-placable square that has no jump target", () => {
+  it("deselects without placing a stone when clicking an empty square", () => {
     const { result } = renderHook(() => useLocalGame());
 
     const jumpState = stateWithJumpOpportunity();
@@ -331,12 +331,15 @@ describe("useLocalGame – desktop deselect/reselect behavior", () => {
     act(() => result.current.handleLocalBoardClick({ x: 5, y: 5 }));
     expect(result.current.localSelection).toEqual({ x: 5, y: 5 });
 
-    // (0,0) is empty but not a valid placement on an early board? canPlacePiece
-    // allows any empty cell on an empty-ish board — so placement will succeed
-    // AND clear the selection.  Either way the selection should be cleared,
-    // which is the behavior we care about on desktop.
+    // Clicking an empty square while a jumpable piece is selected should
+    // ONLY deselect — it must NOT also drop a stone on the clicked square.
+    // The player's intent was clearly to cancel the selection, not to
+    // commit a placement.
     act(() => result.current.handleLocalBoardClick({ x: 0, y: 0 }));
     expect(result.current.localSelection).toBeNull();
+    expect(result.current.localGame.positions[0][0]).toBeNull();
+    // The board state should otherwise be unchanged — no turn switch.
+    expect(result.current.localGame.currentTurn).toBe("white");
   });
 
   it("reselects when clicking another own piece that has jumps", () => {

@@ -141,12 +141,29 @@ export function useLocalGame(settings?: Partial<GameSettings>) {
           return;
         }
 
-        // On touch devices, when the selected piece has available jumps,
-        // block any other action (placement or selecting a different piece)
-        // to prevent accidental placements from fat-fingering.  On desktop,
-        // clicking elsewhere is an intentional deselect (or a reselect if it
-        // lands on another own piece with jumps), so we fall through.
-        if (jumpTargets.length > 0 && isTouchDevice()) {
+        // When the selected piece has available jumps and the player clicked
+        // somewhere that is not the same piece and not a jump target, the
+        // click should NEVER fall through to placement — the player's intent
+        // was clearly to either deselect or reselect, not to drop a stone.
+        //
+        // On touch devices we additionally block reselection as fat-finger
+        // protection: the player must explicitly tap the selected piece again
+        // to clear the selection.  On desktop we allow reselection (clicking
+        // on another own piece with jumps switches selection) and otherwise
+        // deselect.
+        if (jumpTargets.length > 0) {
+          if (isTouchDevice()) {
+            return;
+          }
+          const tile = localGame.positions[position.y]?.[position.x];
+          if (tile === localGame.currentTurn) {
+            const newJumpTargets = getJumpTargets(localGame, position);
+            if (newJumpTargets.length > 0) {
+              setLocalSelection(position);
+              return;
+            }
+          }
+          setLocalSelection(null);
           return;
         }
       }
