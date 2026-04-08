@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/AuthContext";
@@ -18,7 +18,7 @@ import { UserBadge, BADGE_DEFINITIONS, type BadgeId } from "@/components/UserBad
 import { THEMES } from "@/components/game/boardThemes";
 import { ThemeSwatch } from "@/components/game/ThemePicker";
 import { getShopCatalog, createCheckoutSession, type ShopCatalogItem } from "@/lib/api";
-import { isAdmin } from "@/lib/featureGate";
+import { isAdmin, canSeeShop } from "@/lib/featureGate";
 import { toastError } from "@/lib/errors";
 import { Link } from "@/i18n/navigation";
 import confetti from "canvas-confetti";
@@ -85,6 +85,7 @@ export function ShopPage() {
   const t = useTranslations("shop");
   const tBadges = useTranslations("badges");
   const { auth, authLoading, applyAuth, onOpenAuth } = useAuth();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [catalog, setCatalog] = useState<ShopCatalogItem[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -223,7 +224,16 @@ export function ShopPage() {
     }
   }
 
-  if (authLoading) {
+  // In production the shop is admin-only (used to playtest Stripe flows
+  // without exposing purchases to all players). Redirect anyone else home.
+  useEffect(() => {
+    if (authLoading) return;
+    if (!canSeeShop(auth)) {
+      router.replace("/");
+    }
+  }, [authLoading, auth, router]);
+
+  if (authLoading || !canSeeShop(auth)) {
     return <SkeletonPage />;
   }
 

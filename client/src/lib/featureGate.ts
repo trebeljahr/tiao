@@ -32,6 +32,15 @@ export function isDevFeatureEnabled(): boolean {
 }
 
 /**
+ * Returns true if the shop should be visible to the current user.
+ * Visible in development for everyone; in production only to admins
+ * (used to playtest shop/Stripe flows without exposing them publicly).
+ */
+export function canSeeShop(auth: AuthResponse | null): boolean {
+  return isDevFeatureEnabled() || isAdmin(auth);
+}
+
+/**
  * Resolves the badge(s) to display for a given player.
  *
  * Uses `player.activeBadges` from the server (populated from DB).

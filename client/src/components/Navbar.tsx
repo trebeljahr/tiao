@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { useSocialNotifications } from "@/lib/SocialNotificationsContext";
 import { useToggleSound } from "@/lib/useSoundPreference";
 import { ThemePicker } from "@/components/game/ThemePicker";
-import { isDevFeatureEnabled } from "@/lib/featureGate";
+import { canSeeShop } from "@/lib/featureGate";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { useRouter as useIntlRouter, usePathname as useIntlPathname } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
@@ -415,27 +415,23 @@ export function Navbar({
               </svg>
             ),
           },
-          ...(isDevFeatureEnabled()
-            ? [
-                {
-                  label: t("achievements"),
-                  active: pathname === "/achievements",
-                  onClick: () => handleNav("/achievements"),
-                  badge: 0,
-                  icon: (
-                    <svg {...iconProps}>
-                      <path
-                        {...pathProps}
-                        d="M6 9V2h12v7a6 6 0 01-12 0zM6 4H4a1 1 0 00-1 1v1a4 4 0 004 4M18 4h2a1 1 0 011 1v1a4 4 0 01-4 4M9 21h6M12 15v6"
-                      />
-                    </svg>
-                  ),
-                },
-              ]
-            : []),
+          {
+            label: t("achievements"),
+            active: pathname === "/achievements",
+            onClick: () => handleNav("/achievements"),
+            badge: 0,
+            icon: (
+              <svg {...iconProps}>
+                <path
+                  {...pathProps}
+                  d="M6 9V2h12v7a6 6 0 01-12 0zM6 4H4a1 1 0 00-1 1v1a4 4 0 004 4M18 4h2a1 1 0 011 1v1a4 4 0 01-4 4M9 21h6M12 15v6"
+                />
+              </svg>
+            ),
+          },
         ]
       : []),
-    ...(isDevFeatureEnabled()
+    ...(canSeeShop(auth)
       ? [
           {
             label: t("shop"),

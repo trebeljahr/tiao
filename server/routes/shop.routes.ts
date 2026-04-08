@@ -8,6 +8,16 @@ import { FRONTEND_URL } from "../config/envVars";
 
 const router = express.Router();
 
+/**
+ * In production the shop is admin-only — used to playtest the Stripe flow
+ * with a small allowlist of accounts (flagged isAdmin in the DB) before
+ * opening purchases to all players. In development everyone can see it.
+ */
+function shopAccessAllowed(player: { kind: string; isAdmin?: boolean } | null): boolean {
+  if (process.env.NODE_ENV !== "production") return true;
+  return !!player && player.kind === "account" && player.isAdmin === true;
+}
+
 function getStripe(): any {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) return null;
@@ -23,6 +33,12 @@ function getStripe(): any {
 router.get("/catalog", async (req: Request, res: Response) => {
   try {
     const player = await getPlayerFromRequest(req);
+    if (!shopAccessAllowed(player)) {
+      return res.status(403).json({
+        code: "SHOP_DISABLED",
+        message: "The shop is not currently available.",
+      });
+    }
     let ownedBadges: string[] = [];
     let ownedThemes: string[] = [];
 
@@ -56,6 +72,12 @@ router.post("/checkout", async (req: Request, res: Response) => {
       return res.status(401).json({
         code: "ACCOUNT_REQUIRED",
         message: "You must be signed in to make a purchase.",
+      });
+    }
+    if (!shopAccessAllowed(player)) {
+      return res.status(403).json({
+        code: "SHOP_DISABLED",
+        message: "The shop is not currently available.",
       });
     }
 
