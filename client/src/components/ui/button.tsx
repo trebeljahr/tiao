@@ -11,7 +11,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 const variantClasses: Record<ButtonVariant, string> = {
   default:
-    "bg-primary text-primary-foreground shadow-[0_18px_32px_-20px_hsl(var(--primary)/0.92)] hover:-translate-y-0.5 hover:bg-primary/95 active:translate-y-0 active:shadow-[0_12px_24px_-18px_hsl(var(--primary)/0.9)]",
+    "bg-primary text-primary-foreground shadow-[0_18px_32px_-20px_color-mix(in_srgb,hsl(var(--primary))_92%,transparent)] hover:-translate-y-0.5 hover:bg-primary/95 active:translate-y-0 active:shadow-[0_12px_24px_-18px_color-mix(in_srgb,hsl(var(--primary))_90%,transparent)]",
   secondary:
     "bg-secondary text-secondary-foreground shadow-[0_16px_28px_-22px_rgba(92,66,35,0.42)] hover:-translate-y-0.5 hover:bg-secondary/92 active:translate-y-0",
   outline:
@@ -19,7 +19,7 @@ const variantClasses: Record<ButtonVariant, string> = {
   ghost:
     "text-foreground hover:-translate-y-px hover:bg-accent/50 hover:text-accent-foreground active:translate-y-0",
   danger:
-    "bg-destructive text-destructive-foreground shadow-[0_18px_30px_-20px_hsl(var(--destructive)/0.72)] hover:-translate-y-0.5 hover:bg-destructive/92 active:translate-y-0",
+    "bg-destructive text-destructive-foreground shadow-[0_18px_30px_-20px_color-mix(in_srgb,hsl(var(--destructive))_72%,transparent)] hover:-translate-y-0.5 hover:bg-destructive/92 active:translate-y-0",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
