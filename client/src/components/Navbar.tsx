@@ -332,7 +332,7 @@ export function Navbar({
   const t = useTranslations("nav");
   const intlRouter = useIntlRouter();
   const pathname = useIntlPathname();
-  const { pendingFriendRequestCount, incomingInvitationCount, incomingRematchCount } =
+  const { pendingFriendRequestCount, unacknowledgedInvitationCount, unacknowledgedRematchCount } =
     useSocialNotifications();
   const player = auth?.player;
   const isAccount = player?.kind === "account";
@@ -363,8 +363,14 @@ export function Navbar({
     {
       label: t("lobby"),
       active: pathname === "/",
-      onClick: () => handleNav("/"),
-      badge: incomingInvitationCount + incomingRematchCount,
+      // When there are unacknowledged invitations/rematches, jump straight to
+      // the invitations section (LobbyPage reads #invitations and scrolls +
+      // acknowledges). Otherwise land on the lobby top as before.
+      onClick: () =>
+        handleNav(
+          unacknowledgedInvitationCount + unacknowledgedRematchCount > 0 ? "/#invitations" : "/",
+        ),
+      badge: unacknowledgedInvitationCount + unacknowledgedRematchCount,
       icon: (
         <svg {...iconProps}>
           <path {...pathProps} d="M3 12l9-8 9 8" />

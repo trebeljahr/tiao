@@ -21,11 +21,17 @@ import { ActiveGamesList } from "@/components/game/ActiveGamesList";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { useGamesIndex } from "@/lib/hooks/useGamesIndex";
 import { useSocialData } from "@/lib/hooks/useSocialData";
+import { useSocialNotifications } from "@/lib/SocialNotificationsContext";
 import { useTournamentList } from "@/lib/hooks/useTournamentList";
 import { useLobbyMessage } from "@/lib/LobbySocketContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { createMultiplayerGame, joinMultiplayerGame } from "@/lib/api";
+import {
+  createMultiplayerGame,
+  joinMultiplayerGame,
+  requestRematchRest,
+  declineRematchRest,
+} from "@/lib/api";
 import { toastError } from "@/lib/errors";
 import { SkeletonCard } from "@/components/ui/skeleton";
 
@@ -116,6 +122,8 @@ export function LobbyPage() {
   const [navOpen, setNavOpen] = useState(false);
   const [joinGameId, setJoinGameId] = useState("");
   const [multiplayerBusy, setMultiplayerBusy] = useState(false);
+  const [rematchBusyGameId, setRematchBusyGameId] = useState<string | null>(null);
+  const { acknowledgeInvitations } = useSocialNotifications();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const multiplayerConfig = useGameConfig("multiplayer");
 
@@ -140,8 +148,21 @@ export function LobbyPage() {
       }
     }
   }, [activeGames]);
-  const rematchGames = useMemo(() => {
-    return finishedGames.filter((g) => g.rematch?.requestedBy.length && g.yourSeat);
+  // Outgoing: I requested a rematch, waiting on my opponent. Stays in the
+  // active games list so I can cancel it there. Incoming: opponent requested,
+  // waiting on me — moved to the invitations section below, alongside game
+  // invitations, since conceptually it's also an invitation to act.
+  const outgoingRematches = useMemo(() => {
+    return finishedGames.filter(
+      (g) =>
+        g.rematch?.requestedBy.length && g.yourSeat && g.rematch.requestedBy.includes(g.yourSeat),
+    );
+  }, [finishedGames]);
+  const incomingRematches = useMemo(() => {
+    return finishedGames.filter(
+      (g) =>
+        g.rematch?.requestedBy.length && g.yourSeat && !g.rematch.requestedBy.includes(g.yourSeat),
+    );
   }, [finishedGames]);
 
   const GUEST_GAME_LIMIT = 10;
@@ -210,6 +231,54 @@ export function LobbyPage() {
       setMultiplayerBusy(false);
     }
   }
+
+  async function handleAcceptRematch(gameId: string) {
+    setRematchBusyGameId(gameId);
+    try {
+      const { newGameId } = await requestRematchRest(gameId);
+      router.push(`/game/${newGameId}`);
+    } catch (error) {
+      toastError(error);
+      setRematchBusyGameId(null);
+      void refreshMultiplayerGames({ silent: true });
+    }
+  }
+
+  async function handleDeclineRematch(gameId: string) {
+    setRematchBusyGameId(gameId);
+    try {
+      await declineRematchRest(gameId);
+      void refreshMultiplayerGames({ silent: true });
+    } catch (error) {
+      toastError(error);
+    } finally {
+      setRematchBusyGameId(null);
+    }
+  }
+
+  // Scroll to the invitations section and mark everything currently visible
+  // as acknowledged whenever the URL hash is #invitations (set by the Navbar
+  // badge click). Runs on mount once the data is loaded, and also on any
+  // later hashchange while the user is on the lobby page.
+  useEffect(() => {
+    if (!multiplayerGamesLoaded) return;
+    if (typeof window === "undefined") return;
+
+    const handleHash = () => {
+      if (window.location.hash !== "#invitations") return;
+      const el = document.getElementById("invitations");
+      if (!el) return;
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      acknowledgeInvitations();
+      // Remove the hash so revisiting the lobby doesn't re-scroll and
+      // re-acknowledge without a fresh notification click.
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    };
+
+    handleHash();
+    window.addEventListener("hashchange", handleHash);
+    return () => window.removeEventListener("hashchange", handleHash);
+  }, [multiplayerGamesLoaded, acknowledgeInvitations]);
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -483,7 +552,7 @@ export function LobbyPage() {
                     <CardContent className="space-y-3 pt-6">
                       <ActiveGamesList
                         games={activeGames}
-                        finishedGamesWithRematch={rematchGames}
+                        finishedGamesWithRematch={outgoingRematches}
                         refreshGames={refreshMultiplayerGames}
                         limit={3}
                         data-testid-prefix="lobby-game-"
@@ -493,69 +562,148 @@ export function LobbyPage() {
                   </PaperCard>
                 </AnimatedCard>
 
-                <AnimatedCard delay={0.05} className="flex flex-col">
-                  <PaperCard className="overflow-hidden shadow-lg flex-1">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-black/5 bg-black/2 py-4">
-                      <CardTitle className="text-2xl text-[#2b1e14]">{t("invitations")}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3 pt-6">
-                      {socialOverview.incomingInvitations.slice(0, 3).map((inv) => (
-                        <div
-                          key={inv.id}
-                          className="rounded-2xl border border-[#dcc7a2] bg-[#fffdf7] p-4 shadow-xs hover:border-[#b98d49] transition-colors group space-y-3"
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <PlayerIdentityRow
-                              player={inv.sender}
-                              currentPlayerId={auth?.player.playerId}
-                              linkToProfile={false}
-                              online={inv.sender.online}
-                              className="gap-3 min-w-0"
-                            />
-                            {inv.assignedColor && (
-                              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#dcc7a3] bg-[#fff9ef] px-2 py-1 text-xs text-[#6b5a45]">
-                                <ColorDot color={inv.assignedColor} className="h-3 w-3" />
-                                {tc("playingAs", {
-                                  color: translatePlayerColor(inv.assignedColor, tGame) ?? "",
-                                })}
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex flex-wrap items-center gap-2 text-xs text-[#6b5a45]">
-                            <GameConfigBadge
-                              boardSize={inv.boardSize}
-                              scoreToWin={inv.scoreToWin}
-                              timeControl={inv.timeControl}
-                              roomType={inv.roomType}
-                            />
-                          </div>
-                          <div className="flex gap-2 pt-1">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="border-[#dcc7a2] hover:bg-[#faefd8]"
-                              onClick={() => handleDeclineGameInvitation(inv.id)}
-                            >
-                              {tc("decline")}
-                            </Button>
-                            <Button
-                              size="sm"
-                              className="shadow-xs group-hover:scale-105 transition-transform"
-                              onClick={() => router.push(`/game/${inv.gameId}`)}
-                            >
-                              {tc("accept")}
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                      {socialOverview.incomingInvitations.length === 0 && (
-                        <p className="text-center text-sm text-[#6e5b48] py-8 bg-white/20 rounded-2xl border border-dashed border-[#dcc7a2]">
-                          {t("noInvitations")}
-                        </p>
-                      )}
-                    </CardContent>
-                  </PaperCard>
-                </AnimatedCard>
+                <section id="invitations" className="flex flex-col">
+                  <AnimatedCard delay={0.05} className="flex flex-col flex-1">
+                    <PaperCard className="overflow-hidden shadow-lg flex-1">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-black/5 bg-black/2 py-4">
+                        <CardTitle className="text-2xl text-[#2b1e14]">
+                          {t("invitations")}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3 pt-6">
+                        {[
+                          ...socialOverview.incomingInvitations.map((inv) => ({
+                            kind: "invite" as const,
+                            data: inv,
+                          })),
+                          ...incomingRematches.map((game) => ({
+                            kind: "rematch" as const,
+                            data: game,
+                          })),
+                        ]
+                          .slice(0, 3)
+                          .map((item) => {
+                            if (item.kind === "invite") {
+                              const inv = item.data;
+                              return (
+                                <div
+                                  key={`invite-${inv.id}`}
+                                  className="rounded-2xl border border-[#dcc7a2] bg-[#fffdf7] p-4 shadow-xs hover:border-[#b98d49] transition-colors group space-y-3"
+                                >
+                                  <div className="flex items-center justify-between gap-2">
+                                    <PlayerIdentityRow
+                                      player={inv.sender}
+                                      currentPlayerId={auth?.player.playerId}
+                                      linkToProfile={false}
+                                      online={inv.sender.online}
+                                      className="gap-3 min-w-0"
+                                    />
+                                    {inv.assignedColor && (
+                                      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#dcc7a3] bg-[#fff9ef] px-2 py-1 text-xs text-[#6b5a45]">
+                                        <ColorDot color={inv.assignedColor} className="h-3 w-3" />
+                                        {tc("playingAs", {
+                                          color:
+                                            translatePlayerColor(inv.assignedColor, tGame) ?? "",
+                                        })}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="flex flex-wrap items-center gap-2 text-xs text-[#6b5a45]">
+                                    <GameConfigBadge
+                                      boardSize={inv.boardSize}
+                                      scoreToWin={inv.scoreToWin}
+                                      timeControl={inv.timeControl}
+                                      roomType={inv.roomType}
+                                    />
+                                  </div>
+                                  <div className="flex gap-2 pt-1">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="border-[#dcc7a2] hover:bg-[#faefd8]"
+                                      onClick={() => handleDeclineGameInvitation(inv.id)}
+                                    >
+                                      {tc("decline")}
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      className="shadow-xs group-hover:scale-105 transition-transform"
+                                      onClick={() => router.push(`/game/${inv.gameId}`)}
+                                    >
+                                      {tc("accept")}
+                                    </Button>
+                                  </div>
+                                </div>
+                              );
+                            }
+
+                            const game = item.data;
+                            const opponentSeat = game.yourSeat === "white" ? "black" : "white";
+                            const opponent = game.seats[opponentSeat]?.player;
+                            const busy = rematchBusyGameId === game.gameId;
+                            return (
+                              <div
+                                key={`rematch-${game.gameId}`}
+                                data-testid={`lobby-rematch-${game.gameId}`}
+                                className="rounded-2xl border border-[#d4b87a] bg-[#fdf6e8] p-4 shadow-xs hover:border-[#b98d49] transition-colors group space-y-3"
+                              >
+                                <div className="flex items-center justify-between gap-2">
+                                  {opponent ? (
+                                    <PlayerIdentityRow
+                                      player={opponent}
+                                      currentPlayerId={auth?.player.playerId}
+                                      linkToProfile={false}
+                                      className="gap-3 min-w-0"
+                                    />
+                                  ) : (
+                                    <span className="text-sm text-[#6b5a45]">
+                                      {tGame("rematchRequested")}
+                                    </span>
+                                  )}
+                                  <span className="shrink-0 rounded-lg bg-[#f5ead4] px-2 py-1 text-[10px] font-medium text-[#8d6a2f]">
+                                    {t("rematchToastDesc")}
+                                  </span>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-2 text-xs text-[#6b5a45]">
+                                  <GameConfigBadge
+                                    boardSize={game.boardSize}
+                                    scoreToWin={game.scoreToWin}
+                                    timeControl={game.timeControl}
+                                    roomType={game.roomType}
+                                  />
+                                </div>
+                                <div className="flex gap-2 pt-1">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="border-[#dcc7a2] hover:bg-[#faefd8]"
+                                    onClick={() => void handleDeclineRematch(game.gameId)}
+                                    disabled={busy}
+                                  >
+                                    {tc("decline")}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    className="shadow-xs group-hover:scale-105 transition-transform"
+                                    onClick={() => void handleAcceptRematch(game.gameId)}
+                                    disabled={busy}
+                                  >
+                                    {tc("accept")}
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        {socialOverview.incomingInvitations.length === 0 &&
+                          incomingRematches.length === 0 && (
+                            <p className="text-center text-sm text-[#6e5b48] py-8 bg-white/20 rounded-2xl border border-dashed border-[#dcc7a2]">
+                              {t("noInvitations")}
+                            </p>
+                          )}
+                      </CardContent>
+                    </PaperCard>
+                  </AnimatedCard>
+                </section>
               </>
             )}
           </section>

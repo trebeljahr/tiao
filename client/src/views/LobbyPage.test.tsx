@@ -158,23 +158,27 @@ describe("LobbyPage", () => {
     });
   }
 
-  it("shows rematch requested badge for finished games with opponent rematch request", async () => {
+  it("shows incoming rematch requests in the invitations section with Accept/Decline", async () => {
     const finishedGame = makeGameSummary({
       gameId: "REM001",
       status: "finished",
       winner: "black",
-      rematch: { requestedBy: ["black"] }, // opponent requested
+      rematch: { requestedBy: ["black"] }, // opponent requested, waiting on us
     });
 
     await setupMocks({ finished: [finishedGame] });
 
     render(<LobbyPage />);
 
-    // The rematch game should appear in the active games section
-    const gameCard = screen.getByTestId("lobby-game-REM001");
-    expect(gameCard).toBeInTheDocument();
-    expect(screen.getByText("Rematch requested")).toBeInTheDocument();
-    expect(screen.getByText("View")).toBeInTheDocument();
+    // Incoming rematches now live in the invitations section (alongside game
+    // invitations) and carry inline Accept/Decline buttons — not in the
+    // active games list with a "View" button like before.
+    const rematchCard = screen.getByTestId("lobby-rematch-REM001");
+    expect(rematchCard).toBeInTheDocument();
+    expect(screen.queryByTestId("lobby-game-REM001")).not.toBeInTheDocument();
+    // Accept/Decline buttons are rendered
+    expect(screen.getByRole("button", { name: "Accept" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Decline" })).toBeInTheDocument();
   });
 
   it("does not show finished games without rematch requests in active section", async () => {

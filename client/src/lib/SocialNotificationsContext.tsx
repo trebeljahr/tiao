@@ -24,6 +24,7 @@ import { translatePlayerColor } from "@/components/game/GameShared";
 // ---------------------------------------------------------------------------
 
 const TOASTED_KEY_PREFIX = "tiao:toasted-notifs:";
+const ACKED_KEY_PREFIX = "tiao:acked-notifs:";
 
 function getToastedIds(playerId: string): Set<string> {
   try {
@@ -54,6 +55,37 @@ function clearToastedIds(playerId: string): void {
   }
 }
 
+// Acknowledged-notification IDs: the user has seen these (e.g. by clicking
+// the red notification bubble in Navbar, which scrolls to the invitations
+// section). Stored keys are `invitation:{invId}` and `rematch:{gameId}`.
+// Used to drive an "unacknowledged count" so the bubble clears after view
+// but reappears when a new, not-yet-seen item arrives.
+function getAckedIds(playerId: string): Set<string> {
+  try {
+    const raw = sessionStorage.getItem(`${ACKED_KEY_PREFIX}${playerId}`);
+    if (!raw) return new Set();
+    return new Set(JSON.parse(raw) as string[]);
+  } catch {
+    return new Set();
+  }
+}
+
+function persistAckedIds(playerId: string, ids: Set<string>): void {
+  try {
+    sessionStorage.setItem(`${ACKED_KEY_PREFIX}${playerId}`, JSON.stringify([...ids]));
+  } catch {
+    /* best-effort */
+  }
+}
+
+function clearAckedIds(playerId: string): void {
+  try {
+    sessionStorage.removeItem(`${ACKED_KEY_PREFIX}${playerId}`);
+  } catch {
+    /* best-effort */
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Context
 // ---------------------------------------------------------------------------
@@ -62,6 +94,9 @@ type SocialNotificationsContextValue = {
   pendingFriendRequestCount: number;
   incomingInvitationCount: number;
   incomingRematchCount: number;
+  unacknowledgedInvitationCount: number;
+  unacknowledgedRematchCount: number;
+  acknowledgeInvitations: () => void;
   refreshNotifications: () => void;
 };
 
@@ -69,6 +104,9 @@ const SocialNotificationsContext = createContext<SocialNotificationsContextValue
   pendingFriendRequestCount: 0,
   incomingInvitationCount: 0,
   incomingRematchCount: 0,
+  unacknowledgedInvitationCount: 0,
+  unacknowledgedRematchCount: 0,
+  acknowledgeInvitations: () => {},
   refreshNotifications: () => {},
 });
 
@@ -95,6 +133,11 @@ export function SocialNotificationsProvider({
 
   // Track incoming rematch game IDs for the badge count
   const [incomingRematchGameIds, setIncomingRematchGameIds] = useState<Set<string>>(new Set());
+
+  // Acknowledged notification IDs. Seeded from sessionStorage whenever the
+  // signed-in player changes, so a page refresh keeps the bubble clear for
+  // items the user already saw this session.
+  const [acknowledgedIds, setAcknowledgedIds] = useState<Set<string>>(new Set());
 
   // ---------------------------------------------------------------------------
   // Toast helpers (shared between initial fetch and WebSocket updates)
@@ -239,17 +282,25 @@ export function SocialNotificationsProvider({
   const fetchOverview = useCallback(async () => {
     if (!auth || auth.player.kind !== "account") {
       const prevPlayerId = playerIdRef.current;
-      if (prevPlayerId) clearToastedIds(prevPlayerId);
+      if (prevPlayerId) {
+        clearToastedIds(prevPlayerId);
+        clearAckedIds(prevPlayerId);
+      }
       setOverview(EMPTY_SOCIAL_OVERVIEW);
       prevRequestIdsRef.current.clear();
       prevInvitationIdsRef.current.clear();
       initialFetchDoneRef.current = false;
       playerIdRef.current = null;
       setIncomingRematchGameIds(new Set());
+      setAcknowledgedIds(new Set());
       return;
     }
 
     const playerId = auth.player.playerId;
+    // Hydrate acknowledged IDs when we first see this player in this session.
+    if (playerIdRef.current !== playerId) {
+      setAcknowledgedIds(getAckedIds(playerId));
+    }
     playerIdRef.current = playerId;
 
     try {
@@ -539,12 +590,60 @@ export function SocialNotificationsProvider({
   const incomingInvitationCount = overview.incomingInvitations.length;
   const incomingRematchCount = incomingRematchGameIds.size;
 
+  // Prune acknowledgedIds whenever the current set of incoming items changes,
+  // so IDs that no longer exist (invitation accepted/declined elsewhere, game
+  // archived, etc.) stop taking up space and don't mask a future re-add.
+  useEffect(() => {
+    const playerId = playerIdRef.current;
+    if (!playerId) return;
+    setAcknowledgedIds((prev) => {
+      if (prev.size === 0) return prev;
+      const liveIds = new Set<string>();
+      for (const inv of overview.incomingInvitations) liveIds.add(`invitation:${inv.id}`);
+      for (const gameId of incomingRematchGameIds) liveIds.add(`rematch:${gameId}`);
+      let changed = false;
+      const next = new Set<string>();
+      for (const id of prev) {
+        if (liveIds.has(id)) next.add(id);
+        else changed = true;
+      }
+      if (!changed) return prev;
+      persistAckedIds(playerId, next);
+      return next;
+    });
+  }, [overview.incomingInvitations, incomingRematchGameIds]);
+
+  const unacknowledgedInvitationCount = overview.incomingInvitations.reduce(
+    (count, inv) => (acknowledgedIds.has(`invitation:${inv.id}`) ? count : count + 1),
+    0,
+  );
+  let unacknowledgedRematchCount = 0;
+  for (const gameId of incomingRematchGameIds) {
+    if (!acknowledgedIds.has(`rematch:${gameId}`)) unacknowledgedRematchCount += 1;
+  }
+
+  const acknowledgeInvitations = useCallback(() => {
+    const playerId = playerIdRef.current;
+    if (!playerId) return;
+    setAcknowledgedIds((prev) => {
+      const next = new Set(prev);
+      for (const inv of overview.incomingInvitations) next.add(`invitation:${inv.id}`);
+      for (const gameId of incomingRematchGameIds) next.add(`rematch:${gameId}`);
+      if (next.size === prev.size) return prev;
+      persistAckedIds(playerId, next);
+      return next;
+    });
+  }, [overview.incomingInvitations, incomingRematchGameIds]);
+
   return (
     <SocialNotificationsContext.Provider
       value={{
         pendingFriendRequestCount,
         incomingInvitationCount,
         incomingRematchCount,
+        unacknowledgedInvitationCount,
+        unacknowledgedRematchCount,
+        acknowledgeInvitations,
         refreshNotifications: fetchOverview,
       }}
     >
