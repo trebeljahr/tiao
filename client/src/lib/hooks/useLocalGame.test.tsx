@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useLocalGame } from "./useLocalGame";
 import { createInitialGameState, GameState, getJumpTargets } from "@shared";
@@ -246,8 +246,32 @@ describe("useLocalGame – lastMove tracking on undo", () => {
   });
 });
 
-describe("useLocalGame – placement blocked when piece with jump is selected", () => {
-  it("prevents placing a stone when a piece with available jumps is selected", () => {
+describe("useLocalGame – placement blocked when piece with jump is selected (touch devices)", () => {
+  // jsdom defaults: no ontouchstart, maxTouchPoints = 0 → desktop.
+  // We set maxTouchPoints to a non-zero value to simulate a touch device,
+  // then restore it after each test.
+  const originalMaxTouchPoints = Object.getOwnPropertyDescriptor(
+    window.navigator,
+    "maxTouchPoints",
+  );
+
+  function setTouchDevice(value: boolean) {
+    Object.defineProperty(window.navigator, "maxTouchPoints", {
+      configurable: true,
+      value: value ? 5 : 0,
+    });
+  }
+
+  afterEach(() => {
+    if (originalMaxTouchPoints) {
+      Object.defineProperty(window.navigator, "maxTouchPoints", originalMaxTouchPoints);
+    } else {
+      setTouchDevice(false);
+    }
+  });
+
+  it("prevents placing a stone when a piece with available jumps is selected (touch)", () => {
+    setTouchDevice(true);
     const { result } = renderHook(() => useLocalGame());
 
     const jumpState = stateWithJumpOpportunity();
@@ -259,7 +283,8 @@ describe("useLocalGame – placement blocked when piece with jump is selected", 
     expect(result.current.localJumpTargets.length).toBeGreaterThan(0);
 
     // Try to place at (9,9) — an empty cell far away.
-    // This should be blocked because the selected piece has jump targets.
+    // This should be blocked on touch devices because fat-fingering would
+    // otherwise accidentally place stones.
     act(() => result.current.handleLocalBoardClick({ x: 9, y: 9 }));
     expect(result.current.localGame.positions[9][9]).toBeNull();
 
@@ -273,6 +298,69 @@ describe("useLocalGame – placement blocked when piece with jump is selected", 
     // On a fresh board, no pieces can jump. Place normally.
     act(() => result.current.handleLocalBoardClick({ x: 9, y: 9 }));
     expect(result.current.localGame.positions[9][9]).toBe("white");
+  });
+});
+
+describe("useLocalGame – desktop deselect/reselect behavior", () => {
+  // jsdom defaults to non-touch, so these tests exercise the desktop path
+  // where clicking away from the selected piece deselects it, and clicking
+  // another own piece with jumps reselects to that new piece.
+
+  it("deselects a jumpable piece when clicking on an opponent piece", () => {
+    const { result } = renderHook(() => useLocalGame());
+
+    const jumpState = stateWithJumpOpportunity();
+    act(() => result.current.setLocalGame(jumpState));
+
+    // Select white at (5,5)
+    act(() => result.current.handleLocalBoardClick({ x: 5, y: 5 }));
+    expect(result.current.localSelection).toEqual({ x: 5, y: 5 });
+
+    // Click on the opponent (black) piece at (6,5) — should deselect,
+    // not silently block the click.
+    act(() => result.current.handleLocalBoardClick({ x: 6, y: 5 }));
+    expect(result.current.localSelection).toBeNull();
+  });
+
+  it("deselects when clicking an empty non-placable square that has no jump target", () => {
+    const { result } = renderHook(() => useLocalGame());
+
+    const jumpState = stateWithJumpOpportunity();
+    act(() => result.current.setLocalGame(jumpState));
+
+    act(() => result.current.handleLocalBoardClick({ x: 5, y: 5 }));
+    expect(result.current.localSelection).toEqual({ x: 5, y: 5 });
+
+    // (0,0) is empty but not a valid placement on an early board? canPlacePiece
+    // allows any empty cell on an empty-ish board — so placement will succeed
+    // AND clear the selection.  Either way the selection should be cleared,
+    // which is the behavior we care about on desktop.
+    act(() => result.current.handleLocalBoardClick({ x: 0, y: 0 }));
+    expect(result.current.localSelection).toBeNull();
+  });
+
+  it("reselects when clicking another own piece that has jumps", () => {
+    const { result } = renderHook(() => useLocalGame());
+
+    // Build a state with TWO independent white jump opportunities so we can
+    // switch selection between them without executing a jump.
+    const state = createInitialGameState();
+    //   (5,5) white, (6,5) black, (7,5) empty → white can jump to (7,5)
+    state.positions[5][5] = "white";
+    state.positions[5][6] = "black";
+    //   (2,2) white, (3,2) black, (4,2) empty → white can also jump to (4,2)
+    state.positions[2][2] = "white";
+    state.positions[2][3] = "black";
+    act(() => result.current.setLocalGame(state));
+
+    // Select the first white piece
+    act(() => result.current.handleLocalBoardClick({ x: 5, y: 5 }));
+    expect(result.current.localSelection).toEqual({ x: 5, y: 5 });
+
+    // Click on the other own jumpable piece — should reselect to it.
+    act(() => result.current.handleLocalBoardClick({ x: 2, y: 2 }));
+    expect(result.current.localSelection).toEqual({ x: 2, y: 2 });
+    expect(result.current.localJumpTargets.length).toBeGreaterThan(0);
   });
 });
 

@@ -16,6 +16,19 @@ import {
   isGameOver,
 } from "@shared";
 
+// Detected at call time so unit tests can simulate a touch device by setting
+// `navigator.maxTouchPoints` before invoking the click handler.
+//
+// We intentionally only look at `maxTouchPoints` and NOT `"ontouchstart" in
+// window` — jsdom exposes the latter even though it is not really a touch
+// environment, which would make every unit test look like mobile.  The
+// behavior we're gating (fat-finger placement protection during a jump
+// selection) only matters on devices with real touch input, and every modern
+// mobile browser reports `maxTouchPoints > 0`.
+function isTouchDevice() {
+  return typeof navigator !== "undefined" && (navigator.maxTouchPoints ?? 0) > 0;
+}
+
 export function useLocalGame(settings?: Partial<GameSettings>) {
   const [localGame, setLocalGame] = useState<GameState>(() => createInitialGameState(settings));
   const [localSelection, setLocalSelection] = useState<Position | null>(null);
@@ -128,11 +141,12 @@ export function useLocalGame(settings?: Partial<GameSettings>) {
           return;
         }
 
-        // When the selected piece has available jumps, block any other
-        // action (placement or selecting a different piece).  The player
-        // must either execute a jump or deselect the piece first.  This
-        // prevents accidental placements when fat-fingering on mobile.
-        if (jumpTargets.length > 0) {
+        // On touch devices, when the selected piece has available jumps,
+        // block any other action (placement or selecting a different piece)
+        // to prevent accidental placements from fat-fingering.  On desktop,
+        // clicking elsewhere is an intentional deselect (or a reselect if it
+        // lands on another own piece with jumps), so we fall through.
+        if (jumpTargets.length > 0 && isTouchDevice()) {
           return;
         }
       }
