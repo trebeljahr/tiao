@@ -20,9 +20,21 @@ export function useComputerGame(
   initialComputerColor?: PlayerColor,
 ) {
   const local = useLocalGame(settings);
+  // When a color is supplied by the caller we can use it directly in the
+  // useState initializer (same on server and client, so no hydration
+  // mismatch).  Otherwise we start with a deterministic "black" and
+  // randomise once on mount — picking Math.random() inside useState runs
+  // during both SSR and the initial client render and triggers a React
+  // hydration mismatch on every cell/label derived from computerColor.
   const [computerColor, setComputerColor] = useState<PlayerColor>(
-    () => initialComputerColor ?? randomComputerColor(),
+    () => initialComputerColor ?? "black",
   );
+  const randomizedOnceRef = useRef(!!initialComputerColor);
+  useEffect(() => {
+    if (randomizedOnceRef.current) return;
+    randomizedOnceRef.current = true;
+    setComputerColor(randomComputerColor());
+  }, []);
   const [computerThinking, setComputerThinking] = useState(false);
   const [thinkProgress, setThinkProgress] = useState(0);
   const [resetGeneration, setResetGeneration] = useState(0);
