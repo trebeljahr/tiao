@@ -20,6 +20,8 @@ import { useStonePlacementSound } from "@/lib/useStonePlacementSound";
 import { useWinConfetti } from "@/lib/useWinConfetti";
 import { useGameOverDialog } from "@/lib/hooks/useGameOverDialog";
 import { isGameOver, getWinner } from "@shared";
+import type { JumpTurn } from "@shared";
+import { reportLocalGame } from "@/lib/api";
 
 export function LocalGamePage() {
   const { auth, onOpenAuth, onLogout } = useAuth();
@@ -76,6 +78,35 @@ export function LocalGamePage() {
   const effectiveWinner = winner ?? timeoutWinner;
   const effectiveGameOver = gameOver || !!timeoutWinner;
 
+  // Report local game completion for achievements (for the winner)
+  const localReportedRef = useRef(false);
+  const gameStartRef = useRef(Date.now());
+  useEffect(() => {
+    if (
+      effectiveGameOver &&
+      effectiveWinner &&
+      auth?.player.kind === "account" &&
+      !localReportedRef.current
+    ) {
+      localReportedRef.current = true;
+      const game = local.localGame;
+      const jumps = game.history.filter(
+        (t): t is JumpTurn => t.type === "jump" && t.color === effectiveWinner,
+      );
+      const maxChain = jumps.reduce((max, j) => Math.max(max, j.jumps.length), 0);
+      const opponentColor = effectiveWinner === "white" ? "black" : "white";
+      void reportLocalGame({
+        won: true,
+        score: game.score,
+        scoreToWin: game.scoreToWin,
+        playerColor: effectiveWinner,
+        maxChainLength: maxChain,
+        opponentScoredZero: game.score[opponentColor] === 0,
+        durationMs: Date.now() - gameStartRef.current,
+      });
+    }
+  }, [effectiveGameOver, effectiveWinner, auth?.player.kind]);
+
   useStonePlacementSound(local.localGame);
   useWinConfetti(effectiveWinner);
 
@@ -98,6 +129,8 @@ export function LocalGamePage() {
   function handleStartGame() {
     local.resetLocalGame();
     resetClock();
+    localReportedRef.current = false;
+    gameStartRef.current = Date.now();
     setConfiguring(false);
   }
 

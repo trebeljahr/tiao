@@ -309,32 +309,19 @@ function GradCapIcon({ color }: IconProps) {
   );
 }
 
-function SpyglassIcon({ color }: IconProps) {
+function BinocularsIcon({ color }: IconProps) {
   return (
     <>
-      {/* Main tube body — diagonal, wider at lens end */}
-      <path
-        stroke={color}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M4.5 19.5l2-2 10-10 2-2"
-      />
-      {/* Tube outline — tapered shape */}
-      <path
-        stroke={color}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M3.3 18.3l1.5-1.5 1.7 1.7-1.5 1.5zM6.5 15.1l8.4-8.4 2.4 2.4-8.4 8.4z"
-      />
-      {/* Lens hood — wider end */}
-      <path
-        stroke={color}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M16.2 5.4l3.2-3.2 2.4 2.4-3.2 3.2z"
-      />
-      {/* Section rings on tube */}
-      <path stroke={color} strokeLinecap="round" d="M8.2 13.4l2.4 2.4M11.5 10.1l2.4 2.4" />
+      {/* Left barrel */}
+      <rect x="2" y="8" width="8" height="12" rx="4" stroke={color} fill="none" />
+      {/* Right barrel */}
+      <rect x="14" y="8" width="8" height="12" rx="4" stroke={color} fill="none" />
+      {/* Bridge connecting the two barrels */}
+      <path stroke={color} strokeLinecap="round" d="M10 13h4" />
+      {/* Left lens */}
+      <ellipse cx="6" cy="8" rx="4" ry="2" stroke={color} fill="none" />
+      {/* Right lens */}
+      <ellipse cx="18" cy="8" rx="4" ry="2" stroke={color} fill="none" />
     </>
   );
 }
@@ -536,7 +523,7 @@ const ICON_MAP: Record<string, (props: IconProps) => React.JSX.Element> = {
   "top-one-percent": CrownIcon,
   "tournament-champion": VikingHelmetIcon,
   "tutorial-complete": GradCapIcon,
-  spectator: SpyglassIcon,
+  spectator: BinocularsIcon,
   "rage-quit": DoorExitIcon,
   "night-owl": MoonIcon,
   speedrun: RocketIcon,
