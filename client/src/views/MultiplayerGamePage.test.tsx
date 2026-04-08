@@ -1341,6 +1341,34 @@ describe("MultiplayerGamePage", () => {
     expect(toast).toHaveBeenCalledWith("Game started!");
   });
 
+  it("renders LoadingBoardSkeleton on first render when snapshot is not yet loaded", async () => {
+    // Set knowsHowToPlay so the rules-intro modal doesn't open and hide the skeleton.
+    localStorage.setItem("tiao:knowsHowToPlay", "1");
+
+    const { useMultiplayerGame } = await import("@/lib/hooks/useMultiplayerGame");
+    (useMultiplayerGame as ReturnType<typeof vi.fn>).mockReturnValue({
+      multiplayerSnapshot: null,
+      multiplayerSelection: null,
+      connectionState: "idle",
+      connectToRoom: mockConnectToRoom,
+      sendMultiplayerMessage: mockSendMultiplayerMessage,
+      setMultiplayerSelection: mockSetMultiplayerSelection,
+      // Critically: busy=false. The previous condition only rendered the
+      // skeleton while busy was true, so the very first render fell through
+      // to the main return body and produced a white flash.
+      multiplayerBusy: false,
+      setMultiplayerBusy: mockSetMultiplayerBusy,
+      multiplayerError: null,
+    });
+    const { useSocialData } = await import("@/lib/hooks/useSocialData");
+    (useSocialData as ReturnType<typeof vi.fn>).mockReturnValue(defaultSocialMock);
+
+    render(<MultiplayerGamePage />);
+
+    // The skeleton has a "Loading…" label; the live page does not.
+    expect(screen.getByText("Loading...")).toBeInTheDocument();
+  });
+
   it("displays spectator count next to eye icon when spectatorCount > 0", async () => {
     const snapshot = makeMatchmakingSnapshot({
       spectators: [

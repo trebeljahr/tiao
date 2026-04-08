@@ -914,7 +914,15 @@ export function MultiplayerGamePage() {
     aspectRatio: "1/1",
   };
 
-  if (multiplayerBusy && !multiplayerSnapshot) {
+  // Show the loading skeleton from the very first render until the snapshot
+  // is available, instead of only while `multiplayerBusy` is true. The previous
+  // condition (`multiplayerBusy && !multiplayerSnapshot`) missed the initial
+  // frame — on first render `multiplayerBusy` is still false (the loadGame
+  // effect hasn't run yet), so the main return body rendered with an empty
+  // board area, producing a white flash before the skeleton appeared.
+  // The rules-intro modal is intentionally excluded so it can still render
+  // over the empty page when a new player needs to acknowledge the rules.
+  if (!multiplayerSnapshot && !rulesIntroOpen) {
     return <LoadingBoardSkeleton />;
   }
 
