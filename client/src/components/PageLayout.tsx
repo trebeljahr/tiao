@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
-import { Navbar, type NavbarMode } from "@/components/Navbar";
+import { Navbar } from "@/components/Navbar";
 import { cn } from "@/lib/utils";
 
 /**
@@ -11,12 +11,10 @@ import { cn } from "@/lib/utils";
  */
 export function PageLayout({
   children,
-  navbarMode = "lobby",
   maxWidth = "max-w-5xl",
   mainClassName,
 }: {
   children: React.ReactNode;
-  navbarMode?: NavbarMode;
   maxWidth?: string;
   mainClassName?: string;
 }) {
@@ -28,7 +26,6 @@ export function PageLayout({
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(circle_at_top,rgba(255,247,231,0.76),transparent_58%)]" />
 
       <Navbar
-        mode={navbarMode}
         auth={auth}
         navOpen={navOpen}
         onToggleNav={() => setNavOpen((v) => !v)}

@@ -14,10 +14,7 @@ import { useRouter as useIntlRouter, usePathname as useIntlPathname } from "@/i1
 import { routing } from "@/i18n/routing";
 
 export type AuthDialogMode = "login" | "signup";
-export type NavbarMode = "lobby" | "multiplayer" | "tutorial";
-
 type NavbarProps = {
-  mode: NavbarMode;
   auth: AuthResponse | null;
   navOpen: boolean;
   onToggleNav: () => void;
@@ -251,72 +248,6 @@ function LanguagePicker() {
   );
 }
 
-/**
- * Persistent player chip rendered at fixed top-right whenever the navbar is
- * in "minimal" mode (lobby / multiplayer / tutorial — i.e. every page). The
- * full sticky `<nav>` with its embedded PlayerSummary is only used in the
- * non-minimal branch, which no route currently takes, so without this pill
- * the logged-in user's rating (and name, and avatar) is completely hidden
- * until they open the drawer. Clicking the pill toggles the drawer, so it
- * pulls double-duty as a second "open navigation" affordance.
- */
-function MinimalPlayerPill({ auth, onClick }: { auth: AuthResponse | null; onClick: () => void }) {
-  const player = auth?.player;
-  if (!player) return null;
-  const isAnonymous = player.kind !== "account";
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={player.displayName ?? "Player"}
-      className="fixed right-3 top-3 z-60 inline-flex max-w-[min(18rem,calc(100vw-5rem))] items-center rounded-2xl border border-[#af8a56]/35 bg-[rgba(255,248,232,0.88)] px-2.5 py-1.5 text-left text-[#28170e] shadow-[0_14px_28px_-18px_rgba(75,49,20,0.46)] backdrop-blur-sm transition-colors hover:bg-[rgba(255,252,245,0.96)]"
-    >
-      <PlayerIdentityRow
-        player={{
-          displayName: player.displayName,
-          profilePicture: player.profilePicture,
-          activeBadges: player.activeBadges,
-          rating: isAnonymous ? undefined : (player.rating ?? 1500),
-        }}
-        anonymous={isAnonymous}
-        linkToProfile={false}
-        avatarClassName="h-8 w-8 border border-[#a37d48]/35 shadow-xs"
-        nameClassName="text-sm font-semibold"
-        friendVariant="light"
-        className="min-w-0 gap-2.5"
-      />
-    </button>
-  );
-}
-
-function PlayerSummary({ auth }: { auth: AuthResponse | null }) {
-  const player = auth?.player;
-  const isAnonymous = player?.kind !== "account";
-
-  return (
-    <div className="flex items-center gap-1.5">
-      <LanguagePicker />
-      <SoundToggle />
-      <div className="max-w-56 rounded-full border border-[#af8e5d]/35 bg-[rgba(255,248,232,0.94)] px-2.5 py-1.5 text-left text-[#28170e] shadow-[0_12px_26px_-20px_rgba(99,67,28,0.45)]">
-        <PlayerIdentityRow
-          player={{
-            displayName: player?.displayName ?? "Guest",
-            profilePicture: player?.profilePicture,
-            activeBadges: player?.activeBadges,
-            rating: isAnonymous ? undefined : (player?.rating ?? 1500),
-          }}
-          anonymous={isAnonymous}
-          linkToProfile={false}
-          avatarClassName="h-10 w-10 border border-[#a37d48]/35 shadow-xs"
-          nameClassName="text-sm font-semibold"
-          friendVariant="light"
-          className="gap-3"
-        />
-      </div>
-    </div>
-  );
-}
-
 function Brand({
   onClick,
   compact = false,
@@ -359,7 +290,6 @@ function Brand({
 }
 
 export function Navbar({
-  mode,
   auth,
   navOpen,
   onToggleNav,
@@ -378,8 +308,6 @@ export function Navbar({
   const player = auth?.player;
   const isAccount = player?.kind === "account";
   const isAnonymous = player?.kind !== "account";
-  const gameMode = mode === "multiplayer" || mode === "tutorial";
-  const minimalMode = gameMode || mode === "lobby";
   const navItemClasses =
     "w-full justify-start px-3 text-left text-[#28170e] hover:bg-[rgba(255,251,241,0.94)] hover:text-[#1f120b]";
   const activeNavItemClasses =
@@ -560,28 +488,6 @@ export function Navbar({
       </span>
     ) : null;
 
-  const desktopNav = (
-    <div className="hidden items-center gap-1 md:flex">
-      {navItems.map((item) => (
-        <Button
-          key={item.label}
-          variant="ghost"
-          size="sm"
-          aria-current={item.active ? "page" : undefined}
-          className={cn(
-            "relative justify-start px-3 text-[#28170e]",
-            item.active ? cn(activeNavItemClasses, "pointer-events-none") : navItemClasses,
-          )}
-          onClick={item.active ? undefined : item.onClick}
-        >
-          {item.icon}
-          {item.label}
-          {renderBadge(item)}
-        </Button>
-      ))}
-    </div>
-  );
-
   const settingsIcon = (
     <svg {...iconProps}>
       <circle {...pathProps} cx="12" cy="12" r="3" />
@@ -599,34 +505,6 @@ export function Navbar({
     </svg>
   );
 
-  const accountControls =
-    player?.kind === "account" ? (
-      <>
-        <Button variant="secondary" size="sm" onClick={() => handleNav("/settings")}>
-          {settingsIcon}
-          {t("settings")}
-        </Button>
-        <Button variant="ghost" size="sm" className="text-[#28170e]" onClick={onLogout}>
-          {logoutIcon}
-          {t("logout")}
-        </Button>
-      </>
-    ) : (
-      <>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-[#28170e]"
-          onClick={() => onOpenAuth("login")}
-        >
-          {t("signIn")}
-        </Button>
-        <Button size="sm" onClick={() => onOpenAuth("signup")}>
-          {t("signUp")}
-        </Button>
-      </>
-    );
-
   const drawerContent = (
     <motion.aside
       initial={false}
@@ -635,25 +513,11 @@ export function Navbar({
       className="absolute left-0 top-0 h-full w-full max-w-[20.6rem] overflow-y-auto border-r border-[#b69261]/24 bg-[linear-gradient(180deg,rgba(251,238,210,0.985),rgba(239,213,161,0.975))] px-4 py-3 text-[#2b1a10] shadow-[0_30px_80px_-28px_rgba(95,59,21,0.34)]"
       onClick={(event) => event.stopPropagation()}
     >
-      <div
-        className={cn(
-          "flex items-center",
-          minimalMode ? "min-h-11 pl-[4.15rem] pr-2 sm:pl-[4.2rem]" : "justify-between",
-        )}
-      >
-        <Brand
-          compact={gameMode}
-          className={cn("shrink-0", minimalMode && "-translate-y-[2px]")}
-          onClick={() => handleNav("/")}
-        />
+      <div className="flex min-h-11 items-center pl-[4.15rem] pr-2 sm:pl-[4.2rem]">
+        <Brand compact className="shrink-0 -translate-y-[2px]" onClick={() => handleNav("/")} />
         <div className="ml-auto flex items-center gap-1">
           <LanguagePicker />
           <SoundToggle />
-          {!minimalMode && (
-            <Button variant="ghost" size="icon" className="text-[#28170e]" onClick={onCloseNav}>
-              <HamburgerIcon open />
-            </Button>
-          )}
         </div>
       </div>
 
@@ -683,7 +547,6 @@ export function Navbar({
               displayName: player?.displayName,
               profilePicture: player?.profilePicture,
               activeBadges: player?.activeBadges,
-              rating: isAnonymous ? undefined : (player?.rating ?? 1500),
             }}
             anonymous={isAnonymous}
             avatarClassName="h-10 w-10 border border-[#a37d48]/35 shadow-xs"
@@ -691,6 +554,16 @@ export function Navbar({
             className="min-w-0 flex-1 gap-3"
           />
         </div>
+        {isAccount && (
+          <div className="mt-3 flex items-center justify-between rounded-2xl border border-[#b69261]/22 bg-[rgba(255,250,236,0.94)] px-3 py-2">
+            <span className="text-xs font-medium uppercase tracking-wider text-[#7a6a58]">
+              {t("eloRating")}
+            </span>
+            <span className="font-mono text-base font-bold tabular-nums text-[#28170e]">
+              {player?.rating ?? 1500}
+            </span>
+          </div>
+        )}
         <div className="mt-4 grid gap-2">
           {player?.kind === "account" ? (
             <>
@@ -764,47 +637,15 @@ export function Navbar({
 
   return (
     <>
-      {minimalMode ? (
-        <>
-          <button
-            type="button"
-            className="fixed left-3 top-3 z-60 inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#af8a56]/35 bg-[rgba(255,248,232,0.88)] text-[#28170e] shadow-[0_14px_28px_-18px_rgba(75,49,20,0.46)] backdrop-blur-sm transition-colors hover:bg-[rgba(255,252,245,0.96)]"
-            aria-label={t("openNavigation")}
-            aria-expanded={navOpen}
-            onClick={onToggleNav}
-          >
-            <HamburgerIcon open={navOpen} />
-          </button>
-          <MinimalPlayerPill auth={auth} onClick={onToggleNav} />
-        </>
-      ) : (
-        <nav className="sticky top-0 z-40 border-b border-[#af8a56]/35 bg-[linear-gradient(180deg,rgba(245,223,178,0.97),rgba(225,189,119,0.98))] shadow-[0_20px_40px_-28px_rgba(96,63,24,0.4)] backdrop-blur-sm">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-3">
-              <Brand onClick={() => handleNav("/")} />
-            </div>
-
-            {desktopNav}
-
-            <div className="flex items-center gap-3">
-              <div>
-                <PlayerSummary auth={auth} />
-              </div>
-              <div className="hidden items-center gap-2 md:flex">{accountControls}</div>
-
-              <button
-                type="button"
-                className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#af8a56]/35 bg-[rgba(255,248,232,0.75)] text-[#28170e] transition-colors hover:bg-[rgba(255,252,245,0.9)] md:hidden"
-                aria-label={t("openNavigation")}
-                aria-expanded={navOpen}
-                onClick={onToggleNav}
-              >
-                <HamburgerIcon open={navOpen} />
-              </button>
-            </div>
-          </div>
-        </nav>
-      )}
+      <button
+        type="button"
+        className="fixed left-3 top-3 z-60 inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#af8a56]/35 bg-[rgba(255,248,232,0.88)] text-[#28170e] shadow-[0_14px_28px_-18px_rgba(75,49,20,0.46)] backdrop-blur-sm transition-colors hover:bg-[rgba(255,252,245,0.96)]"
+        aria-label={t("openNavigation")}
+        aria-expanded={navOpen}
+        onClick={onToggleNav}
+      >
+        <HamburgerIcon open={navOpen} />
+      </button>
 
       <AnimatePresence>
         {navOpen && (

@@ -292,7 +292,6 @@ export function LobbyPage() {
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(circle_at_top,rgba(255,247,231,0.76),transparent_58%)]" />
 
       <Navbar
-        mode="lobby"
         auth={auth}
         navOpen={navOpen}
         onToggleNav={() => setNavOpen((v) => !v)}

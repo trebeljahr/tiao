@@ -747,6 +747,7 @@
     "changeLanguage": "Sprache ändern",
     "reportIssue": "Problem melden",
     "settings": "Einstellungen",
+    "eloRating": "Elo-Wertung",
     "notificationBadgeAria": "{label}: {count} neue – ansehen"
   },
   "badges": {

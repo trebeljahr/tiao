@@ -100,7 +100,6 @@ export function TournamentPage() {
     return (
       <>
         <Navbar
-          mode="lobby"
           auth={auth}
           navOpen={navOpen}
           onToggleNav={() => setNavOpen(!navOpen)}
@@ -145,7 +144,6 @@ export function TournamentPage() {
   return (
     <>
       <Navbar
-        mode="lobby"
         auth={auth}
         navOpen={navOpen}
         onToggleNav={() => setNavOpen(!navOpen)}

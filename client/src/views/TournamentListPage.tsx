@@ -78,7 +78,6 @@ export function TournamentListPage() {
   return (
     <>
       <Navbar
-        mode="lobby"
         auth={auth}
         navOpen={navOpen}
         onToggleNav={() => setNavOpen(!navOpen)}
