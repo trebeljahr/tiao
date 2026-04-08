@@ -138,6 +138,7 @@
     "draw": "¡Empate!",
     "gameStarted": "¡Partida iniciada!",
     "gameResumed": "Partida reanudada",
+    "anonymousUserLeft": "El usuario anónimo abandonó la partida.",
     "wins": "¡{color} gana!",
     "winsOnTime": "¡{color} gana por tiempo!",
     "toMove": "Turno de {color}",

@@ -5,7 +5,6 @@ import { APIError } from "better-auth/api";
 import bcrypt from "bcrypt";
 import { MongoClient } from "mongodb";
 import GameAccount from "../models/GameAccount";
-import GameRoom from "../models/GameRoom";
 import { generateFunAnonymousName } from "../game/playerTokens";
 import { FRONTEND_URL, MONGODB_URI, TOKEN_SECRET, PORT } from "../config/envVars";
 import { sendPasswordResetEmail, sendVerificationEmail } from "./email";
@@ -240,47 +239,37 @@ export const auth = betterAuth({
         return name;
       },
       onLinkAccount: async ({ anonymousUser, newUser }) => {
-        // Only migrate guest games when CREATING a new account (sign-up).
-        // When signing in to an existing account, the guest's games should
-        // be discarded — otherwise both seats in a game can end up pointing
-        // to the same player (the signed-in user played against their own
-        // guest session).
-        const accountCreatedAt = new Date(newUser.user.createdAt).getTime();
-        const isNewAccount = Date.now() - accountCreatedAt < 10_000;
-        if (!isNewAccount) {
-          console.info(
-            `[auth] Skipping guest game migration — signing in to existing account ${newUser.user.id}`,
-          );
-          return;
-        }
-
+        // Migrate guest games to the real account for BOTH sign-up and
+        // sign-in flows. Previously sign-in silently discarded the guest's
+        // games, which meant a player mid-game as a guest lost the game the
+        // moment they logged in. Now we migrate per-room, and if the guest
+        // was playing against the *same* account they're signing into,
+        // gameService deletes the room and notifies all open sockets so
+        // nothing gets left in a "you vs. yourself" state.
         const guestId = anonymousUser.user.id;
         const newId = newUser.user.id;
         const newDisplayName =
           (newUser.user as { displayName?: string }).displayName || newUser.user.name;
-        console.info(
-          `[auth] Migrating guest games from ${guestId} to new account ${newId}`,
-        );
-        await GameRoom.updateMany(
-          { "seats.white.playerId": guestId },
-          {
-            $set: {
-              "seats.white.playerId": newId,
-              "seats.white.displayName": newDisplayName,
-              "seats.white.kind": "account",
-            },
-          },
-        );
-        await GameRoom.updateMany(
-          { "seats.black.playerId": guestId },
-          {
-            $set: {
-              "seats.black.playerId": newId,
-              "seats.black.displayName": newDisplayName,
-              "seats.black.kind": "account",
-            },
-          },
-        );
+        console.info(`[auth] Migrating guest games from ${guestId} to account ${newId}`);
+
+        const { gameService } = await import("../game/gameService");
+        try {
+          const result = await gameService.migrateGuestToAccount(guestId, {
+            playerId: newId,
+            displayName: newDisplayName,
+            kind: "account",
+          });
+          if (result.deleted > 0) {
+            console.info(
+              `[auth] Migration dropped ${result.deleted} self-vs-self room(s): ${result.deletedRoomIds.join(", ")}`,
+            );
+          }
+          if (result.migrated > 0) {
+            console.info(`[auth] Migrated ${result.migrated} guest room(s) to ${newId}`);
+          }
+        } catch (err) {
+          console.error("[auth] Guest game migration failed:", err);
+        }
       },
     }),
   ],

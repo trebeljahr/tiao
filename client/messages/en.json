@@ -138,6 +138,7 @@
     "draw": "Draw!",
     "gameStarted": "Game started!",
     "gameResumed": "Game resumed",
+    "anonymousUserLeft": "Anonymous user left the game.",
     "wins": "{color} wins!",
     "winsOnTime": "{color} wins on time!",
     "toMove": "{color} to move",

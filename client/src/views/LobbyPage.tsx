@@ -81,6 +81,12 @@ export function LobbyPage() {
 
   // Real-time updates for lobby
   useLobbyMessage((payload) => {
+    if (payload.type === "game-removed") {
+      const removedId = payload.gameId as string | undefined;
+      if (removedId) delete seenHistoryRef.current[removedId];
+      void refreshMultiplayerGames({ silent: true });
+      return;
+    }
     if (payload.type === "game-update") {
       void refreshMultiplayerGames({ silent: true });
 

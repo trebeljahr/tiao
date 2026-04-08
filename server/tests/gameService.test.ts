@@ -651,6 +651,118 @@ test("migratePlayerIdentity updates ALL games including finished ones", async ()
   assert.equal(oldRooms.length, 0, "no games should remain under old guest playerId");
 });
 
+test("migrateGuestToAccount rewrites the guest seat without disturbing the opponent", async () => {
+  const store = new InMemoryGameRoomStore();
+  const service = new GameService(store, () => 0);
+  const guest = createPlayer("guest-1", { kind: "guest", displayName: "wistful-sage-deer" });
+  const opponent = createPlayer("opponent-1");
+
+  const created = await service.createGame(guest);
+  await service.joinGame(created.gameId, opponent);
+
+  const result = await service.migrateGuestToAccount("guest-1", {
+    playerId: "account-1",
+    displayName: "rico",
+    kind: "account",
+  });
+
+  assert.equal(result.migrated, 1);
+  assert.equal(result.deleted, 0);
+  assert.deepEqual(result.deletedRoomIds, []);
+
+  const room = await store.getRoom(created.gameId);
+  assert.ok(room);
+  const seat = room.seats.white?.playerId === "account-1" ? room.seats.white : room.seats.black;
+  assert.ok(seat);
+  assert.equal(seat.displayName, "rico");
+  assert.equal(seat.kind, "account");
+  // Opponent untouched
+  const opponentSeat =
+    room.seats.white?.playerId === opponent.playerId ? room.seats.white : room.seats.black;
+  assert.ok(opponentSeat);
+  assert.equal(opponentSeat.playerId, opponent.playerId);
+});
+
+test("migrateGuestToAccount also migrates finished history rooms", async () => {
+  const store = new InMemoryGameRoomStore();
+  const service = new GameService(store, () => 0);
+  const guest = createPlayer("guest-h", { kind: "guest" });
+  const opponent = createPlayer("opponent-h");
+
+  const finished = await service.createGame(guest);
+  await service.joinGame(finished.gameId, opponent);
+  await finishRoom(store, finished.gameId, "white");
+
+  const active = await service.createGame(guest);
+  await service.joinGame(active.gameId, opponent);
+
+  const result = await service.migrateGuestToAccount("guest-h", {
+    playerId: "account-h",
+    displayName: "promoted",
+    kind: "account",
+  });
+  assert.equal(result.migrated, 2);
+  assert.equal(result.deleted, 0);
+
+  const oldRooms = await store.listRoomsForPlayer("guest-h");
+  assert.equal(oldRooms.length, 0);
+  const newRooms = await store.listRoomsForPlayer("account-h");
+  assert.equal(newRooms.length, 2);
+});
+
+test("migrateGuestToAccount deletes self-vs-self rooms and notifies open sockets", async () => {
+  const store = new InMemoryGameRoomStore();
+  const service = new GameService(store, () => 0);
+  const guest = createPlayer("guest-conflict", { kind: "guest" });
+  // Player Alice is the existing account that the guest is about to sign into.
+  const alice = createPlayer("alice");
+
+  // Guest plays a game against alice (their own future account).
+  const created = await service.createGame(alice);
+  await service.joinGame(created.gameId, guest);
+
+  // Both clients have a live socket open.
+  const aliceSocket = new FakeSocket();
+  const guestSocket = new FakeSocket();
+  await service.connect(created.gameId, alice, aliceSocket as unknown as WebSocket);
+  await service.connect(created.gameId, guest, guestSocket as unknown as WebSocket);
+
+  const result = await service.migrateGuestToAccount("guest-conflict", {
+    playerId: alice.playerId,
+    displayName: alice.displayName,
+    kind: "account",
+  });
+
+  assert.equal(result.migrated, 0);
+  assert.equal(result.deleted, 1);
+  assert.deepEqual(result.deletedRoomIds, [created.gameId]);
+
+  // Room is gone from the store.
+  const stored = await store.getRoom(created.gameId);
+  assert.equal(stored, null);
+
+  // Both sockets received a game-aborted message with the ANON_CONFLICT code.
+  for (const sock of [aliceSocket, guestSocket]) {
+    const aborted = sock.messages
+      .map((m) => JSON.parse(m))
+      .find((m: { type: string }) => m.type === "game-aborted");
+    assert.ok(aborted, "expected game-aborted on socket");
+    assert.equal(aborted.code, "ANON_CONFLICT");
+    assert.equal(aborted.requeuedForMatchmaking, false);
+  }
+});
+
+test("migrateGuestToAccount is a no-op when guestId equals newIdentity.playerId", async () => {
+  const store = new InMemoryGameRoomStore();
+  const service = new GameService(store, () => 0);
+  const result = await service.migrateGuestToAccount("same", {
+    playerId: "same",
+    displayName: "same",
+    kind: "account",
+  });
+  assert.deepEqual(result, { migrated: 0, deleted: 0, deletedRoomIds: [] });
+});
+
 test("migratePlayerIdentity updates seat assignments", async () => {
   const store = new InMemoryGameRoomStore();
   const service = new GameService(store);

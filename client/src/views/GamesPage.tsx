@@ -24,7 +24,7 @@ export function GamesPage() {
 
   // Real-time updates for games page
   useLobbyMessage((payload) => {
-    if (payload.type === "game-update") {
+    if (payload.type === "game-update" || payload.type === "game-removed") {
       void refreshMultiplayerGames({ silent: true });
     }
   });

@@ -280,6 +280,14 @@ export type ServerToClientMessage =
     }
   | {
       type: "game-aborted";
+      /**
+       * Optional stable code so the client can localise the reason. If
+       * omitted, the client should fall back to `reason` verbatim.
+       * Known codes:
+       *  - `ANON_CONFLICT` — guest signed into an account already in the
+       *    other seat; the room has been deleted.
+       */
+      code?: string;
       reason: string;
       /** If true, the receiving player was automatically re-entered into matchmaking */
       requeuedForMatchmaking: boolean;

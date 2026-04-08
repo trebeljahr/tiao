@@ -21,6 +21,7 @@ import { createOptimisticSnapshot } from "../../components/game/GameShared";
 export type ConnectionState = "idle" | "connecting" | "connected" | "disconnected";
 
 export type GameAbortedInfo = {
+  code?: string;
   reason: string;
   requeuedForMatchmaking: boolean;
   timeControl: import("@shared").TimeControl;
@@ -276,6 +277,7 @@ export function useMultiplayerGame(
             requeuedForMatchmaking: payload.requeuedForMatchmaking,
           });
           onGameAbortedRef.current?.({
+            code: payload.code,
             reason: payload.reason,
             requeuedForMatchmaking: payload.requeuedForMatchmaking,
             timeControl: payload.timeControl,
@@ -361,6 +363,21 @@ export function useMultiplayerGame(
         reconnectRef.current.schedule();
         return;
       }
+      // Room has vanished (e.g. anon→account migration deleted it because
+      // the user signed into the account already in the other seat). Treat
+      // as an abort so the page redirects back to the lobby instead of
+      // sitting on a stale error state.
+      const status = (error as { status?: number }).status;
+      const code = (error as { code?: string }).code;
+      if (status === 404 || code === "ROOM_NOT_FOUND") {
+        onGameAbortedRef.current?.({
+          code: "ANON_CONFLICT",
+          reason: "Anonymous user left the game.",
+          requeuedForMatchmaking: false,
+          timeControl: latestMultiplayerSnapshotRef.current?.timeControl ?? null,
+        });
+        return;
+      }
       setMultiplayerError(readableError(error));
     }
   }, [logWebSocketDebug, connectToRoom]);
@@ -383,6 +400,30 @@ export function useMultiplayerGame(
     }
     prevGameIdRef.current = gameId;
   }, [gameId]);
+
+  // When the signed-in playerId changes mid-game (guest → account via sign-up
+  // or sign-in), the already-open WebSocket is still keyed to the old guest
+  // identity on the server. Close it and re-access the room so the server's
+  // cookie-based handshake sees the new account, the migrated seat sticks,
+  // and subsequent moves are accepted. In the conflict case the room has
+  // already been deleted and the game-aborted handler will redirect to the
+  // lobby on the old socket before this reconnect attempt even fires.
+  const prevPlayerIdRef = useRef<string | null>(auth?.player.playerId ?? null);
+  useEffect(() => {
+    const nextPlayerId = auth?.player.playerId ?? null;
+    const prevPlayerId = prevPlayerIdRef.current;
+    prevPlayerIdRef.current = nextPlayerId;
+
+    if (!prevPlayerId || !nextPlayerId || prevPlayerId === nextPlayerId) return;
+    // Only act if we have an active room connection to re-point.
+    if (!latestMultiplayerSnapshotRef.current) return;
+
+    reconnectRef.current.clear();
+    const socket = socketRef.current;
+    socketRef.current = null;
+    socket?.close();
+    void reconnectToCurrentRoomRef.current();
+  }, [auth?.player.playerId]);
 
   useEffect(() => {
     return () => {

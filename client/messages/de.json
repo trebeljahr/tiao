@@ -138,6 +138,7 @@
     "draw": "Unentschieden!",
     "gameStarted": "Spiel gestartet!",
     "gameResumed": "Spiel fortgesetzt",
+    "anonymousUserLeft": "Anonymer Spieler hat das Spiel verlassen.",
     "wins": "{color} gewinnt!",
     "winsOnTime": "{color} gewinnt auf Zeit!",
     "toMove": "{color} am Zug",

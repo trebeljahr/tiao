@@ -159,13 +159,15 @@ export function MultiplayerGamePage() {
       router.replace(`/game/${newGameId}`);
     },
     onGameAborted: (info) => {
+      // Localise well-known reasons via stable codes from the server.
+      const message = info.code === "ANON_CONFLICT" ? t("anonymousUserLeft") : info.reason;
       if (info.requeuedForMatchmaking && info.timeControl) {
-        toast.info(info.reason);
+        toast.info(message);
         router.replace(
           `/matchmaking?initial=${info.timeControl.initialMs}&increment=${info.timeControl.incrementMs}`,
         );
       } else {
-        toast.error(info.reason);
+        toast.error(message);
         router.replace("/");
       }
     },

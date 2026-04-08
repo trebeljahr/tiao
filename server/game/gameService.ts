@@ -464,6 +464,133 @@ export class GameService {
   }
 
   /**
+   * Migrate all games where `guestId` is seated to the new `newIdentity`.
+   * Called when an anonymous user signs up for a new account or signs in to
+   * an existing one. For each affected room:
+   *
+   *  - If the *other* seat is already held by `newIdentity.playerId`, the
+   *    game would end up with the same player on both sides — delete the
+   *    room entirely, notify any open game sockets with `game-aborted`
+   *    (code `ANON_CONFLICT`), and notify the new account's lobby sockets
+   *    with `game-removed` so games/history lists refetch and drop the
+   *    vanished game.
+   *  - Otherwise, rewrite the guest seat to the new identity, broadcast a
+   *    fresh snapshot to the room, and let the usual lobby `game-update`
+   *    side-effect push an updated summary.
+   *
+   * Returns the counts of migrated vs. deleted rooms (useful for logging
+   * and tests).
+   */
+  async migrateGuestToAccount(
+    guestId: string,
+    newIdentity: StoredPlayerIdentity,
+  ): Promise<{ migrated: number; deleted: number; deletedRoomIds: string[] }> {
+    if (guestId === newIdentity.playerId) {
+      return { migrated: 0, deleted: 0, deletedRoomIds: [] };
+    }
+
+    const rooms = await this.store.listRoomsForPlayer(guestId);
+    let migrated = 0;
+    let deleted = 0;
+    const deletedRoomIds: string[] = [];
+
+    for (const room of rooms) {
+      const action = await this.withLock(this.roomLockKey(room.id), async () => {
+        const fresh = await this.store.getRoom(room.id);
+        if (!fresh) return "skipped" as const;
+
+        // Determine which colour the guest occupies and who sits in the other seat
+        const guestColor: PlayerColor | null =
+          fresh.seats.white?.playerId === guestId
+            ? "white"
+            : fresh.seats.black?.playerId === guestId
+              ? "black"
+              : null;
+        if (!guestColor) return "skipped" as const;
+
+        const otherColor: PlayerColor = guestColor === "white" ? "black" : "white";
+        const otherSeat = fresh.seats[otherColor];
+
+        if (otherSeat && otherSeat.playerId === newIdentity.playerId) {
+          // Conflict — same player would end up on both sides. Delete the room.
+          await this.store.deleteRoom(fresh.id);
+          this.clearClockTimer(fresh.id);
+          this.clearFirstMoveTimer(fresh.id);
+          this.clearAbandonTimer(fresh.id, guestId);
+          this.clearAbandonTimer(fresh.id, newIdentity.playerId);
+
+          // Notify any active game sockets so open tabs redirect to the lobby.
+          const connections = this.connections.get(fresh.id);
+          if (connections) {
+            const message = JSON.stringify({
+              type: "game-aborted",
+              code: "ANON_CONFLICT",
+              reason: "Anonymous user left the game.",
+              requeuedForMatchmaking: false,
+              timeControl: fresh.timeControl,
+            });
+            for (const socket of connections.keys()) {
+              if (socket.readyState === WebSocket.OPEN) {
+                try {
+                  socket.send(message);
+                } catch {
+                  /* best-effort */
+                }
+              }
+            }
+            this.connections.delete(fresh.id);
+          }
+
+          // Also flush any spectator-identity tracking for the vanished room.
+          this.spectatorIdentities.delete(fresh.id);
+
+          // Tell the account's lobby sockets (other tabs / devices) to drop
+          // the game from their active + history lists.
+          this.broadcastLobby(newIdentity.playerId, {
+            type: "game-removed",
+            gameId: fresh.id,
+          });
+
+          return "deleted" as const;
+        }
+
+        // No conflict — rewrite the guest seat to the new identity.
+        const nextSeats: StoredSeatAssignments = {
+          white:
+            guestColor === "white"
+              ? { ...newIdentity }
+              : fresh.seats.white
+                ? { ...fresh.seats.white }
+                : null,
+          black:
+            guestColor === "black"
+              ? { ...newIdentity }
+              : fresh.seats.black
+                ? { ...fresh.seats.black }
+                : null,
+        };
+
+        const savedRoom = await this.saveRoom({
+          ...fresh,
+          seats: nextSeats,
+        });
+
+        void this.broadcastSnapshot(savedRoom);
+        return "migrated" as const;
+      });
+
+      if (action === "deleted") {
+        deleted += 1;
+        deletedRoomIds.push(room.id);
+      } else if (action === "migrated") {
+        migrated += 1;
+      }
+    }
+
+    return { migrated, deleted, deletedRoomIds };
+  }
+
+  /**
    * Forfeit a game on behalf of a player (e.g. during account deletion).
    * Broadcasts the updated snapshot to all connected clients.
    */
