@@ -246,6 +246,36 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     order: 80,
   },
 
+  // ── Captures ───────────────────────────────────────────────────────────
+  {
+    id: "first-blood",
+    name: "First Blood",
+    description: "Capture your first piece.",
+    category: "combat",
+    tier: "bronze",
+    secret: false,
+    order: 33,
+  },
+  {
+    id: "chain-reaction",
+    name: "Chain Reaction",
+    description: "Capture 5 or more pieces in a single chain jump.",
+    category: "combat",
+    tier: "gold",
+    secret: false,
+    threshold: 5,
+    order: 34,
+  },
+  {
+    id: "one-jump-wonder",
+    name: "One Jump Wonder",
+    description: "Win an entire game from a single chain jump.",
+    category: "combat",
+    tier: "platinum",
+    secret: false,
+    order: 35,
+  },
+
   // ── Secret Achievements ───────────────────────────────────────────────
   {
     id: "rage-quit",

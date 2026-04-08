@@ -135,6 +135,9 @@ describe("Achievement definitions", () => {
       "flawless-victory",
       "david-vs-goliath",
       "checkered-past",
+      "first-blood",
+      "chain-reaction",
+      "one-jump-wonder",
     ];
     for (const id of requiredIds) {
       assert.ok(getAchievementById(id), `Expected achievement "${id}" to exist`);

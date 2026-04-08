@@ -7,7 +7,7 @@ import {
   type AchievementDefinition,
 } from "../../shared/src/achievements";
 import { getWinner, getFinishReason, isBoardMove } from "../../shared/src/tiao";
-import type { GameState, PlayerColor } from "../../shared/src/tiao";
+import type { GameState, PlayerColor, JumpTurn } from "../../shared/src/tiao";
 import type { StoredMultiplayerRoom } from "./gameStore";
 
 // ---------------------------------------------------------------------------
@@ -243,6 +243,37 @@ export async function onGameCompleted(ctx: GameCompletedContext): Promise<void> 
     const boardSizesPlayed = await getDistinctBoardSizes(p.id);
     if (boardSizesPlayed.size >= 3) {
       void grant(p.id, "checkered-past");
+    }
+
+    // ── First Blood (captured at least one piece in any game) ──
+    if (room.state.score[p.color] > 0) {
+      void grant(p.id, "first-blood");
+    }
+
+    // ── Chain Reaction (5+ captures in a single chain jump) ──
+    const playerJumps = room.state.history.filter(
+      (t): t is JumpTurn => t.type === "jump" && t.color === p.color,
+    );
+    for (const jump of playerJumps) {
+      if (jump.jumps.length >= 5) {
+        void grant(p.id, "chain-reaction");
+        break;
+      }
+    }
+
+    // ── One Jump Wonder (win entire game from a single chain jump, score 0 → scoreToWin) ──
+    if (isWinner) {
+      const myJumps = playerJumps;
+      // The player must have exactly one jump turn that scored all the points
+      if (myJumps.length === 1 && myJumps[0]!.jumps.length >= room.state.scoreToWin) {
+        // Verify no points came from placement captures — only from that one jump
+        const putTurns = room.state.history.filter((t) => t.type === "put" && t.color === p.color);
+        // If there are put turns but score came entirely from the jump, it counts
+        // Score = jumps captured in that chain = jumps.length
+        if (myJumps[0]!.jumps.length >= room.state.scoreToWin) {
+          void grant(p.id, "one-jump-wonder");
+        }
+      }
     }
   }
 }

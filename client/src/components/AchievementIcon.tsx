@@ -433,6 +433,58 @@ function GridBoardIcon({ color }: IconProps) {
   );
 }
 
+function FirstBloodIcon({ color }: IconProps) {
+  return (
+    <>
+      {/* Sword / dagger */}
+      <path stroke={color} strokeLinecap="round" strokeLinejoin="round" d="M12 3v12" />
+      <path stroke={color} strokeLinecap="round" strokeLinejoin="round" d="M12 3l2 6h-4l2-6z" />
+      {/* Crossguard */}
+      <path stroke={color} strokeLinecap="round" d="M8 13h8" />
+      {/* Handle */}
+      <path stroke={color} strokeLinecap="round" strokeWidth={2} d="M12 15v4" />
+      {/* Pommel */}
+      <circle cx="12" cy="20.5" r="1" stroke={color} fill="none" />
+    </>
+  );
+}
+
+function ChainReactionIcon({ color }: IconProps) {
+  return (
+    <>
+      {/* Chain of connected circles — pieces being captured in sequence */}
+      <circle cx="4" cy="12" r="2.5" stroke={color} fill="none" />
+      <circle cx="10" cy="7" r="2.5" stroke={color} fill="none" />
+      <circle cx="16" cy="12" r="2.5" stroke={color} fill="none" />
+      <circle cx="10" cy="17" r="2.5" stroke={color} fill="none" />
+      <circle cx="21" cy="7" r="2" stroke={color} fill="none" />
+      {/* Connecting jump lines */}
+      <path
+        stroke={color}
+        strokeLinecap="round"
+        strokeDasharray="2 1.5"
+        d="M6.2 10.5l2-2M12.2 8.5l2 2M14 14l-2 1.5M18 10.5l1.5-2"
+      />
+    </>
+  );
+}
+
+function OneJumpWonderIcon({ color }: IconProps) {
+  return (
+    <>
+      {/* Lightning bolt through a game piece */}
+      <circle cx="12" cy="12" r="9" stroke={color} fill="none" />
+      <path
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M13 4l-3 7h4l-3 8"
+      />
+    </>
+  );
+}
+
 // Trophy fallback for unknown IDs
 function TrophyFallbackIcon({ color }: IconProps) {
   return (
@@ -477,6 +529,9 @@ const ICON_MAP: Record<string, (props: IconProps) => React.JSX.Element> = {
   "flawless-victory": DiamondIcon,
   "david-vs-goliath": DavidGoliathIcon,
   "checkered-past": GridBoardIcon,
+  "first-blood": FirstBloodIcon,
+  "chain-reaction": ChainReactionIcon,
+  "one-jump-wonder": OneJumpWonderIcon,
 };
 
 // ---------------------------------------------------------------------------
