@@ -362,23 +362,53 @@ describe("MultiplayerGamePage", () => {
 
   it("shows rematch request sent toast when clicking Rematch button", async () => {
     const { toast } = await import("sonner");
+    const { useMultiplayerGame } = await import("@/lib/hooks/useMultiplayerGame");
+    const { useSocialData } = await import("@/lib/hooks/useSocialData");
+    (useSocialData as ReturnType<typeof vi.fn>).mockReturnValue(defaultSocialMock);
 
-    // Need a finished game with a winner for rematch buttons to show
+    // First render: active game (so wasFinishedOnLoadRef stays false)
+    const activeSnapshot = makeMatchmakingSnapshot({ status: "active" });
+    (useMultiplayerGame as ReturnType<typeof vi.fn>).mockReturnValue({
+      multiplayerSnapshot: activeSnapshot,
+      multiplayerSelection: null,
+      connectionState: "connected",
+      connectToRoom: mockConnectToRoom,
+      sendMultiplayerMessage: mockSendMultiplayerMessage,
+      setMultiplayerSelection: mockSetMultiplayerSelection,
+      multiplayerBusy: false,
+      setMultiplayerBusy: mockSetMultiplayerBusy,
+      multiplayerError: null,
+    });
+
+    const { rerender } = render(<MultiplayerGamePage />);
+
+    // Second render: game becomes finished with a winner — opens game-over dialog
     const state = createInitialGameState();
     state.history = [{ type: "forfeit", color: "black" }];
     state.score = { black: 0, white: 10 };
 
-    const snapshot = makeMatchmakingSnapshot({
+    const finishedSnapshot = makeMatchmakingSnapshot({
       status: "finished",
       state,
       rematch: null,
     });
 
-    await setupMocks(snapshot);
-    render(<MultiplayerGamePage />);
+    (useMultiplayerGame as ReturnType<typeof vi.fn>).mockReturnValue({
+      multiplayerSnapshot: finishedSnapshot,
+      multiplayerSelection: null,
+      connectionState: "connected",
+      connectToRoom: mockConnectToRoom,
+      sendMultiplayerMessage: mockSendMultiplayerMessage,
+      setMultiplayerSelection: mockSetMultiplayerSelection,
+      multiplayerBusy: false,
+      setMultiplayerBusy: mockSetMultiplayerBusy,
+      multiplayerError: null,
+    });
 
-    const rematchBtn = screen.getByRole("button", { name: "Rematch" });
-    fireEvent.click(rematchBtn);
+    rerender(<MultiplayerGamePage />);
+
+    const rematchBtns = await screen.findAllByRole("button", { name: "Rematch" });
+    fireEvent.click(rematchBtns[0]);
 
     expect(mockSendMultiplayerMessage).toHaveBeenCalledWith({
       type: "request-rematch",
