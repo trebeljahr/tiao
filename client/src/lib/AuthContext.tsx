@@ -311,9 +311,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleOAuthSignIn = useCallback(async (provider: "github" | "google" | "discord") => {
     try {
+      // On both success and failure, return the user to the page they
+      // initiated OAuth from. On failure better-auth appends `?error=` to
+      // errorCallbackURL and OAuthErrorHandler surfaces it as a toast, so the
+      // user stays in context (e.g. inside a game) instead of being bounced
+      // to a separate error page.
+      const returnTo = window.location.origin + window.location.pathname;
       await authClient.signIn.social({
         provider,
-        callbackURL: window.location.origin + window.location.pathname,
+        callbackURL: returnTo,
+        errorCallbackURL: returnTo,
       });
     } catch (error) {
       toastError(readableError(error));

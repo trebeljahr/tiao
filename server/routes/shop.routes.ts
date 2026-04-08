@@ -154,7 +154,6 @@ router.post("/checkout", async (req: Request, res: Response) => {
     // In dev, the frontend runs on a different port than the backend.
     // Use localhost (not 127.0.0.1) to match Next.js dev server origin.
     const origin = FRONTEND_URL || "http://localhost:3000";
-    const itemLabel = `${item.type === "badge" ? "Badge" : "Theme"}: ${item.id}`;
 
     // Ensure Stripe customer exists for subscription items
     let customerId: string | undefined;
@@ -181,7 +180,7 @@ router.post("/checkout", async (req: Request, res: Response) => {
               currency: item.currency,
               unit_amount: item.price,
               recurring: { interval: item.recurring.interval },
-              product_data: { name: `${itemLabel} (monthly)` },
+              product_data: { name: `${item.stripeName} (monthly)` },
             },
             quantity: 1,
           },
@@ -212,7 +211,7 @@ router.post("/checkout", async (req: Request, res: Response) => {
           price_data: {
             currency: item.currency,
             unit_amount: item.price,
-            product_data: { name: itemLabel },
+            product_data: { name: item.stripeName },
           },
           quantity: 1,
         },

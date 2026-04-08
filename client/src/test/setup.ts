@@ -37,11 +37,29 @@ vi.mock("@/i18n/navigation", () => ({
 
 // Mock next-intl — return actual English translations so tests can match rendered text
 vi.mock("next-intl", () => {
-  const messages = enMessages as Record<string, Record<string, string>>;
+  const messages = enMessages as unknown as Record<string, unknown>;
+
+  /**
+   * Walks a dotted namespace path ("achievements.text") into the message tree.
+   * Returns the object at that path, or an empty record if any segment is
+   * missing / not an object.
+   */
+  const resolveNamespace = (namespace: string): Record<string, string> => {
+    const segments = namespace.split(".");
+    let cursor: unknown = messages;
+    for (const segment of segments) {
+      if (cursor && typeof cursor === "object") {
+        cursor = (cursor as Record<string, unknown>)[segment];
+      } else {
+        return {};
+      }
+    }
+    return (cursor ?? {}) as Record<string, string>;
+  };
 
   return {
     useTranslations: (namespace: string) => {
-      const ns = messages[namespace] ?? {};
+      const ns = resolveNamespace(namespace);
       const t = (key: string, params?: Record<string, string | number>) => {
         let value = ns[key] ?? key;
         if (params) {
@@ -53,6 +71,7 @@ vi.mock("next-intl", () => {
         return value;
       };
       t.rich = t;
+      t.has = (key: string) => key in ns;
       return t;
     },
     useLocale: () => "en",

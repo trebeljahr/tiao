@@ -2787,14 +2787,14 @@ function createGameService(): GameService {
 
 export const gameService = createGameService();
 
-// Wire achievement notifications through the lobby WebSocket
+// Wire achievement notifications through the lobby WebSocket.
+// Only `id`, `tier`, and `secret` ship — the client resolves the localized
+// name/description via next-intl so the broadcast is locale-agnostic.
 setAchievementNotifier((playerId, achievement) => {
   gameService.broadcastLobby(playerId, {
     type: "achievement-unlocked",
     achievement: {
       id: achievement.id,
-      name: achievement.name,
-      description: achievement.description,
       tier: achievement.tier,
       secret: achievement.secret,
     },

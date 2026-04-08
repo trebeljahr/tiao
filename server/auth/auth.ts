@@ -88,9 +88,11 @@ export const auth = betterAuth({
   },
 
   onAPIError: {
-    // Redirect to the frontend root with ?error= param instead of showing
-    // Better Auth's default error page.  The OAuthErrorHandler in providers.tsx
-    // picks up the query param and redirects to the styled /auth/error page.
+    // Fallback error URL for API errors that aren't OAuth-flow errors.
+    // OAuth sign-in / linkSocial calls pass their own `errorCallbackURL`
+    // pointing back at the page that initiated the flow, and OAuthErrorHandler
+    // in providers.tsx surfaces `?error=` as a toast in-place — the user
+    // never has to leave the page they were on.
     errorURL: FRONTEND_URL || "http://localhost:3000",
   },
 

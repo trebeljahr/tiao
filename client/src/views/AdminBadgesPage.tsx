@@ -13,6 +13,7 @@ import { AnimatedCard } from "@/components/ui/animated-card";
 import { Input } from "@/components/ui/input";
 import { isAdmin } from "@/lib/featureGate";
 import { UserBadge, type BadgeId, BADGE_DEFINITIONS, ALL_BADGE_IDS } from "@/components/UserBadge";
+import { BadgeToast } from "@/components/BadgeToast";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import {
   adminSearchUsers,
@@ -26,8 +27,9 @@ import {
 } from "@/lib/api";
 import { THEMES } from "@/components/game/boardThemes";
 import { toastError } from "@/lib/errors";
-import { ACHIEVEMENTS, ACHIEVEMENT_CATEGORIES } from "@shared";
+import { ACHIEVEMENTS, ACHIEVEMENT_CATEGORIES, type AchievementDefinition } from "@shared";
 import { AchievementIcon } from "@/components/AchievementIcon";
+import { useAchievementName, useAchievementDescription } from "@/lib/achievementLabels";
 
 export function AdminBadgesPage() {
   const t = useTranslations("adminBadges");
@@ -69,7 +71,7 @@ export function AdminBadgesPage() {
               : u,
           ),
         );
-        toast.success(t("badgeGranted", { badge: badgeId }));
+        toast.success(<BadgeToast badge={badgeId as BadgeId} title={t("badgeGrantedShort")} />);
       } catch (error) {
         toastError(error);
       } finally {
@@ -95,7 +97,7 @@ export function AdminBadgesPage() {
               : u,
           ),
         );
-        toast.success(t("badgeRevoked", { badge: badgeId }));
+        toast.success(<BadgeToast badge={badgeId as BadgeId} title={t("badgeRevokedShort")} />);
       } catch (error) {
         toastError(error);
       } finally {
@@ -441,51 +443,17 @@ export function AdminBadgesPage() {
                           const busyKey = `ach-${def.id}`;
 
                           return (
-                            <div
+                            <AchievementAdminRow
                               key={def.id}
-                              className="flex items-center justify-between rounded-lg border border-[#d0bb94]/50 bg-white/40 px-4 py-2"
-                            >
-                              <div className="flex items-center gap-3">
-                                <AchievementIcon
-                                  id={def.id}
-                                  tier={def.tier}
-                                  unlocked={hasIt}
-                                  className="h-5 w-5"
-                                />
-                                <div className="min-w-0">
-                                  <span className="text-sm text-[#5c4a32]">
-                                    {def.name}
-                                    {def.secret && (
-                                      <span className="ml-1.5 text-xs text-[#a89a7e]">
-                                        (secret)
-                                      </span>
-                                    )}
-                                  </span>
-                                  <p className="text-xs text-[#8b7356] truncate">
-                                    {def.description}
-                                  </p>
-                                </div>
-                              </div>
-                              <Button
-                                size="sm"
-                                variant={hasIt ? "danger" : "default"}
-                                disabled={busy === busyKey}
-                                onClick={() =>
-                                  hasIt
-                                    ? handleRevokeAchievement(def.id)
-                                    : handleGrantAchievement(def.id)
-                                }
-                                className={
-                                  hasIt ? "" : "bg-[#8b7356] text-white hover:bg-[#6d5a42]"
-                                }
-                              >
-                                {busy === busyKey
-                                  ? tCommon("loading")
-                                  : hasIt
-                                    ? t("revoke")
-                                    : t("grant")}
-                              </Button>
-                            </div>
+                              def={def}
+                              hasIt={hasIt}
+                              busy={busy === busyKey}
+                              loadingLabel={tCommon("loading")}
+                              grantLabel={t("grant")}
+                              revokeLabel={t("revoke")}
+                              onGrant={() => handleGrantAchievement(def.id)}
+                              onRevoke={() => handleRevokeAchievement(def.id)}
+                            />
                           );
                         })}
                     </div>
@@ -497,5 +465,52 @@ export function AdminBadgesPage() {
         </AnimatedCard>
       )}
     </PageLayout>
+  );
+}
+
+function AchievementAdminRow({
+  def,
+  hasIt,
+  busy,
+  loadingLabel,
+  grantLabel,
+  revokeLabel,
+  onGrant,
+  onRevoke,
+}: {
+  def: AchievementDefinition;
+  hasIt: boolean;
+  busy: boolean;
+  loadingLabel: string;
+  grantLabel: string;
+  revokeLabel: string;
+  onGrant: () => void;
+  onRevoke: () => void;
+}) {
+  const name = useAchievementName(def.id);
+  const description = useAchievementDescription(def.id);
+
+  return (
+    <div className="flex items-center justify-between rounded-lg border border-[#d0bb94]/50 bg-white/40 px-4 py-2">
+      <div className="flex items-center gap-3">
+        <AchievementIcon id={def.id} tier={def.tier} unlocked={hasIt} className="h-5 w-5" />
+        <div className="min-w-0">
+          <span className="text-sm text-[#5c4a32]">
+            {name}
+            {def.secret && <span className="ml-1.5 text-xs text-[#a89a7e]">(secret)</span>}
+          </span>
+          <p className="truncate text-xs text-[#8b7356]">{description}</p>
+        </div>
+      </div>
+      <Button
+        size="sm"
+        variant={hasIt ? "danger" : "default"}
+        disabled={busy}
+        onClick={() => (hasIt ? onRevoke() : onGrant())}
+        className={hasIt ? "" : "bg-[#8b7356] text-white hover:bg-[#6d5a42]"}
+      >
+        {busy ? loadingLabel : hasIt ? revokeLabel : grantLabel}
+      </Button>
+    </div>
   );
 }

@@ -34,7 +34,10 @@ type BadgeTier = 1 | 2 | 3;
 
 type BadgeDefinition = {
   id: BadgeId;
-  label: string;
+  /** next-intl key under "badges.*" for the localized display name. */
+  nameKey: string;
+  /** next-intl key under "badges.*" for the localized one-line description. */
+  descKey: string;
   tier: BadgeTier;
   /** CSS gradient for the pill background. */
   gradient: string;
@@ -47,7 +50,8 @@ type BadgeDefinition = {
 export const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
   supporter: {
     id: "supporter",
-    label: "Supporter",
+    nameKey: "supporter",
+    descKey: "supporterDesc",
     tier: 1,
     gradient: "linear-gradient(135deg, #d4a644, #c4912e)",
     textColor: "#fff",
@@ -55,7 +59,8 @@ export const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
   },
   contributor: {
     id: "contributor",
-    label: "Contributor",
+    nameKey: "contributor",
+    descKey: "contributorDesc",
     tier: 1,
     gradient: "linear-gradient(135deg, #2aa89a, #1e8a7e)",
     textColor: "#fff",
@@ -63,7 +68,8 @@ export const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
   },
   "super-supporter": {
     id: "super-supporter",
-    label: "Super Supporter",
+    nameKey: "superSupporter",
+    descKey: "superSupporterDesc",
     tier: 2,
     gradient: "linear-gradient(90deg, #d4a644, #e8c05a, #d4a644)",
     textColor: "#fff",
@@ -71,7 +77,8 @@ export const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
   },
   "official-champion": {
     id: "official-champion",
-    label: "Champion",
+    nameKey: "champion",
+    descKey: "championDesc",
     tier: 2,
     gradient: "linear-gradient(90deg, #7c3aed, #a855f7, #7c3aed)",
     textColor: "#fff",
@@ -79,16 +86,21 @@ export const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
   },
   creator: {
     id: "creator",
-    label: "Creator",
+    nameKey: "creator",
+    descKey: "creatorDesc",
     tier: 3,
     gradient: "linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3, #54a0ff, #ff6b6b)",
     textColor: "#fff",
     glow: "0 0 8px rgba(255, 107, 107, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3)",
   },
-  // ─── Experimental badge designs ──────────────────────────────────
+  // ─── Supporter color variants ────────────────────────────────────
+  // All reuse the "supporter" localization key — they differ only in
+  // the visual gradient. Stripe line items get distinct names via
+  // `stripeName` on the shop catalog so receipts remain intelligible.
   "badge-1": {
     id: "badge-1",
-    label: "Supporter",
+    nameKey: "supporter",
+    descKey: "supporterDesc",
     tier: 1,
     gradient: "linear-gradient(135deg, #e8836b, #d4644a)",
     textColor: "#fff",
@@ -96,7 +108,8 @@ export const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
   },
   "badge-2": {
     id: "badge-2",
-    label: "Supporter",
+    nameKey: "supporter",
+    descKey: "supporterDesc",
     tier: 1,
     gradient: "linear-gradient(135deg, #6366f1, #4f46e5)",
     textColor: "#fff",
@@ -104,7 +117,8 @@ export const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
   },
   "badge-3": {
     id: "badge-3",
-    label: "Supporter",
+    nameKey: "supporter",
+    descKey: "supporterDesc",
     tier: 2,
     gradient: "linear-gradient(90deg, #f472b6, #ec4899, #f472b6)",
     textColor: "#fff",
@@ -112,7 +126,8 @@ export const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
   },
   "badge-4": {
     id: "badge-4",
-    label: "Supporter",
+    nameKey: "supporter",
+    descKey: "supporterDesc",
     tier: 2,
     gradient: "linear-gradient(90deg, #14b8a6, #06b6d4, #14b8a6)",
     textColor: "#fff",
@@ -120,7 +135,8 @@ export const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
   },
   "badge-5": {
     id: "badge-5",
-    label: "Supporter",
+    nameKey: "supporter",
+    descKey: "supporterDesc",
     tier: 1,
     gradient: "linear-gradient(135deg, #78716c, #57534e)",
     textColor: "#fafaf9",
@@ -128,7 +144,8 @@ export const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
   },
   "badge-6": {
     id: "badge-6",
-    label: "Supporter",
+    nameKey: "supporter",
+    descKey: "supporterDesc",
     tier: 2,
     gradient: "linear-gradient(90deg, #f59e0b, #ef4444, #f59e0b)",
     textColor: "#fff",
@@ -136,7 +153,8 @@ export const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
   },
   "badge-7": {
     id: "badge-7",
-    label: "Supporter",
+    nameKey: "supporter",
+    descKey: "supporterDesc",
     tier: 3,
     gradient: "linear-gradient(90deg, #c084fc, #818cf8, #22d3ee, #34d399, #fbbf24, #c084fc)",
     textColor: "#fff",
@@ -144,7 +162,8 @@ export const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
   },
   "badge-8": {
     id: "badge-8",
-    label: "Supporter",
+    nameKey: "supporter",
+    descKey: "supporterDesc",
     tier: 2,
     gradient: "linear-gradient(90deg, #1e3a5f, #2563eb, #1e3a5f)",
     textColor: "#93c5fd",
@@ -153,7 +172,8 @@ export const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
   // ─── Achievement-earned badges ──────────────────────────────────
   veteran: {
     id: "veteran",
-    label: "Veteran",
+    nameKey: "veteran",
+    descKey: "veteranDesc",
     tier: 2,
     gradient: "linear-gradient(90deg, #6b7280, #9ca3af, #6b7280)",
     textColor: "#fff",
@@ -161,7 +181,8 @@ export const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
   },
   "top-one-percent": {
     id: "top-one-percent",
-    label: "Elite",
+    nameKey: "topOnePercent",
+    descKey: "topOnePercentDesc",
     tier: 3,
     gradient: "linear-gradient(90deg, #fbbf24, #f59e0b, #ef4444, #fbbf24)",
     textColor: "#fff",
@@ -169,7 +190,8 @@ export const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
   },
   "tournament-champion": {
     id: "tournament-champion",
-    label: "Champion",
+    nameKey: "tournamentChampion",
+    descKey: "tournamentChampionDesc",
     tier: 2,
     gradient: "linear-gradient(90deg, #a855f7, #7c3aed, #a855f7)",
     textColor: "#fff",
@@ -177,7 +199,8 @@ export const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
   },
   "one-jump-wonder": {
     id: "one-jump-wonder",
-    label: "One Jump Wonder",
+    nameKey: "oneJumpWonder",
+    descKey: "oneJumpWonderDesc",
     tier: 2,
     gradient: "linear-gradient(90deg, #10b981, #34d399, #10b981)",
     textColor: "#fff",
@@ -185,7 +208,8 @@ export const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
   },
   "flawless-victory": {
     id: "flawless-victory",
-    label: "Flawless",
+    nameKey: "flawlessVictory",
+    descKey: "flawlessVictoryDesc",
     tier: 2,
     gradient: "linear-gradient(90deg, #e2e8f0, #f8fafc, #e2e8f0)",
     textColor: "#334155",
@@ -193,7 +217,8 @@ export const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
   },
   "one-second-glory": {
     id: "one-second-glory",
-    label: "Living on Edge",
+    nameKey: "oneSecondGlory",
+    descKey: "oneSecondGloryDesc",
     tier: 2,
     gradient: "linear-gradient(90deg, #ef4444, #f97316, #ef4444)",
     textColor: "#fff",
@@ -201,7 +226,8 @@ export const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
   },
   "david-vs-goliath": {
     id: "david-vs-goliath",
-    label: "Giant Killer",
+    nameKey: "davidVsGoliath",
+    descKey: "davidVsGoliathDesc",
     tier: 1,
     gradient: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
     textColor: "#fff",
@@ -210,7 +236,8 @@ export const BADGE_DEFINITIONS: Record<BadgeId, BadgeDefinition> = {
   // ─── Subscription badges ────────────────────────────────────────
   patron: {
     id: "patron",
-    label: "Patron",
+    nameKey: "patron",
+    descKey: "patronDesc",
     tier: 2,
     gradient: "linear-gradient(90deg, #d97706, #f59e0b, #d97706)",
     textColor: "#fff",
@@ -263,29 +290,35 @@ type UserBadgeProps = {
   compact?: boolean;
 };
 
-const BADGE_TRANSLATION_KEY: Record<BadgeId, string> = {
-  supporter: "supporter",
-  contributor: "contributor",
-  "super-supporter": "superSupporter",
-  "official-champion": "champion",
-  creator: "creator",
-  "badge-1": "supporter",
-  "badge-2": "supporter",
-  "badge-3": "supporter",
-  "badge-4": "supporter",
-  "badge-5": "supporter",
-  "badge-6": "supporter",
-  "badge-7": "supporter",
-  "badge-8": "supporter",
-  veteran: "veteran",
-  "top-one-percent": "topOnePercent",
-  "tournament-champion": "tournamentChampion",
-  "one-jump-wonder": "oneJumpWonder",
-  "flawless-victory": "flawlessVictory",
-  "one-second-glory": "oneSecondGlory",
-  "david-vs-goliath": "davidVsGoliath",
-  patron: "patron",
-};
+/**
+ * Hook — resolves a badge id to its localized display name.
+ * Prefer this over reaching into `BADGE_DEFINITIONS[id].nameKey` directly
+ * so every call-site gets the same lookup path.
+ */
+export function useBadgeName(id: BadgeId): string {
+  const t = useTranslations("badges");
+  const def = BADGE_DEFINITIONS[id];
+  if (!def) return id;
+  return t(def.nameKey);
+}
+
+/** Hook — resolves a badge id to its localized one-line description. */
+export function useBadgeDescription(id: BadgeId): string {
+  const t = useTranslations("badges");
+  const def = BADGE_DEFINITIONS[id];
+  if (!def) return "";
+  return t(def.descKey);
+}
+
+/** Pure helper for callers that already have a next-intl translator bound. */
+export function getBadgeNameKey(id: BadgeId): string | undefined {
+  return BADGE_DEFINITIONS[id]?.nameKey;
+}
+
+/** Pure helper for callers that already have a next-intl translator bound. */
+export function getBadgeDescriptionKey(id: BadgeId): string | undefined {
+  return BADGE_DEFINITIONS[id]?.descKey;
+}
 
 export function UserBadge({ badge, className, compact = false }: UserBadgeProps) {
   const t = useTranslations("badges");
@@ -320,7 +353,7 @@ export function UserBadge({ badge, className, compact = false }: UserBadgeProps)
         textShadow: "0 1px 2px rgba(0,0,0,0.2)",
       }}
     >
-      {t(BADGE_TRANSLATION_KEY[badge])}
+      {t(def.nameKey)}
     </span>
   );
 }

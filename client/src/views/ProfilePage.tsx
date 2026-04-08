@@ -21,7 +21,6 @@ import {
   deleteAccount,
 } from "@/lib/api";
 import { isNetworkError, readableError, toastError } from "@/lib/errors";
-import { getOAuthErrorMessage } from "@/lib/oauthErrors";
 import { setAccountPassword, requestEmailChange } from "@/lib/api";
 import { toast } from "sonner";
 import { SkeletonBlock, SkeletonPage } from "@/components/ui/skeleton";
@@ -110,9 +109,11 @@ function LinkedAccounts({
   async function handleLink(provider: "github" | "google" | "discord") {
     setBusy(provider);
     try {
+      const settingsURL = window.location.origin + "/settings";
       const { error } = await authClient.linkSocial({
         provider,
-        callbackURL: window.location.origin + "/settings",
+        callbackURL: settingsURL,
+        errorCallbackURL: settingsURL,
       });
       if (error) {
         toastError(readableError(error));
@@ -499,16 +500,13 @@ export function ProfilePage() {
     };
   }, [auth]);
 
-  // Show toast for OAuth linking errors returned via ?error= query param,
-  // and for ?emailChange=success|expired|invalid|error from the email change flow.
+  // Show toast for ?emailChange=success|expired|invalid|error from the email
+  // change flow. OAuth ?error= params are handled globally by OAuthErrorHandler
+  // in providers.tsx.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const error = params.get("error");
     const emailChange = params.get("emailChange");
-
-    if (error) {
-      toastError(getOAuthErrorMessage(error, tCommon));
-    }
+    if (!emailChange) return;
 
     if (emailChange === "success") {
       toast.success(t("emailChangeSuccess"));
@@ -525,10 +523,11 @@ export function ProfilePage() {
       toastError(t("emailChangeError"));
     }
 
-    if (error || emailChange) {
-      // Clean the URL so the message doesn't re-appear on refresh
-      window.history.replaceState({}, "", window.location.pathname);
-    }
+    // Clean the URL so the message doesn't re-appear on refresh. Preserve
+    // other params (OAuthErrorHandler cleans ?error= on its own pass).
+    const url = new URL(window.location.href);
+    url.searchParams.delete("emailChange");
+    window.history.replaceState({}, "", url.pathname + url.search + url.hash);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const providers = profile?.providers ?? [];

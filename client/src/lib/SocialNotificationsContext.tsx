@@ -17,6 +17,9 @@ import { toastError } from "./errors";
 import { useLobbyMessage } from "./LobbySocketContext";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { translatePlayerColor } from "@/components/game/GameShared";
+import { AchievementIcon } from "@/components/AchievementIcon";
+import { TIER_STYLES } from "@/components/AchievementCard";
+import { getAchievementById, type AchievementTier } from "@shared";
 
 // ---------------------------------------------------------------------------
 // sessionStorage helpers — track which notification IDs have been toasted so
@@ -129,6 +132,8 @@ export function SocialNotificationsProvider({
   const t = useTranslations("lobby");
   const tGame = useTranslations("game");
   const tCommon = useTranslations("common");
+  const tAchievements = useTranslations("achievements");
+  const tAchievementText = useTranslations("achievements.text");
   const router = useRouter();
   const [overview, setOverview] = useState<SocialOverview>(EMPTY_SOCIAL_OVERVIEW);
   const prevRequestIdsRef = useRef<Set<string>>(new Set());
@@ -540,55 +545,60 @@ export function SocialNotificationsProvider({
   useLobbyMessage((payload) => {
     if (payload.type !== "achievement-unlocked") return;
 
+    // Server now ships only the id/tier/secret; we resolve localized text
+    // client-side so the broadcast payload stays locale-agnostic.
     const achievement = payload.achievement as
-      | {
-          id: string;
-          name: string;
-          description: string;
-          tier: string;
-          secret: boolean;
-        }
+      | { id: string; tier: AchievementTier; secret: boolean }
       | undefined;
     if (!achievement) return;
 
+    const def = getAchievementById(achievement.id);
+    const nameKey = `${achievement.id}_name`;
+    const descKey = `${achievement.id}_desc`;
+    const typedTextT = tAchievementText as unknown as {
+      has: (key: string) => boolean;
+      (key: string): string;
+    };
+    const name = typedTextT.has(nameKey) ? typedTextT(nameKey) : (def?.name ?? achievement.id);
+    const description = typedTextT.has(descKey) ? typedTextT(descKey) : (def?.description ?? "");
+
+    const tier = TIER_STYLES[achievement.tier];
+
     toast(
-      <div className="flex items-center gap-3 min-w-0">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-yellow-400/30 to-amber-600/20">
-          <svg
-            className="h-5 w-5 text-yellow-600"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.8}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M6 9V2h12v7a6 6 0 01-12 0zM6 4H4a1 1 0 00-1 1v1a4 4 0 004 4M18 4h2a1 1 0 011 1v1a4 4 0 01-4 4M9 21h6M12 15v6"
-            />
-          </svg>
+      <div className="flex min-w-0 items-center gap-3">
+        <div
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${tier.bg} ${tier.glow}`}
+        >
+          <AchievementIcon
+            id={achievement.id}
+            tier={achievement.tier}
+            unlocked
+            className={`h-5 w-5 ${tier.icon}`}
+          />
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-[#2b1e14] truncate">
-            {achievement.secret ? "Secret Achievement!" : "Achievement Unlocked!"}
+          <p className="truncate text-sm font-semibold text-[#2b1e14]">
+            {achievement.secret
+              ? tAchievements("secretUnlockedToast")
+              : tAchievements("unlockedToast")}
           </p>
-          <p className="text-xs text-[#5a4632] truncate">{achievement.name}</p>
+          <p className="truncate text-xs text-[#5a4632]">{name}</p>
         </div>
       </div>,
       {
         id: `achievement-${achievement.id}`,
-        description: achievement.description,
+        description,
         duration: Infinity,
         dismissible: true,
         action: {
-          label: "View",
+          label: tAchievements("toastView"),
           onClick: () => {
             toast.dismiss(`achievement-${achievement.id}`);
             router.push("/achievements");
           },
         },
         cancel: {
-          label: "Dismiss",
+          label: tAchievements("toastDismiss"),
           onClick: () => {
             toast.dismiss(`achievement-${achievement.id}`);
           },

@@ -3,9 +3,12 @@
 import "@/lib/dump";
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Toaster, toast } from "sonner";
 import { AuthProvider, useAuth } from "@/lib/AuthContext";
+import { toastError } from "@/lib/errors";
+import { getOAuthErrorMessage } from "@/lib/oauthErrors";
 import type { AuthDialogMode } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
@@ -392,22 +395,27 @@ function UsernameOnboardingGuard({ children }: { children: React.ReactNode }) {
 }
 
 function OAuthErrorHandler() {
-  const router = useRouter();
-  const pathname = usePathname();
+  const tCommon = useTranslations("common");
 
   useEffect(() => {
-    // ProfilePage handles its own ?error= params for account linking
-    if (pathname?.endsWith("/settings")) return;
-
     const params = new URLSearchParams(window.location.search);
     const error = params.get("error");
     if (!error) return;
 
-    // Redirect to the styled auth error page instead of showing a toast
+    // Surface OAuth/link failures as a toast on whatever page the user
+    // initiated the flow from (better-auth honors errorCallbackURL), so
+    // they stay in context — e.g. inside a game modal or the settings
+    // page — and can retry immediately instead of being bounced to a
+    // dedicated error page.
     const errorDescription = params.get("error_description");
-    const q = new URLSearchParams({ error });
-    if (errorDescription) q.set("error_description", errorDescription);
-    router.replace(`/auth/error?${q.toString()}`);
+    toastError(errorDescription || getOAuthErrorMessage(error, tCommon));
+
+    // Clean the URL so the toast doesn't re-fire on refresh. Preserve any
+    // other query params that might be in play.
+    const url = new URL(window.location.href);
+    url.searchParams.delete("error");
+    url.searchParams.delete("error_description");
+    window.history.replaceState({}, "", url.pathname + url.search + url.hash);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return null;

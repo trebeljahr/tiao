@@ -15,7 +15,13 @@ import { SkeletonPage } from "@/components/ui/skeleton";
 import { PageLayout } from "@/components/PageLayout";
 import { BackButton } from "@/components/BackButton";
 import { BadgeSelector } from "@/components/BadgeSelector";
-import { UserBadge, BADGE_DEFINITIONS, type BadgeId } from "@/components/UserBadge";
+import {
+  UserBadge,
+  BADGE_DEFINITIONS,
+  useBadgeDescription,
+  type BadgeId,
+} from "@/components/UserBadge";
+import { BadgeToast } from "@/components/BadgeToast";
 import { THEMES } from "@/components/game/boardThemes";
 import { ThemeSwatch } from "@/components/game/ThemePicker";
 import {
@@ -48,22 +54,6 @@ const ACHIEVEMENT_BADGE_MAP: Record<string, string> = {
 const BADGE_ACHIEVEMENT_MAP: Record<string, string> = Object.fromEntries(
   Object.entries(ACHIEVEMENT_BADGE_MAP).map(([ach, badge]) => [badge, ach]),
 );
-
-const BADGE_DESCRIPTION_KEYS: Record<string, string> = {
-  supporter: "supporterDesc",
-  contributor: "contributorDesc",
-  "super-supporter": "superSupporterDesc",
-  "official-champion": "championDesc",
-  creator: "creatorDesc",
-  veteran: "veteranDesc",
-  "top-one-percent": "topOnePercentDesc",
-  "tournament-champion": "tournamentChampionDesc",
-  "one-jump-wonder": "oneJumpWonderDesc",
-  "flawless-victory": "flawlessVictoryDesc",
-  "one-second-glory": "oneSecondGloryDesc",
-  "david-vs-goliath": "davidVsGoliathDesc",
-  patron: "patronDesc",
-};
 
 const PURCHASE_CONFETTI_COLORS = [
   "#ffd700",
@@ -115,9 +105,17 @@ function formatPrice(cents: number, currency: string): string {
   }).format(cents / 100);
 }
 
+/**
+ * Inline paragraph that renders a badge's localized description.
+ * Extracted so hooks stay at top-level inside map callbacks.
+ */
+function BadgeDescText({ badge }: { badge: BadgeId }) {
+  const desc = useBadgeDescription(badge);
+  return <p className="text-sm text-[#6e5b48]">{desc}</p>;
+}
+
 export function ShopPage() {
   const t = useTranslations("shop");
-  const tBadges = useTranslations("badges");
   const { auth, authLoading, applyAuth, onOpenAuth } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -202,7 +200,13 @@ export function ShopPage() {
             !!subsRes?.subscriptions.find((s) => s.badgeId === itemId && s.status === "active");
 
           if (catalogItem?.owned || subActive) {
-            toast.success(t("purchaseSuccess", { item: itemParam }));
+            if (itemType === "badge" && BADGE_DEFINITIONS[itemId as BadgeId]) {
+              // Render the actual badge inside the toast so the user sees
+              // what they just unlocked — not a raw "badge-7" string.
+              toast.success(<BadgeToast badge={itemId as BadgeId} title={t("purchaseComplete")} />);
+            } else {
+              toast.success(t("purchaseSuccess", { item: itemParam }));
+            }
             setPurchasedItem(itemParam);
             return;
           }
@@ -405,7 +409,6 @@ export function ShopPage() {
                 {oneTimeBadgeItems.map((item) => {
                   const def = BADGE_DEFINITIONS[item.id as BadgeId];
                   if (!def) return null;
-                  const descKey = BADGE_DESCRIPTION_KEYS[item.id];
 
                   return (
                     <div
@@ -417,9 +420,7 @@ export function ShopPage() {
                         <div className="mb-3">
                           <UserBadge badge={item.id as BadgeId} />
                         </div>
-                        <p className="text-sm text-[#6e5b48]">
-                          {descKey ? tBadges(descKey) : def.label}
-                        </p>
+                        <BadgeDescText badge={item.id as BadgeId} />
                       </div>
                       <div className="mt-4 flex items-center justify-between">
                         <span className="font-display text-lg font-bold text-[#2b1e14]">
@@ -448,7 +449,6 @@ export function ShopPage() {
                 {subscriptionBadgeItems.map((item) => {
                   const def = BADGE_DEFINITIONS[item.id as BadgeId];
                   if (!def) return null;
-                  const descKey = BADGE_DESCRIPTION_KEYS[item.id];
                   const sub = getSubscriptionForBadge(item.id);
                   const isCanceled = sub?.status === "canceled";
 
@@ -462,9 +462,7 @@ export function ShopPage() {
                         <div className="mb-3">
                           <UserBadge badge={item.id as BadgeId} />
                         </div>
-                        <p className="text-sm text-[#6e5b48]">
-                          {descKey ? tBadges(descKey) : def.label}
-                        </p>
+                        <BadgeDescText badge={item.id as BadgeId} />
                       </div>
                       <div className="mt-4 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
@@ -537,7 +535,6 @@ export function ShopPage() {
                 {Object.values(ACHIEVEMENT_BADGE_MAP).map((badgeId) => {
                   const def = BADGE_DEFINITIONS[badgeId as BadgeId];
                   if (!def) return null;
-                  const descKey = BADGE_DESCRIPTION_KEYS[badgeId];
                   const earned = earnedBadgeIds.has(badgeId);
                   const achievementId = BADGE_ACHIEVEMENT_MAP[badgeId];
 
@@ -553,9 +550,7 @@ export function ShopPage() {
                         <div className="mb-3">
                           <UserBadge badge={badgeId as BadgeId} />
                         </div>
-                        <p className="text-sm text-[#6e5b48]">
-                          {descKey ? tBadges(descKey) : def.label}
-                        </p>
+                        <BadgeDescText badge={badgeId as BadgeId} />
                       </div>
                       <div className="mt-4 flex items-center justify-between gap-2">
                         {earned ? (

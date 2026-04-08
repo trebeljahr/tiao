@@ -1,4 +1,6 @@
+import { useTranslations } from "next-intl";
 import { AchievementIcon } from "@/components/AchievementIcon";
+import { useAchievementName, useAchievementDescription } from "@/lib/achievementLabels";
 import type { AchievementDefinition, AchievementTier } from "@shared";
 
 // ---------------------------------------------------------------------------
@@ -59,6 +61,9 @@ export function AchievementCard({
   unlocked: boolean;
   unlockedAt?: string;
 }) {
+  const t = useTranslations("achievements");
+  const name = useAchievementName(def.id);
+  const description = useAchievementDescription(def.id);
   const isHidden = def.secret && !unlocked;
   const tier = TIER_STYLES[def.tier];
 
@@ -101,18 +106,18 @@ export function AchievementCard({
               unlocked ? "text-[#2b1e14]" : "text-[#8d7760]"
             }`}
           >
-            {isHidden ? "???" : def.name}
+            {isHidden ? "???" : name}
           </h3>
           <p
             className={`mt-0.5 text-xs leading-snug ${
               unlocked ? "text-[#5a4632]" : "text-[#a89a7e]"
             }`}
           >
-            {isHidden ? "This is a secret achievement." : def.description}
+            {isHidden ? t("secretHintShort") : description}
           </p>
           {unlocked && unlockedAt && (
             <p className="mt-1 text-[10px] text-[#8d7760]">
-              Unlocked {new Date(unlockedAt).toLocaleDateString()}
+              {t("unlockedOn", { date: new Date(unlockedAt).toLocaleDateString() })}
             </p>
           )}
         </div>
