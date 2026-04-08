@@ -2051,7 +2051,11 @@ export class GameService {
         }
       }
 
-      // Both players agreed — create a new game room
+      // Both players agreed — create a new game room.
+      // Rematch seats are *flipped* deterministically (old white plays black
+      // and vice versa) rather than randomized. This lets the invitation UI
+      // show the accepter "You would play as {color}" before they accept,
+      // and matches the convention used by most online board-game sites.
       const whitePlayer = room.seats.white;
       const blackPlayer = room.seats.black;
       const newRoom = await this.createRoomRecord({
@@ -2059,7 +2063,7 @@ export class GameService {
         assignSeats: true,
         seats:
           whitePlayer && blackPlayer
-            ? this.assignSeats(whitePlayer, blackPlayer)
+            ? { white: blackPlayer, black: whitePlayer }
             : { white: null, black: null },
         timeControl: room.timeControl ?? undefined,
         gameSettings: {

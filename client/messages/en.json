@@ -31,6 +31,7 @@
     "moves": "{count} moves",
     "gameId": "Game ID",
     "playingAs": "Playing as {color}",
+    "wouldPlayAs": "You would play as {color}",
     "back": "Back",
     "next": "Next",
     "skip": "Skip",

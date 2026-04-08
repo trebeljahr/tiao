@@ -31,6 +31,7 @@
     "moves": "{count} Züge",
     "gameId": "Spiel-ID",
     "playingAs": "Du spielst {color}",
+    "wouldPlayAs": "Du würdest {color} spielen",
     "back": "Zurück",
     "next": "Weiter",
     "skip": "Überspringen",

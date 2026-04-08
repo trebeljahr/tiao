@@ -31,6 +31,7 @@
     "moves": "{count} jugadas",
     "gameId": "ID de partida",
     "playingAs": "Juegas con {color}",
+    "wouldPlayAs": "Jugarías con {color}",
     "back": "Volver",
     "next": "Siguiente",
     "skip": "Omitir",

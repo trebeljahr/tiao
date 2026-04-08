@@ -224,7 +224,7 @@ export function SocialNotificationsProvider({
       details.push(`first to ${score}`);
       if (settings.assignedColor) {
         const colorName = translatePlayerColor(settings.assignedColor, tGame);
-        if (colorName) details.push(tCommon("playingAs", { color: colorName }));
+        if (colorName) details.push(tCommon("wouldPlayAs", { color: colorName }));
       }
       return ` (${details.join(", ")})`;
     },
@@ -467,12 +467,18 @@ export function SocialNotificationsProvider({
       const rematchGameId = summary.gameId as string;
       // The rematch will be played with the same settings as the finished
       // game, so reuse the invite-toast format to show board / time / score.
+      // Rematch seats flip server-side, so the accepter's colour IS known:
+      // it's the opposite of their seat in the finished game.
+      const nextColor: "white" | "black" | null = summary.yourSeat
+        ? summary.yourSeat === "white"
+          ? "black"
+          : "white"
+        : null;
       const suffix = buildGameDetailsSuffix({
         boardSize: summary.boardSize,
         timeControl: summary.timeControl,
         scoreToWin: summary.scoreToWin,
-        // The accepter's seat in the new game is randomized server-side,
-        // so we don't pre-announce a color here.
+        assignedColor: nextColor,
       });
       toast(
         <div className="min-w-0">

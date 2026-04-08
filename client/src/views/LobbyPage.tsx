@@ -3,7 +3,7 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { TIME_CONTROL_PRESETS } from "@shared";
+import { TIME_CONTROL_PRESETS, type PlayerColor } from "@shared";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -615,7 +615,7 @@ export function LobbyPage() {
                                     {inv.assignedColor && (
                                       <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#dcc7a3] bg-[#fff9ef] px-2 py-1 text-xs text-[#6b5a45]">
                                         <ColorDot color={inv.assignedColor} className="h-3 w-3" />
-                                        {tc("playingAs", {
+                                        {tc("wouldPlayAs", {
                                           color:
                                             translatePlayerColor(inv.assignedColor, tGame) ?? "",
                                         })}
@@ -655,6 +655,15 @@ export function LobbyPage() {
                             const opponentSeat = game.yourSeat === "white" ? "black" : "white";
                             const opponent = game.seats[opponentSeat]?.player;
                             const busy = rematchBusyGameId === game.gameId;
+                            // Rematch seats flip: whatever colour the receiver
+                            // played in the finished game, they'll play the
+                            // opposite in the rematch. Only announce it if we
+                            // actually know their previous seat.
+                            const rematchNextColor: PlayerColor | null = game.yourSeat
+                              ? game.yourSeat === "white"
+                                ? "black"
+                                : "white"
+                              : null;
                             return (
                               <div
                                 key={`rematch-${game.gameId}`}
@@ -674,6 +683,16 @@ export function LobbyPage() {
                                       {tGame("rematchRequested")}
                                     </span>
                                   )}
+                                  {rematchNextColor && (
+                                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#dcc7a3] bg-[#fff9ef] px-2 py-1 text-xs text-[#6b5a45]">
+                                      <ColorDot color={rematchNextColor} className="h-3 w-3" />
+                                      {tc("wouldPlayAs", {
+                                        color: translatePlayerColor(rematchNextColor, tGame) ?? "",
+                                      })}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2">
                                   <span className="shrink-0 rounded-lg bg-[#f5ead4] px-2 py-1 text-[10px] font-medium text-[#8d6a2f]">
                                     {t("rematchToastDesc")}
                                   </span>

@@ -240,10 +240,11 @@ test("matchmaking pairs the next two players into a live room", async () => {
   assert.equal(cleared.status, "idle");
 });
 
-test("rematches require both players and reshuffle seats when accepted", async () => {
+test("rematches require both players and flip seats when accepted", async () => {
   const store = new InMemoryGameRoomStore();
-  const randomRolls = [0, 0.9];
-  const service = new GameService(store, () => randomRolls.shift() ?? 0.9);
+  // Only the creator-seat assignment is random; rematches now flip seats
+  // deterministically so the accepter can be told their colour up front.
+  const service = new GameService(store, () => 0);
   const alice = createPlayer("alice");
   const bob = createPlayer("bob");
 
