@@ -96,6 +96,14 @@ export class GameService {
    * removes the queue entry even if the player has other lobby tabs open.
    */
   private readonly matchmakingSocketByPlayer = new Map<string, WebSocket>();
+  /**
+   * Sockets that were pre-empted by another tab/browser of the same account
+   * and are waiting for the active session to end so they can resume their
+   * own search. Notified via `matchmaking:resumable` whenever the active
+   * owning socket's session ends normally (cancel / close / socket close)
+   * without a match.
+   */
+  private readonly preemptedMatchmakingSockets = new Map<string, Set<WebSocket>>();
   private readonly socketRooms = new Map<WebSocket, string>();
   /** In-memory spectator identities: roomId -> (playerId -> PlayerIdentity) */
   private readonly spectatorIdentities = new Map<string, Map<string, PlayerIdentity>>();
@@ -232,6 +240,17 @@ export class GameService {
         void this.leaveMatchmaking(player).catch((err) => {
           console.error("[lobby] failed to clear matchmaking on disconnect", err);
         });
+        // Wake any pre-empted sibling tabs so they can resume searching now
+        // that the active owner has disconnected without matching.
+        this.releasePreemptedMatchmakingSockets(player.playerId);
+      }
+
+      // Also clean up this socket from any pre-empted set so a closed socket
+      // doesn't sit in the map forever (and doesn't get an unreachable
+      // resumable push).
+      const preemptedSet = this.preemptedMatchmakingSockets.get(player.playerId);
+      if (preemptedSet?.delete(socket) && preemptedSet.size === 0) {
+        this.preemptedMatchmakingSockets.delete(player.playerId);
       }
 
       if (userSockets?.size === 0) {
@@ -1301,6 +1320,23 @@ export class GameService {
       // and skip its auto-re-enter effect — otherwise the two tabs ping-pong
       // the queue ownership indefinitely.
       this.sendLobbyMessage(existingSocket, { type: "matchmaking:preempted" });
+      // Remember the pre-empted socket so we can unblock it with a
+      // `matchmaking:resumable` push when the active owner eventually
+      // cancels / disconnects without matching.
+      let set = this.preemptedMatchmakingSockets.get(player.playerId);
+      if (!set) {
+        set = new Set();
+        this.preemptedMatchmakingSockets.set(player.playerId, set);
+      }
+      set.add(existingSocket);
+    }
+
+    // If the NEW owner was itself previously pre-empted, drop it from the
+    // waiting set — it's actively searching again, it doesn't need a
+    // `matchmaking:resumable` nudge.
+    const preemptedSet = this.preemptedMatchmakingSockets.get(player.playerId);
+    if (preemptedSet?.delete(socket) && preemptedSet.size === 0) {
+      this.preemptedMatchmakingSockets.delete(player.playerId);
     }
 
     const state = await this.enterMatchmaking(player, timeControl);
@@ -1312,6 +1348,10 @@ export class GameService {
       // waiting opponent. The initiator (this socket) receives the result
       // via the caller's `matchmaking:state` reply in `handleLobbyMessage`.
       this.matchmakingSocketByPlayer.delete(player.playerId);
+      // Matched players are off to a game; any other pre-empted tabs for
+      // the same account should stay put rather than auto-resuming into a
+      // queue they no longer need to be in.
+      this.preemptedMatchmakingSockets.delete(player.playerId);
     }
 
     return state;
@@ -1324,6 +1364,26 @@ export class GameService {
     if (this.matchmakingSocketByPlayer.get(player.playerId) !== socket) return;
     this.matchmakingSocketByPlayer.delete(player.playerId);
     await this.leaveMatchmaking(player);
+    // Active session ended cleanly — wake any sibling tabs that were
+    // pre-empted by this session so they can resume searching.
+    this.releasePreemptedMatchmakingSockets(player.playerId);
+  }
+
+  /**
+   * Notify every pre-empted lobby socket for `playerId` that the active
+   * matchmaking session has ended and it's safe to resume searching. The
+   * client clears its sticky `preempted` flag on receipt, letting the
+   * MatchmakingPage's auto-re-enter effect fire again.
+   */
+  private releasePreemptedMatchmakingSockets(playerId: string): void {
+    const set = this.preemptedMatchmakingSockets.get(playerId);
+    if (!set || set.size === 0) return;
+    for (const socket of set) {
+      if (socket.readyState === WebSocket.OPEN) {
+        this.sendLobbyMessage(socket, { type: "matchmaking:resumable" });
+      }
+    }
+    this.preemptedMatchmakingSockets.delete(playerId);
   }
 
   /** Periodically re-check the queue for players whose Elo windows have expanded enough to match. */

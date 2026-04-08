@@ -86,6 +86,13 @@ export function useMatchmakingData(
       onPreemptedRef.current?.();
       return;
     }
+    if (msg.type === "matchmaking:resumable") {
+      // The tab that preempted us cancelled/disconnected without matching.
+      // Clear the sticky flag so the MatchmakingPage's auto-re-enter effect
+      // can fire again and put us back into the queue.
+      setPreempted(false);
+      return;
+    }
     if (msg.type === "matchmaking:error") {
       toastError(new Error(msg.message));
       setMatchmaking({ status: "idle" });

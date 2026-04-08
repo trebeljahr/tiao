@@ -325,6 +325,14 @@ export type LobbyServerMessage =
    * (which otherwise causes the two tabs to ping-pong the search state).
    */
   | { type: "matchmaking:preempted" }
+  /**
+   * Sent to previously-preempted sockets when the active tab's matchmaking
+   * session ends (cancel / navigation / disconnect) without a match. Tells
+   * the preempted client it's safe to resume searching — the client clears
+   * its sticky `preempted` flag so the MatchmakingPage's auto-re-enter
+   * effect can fire again.
+   */
+  | { type: "matchmaking:resumable" }
   | { type: "game-update"; summary: MultiplayerGameSummary }
   | { type: "social-update"; overview?: SocialOverview }
   | { type: "achievement-unlocked" }

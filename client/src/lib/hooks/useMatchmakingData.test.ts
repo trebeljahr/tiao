@@ -283,4 +283,37 @@ describe("useMatchmakingData (lobby socket)", () => {
 
     expect(sendMessageMock).not.toHaveBeenCalled();
   });
+
+  it("matchmaking:resumable clears the sticky preempted flag", async () => {
+    // When the tab that preempted us later cancels/disconnects without
+    // matching, the server pushes `matchmaking:resumable`. That clears the
+    // sticky flag so the MatchmakingPage's auto-re-enter effect can fire
+    // again and put us back into the queue.
+    const onMatched = vi.fn();
+    const onPreempted = vi.fn();
+    const { result } = renderHook(() => useMatchmakingData(mockAuth, onMatched, onPreempted));
+
+    await act(async () => {
+      await result.current.handleEnterMatchmaking();
+    });
+    act(() => {
+      pushMessage({
+        type: "matchmaking:state",
+        state: { status: "searching", queuedAt: new Date().toISOString() },
+      });
+    });
+    act(() => {
+      pushMessage({ type: "matchmaking:preempted" });
+    });
+    expect(result.current.preempted).toBe(true);
+
+    act(() => {
+      pushMessage({ type: "matchmaking:resumable" });
+    });
+
+    expect(result.current.preempted).toBe(false);
+    // Status stays idle until the page re-enters — this message is just an
+    // unblock signal, not a state change.
+    expect(result.current.matchmaking.status).toBe("idle");
+  });
 });

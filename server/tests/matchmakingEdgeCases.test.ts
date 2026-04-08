@@ -428,3 +428,107 @@ test("explicit matchmaking:leave clears the entry without closing the socket", a
   socket.simulateClose();
   await flushAsync();
 });
+
+// ---------------------------------------------------------------------------
+// matchmaking:resumable — wake a pre-empted tab when the active owner cancels
+// ---------------------------------------------------------------------------
+
+test("pre-empted socket gets matchmaking:resumable when active tab cancels", async () => {
+  const store = new InMemoryGameRoomStore();
+  const service = new GameService(store, () => 0);
+  const alice = createPlayer("alice");
+
+  const socketA = new MockSocket();
+  const socketB = new MockSocket();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await service.connectLobby(alice, socketA as any);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await service.connectLobby(alice, socketB as any);
+
+  socketA.simulateMessage({ type: "matchmaking:enter", timeControl: null });
+  await flushAsync();
+  socketB.simulateMessage({ type: "matchmaking:enter", timeControl: null });
+  await flushAsync();
+
+  // Socket A is pre-empted; clear its received log so we can assert that
+  // the `resumable` push happens strictly after the cancel below.
+  socketA.sent = [];
+
+  socketB.simulateMessage({ type: "matchmaking:leave" });
+  await flushAsync();
+
+  const resumable = socketA.received().find((m) => m.type === "matchmaking:resumable");
+  assert.ok(
+    resumable,
+    "pre-empted socket A should be woken with matchmaking:resumable after B cancels",
+  );
+  // And the queue should be empty now that B left and A hasn't re-entered yet.
+  assert.equal((await service.getMatchmakingState(alice)).status, "idle");
+});
+
+test("pre-empted socket gets matchmaking:resumable when active tab disconnects", async () => {
+  const store = new InMemoryGameRoomStore();
+  const service = new GameService(store, () => 0);
+  const alice = createPlayer("alice");
+
+  const socketA = new MockSocket();
+  const socketB = new MockSocket();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await service.connectLobby(alice, socketA as any);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await service.connectLobby(alice, socketB as any);
+
+  socketA.simulateMessage({ type: "matchmaking:enter", timeControl: null });
+  await flushAsync();
+  socketB.simulateMessage({ type: "matchmaking:enter", timeControl: null });
+  await flushAsync();
+
+  socketA.sent = [];
+
+  socketB.simulateClose();
+  await flushAsync();
+
+  const resumable = socketA.received().find((m) => m.type === "matchmaking:resumable");
+  assert.ok(
+    resumable,
+    "pre-empted socket A should be woken with matchmaking:resumable after B closes",
+  );
+});
+
+test("pre-empted socket is NOT woken when active tab matches", async () => {
+  const store = new InMemoryGameRoomStore();
+  const service = new GameService(store, () => 0);
+  const alice = createPlayer("alice");
+  const bob = createPlayer("bob");
+
+  const aliceA = new MockSocket();
+  const aliceB = new MockSocket();
+  const bobSocket = new MockSocket();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await service.connectLobby(alice, aliceA as any);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await service.connectLobby(alice, aliceB as any);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await service.connectLobby(bob, bobSocket as any);
+
+  aliceA.simulateMessage({ type: "matchmaking:enter", timeControl: null });
+  await flushAsync();
+  aliceB.simulateMessage({ type: "matchmaking:enter", timeControl: null });
+  await flushAsync();
+
+  aliceA.sent = [];
+
+  // Bob joins the queue and gets matched with aliceB (the active owner).
+  bobSocket.simulateMessage({ type: "matchmaking:enter", timeControl: null });
+  await flushAsync();
+
+  const aliceBMatched = aliceB.received().find((m) => m.type === "matchmaking:matched");
+  assert.ok(aliceBMatched, "aliceB should have matched with bob");
+
+  const resumable = aliceA.received().find((m) => m.type === "matchmaking:resumable");
+  assert.equal(
+    resumable,
+    undefined,
+    "aliceA should NOT be woken when the active tab transitions to matched",
+  );
+});
