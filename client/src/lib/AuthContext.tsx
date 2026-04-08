@@ -6,8 +6,6 @@ import type { AuthDialogMode } from "@/components/Navbar";
 import { authClient } from "@/lib/auth-client";
 import { login as loginWithUsername, getPlayerIdentity } from "@/lib/api";
 import { isNetworkError, readableError, toastError } from "@/lib/errors";
-import { resetBoardTheme } from "@/lib/useBoardTheme";
-import { resetActiveBadges } from "@/lib/useActiveBadge";
 
 export interface AuthContextValue {
   auth: AuthResponse | null;
@@ -328,52 +326,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const onLogout = useCallback(async () => {
-    setAuth(null);
-    setCachedAuth(null);
-    resetBoardTheme();
-    resetActiveBadges();
-
-    // The tutorial-seen flag is stored per-browser in localStorage so
-    // signed-out guests don't get the rules intro on every visit. On logout
-    // we're handing the browser back to a fresh anonymous guest, so that
-    // flag has to be cleared — otherwise the next guest inherits the
-    // previous account's "already saw the tutorial" state and the
-    // rules intro / lobby tutorial banner never appears for them.
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("tiao:knowsHowToPlay");
-    }
-
+    // Order matters: we do the server-side signout + new-guest-session
+    // dance FIRST while React state is still "logged in", then navigate
+    // via a full page load, and only the fresh page sees the guest
+    // session. If we flipped `auth` to null up front, any page that
+    // requires an account (/friends, /games, /settings, etc.) would
+    // flash its logged-out state (or redirect to the lobby) before the
+    // navigation landed — a visible glitch. Full-page navigation to "/"
+    // also naturally resets React tree + in-memory caches so there's no
+    // need to clear them manually beforehand.
     try {
       await authClient.signOut();
-
-      // Create a new anonymous guest session after logout
-      const { data: anonData } = await authClient.signIn.anonymous();
-      if (anonData?.user) {
-        const player = await fetchPlayerIdentity();
-        if (player) {
-          applyAuth({ player });
-        } else {
-          applyAuth({
-            player: {
-              playerId: anonData.user.id,
-              displayName: anonData.user.name,
-              kind: "guest",
-            },
-          });
-        }
-      }
-
-      if (typeof window !== "undefined") {
-        window.location.assign("/");
-      }
+      // Create a new anonymous guest session after logout so the reloaded
+      // page boots straight into guest mode (no flash of the auth dialog).
+      await authClient.signIn.anonymous();
     } catch (error) {
       if (isNetworkError(error)) {
         toastError(error);
       } else {
         setAppError(readableError(error));
       }
+      return;
     }
-  }, [applyAuth]);
+
+    // Clear persistent per-browser flags that belong to the departing
+    // account — the tutorial-seen flag is stored in localStorage so the
+    // next guest shouldn't inherit it.
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("tiao:knowsHowToPlay");
+    }
+    setCachedAuth(null);
+
+    // Navigate to the lobby via a full page load — rebuilds the React
+    // tree from scratch so protected pages never render in a half-
+    // logged-out state.
+    if (typeof window !== "undefined") {
+      window.location.assign("/");
+    }
+  }, []);
 
   const value: AuthContextValue = {
     auth,
