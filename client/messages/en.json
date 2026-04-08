@@ -335,7 +335,10 @@
     "minPerPlayer": "min per player",
     "secAddedPerMove": "s added per move",
     "noIncrement": "no increment",
-    "noTimeLimit": "No time limit"
+    "noTimeLimit": "No time limit",
+    "preemptedTitle": "Search taken over",
+    "preemptedBody": "Another tab or browser signed in to the same account started matchmaking. Only one search can be active per account at a time.",
+    "backToLobby": "Back to lobby"
   },
   "games": {
     "title": "My Games",

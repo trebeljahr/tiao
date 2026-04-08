@@ -335,7 +335,10 @@
     "minPerPlayer": "min por jugador",
     "secAddedPerMove": "s por jugada",
     "noIncrement": "sin incremento",
-    "noTimeLimit": "Sin límite de tiempo"
+    "noTimeLimit": "Sin límite de tiempo",
+    "preemptedTitle": "Búsqueda tomada por otra pestaña",
+    "preemptedBody": "Otra pestaña o navegador con la misma cuenta ha iniciado la búsqueda. Solo puede haber una búsqueda activa por cuenta a la vez.",
+    "backToLobby": "Volver al lobby"
   },
   "games": {
     "title": "Mis partidas",

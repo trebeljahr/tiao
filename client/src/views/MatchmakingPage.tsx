@@ -37,8 +37,13 @@ export function MatchmakingPage() {
     [router],
   );
 
-  const { matchmaking, matchmakingBusy, handleEnterMatchmaking, handleCancelMatchmaking } =
-    useMatchmakingData(auth, onMatched);
+  const {
+    matchmaking,
+    matchmakingBusy,
+    preempted,
+    handleEnterMatchmaking,
+    handleCancelMatchmaking,
+  } = useMatchmakingData(auth, onMatched);
 
   useEffect(() => {
     if (!auth) return;
@@ -59,7 +64,8 @@ export function MatchmakingPage() {
       matchmaking.status === "idle" &&
       !matchmakingBusy &&
       !cancelledRef.current &&
-      !failedRef.current
+      !failedRef.current &&
+      !preempted
     ) {
       void handleEnterMatchmaking(locationTimeControl).catch(() => {
         failedRef.current = true;
@@ -69,6 +75,7 @@ export function MatchmakingPage() {
     auth,
     matchmaking.status,
     matchmakingBusy,
+    preempted,
     handleEnterMatchmaking,
     locationTimeControl,
     router,
@@ -99,7 +106,21 @@ export function MatchmakingPage() {
               <CardDescription className="text-[#6e5b48]">{t("description")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 flex flex-col items-center py-8">
-              {matchmaking.status === "searching" || matchmakingBusy ? (
+              {preempted ? (
+                // Another tab/browser of the same account took over the
+                // search. Don't show the spinner (we aren't searching) and
+                // don't auto-re-enter — just tell the user and offer them a
+                // way back to the lobby. Rendering this branch gates the
+                // auto-enter effect upstream, breaking the ping-pong loop.
+                <div className="flex flex-col items-center gap-4 text-center">
+                  <HourglassSpinner className="h-16 w-16 text-[#a6824d] opacity-30" />
+                  <p className="text-lg font-semibold text-[#5d4732]">{t("preemptedTitle")}</p>
+                  <p className="max-w-sm text-sm text-[#7a6656]">{t("preemptedBody")}</p>
+                  <Button variant="outline" onClick={() => router.push("/")}>
+                    {t("backToLobby")}
+                  </Button>
+                </div>
+              ) : matchmaking.status === "searching" || matchmakingBusy ? (
                 <div className="flex flex-col items-center gap-4">
                   <div className="relative">
                     <HourglassSpinner className="h-16 w-16 text-[#a6824d]" />

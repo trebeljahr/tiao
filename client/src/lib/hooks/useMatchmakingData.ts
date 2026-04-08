@@ -22,9 +22,15 @@ import { toastError } from "../errors";
 export function useMatchmakingData(
   auth: AuthResponse | null,
   onMatched: (snapshot: MultiplayerSnapshot) => void,
+  onPreempted?: () => void,
 ) {
   const [matchmaking, setMatchmaking] = useState<MatchmakingState>({ status: "idle" });
   const [matchmakingBusy, setMatchmakingBusy] = useState(false);
+  // True once the server told us a different tab/browser of the same account
+  // took over the matchmaking session. Sticky — the MatchmakingPage reads
+  // this to suppress its auto-re-enter effect so the two tabs don't
+  // ping-pong the queue.
+  const [preempted, setPreempted] = useState(false);
   const { sendMessage } = useLobbySocket();
 
   // Refs so the unmount effect can read the latest state without re-running.
@@ -42,6 +48,11 @@ export function useMatchmakingData(
   useEffect(() => {
     onMatchedRef.current = onMatched;
   }, [onMatched]);
+
+  const onPreemptedRef = useRef(onPreempted);
+  useEffect(() => {
+    onPreemptedRef.current = onPreempted;
+  }, [onPreempted]);
 
   useLobbyMessage((payload: Record<string, unknown>) => {
     const msg = payload as LobbyServerMessage;
@@ -61,6 +72,18 @@ export function useMatchmakingData(
       setMatchmaking({ status: "matched", snapshot: msg.snapshot });
       setMatchmakingBusy(false);
       onMatchedRef.current(msg.snapshot);
+      return;
+    }
+    if (msg.type === "matchmaking:preempted") {
+      // Another tab/browser of the same account took over the search.
+      // Flip to idle + preempted so the page can navigate away and won't
+      // auto-re-enter (which would kick the other tab out).
+      setMatchmaking({ status: "idle" });
+      setMatchmakingBusy(false);
+      setPreempted(true);
+      // Also nuke the socket-owner mapping on the client side: if the user
+      // manually re-enters later, we want a fresh ownership claim.
+      onPreemptedRef.current?.();
       return;
     }
     if (msg.type === "matchmaking:error") {
@@ -109,6 +132,7 @@ export function useMatchmakingData(
     matchmaking,
     setMatchmaking,
     matchmakingBusy,
+    preempted,
     handleEnterMatchmaking,
     handleCancelMatchmaking,
   };

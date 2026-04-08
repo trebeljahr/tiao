@@ -1296,10 +1296,11 @@ export class GameService {
     if (existingSocket && existingSocket !== socket) {
       this.matchmakingSocketByPlayer.delete(player.playerId);
       await this.leaveMatchmaking(player);
-      this.sendLobbyMessage(existingSocket, {
-        type: "matchmaking:state",
-        state: { status: "idle" },
-      });
+      // Tell the old socket it was pre-empted (NOT a plain idle state) so the
+      // client can distinguish "user cancelled" from "another tab took over"
+      // and skip its auto-re-enter effect — otherwise the two tabs ping-pong
+      // the queue ownership indefinitely.
+      this.sendLobbyMessage(existingSocket, { type: "matchmaking:preempted" });
     }
 
     const state = await this.enterMatchmaking(player, timeControl);

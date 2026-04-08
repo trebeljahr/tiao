@@ -219,4 +219,68 @@ describe("useMatchmakingData (lobby socket)", () => {
 
     expect(sendMessageMock).not.toHaveBeenCalled();
   });
+
+  it("matchmaking:preempted flips to idle + preempted and fires onPreempted", async () => {
+    // Preemption happens when a second tab/browser of the same account enters
+    // matchmaking — the server evicts the old socket and sends
+    // `matchmaking:preempted`. The old tab must flip to idle *and* set a
+    // sticky preempted flag so its auto-re-enter effect (in MatchmakingPage)
+    // doesn't immediately kick the other tab out again.
+    const onMatched = vi.fn();
+    const onPreempted = vi.fn();
+    const { result } = renderHook(() => useMatchmakingData(mockAuth, onMatched, onPreempted));
+
+    await act(async () => {
+      await result.current.handleEnterMatchmaking();
+    });
+    act(() => {
+      pushMessage({
+        type: "matchmaking:state",
+        state: { status: "searching", queuedAt: new Date().toISOString() },
+      });
+    });
+    expect(result.current.matchmaking.status).toBe("searching");
+    expect(result.current.preempted).toBe(false);
+
+    act(() => {
+      pushMessage({ type: "matchmaking:preempted" });
+    });
+
+    expect(result.current.matchmaking.status).toBe("idle");
+    expect(result.current.matchmakingBusy).toBe(false);
+    expect(result.current.preempted).toBe(true);
+    expect(onPreempted).toHaveBeenCalledTimes(1);
+  });
+
+  it("unmount after preempted does NOT send matchmaking:leave", async () => {
+    // After preemption we're not the queue owner anymore (the other tab is),
+    // so we shouldn't send a stray leave that the server would silently
+    // ignore. The status is already idle, so the existing
+    // `statusRef.current === 'searching'` gate handles this naturally —
+    // regression-guarded here in case someone re-wires the unmount effect.
+    const onMatched = vi.fn();
+    const onPreempted = vi.fn();
+    const { result, unmount } = renderHook(() =>
+      useMatchmakingData(mockAuth, onMatched, onPreempted),
+    );
+
+    await act(async () => {
+      await result.current.handleEnterMatchmaking();
+    });
+    act(() => {
+      pushMessage({
+        type: "matchmaking:state",
+        state: { status: "searching", queuedAt: new Date().toISOString() },
+      });
+    });
+    act(() => {
+      pushMessage({ type: "matchmaking:preempted" });
+    });
+
+    expect(result.current.preempted).toBe(true);
+    sendMessageMock.mockClear();
+    unmount();
+
+    expect(sendMessageMock).not.toHaveBeenCalled();
+  });
 });

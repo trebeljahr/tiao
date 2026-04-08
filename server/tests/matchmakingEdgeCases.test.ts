@@ -309,16 +309,22 @@ test("a second matchmaking tab evicts the first", async () => {
   socketB.simulateMessage({ type: "matchmaking:enter", timeControl: null });
   await flushAsync();
 
-  // Socket A should have received a `matchmaking:state { idle }` eviction
-  // before socket B took over the session.
-  const aEviction = socketA
+  // Socket A should have received a `matchmaking:preempted` message before
+  // socket B took over the session. (Distinct from `matchmaking:state {
+  // idle }` so the client can tell "user cancelled" from "another tab took
+  // over" and not auto-re-enter, which used to cause ping-pong oscillation.)
+  const aEviction = socketA.received().find((m) => m.type === "matchmaking:preempted");
+  assert.ok(aEviction, "socket A should have received a preempted eviction");
+  // And it should NOT have received a plain idle state — that would
+  // re-trigger the client's auto-re-enter effect.
+  const aIdle = socketA
     .received()
     .find(
       (m) =>
         m.type === "matchmaking:state" &&
         (m.state as { status: string } | undefined)?.status === "idle",
     );
-  assert.ok(aEviction, "socket A should have received an idle eviction");
+  assert.equal(aIdle, undefined, "socket A should not receive a plain idle state");
 
   // Socket B should own the session now; its latest state message should be searching.
   const bStates = socketB.received().filter((m) => m.type === "matchmaking:state");

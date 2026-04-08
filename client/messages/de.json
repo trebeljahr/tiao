@@ -335,7 +335,10 @@
     "minPerPlayer": "Min. pro Spieler",
     "secAddedPerMove": "s pro Zug",
     "noIncrement": "kein Inkrement",
-    "noTimeLimit": "Kein Zeitlimit"
+    "noTimeLimit": "Kein Zeitlimit",
+    "preemptedTitle": "Suche übernommen",
+    "preemptedBody": "Ein anderer Tab oder Browser, der im selben Konto angemeldet ist, hat das Matchmaking gestartet. Pro Konto kann immer nur eine Suche aktiv sein.",
+    "backToLobby": "Zurück zur Lobby"
   },
   "games": {
     "title": "Meine Spiele",

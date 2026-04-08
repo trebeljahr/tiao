@@ -317,6 +317,14 @@ export type LobbyServerMessage =
   | { type: "matchmaking:state"; state: MatchmakingState }
   | { type: "matchmaking:matched"; snapshot: MultiplayerSnapshot }
   | { type: "matchmaking:error"; code: string; message: string }
+  /**
+   * Sent to the OLD socket when a second tab/browser of the same account
+   * sends `matchmaking:enter` — the old session is evicted and the old socket
+   * is told it was pre-empted. Distinct from a normal `matchmaking:state`
+   * → idle transition so the client can suppress its auto-re-enter loop
+   * (which otherwise causes the two tabs to ping-pong the search state).
+   */
+  | { type: "matchmaking:preempted" }
   | { type: "game-update"; summary: MultiplayerGameSummary }
   | { type: "social-update"; overview?: SocialOverview }
   | { type: "achievement-unlocked" }
