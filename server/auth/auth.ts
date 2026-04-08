@@ -240,11 +240,27 @@ export const auth = betterAuth({
         return name;
       },
       onLinkAccount: async ({ anonymousUser, newUser }) => {
-        // Migrate ALL of the guest's games (including finished) to the new account
+        // Only migrate guest games when CREATING a new account (sign-up).
+        // When signing in to an existing account, the guest's games should
+        // be discarded — otherwise both seats in a game can end up pointing
+        // to the same player (the signed-in user played against their own
+        // guest session).
+        const accountCreatedAt = new Date(newUser.user.createdAt).getTime();
+        const isNewAccount = Date.now() - accountCreatedAt < 10_000;
+        if (!isNewAccount) {
+          console.info(
+            `[auth] Skipping guest game migration — signing in to existing account ${newUser.user.id}`,
+          );
+          return;
+        }
+
         const guestId = anonymousUser.user.id;
         const newId = newUser.user.id;
         const newDisplayName =
           (newUser.user as { displayName?: string }).displayName || newUser.user.name;
+        console.info(
+          `[auth] Migrating guest games from ${guestId} to new account ${newId}`,
+        );
         await GameRoom.updateMany(
           { "seats.white.playerId": guestId },
           {

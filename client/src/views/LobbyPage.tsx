@@ -31,7 +31,7 @@ import { SkeletonCard } from "@/components/ui/skeleton";
 
 export function LobbyPage() {
   const { auth, authLoading, onOpenAuth, onLogout } = useAuth();
-  const isGuest = auth?.player.kind === "guest";
+  const isGuest = !auth || auth.player.kind === "guest";
   const router = useRouter();
   const t = useTranslations("lobby");
   const tc = useTranslations("common");
