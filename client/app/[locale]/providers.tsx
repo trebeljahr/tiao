@@ -307,18 +307,22 @@ function AuthDialog() {
                 </div>
                 <div className="space-y-1">
                   <label
-                    htmlFor="signup-password"
+                    htmlFor="signup-new-password"
                     className="text-xs font-semibold uppercase tracking-wider text-[#7b6550]"
                   >
-                    Password
+                    New Password
                   </label>
                   <PasswordInput
-                    id="signup-password"
-                    name="password"
+                    key="signup-new-password"
+                    id="signup-new-password"
+                    name="new-password"
                     value={signupPassword}
                     onChange={(event) => setSignupPassword(event.target.value)}
                     placeholder="••••••••••••"
                     autoComplete="new-password"
+                    aria-label="New password"
+                    data-lpignore="false"
+                    data-1p-ignore="false"
                     minLength={8}
                     visible={signupPasswordVisible}
                     onVisibilityChange={setSignupPasswordVisible}
@@ -327,18 +331,22 @@ function AuthDialog() {
                 </div>
                 <div className="space-y-1">
                   <label
-                    htmlFor="signup-confirm-password"
+                    htmlFor="signup-confirm-new-password"
                     className="text-xs font-semibold uppercase tracking-wider text-[#7b6550]"
                   >
-                    Confirm Password
+                    Confirm New Password
                   </label>
                   <PasswordInput
-                    id="signup-confirm-password"
-                    name="password-confirm"
+                    key="signup-confirm-new-password"
+                    id="signup-confirm-new-password"
+                    name="confirm-new-password"
                     value={signupConfirmPassword}
                     onChange={(event) => setSignupConfirmPassword(event.target.value)}
                     placeholder="••••••••••••"
                     autoComplete="new-password"
+                    aria-label="Confirm new password"
+                    data-lpignore="false"
+                    data-1p-ignore="false"
                     minLength={8}
                     visible={signupPasswordVisible}
                     onVisibilityChange={setSignupPasswordVisible}
