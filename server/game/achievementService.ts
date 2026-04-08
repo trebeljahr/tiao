@@ -30,15 +30,21 @@ export type FriendAddedContext = {
 };
 
 export type AchievementNotifier = (playerId: string, achievement: AchievementDefinition) => void;
+export type AchievementChangeNotifier = (playerId: string) => void;
 
 // ---------------------------------------------------------------------------
 // Service
 // ---------------------------------------------------------------------------
 
 let _notifier: AchievementNotifier | null = null;
+let _changeNotifier: AchievementChangeNotifier | null = null;
 
 export function setAchievementNotifier(notifier: AchievementNotifier): void {
   _notifier = notifier;
+}
+
+export function setAchievementChangeNotifier(notifier: AchievementChangeNotifier): void {
+  _changeNotifier = notifier;
 }
 
 async function grant(playerId: string, achievementId: string): Promise<boolean> {
@@ -102,6 +108,7 @@ export async function adminRevokeAchievement(
   const result = await Achievement.deleteOne({ playerId, achievementId });
   if (result.deletedCount > 0) {
     console.log(`[achievement] Revoked "${achievementId}" from ${playerId}`);
+    if (_changeNotifier) _changeNotifier(playerId);
     return true;
   }
   return false;

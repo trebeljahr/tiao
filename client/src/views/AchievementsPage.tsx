@@ -202,9 +202,9 @@ export function AchievementsPage() {
     fetchAchievements();
   }, [fetchAchievements]);
 
-  // Refresh when an achievement is unlocked via WebSocket (silent — no skeleton)
+  // Refresh when achievements change via WebSocket (silent — no skeleton)
   useLobbyMessage((payload) => {
-    if (payload.type === "achievement-unlocked") {
+    if (payload.type === "achievement-unlocked" || payload.type === "achievement-changed") {
       fetchAchievements(true);
     }
   });
@@ -216,7 +216,7 @@ export function AchievementsPage() {
   }, [achievements]);
 
   const unlockedCount = achievements.length;
-  const totalVisible = ACHIEVEMENTS.filter((a) => !a.secret).length;
+  const totalCount = ACHIEVEMENTS.length;
 
   // Group achievements by category
   const grouped = useMemo(() => {
@@ -271,14 +271,14 @@ export function AchievementsPage() {
               </div>
               <h1 className="text-2xl font-bold text-[#2b1e14]">{t("title")}</h1>
               <p className="text-sm text-[#8d7760]">
-                {t("progress", { count: unlockedCount, total: totalVisible })}
+                {t("progress", { count: unlockedCount, total: totalCount })}
               </p>
               {/* Progress bar */}
               <div className="mt-1 h-2.5 w-full max-w-xs overflow-hidden rounded-full bg-[#d5c4a8]/40">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-yellow-500 to-amber-500 transition-all duration-700"
                   style={{
-                    width: `${totalVisible > 0 ? (unlockedCount / totalVisible) * 100 : 0}%`,
+                    width: `${totalCount > 0 ? (unlockedCount / totalCount) * 100 : 0}%`,
                   }}
                 />
               </div>
@@ -308,14 +308,19 @@ export function AchievementsPage() {
             const defs = grouped.get(key);
             if (!defs || defs.length === 0) return null;
 
+            const catUnlocked = defs.filter((d) => unlockedMap.has(d.id)).length;
+
             // For secret category, only show if player has unlocked at least one OR show placeholder
-            const hasUnlocked = defs.some((d) => unlockedMap.has(d.id));
+            const hasUnlocked = catUnlocked > 0;
             if (key === "secret" && !hasUnlocked) {
               return (
                 <AnimatedCard key={key} delay={catIndex * 0.05}>
                   <div className="mb-6">
                     <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#2b1e14]">
                       <span>{CATEGORY_ICONS[key]}</span> {t(`category_${key}`)}
+                      <span className="ml-auto text-sm font-normal text-[#a89a7e]">
+                        ?/{defs.length}
+                      </span>
                     </h2>
                     <PaperCard>
                       <CardContent className="py-8 text-center">
@@ -332,6 +337,9 @@ export function AchievementsPage() {
                 <div className="mb-6">
                   <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#2b1e14]">
                     <span>{CATEGORY_ICONS[key]}</span> {t(`category_${key}`)}
+                    <span className="ml-auto text-sm font-normal text-[#a89a7e]">
+                      {catUnlocked}/{defs.length}
+                    </span>
                   </h2>
                   <div className="grid gap-3 sm:grid-cols-2">
                     {defs

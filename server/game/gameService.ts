@@ -62,6 +62,7 @@ import {
   onEloUpdated as checkEloAchievements,
   onSpectateStarted as checkSpectateAchievement,
   setAchievementNotifier,
+  setAchievementChangeNotifier,
 } from "./achievementService";
 import { isValidObjectId } from "mongoose";
 import type { RatingStatus } from "../models/GameRoom";
@@ -2405,4 +2406,9 @@ setAchievementNotifier((playerId, achievement) => {
       secret: achievement.secret,
     },
   });
+});
+
+// Wire achievement change notifications (for revokes) through the lobby WebSocket
+setAchievementChangeNotifier((playerId) => {
+  gameService.broadcastLobby(playerId, { type: "achievement-changed" });
 });
