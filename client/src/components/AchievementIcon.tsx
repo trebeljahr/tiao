@@ -84,25 +84,40 @@ function FallingIcon({ color }: IconProps) {
   );
 }
 
-function BrokenHorseshoeIcon({ color }: IconProps) {
+function TombstoneIcon({ color }: IconProps) {
   return (
-    <path
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M7 20V12a5 5 0 0110 0v8M7 20H5M17 20h2M12 7v0M11 12l2-3M13 15l-2-1"
-    />
+    <>
+      <path
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M6 22V10a6 6 0 0112 0v12"
+      />
+      <path stroke={color} strokeLinecap="round" d="M6 22h12" />
+      <path stroke={color} strokeLinecap="round" d="M12 12v4M10 14h4" />
+      <path stroke={color} strokeLinecap="round" d="M4 22h16" />
+    </>
   );
 }
 
 function BoxingGloveIcon({ color }: IconProps) {
   return (
-    <path
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M8 4h5a4 4 0 014 4v3a3 3 0 01-3 3h-1l-1 2H9l-1-2a3 3 0 01-3-3V8a4 4 0 013-3.9M9 16v4M14 16v4M6 8h2"
-    />
+    <>
+      <path
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M7 9c0-3 1.5-5 4-5h2c2.5 0 4.5 2 4.5 5v2c0 2-1 3.5-3 4l-1 1H10l-1-1c-1.5-.5-2-2-2-4V9z"
+      />
+      <path stroke={color} strokeLinecap="round" d="M7 10h10" />
+      <path
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M10 16v2.5a2.5 2.5 0 005 0V16"
+      />
+      <path stroke={color} strokeLinecap="round" d="M12 4V2" />
+    </>
   );
 }
 
@@ -119,12 +134,15 @@ function BabyBottleIcon({ color }: IconProps) {
 
 function RobotIcon({ color }: IconProps) {
   return (
-    <path
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M5 9h14a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2zM12 9V6M9 6h6M9 14h0M15 14h0M10 17h4M3 13H1M23 13h-2"
-    />
+    <>
+      <rect x="4" y="8" width="16" height="12" rx="3" stroke={color} fill="none" />
+      <path stroke={color} strokeLinecap="round" d="M12 8V5" />
+      <circle cx="12" cy="4" r="1.5" stroke={color} fill="none" />
+      <rect x="7.5" y="12" width="3" height="2.5" rx="0.5" stroke={color} fill="none" />
+      <rect x="13.5" y="12" width="3" height="2.5" rx="0.5" stroke={color} fill="none" />
+      <path stroke={color} strokeLinecap="round" d="M9.5 17.5h5" />
+      <path stroke={color} strokeLinecap="round" d="M1 13h3M20 13h3" />
+    </>
   );
 }
 
@@ -141,12 +159,26 @@ function SkullIcon({ color }: IconProps) {
 
 function FlameIcon({ color }: IconProps) {
   return (
-    <path
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M12 2c1.5 3 5 5 5 9a5 5 0 01-10 0c0-4 3.5-6 5-9zM12 18a2 2 0 01-2-2c0-1.5 2-3 2-3s2 1.5 2 3a2 2 0 01-2 2z"
-    />
+    <>
+      <path
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 1c0 3.5 5.5 5.5 5.5 11a5.5 5.5 0 01-11 0C6.5 6.5 12 4.5 12 1z"
+      />
+      <path
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 22a3 3 0 01-3-3c0-2.5 3-5 3-5s3 2.5 3 5a3 3 0 01-3 3z"
+      />
+      <path
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M9.5 6C8 8 7 10 7.5 13M14.5 5c1.5 2 2.5 4 2 7"
+      />
+    </>
   );
 }
 
@@ -205,14 +237,25 @@ function CrownIcon({ color }: IconProps) {
   );
 }
 
-function LaurelIcon({ color }: IconProps) {
+function VikingHelmetIcon({ color }: IconProps) {
   return (
-    <path
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M6 18c-1-3-1-6 0-9 1-2 2-4 4-5M18 18c1-3 1-6 0-9-1-2-2-4-4-5M4 14c-1-1-2-3-1-5M20 14c1-1 2-3 1-5M3 10c0-2 1-3 2-4M21 10c0-2-1-3-2-4M12 2l-1 3M12 2l1 3M9 21h6M12 17v4"
-    />
+    <>
+      <path
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M5 14c0-3.9 3.1-7 7-7s7 3.1 7 7"
+      />
+      <path stroke={color} strokeLinecap="round" d="M4 14h16" />
+      <path stroke={color} strokeLinecap="round" strokeLinejoin="round" d="M5 14v3h14v-3" />
+      <path stroke={color} strokeLinecap="round" d="M9 17v2M15 17v2" />
+      <path
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M5 12c-2-3-3-7-1-10M19 12c2-3 3-7 1-10"
+      />
+    </>
   );
 }
 
@@ -227,14 +270,14 @@ function GradCapIcon({ color }: IconProps) {
   );
 }
 
-function BinocularsIcon({ color }: IconProps) {
+function SpyglassIcon({ color }: IconProps) {
   return (
-    <path
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M5 8a4 4 0 108 0M11 8a4 4 0 108 0M5 8v8a3 3 0 006 0V8M13 8v8a3 3 0 006 0V8M11 8h2M11 12h2"
-    />
+    <>
+      <circle cx="10" cy="10" r="7" stroke={color} fill="none" />
+      <circle cx="10" cy="10" r="4.5" stroke={color} fill="none" strokeDasharray="2 2" />
+      <path stroke={color} strokeLinecap="round" strokeWidth={2.2} d="M15.5 15.5L21 21" />
+      <path stroke={color} strokeLinecap="round" d="M10 6v1M7 10h1M13 10h-1M10 13v1" />
+    </>
   );
 }
 
@@ -249,14 +292,17 @@ function DoorExitIcon({ color }: IconProps) {
   );
 }
 
-function OwlIcon({ color }: IconProps) {
+function MoonIcon({ color }: IconProps) {
   return (
-    <path
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M12 3C8 3 4 6 4 11c0 3 1 5 3 7l1 3h8l1-3c2-2 3-4 3-7 0-5-4-8-8-8zM9 11a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM15 11a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM12 15l-1 2h2l-1-2zM8 3L6 1M16 3l2-2"
-    />
+    <>
+      <path
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"
+      />
+      <path stroke={color} strokeLinecap="round" d="M15.5 6l.5 1 1-.5M18 10.5l.5.5" />
+    </>
   );
 }
 
@@ -293,14 +339,28 @@ function DiamondIcon({ color }: IconProps) {
   );
 }
 
-function SlingshotIcon({ color }: IconProps) {
+function DavidGoliathIcon({ color }: IconProps) {
   return (
-    <path
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M8 22V10M16 22V10M8 10c0-4 2-7 4-8 2 1 4 4 4 8M5 8l3 2M19 8l-3 2M12 2a1 1 0 100 2 1 1 0 000-2z"
-    />
+    <>
+      {/* Goliath — tall & bulky */}
+      <circle cx="17" cy="4" r="2" stroke={color} fill="none" />
+      <path
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M17 6v6M14 9h6M14 12v7l1 2M20 12v7l-1 2"
+      />
+      {/* David — small */}
+      <circle cx="7" cy="9" r="1.5" stroke={color} fill="none" />
+      <path
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M7 10.5v4M5 12.5h4M5 14.5v4.5l.5 1M9 14.5v4.5l-.5 1"
+      />
+      {/* Clash line between them */}
+      <path stroke={color} strokeLinecap="round" strokeDasharray="1.5 1.5" d="M10 12h3" />
+    </>
   );
 }
 
@@ -338,7 +398,7 @@ const ICON_MAP: Record<string, (props: IconProps) => React.JSX.Element> = {
   centurion: HelmetIcon,
   veteran: MedalStarIcon,
   "first-fall": FallingIcon,
-  "tough-luck": BrokenHorseshoeIcon,
+  "tough-luck": TombstoneIcon,
   "punching-bag": BoxingGloveIcon,
   "ai-easy": BabyBottleIcon,
   "ai-medium": RobotIcon,
@@ -349,15 +409,15 @@ const ICON_MAP: Record<string, (props: IconProps) => React.JSX.Element> = {
   "first-friend": TwoPeopleIcon,
   "social-butterfly": ButterflyIcon,
   "top-one-percent": CrownIcon,
-  "tournament-champion": LaurelIcon,
+  "tournament-champion": VikingHelmetIcon,
   "tutorial-complete": GradCapIcon,
-  spectator: BinocularsIcon,
+  spectator: SpyglassIcon,
   "rage-quit": DoorExitIcon,
-  "night-owl": OwlIcon,
+  "night-owl": MoonIcon,
   speedrun: RocketIcon,
   "comeback-kid": RisingArrowIcon,
   "flawless-victory": DiamondIcon,
-  "david-vs-goliath": SlingshotIcon,
+  "david-vs-goliath": DavidGoliathIcon,
   "checkered-past": GridBoardIcon,
 };
 
