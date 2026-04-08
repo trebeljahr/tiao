@@ -99,10 +99,20 @@ function animateScrollTo(targetY: number, durationMs: number): Promise<void> {
  * the scroll has actually finished — play the
  * notification-target-wiggle animation. Safe to call from a hashchange
  * handler.
+ *
+ * When `wiggleTargets` is provided, the wiggle class is applied to those
+ * elements instead of the scrolled container itself. This is used by the
+ * friend-requests and invitations lists, which want the whole list to
+ * scroll into view but only the *new* (unacknowledged) item(s) to shake —
+ * otherwise every existing request shakes in sympathy, which looks noisy
+ * and falsely implies that every item is a fresh one.
  */
-export function scrollToAndWiggle(el: HTMLElement): void {
+export function scrollToAndWiggle(el: HTMLElement, wiggleTargets?: HTMLElement[]): void {
   const target = computeTargetScrollY(el);
   void animateScrollTo(target, SCROLL_DURATION_MS).then(() => {
-    triggerWiggle(el);
+    const elementsToWiggle = wiggleTargets && wiggleTargets.length > 0 ? wiggleTargets : [el];
+    for (const target of elementsToWiggle) {
+      triggerWiggle(target);
+    }
   });
 }

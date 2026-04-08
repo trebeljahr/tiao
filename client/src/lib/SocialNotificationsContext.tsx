@@ -101,6 +101,9 @@ type SocialNotificationsContextValue = {
   incomingRematchCount: number;
   unacknowledgedInvitationCount: number;
   unacknowledgedRematchCount: number;
+  isFriendRequestAcknowledged: (playerId: string) => boolean;
+  isInvitationAcknowledged: (invitationId: string) => boolean;
+  isRematchAcknowledged: (gameId: string) => boolean;
   acknowledgeInvitations: () => void;
   acknowledgeFriendRequests: () => void;
   refreshNotifications: () => void;
@@ -113,6 +116,9 @@ const SocialNotificationsContext = createContext<SocialNotificationsContextValue
   incomingRematchCount: 0,
   unacknowledgedInvitationCount: 0,
   unacknowledgedRematchCount: 0,
+  isFriendRequestAcknowledged: () => true,
+  isInvitationAcknowledged: () => true,
+  isRematchAcknowledged: () => true,
   acknowledgeInvitations: () => {},
   acknowledgeFriendRequests: () => {},
   refreshNotifications: () => {},
@@ -675,6 +681,19 @@ export function SocialNotificationsProvider({
     });
   }, [overview.incomingFriendRequests]);
 
+  const isFriendRequestAcknowledged = useCallback(
+    (playerId: string) => acknowledgedIds.has(`friend-request:${playerId}`),
+    [acknowledgedIds],
+  );
+  const isInvitationAcknowledged = useCallback(
+    (invitationId: string) => acknowledgedIds.has(`invitation:${invitationId}`),
+    [acknowledgedIds],
+  );
+  const isRematchAcknowledged = useCallback(
+    (gameId: string) => acknowledgedIds.has(`rematch:${gameId}`),
+    [acknowledgedIds],
+  );
+
   return (
     <SocialNotificationsContext.Provider
       value={{
@@ -684,6 +703,9 @@ export function SocialNotificationsProvider({
         incomingRematchCount,
         unacknowledgedInvitationCount,
         unacknowledgedRematchCount,
+        isFriendRequestAcknowledged,
+        isInvitationAcknowledged,
+        isRematchAcknowledged,
         acknowledgeInvitations,
         acknowledgeFriendRequests,
         refreshNotifications: fetchOverview,

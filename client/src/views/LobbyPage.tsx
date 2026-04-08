@@ -130,7 +130,8 @@ export function LobbyPage() {
   const [joinGameId, setJoinGameId] = useState("");
   const [multiplayerBusy, setMultiplayerBusy] = useState(false);
   const [rematchBusyGameId, setRematchBusyGameId] = useState<string | null>(null);
-  const { acknowledgeInvitations } = useSocialNotifications();
+  const { acknowledgeInvitations, isInvitationAcknowledged, isRematchAcknowledged } =
+    useSocialNotifications();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const multiplayerConfig = useGameConfig("multiplayer");
 
@@ -275,8 +276,21 @@ export function LobbyPage() {
       if (window.location.hash !== "#invitations") return;
       const el = document.getElementById("invitations");
       if (!el) return;
+      // Only wiggle the genuinely new invitations. Collect unacked targets
+      // BEFORE acknowledging so the filter actually catches them — acking
+      // first would mark every invitation as seen and leave nothing to
+      // shake.
+      const unackedInviteSelectors = (socialOverview?.incomingInvitations ?? [])
+        .filter((inv) => !isInvitationAcknowledged(inv.id))
+        .map((inv) => `[data-wiggle-target="invitation:${inv.id}"]`);
+      const unackedRematchSelectors = incomingRematches
+        .filter((game) => !isRematchAcknowledged(game.gameId))
+        .map((game) => `[data-wiggle-target="rematch:${game.gameId}"]`);
+      const unackedEls = [...unackedInviteSelectors, ...unackedRematchSelectors]
+        .map((sel) => el.querySelector<HTMLElement>(sel))
+        .filter((node): node is HTMLElement => node !== null);
       acknowledgeInvitations();
-      scrollToAndWiggle(el);
+      scrollToAndWiggle(el, unackedEls);
       // Remove the hash so revisiting the lobby doesn't re-scroll and
       // re-acknowledge without a fresh notification click.
       history.replaceState(null, "", window.location.pathname + window.location.search);
@@ -285,7 +299,14 @@ export function LobbyPage() {
     handleHash();
     window.addEventListener("hashchange", handleHash);
     return () => window.removeEventListener("hashchange", handleHash);
-  }, [multiplayerGamesLoaded, acknowledgeInvitations]);
+  }, [
+    multiplayerGamesLoaded,
+    acknowledgeInvitations,
+    isInvitationAcknowledged,
+    isRematchAcknowledged,
+    socialOverview,
+    incomingRematches,
+  ]);
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -594,6 +615,7 @@ export function LobbyPage() {
                               return (
                                 <div
                                   key={`invite-${inv.id}`}
+                                  data-wiggle-target={`invitation:${inv.id}`}
                                   className="rounded-2xl border border-[#dcc7a2] bg-[#fffdf7] p-4 shadow-xs hover:border-[#b98d49] transition-colors group space-y-3"
                                 >
                                   <div className="flex items-center justify-between gap-2">
@@ -660,6 +682,7 @@ export function LobbyPage() {
                               <div
                                 key={`rematch-${game.gameId}`}
                                 data-testid={`lobby-rematch-${game.gameId}`}
+                                data-wiggle-target={`rematch:${game.gameId}`}
                                 className="rounded-2xl border border-[#d4b87a] bg-[#fdf6e8] p-4 shadow-xs hover:border-[#b98d49] transition-colors group space-y-3"
                               >
                                 <div className="flex items-center justify-between gap-2">

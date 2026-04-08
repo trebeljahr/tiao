@@ -33,7 +33,7 @@ export function FriendsPage() {
   const [navOpen, setNavOpen] = useState(false);
 
   const social = useSocialData(auth, false);
-  const { acknowledgeFriendRequests } = useSocialNotifications();
+  const { acknowledgeFriendRequests, isFriendRequestAcknowledged } = useSocialNotifications();
   const [inviteBusy, setInviteBusy] = useState<string | null>(null);
   const [inviteDialogFriendId, setInviteDialogFriendId] = useState<string | null>(null);
   const [activeGamesFriendId, setActiveGamesFriendId] = useState<string | null>(null);
@@ -88,15 +88,29 @@ export function FriendsPage() {
       if (window.location.hash !== "#incoming-friend-requests") return;
       const el = document.getElementById("incoming-friend-requests");
       if (!el) return;
+      // Collect the unacknowledged request items BEFORE acknowledging, so
+      // that only the genuinely new ones wiggle. Acking first would mark
+      // every item as seen and leave us with nothing to shake.
+      const unackedIds = social.socialOverview.incomingFriendRequests
+        .filter((req) => !isFriendRequestAcknowledged(req.playerId))
+        .map((req) => req.playerId);
+      const unackedEls = unackedIds
+        .map((id) => el.querySelector<HTMLElement>(`[data-wiggle-target="friend-request:${id}"]`))
+        .filter((node): node is HTMLElement => node !== null);
       acknowledgeFriendRequests();
-      scrollToAndWiggle(el);
+      scrollToAndWiggle(el, unackedEls);
       history.replaceState(null, "", window.location.pathname + window.location.search);
     };
 
     handleHash();
     window.addEventListener("hashchange", handleHash);
     return () => window.removeEventListener("hashchange", handleHash);
-  }, [social.socialLoaded, acknowledgeFriendRequests]);
+  }, [
+    social.socialLoaded,
+    social.socialOverview.incomingFriendRequests,
+    acknowledgeFriendRequests,
+    isFriendRequestAcknowledged,
+  ]);
 
   return (
     <RequireAccount>
@@ -191,6 +205,7 @@ export function FriendsPage() {
                             {social.socialOverview.incomingFriendRequests.map((req) => (
                               <div
                                 key={req.playerId}
+                                data-wiggle-target={`friend-request:${req.playerId}`}
                                 className="flex items-center justify-between p-3 rounded-xl bg-white/40"
                               >
                                 <PlayerIdentityRow
