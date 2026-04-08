@@ -265,6 +265,7 @@ function PlayerSummary({ auth }: { auth: AuthResponse | null }) {
             displayName: player?.displayName ?? "Guest",
             profilePicture: player?.profilePicture,
             activeBadges: player?.activeBadges,
+            rating: isAnonymous ? undefined : (player?.rating ?? 1500),
           }}
           anonymous={isAnonymous}
           linkToProfile={false}
@@ -532,6 +533,7 @@ export function Navbar({
               displayName: player?.displayName,
               profilePicture: player?.profilePicture,
               activeBadges: player?.activeBadges,
+              rating: isAnonymous ? undefined : (player?.rating ?? 1500),
             }}
             anonymous={isAnonymous}
             avatarClassName="h-10 w-10 border border-[#a37d48]/35 shadow-xs"
