@@ -428,6 +428,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
           <Toaster
             richColors
             position="top-right"
+            closeButton
             toastOptions={{
               style: {
                 background: "#f5e6d0",

@@ -1206,11 +1206,12 @@ describe("MultiplayerGamePage", () => {
     expect(screen.queryByRole("button", { name: "Invite a Friend" })).not.toBeInTheDocument();
   });
 
-  it("shows 'Game resumed' toast (not 'Game started!') when re-opening an active game with both seats already filled", async () => {
+  it("shows 'Game resumed' toast (not 'Game started!') when re-opening an active game that already has moves", async () => {
     // Regression: prevBothSeatedRef used to be initialized from a render where
     // snapshot was still null, so the first real snapshot looked like a
     // false→true transition and fired the "Game started!" toast even though
-    // the game had been in progress for a while.
+    // the game had been in progress for a while. The fix differentiates
+    // resume-with-moves from first-arrival-to-fresh-game using history.length.
     const { toast } = await import("sonner");
     (toast as unknown as ReturnType<typeof vi.fn>).mockClear();
 
@@ -1225,12 +1226,43 @@ describe("MultiplayerGamePage", () => {
       applyAuth: vi.fn(),
     } as unknown as ReturnType<typeof authModule.useAuth>);
 
-    const snapshot = makeMatchmakingSnapshot({ status: "active" });
+    // Snapshot with a move in history — represents a reload mid-game.
+    const state = createInitialGameState();
+    state.history = [
+      { type: "put", color: "white", position: { x: 9, y: 9 } },
+    ] as typeof state.history;
+    const snapshot = makeMatchmakingSnapshot({ status: "active", state });
     await setupMocks(snapshot);
     render(<MultiplayerGamePage />);
 
     expect(toast).toHaveBeenCalledWith("Game resumed");
     expect(toast).not.toHaveBeenCalledWith("Game started!");
+  });
+
+  it("shows 'Game started!' toast when the joiner's first snapshot has both seats filled but no moves yet", async () => {
+    // When a player accepts an invitation and their WebSocket session's very
+    // first snapshot already shows both seats + active, we cannot distinguish
+    // "just joined" from "reloaded" by seat transition alone. Use
+    // history.length === 0 as the "fresh game" signal.
+    const { toast } = await import("sonner");
+    (toast as unknown as ReturnType<typeof vi.fn>).mockClear();
+
+    const authModule = await import("@/lib/AuthContext");
+    vi.spyOn(authModule, "useAuth").mockReturnValue({
+      auth: guestAuth,
+      authLoading: false,
+      onOpenAuth: vi.fn(),
+      onLogout: vi.fn(),
+      applyAuth: vi.fn(),
+    } as unknown as ReturnType<typeof authModule.useAuth>);
+
+    // Snapshot has bothSeated + active + empty history — fresh game join.
+    const snapshot = makeMatchmakingSnapshot({ status: "active" });
+    await setupMocks(snapshot);
+    render(<MultiplayerGamePage />);
+
+    expect(toast).toHaveBeenCalledWith("Game started!");
+    expect(toast).not.toHaveBeenCalledWith("Game resumed");
   });
 
   it("does not toast 'Game resumed' for spectators re-joining an active game", async () => {

@@ -159,6 +159,16 @@ layer(base);
 [data-sonner-toast] {
   cursor: default;
 }
+/* Move sonner's close X from its default top-left corner to the top-right
+   so it doesn't collide with the avatar in our custom toast content.
+   Sonner's own rule sets --toast-close-button-start/end on
+   [data-sonner-toaster][dir="ltr"] at equal specificity, and loads after
+   our globals.css in cascade order, so we have to raise specificity. */
+html [data-sonner-toaster][dir="ltr"] {
+  --toast-close-button-start: unset;
+  --toast-close-button-end: 0;
+  --toast-close-button-transform: translate(35%, -35%);
+}
 
 /* Card entrance animation — pure CSS, no JS hydration needed */
 @keyframes card-in {
