@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { getPlayerFromRequest } from "../auth/sessionHelper";
-import GameAccount from "../models/GameAccount";
+import GameAccount, { ISubscription } from "../models/GameAccount";
 import { grantBadge, revokeBadge, grantTheme } from "../game/badgeService";
 import { handleRouteError } from "../error-handling/routeError";
 import { SHOP_ITEMS, findShopItem } from "../config/shopCatalog";
@@ -126,7 +126,8 @@ router.post("/checkout", async (req: Request, res: Response) => {
     // For subscription items, check if already subscribed
     if (item.recurring && account) {
       const existing = account.activeSubscriptions?.find(
-        (s) => s.badgeId === item.id && (s.status === "active" || s.status === "past_due"),
+        (s: ISubscription) =>
+          s.badgeId === item.id && (s.status === "active" || s.status === "past_due"),
       );
       if (existing) {
         return res.status(409).json({
@@ -246,7 +247,7 @@ router.get("/subscriptions", async (req: Request, res: Response) => {
     }
 
     const account = await GameAccount.findById(player.playerId);
-    const subscriptions = (account?.activeSubscriptions ?? []).map((s) => ({
+    const subscriptions = (account?.activeSubscriptions ?? []).map((s: ISubscription) => ({
       subscriptionId: s.subscriptionId,
       badgeId: s.badgeId,
       status: s.status,
@@ -290,7 +291,9 @@ router.post("/cancel-subscription", async (req: Request, res: Response) => {
     }
 
     const account = await GameAccount.findById(player.playerId);
-    const sub = account?.activeSubscriptions?.find((s) => s.subscriptionId === subscriptionId);
+    const sub = account?.activeSubscriptions?.find(
+      (s: ISubscription) => s.subscriptionId === subscriptionId,
+    );
     if (!sub) {
       return res.status(404).json({
         code: "SUBSCRIPTION_NOT_FOUND",
@@ -365,7 +368,7 @@ router.post(
                 const account = await GameAccount.findById(playerId);
                 if (account) {
                   const existingIdx = account.activeSubscriptions?.findIndex(
-                    (s) => s.subscriptionId === subscriptionId,
+                    (s: ISubscription) => s.subscriptionId === subscriptionId,
                   );
                   const subRecord = {
                     subscriptionId,
@@ -408,7 +411,7 @@ router.post(
           if (!account) break;
 
           const sub = account.activeSubscriptions?.find(
-            (s) => s.subscriptionId === subscription.id,
+            (s: ISubscription) => s.subscriptionId === subscription.id,
           );
           if (sub) {
             sub.currentPeriodEnd = subscriptionPeriodEnd(subscription);
@@ -435,7 +438,7 @@ router.post(
           const account = await GameAccount.findById(playerId);
           if (account) {
             account.activeSubscriptions = (account.activeSubscriptions ?? []).filter(
-              (s) => s.subscriptionId !== subscription.id,
+              (s: ISubscription) => s.subscriptionId !== subscription.id,
             );
             await account.save();
           }
@@ -459,7 +462,7 @@ router.post(
           });
           if (account) {
             const sub = account.activeSubscriptions?.find(
-              (s) => s.subscriptionId === subscriptionId,
+              (s: ISubscription) => s.subscriptionId === subscriptionId,
             );
             if (sub) {
               sub.status = "past_due";
