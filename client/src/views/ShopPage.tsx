@@ -426,10 +426,13 @@ export function ShopPage() {
                           {formatPrice(item.price, item.currency)}
                         </span>
                         {item.owned ? (
-                          <Badge className="bg-emerald-100 text-emerald-700">{t("owned")}</Badge>
+                          <Badge className="whitespace-nowrap bg-emerald-100 text-emerald-700">
+                            {t("owned")}
+                          </Badge>
                         ) : (
                           <Button
                             size="sm"
+                            className="whitespace-nowrap"
                             onClick={() => handleBuy(item)}
                             disabled={buyingItem === `${item.type}-${item.id}`}
                           >
@@ -636,10 +639,13 @@ export function ShopPage() {
                           {formatPrice(item.price, item.currency)}
                         </span>
                         {item.owned ? (
-                          <Badge className="bg-emerald-100 text-emerald-700">{t("owned")}</Badge>
+                          <Badge className="whitespace-nowrap bg-emerald-100 text-emerald-700">
+                            {t("owned")}
+                          </Badge>
                         ) : (
                           <Button
                             size="sm"
+                            className="whitespace-nowrap"
                             onClick={() => handleBuy(item)}
                             disabled={buyingItem === `${item.type}-${item.id}`}
                           >
