@@ -141,7 +141,7 @@ export function TutorialPage() {
       if (currentStep < steps.length - 1) {
         goTo(currentStep + 1);
       }
-    }, 900);
+    }, 500);
   }
 
   const isReplay = auth?.player.kind === "account" && auth.player.hasSeenTutorial;

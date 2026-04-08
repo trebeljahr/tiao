@@ -159,7 +159,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
     completedRef.current = true;
     setCompleted(true);
     fireLightConfetti(theme.victoryColors);
-    setTimeout(() => onComplete(), 800);
+    setTimeout(() => onComplete(), 400);
   }, [onComplete]);
 
   // --- Click handler (mirrors useLocalGame state machine) ---
@@ -321,7 +321,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
     }
     // For chain-jump, require completing the full chain (multiple jumps)
     // before allowing confirmation — a single jump shouldn't count.
-    if (interaction.type === "chain-jump" && pendingJumps.length < 2) {
+    if (interaction.type === "chain-jump" && pendingJumps.length < 3) {
       return;
     }
     // Set completed FIRST to prevent nudge flash, then clear state
@@ -341,7 +341,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
     setPendingJumps([]);
     setSelected(null);
     fireLightConfetti(theme.victoryColors);
-    setTimeout(() => onComplete(), 800);
+    setTimeout(() => onComplete(), 400);
   }
 
   function undoLastJump() {

@@ -89,6 +89,7 @@ export function getTutorialSteps(t: T): TutorialStep[] {
           [3, 3, "B"],
         ]),
         interaction: { type: "free-place" },
+        suggestedPos: { x: 2, y: 2 },
       },
     },
 
@@ -111,7 +112,7 @@ export function getTutorialSteps(t: T): TutorialStep[] {
       },
     },
 
-    // 4. Chain Jumps (chain-jump, 7x7)
+    // 4. Chain Jumps (chain-jump, 7x7) — 3 jumps: vertical, diagonal, horizontal
     {
       id: "chain",
       title: t("_chain_title"),
@@ -119,13 +120,14 @@ export function getTutorialSteps(t: T): TutorialStep[] {
       board: {
         size: 7,
         initialBoard: board(7, [
-          [3, 5, "W"],
-          [3, 4, "B"],
-          [3, 2, "B"],
+          [1, 5, "W"],
+          [1, 4, "B"],
+          [2, 2, "B"],
+          [4, 1, "B"],
         ]),
         interaction: {
           type: "chain-jump",
-          firstSelect: { x: 3, y: 5 },
+          firstSelect: { x: 1, y: 5 },
         },
       },
     },
