@@ -10,8 +10,8 @@ export function SkeletonBlock({ className }: { className?: string }) {
 /** PaperCard with a skeleton header and N placeholder list rows. */
 export function SkeletonCard({ rows = 3, className }: { rows?: number; className?: string }) {
   return (
-    <div className={cn("flex flex-col animate-pulse", className)}>
-      <PaperCard className="overflow-hidden shadow-lg flex-1">
+    <div className={cn("flex w-full flex-col animate-pulse", className)}>
+      <PaperCard className="w-full overflow-hidden shadow-lg flex-1">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-black/5 bg-black/2 py-4">
           <SkeletonBlock className="h-7 w-32 rounded-lg" />
         </CardHeader>
@@ -28,6 +28,57 @@ export function SkeletonCard({ rows = 3, className }: { rows?: number; className
               <SkeletonBlock className="h-8 w-16 rounded-lg" />
             </div>
           ))}
+        </CardContent>
+      </PaperCard>
+    </div>
+  );
+}
+
+/**
+ * Skeleton tailored to PublicProfilePage's real layout: a full-width
+ * PaperCard with a centered avatar circle, name + rating placeholders,
+ * bio line, and a stats strip — matching the actual w-full AnimatedCard
+ * structure so the layout doesn't jump when real data loads in.
+ */
+export function SkeletonProfileHeader({ className }: { className?: string }) {
+  return (
+    <div className={cn("flex w-full flex-col animate-pulse", className)}>
+      <PaperCard className="w-full overflow-hidden shadow-lg">
+        <CardContent className="flex flex-col items-center gap-4 pt-8 pb-8">
+          {/* Avatar circle placeholder */}
+          <SkeletonBlock className="h-24 w-24 rounded-full" />
+          {/* Display name */}
+          <SkeletonBlock className="h-8 w-48 rounded-lg" />
+          {/* Bio line */}
+          <SkeletonBlock className="h-3.5 w-64 rounded-lg bg-[#ede3d2]" />
+          {/* Rating pill */}
+          <SkeletonBlock className="mt-2 h-10 w-44 rounded-xl" />
+          {/* Member-since line */}
+          <SkeletonBlock className="h-3 w-56 rounded-lg bg-[#ede3d2]" />
+        </CardContent>
+      </PaperCard>
+    </div>
+  );
+}
+
+/**
+ * Skeleton for the "Stats" section on PublicProfilePage: grid of 3 stat
+ * columns (games played / won / lost). w-full so the width locks in.
+ */
+export function SkeletonProfileStats({ className }: { className?: string }) {
+  return (
+    <div className={cn("flex w-full flex-col animate-pulse", className)}>
+      <PaperCard className="w-full overflow-hidden shadow-lg">
+        <CardContent className="py-6">
+          <SkeletonBlock className="mb-4 h-4 w-24 rounded-lg bg-[#ede3d2]" />
+          <div className="grid grid-cols-3 gap-4">
+            {Array.from({ length: 3 }, (_, i) => (
+              <div key={i} className="flex flex-col items-center gap-1">
+                <SkeletonBlock className="h-8 w-12 rounded-lg" />
+                <SkeletonBlock className="h-3 w-16 rounded-lg bg-[#ede3d2]" />
+              </div>
+            ))}
+          </div>
         </CardContent>
       </PaperCard>
     </div>

@@ -24,7 +24,7 @@ import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { useLocale, useTranslations } from "next-intl";
 import { useSocialData } from "@/lib/hooks/useSocialData";
 import { useLobbyMessage } from "@/lib/LobbySocketContext";
-import { SkeletonCard } from "@/components/ui/skeleton";
+import { SkeletonProfileHeader, SkeletonProfileStats } from "@/components/ui/skeleton";
 
 export function PublicProfilePage() {
   const t = useTranslations("publicProfile");
@@ -121,7 +121,12 @@ export function PublicProfilePage() {
     >
       <BackButton />
 
-      {loading && <SkeletonCard rows={2} />}
+      {loading && (
+        <>
+          <SkeletonProfileHeader />
+          <SkeletonProfileStats />
+        </>
+      )}
 
       {error && (
         <PaperCard className="w-full">
