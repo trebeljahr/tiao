@@ -1203,17 +1203,19 @@ export class GameService {
       });
     }
 
-    // Update Elo ratings when any multiplayer game finishes
+    // Update Elo ratings when any multiplayer game finishes, then check achievements
     if (saved.status === "finished" && previousStatus !== "finished") {
       saved.ratingStatus = "pending";
-      void this.updateEloRatings(saved).catch((err) => {
-        console.error("[game] Elo update failed for room", saved.id, err);
-      });
-
-      // Check game-completion achievements
-      void checkGameAchievements({ room: saved }).catch((err) => {
-        console.error("[game] Achievement check failed for room", saved.id, err);
-      });
+      void this.updateEloRatings(saved)
+        .catch((err) => {
+          console.error("[game] Elo update failed for room", saved.id, err);
+        })
+        .finally(() => {
+          // Check achievements after ELO update so gamesPlayed is already incremented
+          void checkGameAchievements({ room: saved }).catch((err) => {
+            console.error("[game] Achievement check failed for room", saved.id, err);
+          });
+        });
     }
 
     return saved;

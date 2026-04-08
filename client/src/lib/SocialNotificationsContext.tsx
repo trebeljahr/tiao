@@ -433,14 +433,6 @@ export function SocialNotificationsProvider({
       | undefined;
     if (!achievement) return;
 
-    const playerId = playerIdRef.current;
-    const toastKey = `achievement:${achievement.id}`;
-    if (playerId) {
-      const toasted = getToastedIds(playerId);
-      if (toasted.has(toastKey)) return;
-      markToasted(playerId, [toastKey]);
-    }
-
     toast(
       <div className="flex items-center gap-3 min-w-0">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-yellow-400/30 to-amber-600/20">
