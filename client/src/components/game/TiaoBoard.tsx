@@ -761,7 +761,7 @@ export function TiaoBoard({
                       piece === "black" ? theme.blackPieceBorder : theme.whitePieceBorder,
                     background: piece === "black" ? theme.blackPieceBg : theme.whitePieceBg,
                     boxShadow:
-                      isSelectableOrigin && !disabled && hasPendingJump
+                      isSelectableOrigin && !disabled && (hasPendingJump || isSelected)
                         ? theme.selectableGlow
                         : theme.pieceShadow,
                   }}
