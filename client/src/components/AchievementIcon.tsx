@@ -113,28 +113,27 @@ function TombstoneIcon({ color }: IconProps) {
 }
 
 function BoxingGloveIcon({ color }: IconProps) {
+  // Based on Iconoir boxing-glove icon (MIT license)
   return (
     <>
-      {/* Glove — front view, fist shape with big padded knuckles */}
       <path
         stroke={color}
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M7 7a3 3 0 013-3h4a3 3 0 013 3v4a5 5 0 01-10 0V7z"
+        d="M8.49 17.73H18.36M8.49 17.73V21H18.36V17.73M8.49 17.73C5.2 15.55 3.56 10.09 4.1 8.45C4.54 7.15 6.48 7.55 7.39 7.91C7.39 4.09 9.04 3 13.42 3C17.81 3 20 4.09 20 9.55C20 13.91 18.9 16.82 18.36 17.73"
       />
-      {/* Thumb sticking out to the side */}
       <path
         stroke={color}
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M7 8c-1.5 0-3 1-3 2.5S5 13 7 12"
+        d="M7.39 7.91C7.76 8.27 8.82 9 10.13 9C11.45 9 13.97 9 15.07 9"
       />
-      {/* Knuckle padding line */}
-      <path stroke={color} strokeLinecap="round" d="M8 7.5h8" />
-      {/* Wrist band */}
-      <rect x="8" y="14" width="8" height="3" rx="1" stroke={color} fill="none" />
-      {/* Arm */}
-      <path stroke={color} strokeLinecap="round" strokeWidth={2} d="M12 17v4" />
+      <path
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M7.39 7.91C7.39 11.73 9.04 12.27 10.13 12.27"
+      />
     </>
   );
 }
@@ -313,30 +312,29 @@ function GradCapIcon({ color }: IconProps) {
 function SpyglassIcon({ color }: IconProps) {
   return (
     <>
-      {/* Telescope tube — long tapered cylinder */}
-      <path stroke={color} strokeLinecap="round" strokeLinejoin="round" d="M2 17l14-14" />
-      {/* Wide lens end */}
-      <ellipse
-        cx="18"
-        cy="5"
-        rx="3.5"
-        ry="2"
-        transform="rotate(-45 18 5)"
+      {/* Main tube body — diagonal, wider at lens end */}
+      <path
         stroke={color}
-        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M4.5 19.5l2-2 10-10 2-2"
       />
-      {/* Narrow eyepiece end */}
-      <ellipse
-        cx="4"
-        cy="19"
-        rx="2"
-        ry="1.2"
-        transform="rotate(-45 4 19)"
+      {/* Tube outline — tapered shape */}
+      <path
         stroke={color}
-        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M3.3 18.3l1.5-1.5 1.7 1.7-1.5 1.5zM6.5 15.1l8.4-8.4 2.4 2.4-8.4 8.4z"
       />
-      {/* Tube body lines */}
-      <path stroke={color} strokeLinecap="round" d="M5.5 13.5l9-9M3.5 15.5l9-9" />
+      {/* Lens hood — wider end */}
+      <path
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M16.2 5.4l3.2-3.2 2.4 2.4-3.2 3.2z"
+      />
+      {/* Section rings on tube */}
+      <path stroke={color} strokeLinecap="round" d="M8.2 13.4l2.4 2.4M11.5 10.1l2.4 2.4" />
     </>
   );
 }
