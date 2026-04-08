@@ -11,6 +11,7 @@ import {
   EmptySeatAvatar,
 } from "./GameShared";
 import { GameConfigBadge } from "./GameConfigBadge";
+import { CopyGameIdButton } from "./CopyGameIdButton";
 import { formatClockTime } from "./GameClock";
 import { cn } from "@/lib/utils";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
@@ -20,8 +21,6 @@ type MatchHistoryCardProps = {
   playerId: string;
   /** When set, results are described in third person ("{name} forfeited") */
   playerName?: string;
-  copiedId: string | null;
-  onCopy: () => void;
   onReview: () => void;
 };
 
@@ -134,14 +133,7 @@ function PlayerRow({
   );
 }
 
-export function MatchHistoryCard({
-  game,
-  playerId,
-  playerName,
-  copiedId,
-  onCopy,
-  onReview,
-}: MatchHistoryCardProps) {
+export function MatchHistoryCard({ game, playerId, playerName, onReview }: MatchHistoryCardProps) {
   const t = useTranslations("game");
   const tCommon = useTranslations("common");
   const locale = useLocale();
@@ -199,14 +191,7 @@ export function MatchHistoryCard({
           {reasonText && <span className="text-xs text-[#4a3928]">{reasonText}</span>}
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
-          <button
-            type="button"
-            className="rounded-md px-1.5 py-0.5 font-mono text-[10px] text-[#b5a48e] transition-colors hover:bg-black/5 hover:text-[#6e5b48]"
-            onClick={onCopy}
-            title={`Copy game ID: ${game.gameId}`}
-          >
-            {copiedId === game.gameId ? tCommon("copied") : game.gameId}
-          </button>
+          <CopyGameIdButton gameId={game.gameId} />
           <Button size="sm" className="text-xs" onClick={onReview}>
             {tCommon("review")}
           </Button>

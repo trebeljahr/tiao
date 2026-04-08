@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { RequireAccount } from "@/components/RequireAccount";
 import { useAuth } from "@/lib/AuthContext";
@@ -19,7 +19,6 @@ export function GamesPage() {
   const { auth, onOpenAuth, onLogout } = useAuth();
   const router = useRouter();
   const [navOpen, setNavOpen] = useState(false);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const { multiplayerGames, multiplayerGamesLoaded, refreshMultiplayerGames } = useGamesIndex(auth);
 
@@ -34,12 +33,6 @@ export function GamesPage() {
     () => multiplayerGames.finished.filter((g) => g.rematch?.requestedBy.length && g.yourSeat),
     [multiplayerGames.finished],
   );
-
-  const handleCopy = useCallback((gameId: string) => {
-    void navigator.clipboard.writeText(gameId);
-    setCopiedId(gameId);
-    setTimeout(() => setCopiedId((prev) => (prev === gameId ? null : prev)), 1800);
-  }, []);
 
   return (
     <RequireAccount>
@@ -99,8 +92,6 @@ export function GamesPage() {
                             key={game.gameId}
                             game={game}
                             playerId={auth!.player.playerId}
-                            copiedId={copiedId}
-                            onCopy={() => handleCopy(game.gameId)}
                             onReview={() => router.push(`/game/${game.gameId}`)}
                           />
                         ))}

@@ -75,8 +75,6 @@ describe("MatchHistoryCard", () => {
   const defaultProps = {
     game: baseGame,
     playerId: "p1",
-    copiedId: null,
-    onCopy: vi.fn(),
     onReview: vi.fn(),
   };
 
@@ -120,17 +118,9 @@ describe("MatchHistoryCard", () => {
     expect(screen.getByText("7")).toBeInTheDocument();
   });
 
-  it("shows game ID and calls onCopy when clicked", () => {
-    const onCopy = vi.fn();
-    render(<MatchHistoryCard {...defaultProps} onCopy={onCopy} />);
-    const idButton = screen.getByText("game-42");
-    fireEvent.click(idButton);
-    expect(onCopy).toHaveBeenCalledTimes(1);
-  });
-
-  it("shows copied text when copiedId matches game ID", () => {
-    render(<MatchHistoryCard {...defaultProps} copiedId="game-42" />);
-    expect(screen.getByText("copied")).toBeInTheDocument();
+  it("shows game ID button", () => {
+    render(<MatchHistoryCard {...defaultProps} />);
+    expect(screen.getByText("game-42")).toBeInTheDocument();
   });
 
   it("calls onReview when review button clicked", () => {

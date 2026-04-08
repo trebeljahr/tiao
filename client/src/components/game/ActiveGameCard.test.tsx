@@ -216,4 +216,13 @@ describe("ActiveGameCard", () => {
     render(<ActiveGameCard game={baseGame} onResume={vi.fn()} data-testid="my-card" />);
     expect(screen.getByTestId("my-card")).toBeInTheDocument();
   });
+
+  it("renders a copyable game id pill next to resume", () => {
+    render(<ActiveGameCard game={baseGame} onResume={vi.fn()} />);
+    const idButton = screen.getByText("game-1");
+    expect(idButton).toBeInTheDocument();
+    expect(idButton.tagName).toBe("BUTTON");
+    // White variant uses bg-white styling
+    expect(idButton.className).toContain("bg-white");
+  });
 });

@@ -9,6 +9,7 @@ import {
   translatePlayerColor,
 } from "./GameShared";
 import { GameConfigBadge } from "./GameConfigBadge";
+import { CopyGameIdButton } from "./CopyGameIdButton";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { cn } from "@/lib/utils";
 
@@ -112,6 +113,7 @@ export function ActiveGameCard({
               {cancellingRematch ? "…" : tCommon("cancel")}
             </Button>
           )}
+          <CopyGameIdButton gameId={game.gameId} variant="white" />
           <Button size="sm" onClick={onResume}>
             {hasRematchRequest ? tCommon("view") : isWaiting ? tCommon("view") : tCommon("resume")}
           </Button>

@@ -40,7 +40,6 @@ export function PublicProfilePage() {
   const [matchPlayerId, setMatchPlayerId] = useState<string | null>(null);
   const [matchHasMore, setMatchHasMore] = useState(false);
   const [matchLoading, setMatchLoading] = useState(false);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [playerAchievements, setPlayerAchievements] = useState<PlayerAchievement[]>([]);
   const locale = useLocale();
 
@@ -107,12 +106,6 @@ export function PublicProfilePage() {
     } finally {
       setMatchLoading(false);
     }
-  };
-
-  const handleCopy = (gameId: string) => {
-    void navigator.clipboard.writeText(gameId);
-    setCopiedId(gameId);
-    setTimeout(() => setCopiedId((prev) => (prev === gameId ? null : prev)), 1800);
   };
 
   const allBadges = (profile?.badges ?? []).filter((id) => BADGE_DEFINITIONS[id as BadgeId]);
@@ -388,8 +381,6 @@ export function PublicProfilePage() {
                         game={game}
                         playerId={auth?.player.playerId ?? matchPlayerId!}
                         playerName={isOwnProfile ? undefined : (profile?.displayName ?? undefined)}
-                        copiedId={copiedId}
-                        onCopy={() => handleCopy(game.gameId)}
                         onReview={() => router.push(`/game/${game.gameId}`)}
                       />
                     ))}
