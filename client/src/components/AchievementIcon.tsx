@@ -115,24 +115,26 @@ function TombstoneIcon({ color }: IconProps) {
 function BoxingGloveIcon({ color }: IconProps) {
   return (
     <>
-      {/* Glove body — puffy rounded shape */}
+      {/* Glove — front view, fist shape with big padded knuckles */}
       <path
         stroke={color}
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M8 6c-2 0-3.5 2-3.5 4.5S6 15 8 15h7c2.5 0 4.5-2 4.5-4.5S17.5 6 15 6H8z"
+        d="M7 7a3 3 0 013-3h4a3 3 0 013 3v4a5 5 0 01-10 0V7z"
       />
-      {/* Thumb */}
+      {/* Thumb sticking out to the side */}
       <path
         stroke={color}
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M5.5 8C4 8.5 3 9.5 3 11s1.5 2.5 2.5 2"
+        d="M7 8c-1.5 0-3 1-3 2.5S5 13 7 12"
       />
-      {/* Wrist cuff */}
-      <path stroke={color} strokeLinecap="round" d="M8 15v3a2 2 0 004 0v-3" />
-      {/* Lacing lines */}
-      <path stroke={color} strokeLinecap="round" d="M9 9h5M9 12h5" />
+      {/* Knuckle padding line */}
+      <path stroke={color} strokeLinecap="round" d="M8 7.5h8" />
+      {/* Wrist band */}
+      <rect x="8" y="14" width="8" height="3" rx="1" stroke={color} fill="none" />
+      {/* Arm */}
+      <path stroke={color} strokeLinecap="round" strokeWidth={2} d="M12 17v4" />
     </>
   );
 }
@@ -433,37 +435,52 @@ function GridBoardIcon({ color }: IconProps) {
   );
 }
 
-function FirstBloodIcon({ color }: IconProps) {
+function BloodDropIcon({ color }: IconProps) {
   return (
-    <>
-      {/* Sword / dagger */}
-      <path stroke={color} strokeLinecap="round" strokeLinejoin="round" d="M12 3v12" />
-      <path stroke={color} strokeLinecap="round" strokeLinejoin="round" d="M12 3l2 6h-4l2-6z" />
-      {/* Crossguard */}
-      <path stroke={color} strokeLinecap="round" d="M8 13h8" />
-      {/* Handle */}
-      <path stroke={color} strokeLinecap="round" strokeWidth={2} d="M12 15v4" />
-      {/* Pommel */}
-      <circle cx="12" cy="20.5" r="1" stroke={color} fill="none" />
-    </>
+    <path
+      stroke={color}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 2C12 2 6 10 6 14.5a6 6 0 0012 0C18 10 12 2 12 2z"
+    />
   );
 }
 
 function ChainReactionIcon({ color }: IconProps) {
   return (
     <>
-      {/* Chain of connected circles — pieces being captured in sequence */}
-      <circle cx="4" cy="12" r="2.5" stroke={color} fill="none" />
-      <circle cx="10" cy="7" r="2.5" stroke={color} fill="none" />
-      <circle cx="16" cy="12" r="2.5" stroke={color} fill="none" />
-      <circle cx="10" cy="17" r="2.5" stroke={color} fill="none" />
-      <circle cx="21" cy="7" r="2" stroke={color} fill="none" />
-      {/* Connecting jump lines */}
-      <path
+      {/* Chain link 1 (top) — rounded rectangle rotated */}
+      <rect
+        x="6"
+        y="1"
+        width="6"
+        height="10"
+        rx="3"
         stroke={color}
-        strokeLinecap="round"
-        strokeDasharray="2 1.5"
-        d="M6.2 10.5l2-2M12.2 8.5l2 2M14 14l-2 1.5M18 10.5l1.5-2"
+        fill="none"
+        transform="rotate(15 9 6)"
+      />
+      {/* Chain link 2 (middle) — interlocked */}
+      <rect
+        x="9.5"
+        y="7"
+        width="6"
+        height="10"
+        rx="3"
+        stroke={color}
+        fill="none"
+        transform="rotate(-10 12.5 12)"
+      />
+      {/* Chain link 3 (bottom) — interlocked */}
+      <rect
+        x="7"
+        y="13"
+        width="6"
+        height="10"
+        rx="3"
+        stroke={color}
+        fill="none"
+        transform="rotate(15 10 18)"
       />
     </>
   );
@@ -472,15 +489,15 @@ function ChainReactionIcon({ color }: IconProps) {
 function OneJumpWonderIcon({ color }: IconProps) {
   return (
     <>
-      {/* Lightning bolt through a game piece */}
-      <circle cx="12" cy="12" r="9" stroke={color} fill="none" />
+      {/* Explosion / starburst */}
       <path
         stroke={color}
         strokeLinecap="round"
         strokeLinejoin="round"
-        strokeWidth={2}
-        d="M13 4l-3 7h4l-3 8"
+        d="M12 2l1.5 4.5L18 4l-2.5 4 4.5 1.5L16 12l4 2.5-4.5 1.5L18 20l-4.5-2.5L12 22l-1.5-4.5L6 20l2.5-4L4 14.5 8 12 4 9.5 8.5 8 6 4l4.5 2.5z"
       />
+      {/* Number 1 in center */}
+      <path stroke={color} strokeLinecap="round" strokeWidth={2} d="M11 9l1.5-1V16" />
     </>
   );
 }
@@ -529,7 +546,7 @@ const ICON_MAP: Record<string, (props: IconProps) => React.JSX.Element> = {
   "flawless-victory": DiamondIcon,
   "david-vs-goliath": DavidGoliathIcon,
   "checkered-past": GridBoardIcon,
-  "first-blood": FirstBloodIcon,
+  "first-blood": BloodDropIcon,
   "chain-reaction": ChainReactionIcon,
   "one-jump-wonder": OneJumpWonderIcon,
 };
