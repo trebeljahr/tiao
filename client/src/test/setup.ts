@@ -68,22 +68,41 @@ vi.mock("next-intl", () => {
     return (cursor ?? {}) as Record<string, string>;
   };
 
+  // Cache the `t` function per namespace so repeated `useTranslations("ns")`
+  // calls from the same component across renders return a STABLE function
+  // identity. Without this, components that use `t` inside `useCallback` /
+  // `useMemo` deps see a fresh identity on every render, invalidating their
+  // memoization and, in providers with async effects (e.g.
+  // SocialNotificationsContext), causing the init effect to re-run on every
+  // render and fire state updates outside the test's act boundary — which
+  // floods stderr with "An update to <Provider> inside a test was not
+  // wrapped in act(...)" warnings.
+  const tCache = new Map<string, ReturnType<typeof makeT>>();
+  function makeT(namespace: string) {
+    const ns = resolveNamespace(namespace);
+    const t = (key: string, params?: Record<string, string | number>) => {
+      let value = ns[key] ?? key;
+      if (params) {
+        value = Object.entries(params).reduce(
+          (str, [k, v]) => str.replace(`{${k}}`, String(v)),
+          value,
+        );
+      }
+      return value;
+    };
+    t.rich = t;
+    t.has = (key: string) => key in ns;
+    return t;
+  }
+
   return {
     useTranslations: (namespace: string) => {
-      const ns = resolveNamespace(namespace);
-      const t = (key: string, params?: Record<string, string | number>) => {
-        let value = ns[key] ?? key;
-        if (params) {
-          value = Object.entries(params).reduce(
-            (str, [k, v]) => str.replace(`{${k}}`, String(v)),
-            value,
-          );
-        }
-        return value;
-      };
-      t.rich = t;
-      t.has = (key: string) => key in ns;
-      return t;
+      let cached = tCache.get(namespace);
+      if (!cached) {
+        cached = makeT(namespace);
+        tCache.set(namespace, cached);
+      }
+      return cached;
     },
     useLocale: () => "en",
     useMessages: () => messages,

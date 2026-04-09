@@ -77,6 +77,25 @@ function simulateLobbyMessage(payload: Record<string, unknown>) {
   });
 }
 
+/**
+ * Flush the provider's initial `fetchOverview()` promise chain inside an
+ * `act` boundary. `renderHook`'s initial render wraps the useEffect schedule
+ * in act, but the async `.then(setOverview)` that lands after
+ * `getSocialOverview()` resolves runs in a later microtask — if tests just
+ * `waitFor(() => expect(mockGetSocialOverview).toHaveBeenCalled())`, the
+ * state update from the `.then()` fires outside act and floods stderr with
+ * "An update to SocialNotificationsProvider inside a test was not wrapped in
+ * act(...)" warnings. Awaiting two microtask ticks inside act lets the
+ * hydration promise resolve AND the subsequent setState commit cleanly.
+ */
+async function flushHydration() {
+  // Use a macrotask (setTimeout 0) so any number of chained microtasks
+  // from the async fetchOverview() body all resolve before act exits.
+  await act(async () => {
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+  });
+}
+
 // --- Tests ---
 
 describe("SocialNotificationsContext", () => {
@@ -107,9 +126,7 @@ describe("SocialNotificationsContext", () => {
     renderHook(() => useSocialNotifications(), { wrapper });
 
     // Wait for initial hydration
-    await waitFor(() => {
-      expect(mockGetSocialOverview).toHaveBeenCalled();
-    });
+    await flushHydration();
 
     // Simulate a social-update with a new friend request
     const updatedOverview: SocialOverview = {
@@ -141,9 +158,7 @@ describe("SocialNotificationsContext", () => {
     renderHook(() => useSocialNotifications(), { wrapper });
 
     // Wait for hydration
-    await waitFor(() => {
-      expect(mockGetSocialOverview).toHaveBeenCalled();
-    });
+    await flushHydration();
 
     // Now simulate a social-update where alice's request is gone (accepted from friends page)
     const updatedOverview: SocialOverview = {
@@ -166,9 +181,7 @@ describe("SocialNotificationsContext", () => {
 
     renderHook(() => useSocialNotifications(), { wrapper });
 
-    await waitFor(() => {
-      expect(mockGetSocialOverview).toHaveBeenCalled();
-    });
+    await flushHydration();
 
     // Bob's request disappears (declined from another tab/page)
     simulateLobbyMessage({ type: "social-update", overview: emptyOverview });
@@ -188,9 +201,7 @@ describe("SocialNotificationsContext", () => {
 
     renderHook(() => useSocialNotifications(), { wrapper });
 
-    await waitFor(() => {
-      expect(mockGetSocialOverview).toHaveBeenCalled();
-    });
+    await flushHydration();
 
     // Only alice's request is accepted; bob's remains
     const updatedOverview: SocialOverview = {
@@ -223,9 +234,7 @@ describe("SocialNotificationsContext", () => {
 
     renderHook(() => useSocialNotifications(), { wrapper });
 
-    await waitFor(() => {
-      expect(mockGetSocialOverview).toHaveBeenCalled();
-    });
+    await flushHydration();
 
     // Invitation is gone (declined from another page)
     simulateLobbyMessage({ type: "social-update", overview: emptyOverview });
@@ -239,9 +248,7 @@ describe("SocialNotificationsContext", () => {
 
     renderHook(() => useSocialNotifications(), { wrapper });
 
-    await waitFor(() => {
-      expect(mockGetSocialOverview).toHaveBeenCalled();
-    });
+    await flushHydration();
 
     // No previous IDs to dismiss, and new request appears
     const updatedOverview: SocialOverview = {
@@ -268,9 +275,7 @@ describe("SocialNotificationsContext", () => {
 
     renderHook(() => useSocialNotifications(), { wrapper });
 
-    await waitFor(() => {
-      expect(mockGetSocialOverview).toHaveBeenCalled();
-    });
+    await flushHydration();
 
     const updatedOverview: SocialOverview = {
       ...emptyOverview,
@@ -333,9 +338,7 @@ describe("SocialNotificationsContext", () => {
 
     renderHook(() => useSocialNotifications(), { wrapper });
 
-    await waitFor(() => {
-      expect(mockGetSocialOverview).toHaveBeenCalled();
-    });
+    await flushHydration();
 
     // Toast should NOT have been called for alice since she's already in sessionStorage
     expect(toast).not.toHaveBeenCalledWith(
@@ -378,9 +381,7 @@ describe("SocialNotificationsContext", () => {
 
     const { result } = renderHook(() => useSocialNotifications(), { wrapper });
 
-    await waitFor(() => {
-      expect(mockGetSocialOverview).toHaveBeenCalled();
-    });
+    await flushHydration();
 
     // Simulate a game-update with an incoming rematch
     simulateLobbyMessage({
@@ -405,9 +406,7 @@ describe("SocialNotificationsContext", () => {
 
     const { result } = renderHook(() => useSocialNotifications(), { wrapper });
 
-    await waitFor(() => {
-      expect(mockGetSocialOverview).toHaveBeenCalled();
-    });
+    await flushHydration();
 
     // Incoming rematch
     simulateLobbyMessage({
@@ -453,9 +452,7 @@ describe("SocialNotificationsContext", () => {
 
     const { result } = renderHook(() => useSocialNotifications(), { wrapper });
 
-    await waitFor(() => {
-      expect(mockGetSocialOverview).toHaveBeenCalled();
-    });
+    await flushHydration();
 
     simulateLobbyMessage({
       type: "game-update",
@@ -516,9 +513,7 @@ describe("SocialNotificationsContext", () => {
 
     const { result } = renderHook(() => useSocialNotifications(), { wrapper });
 
-    await waitFor(() => {
-      expect(mockGetSocialOverview).toHaveBeenCalled();
-    });
+    await flushHydration();
 
     // Outgoing rematch (YOU requested)
     simulateLobbyMessage({
@@ -547,9 +542,7 @@ describe("SocialNotificationsContext", () => {
 
     renderHook(() => useSocialNotifications(), { wrapper });
 
-    await waitFor(() => {
-      expect(mockGetSocialOverview).toHaveBeenCalled();
-    });
+    await flushHydration();
 
     // Verify sessionStorage was set with toasted IDs
     const stored = sessionStorage.getItem("tiao:toasted-notifs:my-player");
@@ -694,9 +687,7 @@ describe("SocialNotificationsContext", () => {
 
     renderHook(() => useSocialNotifications(), { wrapper });
 
-    await waitFor(() => {
-      expect(mockGetSocialOverview).toHaveBeenCalled();
-    });
+    await flushHydration();
 
     const updatedOverview: SocialOverview = {
       ...emptyOverview,
