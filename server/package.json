@@ -11,7 +11,7 @@
     "start": "NODE_ENV=production node dist/server/index.js",
     "dev": "NODE_ENV=development NODE_OPTIONS='--no-deprecation' nodemon --watch . --watch ../shared --ext ts --exec 'tsx' index.ts",
     "dev:e2e": "NODE_ENV=test nodemon --watch . --watch ../shared --ext ts --exec 'tsx' index.ts",
-    "test": "NODE_ENV=test npm run build && NODE_ENV=test node --test --test-reporter=spec dist/server/tests/*.test.js",
+    "test": "NODE_ENV=test npm run build && NODE_ENV=test NODE_OPTIONS='--no-deprecation' node --test --test-reporter=spec dist/server/tests/*.test.js",
     "prod": "pm2 restart ecosystem.config.js"
   },
   "dependencies": {

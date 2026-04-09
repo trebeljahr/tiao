@@ -1,3 +1,4 @@
+import { isValidObjectId } from "mongoose";
 import Achievement from "../models/Achievement";
 import GameAccount from "../models/GameAccount";
 import GameRoom from "../models/GameRoom";
@@ -149,10 +150,21 @@ export async function onGameCompleted(ctx: GameCompletedContext): Promise<void> 
   const finishReason = getFinishReason(room.state);
   const boardMoves = room.state.history.filter(isBoardMove);
 
-  // Both players are "account" type to track achievements
+  // Both players are "account" type to track achievements. Also require a
+  // valid ObjectId for `id` — tests and some legacy fixtures use freeform
+  // account IDs like "alice" which would otherwise blow up GameAccount.findById
+  // with a Mongoose CastError, spamming stderr in the test suite.
   const players: { id: string; color: PlayerColor; isAccount: boolean }[] = [
-    { id: white.playerId, color: "white", isAccount: white.kind === "account" },
-    { id: black.playerId, color: "black", isAccount: black.kind === "account" },
+    {
+      id: white.playerId,
+      color: "white",
+      isAccount: white.kind === "account" && isValidObjectId(white.playerId),
+    },
+    {
+      id: black.playerId,
+      color: "black",
+      isAccount: black.kind === "account" && isValidObjectId(black.playerId),
+    },
   ];
 
   for (const p of players) {
