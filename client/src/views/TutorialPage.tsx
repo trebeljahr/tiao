@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
 import { markTutorialComplete } from "@/lib/api";
+import { op } from "@/lib/openpanel";
 import { cn } from "@/lib/utils";
 import { InteractiveMiniBoard } from "@/components/tutorial/InteractiveMiniBoard";
 import { getTutorialSteps } from "@/components/tutorial/tutorialSteps";
@@ -101,6 +102,15 @@ function TutorialPageInner() {
 
   const steps = useMemo(() => getTutorialSteps(t), [t]);
 
+  // Fire tutorial_started exactly once per mount. Onboarding funnel needs
+  // this as step 1 of [started → step_completed → finished].
+  useEffect(() => {
+    op.track("tutorial_started", {
+      from: fromGame ? "game" : fromMatchmaking ? "matchmaking" : "direct",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [navOpen, setNavOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(1);
@@ -138,9 +148,14 @@ function TutorialPageInner() {
     if (currentStep < steps.length - 1) {
       // Mark current step as completed when advancing
       setCompletedSteps((prev) => new Set(prev).add(currentStep));
+      op.track("tutorial_step_completed", {
+        step_index: currentStep,
+        step_id: steps[currentStep]?.id ?? `step-${currentStep}`,
+        total_steps: steps.length,
+      });
       goTo(currentStep + 1);
     }
-  }, [currentStep, goTo]);
+  }, [currentStep, goTo, steps]);
 
   const goPrev = useCallback(() => {
     if (currentStep > 0) {
@@ -166,6 +181,12 @@ function TutorialPageInner() {
     // played before" path write this key so the rules-intro modal stays hidden
     // for users who have committed one way or the other.
     localStorage.setItem("tiao:knowsHowToPlay", "1");
+
+    op.track("tutorial_finished", {
+      steps_completed: completedSteps.size,
+      total_steps: steps.length,
+      is_replay: isReplay,
+    });
 
     if (auth?.player.kind === "account" && !isReplay) {
       markTutorialComplete()
