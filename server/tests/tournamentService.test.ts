@@ -3,7 +3,7 @@ import { before, test, describe } from "node:test";
 import type { PlayerIdentity, TournamentSettings } from "../../shared/src";
 import { GameService, GameServiceError } from "../game/gameService";
 import { InMemoryGameRoomStore } from "../game/gameStore";
-import { TournamentService } from "../game/tournamentService";
+import { TournamentService, MAX_ONGOING_TOURNAMENTS_PER_CREATOR } from "../game/tournamentService";
 import { InMemoryTournamentStore } from "../game/tournamentStore";
 import { InMemoryLockProvider } from "../game/lockProvider";
 
@@ -82,6 +82,49 @@ describe("Tournament creation", () => {
       () => tournamentService.createTournament(guest, defaultSettings(), "Test"),
       (error) => isGameServiceError(error, "ACCOUNT_REQUIRED"),
     );
+  });
+
+  test(`rejects creating more than ${MAX_ONGOING_TOURNAMENTS_PER_CREATOR} ongoing tournaments per creator`, async () => {
+    const { tournamentService } = createServices();
+    const alice = createPlayer("alice");
+
+    for (let i = 0; i < MAX_ONGOING_TOURNAMENTS_PER_CREATOR; i++) {
+      await tournamentService.createTournament(alice, defaultSettings(), `T${i}`);
+    }
+
+    await assert.rejects(
+      () => tournamentService.createTournament(alice, defaultSettings(), "Overflow"),
+      (error) => isGameServiceError(error, "TOURNAMENT_LIMIT_REACHED"),
+    );
+  });
+
+  test("cancelled and finished tournaments do not count toward the ongoing limit", async () => {
+    const { tournamentService } = createServices();
+    const alice = createPlayer("alice");
+
+    // Fill the quota, then cancel one — should be allowed to create another.
+    const created = [] as Awaited<ReturnType<typeof tournamentService.createTournament>>[];
+    for (let i = 0; i < MAX_ONGOING_TOURNAMENTS_PER_CREATOR; i++) {
+      created.push(await tournamentService.createTournament(alice, defaultSettings(), `T${i}`));
+    }
+
+    await tournamentService.cancelTournament(created[0].tournamentId, "alice");
+
+    // Now a new one should succeed.
+    await tournamentService.createTournament(alice, defaultSettings(), "New");
+  });
+
+  test("limit is per-creator — other users can still create", async () => {
+    const { tournamentService } = createServices();
+    const alice = createPlayer("alice");
+    const bob = createPlayer("bob");
+
+    for (let i = 0; i < MAX_ONGOING_TOURNAMENTS_PER_CREATOR; i++) {
+      await tournamentService.createTournament(alice, defaultSettings(), `Alice-${i}`);
+    }
+
+    // Bob is unaffected.
+    await tournamentService.createTournament(bob, defaultSettings(), "Bob's");
   });
 });
 
@@ -543,6 +586,45 @@ describe("Tournament cancellation", () => {
     assert.equal(roomAfter.status, "active", "game should still be active and playable");
   });
 
+  test("creator can delete a cancelled tournament", async () => {
+    const { tournamentService } = createServices();
+    const alice = createPlayer("alice");
+
+    const t = await tournamentService.createTournament(alice, defaultSettings(), "Doomed");
+    await tournamentService.cancelTournament(t.tournamentId, "alice");
+    await tournamentService.deleteTournament(t.tournamentId, "alice");
+
+    await assert.rejects(
+      () => tournamentService.getTournamentSnapshot(t.tournamentId),
+      (error) => isGameServiceError(error, "TOURNAMENT_NOT_FOUND"),
+    );
+  });
+
+  test("non-creator cannot delete a cancelled tournament", async () => {
+    const { tournamentService } = createServices();
+    const alice = createPlayer("alice");
+
+    const t = await tournamentService.createTournament(alice, defaultSettings(), "Doomed");
+    await tournamentService.cancelTournament(t.tournamentId, "alice");
+
+    await assert.rejects(
+      () => tournamentService.deleteTournament(t.tournamentId, "bob"),
+      (error) => isGameServiceError(error, "NOT_ADMIN"),
+    );
+  });
+
+  test("cannot delete a tournament that is not cancelled", async () => {
+    const { tournamentService } = createServices();
+    const alice = createPlayer("alice");
+
+    const t = await tournamentService.createTournament(alice, defaultSettings(), "Live");
+
+    await assert.rejects(
+      () => tournamentService.deleteTournament(t.tournamentId, "alice"),
+      (error) => isGameServiceError(error, "NOT_CANCELLED"),
+    );
+  });
+
   test("cancelling does not unlink finished games", async () => {
     const { tournamentService, gameStore } = createServices();
     const alice = createPlayer("alice");
@@ -606,6 +688,42 @@ describe("Tournament listing", () => {
     const list = await tournamentService.listPublicTournaments();
     assert.equal(list.length, 1);
     assert.equal(list[0].name, "Public");
+  });
+
+  test("public list hides cancelled tournaments by default", async () => {
+    const { tournamentService } = createServices();
+    const alice = createPlayer("alice");
+
+    const active = await tournamentService.createTournament(alice, defaultSettings(), "Active");
+    const doomed = await tournamentService.createTournament(alice, defaultSettings(), "Doomed");
+    await tournamentService.cancelTournament(doomed.tournamentId, "alice");
+
+    const list = await tournamentService.listPublicTournaments();
+    assert.equal(list.length, 1);
+    assert.equal(list[0].tournamentId, active.tournamentId);
+
+    // But explicitly asking for cancelled still returns them.
+    const cancelled = await tournamentService.listPublicTournaments("cancelled");
+    assert.equal(cancelled.length, 1);
+    assert.equal(cancelled[0].tournamentId, doomed.tournamentId);
+  });
+
+  test("my tournaments still shows cancelled tournaments (creator + participants)", async () => {
+    const { tournamentService } = createServices();
+    const alice = createPlayer("alice");
+    const bob = createPlayer("bob");
+
+    const t = await tournamentService.createTournament(alice, defaultSettings(), "Doomed");
+    await tournamentService.registerPlayer(t.tournamentId, bob);
+    await tournamentService.cancelTournament(t.tournamentId, "alice");
+
+    const aliceList = await tournamentService.listMyTournaments("alice");
+    assert.equal(aliceList.length, 1, "creator still sees their cancelled tournament");
+    assert.equal(aliceList[0].status, "cancelled");
+
+    const bobList = await tournamentService.listMyTournaments("bob");
+    assert.equal(bobList.length, 1, "participant still sees the cancelled tournament");
+    assert.equal(bobList[0].status, "cancelled");
   });
 
   test("lists player's tournaments", async () => {
