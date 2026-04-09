@@ -6,6 +6,7 @@ import type { AuthDialogMode } from "@/components/Navbar";
 import { authClient } from "@/lib/auth-client";
 import { login as loginWithUsername, getPlayerIdentity } from "@/lib/api";
 import { isNetworkError, readableError, toastError } from "@/lib/errors";
+import { op } from "@/lib/openpanel";
 
 export interface AuthContextValue {
   auth: AuthResponse | null;
@@ -106,6 +107,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     toastError(appError);
     setAppError(null);
   }, [appError]);
+
+  // Mirror the current player into OpenPanel. Anonymous guests are
+  // intentionally *not* identified — they're tracked as anonymous sessions
+  // so we don't pollute the profile list with throwaway guest ids. Once a
+  // guest upgrades to an account the next `applyAuth` flip kicks in and
+  // identifies them. When the user hasn't granted analytics consent the
+  // underlying `op` is a no-op stub so this call is safe unconditionally.
+  useEffect(() => {
+    const player = auth?.player;
+    if (!player || player.kind !== "account") return;
+    op.identify({
+      profileId: player.playerId,
+      firstName: player.displayName,
+      ...(player.email ? { email: player.email } : {}),
+    });
+  }, [auth?.player]);
 
   useEffect(() => {
     if (!authDialogError) return;
@@ -362,6 +379,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     setCachedAuth(null);
+    // Drop the OpenPanel profile id from the SDK's internal state so the
+    // next guest session starts unidentified. Safe to call when tracking
+    // is disabled — the SDK no-ops.
+    try {
+      op.clear();
+    } catch {
+      /* best-effort */
+    }
 
     // Navigate to the lobby via a full page load — rebuilds the React
     // tree from scratch so protected pages never render in a half-
