@@ -13,7 +13,16 @@ import type {
 } from "../../shared/src";
 import { GameService, GameServiceError, TournamentGameCallback } from "./gameService";
 import { LockProvider, InMemoryLockProvider } from "./lockProvider";
-import { TournamentStore, StoredTournament, MongoTournamentStore } from "./tournamentStore";
+import {
+  TournamentStore,
+  StoredTournament,
+  MongoTournamentStore,
+  ONGOING_TOURNAMENT_STATUSES,
+} from "./tournamentStore";
+
+// Maximum number of "ongoing" (draft/registration/active) tournaments a single
+// account may have at once. Prevents a single user from flooding the lobby.
+export const MAX_ONGOING_TOURNAMENTS_PER_CREATOR = 10;
 import { getWinner, getFinishReason } from "../../shared/src";
 import { getPlayerProfiles, type CachedPlayerProfile } from "../cache/playerIdentityCache";
 import { onTournamentWon } from "./achievementService";
@@ -287,6 +296,15 @@ export class TournamentService implements TournamentGameCallback {
       );
     }
 
+    const ongoingCount = await this.store.countOngoingTournamentsByCreator(creator.playerId);
+    if (ongoingCount >= MAX_ONGOING_TOURNAMENTS_PER_CREATOR) {
+      throw new GameServiceError(
+        409,
+        "TOURNAMENT_LIMIT_REACHED",
+        `You can only have ${MAX_ONGOING_TOURNAMENTS_PER_CREATOR} ongoing tournaments at a time. Finish, cancel, or delete one before creating another.`,
+      );
+    }
+
     // Auto-generate invite code for private tournaments if not provided
     if (settings.visibility === "private" && !settings.inviteCode) {
       settings = { ...settings, inviteCode: generateInviteCode() };
@@ -473,6 +491,26 @@ export class TournamentService implements TournamentGameCallback {
       const saved = await this.store.saveTournament(tournament);
       this.broadcastTournamentUpdate(saved);
       return saved;
+    });
+  }
+
+  async deleteTournament(tournamentId: string, adminId: string): Promise<void> {
+    return this.withLock(tournamentId, async () => {
+      const tournament = await this.getTournament(tournamentId);
+
+      if (tournament.creatorId !== adminId) {
+        throw new GameServiceError(403, "NOT_ADMIN", "Only the tournament creator can delete it.");
+      }
+
+      if (tournament.status !== "cancelled") {
+        throw new GameServiceError(
+          409,
+          "NOT_CANCELLED",
+          "Only cancelled tournaments can be deleted. Cancel it first.",
+        );
+      }
+
+      await this.store.deleteTournament(tournamentId);
     });
   }
 

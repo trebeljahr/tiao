@@ -509,6 +509,12 @@ export function cancelTournament(tournamentId: string) {
   });
 }
 
+export function deleteTournament(tournamentId: string) {
+  return request<Record<string, never>>(`/api/tournaments/${tournamentId}`, {
+    method: "DELETE",
+  });
+}
+
 export function updateTournamentSeeding(
   tournamentId: string,
   seeds: { playerId: string; seed: number }[],

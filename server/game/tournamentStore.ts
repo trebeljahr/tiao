@@ -35,7 +35,12 @@ export interface TournamentStore {
   findTournamentByMatchRoomId(roomId: string): Promise<StoredTournament | null>;
   findRegistrationTournamentsByParticipant(playerId: string): Promise<StoredTournament[]>;
   listTournamentsForInvitedUser(playerId: string): Promise<StoredTournament[]>;
+  countOngoingTournamentsByCreator(creatorId: string): Promise<number>;
+  deleteTournament(tournamentId: string): Promise<void>;
 }
+
+// Statuses considered "ongoing" for the per-creator limit.
+export const ONGOING_TOURNAMENT_STATUSES: TournamentStatus[] = ["draft", "registration", "active"];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function toStoredTournament(
@@ -108,11 +113,26 @@ export class MongoTournamentStore implements TournamentStore {
     const filter: any = { "settings.visibility": "public" };
     if (options?.status) {
       filter.status = options.status;
+    } else {
+      // Hide cancelled tournaments from the public browse list by default.
+      // Creators/participants still see them via listTournamentsForPlayer.
+      filter.status = { $ne: "cancelled" };
     }
 
     const docs = await Tournament.find(filter).sort({ createdAt: -1 }).limit(50).lean().exec();
 
     return docs.map(toStoredTournament);
+  }
+
+  async countOngoingTournamentsByCreator(creatorId: string): Promise<number> {
+    return Tournament.countDocuments({
+      creatorId,
+      status: { $in: ONGOING_TOURNAMENT_STATUSES },
+    }).exec();
+  }
+
+  async deleteTournament(tournamentId: string): Promise<void> {
+    await Tournament.deleteOne({ tournamentId }).exec();
   }
 
   async listTournamentsForPlayer(playerId: string): Promise<StoredTournament[]> {
@@ -213,10 +233,29 @@ export class InMemoryTournamentStore implements TournamentStore {
     return Array.from(this.tournaments.values())
       .filter((t) => {
         if (t.settings.visibility !== "public") return false;
-        if (options?.status && t.status !== options.status) return false;
+        if (options?.status) {
+          if (t.status !== options.status) return false;
+        } else if (t.status === "cancelled") {
+          // Hide cancelled tournaments from the default browse list.
+          return false;
+        }
         return true;
       })
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async countOngoingTournamentsByCreator(creatorId: string): Promise<number> {
+    let count = 0;
+    for (const t of this.tournaments.values()) {
+      if (t.creatorId === creatorId && ONGOING_TOURNAMENT_STATUSES.includes(t.status)) {
+        count += 1;
+      }
+    }
+    return count;
+  }
+
+  async deleteTournament(tournamentId: string): Promise<void> {
+    this.tournaments.delete(tournamentId);
   }
 
   async listTournamentsForPlayer(playerId: string): Promise<StoredTournament[]> {

@@ -177,6 +177,19 @@ router.post(
   ),
 );
 
+// DELETE /tournaments/:id — permanently delete a cancelled tournament (admin)
+router.delete("/tournaments/:id", async (req: Request, res: Response) => {
+  const player = await getAccountPlayer(req, res);
+  if (!player) return;
+
+  try {
+    await tournamentService.deleteTournament(req.params.id as string, player.playerId);
+    return res.status(204).end();
+  } catch (error) {
+    return handleRouteError(res, error, "Unable to delete tournament.", req);
+  }
+});
+
 // PUT /tournaments/:id/seeding — update seeds (admin)
 router.put("/tournaments/:id/seeding", async (req: Request, res: Response) => {
   const player = await getAccountPlayer(req, res);
