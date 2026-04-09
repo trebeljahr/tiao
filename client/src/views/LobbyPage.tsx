@@ -3,6 +3,7 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { TIME_CONTROL_PRESETS, type PlayerColor } from "@shared";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,7 @@ export function LobbyPage() {
   const tConfig = useTranslations("config");
   const tGame = useTranslations("game");
   const tNav = useTranslations("nav");
+  const tLegal = useTranslations("legalFooter");
   const { multiplayerGames, multiplayerGamesLoaded, refreshMultiplayerGames } = useGamesIndex(auth);
 
   const { socialOverview, refreshSocialOverview, handleDeclineGameInvitation } = useSocialData(
@@ -963,6 +965,23 @@ export function LobbyPage() {
             </svg>
             {tNav("reportIssue")}
           </a>
+        </p>
+        <p className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+          <Link
+            href="/impressum"
+            className="font-medium text-[#8b7356] underline decoration-[#d4c4a8] underline-offset-2 hover:text-[#5d4732]"
+          >
+            {tLegal("impressum")}
+          </Link>
+          <span aria-hidden className="opacity-40">
+            ·
+          </span>
+          <Link
+            href="/privacy"
+            className="font-medium text-[#8b7356] underline decoration-[#d4c4a8] underline-offset-2 hover:text-[#5d4732]"
+          >
+            {tLegal("privacy")}
+          </Link>
         </p>
       </footer>
 

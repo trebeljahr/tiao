@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { Navbar } from "@/components/Navbar";
+import { LegalFooter } from "@/components/LegalFooter";
 import { cn } from "@/lib/utils";
 
 /**
@@ -43,6 +44,8 @@ export function PageLayout({
       >
         {children}
       </main>
+
+      <LegalFooter />
     </div>
   );
 }

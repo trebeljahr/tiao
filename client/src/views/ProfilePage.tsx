@@ -25,6 +25,8 @@ import { setAccountPassword, requestEmailChange } from "@/lib/api";
 import { toast } from "sonner";
 import { SkeletonBlock, SkeletonPage } from "@/components/ui/skeleton";
 import { BadgeSelector } from "@/components/BadgeSelector";
+import { useAnalyticsConsent } from "@/lib/AnalyticsConsent";
+import { Link } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
 
 const PROFILE_PIC_SIZE = 512;
@@ -79,6 +81,50 @@ const SOCIAL_PROVIDERS = [
   { id: "google" as const, label: "Google", icon: FaGoogle },
   { id: "discord" as const, label: "Discord", icon: FaDiscord },
 ];
+
+function PrivacyCard() {
+  const t = useTranslations("privacy");
+  const { status, configured, grant, revoke } = useAnalyticsConsent();
+
+  if (!configured) return null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t("settingsCardTitle")}</CardTitle>
+        <CardDescription>
+          {t("settingsCardDesc")}{" "}
+          <Link href="/privacy" className="underline underline-offset-2">
+            {t("readPolicy")}
+          </Link>
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-[#4e3d2c]">{t("analyticsToggleLabel")}</p>
+            <p className="text-xs text-[#6e5b48]">
+              {status === "granted"
+                ? t("analyticsOn")
+                : status === "denied"
+                  ? t("analyticsOff")
+                  : t("analyticsPending")}
+            </p>
+          </div>
+          {status === "granted" ? (
+            <Button type="button" variant="outline" onClick={revoke}>
+              {t("optOut")}
+            </Button>
+          ) : (
+            <Button type="button" onClick={grant}>
+              {t("optIn")}
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 function LinkedAccounts({
   providers,
@@ -1206,6 +1252,8 @@ export function ProfilePage() {
               })();
             }}
           />
+
+          <PrivacyCard />
 
           <Card className="border-red-300 bg-red-50/50">
             <CardHeader>
