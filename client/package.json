@@ -21,7 +21,7 @@
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
     "framer-motion": "^12.0.0",
-    "next": "^16.2.2",
+    "next": "^16.2.3",
     "next-intl": "^4.9.0",
     "react": "^19.0.4",
     "react-dom": "^19.0.4",
@@ -32,6 +32,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.2",
     "@tailwindcss/typography": "^0.5.13",
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^25.0.3",
