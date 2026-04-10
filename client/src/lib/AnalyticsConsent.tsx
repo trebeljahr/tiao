@@ -95,10 +95,22 @@ export function AnalyticsConsentProvider({ children }: { children: React.ReactNo
   );
 }
 
+/**
+ * Fallback value returned when the hook is used outside the provider.
+ * Keeps isolated unit tests (e.g. `render(<ProfilePage />)` without the
+ * full provider tree) working without having to wrap every render call,
+ * and makes the consent feature gracefully degrade if any future
+ * component tree forgets to mount the provider. `configured: false`
+ * ensures consuming UI hides itself (the banner, the settings card)
+ * rather than rendering a stub toggle that does nothing.
+ */
+const NOOP_CONSENT: AnalyticsConsentContextValue = {
+  status: "pending",
+  configured: false,
+  grant: () => {},
+  revoke: () => {},
+};
+
 export function useAnalyticsConsent(): AnalyticsConsentContextValue {
-  const ctx = useContext(AnalyticsConsentContext);
-  if (!ctx) {
-    throw new Error("useAnalyticsConsent must be used within AnalyticsConsentProvider");
-  }
-  return ctx;
+  return useContext(AnalyticsConsentContext) ?? NOOP_CONSENT;
 }
