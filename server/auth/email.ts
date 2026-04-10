@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const EMAIL_FROM = process.env.EMAIL_FROM ?? "Tiao <noreply@tiao.app>";
+const EMAIL_FROM = process.env.EMAIL_FROM ?? "Tiao <noreply@playtiao.com>";
 const IS_DEV = process.env.NODE_ENV !== "production";
 
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
