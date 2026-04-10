@@ -941,7 +941,7 @@
     "subscriptionCancelled": "Subscription cancelled. Your badge remains active until {date}."
   },
   "legalFooter": {
-    "impressum": "Legal notice",
+    "impressum": "Imprint",
     "privacy": "Privacy policy"
   },
   "dataExport": {
@@ -1022,8 +1022,8 @@
     "changesBody": "If we make material changes we will update the 'Last updated' date above and, for account holders, show a notice the next time you log in."
   },
   "impressum": {
-    "title": "Legal notice",
-    "metaDescription": "Legal notice (Impressum) as required by German law (§ 5 DDG, § 18 MStV).",
+    "title": "Imprint",
+    "metaDescription": "Imprint as required by German law (§ 5 DDG, § 18 MStV).",
     "providerTitle": "Provider (§ 5 DDG)",
     "providerAddress": "Rico Trebeljahr\nc/o Block Services\nStuttgarter Str. 106\n70736 Fellbach\nGermany",
     "contactTitle": "Contact",
