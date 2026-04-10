@@ -128,7 +128,7 @@ export function FriendsPage() {
           />
 
           <main className="mx-auto flex max-w-5xl flex-col gap-5 px-4 pb-5 pt-20 sm:px-6 lg:px-8 lg:pb-6 lg:pt-20">
-            <div className="grid gap-5 lg:grid-cols-[1fr_1.5fr]">
+            <div className="grid gap-5 sm:grid-cols-2">
               <AnimatedCard>
                 <PaperCard>
                   <CardHeader>
@@ -184,146 +184,146 @@ export function FriendsPage() {
                 </PaperCard>
               </AnimatedCard>
 
-              <div className="space-y-5">
-                {!social.socialLoaded ? (
-                  <>
-                    <SkeletonCard rows={2} />
-                    <SkeletonCard rows={3} />
-                  </>
-                ) : (
-                  <>
-                    <AnimatedCard delay={0.05}>
-                      <PaperCard>
-                        <CardHeader>
-                          <CardTitle>{t("pending")}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div id="incoming-friend-requests" className="space-y-2 rounded-2xl">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-[#8d7760]">
-                              {t("incomingRequests")}
-                            </h4>
-                            {social.socialOverview.incomingFriendRequests.map((req) => (
-                              <div
-                                key={req.playerId}
-                                data-wiggle-target={`friend-request:${req.playerId}`}
-                                className="flex items-center justify-between p-3 rounded-xl bg-white/40"
+              {!social.socialLoaded ? (
+                <SkeletonCard rows={2} />
+              ) : (
+                <AnimatedCard delay={0.05}>
+                  <PaperCard>
+                    <CardHeader>
+                      <CardTitle>{t("pending")}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div id="incoming-friend-requests" className="space-y-2 rounded-2xl">
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-[#8d7760]">
+                          {t("incomingRequests")}
+                        </h4>
+                        {social.socialOverview.incomingFriendRequests.map((req) => (
+                          <div
+                            key={req.playerId}
+                            data-wiggle-target={`friend-request:${req.playerId}`}
+                            className="flex items-center justify-between p-3 rounded-xl bg-white/40"
+                          >
+                            <PlayerIdentityRow
+                              player={req}
+                              nameClassName="font-medium"
+                              linkToProfile
+                            />
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => social.handleAcceptFriendRequest(req.playerId)}
                               >
-                                <PlayerIdentityRow
-                                  player={req}
-                                  nameClassName="font-medium"
-                                  linkToProfile
-                                />
-                                <div className="flex gap-2">
-                                  <Button
-                                    size="sm"
-                                    onClick={() => social.handleAcceptFriendRequest(req.playerId)}
-                                  >
-                                    {tCommon("accept")}
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => social.handleDeclineFriendRequest(req.playerId)}
-                                  >
-                                    {tCommon("decline")}
-                                  </Button>
-                                </div>
-                              </div>
-                            ))}
-                            {social.socialOverview.incomingFriendRequests.length === 0 && (
-                              <p className="text-sm text-[#6e5b48]">{t("noPendingRequests")}</p>
-                            )}
-                          </div>
-
-                          <div className="space-y-2">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-[#8d7760]">
-                              {t("outgoingRequests")}
-                            </h4>
-                            {social.socialOverview.outgoingFriendRequests.map((req) => (
-                              <div
-                                key={req.playerId}
-                                className="flex items-center justify-between p-3 rounded-xl bg-white/40"
+                                {tCommon("accept")}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => social.handleDeclineFriendRequest(req.playerId)}
                               >
-                                <PlayerIdentityRow
-                                  player={req}
-                                  nameClassName="font-medium"
-                                  linkToProfile
-                                />
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="text-xs text-[#8d7760] hover:text-red-600"
-                                  onClick={() => social.handleCancelFriendRequest(req.playerId)}
-                                  disabled={
-                                    social.socialActionBusyKey === `friend-cancel:${req.playerId}`
-                                  }
-                                >
-                                  {tCommon("cancel")}
-                                </Button>
-                              </div>
-                            ))}
-                            {social.socialOverview.outgoingFriendRequests.length === 0 && (
-                              <p className="text-sm text-[#6e5b48]">{t("noOutgoingRequests")}</p>
-                            )}
-                          </div>
-                        </CardContent>
-                      </PaperCard>
-                    </AnimatedCard>
-
-                    <AnimatedCard delay={0.1}>
-                      <PaperCard>
-                        <CardHeader>
-                          <CardTitle>{t("friends")}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                          {social.socialOverview.friends.map((friend) => (
-                            <div
-                              key={friend.playerId}
-                              className="flex flex-col gap-3 rounded-xl bg-white/40 p-3 sm:flex-row sm:items-center sm:justify-between"
-                            >
-                              <PlayerIdentityRow
-                                player={friend}
-                                online={friend.online}
-                                nameClassName="font-medium"
-                                linkToProfile
-                                className="min-w-0"
-                              />
-                              <div className="flex shrink-0 flex-wrap items-center gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="border-[#dcc7a2] hover:bg-[#faefd8]"
-                                  onClick={() => setActiveGamesFriendId(friend.playerId)}
-                                >
-                                  {t("seeActiveGames")}
-                                </Button>
-                                <Button size="sm" onClick={() => openInviteDialog(friend.playerId)}>
-                                  {t("inviteToGame")}
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="text-[#8d7760] hover:text-red-600"
-                                  onClick={() => social.handleRemoveFriend(friend.playerId)}
-                                  disabled={
-                                    social.socialActionBusyKey ===
-                                    `friend-remove:${friend.playerId}`
-                                  }
-                                >
-                                  {t("unfriend")}
-                                </Button>
-                              </div>
+                                {tCommon("decline")}
+                              </Button>
                             </div>
-                          ))}
-                          {social.socialOverview.friends.length === 0 && (
-                            <p className="text-sm text-[#6e5b48]">{t("emptyFriendList")}</p>
-                          )}
-                        </CardContent>
-                      </PaperCard>
-                    </AnimatedCard>
-                  </>
-                )}
-              </div>
+                          </div>
+                        ))}
+                        {social.socialOverview.incomingFriendRequests.length === 0 && (
+                          <p className="text-sm text-[#6e5b48]">{t("noPendingRequests")}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-[#8d7760]">
+                          {t("outgoingRequests")}
+                        </h4>
+                        {social.socialOverview.outgoingFriendRequests.map((req) => (
+                          <div
+                            key={req.playerId}
+                            className="flex items-center justify-between p-3 rounded-xl bg-white/40"
+                          >
+                            <PlayerIdentityRow
+                              player={req}
+                              nameClassName="font-medium"
+                              linkToProfile
+                            />
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-xs text-[#8d7760] hover:text-red-600"
+                              onClick={() => social.handleCancelFriendRequest(req.playerId)}
+                              disabled={
+                                social.socialActionBusyKey === `friend-cancel:${req.playerId}`
+                              }
+                            >
+                              {tCommon("cancel")}
+                            </Button>
+                          </div>
+                        ))}
+                        {social.socialOverview.outgoingFriendRequests.length === 0 && (
+                          <p className="text-sm text-[#6e5b48]">{t("noOutgoingRequests")}</p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </PaperCard>
+                </AnimatedCard>
+              )}
+
+              {!social.socialLoaded ? (
+                <div className="sm:col-span-2">
+                  <SkeletonCard rows={3} />
+                </div>
+              ) : (
+                <div className="sm:col-span-2">
+                  <AnimatedCard delay={0.1}>
+                    <PaperCard>
+                      <CardHeader>
+                        <CardTitle>{t("friends")}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        {social.socialOverview.friends.map((friend) => (
+                          <div
+                            key={friend.playerId}
+                            className="flex flex-col gap-3 rounded-xl bg-white/40 p-3 sm:flex-row sm:items-center sm:justify-between"
+                          >
+                            <PlayerIdentityRow
+                              player={friend}
+                              online={friend.online}
+                              nameClassName="font-medium"
+                              linkToProfile
+                              className="min-w-0"
+                            />
+                            <div className="flex shrink-0 flex-wrap items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-[#dcc7a2] hover:bg-[#faefd8]"
+                                onClick={() => setActiveGamesFriendId(friend.playerId)}
+                              >
+                                {t("seeActiveGames")}
+                              </Button>
+                              <Button size="sm" onClick={() => openInviteDialog(friend.playerId)}>
+                                {t("inviteToGame")}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-[#8d7760] hover:text-red-600"
+                                onClick={() => social.handleRemoveFriend(friend.playerId)}
+                                disabled={
+                                  social.socialActionBusyKey === `friend-remove:${friend.playerId}`
+                                }
+                              >
+                                {t("unfriend")}
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                        {social.socialOverview.friends.length === 0 && (
+                          <p className="text-sm text-[#6e5b48]">{t("emptyFriendList")}</p>
+                        )}
+                      </CardContent>
+                    </PaperCard>
+                  </AnimatedCard>
+                </div>
+              )}
             </div>
           </main>
 
