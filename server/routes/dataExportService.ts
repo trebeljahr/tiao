@@ -35,10 +35,39 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import GameAccount from "../models/GameAccount";
 import GameInvitation from "../models/GameInvitation";
 import GameRoom from "../models/GameRoom";
+import type { IUserExportRequest } from "../models/UserExportRequest";
 import UserExportRequest from "../models/UserExportRequest";
 import Tournament from "../models/Tournament";
 import { s3Client } from "../config/s3Client";
 import { BUCKET_NAME } from "../config/envVars";
+import { gameService } from "../game/gameService";
+
+/**
+ * Push an `export-update` message to this user's lobby socket(s) so
+ * the Settings page can flip the card from "preparing" to "ready"
+ * without polling. Fire-and-forget — the lobby socket may not be open
+ * (offline users), in which case the next manual refresh picks up the
+ * state from the REST endpoint instead. The shape matches what
+ * listExportsForAccount returns for a single row so the client can
+ * splice it straight into local state.
+ */
+function broadcastExportUpdate(request: IUserExportRequest): void {
+  try {
+    gameService.broadcastLobby(request.accountId, {
+      type: "export-update",
+      export: {
+        id: String(request._id),
+        status: request.status,
+        createdAt: request.createdAt,
+        expiresAt: request.expiresAt,
+        error: request.error ?? null,
+      },
+    });
+  } catch (err) {
+    // Broadcast is best-effort — never let it derail the worker.
+    console.warn("[export] Failed to broadcast export-update:", err);
+  }
+}
 
 /**
  * How long a finished export stays downloadable before the cleanup
@@ -86,6 +115,13 @@ export async function enqueueExport(accountId: string) {
     expiresAt,
   });
 
+  // Tell the lobby socket about the new row so the Settings page can
+  // splice it into state without needing a REST refetch. The client
+  // already gets the row in the POST response, so this broadcast is
+  // mainly for *other* tabs of the same account that already had the
+  // Settings page open.
+  broadcastExportUpdate(request);
+
   // Detach from the request lifecycle. Errors inside runExport are
   // caught there and persisted as status="failed" on the row — never
   // rethrown into this setImmediate callback so the event loop stays
@@ -109,6 +145,7 @@ async function runExport(requestId: string): Promise<void> {
 
   request.status = "running";
   await request.save();
+  broadcastExportUpdate(request);
 
   try {
     const accountId = request.accountId;
@@ -135,11 +172,13 @@ async function runExport(requestId: string): Promise<void> {
     request.downloadKey = key;
     request.status = "ready";
     await request.save();
+    broadcastExportUpdate(request);
   } catch (err) {
     console.error("[export] Export generation failed for request", requestId, err);
     request.status = "failed";
     request.error = err instanceof Error ? err.message : "Unknown error";
     await request.save();
+    broadcastExportUpdate(request);
   }
 }
 

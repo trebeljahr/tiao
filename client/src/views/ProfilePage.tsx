@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FaGithub, FaGoogle, FaDiscord } from "react-icons/fa";
 import { useAuth } from "@/lib/AuthContext";
+import { useLobbyMessage } from "@/lib/LobbySocketContext";
 import { authClient } from "@/lib/auth-client";
 import { BackButton } from "@/components/BackButton";
 import { PageLayout } from "@/components/PageLayout";
@@ -89,34 +90,50 @@ const SOCIAL_PROVIDERS = [
 function DataExportCard() {
   const t = useTranslations("dataExport");
   const tCommon = useTranslations("common");
+  const { auth } = useAuth();
   const [exports, setExports] = useState<UserExportRow[] | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // Only real accounts have export rows — guests never hit the endpoint.
+  // This is the fix for the background 401 loop: previously an unauthenticated
+  // or just-logged-out visitor landing on /settings would fire the initial
+  // GET once per mount (or once per HMR reload in dev) and get a 401.
+  const isAccount = auth?.player.kind === "account";
+
   const load = useCallback(async () => {
+    if (!isAccount) return;
     try {
       const res = await listDataExports();
       setExports(res.exports);
     } catch (error) {
       toastError(readableError(error));
     }
-  }, []);
+  }, [isAccount]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  // Poll while any request is pending/running so the UI flips to "ready"
-  // without a manual refresh. The interval is long enough that a normal
-  // background tab costs basically nothing, short enough that the user
-  // sees the transition without getting impatient.
-  useEffect(() => {
-    const hasActive = exports?.some((e) => e.status === "pending" || e.status === "running");
-    if (!hasActive) return;
-    const interval = window.setInterval(() => {
-      void load();
-    }, 5000);
-    return () => window.clearInterval(interval);
-  }, [exports, load]);
+  // Server pushes `export-update` on the lobby socket whenever a row
+  // transitions state (pending → running → ready/failed). Splice the
+  // update straight into local state — no polling, no extra REST round-
+  // trips. If the card mounted before the socket had anything to say
+  // the initial load() above covers the cold start; if the socket is
+  // transiently down the next mount will refetch from REST. Either way
+  // we never fall back to setInterval polling.
+  useLobbyMessage((payload) => {
+    if (payload.type !== "export-update") return;
+    const incoming = payload.export as UserExportRow | undefined;
+    if (!incoming) return;
+    setExports((prev) => {
+      if (!prev) return [incoming];
+      const idx = prev.findIndex((e) => e.id === incoming.id);
+      if (idx === -1) return [incoming, ...prev];
+      const next = prev.slice();
+      next[idx] = incoming;
+      return next;
+    });
+  });
 
   async function handleRequest() {
     setBusy(true);
@@ -139,6 +156,12 @@ function DataExportCard() {
       toastError(readableError(error));
     }
   }
+
+  // Belt-and-braces: this card is already rendered inside an
+  // account-only branch in the main JSX, but a direct early return here
+  // makes the gate obvious at the component level too, and prevents any
+  // future refactor from accidentally rendering it for guests.
+  if (!isAccount) return null;
 
   const active = exports?.find(
     (e) => e.status === "pending" || e.status === "running" || e.status === "ready",
