@@ -71,6 +71,12 @@ COPY --from=build /app/client/src/i18n ./src/i18n
 ENV NODE_ENV=production
 ENV PORT=80
 
+# Runtime-only proxy targets (not baked into the JS bundle). The custom
+# server.mjs reads these at startup to proxy analytics and error monitoring
+# requests through the app's own origin, avoiding adblocker filters.
+# OPENPANEL_PROXY_URL=https://analytics-api.trebeljahr.com
+# GLITCHTIP_PROXY_URL=https://glitchtip.trebeljahr.com
+
 EXPOSE 80
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=5 \

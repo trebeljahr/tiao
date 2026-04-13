@@ -15,6 +15,11 @@ export const glitchtipEnabled = Boolean(dsn);
 if (typeof window !== "undefined" && glitchtipEnabled) {
   Sentry.init({
     dsn: dsn!,
+    // Route envelopes through /bugs so requests look first-party and aren't
+    // blocked by adblockers or privacy extensions that filter sentry/glitchtip
+    // domains. The server.mjs proxy extracts the project ID from the envelope
+    // header and forwards to the real GlitchTip ingestion endpoint.
+    tunnel: "/bugs",
     environment: process.env.NODE_ENV ?? "development",
     release: process.env.NEXT_PUBLIC_APP_VERSION ?? "unknown",
   });

@@ -1,9 +1,15 @@
 /**
  * Custom Next.js server with runtime API proxying.
  *
- * Proxies /api/* and /ws/* to the backend at runtime using API_URL,
- * including WebSocket upgrade requests, so the Docker image doesn't
- * need to be rebuilt when the backend address changes.
+ * Proxies:
+ *   /api/* and /ws/*  → backend (API_URL)
+ *   /collect/*        → OpenPanel analytics (OPENPANEL_PROXY_URL)
+ *   /bugs             → GlitchTip/Sentry envelope ingestion (GLITCHTIP_PROXY_URL)
+ *
+ * The analytics and error-monitoring proxies exist so that browser
+ * requests look like first-party traffic. Ad-blockers and privacy
+ * extensions block direct requests to analytics-*.example.com or
+ * sentry/glitchtip domains; routing through the same origin avoids that.
  *
  * Usage:
  *   node server.mjs              (production: PORT)
@@ -90,6 +96,55 @@ const apiTarget = process.env.API_URL || `http://127.0.0.1:${process.env.API_POR
 const apiUrl = new URL(apiTarget);
 const isHttps = apiUrl.protocol === "https:";
 const makeRequest = isHttps ? httpsRequest : httpRequest;
+
+// --- OpenPanel analytics proxy -----------------------------------------------
+// When set, /collect/* requests are forwarded to the OpenPanel API so that
+// browser analytics traffic looks like a first-party request (invisible to
+// adblockers). The client SDK is configured with apiUrl="/collect" instead of
+// the direct analytics-api.* domain.
+const openpanelProxyTarget = process.env.OPENPANEL_PROXY_URL; // e.g. "https://analytics-api.trebeljahr.com"
+const openpanelUrl = openpanelProxyTarget ? new URL(openpanelProxyTarget) : null;
+
+// --- GlitchTip (Sentry) tunnel proxy ----------------------------------------
+// When set, /bugs receives Sentry envelopes from the browser SDK (via its
+// `tunnel` option) and forwards them to the GlitchTip ingestion endpoint.
+// The DSN's project ID is extracted from the envelope header at runtime so
+// the proxy doesn't need to know the DSN itself.
+const glitchtipProxyTarget = process.env.GLITCHTIP_PROXY_URL; // e.g. "https://glitchtip.trebeljahr.com"
+const glitchtipUrl = glitchtipProxyTarget ? new URL(glitchtipProxyTarget) : null;
+
+/**
+ * Generic reverse proxy for a single request. Sends the request to the
+ * given target URL, rewriting Host and path as needed.
+ */
+function proxyToTarget(req, res, target, targetPath) {
+  const targetIsHttps = target.protocol === "https:";
+  const doRequest = targetIsHttps ? httpsRequest : httpRequest;
+
+  const proxyReq = doRequest(
+    {
+      hostname: target.hostname,
+      port: target.port || (targetIsHttps ? 443 : 80),
+      path: targetPath,
+      method: req.method,
+      headers: { ...req.headers, host: target.host },
+    },
+    (proxyRes) => {
+      res.writeHead(proxyRes.statusCode, proxyRes.headers);
+      proxyRes.pipe(res, { end: true });
+    },
+  );
+
+  proxyReq.on("error", (err) => {
+    console.error(`Failed to proxy ${req.url} → ${target.origin}${targetPath}`, err);
+    if (!res.headersSent) {
+      res.writeHead(502, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Bad Gateway" }));
+    }
+  });
+
+  req.pipe(proxyReq, { end: true });
+}
 
 function proxyRequest(req, res) {
   const proxyReq = makeRequest(
@@ -188,12 +243,60 @@ const handle = app.getRequestHandler();
 await app.prepare();
 
 console.log(`> API proxy target: ${apiTarget}`);
+if (openpanelProxyTarget) console.log(`> Analytics proxy: /collect → ${openpanelProxyTarget}`);
+if (glitchtipProxyTarget) console.log(`> Error tunnel: /bugs → ${glitchtipProxyTarget}`);
 
 const httpServer = createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
 
   if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/ws/")) {
     proxyRequest(req, res);
+    return;
+  }
+
+  // OpenPanel analytics proxy: /collect/* → OPENPANEL_PROXY_URL/*
+  if (openpanelUrl && url.pathname.startsWith("/collect")) {
+    const targetPath = url.pathname.replace(/^\/collect/, "") + url.search;
+    proxyToTarget(req, res, openpanelUrl, targetPath || "/");
+    return;
+  }
+
+  // GlitchTip/Sentry tunnel: /bugs receives envelope POST from the Sentry
+  // SDK and forwards to the real ingestion endpoint. The envelope header's
+  // first line contains the DSN, from which we extract the project ID.
+  if (glitchtipUrl && url.pathname === "/bugs") {
+    // Buffer the body to parse the envelope header and extract the project ID.
+    const chunks = [];
+    req.on("data", (chunk) => chunks.push(chunk));
+    req.on("end", () => {
+      const body = Buffer.concat(chunks);
+      try {
+        const header = JSON.parse(body.toString().split("\n")[0]);
+        const dsnUrl = new URL(header.dsn);
+        const projectId = dsnUrl.pathname.replace(/^\//, "");
+        const targetPath = `/api/${projectId}/envelope/`;
+        proxyToTarget(
+          // Wrap the buffered body as a readable-like object for proxyToTarget.
+          // We override pipe to write the already-buffered body directly.
+          {
+            ...req,
+            pipe: (dest, opts) => {
+              dest.write(body);
+              if (opts?.end !== false) dest.end();
+            },
+          },
+          res,
+          glitchtipUrl,
+          targetPath,
+        );
+      } catch (err) {
+        console.error("[bugs tunnel] Failed to parse envelope header:", err);
+        if (!res.headersSent) {
+          res.writeHead(400, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: "Bad envelope" }));
+        }
+      }
+    });
     return;
   }
 

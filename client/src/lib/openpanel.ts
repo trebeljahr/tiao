@@ -28,7 +28,11 @@
 import { OpenPanel } from "@openpanel/web";
 
 const clientId = process.env.NEXT_PUBLIC_OPENPANEL_CLIENT_ID;
-const apiUrl = process.env.NEXT_PUBLIC_OPENPANEL_API_URL;
+const directApiUrl = process.env.NEXT_PUBLIC_OPENPANEL_API_URL;
+// In production, route through /collect so requests look first-party and
+// aren't blocked by adblockers. Falls back to the direct URL for dev or
+// when the proxy isn't configured.
+const apiUrl = process.env.NODE_ENV === "production" ? "/collect" : directApiUrl;
 const isProd = process.env.NODE_ENV === "production";
 const forceEnableInDev = process.env.NEXT_PUBLIC_OPENPANEL_ENABLE_IN_DEV === "true";
 
@@ -38,7 +42,7 @@ const forceEnableInDev = process.env.NEXT_PUBLIC_OPENPANEL_ENABLE_IN_DEV === "tr
  * into account — combine with the consent provider before tracking.
  */
 export const openPanelConfigured =
-  Boolean(clientId) && Boolean(apiUrl) && (isProd || forceEnableInDev);
+  Boolean(clientId) && Boolean(directApiUrl) && (isProd || forceEnableInDev);
 
 function createInstance(disabled: boolean): OpenPanel {
   return new OpenPanel({
