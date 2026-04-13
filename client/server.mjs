@@ -61,19 +61,25 @@ export function servePublicFile(req, res, pathname) {
   const ext = extname(filePath).toLowerCase();
   const contentType = MIME_TYPES[ext] || "application/octet-stream";
 
-  // Binary formats (audio, images, video) are already compressed — adding
-  // no-transform prevents Cloudflare from gzip-compressing them, which
-  // causes ERR_CONTENT_DECODING_FAILED when Content-Length mismatches.
+  // Binary formats (audio, images, video) are already compressed.
+  // Omit Content-Length for these so Node uses chunked transfer encoding —
+  // otherwise Cloudflare gzip-compresses the body but forwards the original
+  // Content-Length, causing ERR_CONTENT_DECODING_FAILED in browsers.
+  // no-transform is also set as a hint, though Cloudflare ignores it.
   const binaryExts = new Set([".mp3", ".jpeg", ".jpg", ".png", ".webp", ".webm", ".ico"]);
-  const cacheControl = binaryExts.has(ext)
-    ? "public, max-age=31536000, immutable, no-transform"
-    : "public, max-age=31536000, immutable";
+  const isBinary = binaryExts.has(ext);
 
-  res.writeHead(200, {
+  const headers = {
     "Content-Type": contentType,
-    "Content-Length": stat.size,
-    "Cache-Control": cacheControl,
-  });
+    "Cache-Control": isBinary
+      ? "public, max-age=31536000, immutable, no-transform"
+      : "public, max-age=31536000, immutable",
+  };
+  if (!isBinary) {
+    headers["Content-Length"] = stat.size;
+  }
+
+  res.writeHead(200, headers);
   createReadStream(filePath).pipe(res);
   return true;
 }
