@@ -61,10 +61,18 @@ export function servePublicFile(req, res, pathname) {
   const ext = extname(filePath).toLowerCase();
   const contentType = MIME_TYPES[ext] || "application/octet-stream";
 
+  // Binary formats (audio, images, video) are already compressed — adding
+  // no-transform prevents Cloudflare from gzip-compressing them, which
+  // causes ERR_CONTENT_DECODING_FAILED when Content-Length mismatches.
+  const binaryExts = new Set([".mp3", ".jpeg", ".jpg", ".png", ".webp", ".webm", ".ico"]);
+  const cacheControl = binaryExts.has(ext)
+    ? "public, max-age=31536000, immutable, no-transform"
+    : "public, max-age=31536000, immutable";
+
   res.writeHead(200, {
     "Content-Type": contentType,
     "Content-Length": stat.size,
-    "Cache-Control": "public, max-age=31536000, immutable",
+    "Cache-Control": cacheControl,
   });
   createReadStream(filePath).pipe(res);
   return true;
