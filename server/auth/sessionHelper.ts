@@ -8,6 +8,12 @@ import Achievement from "../models/Achievement";
 import { ACHIEVEMENT_BADGE_MAP } from "../config/badgeRewards";
 import { PlayerIdentity, isValidUsername } from "../../shared/src";
 
+// Track which players have already had their achievement→badge backfill
+// checked this process lifetime. Avoids an Achievement.find() query on
+// every single authenticated request. Resets on server restart, which is
+// fine — the backfill is idempotent and only needed once per player.
+const backfilledPlayers = new Set<string>();
+
 async function toPlayerIdentity(user: {
   id: string;
   name: string;
@@ -31,9 +37,10 @@ async function toPlayerIdentity(user: {
   // Backfill achievement-earned badges into account.badges so the badge
   // selector shows them. This catches users who unlocked an achievement
   // before the auto-grant logic landed (or any case where the grant call
-  // silently failed). Cheap: a single Achievement query per session lookup.
-  // Skip when user.id isn't a valid ObjectId (e.g. unit test stubs).
-  if (account && Types.ObjectId.isValid(user.id)) {
+  // silently failed). Only runs once per player per server process —
+  // subsequent requests skip the Achievement query entirely.
+  if (account && Types.ObjectId.isValid(user.id) && !backfilledPlayers.has(user.id)) {
+    backfilledPlayers.add(user.id);
     const achievementIds = await Achievement.find({ playerId: user.id })
       .select("achievementId")
       .lean();
