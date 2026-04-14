@@ -1,9 +1,9 @@
 import { IncomingMessage } from "http";
 import { Request, Response } from "express";
-import { Types } from "mongoose";
+import { Types, HydratedDocument } from "mongoose";
 import { fromNodeHeaders } from "better-auth/node";
 import { auth } from "./auth";
-import GameAccount from "../models/GameAccount";
+import GameAccount, { IGameAccount } from "../models/GameAccount";
 import Achievement from "../models/Achievement";
 import { ACHIEVEMENT_BADGE_MAP } from "../config/badgeRewards";
 import { PlayerIdentity, isValidUsername } from "../../shared/src";
@@ -14,14 +14,34 @@ import { PlayerIdentity, isValidUsername } from "../../shared/src";
 // fine — the backfill is idempotent and only needed once per player.
 const backfilledPlayers = new Set<string>();
 
-async function toPlayerIdentity(user: {
-  id: string;
-  name: string;
-  email: string;
-  image?: string | null;
-  isAnonymous?: boolean | null;
-  displayName?: string | null;
-}): Promise<PlayerIdentity> {
+// Per-request cache for the GameAccount document, so requireAccount and
+// requireAdmin don't repeat the findById that toPlayerIdentity already
+// did inside getPlayerFromRequest. Keyed by a symbol on the express
+// Request object, scoped to the lifetime of one HTTP request.
+const REQUEST_ACCOUNT_KEY = Symbol("tiao.requestAccount");
+type RequestWithAccount = Request & {
+  [REQUEST_ACCOUNT_KEY]?: HydratedDocument<IGameAccount> | null;
+};
+
+function setRequestAccount(req: Request, account: HydratedDocument<IGameAccount> | null): void {
+  (req as RequestWithAccount)[REQUEST_ACCOUNT_KEY] = account;
+}
+
+function getRequestAccount(req: Request): HydratedDocument<IGameAccount> | null | undefined {
+  return (req as RequestWithAccount)[REQUEST_ACCOUNT_KEY];
+}
+
+async function toPlayerIdentity(
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    image?: string | null;
+    isAnonymous?: boolean | null;
+    displayName?: string | null;
+  },
+  req?: Request,
+): Promise<PlayerIdentity> {
   if (user.isAnonymous) {
     return {
       playerId: user.id,
@@ -31,6 +51,9 @@ async function toPlayerIdentity(user: {
   }
 
   const account = await GameAccount.findById(user.id);
+  // Stash the account on the request so requireAccount/requireAdmin can
+  // reuse it without re-querying.
+  if (req) setRequestAccount(req, account);
   const displayName = account?.displayName || user.displayName || user.name;
   const needsUsername = !isValidUsername(displayName);
 
@@ -89,7 +112,7 @@ export async function getPlayerFromRequest(req: Request): Promise<PlayerIdentity
     headers: fromNodeHeaders(req.headers),
   });
   if (!session) return null;
-  return toPlayerIdentity(session.user);
+  return toPlayerIdentity(session.user, req);
 }
 
 export async function getPlayerFromUpgradeRequest(
@@ -120,7 +143,11 @@ export async function requireAccount(req: Request, res: Response) {
     return null;
   }
 
-  const account = await GameAccount.findById(player.playerId);
+  // Reuse the account that toPlayerIdentity already loaded on this request.
+  // Falls back to a fresh findById in the rare case it wasn't stashed (e.g.
+  // unit tests that bypass the normal flow).
+  const cached = getRequestAccount(req);
+  const account = cached !== undefined ? cached : await GameAccount.findById(player.playerId);
   if (!account) {
     res.status(404).json({
       code: "ACCOUNT_NOT_FOUND",
