@@ -101,11 +101,7 @@ async function request<T>(
   } & T;
 
   if (!response.ok) {
-    throw new ApiError(
-      response.status,
-      data.message || "Something went wrong.",
-      data.code,
-    );
+    throw new ApiError(response.status, data.message || "Something went wrong.", data.code);
   }
 
   return data;
@@ -130,11 +126,7 @@ async function upload<T>(path: string, formData: FormData): Promise<T> {
   } & T;
 
   if (!response.ok) {
-    throw new ApiError(
-      response.status,
-      data.message || "Something went wrong.",
-      data.code,
-    );
+    throw new ApiError(response.status, data.message || "Something went wrong.", data.code);
   }
 
   return data;
@@ -431,6 +423,12 @@ export function createDataExport() {
 export function getDataExportDownloadUrl(id: string) {
   return request<{ url: string }>(`/api/player/account/exports/${id}/download`, {
     method: "GET",
+  });
+}
+
+export function deleteDataExport(id: string) {
+  return request<{ ok: boolean }>(`/api/player/account/exports/${id}`, {
+    method: "DELETE",
   });
 }
 

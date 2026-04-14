@@ -1480,6 +1480,27 @@ router.post("/account/exports", async (req: Request, res: Response) => {
   }
 });
 
+// DELETE /account/exports/:id — delete an export (S3 object + Mongo row)
+router.delete("/account/exports/:id", async (req: Request, res: Response) => {
+  try {
+    const account = await requireAccount(req, res);
+    if (!account) return;
+
+    const existing = await getActiveExportForAccount(String(account._id));
+    if (!existing || String(existing._id) !== req.params.id) {
+      return res.status(404).json({
+        code: "EXPORT_NOT_FOUND",
+        message: "Export not found.",
+      });
+    }
+
+    await deleteExport(String(existing._id));
+    return res.status(200).json({ ok: true });
+  } catch (error) {
+    return handleRouteError(res, error, "Unable to delete export right now.", req);
+  }
+});
+
 // GET /account/exports/:id/download — mint a short-lived presigned URL
 router.get("/account/exports/:id/download", async (req: Request, res: Response) => {
   try {

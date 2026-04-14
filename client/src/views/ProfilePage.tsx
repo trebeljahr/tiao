@@ -23,6 +23,7 @@ import {
   listDataExports,
   createDataExport,
   getDataExportDownloadUrl,
+  deleteDataExport,
   type UserExportRow,
 } from "@/lib/api";
 import { isNetworkError, readableError, toastError } from "@/lib/errors";
@@ -157,6 +158,15 @@ function DataExportCard() {
     }
   }
 
+  async function handleDelete(id: string) {
+    try {
+      await deleteDataExport(id);
+      await load();
+    } catch (error) {
+      toastError(readableError(error));
+    }
+  }
+
   // Belt-and-braces: this card is already rendered inside an
   // account-only branch in the main JSX, but a direct early return here
   // makes the gate obvious at the component level too, and prevents any
@@ -176,12 +186,30 @@ function DataExportCard() {
       </CardHeader>
       <CardContent className="space-y-4">
         {active ? (
-          <div className="rounded-lg border border-[#dbc6a2] bg-[#f5e6d0]/40 px-4 py-3 text-sm">
+          <div className="relative rounded-lg border border-[#dbc6a2] bg-[#f5e6d0]/40 px-4 py-3 text-sm">
+            <button
+              type="button"
+              onClick={() => handleDelete(active.id)}
+              className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full text-[#6e5b48] transition-colors hover:bg-[rgba(0,0,0,0.06)] hover:text-[#28170e]"
+              aria-label={tCommon("delete")}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-3.5 w-3.5"
+              >
+                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+              </svg>
+            </button>
             {active.status === "pending" || active.status === "running" ? (
-              <p className="text-[#6e5b48]">{t("statusPreparing")}</p>
+              <p className="pr-8 text-[#6e5b48]">{t("statusPreparing")}</p>
             ) : active.status === "ready" ? (
               <div className="space-y-2">
-                <p className="text-[#4a3728]">
+                <p className="pr-8 text-[#4a3728]">
                   {t("statusReady", {
                     expiresAt: new Date(active.expiresAt).toLocaleDateString(),
                   })}
@@ -226,27 +254,25 @@ function PrivacyCard() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="text-sm font-medium text-[#4e3d2c]">{t("analyticsToggleLabel")}</p>
-            <p className="text-xs text-[#6e5b48]">
-              {status === "granted"
-                ? t("analyticsOn")
-                : status === "denied"
-                  ? t("analyticsOff")
-                  : t("analyticsPending")}
-            </p>
-          </div>
-          {status === "granted" ? (
-            <Button type="button" variant="outline" onClick={revoke}>
-              {t("optOut")}
-            </Button>
-          ) : (
-            <Button type="button" onClick={grant}>
-              {t("optIn")}
-            </Button>
-          )}
+        <div>
+          <p className="text-sm font-medium text-[#4e3d2c]">{t("analyticsToggleLabel")}</p>
+          <p className="text-xs text-[#6e5b48]">
+            {status === "granted"
+              ? t("analyticsOn")
+              : status === "denied"
+                ? t("analyticsOff")
+                : t("analyticsPending")}
+          </p>
         </div>
+        {status === "granted" ? (
+          <Button type="button" variant="outline" onClick={revoke} className="w-full">
+            {t("optOut")}
+          </Button>
+        ) : (
+          <Button type="button" onClick={grant} className="w-full">
+            {t("optIn")}
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
