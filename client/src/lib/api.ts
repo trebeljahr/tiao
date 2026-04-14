@@ -715,3 +715,47 @@ export function reportAIWin(difficulty: 1 | 2 | 3) {
     body: { difficulty },
   });
 }
+
+// ── Player Reports ──
+
+export type ReportReason =
+  | "offensive_username"
+  | "inappropriate_profile_picture"
+  | "harassment"
+  | "other";
+
+export function reportPlayer(reportedId: string, reason: ReportReason, details?: string) {
+  return request<{ ok: boolean }>("/api/player/report", {
+    method: "POST",
+    body: { reportedId, reason, details },
+  });
+}
+
+export type FlaggedPlayer = {
+  playerId: string;
+  displayName: string;
+  profilePicture?: string;
+  reportCount: number;
+};
+
+export type PlayerReportEntry = {
+  id: string;
+  reporterName: string;
+  reason: ReportReason;
+  details?: string;
+  createdAt: string;
+};
+
+export function adminGetFlaggedPlayers() {
+  return request<{ players: FlaggedPlayer[] }>("/api/player/admin/reports");
+}
+
+export function adminGetPlayerReports(playerId: string) {
+  return request<{ reports: PlayerReportEntry[] }>(`/api/player/admin/reports/${playerId}`);
+}
+
+export function adminDismissReports(playerId: string) {
+  return request<{ ok: boolean }>(`/api/player/admin/reports/${playerId}/dismiss`, {
+    method: "POST",
+  });
+}

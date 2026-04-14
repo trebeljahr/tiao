@@ -32,6 +32,7 @@ import { TournamentContextBar } from "@/components/tournament/TournamentContextB
 import { TournamentWaitingSpectatorBanner } from "@/components/tournament/TournamentWaitingSpectatorBanner";
 import confetti from "canvas-confetti";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
+import { ReportPlayerButton } from "@/components/ReportPlayerButton";
 import {
   isGameOver,
   getWinner,
@@ -1394,7 +1395,17 @@ export function MultiplayerGamePage() {
                                       friendVariant="light"
                                       linkToProfile={false}
                                       className="min-w-0 flex-1 gap-3"
-                                    />
+                                    >
+                                      {auth?.player.kind === "account" &&
+                                        slot.player.playerId !== auth?.player.playerId &&
+                                        slot.player.playerId &&
+                                        slot.player.displayName && (
+                                          <ReportPlayerButton
+                                            playerId={slot.player.playerId}
+                                            displayName={slot.player.displayName}
+                                          />
+                                        )}
+                                    </PlayerIdentityRow>
                                   ) : (
                                     <div className="flex items-center gap-3">
                                       <EmptySeatAvatar />
@@ -1512,6 +1523,18 @@ export function MultiplayerGamePage() {
                                     : undefined
                                 }
                                 scoreToWin={multiplayerSnapshot.state.scoreToWin}
+                                playerChildren={
+                                  auth?.player.kind === "account" &&
+                                  !isYourSeat &&
+                                  seat?.player.playerId &&
+                                  seat?.player.displayName ? (
+                                    <ReportPlayerButton
+                                      playerId={seat.player.playerId}
+                                      displayName={seat.player.displayName}
+                                      variant={tileVariant === "dark" ? "dark" : "light"}
+                                    />
+                                  ) : undefined
+                                }
                               />
                             );
                           })}
@@ -1862,7 +1885,17 @@ export function MultiplayerGamePage() {
                 linkToProfile={false}
                 friendVariant="light"
                 nameClassName="font-semibold text-[#2b1e14]"
-              />
+              >
+                {auth?.player.kind === "account" &&
+                  multiplayerSnapshot.seats[winner]!.player.playerId !== auth?.player.playerId &&
+                  multiplayerSnapshot.seats[winner]!.player.playerId &&
+                  multiplayerSnapshot.seats[winner]!.player.displayName && (
+                    <ReportPlayerButton
+                      playerId={multiplayerSnapshot.seats[winner]!.player.playerId}
+                      displayName={multiplayerSnapshot.seats[winner]!.player.displayName!}
+                    />
+                  )}
+              </PlayerIdentityRow>
             </div>
           )}
           {/* Elo rating change after game */}
@@ -2015,7 +2048,17 @@ export function MultiplayerGamePage() {
                       online={slot.online}
                       nameClassName="text-sm font-semibold text-[#2b1e14]"
                       className="gap-3"
-                    />
+                    >
+                      {auth?.player.kind === "account" &&
+                        !isYou &&
+                        slot.player.playerId &&
+                        slot.player.displayName && (
+                          <ReportPlayerButton
+                            playerId={slot.player.playerId}
+                            displayName={slot.player.displayName}
+                          />
+                        )}
+                    </PlayerIdentityRow>
                     <div className="flex items-center gap-2">
                       {isFriend && (
                         <Badge className="text-xs bg-emerald-100 text-emerald-700">

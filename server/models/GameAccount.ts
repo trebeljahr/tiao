@@ -27,6 +27,10 @@ export interface IGameAccount extends Document {
   unlockedThemes: string[];
   /** Whether this account has admin privileges. */
   isAdmin: boolean;
+  /** Denormalized count of reports filed against this account. */
+  reportCount: number;
+  /** Set to true when reportCount reaches the moderation threshold. */
+  flaggedForReview: boolean;
   /** Short user-written bio for their public profile. */
   bio: string;
   /** Stripe customer ID for this account. */
@@ -90,6 +94,14 @@ const GameAccountSchema = new Schema<IGameAccount>(
       default: [],
     },
     isAdmin: {
+      type: Boolean,
+      default: false,
+    },
+    reportCount: {
+      type: Number,
+      default: 0,
+    },
+    flaggedForReview: {
       type: Boolean,
       default: false,
     },

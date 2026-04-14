@@ -35,6 +35,8 @@ type AnimatedScoreTileProps = {
   clockActive?: boolean;
   /** Target score to win. When non-default, shown as "X / Y". */
   scoreToWin?: number;
+  /** Extra content rendered inside PlayerIdentityRow (e.g. report button). */
+  playerChildren?: React.ReactNode;
 };
 
 export function AnimatedScoreTile({
@@ -48,6 +50,7 @@ export function AnimatedScoreTile({
   clockMs,
   clockActive,
   scoreToWin,
+  playerChildren,
 }: AnimatedScoreTileProps) {
   const tileControls = useAnimationControls();
   const valueControls = useAnimationControls();
@@ -107,7 +110,9 @@ export function AnimatedScoreTile({
             friendVariant={playerInfo.variant}
             className="mb-2 pr-6"
             nameClassName="text-xs font-semibold opacity-80"
-          />
+          >
+            {playerChildren}
+          </PlayerIdentityRow>
         </>
       )}
       <p className={labelClassName}>{label}</p>

@@ -67,6 +67,18 @@ export async function sendVerificationEmail(email: string, verifyUrl: string): P
   );
 }
 
+export async function sendModerationAlert(displayName: string, reportCount: number): Promise<void> {
+  const adminUrl = process.env.CLIENT_URL
+    ? `${process.env.CLIENT_URL}/admin/reports`
+    : "https://playtiao.com/admin/reports";
+  await send(
+    "moderation@playtiao.com",
+    `[Tiao] Player flagged for review: ${displayName}`,
+    `<p>The player <strong>${displayName}</strong> has received <strong>${reportCount}</strong> report(s) and has been automatically flagged for review.</p>
+     <p><a href="${adminUrl}">Review flagged players</a></p>`,
+  );
+}
+
 export async function sendEmailChangeVerification(
   newEmail: string,
   confirmUrl: string,
