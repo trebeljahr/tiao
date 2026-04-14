@@ -201,13 +201,19 @@ export function LobbyPage() {
     // Accounts with `hasSeenTutorial` override localStorage so users
     // don't lose their "completed" state across browsers. Also re-runs
     // after logout clears the flag.
+    //
+    // Wait until auth has finished bootstrapping — otherwise a logged-in
+    // account that completed the tutorial server-side (but never set the
+    // localStorage flag, e.g. after a hard refresh in a fresh browser)
+    // would briefly see the banner while `auth` is still null.
+    if (authLoading) return;
     const seenViaAccount = auth?.player.kind === "account" && auth.player.hasSeenTutorial;
     const seenViaLocal = Boolean(localStorage.getItem("tiao:knowsHowToPlay"));
     const completed = Boolean(seenViaAccount || seenViaLocal);
     setShowTutorialBanner(!completed);
     setNeedsTutorial(!completed);
     setTutorialHydrated(true);
-  }, [auth]);
+  }, [auth, authLoading]);
 
   function handleMatchmakingClick(nav: string) {
     if (needsTutorial) {
