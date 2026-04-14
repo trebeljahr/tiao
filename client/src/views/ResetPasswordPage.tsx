@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth-client";
+import { useAuth } from "@/lib/AuthContext";
+import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/password-input";
 
@@ -11,6 +13,8 @@ export function ResetPasswordPage() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const t = useTranslations("resetPassword");
+  const { auth, onOpenAuth, onLogout } = useAuth();
+  const [navOpen, setNavOpen] = useState(false);
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -22,11 +26,17 @@ export function ResetPasswordPage() {
   if (!token) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-6 py-12 text-foreground">
+        <Navbar
+          auth={auth}
+          navOpen={navOpen}
+          onToggleNav={() => setNavOpen((v) => !v)}
+          onCloseNav={() => setNavOpen(false)}
+          onOpenAuth={onOpenAuth}
+          onLogout={onLogout}
+        />
         <div className="w-full max-w-sm rounded-3xl border border-border/80 bg-card/95 px-8 py-7 text-center shadow-[0_24px_70px_-40px_rgba(52,34,19,0.55)]">
           <h1 className="font-display text-2xl">{t("invalidLink")}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {t("invalidLinkDescription")}
-          </p>
+          <p className="mt-2 text-sm text-muted-foreground">{t("invalidLinkDescription")}</p>
           <a
             href="/"
             className="mt-4 inline-block text-sm text-muted-foreground underline-offset-2 hover:underline"
@@ -41,11 +51,17 @@ export function ResetPasswordPage() {
   if (done) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-6 py-12 text-foreground">
+        <Navbar
+          auth={auth}
+          navOpen={navOpen}
+          onToggleNav={() => setNavOpen((v) => !v)}
+          onCloseNav={() => setNavOpen(false)}
+          onOpenAuth={onOpenAuth}
+          onLogout={onLogout}
+        />
         <div className="w-full max-w-sm rounded-3xl border border-border/80 bg-card/95 px-8 py-7 text-center shadow-[0_24px_70px_-40px_rgba(52,34,19,0.55)]">
           <h1 className="font-display text-2xl">{t("title")}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {t("successDescription")}
-          </p>
+          <p className="mt-2 text-sm text-muted-foreground">{t("successDescription")}</p>
           <a
             href="/"
             className="mt-4 inline-block text-sm text-muted-foreground underline-offset-2 hover:underline"
@@ -59,11 +75,17 @@ export function ResetPasswordPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-6 py-12 text-foreground">
+      <Navbar
+        auth={auth}
+        navOpen={navOpen}
+        onToggleNav={() => setNavOpen((v) => !v)}
+        onCloseNav={() => setNavOpen(false)}
+        onOpenAuth={onOpenAuth}
+        onLogout={onLogout}
+      />
       <div className="w-full max-w-sm rounded-3xl border border-border/80 bg-card/95 px-8 py-7 shadow-[0_24px_70px_-40px_rgba(52,34,19,0.55)]">
         <h1 className="font-display text-2xl">{t("setNewPassword")}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t("setNewPasswordDescription")}
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">{t("setNewPasswordDescription")}</p>
         <form
           className="mt-4 space-y-3"
           onSubmit={async (e) => {
