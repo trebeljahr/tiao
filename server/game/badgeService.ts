@@ -1,4 +1,12 @@
 import GameAccount from "../models/GameAccount";
+import Achievement from "../models/Achievement";
+import { ACHIEVEMENT_BADGE_MAP } from "../config/badgeRewards";
+
+// Reverse map: badge ID → achievement ID that grants it.
+const BADGE_TO_ACHIEVEMENT: Record<string, string> = {};
+for (const [achievementId, badgeId] of Object.entries(ACHIEVEMENT_BADGE_MAP)) {
+  BADGE_TO_ACHIEVEMENT[badgeId] = achievementId;
+}
 
 class BadgeServiceError extends Error {
   status: number;
@@ -37,6 +45,16 @@ export async function revokeBadge(playerId: string, badgeId: string) {
   account.badges = account.badges.filter((id: string) => id !== badgeId);
   account.activeBadges = account.activeBadges.filter((id: string) => id !== badgeId);
   await account.save();
+
+  // If this badge was earned through an achievement, also delete the
+  // achievement so the sessionHelper backfill doesn't re-grant it.
+  const achievementId = BADGE_TO_ACHIEVEMENT[badgeId];
+  if (achievementId) {
+    await Achievement.deleteOne({ playerId, achievementId }).catch((err) => {
+      console.error(`[badgeService] Failed to delete achievement "${achievementId}":`, err);
+    });
+  }
+
   return { badges: account.badges, activeBadges: account.activeBadges };
 }
 
