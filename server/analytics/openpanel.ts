@@ -107,7 +107,7 @@ export function trackRevenue(
   properties: TrackProperties & { currency: string },
 ): void {
   if (!openPanelEnabled) return;
-  void instance.track("revenue", { ...properties, amount }).catch((err) => {
+  void instance.revenue(amount, properties).catch((err) => {
     console.error("[openpanel] trackRevenue failed:", err);
   });
 }
