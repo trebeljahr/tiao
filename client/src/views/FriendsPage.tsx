@@ -128,7 +128,7 @@ export function FriendsPage() {
           />
 
           <main className="mx-auto flex max-w-5xl flex-col gap-5 px-4 pb-5 pt-20 sm:px-6 lg:px-8 lg:pb-6 lg:pt-20">
-            <div className="grid gap-5 sm:grid-cols-2">
+            <div className="grid gap-5 lg:grid-cols-2">
               <AnimatedCard>
                 <PaperCard>
                   <CardHeader>
