@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { MultiplayerGamePage } from "./MultiplayerGamePage";
 import type { AuthResponse, MultiplayerSnapshot, TurnRecord } from "@shared";
 import { createInitialGameState, EMPTY_SOCIAL_OVERVIEW } from "@shared";
@@ -884,6 +884,15 @@ describe("MultiplayerGamePage", () => {
 
     await setupMocks(snapshot);
     render(<MultiplayerGamePage />);
+
+    // `useTournamentNextMatch` fires a setLoading/await-fetch/setResult
+    // chain on mount. For a guest (non-participant) viewing this snapshot
+    // the component doesn't render the next-match CTA that would act as
+    // a natural settle signal, so flush the pending microtasks explicitly
+    // — otherwise the tail state updates land outside of act() and warn.
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     // Should show "Back to tournament" instead of "Back to lobby"
     const backBtns = screen.getAllByRole("button", { name: "Back to tournament" });
