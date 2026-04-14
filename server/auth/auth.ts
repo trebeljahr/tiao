@@ -131,12 +131,22 @@ export const auth = betterAuth({
           // Only overwrite when the user hasn't uploaded a custom picture
           // (custom uploads go through CloudFront, SSO images are external URLs).
           try {
+            const db = (await import("mongoose")).default.connection.getClient().db();
+            const baUser = await db.collection("user").findOne({ _id: session.userId as any });
+
+            // Anonymous guests intentionally have no GameAccount — they're
+            // ephemeral and live only in the BA user/session collections.
+            // Skip the orphaned-cleanup branch for them, otherwise signing
+            // in anonymously (e.g. right after logout) would immediately
+            // delete the freshly-created guest and leave the reloaded page
+            // without a session.
+            if (baUser?.isAnonymous) return;
+
             const account = await GameAccount.findById(session.userId);
             if (!account) {
               // Orphaned BA user — GameAccount was deleted but BA records linger.
               // Clean up so the email is freed for re-registration.
               try {
-                const db = (await import("mongoose")).default.connection.getClient().db();
                 await db.collection("session").deleteMany({ userId: session.userId } as any);
                 await db.collection("account").deleteMany({ userId: session.userId } as any);
                 await db.collection("user").deleteOne({ _id: session.userId as any });
@@ -150,8 +160,6 @@ export const auth = betterAuth({
             // If the user already has a custom-uploaded picture, don't overwrite
             if (account.profilePicture && account.profilePicture.includes("cloudfront")) return;
 
-            const db = (await import("mongoose")).default.connection.getClient().db();
-            const baUser = await db.collection("user").findOne({ _id: session.userId as any });
             const ssoImage = baUser?.image as string | null | undefined;
 
             if (ssoImage && ssoImage !== account.profilePicture) {
