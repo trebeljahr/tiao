@@ -22,7 +22,7 @@ export function BadgeSelector({
   delay?: number;
 }) {
   const t = useTranslations("profile");
-  const badges = (auth?.player.badges ?? []) as BadgeId[];
+  const badges = [...new Set(auth?.player.badges ?? [])] as BadgeId[];
   const activeBadges = (auth?.player.activeBadges ?? []) as BadgeId[];
   // Hooks must run unconditionally, so resolve the active-badge name up front.
   // When nothing is active we just never show the hint text.

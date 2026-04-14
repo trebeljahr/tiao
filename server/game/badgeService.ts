@@ -19,10 +19,15 @@ async function getAccountOrThrow(playerId: string) {
 }
 
 export async function grantBadge(playerId: string, badgeId: string) {
-  const account = await getAccountOrThrow(playerId);
-  if (!account.badges.includes(badgeId)) {
-    account.badges.push(badgeId);
-    await account.save();
+  // Use $addToSet so concurrent grants of the same badge are a no-op
+  // instead of pushing duplicates (the old read-check-push pattern raced).
+  const account = await GameAccount.findByIdAndUpdate(
+    playerId,
+    { $addToSet: { badges: badgeId } },
+    { new: true },
+  );
+  if (!account) {
+    throw new BadgeServiceError(404, "ACCOUNT_NOT_FOUND", "Player not found.");
   }
   return { badges: account.badges, activeBadges: account.activeBadges };
 }
@@ -36,11 +41,14 @@ export async function revokeBadge(playerId: string, badgeId: string) {
 }
 
 export async function grantTheme(playerId: string, themeId: string) {
-  const account = await getAccountOrThrow(playerId);
-  const themes = new Set(account.unlockedThemes ?? []);
-  themes.add(themeId);
-  account.unlockedThemes = [...themes];
-  await account.save();
+  const account = await GameAccount.findByIdAndUpdate(
+    playerId,
+    { $addToSet: { unlockedThemes: themeId } },
+    { new: true },
+  );
+  if (!account) {
+    throw new BadgeServiceError(404, "ACCOUNT_NOT_FOUND", "Player not found.");
+  }
   return { unlockedThemes: account.unlockedThemes };
 }
 

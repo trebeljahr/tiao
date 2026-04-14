@@ -45,9 +45,16 @@ async function toPlayerIdentity(user: {
       }
     }
     if (expectedBadges.length > 0) {
-      account.badges.push(...expectedBadges);
       try {
-        await account.save();
+        // Use $addToSet to avoid duplicates if another request races us.
+        const updated = await GameAccount.findByIdAndUpdate(
+          user.id,
+          { $addToSet: { badges: { $each: expectedBadges } } },
+          { new: true },
+        );
+        if (updated) {
+          account.badges = updated.badges;
+        }
       } catch (err) {
         console.error("[sessionHelper] Failed to backfill achievement badges:", err);
       }
@@ -61,8 +68,8 @@ async function toPlayerIdentity(user: {
     email: user.email,
     profilePicture: account?.profilePicture || user.image || undefined,
     hasSeenTutorial: account?.hasSeenTutorial ?? false,
-    badges: account?.badges ?? [],
-    activeBadges: account?.activeBadges ?? [],
+    badges: [...new Set<string>(account?.badges ?? [])],
+    activeBadges: [...new Set<string>(account?.activeBadges ?? [])],
     unlockedThemes: account?.unlockedThemes ?? [],
     ...(account?.isAdmin ? { isAdmin: true } : {}),
     rating: account?.rating?.overall?.elo,
