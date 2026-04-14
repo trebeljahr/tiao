@@ -23,7 +23,7 @@ import { grantBadge, revokeBadge } from "../game/badgeService";
 import { onTutorialCompleted } from "../game/achievementService";
 import { profilePictureUpload } from "../middleware/multerUploadMiddleware";
 import { authRateLimiter } from "../middleware/rateLimiter";
-import { deleteOpenPanelProfile, identify, track } from "../analytics/openpanel";
+import { anonymizeOpenPanelProfile, identify, track } from "../analytics/openpanel";
 import {
   deleteExport,
   enqueueExport,
@@ -1407,11 +1407,16 @@ router.delete("/account", async (req: Request, res: Response) => {
       db.collection("verification").deleteMany({ identifier: userDoc?.email } as any),
     ]);
 
-    // (i) GDPR right to erasure for analytics — delete the profile and its
-    // event history from OpenPanel. Fire-and-forget; we don't want a stale
-    // analytics backend to block the primary deletion flow.
+    // (i) GDPR right to erasure for analytics — anonymize the profile in
+    // OpenPanel by overwriting all PII with empty strings. Events remain
+    // as aggregate non-identifiable data (they reference profile_id only,
+    // no email/name). Full row deletion isn't possible because OpenPanel's
+    // public REST API has no DELETE endpoint for profiles; see the long
+    // comment on anonymizeOpenPanelProfile for details. Fire-and-forget
+    // so the primary deletion flow can't be blocked by analytics being
+    // down.
     track("account_deleted", { profileId: accountId });
-    void deleteOpenPanelProfile(accountId);
+    void anonymizeOpenPanelProfile(accountId);
 
     return res.status(200).json({ message: "Account deleted successfully." });
   } catch (error) {

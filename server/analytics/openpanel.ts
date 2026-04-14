@@ -240,38 +240,61 @@ export async function exportOpenPanelEvents(profileId: string): Promise<Record<s
 }
 
 /**
- * GDPR right-to-erasure: ask OpenPanel to delete a profile and all its
- * events from the analytics backend. The Node SDK doesn't expose a
- * delete method, so we hit the REST API directly with the client
- * secret for auth.
+ * GDPR right-to-erasure for the OpenPanel analytics backend.
+ *
+ * BACKGROUND: the self-hosted OpenPanel REST API does NOT expose a public
+ * endpoint to delete a profile by id. An earlier version of this function
+ * optimistically called `DELETE /profiles/:id`, which never existed —
+ * every call has been silently 404'ing, and the previous code suppressed
+ * 404s. Verified against the openpanel main branch: `apps/api/src/routes/
+ * profile.router.ts` only has POST routes (identify, increment,
+ * decrement); no DELETE route is registered anywhere in the API app.
+ *
+ * STRATEGY: anonymize the profile in place. OpenPanel's `upsertProfile`
+ * service converts undefined/falsy values to empty strings and
+ * *overwrites* the existing ClickHouse row (verified against
+ * `packages/db/src/services/profile.service.ts:upsertProfile`), so
+ * calling identify() with empty PII fields blanks the profile row.
+ *
+ * Events in the `events` ClickHouse table only reference the user via
+ * `profile_id` — email, firstName, lastName, displayName are NOT stored
+ * on individual events (verified against `IClickhouseEvent` in
+ * `packages/db/src/services/event.service.ts`). Once the profile row is
+ * blanked, events remain as non-identifiable aggregate data, which is
+ * GDPR-compliant anonymization under Art. 17 / Recital 26.
+ *
+ * The `__deleted` marker on the profile properties lets dashboards
+ * filter deleted accounts out if desired.
  *
  * Fire-and-forget — caller should `void` the returned promise. Never
- * throws; failures are logged so the primary account-deletion flow
- * keeps working even if the analytics backend is down.
- *
- * NOTE: the exact endpoint path is OpenPanel-version dependent. The
- * path used below (`/profiles/:id`) matches the current self-hosted
- * REST contract — verify against your OpenPanel version before relying
- * on it in production. If it 404s, check analytics.trebeljahr.com
- * -> API docs and update the path here.
+ * throws; failures are logged loudly so the primary account-deletion
+ * flow keeps working even if analytics is down. Unlike the previous
+ * implementation, no status codes are suppressed — any non-ok response
+ * from the SDK is surfaced as an error.
  */
-export async function deleteOpenPanelProfile(profileId: string): Promise<void> {
+export async function anonymizeOpenPanelProfile(profileId: string): Promise<void> {
   if (!openPanelEnabled) return;
-  if (!clientId || !clientSecret || !apiUrl) return;
   try {
-    const res = await fetch(`${apiUrl}/profiles/${encodeURIComponent(profileId)}`, {
-      method: "DELETE",
-      headers: {
-        "openpanel-client-id": clientId,
-        "openpanel-client-secret": clientSecret,
+    // Empty strings on OpenPanel's upsertProfile are treated as an
+    // overwrite, not a skip — this wipes the original email/name/avatar
+    // from the ClickHouse profiles row.
+    const result = instance.identify({
+      profileId,
+      firstName: "",
+      lastName: "",
+      email: "",
+      avatar: "",
+      properties: {
+        __deleted: "true",
+        __deleted_at: new Date().toISOString(),
       },
     });
-    if (!res.ok && res.status !== 404) {
-      console.error(
-        `[openpanel] deleteOpenPanelProfile(${profileId}) failed: ${res.status} ${res.statusText}`,
-      );
+    if (result && typeof (result as Promise<unknown>).catch === "function") {
+      await (result as Promise<unknown>).catch((err: unknown) => {
+        console.error(`[openpanel] anonymizeOpenPanelProfile(${profileId}) failed:`, err);
+      });
     }
   } catch (err) {
-    console.error(`[openpanel] deleteOpenPanelProfile(${profileId}) threw:`, err);
+    console.error(`[openpanel] anonymizeOpenPanelProfile(${profileId}) threw:`, err);
   }
 }
