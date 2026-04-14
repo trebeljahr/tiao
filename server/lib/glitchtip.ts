@@ -5,12 +5,17 @@
  *   GLITCHTIP_DSN   (required to enable)
  *
  * When DSN is unset the module exports no-op helpers. Safe for dev, CI, tests.
+ *
+ * Gated to production so local/dev errors stay in the console where you can
+ * see them immediately, rather than getting shipped to GlitchTip and
+ * polluting the production error dashboard.
  */
 import * as Sentry from "@sentry/node";
 
 const dsn = process.env.GLITCHTIP_DSN;
+const isProd = process.env.NODE_ENV === "production";
 
-export const glitchtipEnabled = Boolean(dsn);
+export const glitchtipEnabled = Boolean(dsn) && isProd;
 
 if (glitchtipEnabled) {
   Sentry.init({
