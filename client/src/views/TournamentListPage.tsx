@@ -66,10 +66,12 @@ export function TournamentListPage() {
 
       <div className="mx-auto max-w-3xl px-4 pb-5 pt-20">
         <BackButton />
-        <div className="flex items-center justify-between mb-6 mt-2">
+        <div className="flex flex-col gap-3 mb-6 mt-2 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="font-display text-3xl font-bold">{t("title")}</h1>
           {isAccount && (
-            <Button onClick={() => setCreateOpen(true)}>{t("createTournament")}</Button>
+            <Button className="w-full sm:w-auto" onClick={() => setCreateOpen(true)}>
+              {t("createTournament")}
+            </Button>
           )}
         </div>
 
