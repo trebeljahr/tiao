@@ -11,7 +11,7 @@ import { CardContent, CardDescription, CardHeader, CardTitle } from "@/component
 import { PaperCard } from "@/components/ui/paper-card";
 import { AnimatedCard } from "@/components/ui/animated-card";
 import { Badge } from "@/components/ui/badge";
-import { SkeletonPage } from "@/components/ui/skeleton";
+import { SkeletonBlock, SkeletonPage } from "@/components/ui/skeleton";
 import { PageLayout } from "@/components/PageLayout";
 import { BackButton } from "@/components/BackButton";
 import { BadgeSelector } from "@/components/BadgeSelector";
@@ -400,8 +400,17 @@ export function ShopPage() {
                 {[0, 1, 2].map((i) => (
                   <div
                     key={i}
-                    className="rounded-2xl border border-[#dcc7a2] bg-[#fffdf7] p-5 h-40"
-                  />
+                    className="flex flex-col justify-between rounded-2xl border border-[#dcc7a2] bg-[#fffdf7] p-5 h-40"
+                  >
+                    <div className="flex items-center gap-3">
+                      <SkeletonBlock className="h-10 w-10 rounded-xl" />
+                      <div className="flex flex-col gap-1.5">
+                        <SkeletonBlock className="h-4 w-24" />
+                        <SkeletonBlock className="h-3 w-36 bg-[#ede3d2]" />
+                      </div>
+                    </div>
+                    <SkeletonBlock className="h-9 w-full rounded-lg" />
+                  </div>
                 ))}
               </div>
             ) : (
@@ -606,8 +615,14 @@ export function ShopPage() {
                 {[0, 1, 2, 3].map((i) => (
                   <div
                     key={i}
-                    className="rounded-2xl border border-[#dcc7a2] bg-[#fffdf7] p-4 h-48"
-                  />
+                    className="flex flex-col justify-between rounded-2xl border border-[#dcc7a2] bg-[#fffdf7] p-4 h-48"
+                  >
+                    <SkeletonBlock className="h-24 w-full rounded-xl" />
+                    <div className="flex flex-col gap-1.5 mt-2">
+                      <SkeletonBlock className="h-4 w-20" />
+                      <SkeletonBlock className="h-3 w-14 bg-[#ede3d2]" />
+                    </div>
+                  </div>
                 ))}
               </div>
             ) : (
