@@ -984,7 +984,9 @@
     "requestedToast": "Export angefordert — wir bereiten ihn im Hintergrund vor.",
     "statusPreparing": "Dein Export wird vorbereitet… das dauert meist wenige Sekunden.",
     "statusReady": "Dein Export ist bereit. Der Download-Link läuft am {expiresAt} ab.",
-    "download": "Herunterladen"
+    "download": "Herunterladen",
+    "deleteConfirmTitle": "Export löschen?",
+    "deleteConfirmDesc": "Die Exportdatei wird unwiderruflich gelöscht. Du kannst jederzeit einen neuen Export anfordern."
   },
   "consent": {
     "title": "Cookies & Analyse",

@@ -984,7 +984,9 @@
     "requestedToast": "Exportación solicitada — la preparamos en segundo plano.",
     "statusPreparing": "Preparando tu exportación… suele tardar unos segundos.",
     "statusReady": "Tu exportación está lista. El enlace de descarga caduca el {expiresAt}.",
-    "download": "Descargar"
+    "download": "Descargar",
+    "deleteConfirmTitle": "¿Eliminar exportación?",
+    "deleteConfirmDesc": "El archivo de exportación se eliminará permanentemente. Puedes solicitar uno nuevo en cualquier momento."
   },
   "consent": {
     "title": "Cookies y analítica",

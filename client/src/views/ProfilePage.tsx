@@ -94,6 +94,7 @@ function DataExportCard() {
   const { auth } = useAuth();
   const [exports, setExports] = useState<UserExportRow[] | null>(null);
   const [busy, setBusy] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   // Only real accounts have export rows — guests never hit the endpoint.
   // This is the fix for the background 401 loop: previously an unauthenticated
@@ -161,6 +162,7 @@ function DataExportCard() {
   async function handleDelete(id: string) {
     try {
       await deleteDataExport(id);
+      setConfirmDeleteId(null);
       await load();
     } catch (error) {
       toastError(readableError(error));
@@ -189,7 +191,7 @@ function DataExportCard() {
           <div className="relative rounded-lg border border-[#dbc6a2] bg-[#f5e6d0]/40 px-4 py-3 text-sm">
             <button
               type="button"
-              onClick={() => handleDelete(active.id)}
+              onClick={() => setConfirmDeleteId(active.id)}
               className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full text-[#6e5b48] transition-colors hover:bg-[rgba(0,0,0,0.06)] hover:text-[#28170e]"
               aria-label={tCommon("delete")}
             >
@@ -232,6 +234,26 @@ function DataExportCard() {
           {busy ? tCommon("saving") : t("request")}
         </Button>
       </CardContent>
+
+      <Dialog
+        open={confirmDeleteId !== null}
+        onOpenChange={(open) => !open && setConfirmDeleteId(null)}
+        title={t("deleteConfirmTitle")}
+        description={t("deleteConfirmDesc")}
+      >
+        <div className="flex gap-3">
+          <Button variant="outline" className="flex-1" onClick={() => setConfirmDeleteId(null)}>
+            {tCommon("cancel")}
+          </Button>
+          <Button
+            variant="danger"
+            className="flex-1"
+            onClick={() => confirmDeleteId && handleDelete(confirmDeleteId)}
+          >
+            {tCommon("delete")}
+          </Button>
+        </div>
+      </Dialog>
     </Card>
   );
 }

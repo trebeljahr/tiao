@@ -984,7 +984,9 @@
     "requestedToast": "Export requested — we'll prepare it in the background.",
     "statusPreparing": "Preparing your export… this usually takes a few seconds.",
     "statusReady": "Your export is ready. Download link expires on {expiresAt}.",
-    "download": "Download"
+    "download": "Download",
+    "deleteConfirmTitle": "Delete export?",
+    "deleteConfirmDesc": "This will permanently delete the export file. You can request a new one at any time."
   },
   "consent": {
     "title": "Cookies & analytics",
