@@ -46,13 +46,24 @@ const nextConfig = {
   env: {
     APP_VERSION: getAppVersion(),
   },
-  // Parallel dev mode: let multiple dev servers share the same .next dir so
-  // they share the Turbopack font cache (avoids concurrent Google Fonts
-  // downloads racing each other and failing mid-request). This needs Next's
-  // per-project dev lockfile turned off since it normally refuses a second
-  // instance against the same project dir regardless of port.
+  // Parallel dev mode (DEV_PARALLEL=1, set by scripts/dev.mjs): two settings
+  // need to flip so multiple Next 16 dev servers can run against the same
+  // project dir.
+  //
+  // 1. lockDistDir off — Next 16 normally takes an exclusive lockfile at
+  //    .next/dev/lock and refuses any second dev server in the same project,
+  //    regardless of port.
+  // 2. turbopackFileSystemCacheForDev off — Next 16.1+ enables Turbopack's
+  //    cross-session persistent build cache by default. The on-disk cache
+  //    database can only be opened by one Turbopack instance at a time; two
+  //    sharing the same .next/dev/cache crash with "Failed to open database".
+  //    Turning it off costs us the warm-cache speedup across restarts but
+  //    leaves HMR and the font cache (which lives elsewhere, at
+  //    .next/dev/internal/font/) intact — so concurrent Google Fonts
+  //    downloads still hit a single shared cache and don't race each other.
   experimental: {
     lockDistDir: process.env.DEV_PARALLEL !== "1",
+    turbopackFileSystemCacheForDev: process.env.DEV_PARALLEL !== "1",
   },
   // Turbopack config (default bundler in Next.js 16 dev)
   turbopack: {
