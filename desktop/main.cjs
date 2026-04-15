@@ -19,10 +19,21 @@
  */
 
 const { app, BrowserWindow, Menu, shell, protocol } = require("electron");
+const path = require("node:path");
 
 const { registerAppProtocol, DESKTOP_PROTOCOL_SCHEME } = require("./src/protocol.cjs");
 const { createMainWindow } = require("./src/window.cjs");
 const { buildMenu } = require("./src/menu.cjs");
+const {
+  registerAuthIpc,
+  loadPersistedToken,
+  handleAuthDeepLink,
+} = require("./src/authBridge.cjs");
+const {
+  installDeepLinkHandler,
+  flushPendingDeepLinks,
+  DEEP_LINK_SCHEME,
+} = require("./src/deepLink.cjs");
 
 // Privileged scheme registration MUST run before app.whenReady() —
 // at startup Chromium builds its protocol table from whatever has
@@ -41,11 +52,48 @@ protocol.registerSchemesAsPrivileged([
   },
 ]);
 
+// Register the custom URL scheme with the OS so `tiao://auth/complete`
+// deep links route back to this app.  On packaged builds this writes
+// to the system protocol table; on dev builds (app.isPackaged = false)
+// we need to pass the current executable + script path so the OS
+// launches us with the right argv.
+if (process.defaultApp) {
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient(DEEP_LINK_SCHEME, process.execPath, [
+      path.resolve(process.argv[1]),
+    ]);
+  }
+} else {
+  app.setAsDefaultProtocolClient(DEEP_LINK_SCHEME);
+}
+
+// Single-instance lock: if a user triggers a second launch via a
+// tiao:// deep link, Electron forwards its argv to the primary
+// instance instead of spawning a second one.  Without this, each
+// deep link click on Windows/Linux would spawn a fresh Electron
+// process with no shared state.
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+  // eslint-disable-next-line no-process-exit
+  process.exit(0);
+}
+
+// Install deep-link handlers BEFORE whenReady so any `open-url` event
+// that fires during startup gets queued correctly.  See deepLink.cjs
+// for the full lifecycle story.
+installDeepLinkHandler({ onAuth: handleAuthDeepLink });
+
 /** @type {BrowserWindow | null} */
 let mainWindow = null;
 
 function bootstrap() {
   registerAppProtocol();
+  // Warm the token cache BEFORE registering IPC handlers so
+  // auth:getToken returns the previously persisted value on the
+  // first call rather than null.
+  loadPersistedToken();
+  registerAuthIpc();
 
   mainWindow = createMainWindow({
     startUrl: `${DESKTOP_PROTOCOL_SCHEME}://tiao/en/`,
@@ -81,6 +129,15 @@ function bootstrap() {
         <p style="color:#888;font-size:0.9em;">(${errorDescription})</p>
       </body></html>`;
     void win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
+  });
+
+  // Once the renderer has loaded its JS bundle, flush any deep
+  // links we received before the auth listener was wired up.  On
+  // cold-start via a tiao:// URL on Windows/Linux this is the
+  // difference between the user signing in successfully and seeing
+  // the lobby stuck as a guest.
+  win.webContents.once("did-finish-load", () => {
+    flushPendingDeepLinks();
   });
 }
 
