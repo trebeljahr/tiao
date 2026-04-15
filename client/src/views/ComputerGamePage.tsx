@@ -101,6 +101,28 @@ export function ComputerGamePage() {
 
   const { open: gameOverDialogOpen, setOpen: setGameOverDialogOpen } = useGameOverDialog(gameOver);
 
+  // E2E test hook: when ?e2e=1 is in the URL, expose a small test helper on
+  // window so Playwright can force a win deterministically without touching
+  // React internals. Gated on the query param so it never ships to users.
+  const setLocalGame = computer.setLocalGame;
+  useEffect(() => {
+    if (!searchParams.has("e2e")) return;
+    const w = window as unknown as {
+      __tiaoComputerTest__?: { forceWin: (color?: "white" | "black") => void };
+    };
+    w.__tiaoComputerTest__ = {
+      forceWin: (color = "white") => {
+        setLocalGame((prev) => ({
+          ...prev,
+          score: { ...prev.score, [color]: prev.scoreToWin ?? 10 },
+        }));
+      },
+    };
+    return () => {
+      delete w.__tiaoComputerTest__;
+    };
+  }, [searchParams, setLocalGame]);
+
   const playerWon = winner !== null && winner !== computer.computerColor;
 
   // Report AI win for achievements
