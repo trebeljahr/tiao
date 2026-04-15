@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { PwaInstallBanner } from "@/components/PwaInstallBanner";
 import { Toaster, toast } from "sonner";
 import { AuthProvider, useAuth } from "@/lib/AuthContext";
 import { toastError } from "@/lib/errors";
@@ -497,6 +498,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
             <AuthDialog />
             <OAuthErrorHandler />
             <ConsentBanner />
+            <PwaInstallBanner />
             {/* Sonner hardcodes z-index:999999999 on [data-sonner-toaster].
                 Override it above dialogs (z-300) but below the mobile nav
                 drawer backdrop (z-200 on the drawer, but toasts should still

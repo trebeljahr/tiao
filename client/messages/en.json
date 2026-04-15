@@ -1130,5 +1130,11 @@
     "noReportsAtAll": "No reports in the system.",
     "allReportsCount": "{count} player(s) with reports",
     "flaggedBadge": "Flagged"
+  },
+  "pwaInstall": {
+    "title": "Install Tiao",
+    "description": "Add Tiao to your home screen for a faster, full-screen experience.",
+    "install": "Install",
+    "dismiss": "Not now"
   }
 }

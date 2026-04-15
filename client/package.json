@@ -31,6 +31,7 @@
     "typescript": "^5.8.3"
   },
   "devDependencies": {
+    "@serwist/next": "^9.5.7",
     "@tailwindcss/postcss": "^4.2.2",
     "@tailwindcss/typography": "^0.5.13",
     "@testing-library/dom": "^10.4.1",
@@ -44,6 +45,7 @@
     "eslint": "^10.1.0",
     "jsdom": "^25.0.1",
     "postcss": "^8.3.0",
+    "serwist": "^9.5.7",
     "tailwindcss": "^4.2.2",
     "typescript-eslint": "^8.57.2",
     "vitest": "^3.2.4"

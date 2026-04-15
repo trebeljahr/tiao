@@ -1130,5 +1130,11 @@
     "noReportsAtAll": "No hay reportes en el sistema.",
     "allReportsCount": "{count} jugador(es) con reportes",
     "flaggedBadge": "Marcado"
+  },
+  "pwaInstall": {
+    "title": "Instalar Tiao",
+    "description": "Añade Tiao a tu pantalla de inicio para una experiencia más rápida a pantalla completa.",
+    "install": "Instalar",
+    "dismiss": "Ahora no"
   }
 }

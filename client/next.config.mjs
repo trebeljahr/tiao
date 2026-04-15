@@ -1,10 +1,19 @@
 import createNextIntlPlugin from "next-intl/plugin";
+import withSerwistInit from "@serwist/next";
 import path from "path";
 import { fileURLToPath } from "url";
 import { readFileSync, existsSync } from "fs";
 import { execSync } from "child_process";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
+
+const withSerwist = withSerwistInit({
+  swSrc: "app/sw.ts",
+  swDest: "public/sw.js",
+  // Disable the service worker in development to avoid stale caches while iterating.
+  disable: process.env.NODE_ENV === "development",
+  reloadOnOnline: true,
+});
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const sharedDir = path.resolve(__dirname, "../shared/src");
@@ -70,4 +79,4 @@ const nextConfig = {
   },
 };
 
-export default withNextIntl(nextConfig);
+export default withSerwist(withNextIntl(nextConfig));

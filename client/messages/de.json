@@ -1130,5 +1130,11 @@
     "noReportsAtAll": "Keine Meldungen im System.",
     "allReportsCount": "{count} Spieler mit Meldungen",
     "flaggedBadge": "Markiert"
+  },
+  "pwaInstall": {
+    "title": "Tiao installieren",
+    "description": "Füge Tiao zu deinem Startbildschirm hinzu für ein schnelleres Vollbild-Erlebnis.",
+    "install": "Installieren",
+    "dismiss": "Später"
   }
 }
