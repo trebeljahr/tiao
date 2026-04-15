@@ -43,14 +43,27 @@ vi.mock("@/lib/hooks/useSocialData", () => ({
 
 vi.mock("@/lib/api", () => ({
   accessMultiplayerGame: vi.fn(),
-  // Stub the new next-match endpoint to immediately resolve to `ready`
-  // so the tournament post-game CTA in tests shows the "Go to your
-  // next match" label (matching the old static behavior covered by
-  // existing regression tests).
+  // Kept for any code path that imports the API directly — the hook
+  // below is the primary mock the tournament-CTA tests rely on.
   getMyNextTournamentMatch: vi.fn().mockResolvedValue({
     result: { state: "ready", roomId: "NEXT01", matchId: "R1M0" },
   }),
   buildWebSocketUrl: (gameId: string) => `ws://localhost:5005/api/ws?gameId=${gameId}`,
+}));
+
+// Mock the hook DIRECTLY instead of the underlying API. Mocking the API
+// means each test has to await a useEffect → Promise.then → setState →
+// re-render chain via `waitFor`, and that chain flakes under heavy
+// vitest worker load (the worker RPC `onTaskUpdate` timeout fires before
+// the state update lands). Returning a ready result from the hook means
+// the tournament post-game CTA is present on the first render — no
+// async flush, no `waitFor`, no timing dependency.
+vi.mock("@/lib/hooks/useTournamentNextMatch", () => ({
+  useTournamentNextMatch: (tournamentId: string | null) => ({
+    result: tournamentId ? { state: "ready" as const, roomId: "NEXT01", matchId: "R1M0" } : null,
+    loading: false,
+    refresh: vi.fn(),
+  }),
 }));
 
 vi.mock("@/lib/useStonePlacementSound", () => ({
@@ -997,14 +1010,11 @@ describe("MultiplayerGamePage", () => {
       // Should NOT show rematch button for tournament games
       expect(screen.queryByRole("button", { name: "Rematch" })).not.toBeInTheDocument();
 
-      // Should show "Go to your next match" button. The label is now
-      // driven by the server's next-match decision (mocked at the top of
-      // this file to resolve to `state: "ready"`), so the hook's async
-      // update needs to settle before we assert.
-      await waitFor(() => {
-        const nextMatchBtns = screen.getAllByRole("button", { name: "Go to your next match" });
-        expect(nextMatchBtns.length).toBeGreaterThan(0);
-      });
+      // Should show "Go to your next match" button. useTournamentNextMatch
+      // is mocked at the top of this file to synchronously return
+      // `state: "ready"`, so the button is in the tree on first render.
+      const nextMatchBtns = screen.getAllByRole("button", { name: "Go to your next match" });
+      expect(nextMatchBtns.length).toBeGreaterThan(0);
 
       // Should show "Add friend" button (for the opponent)
       const addFriendBtns = screen.getAllByRole("button", { name: /Add friend/i });
