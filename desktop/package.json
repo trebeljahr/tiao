@@ -16,6 +16,7 @@
     "dev:build-client": "npm --prefix ../client run build:desktop && rm -rf client-bundle && cp -R ../client/.next-desktop/. client-bundle",
     "dev:rebuild-client": "npm run dev:build-client",
     "typecheck": "tsc --noEmit",
+    "test": "node --test 'src/**/*.test.cjs'",
     "package": "electron-builder -p never",
     "package:all": "electron-builder -mwl -p never",
     "package:steam": "STEAM_BUILD=true electron-builder -p never",

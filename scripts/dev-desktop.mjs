@@ -82,11 +82,24 @@ const serverCmd = `PORT=${apiPort} npm --prefix server run dev`;
 
 // The desktop command: wait for the server to accept connections
 // (scripts/wait-for-port.mjs polls 127.0.0.1:<port>), then invoke
-// dev:fresh with NEXT_PUBLIC_DESKTOP_API_URL set so the rebuilt
-// client-bundle fetches against our random port.
+// dev:fresh with BOTH env vars set:
+//
+//   - NEXT_PUBLIC_DESKTOP_API_URL bakes our random port into the
+//     static export as a build-time fallback (read by
+//     client/src/lib/api.ts when window.electron.config isn't
+//     available — dead code in normal desktop operation but kept
+//     as a safety net).
+//
+//   - TIAO_API_URL is the one that ACTUALLY takes effect at runtime.
+//     desktop/main.cjs → resolveApiUrl() reads it and passes it to
+//     the renderer via window.electron.config.apiUrl, which
+//     client/src/lib/api.ts:getApiBaseUrl() prefers over every
+//     other source. Without this, resolveApiUrl() falls back to
+//     its hardcoded http://localhost:5005 default and the renderer
+//     talks to a port nothing is listening on.
 const desktopCmd = [
   `node scripts/wait-for-port.mjs ${apiPort}`,
-  `NEXT_PUBLIC_DESKTOP_API_URL=${apiUrl} npm --prefix desktop run dev:fresh`,
+  `NEXT_PUBLIC_DESKTOP_API_URL=${apiUrl} TIAO_API_URL=${apiUrl} npm --prefix desktop run dev:fresh`,
 ].join(" && ");
 
 const child = spawn(
