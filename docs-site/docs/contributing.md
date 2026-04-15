@@ -12,7 +12,7 @@ Thanks for your interest in contributing to Tiao! This guide will help you get s
 - **Node.js 22.x** (see `.nvmrc` or `engines` in `package.json`)
 - **MongoDB** running locally (for account features and game persistence)
 - **npm** (comes with Node.js)
-- **Redis** (optional — for distributed matchmaking and rate limiting; the server falls back to in-memory stores)
+- **Redis** (required — for matchmaking, distributed locks, rate limiting, and cross-instance broadcasts; the server refuses to start without `REDIS_URL`. Easiest path: `npm run dev:infra` brings up Redis + Mongo + MinIO via Docker Compose.)
 
 ## Getting Started
 

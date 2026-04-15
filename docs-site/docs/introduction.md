@@ -76,7 +76,7 @@ Edit `server/.env` and set at least these two variables:
 | `MONGODB_URI`  | MongoDB connection string, e.g. `mongodb://localhost:27017/tiao` for a local instance or the connection string from Atlas |
 | `TOKEN_SECRET` | Any random string — used to HMAC session tokens. Generate one with `openssl rand -base64 32`                              |
 
-The remaining variables (`S3_*`, `AWS_*`) are only needed for profile picture uploads. `REDIS_URL` is optional — it enables distributed matchmaking, locks, and rate limiting. When omitted, the server falls back to in-memory stores.
+The remaining variables (`S3_*`, `AWS_*`) are only needed for profile picture uploads. `REDIS_URL` is **required** — the server backs matchmaking, distributed locks, rate limiting, and cross-instance broadcasts on Redis and refuses to start without it. `npm run dev:infra` (called automatically by `npm run dev`) brings up a local Redis via `docker-compose.dev.yml`.
 
 See `server/.env.example` for the full list with descriptions.
 

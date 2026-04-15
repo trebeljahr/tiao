@@ -101,11 +101,11 @@ The server is an Express application with a WebSocket server attached to the sam
 
 `GameService` (in `server/game/gameService.ts`) is the central orchestrator. It manages:
 
-- **Matchmaking queue** — pairs players into games via a `MatchmakingStore` abstraction (in-memory or Redis-backed)
-- **Socket connection maps** — tracks which WebSocket belongs to which player/game
-- **Lock system** — room locks, player locks, and a matchmaking lock via a `LockProvider` abstraction (in-memory or Redis-backed) to prevent race conditions under concurrent access
+- **Matchmaking queue** — pairs players into games via a Redis-backed `MatchmakingStore`
+- **Socket connection maps** — tracks which WebSocket belongs to which player/game (in-memory, per backend process)
+- **Lock system** — room locks, player locks, and a matchmaking lock via a Redis-backed `LockProvider` to prevent race conditions under concurrent access
 
-The server auto-detects Redis when `REDIS_URL` is set and falls back to in-memory implementations when it is not configured.
+`REDIS_URL` is required at startup outside `NODE_ENV=test` — the GameService factory throws loudly if it is unset. Tests still construct an in-memory `GameService` directly via `new GameService()` so unrelated unit tests keep working without spinning up Redis.
 
 - **Move validation** — `applyAction()` validates every move server-side using the shared game engine before persisting
 - **State broadcast** — `broadcastSnapshot()` pushes updated state to all connected players and lobby listeners
@@ -291,7 +291,7 @@ better-auth automatically manages `user`, `session`, and `account` collections f
 
 ### Redis
 
-Redis is optional. When available (configured via `REDIS_URL`), it backs the matchmaking queue, distributed locks, and rate limiting. This enables horizontal scaling across multiple server instances and allows stateful services to survive server restarts. WebSocket connections and game timers remain in-memory on each server instance.
+Redis is **required** at startup (configured via `REDIS_URL`). It backs the matchmaking queue, distributed locks, rate limiting, and the cross-instance broadcast bus that lets one backend's game-state updates reach players connected to other backend replicas. This is what makes horizontal scaling of `tiao-server` possible — multiple replicas all coordinate through one Redis. WebSocket sockets and game timers still live in-memory on each replica, so a player's socket session remains pinned to whichever replica handled their connection upgrade until they disconnect.
 
 ---
 
@@ -361,13 +361,13 @@ Key properties:
               |    MongoDB      |
               +-----------------+
               +--------+--------+
-              |  Redis (optional)|
+              |     Redis       |
               +-----------------+
 ```
 
 Both containers are deployed as Docker images. The client container runs a Node.js server (`server.mjs`) that serves the Next.js application and reverse-proxies all `/api` and `/ws` requests to the server container. This same-origin setup avoids cross-origin cookie issues with the session cookie.
 
-When Redis is available, the server can scale horizontally — matchmaking state and locks are shared across instances rather than held in a single process. Set the `REDIS_URL` environment variable to configure the connection. Without Redis, the server runs as a single instance with in-memory state, which is sufficient for low-traffic deployments.
+The server scales horizontally across multiple `tiao-server` replicas — matchmaking state, locks, and broadcasts are shared through Redis rather than held in a single process. Set the `REDIS_URL` environment variable to configure the connection. The server refuses to start without it (outside `NODE_ENV=test`), so a misconfigured deployment fails fast at startup rather than silently dropping cross-instance features.
 
 ### Game Review & Move History
 
