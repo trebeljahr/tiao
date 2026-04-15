@@ -26,6 +26,42 @@ export type AnalyticsConsentStatus = "pending" | "granted" | "denied";
 
 export const ANALYTICS_CONSENT_STORAGE_KEY = "tiao:analytics-consent";
 
+/**
+ * Mirror the consent state to the Electron main-process analytics
+ * wrapper (see desktop/src/analytics.cjs) so both halves of the
+ * desktop app honor the same decision. No-op on the web — the
+ * `isElectron` check returns false when there's no preload bridge,
+ * and the whole function becomes dead code after tree-shaking.
+ *
+ * The main process defaults to DISABLED on first launch and only
+ * starts emitting after this IPC call flips it on. That means the
+ * `desktop:app_start` event fires on the second launch at earliest,
+ * which is intentional — we'd rather err on the side of privacy
+ * than capture a beacon before the user has had a chance to see
+ * the consent banner.
+ */
+function mirrorConsentToElectron(enabled: boolean): void {
+  if (typeof window === "undefined") return;
+  const electron = (
+    window as unknown as {
+      electron?: {
+        isElectron?: boolean;
+        analytics?: { setEnabled?: (enabled: boolean) => Promise<unknown> };
+      };
+    }
+  ).electron;
+  if (!electron?.isElectron || typeof electron.analytics?.setEnabled !== "function") {
+    return;
+  }
+  // Fire-and-forget. If the IPC round-trip fails for any reason we
+  // don't want to block the renderer — the main process still has
+  // its on-disk prefs file from the previous session, and the next
+  // consent change will try again.
+  void electron.analytics.setEnabled(enabled).catch((err) => {
+    console.warn("[consent] failed to mirror to Electron:", err);
+  });
+}
+
 type AnalyticsConsentContextValue = {
   status: AnalyticsConsentStatus;
   /** True once the provider has read localStorage. Before this the
@@ -68,25 +104,35 @@ export function AnalyticsConsentProvider({ children }: { children: React.ReactNo
   // already granted consent in a previous session we flip the OpenPanel
   // instance on immediately — before any component gets a chance to
   // fire an event — so no tracking is lost to the consent round-trip.
+  // The same flip is mirrored to the Electron main-process analytics
+  // so desktop builds inherit the decision across renderer restarts.
   useEffect(() => {
     const stored = readStored();
     setStatus(stored);
     setHydrated(true);
     if (stored === "granted") {
       enableTracking();
+      mirrorConsentToElectron(true);
+    } else if (stored === "denied") {
+      mirrorConsentToElectron(false);
     }
+    // "pending" intentionally does NOT call mirrorConsentToElectron —
+    // the main process stays at its default-off state until the user
+    // actively decides.
   }, []);
 
   const grant = useCallback(() => {
     writeStored("granted");
     setStatus("granted");
     enableTracking();
+    mirrorConsentToElectron(true);
   }, []);
 
   const revoke = useCallback(() => {
     writeStored("denied");
     setStatus("denied");
     disableTracking();
+    mirrorConsentToElectron(false);
   }, []);
 
   const value: AnalyticsConsentContextValue = {
