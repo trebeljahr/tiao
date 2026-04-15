@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "node server.mjs",
     "build": "next build --webpack",
+    "build:desktop": "NEXT_PUBLIC_PLATFORM=desktop next build --webpack",
     "start": "node server.mjs",
     "typecheck": "next typegen && tsc",
     "eslint": "eslint src/",

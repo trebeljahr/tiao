@@ -5,13 +5,24 @@ import { fileURLToPath } from "url";
 import { readFileSync, existsSync } from "fs";
 import { execSync } from "child_process";
 
+// Desktop Electron static-export build is selected via the env var.
+// Next.js 16 has no --config CLI option, so we branch inside this one
+// config file: `NEXT_PUBLIC_PLATFORM=desktop next build --webpack`
+// switches output mode, distDir, image optimization, trailing slashes,
+// and disables Serwist (which can't precache from a file:// / app://
+// origin and is redundant when the bundle already lives on disk).
+const IS_DESKTOP_BUILD = process.env.NEXT_PUBLIC_PLATFORM === "desktop";
+
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const withSerwist = withSerwistInit({
   swSrc: "app/sw.ts",
   swDest: "public/sw.js",
-  // Disable the service worker in development to avoid stale caches while iterating.
-  disable: process.env.NODE_ENV === "development",
+  // Disable the service worker in development (stale caches while
+  // iterating) and in the desktop Electron build (the bundle is
+  // already on disk, SW precaching is redundant and interferes with
+  // the `app://` protocol handler).
+  disable: process.env.NODE_ENV === "development" || IS_DESKTOP_BUILD,
   reloadOnOnline: true,
 });
 
@@ -43,8 +54,38 @@ const nextConfig = {
   reactStrictMode: true,
   allowedDevOrigins: ["192.168.0.*", "192.168.1.*", "localhost", "127.0.0.1"],
   outputFileTracingRoot: path.resolve(__dirname, ".."),
+
+  // Desktop static export overrides.  These keys are only present
+  // when NEXT_PUBLIC_PLATFORM=desktop is set at build time.  See
+  // the comment at the top of the file for the full rationale.
+  ...(IS_DESKTOP_BUILD && {
+    // Full static export — produces HTML/JS/CSS on disk with no
+    // Node runtime required to serve them.  The Electron `app://`
+    // protocol handler reads files directly from the bundled dir.
+    output: "export",
+    // Keep web and desktop build outputs separate so back-to-back
+    // invocations don't stomp on each other.
+    distDir: ".next-desktop",
+    // Static export can't use Next.js's built-in image optimizer
+    // (which needs a runtime). Assets in public/ are served raw.
+    images: { unoptimized: true },
+    // Emit `index.html` in each route directory instead of bare
+    // `<route>.html` — simplifies the protocol handler's path
+    // resolution and matches conventional static-hosting layouts.
+    trailingSlash: true,
+  }),
+
   env: {
     APP_VERSION: getAppVersion(),
+    ...(IS_DESKTOP_BUILD && {
+      // NEXT_PUBLIC_* vars are inlined into both client and server
+      // bundles at build time.  The platform + API URL are read by
+      // client/src/lib/api.ts and AuthContext to switch to the
+      // bearer-token auth path when running in Electron.
+      NEXT_PUBLIC_PLATFORM: "desktop",
+      NEXT_PUBLIC_DESKTOP_API_URL:
+        process.env.NEXT_PUBLIC_DESKTOP_API_URL || "https://api.playtiao.com",
+    }),
   },
   // Parallel dev mode (DEV_PARALLEL=1, set by scripts/dev.mjs): two settings
   // need to flip so multiple Next 16 dev servers can run against the same

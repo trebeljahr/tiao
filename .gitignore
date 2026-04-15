@@ -12,6 +12,7 @@ test-results/
 
 # next.js
 **/.next/
+**/.next-desktop/
 **/out/
 **/next-env.d.ts
 
