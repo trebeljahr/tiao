@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import { MultiplayerGamePage } from "./MultiplayerGamePage";
 import type { AuthResponse, MultiplayerSnapshot, TurnRecord } from "@shared";
 import { createInitialGameState, EMPTY_SOCIAL_OVERVIEW } from "@shared";
