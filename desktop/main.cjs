@@ -43,6 +43,15 @@ const {
   flush: flushGlitchtip,
 } = require("./src/glitchtip.cjs");
 const { resolveApiUrl } = require("./src/config.cjs");
+const {
+  STEAM_ENABLED,
+  initSteam,
+  shutdownSteam,
+  isSteamActive,
+  getSteamUser,
+  unlockAchievement: unlockSteamAchievement,
+  indicateAchievementProgress: indicateSteamAchievementProgress,
+} = require("./src/steam.cjs");
 
 // HMR dev mode: if TIAO_DEV_RENDERER_URL is set and we're unpackaged,
 // the renderer loads from that URL instead of `app://tiao/en/`.  Used
@@ -219,7 +228,16 @@ function bootstrap() {
   registerAuthIpc();
   initAnalytics();
   registerAnalyticsIpc();
-  track("desktop:app_start", { packaged: app.isPackaged });
+  // Steamworks init. No-op unless STEAM_BUILD=true. A failure here
+  // (Steam client not running, wrong appid, missing binding) logs a
+  // warning and leaves `isSteamActive() === false` — the rest of
+  // the app keeps working as if we were a standalone build.
+  const steamOk = initSteam();
+  registerSteamIpc();
+  track("desktop:app_start", {
+    packaged: app.isPackaged,
+    steam: STEAM_ENABLED ? (steamOk ? "active" : "init_failed") : "off",
+  });
 
   // Check whether the bundled static export is reachable BEFORE we
   // create the window — if it's missing we'll spawn the window
@@ -318,6 +336,44 @@ function registerAnalyticsIpc() {
   });
 }
 
+/**
+ * IPC surface for the Steamworks integration.  Renderer callers
+ * should always check `window.electron.steam?.isActive()` before
+ * invoking the other methods — a standalone build (STEAM_BUILD
+ * unset) returns false immediately, and a Steam build where init
+ * failed (Steam client not running, wrong appid) also returns
+ * false. Either way, callers should gracefully degrade instead of
+ * showing a "Steam required" error.
+ */
+function registerSteamIpc() {
+  ipcMain.handle("steam:isActive", async () => {
+    return isSteamActive();
+  });
+  ipcMain.handle("steam:getUser", async () => {
+    return getSteamUser();
+  });
+  ipcMain.handle("steam:unlockAchievement", async (_event, apiName) => {
+    if (typeof apiName !== "string" || !apiName) {
+      return { ok: false, reason: "invalid_api_name" };
+    }
+    unlockSteamAchievement(apiName);
+    return { ok: true };
+  });
+  ipcMain.handle(
+    "steam:indicateAchievementProgress",
+    async (_event, apiName, current, max) => {
+      if (typeof apiName !== "string" || !apiName) {
+        return { ok: false, reason: "invalid_api_name" };
+      }
+      if (typeof current !== "number" || typeof max !== "number") {
+        return { ok: false, reason: "invalid_progress" };
+      }
+      indicateSteamAchievementProgress(apiName, current, max);
+      return { ok: true };
+    },
+  );
+}
+
 app.whenReady().then(bootstrap);
 
 app.on("window-all-closed", () => {
@@ -336,6 +392,8 @@ app.on("activate", () => {
 // catches in-flight captureException calls from the last 2 seconds
 // of runtime — without this, a crash that triggers quit would lose
 // the crash event it just reported.
+// Also tears down the Steam callback loop so the interval timer
+// doesn't keep a process reference alive after the window closes.
 app.on("before-quit", async (event) => {
   // We don't want to actually block the quit for more than ~2s —
   // the flush helper has its own internal timeout, and we only
@@ -344,6 +402,7 @@ app.on("before-quit", async (event) => {
   if (glitchtipFlushed) return;
   event.preventDefault();
   try {
+    shutdownSteam();
     await flushGlitchtip(2000);
   } catch {
     /* best-effort */

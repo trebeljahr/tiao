@@ -145,4 +145,41 @@ contextBridge.exposeInMainWorld("electron", {
      */
     setEnabled: (enabled) => ipcRenderer.invoke("analytics:setEnabled", enabled),
   },
+
+  /**
+   * Steamworks integration — only non-null in the Steam build
+   * variant (`STEAM_BUILD=true` at launch). Standalone / itch.io
+   * builds return `isActive: false` from every call and renderer
+   * code should gracefully degrade instead of rendering Steam-
+   * specific UI.
+   *
+   * The API names passed to `unlockAchievement` /
+   * `indicateAchievementProgress` are the internal Steamworks
+   * Partner Portal identifiers (not the localised display labels)
+   * — e.g. "ACH_FIRST_WIN", not "First Victory".  The canonical
+   * list should live in `shared/src/achievements.ts` once Tiao's
+   * Partner Portal entry is live.
+   */
+  steam: {
+    /** @returns {Promise<boolean>} */
+    isActive: () => ipcRenderer.invoke("steam:isActive"),
+
+    /** @returns {Promise<{ steamId: string; displayName: string; country?: string } | null>} */
+    getUser: () => ipcRenderer.invoke("steam:getUser"),
+
+    /**
+     * @param {string} apiName
+     * @returns {Promise<{ ok: true } | { ok: false; reason: string }>}
+     */
+    unlockAchievement: (apiName) => ipcRenderer.invoke("steam:unlockAchievement", apiName),
+
+    /**
+     * @param {string} apiName
+     * @param {number} current
+     * @param {number} max
+     * @returns {Promise<{ ok: true } | { ok: false; reason: string }>}
+     */
+    indicateAchievementProgress: (apiName, current, max) =>
+      ipcRenderer.invoke("steam:indicateAchievementProgress", apiName, current, max),
+  },
 });

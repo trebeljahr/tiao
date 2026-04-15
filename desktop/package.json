@@ -18,11 +18,13 @@
     "typecheck": "tsc --noEmit",
     "package": "electron-builder -p never",
     "package:all": "electron-builder -mwl -p never",
+    "package:steam": "STEAM_BUILD=true electron-builder -p never",
     "release": "./scripts/release.sh"
   },
   "dependencies": {
     "@sentry/node": "^10.48.0",
-    "electron-updater": "^6.3.0"
+    "electron-updater": "^6.3.0",
+    "steamworks.js": "^0.4.0"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
@@ -44,8 +46,12 @@
       "preload.cjs",
       "src/**/*.cjs",
       "package.json",
+      "steam_appid.txt",
       "!node_modules/.cache/**",
       "!**/*.map"
+    ],
+    "asarUnpack": [
+      "**/node_modules/steamworks.js/**"
     ],
     "extraResources": [
       {
