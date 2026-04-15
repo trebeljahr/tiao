@@ -13,7 +13,17 @@ import reportRoutes from "./routes/report.routes";
 import tournamentRoutes from "./routes/tournament.routes";
 import shopRoutes from "./routes/shop.routes";
 import achievementRoutes from "./routes/achievement.routes";
+import desktopAuthRoutes from "./routes/desktop-auth.routes";
 const app = express();
+
+// Desktop OAuth bridge routes run BEFORE both the better-auth catchall
+// (so /api/auth/desktop/* takes precedence) and the global CORS
+// middleware (desktop clients don't have a stable browser origin, and
+// the Electron main process calls /exchange from Node — CORS is
+// irrelevant and would break the flow).  They bring their own
+// express.json body parser for POST endpoints so there's no
+// dependency on configureApp() ordering.
+app.use("/api/auth/desktop", express.json({ limit: "10kb" }), desktopAuthRoutes);
 
 // Mount better-auth BEFORE express.json() to avoid body consumption conflicts
 app.all("/api/auth/*splat", toNodeHandler(auth));
