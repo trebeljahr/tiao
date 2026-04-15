@@ -1,384 +1,73 @@
 "use client";
 
-import "@/lib/dump";
-import { useEffect, useRef, useState } from "react";
+/**
+ * Universal provider chain + app shell chrome.
+ *
+ * Hot path notes (see commits around cold-compile optimization):
+ *
+ * 1. Heavy UI components that don't render on the critical path (auth
+ *    modal, PWA install banner, cookie consent banner) are pulled in
+ *    via `next/dynamic` so their module graphs (the Dialog + form
+ *    primitives, the react-icons sub-path imports, etc.) land in
+ *    separate chunks and don't bloat every route's cold compile.
+ *
+ * 2. The lobby-scoped provider chain (LobbySocketProvider + Social +
+ *    Tournament notifications) is extracted into its own module at
+ *    `./LobbyProviders.tsx` so it's a clean module boundary for
+ *    Turbopack. Still mounted unconditionally here today, but the
+ *    split sets up a future route-group refactor that can drop
+ *    lobby providers from non-lobby routes entirely.
+ *
+ * 3. `@/lib/dump` (console interception for Rico's remote-dump bug
+ *    report feature) used to be a module-top side-effect import. It
+ *    now loads via a dynamic import inside a useEffect so Turbopack
+ *    compiles it as a separate chunk instead of including it in
+ *    every SSR compile of providers.tsx.
+ *
+ * 4. react-icons/fa barrel imports in AuthDialog.tsx are fine as-is —
+ *    Next.js's `experimental.optimizePackageImports` default list
+ *    includes `react-icons/*`, so Next rewrites the barrel into
+ *    per-icon imports at compile time automatically.
+ */
+
+import { useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
 import { useRouter, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { Toaster } from "sonner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { PwaInstallBanner } from "@/components/PwaInstallBanner";
-import { Toaster, toast } from "sonner";
 import { AuthProvider, useAuth } from "@/lib/AuthContext";
 import { toastError } from "@/lib/errors";
 import { getOAuthErrorMessage } from "@/lib/oauthErrors";
-import type { AuthDialogMode } from "@/components/Navbar";
-import { Button } from "@/components/ui/button";
-import { Dialog } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/password-input";
-import { LobbySocketProvider } from "@/lib/LobbySocketContext";
-import { SocialNotificationsProvider } from "@/lib/SocialNotificationsContext";
-import { TournamentNotificationsProvider } from "@/lib/TournamentNotificationsContext";
 import { AnalyticsConsentProvider } from "@/lib/AnalyticsConsent";
-import { ConsentBanner } from "@/components/ConsentBanner";
-import { FaGithub, FaGoogle, FaDiscord } from "react-icons/fa";
+import { LobbyProviders } from "./LobbyProviders";
 
-function OAuthButtons() {
-  const { handleOAuthSignIn } = useAuth();
+// ─── Dynamic imports ─────────────────────────────────────────────────
+//
+// These three components are rendered from AppShell unconditionally,
+// but their BODIES only render when some state flag says so (the auth
+// dialog only when `authDialogOpen`, the banners only when the user
+// hasn't dismissed them). next/dynamic lets Turbopack pull their
+// module graphs into separate chunks so every route's cold compile
+// doesn't have to walk the Dialog + form primitives + icon imports.
+//
+// ssr: false on the auth dialog so we don't ship ~15kb of form JSX
+// through the server renderer when it's closed. The banners do render
+// server-side so they can have the right initial position class.
 
-  return (
-    <div className="space-y-2">
-      <p className="text-center text-xs font-semibold uppercase tracking-wider text-[#7b6550]">
-        Or continue with
-      </p>
-      <div className="flex gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          className="flex-1 gap-2"
-          onClick={() => void handleOAuthSignIn("github")}
-        >
-          <FaGithub className="h-4 w-4" />
-          GitHub
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          className="flex-1 gap-2"
-          onClick={() => void handleOAuthSignIn("google")}
-        >
-          <FaGoogle className="h-4 w-4" />
-          Google
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          className="flex-1 gap-2"
-          onClick={() => void handleOAuthSignIn("discord")}
-        >
-          <FaDiscord className="h-4 w-4" />
-          Discord
-        </Button>
-      </div>
-    </div>
-  );
-}
+const AuthDialog = dynamic(() => import("./AuthDialog").then((m) => m.AuthDialog), {
+  ssr: false,
+});
 
-function AuthDialog() {
-  const {
-    authDialogOpen,
-    authDialogForced,
-    authDialogMode,
-    authBusy,
-    loginEmail,
-    loginPassword,
-    signupDisplayName,
-    signupEmail,
-    signupPassword,
-    signupConfirmPassword,
-    setAuthDialogOpen,
-    setAuthDialogMode,
-    setAuthDialogError,
-    setLoginEmail,
-    setLoginPassword,
-    setSignupDisplayName,
-    setSignupEmail,
-    setSignupPassword,
-    setSignupConfirmPassword,
-    handleLoginSubmit,
-    handleSignupSubmit,
-    handleForgotPassword,
-  } = useAuth();
+const PwaInstallBanner = dynamic(
+  () => import("@/components/PwaInstallBanner").then((m) => ({ default: m.PwaInstallBanner })),
+  { ssr: false },
+);
 
-  const [forgotMode, setForgotMode] = useState(false);
-  const [forgotEmail, setForgotEmail] = useState("");
-  const [forgotBusy, setForgotBusy] = useState(false);
-  const [signupPasswordVisible, setSignupPasswordVisible] = useState(false);
-
-  const dialogTitle = forgotMode
-    ? "Reset password"
-    : authDialogForced
-      ? "Log in to join this custom game"
-      : authDialogMode === "login"
-        ? "Log in"
-        : "Create account";
-
-  const dialogDescription = forgotMode
-    ? "Enter your email to receive a password reset link."
-    : authDialogForced
-      ? "Custom games are only open to registered players. Log in or create a free account to join."
-      : "Log in or create an account to save your profile.";
-
-  return (
-    <Dialog
-      open={authDialogOpen}
-      onOpenChange={(open) => {
-        setAuthDialogOpen(open);
-        if (!open) setForgotMode(false);
-      }}
-      closeable={!authDialogForced}
-      title={dialogTitle}
-      description={dialogDescription}
-    >
-      <div className="space-y-4">
-        {forgotMode ? (
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              setForgotBusy(true);
-              const ok = await handleForgotPassword(forgotEmail);
-              setForgotBusy(false);
-              if (ok) {
-                toast.success("Reset link sent! Check your email.");
-                setForgotMode(false);
-              }
-            }}
-            className="space-y-3"
-          >
-            <div className="space-y-1">
-              <label
-                htmlFor="forgot-email"
-                className="text-xs font-semibold uppercase tracking-wider text-[#7b6550]"
-              >
-                Email
-              </label>
-              <Input
-                id="forgot-email"
-                name="email"
-                type="email"
-                value={forgotEmail}
-                onChange={(e) => setForgotEmail(e.target.value)}
-                placeholder="name@example.com"
-                autoComplete="email"
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={forgotBusy}>
-              {forgotBusy ? "Sending..." : "Send reset link"}
-            </Button>
-            <button
-              type="button"
-              className="w-full text-center text-sm text-muted-foreground underline-offset-2 hover:underline"
-              onClick={() => setForgotMode(false)}
-            >
-              Back to log in
-            </button>
-          </form>
-        ) : (
-          <>
-            <div className="flex flex-wrap gap-2">
-              {(["login", "signup"] as AuthDialogMode[]).map((item) => (
-                <Button
-                  key={item}
-                  type="button"
-                  variant={authDialogMode === item ? "default" : "outline"}
-                  onClick={() => {
-                    setAuthDialogMode(item);
-                    setAuthDialogError(null);
-                  }}
-                >
-                  {item === "signup" ? "Sign up" : item === "login" ? "Log in" : null}
-                </Button>
-              ))}
-            </div>
-
-            {authDialogMode === "login" ? (
-              <form
-                id="tiao-login-form"
-                name="login"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  void handleLoginSubmit();
-                }}
-                className="space-y-3"
-              >
-                <div className="space-y-1">
-                  <label
-                    htmlFor="login-email"
-                    className="text-xs font-semibold uppercase tracking-wider text-[#7b6550]"
-                  >
-                    Username or Email
-                  </label>
-                  <Input
-                    id="login-email"
-                    name="username"
-                    value={loginEmail}
-                    onChange={(event) => setLoginEmail(event.target.value)}
-                    placeholder="name or name@example.com"
-                    autoComplete="username"
-                    spellCheck={false}
-                    autoCapitalize="none"
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label
-                    htmlFor="login-password"
-                    className="text-xs font-semibold uppercase tracking-wider text-[#7b6550]"
-                  >
-                    Password
-                  </label>
-                  <PasswordInput
-                    id="login-password"
-                    name="password"
-                    value={loginPassword}
-                    onChange={(event) => setLoginPassword(event.target.value)}
-                    placeholder="••••••••••••"
-                    autoComplete="current-password"
-                    required
-                  />
-                </div>
-                <button
-                  type="button"
-                  className="text-sm text-muted-foreground underline-offset-2 hover:underline"
-                  onClick={() => {
-                    setForgotEmail(loginEmail);
-                    setForgotMode(true);
-                  }}
-                >
-                  Forgot password?
-                </button>
-                <Button type="submit" className="w-full" disabled={authBusy}>
-                  {authBusy ? "Logging in..." : "Log in"}
-                </Button>
-              </form>
-            ) : null}
-
-            {authDialogMode === "signup" ? (
-              // Form-level hints for browser/extension password generators:
-              // - id+name "signup" so Chrome/1Password classify this as a
-              //   create-account form (not a login form).
-              // - one autocomplete="username" field followed by an
-              //   autocomplete="email" field, then exactly one
-              //   autocomplete="new-password" field, then a separate
-              //   autocomplete="new-password" confirm field with a distinct
-              //   `name` ("password-confirm") so generators don't treat both
-              //   as the same input and refuse to fill.
-              <form
-                id="tiao-signup-form"
-                name="signup"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  void handleSignupSubmit();
-                }}
-                className="space-y-3"
-              >
-                <div className="space-y-1">
-                  <label
-                    htmlFor="signup-display-name"
-                    className="text-xs font-semibold uppercase tracking-wider text-[#7b6550]"
-                  >
-                    Username
-                  </label>
-                  <Input
-                    id="signup-display-name"
-                    name="username"
-                    value={signupDisplayName}
-                    onChange={(event) =>
-                      setSignupDisplayName(
-                        event.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""),
-                      )
-                    }
-                    placeholder="username"
-                    autoComplete="username"
-                    spellCheck={false}
-                    autoCapitalize="none"
-                    pattern="^[a-z0-9][a-z0-9_\-]*$"
-                    minLength={3}
-                    maxLength={32}
-                    title="Lowercase letters, numbers, hyphens, and underscores only (3-32 chars)"
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label
-                    htmlFor="signup-email"
-                    className="text-xs font-semibold uppercase tracking-wider text-[#7b6550]"
-                  >
-                    Email
-                  </label>
-                  <Input
-                    id="signup-email"
-                    name="email"
-                    type="email"
-                    value={signupEmail}
-                    onChange={(event) => setSignupEmail(event.target.value)}
-                    placeholder="name@example.com"
-                    autoComplete="email"
-                    spellCheck={false}
-                    autoCapitalize="none"
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label
-                    htmlFor="signup-new-password"
-                    className="text-xs font-semibold uppercase tracking-wider text-[#7b6550]"
-                  >
-                    New Password
-                  </label>
-                  <PasswordInput
-                    key="signup-new-password"
-                    id="signup-new-password"
-                    name="new-password"
-                    value={signupPassword}
-                    onChange={(event) => setSignupPassword(event.target.value)}
-                    placeholder="••••••••••••"
-                    autoComplete="new-password"
-                    aria-label="New password"
-                    data-lpignore="false"
-                    data-1p-ignore="false"
-                    minLength={8}
-                    visible={signupPasswordVisible}
-                    onVisibilityChange={setSignupPasswordVisible}
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label
-                    htmlFor="signup-confirm-new-password"
-                    className="text-xs font-semibold uppercase tracking-wider text-[#7b6550]"
-                  >
-                    Confirm New Password
-                  </label>
-                  <PasswordInput
-                    key="signup-confirm-new-password"
-                    id="signup-confirm-new-password"
-                    name="confirm-new-password"
-                    value={signupConfirmPassword}
-                    onChange={(event) => setSignupConfirmPassword(event.target.value)}
-                    placeholder="••••••••••••"
-                    autoComplete="new-password"
-                    aria-label="Confirm new password"
-                    data-lpignore="false"
-                    data-1p-ignore="false"
-                    minLength={8}
-                    visible={signupPasswordVisible}
-                    onVisibilityChange={setSignupPasswordVisible}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={authBusy}>
-                  {authBusy ? "Creating..." : "Create account"}
-                </Button>
-              </form>
-            ) : null}
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center">
-                <span className="bg-card px-3 text-xs text-muted-foreground">or</span>
-              </div>
-            </div>
-
-            <OAuthButtons />
-          </>
-        )}
-      </div>
-    </Dialog>
-  );
-}
+const ConsentBanner = dynamic(
+  () => import("@/components/ConsentBanner").then((m) => ({ default: m.ConsentBanner })),
+  { ssr: false },
+);
 
 /**
  * Redirects SSO users who haven't chosen a valid username to /onboarding.
@@ -484,52 +173,61 @@ function OAuthErrorHandler() {
   return null;
 }
 
-function AppShell({ children }: { children: React.ReactNode }) {
-  const { auth } = useAuth();
+/**
+ * Dynamically loads @/lib/dump on mount (client-only) so the console
+ * interception + window.Dump() setup runs without putting dump.ts in
+ * the module graph that every SSR compile has to walk. The dump module
+ * auto-installs on first load via its own `if (typeof window !==
+ * "undefined")` guard.
+ */
+function DumpInstaller() {
+  useEffect(() => {
+    void import("@/lib/dump");
+  }, []);
+  return null;
+}
 
+function AppShell({ children }: { children: React.ReactNode }) {
   return (
-    <LobbySocketProvider auth={auth}>
-      <SocialNotificationsProvider auth={auth}>
-        <TournamentNotificationsProvider auth={auth}>
-          <div className="min-h-screen bg-background text-foreground">
-            <UsernameOnboardingGuard>
-              <main className="min-h-screen">{children}</main>
-            </UsernameOnboardingGuard>
-            <AuthDialog />
-            <OAuthErrorHandler />
-            <ConsentBanner />
-            <PwaInstallBanner />
-            {/* Sonner hardcodes z-index:999999999 on [data-sonner-toaster].
-                Override it above dialogs (z-300) but below the mobile nav
-                drawer backdrop (z-200 on the drawer, but toasts should still
-                show over modals). Using z-400 keeps toasts visible over
-                everything except the nav drawer overlay. */}
-            <style>{`[data-sonner-toaster] { z-index: 400 !important; }`}</style>
-            <Toaster
-              richColors
-              position="top-right"
-              closeButton
-              toastOptions={{
-                style: {
-                  background: "#f5e6d0",
-                  color: "#4a3728",
-                  border: "1px solid #dbc6a2",
-                  boxShadow: "0 4px 16px rgba(74, 55, 40, 0.15)",
-                },
-                cancelButtonStyle: {
-                  background: "rgba(74, 55, 40, 0.1)",
-                  color: "#6e5b48",
-                  flexShrink: 0,
-                },
-                actionButtonStyle: {
-                  flexShrink: 0,
-                },
-              }}
-            />
-          </div>
-        </TournamentNotificationsProvider>
-      </SocialNotificationsProvider>
-    </LobbySocketProvider>
+    <LobbyProviders>
+      <div className="min-h-screen bg-background text-foreground">
+        <UsernameOnboardingGuard>
+          <main className="min-h-screen">{children}</main>
+        </UsernameOnboardingGuard>
+        <AuthDialog />
+        <OAuthErrorHandler />
+        <ConsentBanner />
+        <PwaInstallBanner />
+        <DumpInstaller />
+        {/* Sonner hardcodes z-index:999999999 on [data-sonner-toaster].
+            Override it above dialogs (z-300) but below the mobile nav
+            drawer backdrop (z-200 on the drawer, but toasts should still
+            show over modals). Using z-400 keeps toasts visible over
+            everything except the nav drawer overlay. */}
+        <style>{`[data-sonner-toaster] { z-index: 400 !important; }`}</style>
+        <Toaster
+          richColors
+          position="top-right"
+          closeButton
+          toastOptions={{
+            style: {
+              background: "#f5e6d0",
+              color: "#4a3728",
+              border: "1px solid #dbc6a2",
+              boxShadow: "0 4px 16px rgba(74, 55, 40, 0.15)",
+            },
+            cancelButtonStyle: {
+              background: "rgba(74, 55, 40, 0.1)",
+              color: "#6e5b48",
+              flexShrink: 0,
+            },
+            actionButtonStyle: {
+              flexShrink: 0,
+            },
+          }}
+        />
+      </div>
+    </LobbyProviders>
   );
 }
 
