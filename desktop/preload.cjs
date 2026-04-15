@@ -47,6 +47,20 @@ contextBridge.exposeInMainWorld("electron", {
     logout: () => ipcRenderer.invoke("auth:logout"),
 
     /**
+     * Returns whether the OS provides credential encryption for
+     * persisting the bearer token across app restarts.
+     *
+     * The renderer should call this once on bootstrap and, if
+     * `available === false`, surface a one-time toast explaining
+     * that the user will be signed out on every restart.  This is
+     * almost always a Linux machine missing libsecret-1-0; macOS
+     * and Windows ship with the relevant providers.
+     *
+     * @returns {Promise<{ available: boolean }>}
+     */
+    getPersistenceStatus: () => ipcRenderer.invoke("auth:getPersistenceStatus"),
+
+    /**
      * Subscribe to auth-complete events fired after a successful
      * OAuth exchange.  Returns an unsubscribe function.
      *

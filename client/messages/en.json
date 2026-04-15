@@ -65,7 +65,8 @@
     "oauthErrorAlreadyLinkedSelf": "That account is already linked to your profile.",
     "oauthErrorUserExists": "An account with that email already exists. Try logging in instead.",
     "oauthErrorCreateFailed": "Could not create your account. Please try again.",
-    "oauthErrorAccessDenied": "Access was denied. Please try again and authorize the app."
+    "oauthErrorAccessDenied": "Access was denied. Please try again and authorize the app.",
+    "desktopPersistenceWarning": "Sign-in won't be saved between sessions — secure storage is unavailable on this device."
   },
   "lobby": {
     "tagline": "A beautiful abstract strategy game. Play online, with friends, or against an AI.",

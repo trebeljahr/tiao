@@ -65,7 +65,8 @@
     "oauthErrorAlreadyLinkedSelf": "Dieses Konto ist bereits mit deinem Profil verknüpft.",
     "oauthErrorUserExists": "Ein Konto mit dieser E-Mail existiert bereits. Versuche dich stattdessen anzumelden.",
     "oauthErrorCreateFailed": "Konto konnte nicht erstellt werden. Bitte versuche es erneut.",
-    "oauthErrorAccessDenied": "Zugriff verweigert. Bitte versuche es erneut und autorisiere die App."
+    "oauthErrorAccessDenied": "Zugriff verweigert. Bitte versuche es erneut und autorisiere die App.",
+    "desktopPersistenceWarning": "Anmeldung wird zwischen Sitzungen nicht gespeichert — sicherer Speicher ist auf diesem Gerät nicht verfügbar."
   },
   "lobby": {
     "tagline": "Ein wunderschönes abstraktes Strategiespiel. Spiele online, mit Freunden oder gegen eine KI.",

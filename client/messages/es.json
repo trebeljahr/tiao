@@ -65,7 +65,8 @@
     "oauthErrorAlreadyLinkedSelf": "Esa cuenta ya está vinculada a tu perfil.",
     "oauthErrorUserExists": "Ya existe una cuenta con ese correo electrónico. Intenta iniciar sesión.",
     "oauthErrorCreateFailed": "No se pudo crear tu cuenta. Por favor, inténtalo de nuevo.",
-    "oauthErrorAccessDenied": "Acceso denegado. Inténtalo de nuevo y autoriza la aplicación."
+    "oauthErrorAccessDenied": "Acceso denegado. Inténtalo de nuevo y autoriza la aplicación.",
+    "desktopPersistenceWarning": "El inicio de sesión no se guardará entre sesiones — el almacenamiento seguro no está disponible en este dispositivo."
   },
   "lobby": {
     "tagline": "Un elegante juego abstracto de estrategia. Juega en línea, con amigos o contra la IA.",

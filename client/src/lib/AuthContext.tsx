@@ -9,6 +9,8 @@ import {
   useCallback,
   useRef,
 } from "react";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import type { AuthResponse, PlayerIdentity } from "@shared";
 import type { AuthDialogMode } from "@/components/Navbar";
 import { authClient } from "@/lib/auth-client";
@@ -86,6 +88,7 @@ function setCachedAuth(auth: AuthResponse | null) {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const t = useTranslations("common");
   const [auth, setAuth] = useState<AuthResponse | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [appError, setAppError] = useState<string | null>(null);
@@ -304,6 +307,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
   }, []);
+
+  // Desktop Electron: on first mount, ask the main process whether OS
+  // credential encryption is available.  If not (almost always Linux
+  // without libsecret), surface a one-time toast so the user knows
+  // they'll be signed out on every restart.  No-op on the web — the
+  // bridge isn't exposed there.
+  useEffect(() => {
+    const electron = (
+      window as unknown as {
+        electron?: {
+          isElectron?: boolean;
+          auth?: {
+            getPersistenceStatus?: () => Promise<{ available: boolean }>;
+          };
+        };
+      }
+    ).electron;
+    if (!electron?.isElectron || typeof electron.auth?.getPersistenceStatus !== "function") {
+      return;
+    }
+    let cancelled = false;
+    electron.auth
+      .getPersistenceStatus()
+      .then((status) => {
+        if (cancelled) return;
+        if (!status.available) {
+          toast.warning(t("desktopPersistenceWarning"), { duration: 8000 });
+        }
+      })
+      .catch(() => {
+        /* best-effort: a missing handler shouldn't break startup */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [t]);
 
   // Wrap setAuth to also persist to sessionStorage
   const updateAuth = useCallback((nextAuth: AuthResponse | null) => {

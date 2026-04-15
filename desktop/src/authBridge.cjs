@@ -94,17 +94,47 @@ function persistToken(token) {
  * Load the persisted token on app startup.  Called explicitly by
  * main.cjs before the first IPC handler fires so AuthContext sees
  * a warm cache immediately.
+ *
+ * If safeStorage is unavailable but an encrypted file already exists
+ * on disk (e.g. the user previously had libsecret installed and then
+ * uninstalled it), warn — the user is silently being signed out and
+ * deserves to know why.
  */
 function loadPersistedToken() {
   try {
     const file = getTokenFilePath();
     if (!fs.existsSync(file)) return;
-    if (!safeStorage.isEncryptionAvailable()) return;
+    if (!safeStorage.isEncryptionAvailable()) {
+      console.warn(
+        "[authBridge] safeStorage unavailable — cannot decrypt persisted token. User will be signed out.",
+      );
+      return;
+    }
     const encrypted = fs.readFileSync(file);
     const decrypted = safeStorage.decryptString(encrypted);
     if (decrypted) cachedToken = decrypted;
   } catch (err) {
     console.error("[authBridge] failed to load persisted token:", err);
+  }
+}
+
+/**
+ * Returns whether OS-level credential encryption is available on this
+ * machine.  Wraps `safeStorage.isEncryptionAvailable()` so the result
+ * can be read from outside the module (e.g. by an IPC handler that
+ * surfaces the status to the renderer).
+ *
+ * False on:
+ *   - Linux without libsecret-1-0 / gnome-keyring (very common in
+ *     headless / minimal installs)
+ *   - Some sandboxed dev container setups
+ *   - Older macOS releases where Keychain access is denied
+ */
+function isPersistenceAvailable() {
+  try {
+    return safeStorage.isEncryptionAvailable();
+  } catch {
+    return false;
   }
 }
 
@@ -257,12 +287,21 @@ function registerAuthIpc() {
     clearPersistedToken();
     return { ok: true };
   });
+
+  // Renderer queries this on bootstrap so AuthContext can show a
+  // one-time toast on Linux machines without libsecret, where the
+  // user will be signed out on every restart.  No "warning" event
+  // — the renderer pulls when it's ready.
+  ipcMain.handle("auth:getPersistenceStatus", async () => {
+    return { available: isPersistenceAvailable() };
+  });
 }
 
 module.exports = {
   registerAuthIpc,
   loadPersistedToken,
   handleAuthDeepLink,
+  isPersistenceAvailable,
   // Exported for test / introspection by main.cjs.
   getCachedTokenForTests: () => cachedToken,
 };
