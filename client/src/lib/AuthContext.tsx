@@ -12,7 +12,12 @@ import {
 import type { AuthResponse, PlayerIdentity } from "@shared";
 import type { AuthDialogMode } from "@/components/Navbar";
 import { authClient } from "@/lib/auth-client";
-import { login as loginWithUsername, getPlayerIdentity } from "@/lib/api";
+import {
+  login as loginWithUsername,
+  getPlayerIdentity,
+  refreshElectronTokenFromBridge,
+  setElectronTokenCache,
+} from "@/lib/api";
 import { isNetworkError, readableError, toastError } from "@/lib/errors";
 import { op, setAuthReady } from "@/lib/openpanel";
 import { resetBoardTheme } from "@/lib/useBoardTheme";
@@ -187,6 +192,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAppError(null);
 
       try {
+        // Desktop Electron: load any previously persisted bearer token
+        // from the preload bridge into the module-level cache so the
+        // subsequent better-auth getSession() call includes it in
+        // Authorization: Bearer. Web build no-ops this.
+        await refreshElectronTokenFromBridge();
+
         // Check for an existing better-auth session
         const { data: session } = await authClient.getSession();
         if (cancelled) return;
@@ -250,6 +261,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       cancelled = true;
     };
   }, [cacheHydrated]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Desktop Electron: subscribe to the preload bridge's auth-complete
+  // event so we can refresh the cached token and player identity
+  // whenever the user finishes an OAuth flow in the system browser.
+  // No-op on the web (window.electron is undefined).
+  useEffect(() => {
+    const electron = (
+      window as unknown as {
+        electron?: {
+          isElectron?: boolean;
+          auth?: {
+            onAuthComplete?: (cb: (payload: { sessionToken: string }) => void) => () => void;
+          };
+        };
+      }
+    ).electron;
+    if (!electron?.isElectron || typeof electron.auth?.onAuthComplete !== "function") {
+      return;
+    }
+    const unsubscribe = electron.auth.onAuthComplete(async (payload) => {
+      // The main process has already exchanged the code and stored
+      // the token via safeStorage.  Update our module cache and
+      // refetch the enriched PlayerIdentity.
+      setElectronTokenCache(payload.sessionToken);
+      try {
+        const { player } = await getPlayerIdentity();
+        if (player) {
+          setCachedAuth({ player });
+          setAuth({ player });
+          setAppError(null);
+        }
+      } catch (error) {
+        toastError(readableError(error));
+      }
+    });
+    return () => {
+      try {
+        unsubscribe?.();
+      } catch {
+        /* best-effort cleanup */
+      }
+    };
+  }, []);
 
   // Wrap setAuth to also persist to sessionStorage
   const updateAuth = useCallback((nextAuth: AuthResponse | null) => {
@@ -361,6 +415,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleOAuthSignIn = useCallback(async (provider: "github" | "google" | "discord") => {
     try {
+      // Desktop Electron: route through the IPC bridge which opens the
+      // system browser, completes OAuth at api.playtiao.com, receives
+      // the tiao:// deep link, and exchanges the one-time code for a
+      // bearer token.  The actual session update arrives via the
+      // `onAuthComplete` subscription in the effect below.
+      const electron = (
+        window as unknown as {
+          electron?: {
+            isElectron?: boolean;
+            auth?: { startOAuth?: (p: string) => Promise<void> };
+          };
+        }
+      ).electron;
+      if (electron?.isElectron && typeof electron.auth?.startOAuth === "function") {
+        await electron.auth.startOAuth(provider);
+        return;
+      }
+
+      // Web: standard better-auth browser redirect flow.
       // On both success and failure, return the user to the page they
       // initiated OAuth from. On failure better-auth appends `?error=` to
       // errorCallbackURL and OAuthErrorHandler surfaces it as a toast, so the
@@ -389,6 +462,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     safeLocalStorage.removeItem("tiao:knowsHowToPlay");
     resetBoardTheme();
     resetActiveBadges();
+
+    // Desktop Electron: tell the main process to clear its persisted
+    // bearer token and flush the module cache, so the next Page reload
+    // doesn't re-attach the just-deleted token as Authorization.
+    const electron = (
+      window as unknown as {
+        electron?: { isElectron?: boolean; auth?: { logout?: () => Promise<void> } };
+      }
+    ).electron;
+    if (electron?.isElectron && typeof electron.auth?.logout === "function") {
+      try {
+        await electron.auth.logout();
+      } catch {
+        /* best-effort */
+      }
+    }
+    setElectronTokenCache(null);
 
     // Order matters for the rest: do the server-side signout + new-guest
     // session dance while React state is still "logged in", then navigate

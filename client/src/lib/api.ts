@@ -45,7 +45,23 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Base URL resolution is build-time static:
+ *
+ * - Desktop Electron build (`NEXT_PUBLIC_PLATFORM=desktop`): always
+ *   talk to the remote API URL baked in at build time. The Electron
+ *   window loads from `app://tiao/`, which has no domain relationship
+ *   to the API — cookies can't flow, so we use a bearer token added
+ *   by `getElectronAuthHeaders()` below.
+ *
+ * - Web build (default): honor an explicit NEXT_PUBLIC_API_BASE_URL
+ *   override (rare, used for split frontend/backend deploys), else
+ *   same-origin (proxied through client/server.mjs).
+ */
 function getApiBaseUrl() {
+  if (process.env.NEXT_PUBLIC_PLATFORM === "desktop" && process.env.NEXT_PUBLIC_DESKTOP_API_URL) {
+    return process.env.NEXT_PUBLIC_DESKTOP_API_URL;
+  }
   if (process.env.NEXT_PUBLIC_API_BASE_URL) {
     return process.env.NEXT_PUBLIC_API_BASE_URL;
   }
@@ -56,6 +72,9 @@ function getApiBaseUrl() {
 export const API_BASE_URL = getApiBaseUrl();
 
 function getWebSocketBaseUrl(): string {
+  if (process.env.NEXT_PUBLIC_PLATFORM === "desktop" && process.env.NEXT_PUBLIC_DESKTOP_API_URL) {
+    return process.env.NEXT_PUBLIC_DESKTOP_API_URL;
+  }
   if (process.env.NEXT_PUBLIC_API_BASE_URL) {
     return process.env.NEXT_PUBLIC_API_BASE_URL;
   }
@@ -65,11 +84,74 @@ function getWebSocketBaseUrl(): string {
   return typeof window !== "undefined" ? window.location.origin : "";
 }
 
-export function buildWebSocketUrl(gameId: string) {
+/**
+ * Cached bearer token for desktop Electron sessions.  Populated by
+ * AuthContext via `setElectronTokenCache` once the preload bridge
+ * returns a token (either on startup from `window.electron.auth.getToken()`
+ * or after a fresh OAuth completes).  Reads are synchronous, so
+ * `buildWebSocketUrl` and `buildAuthHeaders` can stay sync-fast
+ * without hitting the IPC bridge on every request.
+ */
+let cachedElectronToken: string | null = null;
+
+export function setElectronTokenCache(token: string | null): void {
+  cachedElectronToken = token;
+}
+
+export function getCachedElectronToken(): string | null {
+  return cachedElectronToken;
+}
+
+/**
+ * Fetch the bearer token from the Electron preload bridge.  Returns
+ * null in any non-Electron environment (web, SSR, tests without a
+ * mocked `window.electron`).  Also updates the module cache so
+ * subsequent synchronous reads see the fresh value.
+ */
+export async function refreshElectronTokenFromBridge(): Promise<string | null> {
+  if (typeof window === "undefined") return null;
+  const electron = (
+    window as unknown as {
+      electron?: { isElectron?: boolean; auth?: { getToken?: () => Promise<string | null> } };
+    }
+  ).electron;
+  if (!electron?.isElectron || typeof electron.auth?.getToken !== "function") return null;
+  try {
+    const token = await electron.auth.getToken();
+    cachedElectronToken = token ?? null;
+    return cachedElectronToken;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * When running inside Electron we can't rely on `credentials: "include"`
+ * (the `app://` origin doesn't share a cookie jar with the API).  The
+ * bearer token supplied by the preload bridge replaces the cookie.
+ * Reads the cached token populated by AuthContext.
+ */
+function buildAuthHeaders(existing: Record<string, string> = {}): Record<string, string> {
+  const headers = { ...existing };
+  if (cachedElectronToken) headers["Authorization"] = `Bearer ${cachedElectronToken}`;
+  return headers;
+}
+
+/**
+ * Build the WebSocket URL for a game room.  Callers can pass an
+ * optional bearer token — desktop Electron uses this to authenticate
+ * because browser WebSocket APIs can't set custom headers on the
+ * upgrade request (so the server also accepts `?token=` query).
+ */
+export function buildWebSocketUrl(gameId: string, token?: string | null) {
   const url = new URL(getWebSocketBaseUrl());
   url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
   url.pathname = "/api/ws";
   url.searchParams.set("gameId", gameId);
+  // Explicit token argument wins; otherwise fall back to the module
+  // cache populated by AuthContext on Electron.
+  const effectiveToken = token !== undefined ? token : cachedElectronToken;
+  if (effectiveToken) url.searchParams.set("token", effectiveToken);
   return url.toString();
 }
 
@@ -83,12 +165,13 @@ async function request<T>(
   let response: Response;
 
   try {
+    const headers = buildAuthHeaders({
+      "Content-Type": "application/json",
+    });
     response = await fetch(`${API_BASE_URL}${path}`, {
       method: options.method ?? "GET",
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       body: options.body ? JSON.stringify(options.body) : undefined,
     });
   } catch {
@@ -111,9 +194,12 @@ async function upload<T>(path: string, formData: FormData): Promise<T> {
   let response: Response;
 
   try {
+    // Don't pre-set Content-Type — the browser sets multipart boundary.
+    const headers = buildAuthHeaders();
     response = await fetch(`${API_BASE_URL}${path}`, {
       method: "POST",
       credentials: "include",
+      headers,
       body: formData,
     });
   } catch {
