@@ -1,5 +1,13 @@
 "use client";
-import Link from "next/link";
+// Use next-intl's localized Link, NOT the raw `next/link` — a vanilla
+// Link emits locale-less hrefs like `/tutorial` which Next.js then
+// prefetches verbatim. In a web build the middleware rewrites those
+// to `/en/tutorial`, but the desktop static export has no middleware
+// and the `app://tiao/` protocol handler only knows about
+// `<locale>/tutorial/index.html`, so every prefetch 404s in the
+// console. The localized Link prefixes the current locale before
+// the URL ever leaves the renderer.
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { PageLayout } from "@/components/PageLayout";
 import { PaperCard } from "@/components/ui/paper-card";

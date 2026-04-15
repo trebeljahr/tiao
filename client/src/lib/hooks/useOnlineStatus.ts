@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { API_BASE_URL } from "@/lib/api";
 
 /**
  * Hook reporting whether the client is currently online.
@@ -17,6 +18,13 @@ import { useEffect, useState } from "react";
  * backend is unreachable.  The web app gets its own browser-level
  * offline indicator, so in practice the banner is hidden on web via
  * the `isElectron` check in OfflineBanner.
+ *
+ * The poll URL is composed from `API_BASE_URL` rather than a bare
+ * relative path because a desktop build's document origin is
+ * `app://tiao/` — a relative `/api/health` would resolve against
+ * the protocol handler (which doesn't serve it) and 404 forever.
+ * `API_BASE_URL` is empty-string on web builds (same-origin), so
+ * the composed URL degrades to the original relative form there.
  */
 
 const POLL_INTERVAL_MS = 30_000;
@@ -40,7 +48,7 @@ export function useOnlineStatus(): boolean {
       try {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), POLL_TIMEOUT_MS);
-        const res = await fetch("/api/health", { signal: controller.signal });
+        const res = await fetch(`${API_BASE_URL}/api/health`, { signal: controller.signal });
         clearTimeout(timer);
         if (!cancelled) setIsOnline(res.ok);
       } catch {

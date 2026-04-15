@@ -29,11 +29,22 @@ import { OpenPanel } from "@openpanel/web";
 
 const clientId = process.env.NEXT_PUBLIC_OPENPANEL_CLIENT_ID;
 const directApiUrl = process.env.NEXT_PUBLIC_OPENPANEL_API_URL;
-// In production, route through /collect so requests look first-party and
-// aren't blocked by adblockers. Falls back to the direct URL for dev or
-// when the proxy isn't configured.
-const apiUrl = process.env.NODE_ENV === "production" ? "/collect" : directApiUrl;
 const isProd = process.env.NODE_ENV === "production";
+const isDesktop = process.env.NEXT_PUBLIC_PLATFORM === "desktop";
+// In production we normally route through `/collect` so requests look
+// first-party and aren't blocked by adblockers (the proxy lives in
+// `client/server.mjs`). Two exceptions bypass the proxy and go direct:
+//
+//   1. Dev mode — no Next.js server in front means nothing is serving
+//      `/collect`, so fall back to `directApiUrl`.
+//
+//   2. Desktop Electron — the static export loads from `app://tiao/`
+//      and there is no Node server at all. A relative `/collect` path
+//      resolves to `app://tiao/collect/track`, which the protocol
+//      handler 404s. Hit the OpenPanel ingest host directly instead.
+//      CSP's `connect-src https:` allows the outbound request, and
+//      adblockers don't block a desktop binary's network traffic.
+const apiUrl = isProd && !isDesktop ? "/collect" : directApiUrl;
 const forceEnableInDev = process.env.NEXT_PUBLIC_OPENPANEL_ENABLE_IN_DEV === "true";
 
 /**
