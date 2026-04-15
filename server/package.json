@@ -24,6 +24,7 @@
     "bullmq": "^5.73.5",
     "cors": "^2.8.5",
     "dotenv": "^17.0.0",
+    "express": "^5.2.1",
     "express-rate-limit": "^8.0.0",
     "helmet": "^8.1.0",
     "ioredis": "^5.10.1",
@@ -48,10 +49,8 @@
     "@typescript-eslint/eslint-plugin": "^8.57.2",
     "@typescript-eslint/parser": "^8.57.2",
     "eslint": "^10.1.0",
-    "express": "^5.1.0",
     "nodemon": "^3.1.14",
     "swagger-jsdoc": "^6.2.8",
-    "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.57.2"
