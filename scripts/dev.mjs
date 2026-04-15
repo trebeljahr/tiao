@@ -1,17 +1,27 @@
 #!/usr/bin/env node
 // Starts client, server, and (optionally) docs for development.
 //
+// Infra (Redis + Mongo + MinIO) is auto-started via docker-compose on every
+// invocation unless you pass `--skip-infra`. Pass that flag if you run the
+// infra natively (brew redis-server, native mongod, etc.) or in your own
+// docker setup. If Docker isn't installed, the script falls through with
+// a warning and assumes you've started Redis + Mongo yourself.
+//
 // Usage:
 //   node scripts/dev.mjs                 Random ports (client 3100-3999, docs 4100-4999, server 5100-5999)
 //   node scripts/dev.mjs --fixed         Fixed ports (client 3000, docs 4000, server 5000)
 //   node scripts/dev.mjs --docs          Include docs site
 //   node scripts/dev.mjs --fixed --docs  Fixed ports with docs
 //   node scripts/dev.mjs --fixed --lan   Fixed ports, accessible from LAN
+//   node scripts/dev.mjs --skip-infra    Don't auto-start docker infra
 //   npm run dev                          Random ports (client + server)
 //   npm run dev:parallel                 2 instances in parallel (random ports,
 //                                        per-port .next-<port>/ dist dirs,
 //                                        cleaned up on exit). For Redis queue /
-//                                        horizontal scaling testing.
+//                                        horizontal scaling testing — run with
+//                                        two browser profiles, each pointed at
+//                                        a different client port, to verify
+//                                        matchmaking works across instances.
 //   npm run dev:parallel -- 3            Same, but with 3 instances (1-10).
 //   npm run dev:fixed                    Fixed ports (client + server)
 //   npm run dev:lan                      Fixed ports, accessible from LAN (for mobile testing)
@@ -27,7 +37,40 @@ const args = process.argv.slice(2);
 const fixedMode = args.includes("--fixed");
 const includeDocs = args.includes("--docs");
 const lanMode = args.includes("--lan");
+const skipInfra = args.includes("--skip-infra");
 const parallelMode = process.env.DEV_PARALLEL === "1";
+
+// ─── Auto-start dev infrastructure ────────────────────────────────────
+//
+// Bring up docker-compose.dev.yml (Redis + Mongo + MinIO) so the server
+// has every external dependency it needs. docker compose up -d is
+// idempotent — if the containers are already running, it's a fast no-op
+// (~500ms). If they're not running, it takes 5-15s on a cold start.
+//
+// We tolerate Docker being missing/unavailable: if the command fails,
+// we warn and continue. The user may have started Redis/Mongo natively
+// or in their own docker setup. The server will still fail loudly later
+// if REDIS_URL isn't reachable — see createGameService() in
+// server/game/gameService.ts.
+
+function startDevInfra() {
+  if (skipInfra) {
+    console.log("  Infra:  skipped (--skip-infra)");
+    return;
+  }
+  try {
+    execSync("docker compose -f docker-compose.dev.yml up -d", {
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    console.log("  Infra:  up (Redis + Mongo + MinIO via docker-compose.dev.yml)");
+  } catch (err) {
+    console.warn("  Infra:  ⚠  docker compose up failed — is Docker running? Continuing anyway.");
+    console.warn(`          ${err.message.split("\n")[0]}`);
+    console.warn("          If you run Redis/Mongo natively, pass --skip-infra to silence this.");
+  }
+}
+
+startDevInfra();
 
 // Parallel mode: determine instance count from first positional integer arg,
 // then from DEV_PARALLEL_COUNT env var, then default to 2.
