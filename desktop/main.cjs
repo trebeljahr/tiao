@@ -42,6 +42,7 @@ const {
   captureException: captureGlitchtipException,
   flush: flushGlitchtip,
 } = require("./src/glitchtip.cjs");
+const { resolveApiUrl } = require("./src/config.cjs");
 
 // HMR dev mode: if TIAO_DEV_RENDERER_URL is set and we're unpackaged,
 // the renderer loads from that URL instead of `app://tiao/en/`.  Used
@@ -55,6 +56,7 @@ const HMR_RENDERER_URL =
   !app.isPackaged && process.env.TIAO_DEV_RENDERER_URL
     ? process.env.TIAO_DEV_RENDERER_URL
     : null;
+
 
 // Dev preflight: refuse to start if the static client bundle is missing.
 // In a packaged build the bundle is staged under app.asar/resources by
@@ -230,6 +232,15 @@ function bootstrap() {
   mainWindow = createMainWindow({
     startUrl: HMR_RENDERER_URL || `${DESKTOP_PROTOCOL_SCHEME}://tiao/en/`,
     devTools: !app.isPackaged,
+    // Runtime config forwarded to the preload via additionalArguments.
+    // The renderer reads `window.electron.config.apiUrl` instead of
+    // the build-time NEXT_PUBLIC_DESKTOP_API_URL, so changing the
+    // API URL only requires a relaunch with a different TIAO_API_URL
+    // — no rebuild of client-bundle/.  See desktop/README.md
+    // § "Runtime API URL" for the full rationale.
+    runtimeConfig: {
+      apiUrl: resolveApiUrl(),
+    },
   });
   track("desktop:window_created", HMR_RENDERER_URL ? { hmr: true } : undefined);
 

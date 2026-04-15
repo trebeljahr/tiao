@@ -46,19 +46,46 @@ export class ApiError extends Error {
 }
 
 /**
- * Base URL resolution is build-time static:
+ * Base URL resolution — three paths:
  *
- * - Desktop Electron build (`NEXT_PUBLIC_PLATFORM=desktop`): always
- *   talk to the remote API URL baked in at build time. The Electron
- *   window loads from `app://tiao/`, which has no domain relationship
- *   to the API — cookies can't flow, so we use a bearer token added
- *   by `getElectronAuthHeaders()` below.
+ * 1. **Desktop Electron at runtime** (`window.electron.config.apiUrl`):
+ *    The main process resolves `TIAO_API_URL` at launch and passes it
+ *    through to the sandboxed preload via `additionalArguments`.  The
+ *    preload exposes it on `window.electron.config.apiUrl`.  This is
+ *    the preferred path for desktop because it means changing the API
+ *    URL only requires an Electron relaunch with a different env var
+ *    — no rebuild of the static `client-bundle/`.  See
+ *    `desktop/README.md` § "Runtime API URL".
  *
- * - Web build (default): honor an explicit NEXT_PUBLIC_API_BASE_URL
- *   override (rare, used for split frontend/backend deploys), else
- *   same-origin (proxied through client/server.mjs).
+ * 2. **Build-time desktop fallback** (`NEXT_PUBLIC_DESKTOP_API_URL`):
+ *    Kept as a safety net in case the preload bridge isn't available
+ *    (e.g. the bundle is ever loaded outside Electron).  In normal
+ *    operation this is dead code for desktop builds.
+ *
+ * 3. **Web build** (default): honor an explicit NEXT_PUBLIC_API_BASE_URL
+ *    override (rare, used for split frontend/backend deploys), else
+ *    same-origin (proxied through client/server.mjs).
+ *
+ * Runtime config is read synchronously at module load time.  The
+ * Electron preload runs BEFORE any renderer JS, so
+ * `window.electron.config.apiUrl` is already populated by the time
+ * this module evaluates in the desktop build.
  */
+function getElectronRuntimeApiUrl(): string | null {
+  if (typeof window === "undefined") return null;
+  const electron = (
+    window as unknown as {
+      electron?: { config?: { apiUrl?: string } };
+    }
+  ).electron;
+  const url = electron?.config?.apiUrl;
+  return typeof url === "string" && url.length > 0 ? url : null;
+}
+
 function getApiBaseUrl() {
+  const runtimeUrl = getElectronRuntimeApiUrl();
+  if (runtimeUrl) return runtimeUrl;
+
   if (process.env.NEXT_PUBLIC_PLATFORM === "desktop" && process.env.NEXT_PUBLIC_DESKTOP_API_URL) {
     return process.env.NEXT_PUBLIC_DESKTOP_API_URL;
   }
@@ -72,6 +99,9 @@ function getApiBaseUrl() {
 export const API_BASE_URL = getApiBaseUrl();
 
 function getWebSocketBaseUrl(): string {
+  const runtimeUrl = getElectronRuntimeApiUrl();
+  if (runtimeUrl) return runtimeUrl;
+
   if (process.env.NEXT_PUBLIC_PLATFORM === "desktop" && process.env.NEXT_PUBLIC_DESKTOP_API_URL) {
     return process.env.NEXT_PUBLIC_DESKTOP_API_URL;
   }

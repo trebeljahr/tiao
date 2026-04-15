@@ -34,17 +34,10 @@ const fs = require("node:fs");
 const { randomUUID } = require("node:crypto");
 const { track } = require("./analytics.cjs");
 const { captureException: captureGlitchtipException } = require("./glitchtip.cjs");
+const { resolveApiUrl } = require("./config.cjs");
 
 const TOKEN_FILE = "tiao-desktop-auth.enc";
 const STATE_TTL_MS = 5 * 60 * 1000;
-
-/**
- * The base URL of the Tiao API — injected at build time via the
- * TIAO_API_URL env var so the maintainer's release script can point
- * it at a staging backend without editing source.  Defaults to the
- * production URL.
- */
-const API_BASE_URL = process.env.TIAO_API_URL || "https://api.playtiao.com";
 
 /**
  * In-memory table of pending OAuth flows.  Each entry is keyed by
@@ -174,7 +167,7 @@ async function startOAuth(provider) {
   const state = randomUUID();
   pendingAuth.set(state, { provider, createdAt: Date.now() });
   track("desktop:auth_flow_start", { provider });
-  const url = `${API_BASE_URL}/api/auth/desktop/start?provider=${encodeURIComponent(
+  const url = `${resolveApiUrl()}/api/auth/desktop/start?provider=${encodeURIComponent(
     provider,
   )}&state=${encodeURIComponent(state)}`;
   await shell.openExternal(url);
@@ -236,7 +229,7 @@ async function handleAuthDeepLink(parsedUrl) {
   }
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/auth/desktop/exchange`, {
+    const res = await fetch(`${resolveApiUrl()}/api/auth/desktop/exchange`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ state, code }),

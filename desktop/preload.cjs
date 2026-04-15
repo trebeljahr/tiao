@@ -28,10 +28,50 @@
 
 const { contextBridge, ipcRenderer } = require("electron");
 
+/**
+ * Runtime config injected by main.cjs via BrowserWindow's
+ * `webPreferences.additionalArguments` option.  The shape matches
+ * `buildAdditionalArguments()` in desktop/src/window.cjs — each entry
+ * arrives as a `--tiao-<key>=<value>` string in `process.argv`.
+ *
+ * `apiUrl` is the Tiao HTTP API base URL (e.g. `https://api.playtiao.com`
+ * or `http://localhost:5005` in dev).  Exposing it via the bridge
+ * means the renderer can switch between local / staging / production
+ * APIs WITHOUT rebuilding the static export — only an Electron
+ * relaunch with a different `TIAO_API_URL` env var is needed.
+ *
+ * Also used by `client/src/lib/api.ts` to build both the REST and
+ * WebSocket base URLs.  A falsy value is tolerated: the renderer
+ * falls back to the build-time inlined `NEXT_PUBLIC_DESKTOP_API_URL`
+ * as a safety net.
+ */
+/**
+ * @param {string} prefix
+ * @returns {string | null}
+ */
+function readArgValue(prefix) {
+  const hit = process.argv.find((arg) => typeof arg === "string" && arg.startsWith(prefix));
+  return hit ? hit.slice(prefix.length) : null;
+}
+const runtimeConfig = {
+  apiUrl: readArgValue("--tiao-api-url=") || "",
+};
+
 contextBridge.exposeInMainWorld("electron", {
   isElectron: true,
   platform: process.platform,
   version: process.env.TIAO_DESKTOP_VERSION || "dev",
+
+  /**
+   * Runtime config injected by main.cjs.  Synchronous reads only —
+   * the renderer can call `window.electron.config.apiUrl` at module
+   * load time without waiting for any IPC round-trip.  Values are
+   * frozen at preload time and never change for the life of the
+   * window.
+   */
+  config: Object.freeze({
+    apiUrl: runtimeConfig.apiUrl,
+  }),
 
   auth: {
     /**

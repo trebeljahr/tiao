@@ -110,14 +110,58 @@ When HMR mode is active, main.cjs prints a banner at startup:
 
 If you don't see this, you're in the regular `dev` path.
 
+## Runtime API URL
+
+The Tiao API base URL (`TIAO_API_URL`) is resolved at **Electron launch
+time**, not baked into `client-bundle/` at static-export time. Switching
+between local / staging / production only requires relaunching with a
+different env var — no rebuild.
+
+```bash
+# Default: localhost:5005 (matches the tiao server dev port)
+npm run dev
+
+# Point at production
+npm run dev:prod
+# ↑ sets TIAO_API_URL=https://api.playtiao.com before launching
+
+# Point at staging or a custom host
+TIAO_API_URL=https://staging.example.com npm run dev
+```
+
+### How the wiring works
+
+1. **`main.cjs`** reads `TIAO_API_URL` at launch via `resolveApiUrl()`
+   in `src/config.cjs`. Default: `http://localhost:5005` for unpackaged
+   builds, `https://api.playtiao.com` for packaged builds.
+2. **`window.cjs`** passes the resolved URL to the sandboxed preload
+   via `webPreferences.additionalArguments: ["--tiao-api-url=..."]`.
+   This is the sanctioned Electron channel for main→preload data in
+   a sandboxed window — env vars don't cross the sandbox reliably.
+3. **`preload.cjs`** reads `--tiao-api-url=` out of `process.argv`,
+   freezes it onto `window.electron.config.apiUrl`.
+4. **`client/src/lib/api.ts`** reads `window.electron.config.apiUrl`
+   synchronously at module load time (preload runs before any
+   renderer JS, so it's always populated by then). Falls back to
+   `NEXT_PUBLIC_DESKTOP_API_URL` if absent (safety net only).
+5. **`authBridge.cjs`** uses the same `resolveApiUrl()` helper for
+   the main-process `/api/auth/desktop/*` calls so renderer and main
+   never drift.
+
+The `NEXT_PUBLIC_DESKTOP_API_URL` build-time env var is still set by
+`next.config.mjs` (default: production URL) but is now a fallback
+path. In normal operation it's dead code — the runtime value always
+wins.
+
 ## Architecture
 
 ```
 desktop/
 ├── main.cjs          ← entry: preflight, protocol reg, bootstrap
-├── preload.cjs       ← contextBridge: window.electron.{auth, analytics}
+├── preload.cjs       ← contextBridge: window.electron.{config, auth, analytics}
 ├── package.json      ← scripts + electron-builder config (all platforms)
 └── src/
+    ├── config.cjs    ← shared resolveApiUrl() used by main + authBridge
     ├── window.cjs    ← BrowserWindow factory, hardened webPreferences, CSP
     ├── protocol.cjs  ← app://tiao/* handler + SPA rewrite + path traversal guard
     ├── menu.cjs      ← native menu, Mac-aware split
@@ -238,15 +282,15 @@ tag.
 
 `scripts/release.sh` sources `desktop/.env.release` (git-ignored). Fields:
 
-| Variable                      | Purpose                                              |
-| ----------------------------- | ---------------------------------------------------- |
-| `TIAO_DESKTOP_VERSION`        | Baked into `TiaoDesktop/X (darwin)` UA for analytics |
-| `TIAO_API_URL`                | API base URL (default: `https://api.playtiao.com`)   |
-| `TIAO_OPENPANEL_CLIENT_ID`    | OpenPanel public client id for main-process events   |
-| `TIAO_OPENPANEL_API_URL`      | OpenPanel ingest URL                                 |
-| `APPLE_ID`                    | (signing follow-up) Developer Apple ID email         |
-| `APPLE_APP_SPECIFIC_PASSWORD` | (signing follow-up) app-specific password            |
-| `APPLE_TEAM_ID`               | (signing follow-up) Developer Team ID                |
+| Variable                      | Purpose                                                                                                               |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `TIAO_DESKTOP_VERSION`        | Baked into `TiaoDesktop/X (darwin)` UA for analytics                                                                  |
+| `TIAO_API_URL`                | API base URL (read at **runtime**; default: `https://api.playtiao.com` for packaged, `http://localhost:5005` for dev) |
+| `TIAO_OPENPANEL_CLIENT_ID`    | OpenPanel public client id for main-process events                                                                    |
+| `TIAO_OPENPANEL_API_URL`      | OpenPanel ingest URL                                                                                                  |
+| `APPLE_ID`                    | (signing follow-up) Developer Apple ID email                                                                          |
+| `APPLE_APP_SPECIFIC_PASSWORD` | (signing follow-up) app-specific password                                                                             |
+| `APPLE_TEAM_ID`               | (signing follow-up) Developer Team ID                                                                                 |
 
 ## Security posture
 

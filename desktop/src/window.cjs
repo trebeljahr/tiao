@@ -118,9 +118,31 @@ function applyCspHeader(targetSession, startUrl) {
 }
 
 /**
- * @param {{ startUrl: string; devTools: boolean }} options
+ * Serialize a runtime config object into --key=value args that the
+ * preload can parse out of `process.argv`.
+ *
+ * Electron's `webPreferences.additionalArguments` is the sanctioned
+ * way to pass data from main to a sandboxed preload (ENV vars don't
+ * cross the sandbox boundary reliably).  Values become entries in
+ * `process.argv` during renderer startup.  We use a flat `--tiao-*=`
+ * prefix to keep the preload parser simple and to avoid collisions
+ * with Chromium's own CLI flags.
+ *
+ * @param {{ apiUrl: string }} runtimeConfig
+ * @returns {string[]}
  */
-function createMainWindow({ startUrl, devTools }) {
+function buildAdditionalArguments(runtimeConfig) {
+  return [`--tiao-api-url=${runtimeConfig.apiUrl}`];
+}
+
+/**
+ * @param {{
+ *   startUrl: string;
+ *   devTools: boolean;
+ *   runtimeConfig: { apiUrl: string };
+ * }} options
+ */
+function createMainWindow({ startUrl, devTools, runtimeConfig }) {
   const iconPath = path.join(__dirname, "..", "assets", "icon.png");
 
   const win = new BrowserWindow({
@@ -140,6 +162,11 @@ function createMainWindow({ startUrl, devTools }) {
       webSecurity: true,
       allowRunningInsecureContent: false,
       devTools,
+      // Inject runtime config into the sandboxed preload via
+      // process.argv.  The preload reads these back with a plain
+      // string match on `--tiao-api-url=` and exposes them on
+      // `window.electron.config`.  See desktop/preload.cjs.
+      additionalArguments: buildAdditionalArguments(runtimeConfig),
     },
   });
 
