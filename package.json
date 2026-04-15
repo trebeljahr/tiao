@@ -17,7 +17,7 @@
     "dev:lan": "node scripts/dev.mjs --fixed --lan",
     "dev:docs": "node scripts/dev.mjs --docs",
     "dev:docs:fixed": "node scripts/dev.mjs --fixed --docs",
-    "dev:desktop": "concurrently -k -n server,desktop -c cyan,magenta \"PORT=5005 npm --prefix server run dev\" \"node scripts/wait-for-port.mjs 5005 && npm --prefix desktop run dev:fresh\"",
+    "dev:desktop": "node scripts/dev-desktop.mjs",
     "dev:desktop:prod": "npm --prefix desktop run dev:prod",
     "typecheck": "concurrently --kill-others-on-fail -n client,server -c blue,green \"npm:typecheck:client\" \"npm:typecheck:server\"",
     "typecheck:client": "npm --prefix client run typecheck",
