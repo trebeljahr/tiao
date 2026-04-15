@@ -143,6 +143,13 @@ function track(name, properties = {}) {
 
   // Raw fetch — no SDK dependency.  Uses the OpenPanel ingestion
   // endpoint at /track.  Node 20+ has global fetch.
+  //
+  // 5s timeout via AbortSignal: Node's global fetch has no built-in
+  // timeout, so a slow or down ingest endpoint would otherwise leave
+  // the connection hanging until the OS TCP timeout (~120s on macOS).
+  // That doesn't block any user action because we `void` the promise,
+  // but it accumulates open sockets over time on a long-running
+  // session.  5s is generous for a fire-and-forget event.
   const url = `${OPENPANEL_API_URL.replace(/\/$/, "")}/track`;
   void fetch(url, {
     method: "POST",
@@ -152,6 +159,7 @@ function track(name, properties = {}) {
       "user-agent": `TiaoDesktop/${APP_VERSION} (${process.platform})`,
     },
     body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(5000),
   }).catch((err) => {
     console.warn(`[analytics] track(${name}) failed:`, err);
   });
