@@ -93,7 +93,17 @@ function applySpaRewrite(urlPath) {
 /**
  * Turn a request URL path into an absolute filesystem path inside
  * the client bundle root.  Returns null if the result escapes the
- * root (path-traversal guard).
+ * root (path-traversal guard) or if the input URL can't be decoded.
+ *
+ * Critical: `URL.pathname` returns the URL-ENCODED form of the path,
+ * so `/_next/static/chunks/app/[locale]/page-*.js` comes in as
+ * `/_next/static/chunks/app/%5Blocale%5D/page-*.js`.  We must
+ * decodeURIComponent the path BEFORE touching the filesystem, or
+ * Next.js's `[locale]` chunk directory (and any other bracketed
+ * route segment) is never resolvable.  The path-traversal check
+ * below runs on the resolved absolute path, so decoding here can't
+ * bypass the guard via `%2E%2E%2F` → `../` — path.resolve eats the
+ * `..` segments, path.startsWith(root) still rejects escapees.
  *
  * @param {string} urlPath
  * @returns {string | null}
@@ -102,9 +112,19 @@ function resolveBundleFile(urlPath) {
   // Strip query + hash; the protocol handler doesn't care about them.
   const cleanPath = urlPath.split("?")[0].split("#")[0];
 
+  // Decode percent-escapes so `[locale]` (serialized as `%5Blocale%5D`
+  // by the browser) matches the literal directory name on disk.
+  let decoded;
+  try {
+    decoded = decodeURIComponent(cleanPath);
+  } catch {
+    // Malformed percent-escape sequence.  Refuse to serve.
+    return null;
+  }
+
   // Apply SPA rewrite BEFORE we resolve to disk so `/en/game/ABC`
   // maps to `en/game/__spa__/index.html`.
-  const rewritten = applySpaRewrite(cleanPath);
+  const rewritten = applySpaRewrite(decoded);
 
   // Trailing-slash directories get an implicit `index.html`.
   const withIndex = rewritten.endsWith("/") ? `${rewritten}index.html` : rewritten;

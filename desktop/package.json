@@ -9,8 +9,9 @@
   },
   "scripts": {
     "dev": "npm run dev:ensure-bundle && electron .",
+    "dev:prod": "NEXT_PUBLIC_DESKTOP_API_URL=https://api.playtiao.com npm run dev:rebuild-client && electron .",
     "dev:ensure-bundle": "test -f client-bundle/en/index.html || npm run dev:build-client",
-    "dev:build-client": "npm --prefix ../client run build:desktop && rm -rf client-bundle && cp -R ../client/.next-desktop/. client-bundle",
+    "dev:build-client": "NEXT_PUBLIC_DESKTOP_API_URL=${NEXT_PUBLIC_DESKTOP_API_URL:-http://localhost:5005} npm --prefix ../client run build:desktop && rm -rf client-bundle && cp -R ../client/.next-desktop/. client-bundle",
     "dev:rebuild-client": "npm run dev:build-client",
     "typecheck": "tsc --noEmit",
     "package": "electron-builder",

@@ -12,13 +12,19 @@
  *      next-intl middleware to `/<locale>/bugs` and 404.
  *   2. Local errors show up in the dev console already; there's no value
  *      in shipping them to GlitchTip and polluting the production project.
+ *   3. In the desktop Electron build the `/bugs` tunnel resolves to
+ *      `app://tiao/bugs` which the protocol handler doesn't map to a
+ *      file — every session-capture POST would 404. Main-process crash
+ *      reporting is planned as a follow-up; the renderer stays silent
+ *      for now to avoid spamming the dev tools console.
  */
 import * as Sentry from "@sentry/browser";
 
 const dsn = process.env.NEXT_PUBLIC_GLITCHTIP_DSN;
 const isProd = process.env.NODE_ENV === "production";
+const isDesktop = process.env.NEXT_PUBLIC_PLATFORM === "desktop";
 
-export const glitchtipEnabled = Boolean(dsn) && isProd;
+export const glitchtipEnabled = Boolean(dsn) && isProd && !isDesktop;
 
 if (typeof window !== "undefined" && glitchtipEnabled) {
   Sentry.init({
