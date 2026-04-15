@@ -23,7 +23,7 @@ test.describe("Desktop – no loupe on click", () => {
     await cell(page, 9, 9).click();
     await expect(cell(page, 9, 9)).toHaveAttribute("data-piece", "white");
     // No loupe element should exist
-    await expect(board(page).locator('[class*="z-30"]')).toHaveCount(0);
+    await expect(board(page).locator('[data-testid="mobile-preview-loupe"]')).toHaveCount(0);
   });
 });
 
@@ -58,7 +58,7 @@ test.describe("Mobile loupe – stone placement", () => {
     await expect(cell(page, 9, 9)).not.toHaveAttribute("data-piece", "white");
 
     // Preview/loupe should be visible
-    const loupe = board(page).locator('[class*="z-30"]');
+    const loupe = board(page).locator('[data-testid="mobile-preview-loupe"]');
     await expect(loupe).toBeVisible({ timeout: 2000 });
 
     // Second tap on same position — confirms placement
@@ -75,7 +75,7 @@ test.describe("Mobile loupe – stone placement", () => {
 
     // First tap — show preview
     await page.touchscreen.tap(cx, cy);
-    const loupe = board(page).locator('[class*="z-30"]');
+    const loupe = board(page).locator('[data-testid="mobile-preview-loupe"]');
     await expect(loupe).toBeVisible({ timeout: 2000 });
 
     // Second tap — confirm placement
@@ -94,7 +94,7 @@ test.describe("Mobile loupe – stone placement", () => {
 
     // First tap at (9,9) — show preview there
     await page.touchscreen.tap(cell99!.x + cell99!.width / 2, cell99!.y + cell99!.height / 2);
-    const loupe = board(page).locator('[class*="z-30"]');
+    const loupe = board(page).locator('[data-testid="mobile-preview-loupe"]');
     await expect(loupe).toBeVisible({ timeout: 2000 });
 
     // Tap at (8,8) — preview should move (not confirm at 9,9)

@@ -1176,6 +1176,7 @@ export function TiaoBoard({
         {/* Mobile ghost stone preview */}
         {mobilePreview && !disabled && (
           <span
+            data-testid="mobile-preview-loupe"
             className="pointer-events-none absolute z-30"
             style={{
               left: `${pp(mobilePreview.x)}%`,
