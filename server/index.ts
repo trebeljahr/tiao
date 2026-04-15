@@ -1,4 +1,12 @@
 import "./lib/glitchtip"; // Must be early — hooks uncaughtException/unhandledRejection
+import { installCrashGuard } from "./lib/crashGuard";
+
+// Must run before anything else that can throw so the net is in place
+// from the first async tick. See lib/crashGuard.ts for the rationale —
+// TL;DR: keep the server up for the other 99 in-flight players when one
+// handler blows up.
+installCrashGuard();
+
 import { createServer } from "http";
 import WebSocket, { WebSocketServer } from "ws";
 import app from "./app";
