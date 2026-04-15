@@ -15,8 +15,12 @@ name: desktop-release
 # Signing: unsigned across all three platforms in Phase 3a. The
 # APPLE_* env var hooks are referenced below but resolve to empty
 # strings until the macOS code signing follow-up worktree lands.
-# Once signing is wired up, just populate the secrets — the YAML
-# here doesn't need to change.
+# Once signing is wired up, populate the secrets AND flip
+# `build.mac.hardenedRuntime` + `build.mac.gatekeeperAssess` to true
+# in desktop/package.json — Apple's notary service rejects signed
+# apps that don't have hardenedRuntime enabled, so leaving them
+# false alongside signing creds will fail every build at the
+# notarize step.
 
 on:
   workflow_dispatch:

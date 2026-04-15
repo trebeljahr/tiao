@@ -15,8 +15,8 @@
     "dev:build-client": "NEXT_PUBLIC_DESKTOP_API_URL=${NEXT_PUBLIC_DESKTOP_API_URL:-http://localhost:5005} npm --prefix ../client run build:desktop && rm -rf client-bundle && cp -R ../client/.next-desktop/. client-bundle",
     "dev:rebuild-client": "npm run dev:build-client",
     "typecheck": "tsc --noEmit",
-    "package": "electron-builder",
-    "package:all": "electron-builder -mwl",
+    "package": "electron-builder -p never",
+    "package:all": "electron-builder -mwl -p never",
     "release": "./scripts/release.sh"
   },
   "dependencies": {
@@ -59,8 +59,7 @@
         {
           "target": "dmg",
           "arch": [
-            "arm64",
-            "x64"
+            "universal"
           ]
         }
       ],

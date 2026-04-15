@@ -19,6 +19,18 @@ set -euo pipefail
 #   APPLE_APP_SPECIFIC_PASSWORD   — app-specific password
 #   APPLE_TEAM_ID                 — Developer Team ID
 #
+# AND, in the same commit that wires up those secrets, flip these
+# fields in package.json's "build.mac" block to true:
+#
+#   hardenedRuntime: true
+#   gatekeeperAssess: true
+#
+# They are intentionally false in Phase 3a so the unsigned dmgs are
+# still installable on Apple Silicon.  Apple's notary service REJECTS
+# any app that is signed but doesn't have hardenedRuntime enabled, so
+# leaving them false alongside a signing config will fail every build
+# at the notarization step with a confusing error.
+#
 # Usage:
 #   ./scripts/release.sh                 # host platform only
 #   ./scripts/release.sh --all           # macOS + Windows + Linux (needs the host to be macOS for mac builds)
