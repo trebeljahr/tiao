@@ -207,10 +207,23 @@ export async function getExportDownloadUrl(
 
 // ─── Job scheduler ──────────────────────────────────────────────────────
 
+// Redis is required outside of tests — GDPR data exports are a durable,
+// user-visible workflow and the in-memory fallback silently drops the
+// job on process restart. Tests still get the in-memory version so they
+// can run without a Redis container.
 const redis = getRedisClient();
-const exportScheduler: ExportJobScheduler = redis
-  ? new BullMQExportScheduler(redis, runExport)
-  : new InMemoryExportScheduler(runExport);
+const exportScheduler: ExportJobScheduler = (() => {
+  if (redis) {
+    return new BullMQExportScheduler(redis, runExport);
+  }
+  if (process.env.NODE_ENV === "test") {
+    return new InMemoryExportScheduler(runExport);
+  }
+  throw new Error(
+    "[data-export] REDIS_URL is not set. Redis is required for durable GDPR exports. " +
+      "Start the dev stack with `npm run dev:infra` or set REDIS_URL.",
+  );
+})();
 
 /**
  * Collect everything the user is entitled to receive under GDPR art.

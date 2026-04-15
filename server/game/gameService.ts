@@ -638,7 +638,7 @@ export class GameService {
           seats: nextSeats,
         });
 
-        void this.broadcastSnapshot(savedRoom);
+        this.broadcastSnapshotSafe(savedRoom);
         return "migrated" as const;
       });
 
@@ -684,7 +684,7 @@ export class GameService {
       const savedRoom = await this.saveRoom(derived, {
         skipAchievements: options.suppressAchievements,
       });
-      void this.broadcastSnapshot(savedRoom);
+      this.broadcastSnapshotSafe(savedRoom);
     });
   }
 
@@ -822,7 +822,7 @@ export class GameService {
     invalidatePlayerProfile(player.playerId);
     const rooms = await this.store.listActiveRoomsForPlayer(player.playerId);
     for (const room of rooms) {
-      void this.broadcastSnapshot(room);
+      this.broadcastSnapshotSafe(room);
     }
     // Broadcast the identity update to EVERY connected lobby socket so any
     // viewer currently rendering this player — active-games list, friends
@@ -887,7 +887,7 @@ export class GameService {
           firstMoveDeadline: deadline,
         });
         this.scheduleFirstMoveTimer(savedRoom);
-        void this.broadcastSnapshot(savedRoom);
+        this.broadcastSnapshotSafe(savedRoom);
       });
       return;
     }
@@ -963,7 +963,7 @@ export class GameService {
       });
     }
 
-    void this.broadcastSnapshot(derivedRoom);
+    this.broadcastSnapshotSafe(derivedRoom);
 
     // Start abandon timer for guest players who fully disconnect from an active game
     if (
@@ -994,7 +994,7 @@ export class GameService {
         throw new GameServiceError(403, "NOT_IN_GAME", "You are not seated in this game.");
       }
       const savedRoom = await this.cancelRematch(room, playerColor);
-      void this.broadcastSnapshot(savedRoom);
+      this.broadcastSnapshotSafe(savedRoom);
     });
   }
 
@@ -1037,7 +1037,7 @@ export class GameService {
       // just verified the opponent had requested, this branch should always
       // be taken — but defensively handle the unexpected case.
       if (result.id === gameId) {
-        void this.broadcastSnapshot(result);
+        this.broadcastSnapshotSafe(result);
         throw new GameServiceError(
           500,
           "REMATCH_FAILED",
@@ -1059,7 +1059,7 @@ export class GameService {
         throw new GameServiceError(403, "NOT_IN_GAME", "You are not seated in this game.");
       }
       const savedRoom = await this.declineRematch(room, playerColor);
-      void this.broadcastSnapshot(savedRoom);
+      this.broadcastSnapshotSafe(savedRoom);
     });
   }
 
@@ -1080,32 +1080,32 @@ export class GameService {
       switch (message.type) {
         case "request-rematch": {
           const savedRoom = await this.requestRematch(room, playerColor);
-          void this.broadcastSnapshot(savedRoom);
+          this.broadcastSnapshotSafe(savedRoom);
           return this.toSnapshot(savedRoom);
         }
         case "decline-rematch": {
           const savedRoom = await this.declineRematch(room, playerColor);
-          void this.broadcastSnapshot(savedRoom);
+          this.broadcastSnapshotSafe(savedRoom);
           return this.toSnapshot(savedRoom);
         }
         case "cancel-rematch": {
           const savedRoom = await this.cancelRematch(room, playerColor);
-          void this.broadcastSnapshot(savedRoom);
+          this.broadcastSnapshotSafe(savedRoom);
           return this.toSnapshot(savedRoom);
         }
         case "request-takeback": {
           const savedRoom = await this.requestTakeback(room, playerColor);
-          void this.broadcastSnapshot(savedRoom);
+          this.broadcastSnapshotSafe(savedRoom);
           return this.toSnapshot(savedRoom);
         }
         case "accept-takeback": {
           const savedRoom = await this.acceptTakeback(room, playerColor);
-          void this.broadcastSnapshot(savedRoom);
+          this.broadcastSnapshotSafe(savedRoom);
           return this.toSnapshot(savedRoom);
         }
         case "decline-takeback": {
           const savedRoom = await this.declineTakeback(room, playerColor);
-          void this.broadcastSnapshot(savedRoom);
+          this.broadcastSnapshotSafe(savedRoom);
           return this.toSnapshot(savedRoom);
         }
         case "forfeit": {
@@ -1177,7 +1177,7 @@ export class GameService {
               lastMoveAt: now,
             });
             this.clearClockTimer(room.id);
-            void this.broadcastSnapshot(flaggedRoom);
+            this.broadcastSnapshotSafe(flaggedRoom);
             return this.toSnapshot(flaggedRoom);
           }
         }
@@ -1566,7 +1566,7 @@ export class GameService {
       room.state.score[winner] = 10;
       room.status = "finished";
       const savedRoom = await this.saveRoom(room);
-      void this.broadcastSnapshot(savedRoom);
+      this.broadcastSnapshotSafe(savedRoom);
     });
   }
 
@@ -1923,7 +1923,7 @@ export class GameService {
     await this.store.saveRoom(room);
 
     // Re-broadcast the snapshot so clients receive the rating data
-    void this.broadcastSnapshot(room);
+    this.broadcastSnapshotSafe(room);
   }
 
   private async checkRankingAchievements(playerId: string, newElo: number): Promise<void> {
@@ -2496,7 +2496,7 @@ export class GameService {
           return this.saveRoom({ ...freshRoom, rematch: null });
         });
 
-        void this.broadcastSnapshot(savedRoom);
+        this.broadcastSnapshotSafe(savedRoom);
         // Also notify lobby connections so the opponent's UI updates
         for (const color of ["white", "black"] as const) {
           const seat = savedRoom.seats[color];
@@ -2722,6 +2722,23 @@ export class GameService {
     }
   }
 
+  /**
+   * Fire-and-forget wrapper around `broadcastSnapshot` that catches any
+   * rejection and logs it with room context. Used at ~21 call sites
+   * inside the game-action hot paths (move/rematch/abandon/etc.) where
+   * the broadcast is purely side-effect cosmetic — the caller doesn't
+   * need to know if delivery failed, and an unhandled rejection would
+   * (before the crash guard) have taken down the whole server.
+   *
+   * Callers that DO want to know about broadcast failures should keep
+   * using `await this.broadcastSnapshot(room)` directly.
+   */
+  private broadcastSnapshotSafe(room: StoredMultiplayerRoom): void {
+    this.broadcastSnapshot(room).catch((err) => {
+      console.error(`[broadcast] snapshot failed for room ${room.id}:`, err);
+    });
+  }
+
   private getConnections(roomId: string): RoomConnections {
     let connections = this.connections.get(roomId);
     if (!connections) {
@@ -2792,7 +2809,7 @@ export class GameService {
         if (!abandonResult.ok) return;
         derived.state = abandonResult.value;
         const savedRoom = await this.saveRoom(derived);
-        void this.broadcastSnapshot(savedRoom);
+        this.broadcastSnapshotSafe(savedRoom);
       });
     } catch {
       // Best-effort cleanup; don't crash the server.
@@ -2851,7 +2868,7 @@ export class GameService {
           lastMoveAt: new Date(),
         });
 
-        void this.broadcastSnapshot(savedRoom);
+        this.broadcastSnapshotSafe(savedRoom);
       });
     } catch {
       // Best-effort; don't crash the server.
@@ -2973,7 +2990,7 @@ export class GameService {
       }
 
       // Broadcast updated snapshot so game shows as finished
-      void this.broadcastSnapshot(savedRoom);
+      this.broadcastSnapshotSafe(savedRoom);
 
       // Re-enter the opponent into matchmaking (skip for tournament games)
       if (!isTournament && opponentPlayer) {
@@ -3040,23 +3057,52 @@ import { RedisMatchmakingStore } from "./matchmakingStore";
 import { RedisBroadcaster } from "./broadcaster";
 import { BullMQTimerScheduler, BullMQMatchmakingSweepScheduler } from "./timerQueue";
 
+/**
+ * Build the singleton GameService.
+ *
+ * Redis is a HARD dependency outside of tests. Previously we silently
+ * fell back to in-memory single-instance mode when REDIS_URL was unset,
+ * which meant a misconfigured deployment would quietly drop every
+ * feature that depends on cross-instance coordination (matchmaking,
+ * distributed locks, broadcasts, durable timers) without anyone
+ * noticing until a real user hit one of those code paths. That's
+ * exactly how the two production crashes earlier today went unnoticed
+ * in dev for days.
+ *
+ * Now the startup path fails loudly with an actionable message. Tests
+ * (NODE_ENV=test) still get the in-memory defaults via `new GameService()`
+ * with no arguments — they construct GameService directly and pass in
+ * whichever store/provider they want.
+ */
 function createGameService(): GameService {
+  if (process.env.NODE_ENV === "test") {
+    // Test environment: let tests wire GameService up themselves with
+    // whatever stores they need. Production code paths that import
+    // the `gameService` singleton still get a working (in-memory)
+    // instance so unit tests of unrelated code keep working.
+    return new GameService();
+  }
+
   const redis = getRedisClient();
-  if (redis) {
-    console.info("[game] Using Redis-backed matchmaking, locks, timers, and broadcasting.");
-    return new GameService(
-      new MongoGameRoomStore(),
-      Math.random,
-      GUEST_ABANDON_TIMEOUT_MS,
-      new RedisMatchmakingStore(redis),
-      new RedisLockProvider(redis),
-      new RedisBroadcaster(redis),
-      (handlers) => new BullMQTimerScheduler(redis, handlers),
-      (sweepFn) => new BullMQMatchmakingSweepScheduler(redis, sweepFn),
+  if (!redis) {
+    throw new Error(
+      "[game] REDIS_URL is not set. Redis is required to run the server outside of tests. " +
+        "Start the dev stack with `npm run dev:infra` (or `npm run dev` which will do it for you), " +
+        "or set REDIS_URL to point at your Redis instance.",
     );
   }
 
-  return new GameService();
+  console.info("[game] Using Redis-backed matchmaking, locks, timers, and broadcasting.");
+  return new GameService(
+    new MongoGameRoomStore(),
+    Math.random,
+    GUEST_ABANDON_TIMEOUT_MS,
+    new RedisMatchmakingStore(redis),
+    new RedisLockProvider(redis),
+    new RedisBroadcaster(redis),
+    (handlers) => new BullMQTimerScheduler(redis, handlers),
+    (sweepFn) => new BullMQMatchmakingSweepScheduler(redis, sweepFn),
+  );
 }
 
 export const gameService = createGameService();
