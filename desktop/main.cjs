@@ -20,6 +20,7 @@
 
 const { app, BrowserWindow, Menu, shell, protocol, ipcMain } = require("electron");
 const path = require("node:path");
+const fs = require("node:fs");
 
 const { registerAppProtocol, DESKTOP_PROTOCOL_SCHEME } = require("./src/protocol.cjs");
 const { createMainWindow } = require("./src/window.cjs");
@@ -89,6 +90,56 @@ installDeepLinkHandler({ onAuth: handleAuthDeepLink });
 /** @type {BrowserWindow | null} */
 let mainWindow = null;
 
+/**
+ * Check the on-disk locations the protocol handler will look at for
+ * the bundled static export.  Returns the first existing path, or
+ * null if none found.  In dev this is `desktop/client-bundle/`; in
+ * packaged builds it's `process.resourcesPath/client-bundle`.
+ */
+function findClientBundleRoot() {
+  const devPath = path.join(__dirname, "client-bundle");
+  if (fs.existsSync(path.join(devPath, "en", "index.html"))) return devPath;
+  if (process.resourcesPath) {
+    const resourcesPath = path.join(process.resourcesPath, "client-bundle");
+    if (fs.existsSync(path.join(resourcesPath, "en", "index.html"))) return resourcesPath;
+  }
+  return null;
+}
+
+/**
+ * Show a self-contained native error page explaining how to recover
+ * from a missing client-bundle.  Loads a data: URL so it works even
+ * when no protocol handler is functional.
+ *
+ * @param {BrowserWindow} win
+ */
+function showMissingBundleError(win) {
+  const html = `
+    <html><head><meta charset="utf-8"><title>Tiao — missing bundle</title>
+    <style>
+      body { font-family: system-ui, -apple-system, sans-serif; padding: 3rem 2rem; max-width: 640px; margin: 0 auto; color: #2a1d13; }
+      h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+      code { background: #f3ebe0; padding: 0.15em 0.4em; border-radius: 3px; font-size: 0.92em; }
+      pre { background: #f3ebe0; padding: 1rem; border-radius: 4px; overflow-x: auto; }
+      .muted { color: #887060; }
+    </style></head><body>
+    <h1>Tiao can't find its bundled app files.</h1>
+    <p>The Electron shell booted, but the <code>client-bundle/</code>
+    directory the <code>app://tiao/</code> protocol handler reads from
+    doesn't exist yet.</p>
+    <p class="muted">This is expected the first time you clone or pull
+    the repo — the bundle is git-ignored and needs to be built from
+    the client package:</p>
+    <pre>cd desktop
+npm run dev:build-client   # builds client/.next-desktop and copies it in
+npm run dev                # launches Electron again</pre>
+    <p class="muted">Packaged builds ship the bundle inside
+    <code>Contents/Resources/client-bundle/</code>; a missing bundle
+    there means the installer is corrupt and you should reinstall.</p>
+    </body></html>`;
+  void win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
+}
+
 function bootstrap() {
   registerAppProtocol();
   // Warm the token cache BEFORE registering IPC handlers so
@@ -100,6 +151,14 @@ function bootstrap() {
   registerAnalyticsIpc();
   track("desktop:app_start", { packaged: app.isPackaged });
 
+  // Check whether the bundled static export is reachable BEFORE we
+  // create the window — if it's missing we'll spawn the window
+  // pointing at the protocol URL but then immediately replace the
+  // content with a helpful error page (see showMissingBundleError
+  // below). Going straight to an error page would render "Not found"
+  // otherwise, which is a frustrating silent failure.
+  const bundleRoot = findClientBundleRoot();
+
   mainWindow = createMainWindow({
     startUrl: `${DESKTOP_PROTOCOL_SCHEME}://tiao/en/`,
     devTools: !app.isPackaged,
@@ -107,6 +166,13 @@ function bootstrap() {
   track("desktop:window_created");
 
   Menu.setApplicationMenu(buildMenu());
+
+  if (!bundleRoot) {
+    console.error(
+      "[main] client-bundle missing. Run `npm run dev:build-client` or reinstall.",
+    );
+    showMissingBundleError(mainWindow);
+  }
 
   const win = mainWindow;
 

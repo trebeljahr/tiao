@@ -8,8 +8,10 @@
     "node": "24.14.x"
   },
   "scripts": {
-    "dev": "electron .",
+    "dev": "npm run dev:ensure-bundle && electron .",
+    "dev:ensure-bundle": "test -f client-bundle/en/index.html || npm run dev:build-client",
     "dev:build-client": "npm --prefix ../client run build:desktop && rm -rf client-bundle && cp -R ../client/.next-desktop/. client-bundle",
+    "dev:rebuild-client": "npm run dev:build-client",
     "typecheck": "tsc --noEmit",
     "package": "electron-builder",
     "package:all": "electron-builder -mwl",
