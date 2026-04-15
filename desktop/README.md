@@ -43,6 +43,73 @@ restarting `npm run dev`. The upside: identical code paths in dev and production
 Main process code (`main.cjs`, `src/*.cjs`) does not hot-reload. Kill the Electron
 app with `Cmd+Q` and re-run `npm run dev` after every main-side change.
 
+## HMR dev mode (fast renderer iteration)
+
+The production path has no renderer HMR — every CSS or React change requires a
+full `next build` into `client-bundle/` and a reload. For fast UI iteration,
+use `dev:hmr`, which points the Electron window at a running Next.js dev server
+instead of loading the static bundle via `app://tiao/`:
+
+```bash
+# Terminal 1: start the regular tiao client dev server
+# (from the monorepo root)
+npm run dev   # or `npm run client` for just the client
+
+# Terminal 2: launch Electron against it
+cd desktop
+npm run dev:hmr   # defaults to http://localhost:3000/en/
+```
+
+Override the URL if your dev server runs on a different port (e.g. worktrees
+default to 3100 per the tiao workflow):
+
+```bash
+TIAO_DEV_RENDERER_URL=http://localhost:3100/en/ npm run dev:hmr
+```
+
+You get full Next.js Fast Refresh — edits to React components, Tailwind classes,
+and CSS hot-reload in the Electron window without a full rebuild.
+
+### What HMR mode skips
+
+HMR mode **bypasses the entire production rendering path**. That's the whole
+point — it's faster because it doesn't go through the `app://` protocol
+handler. But it means the following are **NOT** exercised:
+
+- **`app://tiao/` protocol handler** — SPA rewrites for `/game/[id]`,
+  `/profile/[username]`, `/tournament/[id]`, and the path-traversal guard.
+- **`client-bundle/`** — the static export isn't read, isn't even required to
+  exist. The preflight check is skipped in this mode.
+- **Bearer-token auth path** — because the renderer loads from
+  `http://localhost:*`, same-origin cookies flow through the client's
+  `server.mjs` proxy, and `api.ts` falls back to cookie auth. The
+  `Authorization: Bearer` code path is dead in HMR mode.
+- **OAuth via the IPC bridge** — `handleOAuthSignIn` still routes through
+  `window.electron.auth.startOAuth(provider)` because `isElectron === true`,
+  but the bridge opens the system browser at whatever `TIAO_API_URL` points
+  at. Usually works, but sometimes simpler to use username/password login to
+  sidestep the browser round-trip entirely.
+- **Relaxed Content-Security-Policy** — Next.js HMR websocket needs `ws:` and
+  dev mode uses `'unsafe-eval'`. The HMR CSP permits both; the production
+  CSP (used by `npm run dev`) does not.
+
+**Rule of thumb:** use `npm run dev:hmr` for UI iteration, use `npm run dev`
+for anything that touches Electron-specific behavior — auth bridge,
+safeStorage, deep links, protocol handler, SPA rewrite, packaging concerns.
+
+### HMR startup banner
+
+When HMR mode is active, main.cjs prints a banner at startup:
+
+```
+[main] HMR mode: loading renderer from http://localhost:3000/en/
+[main] The app:// protocol handler, SPA rewrite, and bundled
+[main] client-bundle/ are NOT used in this mode.  Auth/OAuth/
+[main] safeStorage behavior may differ from a production build.
+```
+
+If you don't see this, you're in the regular `dev` path.
+
 ## Architecture
 
 ```

@@ -38,6 +38,19 @@ const {
 const { initAnalytics, track, setEnabled: setAnalyticsEnabled } = require("./src/analytics.cjs");
 const { maybeInitUpdater } = require("./src/updater.cjs");
 
+// HMR dev mode: if TIAO_DEV_RENDERER_URL is set and we're unpackaged,
+// the renderer loads from that URL instead of `app://tiao/en/`.  Used
+// to point the Electron window at a running `next dev` server so UI
+// changes hot-reload instead of requiring a full static rebuild.  See
+// README.md § "HMR dev mode" for the full tradeoffs — short version:
+// the app:// protocol, SPA rewrite, and bearer-token auth are NOT
+// exercised in this mode, so use regular `npm run dev` when you need
+// to test Electron-specific code paths.
+const HMR_RENDERER_URL =
+  !app.isPackaged && process.env.TIAO_DEV_RENDERER_URL
+    ? process.env.TIAO_DEV_RENDERER_URL
+    : null;
+
 // Dev preflight: refuse to start if the static client bundle is missing.
 // In a packaged build the bundle is staged under app.asar/resources by
 // electron-builder and is always present — if it isn't, the user has
@@ -45,7 +58,10 @@ const { maybeInitUpdater } = require("./src/updater.cjs");
 // In dev the bundle is staged on demand by `npm run dev:build-client`,
 // and forgetting that step otherwise yields a confusing "Tiao couldn't
 // load its app files" message with no hint about the actual fix.
-if (!app.isPackaged) {
+//
+// Skipped entirely in HMR mode because the renderer doesn't load from
+// client-bundle/ at all — it loads from the dev server URL.
+if (!app.isPackaged && !HMR_RENDERER_URL) {
   const bundlePath = path.join(__dirname, "client-bundle");
   if (!fs.existsSync(bundlePath)) {
     console.error("");
@@ -56,6 +72,15 @@ if (!app.isPackaged) {
     // eslint-disable-next-line no-process-exit
     process.exit(1);
   }
+}
+
+if (HMR_RENDERER_URL) {
+  console.info("");
+  console.info(`[main] HMR mode: loading renderer from ${HMR_RENDERER_URL}`);
+  console.info("[main] The app:// protocol handler, SPA rewrite, and bundled");
+  console.info("[main] client-bundle/ are NOT used in this mode.  Auth/OAuth/");
+  console.info("[main] safeStorage behavior may differ from a production build.");
+  console.info("");
 }
 
 // Privileged scheme registration MUST run before app.whenReady() —
@@ -193,10 +218,10 @@ function bootstrap() {
   const bundleRoot = findClientBundleRoot();
 
   mainWindow = createMainWindow({
-    startUrl: `${DESKTOP_PROTOCOL_SCHEME}://tiao/en/`,
+    startUrl: HMR_RENDERER_URL || `${DESKTOP_PROTOCOL_SCHEME}://tiao/en/`,
     devTools: !app.isPackaged,
   });
-  track("desktop:window_created");
+  track("desktop:window_created", HMR_RENDERER_URL ? { hmr: true } : undefined);
 
   Menu.setApplicationMenu(buildMenu());
 

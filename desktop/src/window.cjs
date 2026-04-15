@@ -46,7 +46,7 @@ const path = require("node:path");
  * gains stable nonce support for static exports.  Add `'unsafe-eval'`
  * here if the app ever pulls in a library that uses it (none today).
  */
-const CONTENT_SECURITY_POLICY = [
+const PROD_CONTENT_SECURITY_POLICY = [
   "default-src 'self' app:",
   "script-src 'self' app: 'unsafe-inline'",
   "style-src 'self' app: 'unsafe-inline'",
@@ -60,6 +60,35 @@ const CONTENT_SECURITY_POLICY = [
   "form-action 'self' app:",
 ].join("; ");
 
+/**
+ * Relaxed CSP for HMR dev mode.
+ *
+ * When the window loads from a `next dev` server (http://localhost:*),
+ * Next.js opens an HMR websocket on ws://localhost:*, pulls hot-reload
+ * modules via http://, and the React DevTools can make cross-origin
+ * fetches.  The production CSP's `connect-src https: wss:` blocks all
+ * of that.
+ *
+ * The dev CSP additionally permits `http:` and `ws:` schemes.  Scripts
+ * and styles also need `'unsafe-eval'` because React refresh and
+ * Next.js's webpack runtime use eval in dev mode (they don't in the
+ * static export).  Not a security concern — HMR mode is opt-in and
+ * localhost-only.
+ */
+const DEV_CONTENT_SECURITY_POLICY = [
+  "default-src 'self' app: http: https:",
+  "script-src 'self' app: 'unsafe-inline' 'unsafe-eval' http: https:",
+  "style-src 'self' app: 'unsafe-inline' http: https:",
+  "img-src 'self' app: data: blob: http: https:",
+  "font-src 'self' app: data: http: https:",
+  "connect-src 'self' app: http: https: ws: wss:",
+  "object-src 'none'",
+  "frame-src 'none'",
+  "worker-src 'self' app: blob:",
+  "base-uri 'self'",
+  "form-action 'self' app: http: https:",
+].join("; ");
+
 let cspApplied = false;
 
 /**
@@ -69,15 +98,20 @@ let cspApplied = false;
  * dock activate after window-all-closed) don't double-register.
  *
  * @param {Electron.Session} targetSession
+ * @param {string} startUrl — used to pick prod vs dev policy
  */
-function applyCspHeader(targetSession) {
+function applyCspHeader(targetSession, startUrl) {
   if (cspApplied) return;
   cspApplied = true;
+  // HMR dev mode = the renderer loads from http:// (localhost).
+  // The production path uses app:// and gets the strict policy.
+  const isHmr = /^https?:\/\//i.test(startUrl);
+  const policy = isHmr ? DEV_CONTENT_SECURITY_POLICY : PROD_CONTENT_SECURITY_POLICY;
   targetSession.webRequest.onHeadersReceived((details, callback) => {
     callback({
       responseHeaders: {
         ...details.responseHeaders,
-        "Content-Security-Policy": [CONTENT_SECURITY_POLICY],
+        "Content-Security-Policy": [policy],
       },
     });
   });
@@ -111,8 +145,10 @@ function createMainWindow({ startUrl, devTools }) {
 
   // Install the Content-Security-Policy header on this window's
   // session BEFORE the first navigation so the initial `app://tiao/en/`
-  // load already runs under the policy.
-  applyCspHeader(win.webContents.session);
+  // load already runs under the policy.  The startUrl determines
+  // whether we use the strict prod CSP (for app://) or the relaxed
+  // dev CSP (for http://localhost HMR).
+  applyCspHeader(win.webContents.session, startUrl);
 
   win.once("ready-to-show", () => {
     win.show();
