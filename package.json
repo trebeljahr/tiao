@@ -12,6 +12,7 @@
     "build:client": "npm --prefix client run build",
     "build:server": "npm --prefix server run build",
     "dev": "node scripts/dev.mjs",
+    "dev:parallel": "DEV_PARALLEL=1 node scripts/dev.mjs",
     "dev:fixed": "node scripts/dev.mjs --fixed",
     "dev:lan": "node scripts/dev.mjs --fixed --lan",
     "dev:docs": "node scripts/dev.mjs --docs",

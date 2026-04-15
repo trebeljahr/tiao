@@ -46,6 +46,13 @@ const nextConfig = {
   env: {
     APP_VERSION: getAppVersion(),
   },
+  // Parallel dev mode: each instance gets its own dist dir (scoped by PORT) so
+  // that multiple dev servers running against this same checkout don't clobber
+  // each other's build artifacts or fight over the lockfile. Set by
+  // scripts/dev.mjs when DEV_PARALLEL=1; cleaned up on exit.
+  ...(process.env.DEV_PARALLEL === "1" && process.env.PORT
+    ? { distDir: `.next-${process.env.PORT}` }
+    : {}),
   // Turbopack config (default bundler in Next.js 16 dev)
   turbopack: {
     resolveAlias: {
