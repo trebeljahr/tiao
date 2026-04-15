@@ -237,7 +237,29 @@ function proxyWebSocketUpgrade(req, socket, head) {
   proxyReq.end();
 }
 
-const app = next({ dev, port });
+// Bundler selection.
+//
+// Default is Next 16's default (Turbopack). Setting NEXT_DEV_BUNDLER
+// to `webpack` or `turbopack` forces that choice — useful for
+// A/B-testing cold-compile time if Turbopack regresses in a future
+// Next version.
+//
+// Measured on the current tree (commit 0366f295, first cold compile
+// of /matchmaking from a freshly wiped .next dir):
+//   Turbopack:  ~18 s compile + ~5 s boot = ~23 s total
+//   webpack:    ~81 s compile + ~33 s boot = ~114 s total
+// Turbopack is 4–5× faster here, so the default is correct. If you
+// see this flipping in a future Next version, re-measure via
+// `node scripts/measure-cold-compile.mjs /matchmaking` before
+// swapping.
+const bundlerChoice = process.env.NEXT_DEV_BUNDLER;
+const nextOptions = { dev, port };
+if (bundlerChoice === "webpack") {
+  nextOptions.webpack = true;
+} else if (bundlerChoice === "turbopack") {
+  nextOptions.turbopack = true;
+}
+const app = next(nextOptions);
 const handle = app.getRequestHandler();
 
 await app.prepare();

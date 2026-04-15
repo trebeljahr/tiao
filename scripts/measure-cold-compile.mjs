@@ -156,15 +156,37 @@ function spawnDevServer() {
   });
 }
 
-/** GET the target route, return wall-clock time to receive the full response. */
+/**
+ * GET the target route and return wall-clock time to fetch the final
+ * (post-redirect) response body. We have to FOLLOW redirects because
+ * next-intl strips the default locale (`/en/foo` → 307 → `/foo`); if
+ * we stop at the 307 we measure the redirect response (<200 ms) not
+ * the actual compile of the target route.
+ */
 async function timeRequest(baseUrl) {
   const url = baseUrl + route;
   const start = Date.now();
-  const response = await fetch(url, { redirect: "manual" });
-  // Drain the body so we measure full TTFB + body, not just headers
+  let currentUrl = url;
+  let response;
+  let hops = 0;
+  // Manually chase redirects (up to 5 hops) so we can log each one.
+  // fetch's default `redirect: "follow"` would also work but doesn't
+  // give us visibility into the chain.
+  while (true) {
+    response = await fetch(currentUrl, { redirect: "manual" });
+    if (response.status >= 300 && response.status < 400 && response.headers.get("location")) {
+      await response.text(); // drain
+      hops++;
+      if (hops > 5) break;
+      const loc = response.headers.get("location");
+      currentUrl = new URL(loc, currentUrl).toString();
+      continue;
+    }
+    break;
+  }
   await response.text();
   const elapsed = Date.now() - start;
-  return { elapsed, status: response.status };
+  return { elapsed, status: response.status, finalUrl: currentUrl, hops };
 }
 
 /** Cleanly kill a spawned dev server tree. scripts/dev.mjs propagates SIGTERM. */
@@ -207,14 +229,15 @@ async function main() {
     await clearCaches();
     const { child, clientUrl, bootMs } = await spawnDevServer();
     try {
-      const { elapsed, status } = await timeRequest(clientUrl);
+      const { elapsed, status, finalUrl, hops } = await timeRequest(clientUrl);
       if (status >= 400) {
-        console.error(`[${i}] request failed: HTTP ${status}`);
+        console.error(`[${i}] request failed: HTTP ${status} (final ${finalUrl})`);
         results.push(null);
       } else {
         const compileMs = elapsed;
+        const hopNote = hops > 0 ? ` [${hops} redirect${hops === 1 ? "" : "s"} → ${finalUrl}]` : "";
         console.log(
-          `[${i}] ${compileMs} ms  (boot ${bootMs} ms + compile ${compileMs} ms) → ${clientUrl}${route}`,
+          `[${i}] ${compileMs} ms  (boot ${bootMs} ms + compile ${compileMs} ms)${hopNote}`,
         );
         results.push(compileMs);
       }
