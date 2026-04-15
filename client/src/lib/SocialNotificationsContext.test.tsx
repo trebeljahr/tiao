@@ -136,6 +136,9 @@ describe("SocialNotificationsContext", () => {
 
     simulateLobbyMessage({ type: "social-update", overview: updatedOverview });
 
+    // First arg is a JSX element (the <PlayerIdentityRow>) — not worth
+    // asserting on at the object level. `description` is the meaningful
+    // user-facing copy and we DO assert on it.
     expect(toast).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({

@@ -879,6 +879,11 @@ describe("MultiplayerGamePage", () => {
     await setupMocks(snapshot);
     render(<MultiplayerGamePage />);
 
+    // Sanity check that the game actually rendered the finished state —
+    // otherwise a crash or loading state would vacuously pass the confetti
+    // assertion.
+    expect(screen.getByText("White wins")).toBeInTheDocument();
+
     // confetti.create should NOT be called for spectators
     expect(mockCreate).not.toHaveBeenCalled();
   });

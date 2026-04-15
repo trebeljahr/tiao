@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import "@/test/navigation-mock";
 import type { AuthResponse } from "@shared";
 import { ProfilePage } from "./ProfilePage";
@@ -129,20 +129,13 @@ describe("ProfilePage password change modal", () => {
 
   it("shows 'Change password' button for account users", async () => {
     render(<ProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /change password/i })).toBeInTheDocument();
-    });
+    expect(await screen.findByRole("button", { name: /change password/i })).toBeInTheDocument();
   });
 
   it("opens password modal when clicking 'Change password'", async () => {
     render(<ProfilePage />);
 
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /change password/i })).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByRole("button", { name: /change password/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /change password/i }));
 
     expect(screen.getByText("Change password", { selector: "h2" })).toBeInTheDocument();
     expect(screen.getByLabelText(/current password/i)).toBeInTheDocument();
@@ -152,12 +145,7 @@ describe("ProfilePage password change modal", () => {
 
   it("shows error when new passwords do not match", async () => {
     render(<ProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /change password/i })).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByRole("button", { name: /change password/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /change password/i }));
 
     fillInput(/current password/i, "oldpass123");
     fillInput(/^new password$/i, "newpass1234");
@@ -171,12 +159,7 @@ describe("ProfilePage password change modal", () => {
 
   it("shows error when new password is too short", async () => {
     render(<ProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /change password/i })).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByRole("button", { name: /change password/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /change password/i }));
 
     fillInput(/current password/i, "oldpass123");
     fillInput(/^new password$/i, "short");
@@ -198,12 +181,7 @@ describe("ProfilePage password change modal", () => {
     });
 
     render(<ProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /change password/i })).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByRole("button", { name: /change password/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /change password/i }));
 
     fillInput(/current password/i, "oldpass123");
     fillInput(/^new password$/i, "newpass1234");
@@ -211,11 +189,10 @@ describe("ProfilePage password change modal", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /update password/i }));
 
-    await waitFor(() => {
-      expect(mockUpdateAccountProfile).toHaveBeenCalledWith({
-        currentPassword: "oldpass123",
-        password: "newpass1234",
-      });
+    // Mock fires synchronously inside the click handler before the await.
+    expect(mockUpdateAccountProfile).toHaveBeenCalledWith({
+      currentPassword: "oldpass123",
+      password: "newpass1234",
     });
   });
 
@@ -229,12 +206,7 @@ describe("ProfilePage password change modal", () => {
     });
 
     render(<ProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /change password/i })).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByRole("button", { name: /change password/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /change password/i }));
 
     fillInput(/current password/i, "oldpass123");
     fillInput(/^new password$/i, "newpass1234");
@@ -242,10 +214,9 @@ describe("ProfilePage password change modal", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /update password/i }));
 
-    await waitFor(() => {
-      expect(screen.getByText(/password changed/i)).toBeInTheDocument();
-    });
-
+    // Success banner appears after updateAccountProfile resolves — single
+    // async boundary, use findByText.
+    expect(await screen.findByText(/password changed/i)).toBeInTheDocument();
     expect(screen.queryByLabelText(/current password/i)).not.toBeInTheDocument();
   });
 
@@ -255,12 +226,7 @@ describe("ProfilePage password change modal", () => {
     );
 
     render(<ProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /change password/i })).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByRole("button", { name: /change password/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /change password/i }));
 
     fillInput(/current password/i, "wrongpass");
     fillInput(/^new password$/i, "newpass1234");
@@ -268,19 +234,14 @@ describe("ProfilePage password change modal", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /update password/i }));
 
-    await waitFor(() => {
-      expect(screen.getByText(/current password is incorrect/i)).toBeInTheDocument();
-    });
+    // Error text appears after updateAccountProfile rejects — single
+    // async boundary.
+    expect(await screen.findByText(/current password is incorrect/i)).toBeInTheDocument();
   });
 
   it("closes modal when Cancel is clicked", async () => {
     render(<ProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /change password/i })).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByRole("button", { name: /change password/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /change password/i }));
 
     expect(screen.getByLabelText(/current password/i)).toBeInTheDocument();
 
@@ -297,10 +258,7 @@ describe("ProfilePage copy profile link (#93)", () => {
 
   it("renders 'Copy profile link' button for logged-in users", async () => {
     render(<ProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /copy profile link/i })).toBeInTheDocument();
-    });
+    expect(await screen.findByRole("button", { name: /copy profile link/i })).toBeInTheDocument();
   });
 
   it("calls navigator.clipboard.writeText with the correct URL when clicked", async () => {
@@ -308,16 +266,10 @@ describe("ProfilePage copy profile link (#93)", () => {
     Object.assign(navigator, { clipboard: { writeText } });
 
     render(<ProfilePage />);
+    fireEvent.click(await screen.findByRole("button", { name: /copy profile link/i }));
 
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /copy profile link/i })).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByRole("button", { name: /copy profile link/i }));
-
-    await waitFor(() => {
-      expect(writeText).toHaveBeenCalledWith(expect.stringContaining("/profile/TestUser"));
-    });
+    // Clipboard write fires synchronously inside the click handler.
+    expect(writeText).toHaveBeenCalledWith(expect.stringContaining("/profile/TestUser"));
   });
 });
 
@@ -328,32 +280,18 @@ describe("ProfilePage delete account (#91)", () => {
 
   it("renders 'Delete Account' button and description", async () => {
     render(<ProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /delete account/i })).toBeInTheDocument();
-    });
+    expect(await screen.findByRole("button", { name: /delete account/i })).toBeInTheDocument();
   });
 
   it("opens a confirmation dialog when clicking Delete Account", async () => {
     render(<ProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /delete account/i })).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByRole("button", { name: /delete account/i }));
-
+    fireEvent.click(await screen.findByRole("button", { name: /delete account/i }));
     expect(screen.getByText(/delete your account\?/i)).toBeInTheDocument();
   });
 
   it("has 'Delete My Account' button disabled when name does not match", async () => {
     render(<ProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /delete account/i })).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByRole("button", { name: /delete account/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /delete account/i }));
 
     const deleteBtn = screen.getByRole("button", { name: /delete my account/i });
     expect(deleteBtn).toBeDisabled();
@@ -361,12 +299,7 @@ describe("ProfilePage delete account (#91)", () => {
 
   it("enables 'Delete My Account' button when name matches exactly", async () => {
     render(<ProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /delete account/i })).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByRole("button", { name: /delete account/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /delete account/i }));
 
     const input = screen.getByPlaceholderText("TestUser");
     fireEvent.change(input, { target: { value: "TestUser" } });
@@ -379,21 +312,15 @@ describe("ProfilePage delete account (#91)", () => {
     mockDeleteAccount.mockResolvedValue({ message: "deleted" });
 
     render(<ProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /delete account/i })).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByRole("button", { name: /delete account/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /delete account/i }));
 
     const input = screen.getByPlaceholderText("TestUser");
     fireEvent.change(input, { target: { value: "TestUser" } });
 
     fireEvent.click(screen.getByRole("button", { name: /delete my account/i }));
 
-    await waitFor(() => {
-      expect(mockDeleteAccount).toHaveBeenCalled();
-    });
+    // Mock fires synchronously inside the click handler before the await.
+    expect(mockDeleteAccount).toHaveBeenCalled();
   });
 });
 
@@ -431,42 +358,33 @@ describe("ProfilePage OAuth linking (#98, #100)", () => {
     const { authClient } = await import("@/lib/auth-client");
 
     render(<ProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /github/i })).toBeInTheDocument();
-    });
-
     // The providers mock returns ["credential"], so GitHub should be available to link
-    fireEvent.click(screen.getByRole("button", { name: /github/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /github/i }));
 
-    await waitFor(() => {
-      expect(authClient.linkSocial).toHaveBeenCalledWith(
-        expect.objectContaining({
-          provider: "github",
-          callbackURL: "http://localhost/settings",
-        }),
-      );
-    });
+    // linkSocial is called synchronously inside the click handler.
+    expect(authClient.linkSocial).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: "github",
+        callbackURL: "http://localhost/settings",
+      }),
+    );
   });
 
   it("stashes current pathname in sessionStorage before linking so the error handler can bounce back", async () => {
     sessionStorage.removeItem("oauthLinkReturnPath");
 
     render(<ProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /github/i })).toBeInTheDocument();
-    });
+    const githubBtn = await screen.findByRole("button", { name: /github/i });
 
     // ProfilePage's cleanup effect runs on mount and clears any stale value
     // before the user clicks. Confirm the click itself is what populates it.
     expect(sessionStorage.getItem("oauthLinkReturnPath")).toBeNull();
 
-    fireEvent.click(screen.getByRole("button", { name: /github/i }));
+    fireEvent.click(githubBtn);
 
-    await waitFor(() => {
-      expect(sessionStorage.getItem("oauthLinkReturnPath")).toBe("/settings");
-    });
+    // sessionStorage write happens synchronously inside the click handler,
+    // before linkSocial is even invoked.
+    expect(sessionStorage.getItem("oauthLinkReturnPath")).toBe("/settings");
   });
 
   it("keeps the link button in the linking state after linkSocial resolves successfully (no flicker back to idle before the OAuth redirect navigates away)", async () => {
@@ -477,22 +395,13 @@ describe("ProfilePage OAuth linking (#98, #100)", () => {
     vi.mocked(authClient.linkSocial).mockResolvedValueOnce({ data: { url: "" } } as never);
 
     render(<ProfilePage />);
+    fireEvent.click(await screen.findByRole("button", { name: /github/i }));
 
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /github/i })).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByRole("button", { name: /github/i }));
-
-    await waitFor(() => {
-      expect(authClient.linkSocial).toHaveBeenCalled();
-    });
-
-    // The label should have become "Linking…" and stayed there — the GitHub
-    // label should no longer be present on the button.
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /linking/i })).toBeInTheDocument();
-    });
+    // linkSocial is called synchronously, then the button re-renders into
+    // the "Linking…" state after the await resolves. findByRole waits for
+    // that single async boundary.
+    expect(authClient.linkSocial).toHaveBeenCalled();
+    expect(await screen.findByRole("button", { name: /linking/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^github$/i })).not.toBeInTheDocument();
   });
 
@@ -504,17 +413,12 @@ describe("ProfilePage OAuth linking (#98, #100)", () => {
     } as never);
 
     render(<ProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /github/i })).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByRole("button", { name: /github/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /github/i }));
 
     // After error, the button returns to the "GitHub" label so the user can
-    // retry immediately in-place.
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /^github$/i })).toBeInTheDocument();
-    });
+    // retry immediately in-place. The button is already in the DOM (from
+    // the initial render), but findByRole re-waits until the label flips
+    // back from "Linking…" to "GitHub".
+    expect(await screen.findByRole("button", { name: /^github$/i })).toBeInTheDocument();
   });
 });

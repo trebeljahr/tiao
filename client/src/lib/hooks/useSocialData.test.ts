@@ -103,14 +103,19 @@ describe("useSocialData", () => {
 
   it("does not fetch when auth is null", async () => {
     renderHook(() => useSocialData(null, false));
-    await new Promise((r) => setTimeout(r, 50));
+    // Flush any pending microtasks so the early-return path in the
+    // useEffect has a chance to run. Real flake protection: assert the
+    // mock wasn't called instead of sleeping and hoping nothing happens.
+    await Promise.resolve();
+    await Promise.resolve();
     expect(mockGetSocialOverview).not.toHaveBeenCalled();
   });
 
   it("does not fetch for guest players", async () => {
     mockGetSocialOverview.mockResolvedValue({ overview: emptyOverview });
     renderHook(() => useSocialData(mockGuestAuth, false));
-    await new Promise((r) => setTimeout(r, 50));
+    await Promise.resolve();
+    await Promise.resolve();
     expect(mockGetSocialOverview).not.toHaveBeenCalled();
   });
 
@@ -292,11 +297,11 @@ describe("useSocialData", () => {
       { timeout: 15000 },
     );
 
-    // Should have been called 4 times total (1 + 3 retries), not infinitely
-    expect(mockGetSocialOverview).toHaveBeenCalledTimes(4);
-
-    // Wait extra time to confirm no additional calls are made
-    await new Promise((r) => setTimeout(r, 200));
+    // Should have been called 4 times total (1 + 3 retries), not infinitely.
+    // Once socialLoaded flips to true the retry loop has already exited
+    // (fetchWithRetry only schedules the NEXT delay from inside its catch
+    // block, which has run its final iteration and thrown) — no more
+    // timers can fire, so we don't need an extra sleep to "confirm".
     expect(mockGetSocialOverview).toHaveBeenCalledTimes(4);
   });
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { ReportPlayerButton } from "./ReportPlayerButton";
 
 // Track reportPlayer calls
@@ -66,7 +66,7 @@ describe("ReportPlayerButton", () => {
     expect(nextBtn).not.toBeDisabled();
   });
 
-  it("goes to confirm step and calls reportPlayer on confirm", async () => {
+  it("goes to confirm step and calls reportPlayer on confirm", () => {
     render(<ReportPlayerButton playerId="p1" displayName="alice" />);
     fireEvent.click(screen.getByTitle("Report player"));
     fireEvent.click(screen.getByText("Harassment or toxic behavior"));
@@ -75,9 +75,9 @@ describe("ReportPlayerButton", () => {
     expect(screen.getByText("Please confirm")).toBeInTheDocument();
     fireEvent.click(screen.getByText("Yes, submit report"));
 
-    await waitFor(() => {
-      expect(mockReportPlayer).toHaveBeenCalledWith("p1", "harassment", undefined);
-    });
+    // reportPlayer is called synchronously inside handleSubmit before the
+    // await suspends, so we can assert immediately without waitFor polling.
+    expect(mockReportPlayer).toHaveBeenCalledWith("p1", "harassment", undefined);
   });
 
   it("back button returns from confirm step to choose step", () => {

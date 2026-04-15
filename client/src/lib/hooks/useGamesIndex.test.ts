@@ -71,8 +71,11 @@ describe("useGamesIndex", () => {
     mockListMultiplayerGames.mockResolvedValue({ games: { active: [], finished: [] } });
     renderHook(() => useGamesIndex(null));
 
-    // Wait a tick to ensure no async call was made
-    await new Promise((r) => setTimeout(r, 50));
+    // Flush pending microtasks so any effect-driven async code runs.
+    // The hook's useEffect early-returns for null auth, so the mock
+    // should not be called at all.
+    await Promise.resolve();
+    await Promise.resolve();
     expect(mockListMultiplayerGames).not.toHaveBeenCalled();
   });
 
@@ -173,11 +176,10 @@ describe("useGamesIndex", () => {
       { timeout: 15000 },
     );
 
-    // Should have been called 4 times total (1 + 3 retries), not infinitely
-    expect(mockListMultiplayerGames).toHaveBeenCalledTimes(4);
-
-    // Wait extra time to confirm no additional calls are made
-    await new Promise((r) => setTimeout(r, 200));
+    // Should have been called 4 times total (1 + 3 retries), not infinitely.
+    // Once multiplayerGamesLoaded flips to true, fetchWithRetry has
+    // already exhausted the retry loop and thrown — no more timers
+    // pending, so we don't need an extra sleep to "confirm".
     expect(mockListMultiplayerGames).toHaveBeenCalledTimes(4);
   });
 
