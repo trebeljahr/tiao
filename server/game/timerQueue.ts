@@ -13,6 +13,24 @@ function duplicateForBullMQ(redis: Redis): Redis {
   });
 }
 
+// BullMQ ErrorCode.JobLockNotExist — surfaces as "Missing lock for job ..."
+// from the worker's completion/fail path when the job lock has been lost
+// (e.g. stalled-check reassigned it while we were processing, or the lock
+// expired during a backlog drain on restart). For the queues we run — timers
+// and a stateless matchmaking sweep — losing the finalize is harmless: the
+// work already happened, the sweep is idempotent, and timer jobs are guarded
+// by our own idempotency checks upstream. We silently drop these so they
+// don't fill GlitchTip and local dev logs.
+const JOB_LOCK_NOT_EXIST = -2;
+
+function attachWorkerErrorHandler(worker: Worker, queueName: string): void {
+  worker.on("error", (err) => {
+    const code = (err as { code?: number }).code;
+    if (code === JOB_LOCK_NOT_EXIST) return;
+    console.error(`[bullmq:${queueName}] worker error:`, err);
+  });
+}
+
 // ─── Handler callbacks provided by GameService ─────────────────────────
 
 export type TimerHandlers = {
@@ -155,6 +173,7 @@ export class BullMQTimerScheduler implements TimerScheduler {
       },
       { ...workerConnection, concurrency: 1 },
     );
+    attachWorkerErrorHandler(this.clockWorker, CLOCK_QUEUE);
 
     this.abandonWorker = new Worker(
       ABANDON_QUEUE,
@@ -164,6 +183,7 @@ export class BullMQTimerScheduler implements TimerScheduler {
       },
       { ...workerConnection, concurrency: 1 },
     );
+    attachWorkerErrorHandler(this.abandonWorker, ABANDON_QUEUE);
 
     this.firstMoveWorker = new Worker(
       FIRST_MOVE_QUEUE,
@@ -173,6 +193,7 @@ export class BullMQTimerScheduler implements TimerScheduler {
       },
       { ...workerConnection, concurrency: 1 },
     );
+    attachWorkerErrorHandler(this.firstMoveWorker, FIRST_MOVE_QUEUE);
   }
 
   async scheduleClockTimer(roomId: string, delayMs: number, expectedTurn: string): Promise<void> {
@@ -301,6 +322,7 @@ export class BullMQMatchmakingSweepScheduler implements MatchmakingSweepSchedule
       },
       { connection: this.workerConnection, concurrency: 1 },
     );
+    attachWorkerErrorHandler(this.worker, SWEEP_QUEUE);
   }
 
   start(intervalMs: number): void {
@@ -366,6 +388,7 @@ export class BullMQExportScheduler implements ExportJobScheduler {
       },
       { connection: this.workerConnection, concurrency: 1 },
     );
+    attachWorkerErrorHandler(this.worker, EXPORT_QUEUE);
   }
 
   enqueue(requestId: string): void {
