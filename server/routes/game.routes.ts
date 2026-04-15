@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { type Request as ExpressRequest, type Response } from "express";
 import mongoose from "mongoose";
 import { handleRouteError } from "../error-handling/routeError";
 import { gameService } from "../game/gameService";
@@ -13,7 +13,7 @@ import { gameActionRateLimiter } from "../middleware/rateLimiter";
 
 const router = express.Router();
 
-async function getAuthenticatedPlayer(req: Request, res: Response) {
+async function getAuthenticatedPlayer(req: ExpressRequest, res: Response) {
   const player = await getPlayerFromRequest(req);
   if (!player) {
     res.status(401).json({
@@ -182,7 +182,7 @@ async function revokeAllPendingInvitationsForGame(gameId: string) {
  *       500:
  *         description: Server error
  */
-router.get("/games", async (req: Request, res: Response) => {
+router.get("/games", async (req: ExpressRequest, res: Response) => {
   const player = await getAuthenticatedPlayer(req, res);
   if (!player) {
     return;
@@ -221,7 +221,7 @@ router.get("/games", async (req: Request, res: Response) => {
  *       500:
  *         description: Server error
  */
-router.post("/games", gameActionRateLimiter, async (req: Request, res: Response) => {
+router.post("/games", gameActionRateLimiter, async (req: ExpressRequest, res: Response) => {
   const player = await getAuthenticatedPlayer(req, res);
   if (!player) {
     return;
@@ -257,7 +257,7 @@ router.post("/games", gameActionRateLimiter, async (req: Request, res: Response)
   }
 });
 
-router.delete("/games/:gameId", async (req: Request, res: Response) => {
+router.delete("/games/:gameId", async (req: ExpressRequest, res: Response) => {
   const player = await getAuthenticatedPlayer(req, res);
   if (!player) return;
 
@@ -303,37 +303,41 @@ router.delete("/games/:gameId", async (req: Request, res: Response) => {
  *       500:
  *         description: Server error
  */
-router.post("/games/:gameId/join", gameActionRateLimiter, async (req: Request, res: Response) => {
-  const player = await getAuthenticatedPlayer(req, res);
-  if (!player) {
-    return;
-  }
-
-  if (!isValidGameId(req.params.gameId as string)) {
-    return res.status(400).json({ code: "INVALID_GAME_ID", message: "Invalid game ID." });
-  }
-
-  if (!(await checkGuestCustomGameGate(player, req.params.gameId as string, res))) {
-    return;
-  }
-
-  if (!(await checkTournamentJoinBlock(req.params.gameId as string, res))) {
-    return;
-  }
-
-  try {
-    const snapshot = await gameService.joinGame(req.params.gameId as string, player);
-
-    // When the game is now active (2 players joined), revoke all remaining invites
-    if (snapshot.status === "active") {
-      void revokeAllPendingInvitationsForGame(snapshot.gameId);
+router.post(
+  "/games/:gameId/join",
+  gameActionRateLimiter,
+  async (req: ExpressRequest, res: Response) => {
+    const player = await getAuthenticatedPlayer(req, res);
+    if (!player) {
+      return;
     }
 
-    return res.status(200).json({ snapshot });
-  } catch (error) {
-    return handleRouteError(res, error, "Unable to join that game right now.", req);
-  }
-});
+    if (!isValidGameId(req.params.gameId as string)) {
+      return res.status(400).json({ code: "INVALID_GAME_ID", message: "Invalid game ID." });
+    }
+
+    if (!(await checkGuestCustomGameGate(player, req.params.gameId as string, res))) {
+      return;
+    }
+
+    if (!(await checkTournamentJoinBlock(req.params.gameId as string, res))) {
+      return;
+    }
+
+    try {
+      const snapshot = await gameService.joinGame(req.params.gameId as string, player);
+
+      // When the game is now active (2 players joined), revoke all remaining invites
+      if (snapshot.status === "active") {
+        void revokeAllPendingInvitationsForGame(snapshot.gameId);
+      }
+
+      return res.status(200).json({ snapshot });
+    } catch (error) {
+      return handleRouteError(res, error, "Unable to join that game right now.", req);
+    }
+  },
+);
 
 /**
  * @openapi
@@ -365,7 +369,7 @@ router.post("/games/:gameId/join", gameActionRateLimiter, async (req: Request, r
  *       500:
  *         description: Server error
  */
-router.post("/games/:gameId/access", async (req: Request, res: Response) => {
+router.post("/games/:gameId/access", async (req: ExpressRequest, res: Response) => {
   const player = await getAuthenticatedPlayer(req, res);
   if (!player) {
     return;
@@ -427,7 +431,7 @@ router.post("/games/:gameId/access", async (req: Request, res: Response) => {
  *       500:
  *         description: Server error
  */
-router.delete("/games/:gameId", async (req: Request, res: Response) => {
+router.delete("/games/:gameId", async (req: ExpressRequest, res: Response) => {
   const player = await getAuthenticatedPlayer(req, res);
   if (!player) {
     return;
@@ -446,7 +450,7 @@ router.delete("/games/:gameId", async (req: Request, res: Response) => {
   }
 });
 
-router.get("/games/:gameId", async (req: Request, res: Response) => {
+router.get("/games/:gameId", async (req: ExpressRequest, res: Response) => {
   const player = await getAuthenticatedPlayer(req, res);
   if (!player) {
     return;
@@ -468,7 +472,7 @@ router.get("/games/:gameId", async (req: Request, res: Response) => {
  * Public endpoint returning minimal game metadata for OpenGraph tags.
  * No authentication required so crawlers / SSR can fetch it.
  */
-router.get("/games/:gameId/og", async (req: Request, res: Response) => {
+router.get("/games/:gameId/og", async (req: ExpressRequest, res: Response) => {
   if (!isValidGameId(req.params.gameId as string)) {
     return res.status(400).json({ code: "INVALID_GAME_ID", message: "Invalid game ID." });
   }
@@ -574,7 +578,7 @@ router.get("/games/:gameId/og", async (req: Request, res: Response) => {
  *       500:
  *         description: Failed to finish game
  */
-router.post("/games/:gameId/cancel-rematch", async (req: Request, res: Response) => {
+router.post("/games/:gameId/cancel-rematch", async (req: ExpressRequest, res: Response) => {
   const player = await getAuthenticatedPlayer(req, res);
   if (!player) return;
 
@@ -591,7 +595,7 @@ router.post("/games/:gameId/cancel-rematch", async (req: Request, res: Response)
   }
 });
 
-router.post("/games/:gameId/request-rematch", async (req: Request, res: Response) => {
+router.post("/games/:gameId/request-rematch", async (req: ExpressRequest, res: Response) => {
   const player = await getAuthenticatedPlayer(req, res);
   if (!player) return;
 
@@ -608,7 +612,7 @@ router.post("/games/:gameId/request-rematch", async (req: Request, res: Response
   }
 });
 
-router.post("/games/:gameId/decline-rematch", async (req: Request, res: Response) => {
+router.post("/games/:gameId/decline-rematch", async (req: ExpressRequest, res: Response) => {
   const player = await getAuthenticatedPlayer(req, res);
   if (!player) return;
 
@@ -625,7 +629,7 @@ router.post("/games/:gameId/decline-rematch", async (req: Request, res: Response
   }
 });
 
-router.post("/games/:gameId/test-finish", async (req: Request, res: Response) => {
+router.post("/games/:gameId/test-finish", async (req: ExpressRequest, res: Response) => {
   if (process.env.NODE_ENV !== "test") {
     return res
       .status(403)
@@ -659,7 +663,7 @@ router.post("/games/:gameId/test-finish", async (req: Request, res: Response) =>
  * Internally calls better-auth's signUpEmail API so the session cookie
  * is set in exactly the same format as the real signup flow.
  */
-router.post("/test-auth", async (req: Request, res: Response) => {
+router.post("/test-auth", async (req: ExpressRequest, res: Response) => {
   if (process.env.NODE_ENV !== "test") {
     return res
       .status(403)
