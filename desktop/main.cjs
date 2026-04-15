@@ -38,6 +38,26 @@ const {
 const { initAnalytics, track, setEnabled: setAnalyticsEnabled } = require("./src/analytics.cjs");
 const { maybeInitUpdater } = require("./src/updater.cjs");
 
+// Dev preflight: refuse to start if the static client bundle is missing.
+// In a packaged build the bundle is staged under app.asar/resources by
+// electron-builder and is always present — if it isn't, the user has
+// a corrupted install and `did-fail-load` surfaces a real error page.
+// In dev the bundle is staged on demand by `npm run dev:build-client`,
+// and forgetting that step otherwise yields a confusing "Tiao couldn't
+// load its app files" message with no hint about the actual fix.
+if (!app.isPackaged) {
+  const bundlePath = path.join(__dirname, "client-bundle");
+  if (!fs.existsSync(bundlePath)) {
+    console.error("");
+    console.error("[main] desktop/client-bundle/ is missing.");
+    console.error("[main] The renderer is loaded from a Next.js static export that lives there.");
+    console.error("[main] Run `npm run dev:build-client` first, then `npm run dev`.");
+    console.error("");
+    // eslint-disable-next-line no-process-exit
+    process.exit(1);
+  }
+}
+
 // Privileged scheme registration MUST run before app.whenReady() —
 // at startup Chromium builds its protocol table from whatever has
 // been registered synchronously, and a scheme registered after
@@ -75,6 +95,19 @@ if (process.defaultApp) {
 // instance instead of spawning a second one.  Without this, each
 // deep link click on Windows/Linux would spawn a fresh Electron
 // process with no shared state.
+//
+// On bail we call BOTH app.quit() and process.exit(0):
+//   - app.quit() is the canonical Electron shutdown path, but it's
+//     async and doesn't immediately interrupt the rest of this file.
+//     Without an early process.exit, the module would continue
+//     loading, register handlers, call whenReady, and only THEN
+//     honor the queued quit.  process.exit short-circuits that.
+//   - The eslint-disable is intentional: the no-process-exit rule is
+//     a sane default but the bail path is the canonical exception.
+//   - There is one mild trade-off: any async shutdown hook the OS or
+//     Electron registers internally would be skipped.  In this slot
+//     of the lifecycle (before any window or IPC handler exists)
+//     there's nothing to clean up, so it's safe.
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
