@@ -553,3 +553,85 @@ Matchmaking, distributed locks, rate limit counters, and cross-instance broadcas
 Practical implication for scaling: you can run multiple `tiao-server` replicas as long as a given player's WebSocket session stays pinned to one replica for the lifetime of the connection. That's already how it works in practice — the browser opens one WS, gets routed by Traefik to one backend, and stays on it until disconnect. When the connection drops the client reconnects (`useMultiplayerGame.ts`) and may land on a different replica, which is fine: the new replica reads game state from Mongo / Redis. So horizontal backend scaling works, but full Redis Pub/Sub WebSocket fan-out (where ANY replica can push to ANY player) is not yet a thing — that's a future enhancement.
 
 Deploys are graceful (Coolify rolls containers one at a time), but active matches will briefly reconnect when the replica they're pinned to is replaced.
+
+## Scaling MongoDB
+
+Mongo is the hardest piece of the stack to grow — but the good news is **you almost certainly never need to**. Tiao's Mongo workload is small even by hobby-game standards. This section lays out the realistic options and when each starts to make sense, so future-you doesn't have to re-derive it under pressure.
+
+### What Mongo is doing for Tiao
+
+The hot paths, ranked by frequency:
+
+1. **Game room writes** — `gameService.saveRoom()` after every move. About one small document upsert per move per active game. A typical game has ~50 moves; 100 concurrent games is ~5,000 writes/min. A single Mongo instance handles this in its sleep — under 5% CPU on a small VPS.
+2. **Player profile reads** — every page load, every authenticated API call. Cached in the client's `useAuth` and the server's `playerSessionStore`, so they're not as hot as they look. Tiny indexed lookups.
+3. **better-auth session reads** — every authenticated request hits the `session` collection. Indexed lookup by session token.
+4. **Tournament writes** — small bursts when matches finish.
+5. **Achievement writes** — small bursts on milestone events.
+
+The working set (data that needs to be in RAM for fast reads) is dominated by active game rooms plus active sessions — a few hundred MB even at thousands of concurrent users. **Mongo loves RAM**, and a 4 GB box with the working set fully in memory will out-perform a 32 GB box that's churning through disk.
+
+The implication: scale Mongo **vertically** for a long, long time. Throw RAM at it. You'll outgrow the rest of the stack first.
+
+### Phase 1: vertical scaling (current → ~10k MAU)
+
+One Mongo instance, bigger box. Hetzner CCX series gives you up to 64 GB RAM for not much money. Backups go to Hetzner Object Storage / S3 daily. SPOF on the box, accept it, monitor it.
+
+95% chance Tiao stops here forever.
+
+### Phase 2: replica set (when you actually have users to lose)
+
+Run 3 `mongod` instances — one primary plus two secondaries — across two or three Hetzner boxes. Mongo handles replication, election, and automatic failover natively; you point `MONGODB_URI` at all three nodes:
+
+```
+mongodb://node1,node2,node3/tiao?replicaSet=rs0
+```
+
+The driver figures out which is the primary at any given moment.
+
+What you get:
+
+- **HA**: any one node can die and the cluster automatically promotes a secondary to primary in ~10s. `MONGODB_URI` doesn't change.
+- **Read scaling** (optional): you can route certain reads to secondaries by setting a read preference like `secondaryPreferred`. Useful for "show me a list of games" queries that can tolerate ~1-2s of staleness. Tiao currently doesn't lean on this but the hooks are there.
+- **Effectively continuous backup**: secondaries are basically live backups. You can take point-in-time snapshots from one without affecting the primary.
+
+What it costs:
+
+- 3× the hosting bill
+- Operational complexity: oplog tailing, election storms, network partitions, version upgrades that have to be rolling
+- A few subtle code patterns: don't write then immediately read with `secondaryPreferred` (you'll see stale data); make sure write concern is `majority` for anything you can't lose
+
+For Tiao specifically, the most realistic Phase 2 trigger isn't traffic — it's **"I'm about to do a Mongo version upgrade and I don't want a maintenance window"**. A replica set lets you do a rolling upgrade with zero downtime. Vertical scaling means a maintenance window every time.
+
+### Phase 3: sharding (probably never)
+
+Sharding partitions data across multiple primaries by a "shard key", so writes scale roughly linearly with the number of shards. Each shard is itself a replica set, so you also keep HA. Sharded clusters need extra moving parts (a 3-node config server replica set + a `mongos` query router on every backend box), shard key choice is hard to reverse, and rebalancing is operationally painful.
+
+Shard when:
+
+- A single primary can't keep up with writes (>50k writes/sec sustained, in Tiao terms: hundreds of thousands of concurrent games)
+- The working set genuinely doesn't fit in RAM on the biggest available box
+- You need to colocate data near users in different regions
+
+For Tiao at hobby/indie scale: don't even think about it. If Tiao gets that big, you'll have other (better) problems to solve first, including hiring someone to operate it.
+
+### Phase 0.5: hosted Mongo (the easy button)
+
+Mongo Atlas (or whichever managed-Mongo offering exists at the time you read this) outsources all the operational pain. M10 Atlas (~$60/mo as of 2026) gives you a 3-node replica set, automatic backups, point-in-time recovery, monitoring, and one-click version upgrades. Compared to self-hosting: more expensive per RAM-hour, but the ops time savings are massive. Worth it the moment you have any real users whose data you care about losing.
+
+### What to actually do, in order
+
+1. **Right now**: make sure Mongo is being snapshotted daily to S3/R2 with at least 7 days of retention. That's the entire HA story for a hobby project. Do a restore drill once a quarter so you know the snapshots actually work.
+2. **When `tiao-server` starts feeling slow on Mongo queries**: check if it's a missing index. Look at the slow query log. Add an index (`createIndex` on the hot fields). 95% of "Mongo is slow" turns out to be a missing index, not a scaling problem.
+3. **When you legitimately have enough users that a 2-hour outage hurts**: move to Mongo Atlas. Skip the self-hosted replica set unless you specifically want the learning experience or you have a strong cost reason.
+4. **When you're growing past Atlas M10**: vertical-scale within Atlas. M20, M30, etc. Each tier gives more RAM + storage. Same `MONGODB_URI`, just more resources behind it.
+5. **Sharding**: ignore until forced.
+
+### What matters more than scaling
+
+For the next several years the thing that will actually kill Tiao is **not a scaling failure**. It's a corrupted disk with no usable backup, or a botched migration that drops a collection.
+
+Game-history records — finished games, tournament results, achievements — are the irreplaceable bits. If you lose the active matchmaking queue in a Redis outage, players reconnect and re-queue, no real harm. If you lose the `gameRooms` collection in Mongo, you've lost player history forever. So:
+
+- Prioritize backup quality and restore drills over scaling architecture.
+- The current single-instance Mongo will outlast your scaling concerns.
+- Run a real restore from your backups every quarter. If you've never tested the restore path, you don't have backups — you have hope.
