@@ -38,7 +38,7 @@ export default defineConfig({
   webServer: [
     {
       command: "bash e2e/start-server.sh",
-      url: `http://localhost:${E2E_SERVER_PORT}/api/player/me`,
+      url: `http://localhost:${E2E_SERVER_PORT}/api/health`,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
       env: {

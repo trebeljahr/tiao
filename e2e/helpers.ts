@@ -1,15 +1,15 @@
 import { expect, Page } from "@playwright/test";
 
 /**
- * Wait for the nav hamburger button to be present — it's rendered on
- * every page (lobby, game, etc.) once React has hydrated, so it's a
- * reliable "app is ready" signal. Call this after page.goto() when the
- * test doesn't sign up/in (which already waits for the API).
+ * Wait for the page to be interactive. Most pages render the hamburger
+ * nav button once React has hydrated; a handful (profile, settings,
+ * onboarding) don't include the Navbar. Fall back to waiting for the
+ * page's <main> element which is present on every layout.
  */
 export async function waitForAppReady(page: Page) {
-  await expect(page.locator('[aria-label="Open navigation"]')).toBeVisible({
-    timeout: 30_000,
-  });
+  await expect(page.locator('[aria-label="Open navigation"], main'))
+    .first()
+    .toBeVisible({ timeout: 30_000 });
 }
 
 /**

@@ -57,8 +57,20 @@ async function startTwoPlayerTournament(
   await bobPage.request.post(`/api/tournaments/${tournamentId}/register`);
 
   const startRes = await alicePage.request.post(`/api/tournaments/${tournamentId}/start`);
-  const startData = await startRes.json();
-  const roomId = startData.tournament.rounds[0]?.matches[0]?.roomId;
+  if (!startRes.ok()) {
+    throw new Error(`Tournament start failed (${startRes.status()}): ${await startRes.text()}`);
+  }
+  const startData = (await startRes.json()) as Record<string, unknown>;
+  // The response shape may nest rounds under tournament or at root level.
+  const tournament = (startData.tournament ?? startData) as {
+    rounds?: { matches?: { roomId?: string }[] }[];
+  };
+  const roomId = tournament?.rounds?.[0]?.matches?.[0]?.roomId ?? "";
+  if (!roomId) {
+    throw new Error(
+      `Tournament start didn't return a roomId. Response: ${JSON.stringify(startData).slice(0, 500)}`,
+    );
+  }
 
   return { tournamentId, roomId };
 }
@@ -376,11 +388,12 @@ test.describe("Tournament navigation", () => {
     // Open the nav drawer
     await page.click('[aria-label="Open navigation"]');
 
-    // Tournaments link should be visible
-    await expect(page.locator('button:has-text("Tournaments")')).toBeVisible();
+    // Tournaments link should be visible in the nav drawer (rendered as <Link>)
+    const tournamentsLink = page.locator('aside a:has-text("Tournaments")');
+    await expect(tournamentsLink).toBeVisible();
 
     // Click it and verify navigation
-    await page.click('button:has-text("Tournaments")');
+    await tournamentsLink.click();
     await expect(page).toHaveURL(/\/tournaments/);
 
     await context.close();
