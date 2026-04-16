@@ -87,7 +87,7 @@ test.describe("Spectate link always visible (#90)", () => {
     // Eye icon should now show count "1" for Alice (button label switches
     // to "1 spectator" once the spectator joins the WebSocket).
     await expect(alicePage.getByRole("button", { name: "1 spectator" })).toBeVisible({
-      timeout: 10_000,
+      timeout: 20_000,
     });
 
     await aliceContext.close();

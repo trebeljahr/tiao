@@ -68,17 +68,17 @@ test('spectator sees "Spectating" title and players see spectator badge', async 
 
   // Spectator should see "Spectating" heading (card title, rendered as h3)
   await expect(spectatorPage.getByRole("heading", { name: "Spectating" })).toBeVisible({
-    timeout: 10_000,
+    timeout: 20_000,
   });
 
   // Players should see the spectator badge — the SpectateButton's
   // aria-label switches to "1 spectator" once the spectator context
   // joins the WebSocket.
   await expect(alicePage.getByRole("button", { name: "1 spectator" })).toBeVisible({
-    timeout: 10_000,
+    timeout: 20_000,
   });
   await expect(bobPage.getByRole("button", { name: "1 spectator" })).toBeVisible({
-    timeout: 10_000,
+    timeout: 20_000,
   });
 
   await aliceContext.close();

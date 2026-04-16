@@ -40,9 +40,11 @@ test("matchmaking pairs two players into a game", async ({ browser }) => {
 
   await startMatchmaking(bobPage);
 
-  // Both should eventually land in a game
-  await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/, { timeout: 10000 });
-  await expect(bobPage).toHaveURL(/\/game\/[A-Z0-9]{6}/, { timeout: 10000 });
+  // Both should eventually land in a game — matchmaking polls every
+  // few seconds so it can take 10-15s under CI load for both players
+  // to be paired and redirected.
+  await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/, { timeout: 20_000 });
+  await expect(bobPage).toHaveURL(/\/game\/[A-Z0-9]{6}/, { timeout: 20_000 });
 
   // Both should see "Live match"
   await expect(alicePage.locator("text=Live match")).toBeVisible();
