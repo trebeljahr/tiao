@@ -1,41 +1,134 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-/**
- * Guards the `/collect` proxy bypass that keeps OpenPanel from
- * POSTing to `app://tiao/collect/track` in the desktop Electron
- * build.
- *
- * The proxy lives in `client/server.mjs` and only exists for the
- * web build. The desktop static export has no Node server in front,
- * so a relative `/collect` URL resolves against the document origin
- * (`app://tiao/`) and 404s forever. The fix in `openpanel.ts` is to
- * route through `directApiUrl` (the real OpenPanel ingest host)
- * whenever `NEXT_PUBLIC_PLATFORM === "desktop"`, regardless of
- * NODE_ENV.
- *
- * openpanel.ts reads both env vars at module load, so each test
- * needs `vi.resetModules()` + `vi.stubEnv()` + a dynamic import to
- * get a fresh instance observing the stubbed environment. We can't
- * inspect the internal `apiUrl` variable directly (it's private),
- * so we assert on the shape of the real `OpenPanel` constructor
- * call via a spy.
- */
+// ─── Shared mock ────────────────────────────────────────────────────
+//
+// Two test suites share this mock:
+//   1. "disabled in dev / test" — verifies the 2026-04-16 cold-compile
+//      refactor's no-op path (SDK never loaded, constructor never called).
+//   2. "API URL resolution" — verifies the desktop `/collect` proxy
+//      bypass (SDK IS loaded in simulated production, constructor
+//      receives the expected apiUrl).
+//
+// The mock must satisfy both: a constructor spy for the URL tests AND
+// method stubs for the lazy-load no-op tests.
 
 const constructorSpy = vi.fn();
+const openPanelTrack = vi.fn();
+const openPanelIdentify = vi.fn();
+const openPanelClear = vi.fn();
+const openPanelSetGlobalProperties = vi.fn();
 
-vi.mock("@openpanel/web", () => {
-  return {
-    OpenPanel: class MockOpenPanel {
-      options: Record<string, unknown>;
-      constructor(opts: Record<string, unknown>) {
-        constructorSpy(opts);
-        this.options = opts;
-      }
-      clear() {}
-      setGlobalProperties() {}
-    },
-  };
+vi.mock("@openpanel/web", () => ({
+  OpenPanel: vi.fn().mockImplementation((opts: Record<string, unknown>) => {
+    constructorSpy(opts);
+    return {
+      track: openPanelTrack,
+      identify: openPanelIdentify,
+      clear: openPanelClear,
+      setGlobalProperties: openPanelSetGlobalProperties,
+      options: { disabled: false },
+    };
+  }),
+}));
+
+beforeEach(() => {
+  constructorSpy.mockClear();
+  openPanelTrack.mockClear();
+  openPanelIdentify.mockClear();
+  openPanelClear.mockClear();
+  openPanelSetGlobalProperties.mockClear();
 });
+
+// ─── Suite 1: dev / test no-op path ──────────────────────────────────
+//
+// The whole point of the cold-compile refactor is that `@openpanel/web`
+// must NOT enter the module graph when OpenPanel is disabled. Vitest
+// runs with NODE_ENV=test, which trips the same
+// `process.env.NODE_ENV !== "production"` gate in `getOpenPanel()`, so
+// these tests verify the dev-disabled path end-to-end.
+
+describe("openpanel — disabled in dev / test", () => {
+  it("openPanelConfigured is false when env vars are unset", async () => {
+    const { openPanelConfigured } = await import("./openpanel");
+    expect(openPanelConfigured).toBe(false);
+  });
+
+  it("op.track() is callable and does not touch @openpanel/web", async () => {
+    const { op } = await import("./openpanel");
+
+    expect(() => op.track("something_happened", { foo: "bar" })).not.toThrow();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(constructorSpy).not.toHaveBeenCalled();
+    expect(openPanelTrack).not.toHaveBeenCalled();
+  });
+
+  it("op.identify() is callable and does not touch @openpanel/web", async () => {
+    const { op } = await import("./openpanel");
+
+    expect(() => op.identify({ profileId: "player-1" })).not.toThrow();
+    await Promise.resolve();
+
+    expect(openPanelIdentify).not.toHaveBeenCalled();
+  });
+
+  it("op.clear() is callable and does not touch @openpanel/web", async () => {
+    const { op } = await import("./openpanel");
+
+    expect(() => op.clear()).not.toThrow();
+    await Promise.resolve();
+
+    expect(openPanelClear).not.toHaveBeenCalled();
+  });
+
+  it("op proxy returns undefined for the thenable `then` access", async () => {
+    const { op } = await import("./openpanel");
+
+    // The Proxy must opt out of Promise unwrapping so code that does
+    // `await import("./openpanel")` doesn't treat `op` as a thenable.
+    const proxyThen = (op as unknown as { then?: unknown }).then;
+    expect(proxyThen).toBeUndefined();
+  });
+
+  it("enableTracking() is a no-op when not configured (does not construct SDK)", async () => {
+    const { enableTracking } = await import("./openpanel");
+
+    enableTracking();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(constructorSpy).not.toHaveBeenCalled();
+  });
+
+  it("setAuthReady(true) is a no-op when not configured", async () => {
+    const { setAuthReady } = await import("./openpanel");
+
+    setAuthReady(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(constructorSpy).not.toHaveBeenCalled();
+  });
+
+  it("disableTracking() is callable even when not configured", async () => {
+    const { disableTracking } = await import("./openpanel");
+
+    expect(() => disableTracking()).not.toThrow();
+  });
+});
+
+// ─── Suite 2: API URL resolution (desktop /collect proxy bypass) ─────
+//
+// Guards the `/collect` proxy bypass that keeps OpenPanel from POSTing
+// to `app://tiao/collect/track` in the desktop Electron build. The
+// proxy lives in `client/server.mjs` and only exists for the web build.
+//
+// Since the 2026-04-16 cold-compile refactor, the SDK is lazy-loaded
+// via `getOpenPanel()` and only instantiated inside `maybeEnable()`
+// when both consent + auth gates pass. These tests simulate that flow
+// by calling `enableTracking()` + `setAuthReady(true)` after import,
+// then asserting on the constructor spy's `apiUrl` argument.
 
 describe("openpanel API URL resolution", () => {
   beforeEach(() => {
@@ -50,8 +143,16 @@ describe("openpanel API URL resolution", () => {
     vi.unstubAllEnvs();
   });
 
-  async function loadModule() {
-    return await import("./openpanel");
+  /** Load a fresh openpanel module and trigger the full enable flow. */
+  async function loadAndEnable() {
+    const mod = await import("./openpanel");
+    // Trigger the lazy-load: consent + auth must both be granted
+    // for maybeEnable → getOpenPanel → import("@openpanel/web") to fire.
+    mod.enableTracking();
+    mod.setAuthReady(true);
+    // Give the async maybeEnable promise a chance to resolve.
+    await new Promise((r) => setTimeout(r, 50));
+    return mod;
   }
 
   /** Returns the `apiUrl` passed to the most recent OpenPanel construction. */
@@ -65,7 +166,7 @@ describe("openpanel API URL resolution", () => {
   it("web production build routes through the /collect proxy", async () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("NEXT_PUBLIC_PLATFORM", "");
-    await loadModule();
+    await loadAndEnable();
     expect(constructorSpy).toHaveBeenCalled();
     expect(lastApiUrl()).toBe("/collect");
   });
@@ -73,7 +174,7 @@ describe("openpanel API URL resolution", () => {
   it("desktop production build bypasses /collect and hits the ingest host directly", async () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("NEXT_PUBLIC_PLATFORM", "desktop");
-    await loadModule();
+    await loadAndEnable();
     expect(constructorSpy).toHaveBeenCalled();
     // Crucially: NOT "/collect", which would resolve to
     // `app://tiao/collect/track` in the renderer.
@@ -81,11 +182,11 @@ describe("openpanel API URL resolution", () => {
     expect(lastApiUrl()).toBe("https://op.example.test");
   });
 
-  it("dev builds bypass /collect regardless of platform (no server in front)", async () => {
+  it("dev builds do not construct OpenPanel regardless of platform", async () => {
     vi.stubEnv("NODE_ENV", "development");
     vi.stubEnv("NEXT_PUBLIC_PLATFORM", "");
-    await loadModule();
-    expect(constructorSpy).toHaveBeenCalled();
-    expect(lastApiUrl()).toBe("https://op.example.test");
+    await loadAndEnable();
+    // getOpenPanel() returns null in dev → constructor never called.
+    expect(constructorSpy).not.toHaveBeenCalled();
   });
 });

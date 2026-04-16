@@ -112,6 +112,27 @@ const nextConfig = {
     : {}),
   experimental: {
     lockDistDir: process.env.DEV_PARALLEL !== "1",
+    // Tell Turbopack/webpack these packages are side-effect-free so
+    // named imports can be rewritten as per-module paths and the rest
+    // tree-shaken. Next 16's default list covers react-icons/*,
+    // lucide-react, @headlessui/react, @heroicons/*, @mui/*, etc. —
+    // these additions cover the heavy deps in our critical path that
+    // aren't in the default list. Primarily helps production builds;
+    // dev also benefits wherever we use named barrel imports.
+    //
+    // Note: @sentry/browser and @openpanel/web are lazy-imported in
+    // src/lib/glitchtip.ts and src/lib/openpanel.ts so they never
+    // enter the dev critical path in the first place — listing them
+    // here is purely for the production build.
+    optimizePackageImports: [
+      "@sentry/browser",
+      "@openpanel/web",
+      "better-auth",
+      "better-auth/react",
+      "better-auth/client/plugins",
+      "framer-motion",
+      "sonner",
+    ],
   },
   // Turbopack config (default bundler in Next.js 16 dev)
   turbopack: {
