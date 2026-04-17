@@ -73,7 +73,6 @@ export function GamesPage() {
                           games={multiplayerGames.active}
                           finishedGamesWithRematch={finishedGamesWithRematch}
                           refreshGames={refreshMultiplayerGames}
-                          gridClassName="sm:grid-cols-2"
                         />
                       </CardContent>
                     </PaperCard>
