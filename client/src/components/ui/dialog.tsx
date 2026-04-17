@@ -1,4 +1,5 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +27,11 @@ export function Dialog({
   // Only close when both mousedown AND mouseup (click) happen on the backdrop, so that
   // dragging text from inside the dialog to outside doesn't accidentally close it.
   const mouseDownOnBackdrop = useRef(false);
+  // Portal mounting flag — `document` is only available after hydration in
+  // Next.js client components. Without the mount gate, `createPortal` would
+  // throw on SSR.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!open) {
@@ -67,11 +73,19 @@ export function Dialog({
     [onOpenChange, closeable],
   );
 
-  if (!open) {
+  if (!open || !mounted) {
     return null;
   }
 
-  return (
+  // Render into document.body via a portal so the `fixed inset-0` backdrop
+  // is viewport-relative, not trapped inside an ancestor that creates a new
+  // containing block (anything with `transform`, `filter`, `backdrop-filter`,
+  // `will-change`, or `contain`). In particular, Framer Motion applies
+  // `transform` to `motion.div`, so any Dialog rendered inside a motion
+  // component — e.g. ReportPlayerButton inside AnimatedScoreTile — would
+  // otherwise have its backdrop scoped to that motion element instead of
+  // covering the whole screen.
+  return createPortal(
     <div
       className="animate-dialog-backdrop fixed inset-0 z-300 flex items-center justify-center overflow-y-auto bg-slate-950/50 p-4 backdrop-blur-xs"
       onMouseDown={handleBackdropMouseDown}
@@ -115,6 +129,7 @@ export function Dialog({
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
