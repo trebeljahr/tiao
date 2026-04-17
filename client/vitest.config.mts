@@ -26,17 +26,8 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    // happy-dom boots 3-4x faster than jsdom; per-file jsdom init was the
-    // dominant cost in the suite (~6s × 62 files). API coverage is a
-    // superset of what React Testing Library exercises here.
-    environment: "happy-dom",
+    environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
-    // Share the DOM environment across test files within the same worker.
-    // Combined with `setup.ts`'s global beforeEach (clears storage) and
-    // afterEach (restores real timers + RTL cleanup), this removes the
-    // per-file boot overhead without letting state leak between files.
-    // `vi.mock()` is still hoisted per file so module mocks stay isolated.
-    isolate: false,
     // 15s per test (up from the 5s vitest default). The AI engine tests
     // under src/lib/engine are CPU-heavy (individual tests run for 6-16
     // seconds of pure search) and share vitest's worker pool with the

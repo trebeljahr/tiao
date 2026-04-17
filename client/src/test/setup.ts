@@ -1,36 +1,13 @@
 import "@testing-library/jest-dom";
-import { vi, beforeEach, afterEach } from "vitest";
-import { cleanup } from "@testing-library/react";
+import { vi } from "vitest";
 import enMessages from "../../messages/en.json";
 
-// ── Cross-file state hygiene (required under `isolate: false`) ──────────
-// With shared-DOM workers, storage, timers, and mounted RTL trees persist
-// across test FILES unless we explicitly reset them. Under `isolate: true`
-// each file gets a fresh environment so this doesn't matter — but we opted
-// into shared environments for the ~5x speedup, so every test needs to start
-// clean. Do it once here instead of auditing every file.
-beforeEach(() => {
-  window.localStorage.clear();
-  window.sessionStorage.clear();
-});
-
-afterEach(() => {
-  // `useFakeTimers()` in one file would otherwise poison every file that
-  // runs after it on the same worker. Unconditionally restoring real timers
-  // after each test is idempotent when they were already real.
-  vi.useRealTimers();
-  // RTL installs its own afterEach(cleanup) automatically, but only when
-  // the auto-cleanup env is detected — belt-and-suspenders against any
-  // test that mounts via `render()` without an explicit unmount before
-  // the worker moves on to the next file.
-  cleanup();
-});
-
-// jsdom used to throw "Not implemented: window.scrollTo" when components
-// called it during mount (e.g. MultiplayerGamePage's "both seated" effect).
-// happy-dom implements both as no-ops, so this is technically redundant
-// under the current env — but keeping the stubs makes scroll spying in
-// tests explicit and lets the env swap back to jsdom without regressing.
+// jsdom doesn't implement window.scrollTo (nor Element.scrollTo), so any
+// component that calls it during mount — e.g. MultiplayerGamePage's
+// "both seated" effect — floods test logs with:
+//   Error: Not implemented: window.scrollTo
+// Stub both to no-ops. Tests that care about scroll behavior should
+// explicitly spy/assert on these.
 if (typeof window !== "undefined") {
   window.scrollTo = vi.fn() as unknown as typeof window.scrollTo;
   Element.prototype.scrollTo = vi.fn() as unknown as typeof Element.prototype.scrollTo;
