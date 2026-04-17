@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, test, before, beforeEach, afterEach, after } from "node:test";
 import Redis from "ioredis";
-import { RedisBroadcaster } from "../game/broadcaster";
-import type { BroadcastChannel } from "../game/broadcaster";
+import { RedisBroadcaster } from "../../game/broadcaster";
+import type { BroadcastChannel } from "../../game/broadcaster";
 
 // RedisBroadcaster uses Redis Pub/Sub, whose channel names are GLOBAL
 // across all databases on a Redis instance (Pub/Sub is not db-namespaced).
@@ -60,13 +60,17 @@ describe("RedisBroadcaster", () => {
   let testRunId = "";
 
   before(async () => {
+    let client: Redis | null = null;
     try {
-      const client = createClient();
+      client = createClient();
       await client.ping();
       pingClient = client;
       redisAvailable = true;
     } catch {
       redisAvailable = false;
+      // Disconnect the orphan client so its reconnection loop doesn't
+      // keep the event loop alive and hang the test process on exit.
+      client?.disconnect();
     }
   });
 

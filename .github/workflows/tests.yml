@@ -48,6 +48,47 @@ jobs:
       - name: Run unit tests
         run: npm run test:unit
 
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      redis-integration:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Cache node_modules
+        id: nm-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            server/node_modules
+          key: nm-integration-${{ runner.os }}-${{ hashFiles('package-lock.json', 'server/package-lock.json') }}
+
+      - name: Install root dependencies
+        if: steps.nm-cache.outputs.cache-hit != 'true'
+        run: npm ci --ignore-scripts
+
+      - name: Install server dependencies
+        if: steps.nm-cache.outputs.cache-hit != 'true'
+        run: npm --prefix server ci
+
+      - name: Run integration tests
+        run: npm run test:integration
+
   e2e:
     runs-on: ubuntu-latest
     services:

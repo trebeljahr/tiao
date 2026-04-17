@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test, before, beforeEach, after } from "node:test";
 import Redis from "ioredis";
-import { RedisLockProvider } from "../game/lockProvider";
+import { RedisLockProvider } from "../../game/lockProvider";
 
 // RedisLockProvider hard-codes the "tiao:lock:" prefix. Tests run against
 // a dedicated Redis database — each Redis-backed test file uses its own DB
@@ -15,8 +15,9 @@ describe("RedisLockProvider", () => {
   let redisAvailable = false;
 
   before(async () => {
+    let client: Redis | null = null;
     try {
-      const client = new Redis({
+      client = new Redis({
         host: "127.0.0.1",
         port: 6379,
         db: TEST_DB,
@@ -31,6 +32,9 @@ describe("RedisLockProvider", () => {
       redisAvailable = true;
     } catch {
       redisAvailable = false;
+      // Disconnect the orphan client so its reconnection loop doesn't
+      // keep the event loop alive and hang the test process on exit.
+      client?.disconnect();
     }
   });
 

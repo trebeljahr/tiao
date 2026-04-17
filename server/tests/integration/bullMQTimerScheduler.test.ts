@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, test, before, beforeEach, afterEach, after } from "node:test";
 import Redis from "ioredis";
-import { BullMQTimerScheduler } from "../game/timerQueue";
-import type { TimerHandlers } from "../game/timerQueue";
+import { BullMQTimerScheduler } from "../../game/timerQueue";
+import type { TimerHandlers } from "../../game/timerQueue";
 
 // BullMQTimerScheduler uses hard-coded queue names:
 //   tiao-timer-clock, tiao-timer-abandon, tiao-timer-first-move
@@ -58,13 +58,17 @@ describe("BullMQTimerScheduler", () => {
   let handlers: TimerHandlers;
 
   before(async () => {
+    let client: Redis | null = null;
     try {
-      const client = createClient();
+      client = createClient();
       await client.ping();
       redis = client;
       redisAvailable = true;
     } catch {
       redisAvailable = false;
+      // Disconnect the orphan client so its reconnection loop doesn't
+      // keep the event loop alive and hang the test process on exit.
+      client?.disconnect();
     }
   });
 
