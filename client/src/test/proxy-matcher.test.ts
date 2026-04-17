@@ -32,7 +32,7 @@ describe("next-intl middleware matcher (proxy.ts)", () => {
   });
 
   it("skips analytics + error-monitoring infra paths (regression #160)", () => {
-    // /collect/track (OpenPanel) and /bugs (GlitchTip tunnel) are reverse-
+    // /collect/track (OpenPanel) and /_e (GlitchTip tunnel) are reverse-
     // proxied by server.mjs when OPENPANEL_PROXY_URL / GLITCHTIP_PROXY_URL
     // are set. The next-intl middleware must NEVER touch them — otherwise,
     // in the missing-env-var failure mode or any race, the path gets
@@ -40,7 +40,19 @@ describe("next-intl middleware matcher (proxy.ts)", () => {
     // or reported error becomes a console error for the user.
     expect(matches("/collect/track")).toBe(false);
     expect(matches("/collect/screen_view")).toBe(false);
-    expect(matches("/bugs")).toBe(false);
+    expect(matches("/_e")).toBe(false);
+  });
+
+  it("does NOT accidentally skip the 'en' locale (prefix-collision guard)", () => {
+    // Locking in the lesson from picking the tunnel path: "/e" as an
+    // exclusion prefix would also exclude "/en" (English locale routes)
+    // because next-intl's matcher uses negative-lookahead prefix
+    // matching. The tunnel is deliberately "/_e", not "/e", to sidestep
+    // that collision.
+    expect(matches("/en")).toBe(true);
+    expect(matches("/en/games")).toBe(true);
+    expect(matches("/de")).toBe(true);
+    expect(matches("/es")).toBe(true);
   });
 
   it("skips static assets (paths with a dot)", () => {

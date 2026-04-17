@@ -4,7 +4,10 @@
  * Proxies:
  *   /api/* and /ws/*  → backend (API_URL)
  *   /collect/*        → OpenPanel analytics (OPENPANEL_PROXY_URL)
- *   /bugs             → GlitchTip/Sentry envelope ingestion (GLITCHTIP_PROXY_URL)
+ *   /_e               → GlitchTip/Sentry envelope ingestion (GLITCHTIP_PROXY_URL).
+ *                       Short path name is deliberate — an earlier "/bugs"
+ *                       tripped Cloudflare's WAF "suspicious path" rules
+ *                       and every captured error 403'd.
  *
  * The analytics and error-monitoring proxies exist so that browser
  * requests look like first-party traffic. Ad-blockers and privacy
@@ -97,11 +100,36 @@ export function servePublicFile(req, res, pathname) {
   ]);
   const isBinary = binaryExts.has(ext);
 
+  // Service workers need no-cache semantics at the CDN edge.
+  //
+  // Two reasons:
+  //   1. Updates. The browser's SW update check re-fetches /sw.js on
+  //      every navigation (cache-busted up to 24h per the SW spec). If
+  //      Cloudflare holds a year-long `immutable` copy, updates never
+  //      propagate until the edge TTL expires, which means bug fixes
+  //      to the SW itself (or to what it precaches) stay invisible to
+  //      returning users.
+  //   2. Recovery from a bad deploy. If we ever accidentally serve
+  //      /sw.js with the wrong Content-Type (as happened pre-b35e279d
+  //      when .js wasn't in the MIME table — Chromium refused to
+  //      register the SW for application/octet-stream), an immutable
+  //      year-long CDN cache entry of that broken response keeps the
+  //      error live for every visitor until we manually purge CF.
+  //      no-store on /sw.js means the next deploy fixes it immediately
+  //      for everyone.
+  //
+  // Everything else in public/ stays on the year-long immutable cache —
+  // those assets are content-hashed by Next and would never legitimately
+  // need to change behind a stable URL.
+  const isServiceWorker = filePath === join(publicDir, "sw.js");
+
   const headers = {
     "Content-Type": contentType,
-    "Cache-Control": isBinary
-      ? "public, max-age=31536000, immutable, no-transform"
-      : "public, max-age=31536000, immutable",
+    "Cache-Control": isServiceWorker
+      ? "no-store, no-cache, must-revalidate, max-age=0"
+      : isBinary
+        ? "public, max-age=31536000, immutable, no-transform"
+        : "public, max-age=31536000, immutable",
   };
   if (!isBinary) {
     headers["Content-Length"] = stat.size;
@@ -128,10 +156,15 @@ const openpanelProxyTarget = process.env.OPENPANEL_PROXY_URL; // e.g. "https://a
 const openpanelUrl = openpanelProxyTarget ? new URL(openpanelProxyTarget) : null;
 
 // --- GlitchTip (Sentry) tunnel proxy ----------------------------------------
-// When set, /bugs receives Sentry envelopes from the browser SDK (via its
+// When set, /_e receives Sentry envelopes from the browser SDK (via its
 // `tunnel` option) and forwards them to the GlitchTip ingestion endpoint.
-// The DSN's project ID is extracted from the envelope header at runtime so
-// the proxy doesn't need to know the DSN itself.
+// The DSN's project ID is extracted from the envelope header at runtime
+// so the proxy doesn't need to know the DSN itself. Path is "/_e" (not
+// "/bugs") because "/bugs" looks like a recon/debug endpoint to
+// Cloudflare's managed WAF, which started 403'ing tunnel POSTs in
+// production. The underscore prefix matches the "_next" / "_vercel"
+// infra-path convention and avoids the "en"-locale collision that a
+// bare "/e" would cause in the next-intl matcher's negative-lookahead.
 const glitchtipProxyTarget = process.env.GLITCHTIP_PROXY_URL; // e.g. "https://glitchtip.trebeljahr.com"
 const glitchtipUrl = glitchtipProxyTarget ? new URL(glitchtipProxyTarget) : null;
 
@@ -288,7 +321,7 @@ await app.prepare();
 
 console.log(`> API proxy target: ${apiTarget}`);
 if (openpanelProxyTarget) console.log(`> Analytics proxy: /collect → ${openpanelProxyTarget}`);
-if (glitchtipProxyTarget) console.log(`> Error tunnel: /bugs → ${glitchtipProxyTarget}`);
+if (glitchtipProxyTarget) console.log(`> Error tunnel: /_e → ${glitchtipProxyTarget}`);
 
 const httpServer = createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
@@ -305,10 +338,10 @@ const httpServer = createServer((req, res) => {
     return;
   }
 
-  // GlitchTip/Sentry tunnel: /bugs receives envelope POST from the Sentry
+  // GlitchTip/Sentry tunnel: /_e receives envelope POST from the Sentry
   // SDK and forwards to the real ingestion endpoint. The envelope header's
   // first line contains the DSN, from which we extract the project ID.
-  if (glitchtipUrl && url.pathname === "/bugs") {
+  if (glitchtipUrl && url.pathname === "/_e") {
     // Buffer the body to parse the envelope header and extract the project ID.
     const chunks = [];
     req.on("data", (chunk) => chunks.push(chunk));
@@ -334,7 +367,7 @@ const httpServer = createServer((req, res) => {
           targetPath,
         );
       } catch (err) {
-        console.error("[bugs tunnel] Failed to parse envelope header:", err);
+        console.error("[/_e tunnel] Failed to parse envelope header:", err);
         if (!res.headersSent) {
           res.writeHead(400, { "Content-Type": "application/json" });
           res.end(JSON.stringify({ error: "Bad envelope" }));
