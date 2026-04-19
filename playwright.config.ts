@@ -61,7 +61,15 @@ export default defineConfig({
       },
     },
     {
-      command: "npm run client",
+      // Production build (NODE_ENV=production) rather than `npm run client`
+      // (dev). The build itself happens upstream via `npm run test:e2e`
+      // (root package.json) so it runs once per test-suite invocation and
+      // all tests + workers reuse the same prebuilt .next/ output. Running
+      // against the built server eliminates per-route cold-compile latency
+      // (Turbopack ~18s, webpack ~80s on first navigation) that previously
+      // forced the 90s per-test timeout, and drops dev-only overhead (HMR,
+      // React Refresh, overlay) from the e2e runtime footprint.
+      command: "npm --prefix client start",
       // Use manifest.json as health check — it's Tiao-specific so we
       // don't accidentally reuse another dev server on the same port.
       url: `http://localhost:${E2E_CLIENT_PORT}/manifest.json`,
@@ -69,6 +77,7 @@ export default defineConfig({
       env: {
         PORT: E2E_CLIENT_PORT,
         API_PORT: E2E_SERVER_PORT,
+        NODE_ENV: "production",
       },
     },
   ],

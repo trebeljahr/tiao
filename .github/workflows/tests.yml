@@ -171,7 +171,10 @@ jobs:
           /tmp/mc anonymous set download ci/tiao-e2e
 
       - name: Run e2e tests
-        run: npx playwright test
+        # `test:e2e` builds the client once then runs playwright; playwright's
+        # webServer starts the prebuilt prod server once for the whole suite
+        # and all tests (both workers) share it. No per-test rebuild.
+        run: npm run test:e2e
         env:
           CI: "true"
           MONGODB_URI: mongodb://127.0.0.1:27018/tiao-e2e

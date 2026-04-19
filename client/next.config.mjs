@@ -55,6 +55,14 @@ const nextConfig = {
   allowedDevOrigins: ["192.168.0.*", "192.168.1.*", "localhost", "127.0.0.1"],
   outputFileTracingRoot: path.resolve(__dirname, ".."),
 
+  // Emit browser-side source maps when EMIT_SOURCE_MAPS=1 is set at build
+  // time. The root `test:e2e` script flips this on so that when a playwright
+  // test surfaces a runtime error, the stack trace points at real source
+  // files instead of minified bundle chunks. Stays OFF by default because
+  // source maps roughly double .next/ output size and production deploys
+  // don't want them shipped to end users.
+  productionBrowserSourceMaps: process.env.EMIT_SOURCE_MAPS === "1",
+
   // Desktop static export overrides.  These keys are only present
   // when NEXT_PUBLIC_PLATFORM=desktop is set at build time.  See
   // the comment at the top of the file for the full rationale.
