@@ -121,7 +121,20 @@ function DataExportCard() {
   // Server pushes `export-update` on the lobby socket whenever a row
   // transitions state (pending → running → ready/failed). Splice the
   // update straight into local state — this is the fast path.
+  //
+  // We ALSO listen for the synthetic `lobby:open` event the socket
+  // emits on every (re)connect. On mobile the WS can silently blip
+  // during a wifi↔5G handover or a carrier NAT idle-kill and reconnect
+  // within seconds — totally invisible to the user — and any broadcast
+  // that fires inside that gap is permanently lost to this client. The
+  // `lobby:open` signal is our cue to pull fresh state from REST so the
+  // card doesn't sit at "preparing…" forever while the row in Mongo is
+  // already "ready". No polling needed.
   useLobbyMessage((payload) => {
+    if (payload.type === "lobby:open") {
+      void load();
+      return;
+    }
     if (payload.type !== "export-update") return;
     const incoming = payload.export as UserExportRow | undefined;
     if (!incoming) return;
@@ -135,21 +148,18 @@ function DataExportCard() {
     });
   });
 
-  // Polling fallback while an export is actively being prepared. The WS
-  // broadcast above is best-effort — if the socket isn't connected when
-  // the worker broadcasts the `ready` transition (tab was backgrounded,
-  // transient disconnect, WS not yet opened at the moment the worker
-  // finished) the card would otherwise sit at "preparing…" forever even
-  // though the row in Mongo already flipped to "ready". Refetch every
-  // 5s while a pending/running row is in view; stop as soon as we see
-  // a terminal state.
-  const hasPending =
-    exports?.some((e) => e.status === "pending" || e.status === "running") ?? false;
+  // Refetch when the tab becomes visible. Covers the case where the OS
+  // suspends JS on a backgrounded mobile tab (timers and WS messages
+  // are throttled or dropped) — foregrounding the tab is the signal
+  // that the user cares again, so re-sync from REST.
   useEffect(() => {
-    if (!isAccount || !hasPending) return;
-    const id = setInterval(() => void load(), 5_000);
-    return () => clearInterval(id);
-  }, [isAccount, hasPending, load]);
+    if (!isAccount) return;
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void load();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [isAccount, load]);
 
   async function handleRequest() {
     setBusy(true);

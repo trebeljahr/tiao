@@ -112,6 +112,24 @@ export function LobbySocketProvider({
             });
           }
         }
+
+        // Notify subscribers that the socket just opened, so any state
+        // that relies on server pushes can re-sync from REST in case a
+        // broadcast was missed during a disconnect window. Critical on
+        // mobile: a wifi↔5G handover or CGNAT idle-kill silently tears
+        // down the WS and reconnects in seconds. If a server broadcast
+        // (e.g. data-export ready) fires inside that gap the client
+        // never learns about it — this synthetic event is the signal to
+        // refetch. Uses the same delivery path + error isolation as
+        // real messages.
+        const openEvent = { type: "lobby:open" } as const;
+        for (const handler of subscribersRef.current) {
+          try {
+            handler(openEvent);
+          } catch (err) {
+            console.error("[lobby] subscriber handler threw on lobby:open", err);
+          }
+        }
       };
 
       socket.onmessage = (event) => {
