@@ -49,6 +49,36 @@ export default defineConfig({
     // real regressions still fail fast — anything that legitimately
     // needs >15s is almost certainly stuck, not slow.
     testTimeout: 15_000,
+    // Per-file heap usage, printed inline next to the file name. Gated
+    // behind LOG_HEAP=1 because it's noisy; useful when hunting the
+    // specific file(s) that balloon memory during `npm test`.
+    logHeapUsage: process.env.LOG_HEAP === "1",
+    // Explicit pool — matches vitest 3.x default but makes `poolOptions.forks`
+    // below unambiguously apply regardless of any future default change.
+    pool: "forks",
+    poolOptions: {
+      forks: {
+        // Cap each worker process at 1.5 GB heap (default Node ceiling
+        // is ~4 GB). Vitest spawns one fork per test file under
+        // `isolate: true`, and `maxWorkers: 4` keeps 4 concurrent.
+        // Without a cap a heavy file (render-heavy component test,
+        // leaky provider, fake-timer drift, etc.) lets Node grow the
+        // worker heap toward 4 GB before aggressive GC — 4 × 4 = 16 GB
+        // paged to swap freezes a 16 GB MacBook, especially combined
+        // with the server + desktop suites that `npm test:unit` runs
+        // concurrently via `concurrently ...`. 4 × 1.5 GB = 6 GB peak
+        // leaves generous headroom for the OS + dev server(s) + the
+        // concurrent server/desktop test runners.
+        //
+        // Empirically (with LOG_HEAP=1) no client test file peaks above
+        // ~240 MB even on MultiplayerGamePage.test.tsx (1637 lines, 24
+        // render() calls), so 1.5 GB is 6× the current ceiling — plenty
+        // of buffer before a cap-forced crash would happen. If a file
+        // ever does hit this, it's almost certainly a retention bug in
+        // that file's setup/teardown — fix the bug, don't lift the cap.
+        execArgv: ["--max-old-space-size=1536"],
+      },
+    },
     server: {
       deps: {
         // Process next-intl through vite's pipeline to avoid ESM bare-specifier issues
