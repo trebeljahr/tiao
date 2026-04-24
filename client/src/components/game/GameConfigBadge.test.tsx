@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { GameConfigBadge } from "./GameConfigBadge";
 
 vi.mock("next-intl", () => ({
+  // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
   useTranslations: () => (key: string, values?: Record<string, any>) => {
     if (values) return `${key}:${JSON.stringify(values)}`;
     return key;

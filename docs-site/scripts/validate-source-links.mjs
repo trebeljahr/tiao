@@ -96,6 +96,7 @@ for (const file of walkDir(DOCS_DIR)) {
   const content = readFileSync(file, "utf-8");
   const relPath = relative(ROOT, file);
   let match;
+  // biome-ignore lint/suspicious/noAssignInExpressions: intentional
   while ((match = FN_REF_RE.exec(content)) !== null) {
     const ref = `fn-${match[1]}`;
     if (!(ref in links)) {

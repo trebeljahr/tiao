@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 
 /** Loose translation function type compatible with next-intl's Translator. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+// biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
 type TranslateFn = (key: string, values?: Record<string, any>) => string;
 
 // --- Color Dot ---

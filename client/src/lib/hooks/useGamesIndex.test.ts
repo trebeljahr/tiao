@@ -99,6 +99,7 @@ describe("useGamesIndex", () => {
   it("handles API returning games without active field (the bug fix)", async () => {
     // Simulate malformed API response where games has no `active` key
     mockListMultiplayerGames.mockResolvedValue({
+      // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
       games: { finished: [] } as any,
     });
 

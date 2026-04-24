@@ -14,6 +14,7 @@ vi.mock("framer-motion", () => ({
     {
       get: (_target, prop) => {
         // Return a component that just renders as the HTML element
+        // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
         return ({ children, ...rest }: any) => {
           const Tag = prop as string;
           // Filter out framer-motion-specific props
@@ -33,11 +34,13 @@ vi.mock("framer-motion", () => ({
               htmlProps[k] = v;
             }
           }
+          // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
           return <Tag {...(htmlProps as any)}>{children}</Tag>;
         };
       },
     },
   ),
+  // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
   AnimatePresence: ({ children }: any) => <>{children}</>,
 }));
 

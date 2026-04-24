@@ -271,6 +271,7 @@ describe("LobbyPage", () => {
           },
           online: true,
         },
+        // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
         black: null as any,
       },
     });
@@ -299,6 +300,7 @@ describe("LobbyPage", () => {
           },
           online: true,
         },
+        // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
         black: null as any,
       },
     });

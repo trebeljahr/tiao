@@ -422,6 +422,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: signupEmail,
         password: signupPassword,
         name: signupDisplayName,
+      // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
       } as any);
 
       if (error) {

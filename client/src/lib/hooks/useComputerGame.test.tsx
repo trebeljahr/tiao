@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useComputerGame } from "./useComputerGame";
 
 // Store resolve/reject callbacks so tests can control when the AI "responds"
+// biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
 let resolveAI: ((plan: any) => void) | null = null;
 let cancelMock: ReturnType<typeof vi.fn>;
 

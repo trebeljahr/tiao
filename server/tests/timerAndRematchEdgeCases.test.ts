@@ -19,17 +19,20 @@ function createPlayer(playerId: string, options: Partial<PlayerIdentity> = {}): 
 class FakeSocket {
   readyState: number = WebSocket.OPEN;
   messages: string[] = [];
+  // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
   private listeners: Record<string, Array<(...args: any[]) => void>> = {};
 
   send(message: string) {
     this.messages.push(message);
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
   on(event: string, handler: (...args: any[]) => void) {
     if (!this.listeners[event]) this.listeners[event] = [];
     this.listeners[event].push(handler);
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
   emit(event: string, ...args: any[]) {
     for (const handler of this.listeners[event] ?? []) handler(...args);
   }
@@ -418,11 +421,14 @@ test("pushes pending incoming rematch game-update to newly connected lobby socke
   await new Promise((r) => setTimeout(r, 50));
 
   const messages = (bobLobbySocket as unknown as FakeSocket).parsedMessages;
+  // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
   const gameUpdates = messages.filter((m) => (m as any).type === "game-update");
   assert.ok(gameUpdates.length >= 1, "bob should receive at least one game-update on connect");
 
   const rematchUpdate = gameUpdates.find(
+    // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
     (m) => (m as any).summary?.gameId === created.gameId,
+  // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
   ) as any;
   assert.ok(rematchUpdate, "game-update should contain the game with pending rematch");
   assert.equal(rematchUpdate.summary.status, "finished");
@@ -453,6 +459,7 @@ test("does not push own outgoing rematch requests on lobby connect", async () =>
 
   const messages = (aliceLobbySocket as unknown as FakeSocket).parsedMessages;
   const gameUpdates = messages.filter(
+    // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
     (m) => (m as any).type === "game-update" && (m as any).summary?.gameId === created.gameId,
   );
   assert.equal(
@@ -718,8 +725,10 @@ test("both players receive a game-update for the OLD room when rematch is accept
     ["bob", bobLobbySocket],
   ] as const) {
     const updates = (socket as unknown as FakeSocket).parsedMessages.filter(
+      // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
       (m) => (m as any).type === "game-update",
     );
+    // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
     const oldRoomUpdate = updates.find((m) => (m as any).summary?.gameId === created.gameId) as any;
     assert.ok(
       oldRoomUpdate,

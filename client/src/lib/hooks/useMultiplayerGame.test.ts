@@ -18,6 +18,7 @@ class MockWebSocket {
   onclose: ((event: { code: number; reason: string; wasClean: boolean }) => void) | null = null;
   onerror: (() => void) | null = null;
 
+  // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
   private eventListeners: Record<string, ((...args: any[]) => any)[]> = {};
 
   constructor(url: string) {
@@ -25,6 +26,7 @@ class MockWebSocket {
     MockWebSocket.instances.push(this);
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
   addEventListener(type: string, listener: (...args: any[]) => any) {
     if (!this.eventListeners[type]) {
       this.eventListeners[type] = [];
@@ -79,6 +81,7 @@ vi.mock("../errors", () => ({
 }));
 
 vi.mock("../../components/game/GameShared", () => ({
+  // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
   createOptimisticSnapshot: (snapshot: MultiplayerSnapshot, nextState: any) => ({
     ...snapshot,
     state: nextState,

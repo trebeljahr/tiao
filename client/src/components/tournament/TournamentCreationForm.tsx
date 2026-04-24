@@ -121,6 +121,7 @@ export function TournamentCreationForm({
             />
 
             <div>
+              {/* biome-ignore lint/a11y/noLabelWithoutControl: label wraps interactive control via children/portal */}
               <label className="text-xs text-muted-foreground">{t("maxPlayers")}</label>
               <div className="flex flex-wrap gap-2 mt-1">
                 {[4, 8, 16, 32, 64].map((n) => (
@@ -138,6 +139,7 @@ export function TournamentCreationForm({
 
             {format === "groups-knockout" && (
               <div>
+                {/* biome-ignore lint/a11y/noLabelWithoutControl: label wraps interactive control via children/portal */}
                 <label className="text-xs text-muted-foreground">{t("groupSize")}</label>
                 <div className="flex gap-2 mt-1">
                   {[3, 4].map((size) => (
@@ -168,6 +170,7 @@ export function TournamentCreationForm({
         {step === 2 && (
           <div className="space-y-3">
             <div>
+              {/* biome-ignore lint/a11y/noLabelWithoutControl: label wraps interactive control via children/portal */}
               <label className="text-xs text-muted-foreground">{t("tournamentName")}</label>
               <Input
                 value={name}
@@ -177,6 +180,7 @@ export function TournamentCreationForm({
               />
             </div>
             <div>
+              {/* biome-ignore lint/a11y/noLabelWithoutControl: label wraps interactive control via children/portal */}
               <label className="text-xs text-muted-foreground">{t("descriptionOptional")}</label>
               <Input
                 value={description}
@@ -186,6 +190,7 @@ export function TournamentCreationForm({
               />
             </div>
             <div>
+              {/* biome-ignore lint/a11y/noLabelWithoutControl: label wraps interactive control via children/portal */}
               <label className="text-xs text-muted-foreground">{t("visibility")}</label>
               <div className="flex gap-2 mt-1">
                 {(["public", "private"] as const).map((v) => (
@@ -202,6 +207,7 @@ export function TournamentCreationForm({
             </div>
             {visibility === "private" && (
               <div>
+                {/* biome-ignore lint/a11y/noLabelWithoutControl: label wraps interactive control via children/portal */}
                 <label className="text-xs text-muted-foreground">{t("inviteCode")}</label>
                 <Input
                   value={inviteCode}

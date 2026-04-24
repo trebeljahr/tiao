@@ -449,6 +449,7 @@ export function SocialNotificationsProvider({
   useLobbyMessage((payload) => {
     if (payload.type !== "game-update") return;
 
+    // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
     const summary = payload.summary as Record<string, any> | undefined;
     if (!summary) return;
 

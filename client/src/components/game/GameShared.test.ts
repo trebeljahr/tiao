@@ -67,6 +67,7 @@ describe("getSummaryStatusLabel", () => {
   });
 
   it("uses translatePlayerColor when a translation function is provided", () => {
+    // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
     const t = (key: string, values?: any) => {
       if (key === "white") return "Weiß";
       if (key === "black") return "Schwarz";
@@ -79,6 +80,7 @@ describe("getSummaryStatusLabel", () => {
 
   it("translates black winner correctly in Spanish", () => {
     const summary = { ...baseSummary, winner: "black" as const };
+    // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
     const t = (key: string, values?: any) => {
       if (key === "white") return "Blancas";
       if (key === "black") return "Negras";

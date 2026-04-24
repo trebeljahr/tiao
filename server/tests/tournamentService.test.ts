@@ -1163,6 +1163,7 @@ describe("Private tournament invite links", () => {
 describe("Tournament live scores", () => {
   test("broadcastLiveScore method exists on TournamentService", () => {
     const { tournamentService } = createServices();
+    // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
     assert.equal(typeof (tournamentService as any).broadcastLiveScore, "function");
   });
 
@@ -1186,6 +1187,7 @@ describe("Tournament live scores", () => {
     };
 
     // Call broadcastLiveScore with match data
+    // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
     await (tournamentService as any).broadcastLiveScore(t.tournamentId, "R0M0", {
       white: 3,
       black: 1,
@@ -1217,6 +1219,7 @@ describe("Tournament live scores", () => {
     };
 
     // Scores should be aligned to player slot order, not color order
+    // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
     await (tournamentService as any).broadcastLiveScore(t.tournamentId, "R0M0", {
       white: 5,
       black: 2,
@@ -1257,6 +1260,7 @@ describe("Tournament live scores", () => {
 
     // Group-stage match IDs use the group prefix (e.g. "G0-R0M0")
     // even though they live in group rounds rather than top-level rounds
+    // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
     await (tournamentService as any).broadcastLiveScore(t.tournamentId, "G0-R0M0", {
       white: 1,
       black: 0,
@@ -1283,6 +1287,7 @@ describe("Tournament live scores", () => {
       broadcastCalls.push({ playerId, payload });
     };
 
+    // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
     await (tournamentService as any).broadcastLiveScore(t.tournamentId, "R0M0", {
       white: 2,
       black: 3,

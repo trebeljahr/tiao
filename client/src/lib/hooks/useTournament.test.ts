@@ -5,9 +5,11 @@ import { useTournament } from "./useTournament";
 
 // --- Mocks ---
 
+// biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
 let lobbyMessageCallback: ((payload: any) => void) | null = null;
 
 vi.mock("@/lib/LobbySocketContext", () => ({
+  // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
   useLobbyMessage: (cb: (payload: any) => void) => {
     lobbyMessageCallback = cb;
   },
@@ -16,6 +18,7 @@ vi.mock("@/lib/LobbySocketContext", () => ({
 const mockGetTournament = vi.fn();
 
 vi.mock("@/lib/api", () => ({
+  // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
   getTournament: (...args: any[]) => mockGetTournament(...args),
 }));
 
