@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { describe, test, before, beforeEach, afterEach, after } from "node:test";
+import { after, afterEach, before, beforeEach, describe, test } from "node:test";
 import Redis from "ioredis";
 import { BullMQTimerScheduler } from "../../game/timerQueue";
 import type { TimerHandlers } from "../../game/timerQueue";

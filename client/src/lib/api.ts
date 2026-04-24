@@ -1,4 +1,5 @@
 import type {
+  AchievementDefinition,
   AuthResponse,
   FriendActiveGameSummary,
   MultiplayerGameSummary,
@@ -13,7 +14,6 @@ import type {
   TournamentSettings,
   TournamentSnapshot,
   TournamentStatus,
-  AchievementDefinition,
 } from "@shared";
 
 type JsonBody = Record<string, unknown> | undefined;

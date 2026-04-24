@@ -40,19 +40,21 @@
     "dev:docker:logs": "docker-compose -f docker-compose.dev.yml -f docker-compose.dev-traefik.yml logs -f tiao-client tiao-server traefik",
     "dev:docker:stop": "docker-compose -f docker-compose.dev.yml -f docker-compose.dev-traefik.yml down",
     "dev:docker:rebuild": "docker-compose -f docker-compose.dev.yml -f docker-compose.dev-traefik.yml build --no-cache tiao-client tiao-server",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "lint": "biome lint .",
+    "check": "biome check --write .",
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.{js,mjs,ts,tsx,json,css,md}": "prettier --write"
+    "*.{js,jsx,mjs,cjs,ts,tsx,json,jsonc,css}": ["biome check --write --no-errors-on-unmatched"]
   },
   "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
     "@playwright/test": "^1.59.1",
     "concurrently": "^9.2.1",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
-    "mongodb": "^6.21.0",
-    "prettier": "^3.8.1"
+    "mongodb": "^6.21.0"
   }
 }

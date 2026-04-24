@@ -7,8 +7,8 @@
  * Exit code 1 on any failure — intended to run in CI / docs:build.
  */
 
-import { readFileSync, readdirSync, statSync } from "fs";
-import { resolve, dirname, relative } from "path";
+import { readFileSync, readdirSync } from "fs";
+import { dirname, relative, resolve } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

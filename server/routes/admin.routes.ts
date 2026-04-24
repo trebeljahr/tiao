@@ -1,17 +1,17 @@
-import express, { Request, Response } from "express";
-import GameAccount from "../models/GameAccount";
+import express, { type Request, type Response } from "express";
+import { openPanelEnabled, trackRevenue } from "../analytics/openpanel";
 import { requireAdmin } from "../auth/sessionHelper";
 import { escapeRegExp } from "../error-handling/escapeRegExp";
 import { handleRouteError } from "../error-handling/routeError";
-import { grantBadge, revokeBadge, grantTheme, revokeTheme } from "../game/badgeService";
 import {
   adminGrantAchievement,
   adminRevokeAchievement,
   getPlayerAchievementIds,
   getPlayerAchievementIdsBatch,
 } from "../game/achievementService";
+import { grantBadge, grantTheme, revokeBadge, revokeTheme } from "../game/badgeService";
 import { tournamentService } from "../game/tournamentService";
-import { trackRevenue, openPanelEnabled } from "../analytics/openpanel";
+import GameAccount from "../models/GameAccount";
 
 const router = express.Router();
 

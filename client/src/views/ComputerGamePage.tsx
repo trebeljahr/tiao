@@ -1,25 +1,25 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
-import type { PlayerColor } from "@shared";
-import { useAuth } from "@/lib/AuthContext";
+import { Navbar } from "@/components/Navbar";
+import { GameConfigDialog } from "@/components/game/GameConfigDialog";
+import { HourglassSpinner, translatePlayerColor } from "@/components/game/GameShared";
+import { GameSidePanel } from "@/components/game/GameSidePanel";
+import { TiaoBoard } from "@/components/game/TiaoBoard";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
-import { Navbar } from "@/components/Navbar";
-import { TiaoBoard } from "@/components/game/TiaoBoard";
-import { translatePlayerColor, HourglassSpinner } from "@/components/game/GameShared";
-import { GameSidePanel } from "@/components/game/GameSidePanel";
-import { GameConfigDialog } from "@/components/game/GameConfigDialog";
-import { useGameConfig } from "@/lib/hooks/useGameConfig";
+import { useAuth } from "@/lib/AuthContext";
+import { reportAIWin } from "@/lib/api";
+import type { AIDifficulty } from "@/lib/computer-ai";
 import { useComputerGame } from "@/lib/hooks/useComputerGame";
+import { useGameConfig } from "@/lib/hooks/useGameConfig";
+import { useGameOverDialog } from "@/lib/hooks/useGameOverDialog";
 import { useStonePlacementSound } from "@/lib/useStonePlacementSound";
 import { useWinConfetti } from "@/lib/useWinConfetti";
-import { useGameOverDialog } from "@/lib/hooks/useGameOverDialog";
-import { isGameOver, getWinner } from "@shared";
-import type { AIDifficulty } from "@/lib/computer-ai";
-import { reportAIWin } from "@/lib/api";
+import type { PlayerColor } from "@shared";
+import { getWinner, isGameOver } from "@shared";
+import { useTranslations } from "next-intl";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useState, useCallback, useEffect } from "react";
 
 export function ComputerGamePage() {
   const { auth, onOpenAuth, onLogout } = useAuth();
@@ -43,8 +43,8 @@ export function ComputerGamePage() {
     const d = Number(searchParams.get("difficulty") || 1) as AIDifficulty;
     const c = (searchParams.get("color") || "white") as PlayerColor;
     autostartConfig.current = {
-      boardSize: parseInt(searchParams.get("boardSize") || "19", 10),
-      scoreToWin: parseInt(searchParams.get("scoreToWin") || "10", 10),
+      boardSize: Number.parseInt(searchParams.get("boardSize") || "19", 10),
+      scoreToWin: Number.parseInt(searchParams.get("scoreToWin") || "10", 10),
       color: c,
       difficulty: d,
     };

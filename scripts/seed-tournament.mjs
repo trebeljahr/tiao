@@ -32,7 +32,7 @@ const args = parseArgs(process.argv.slice(2));
 const BASE_URL = args["base-url"] ?? "http://localhost:3100";
 const ADMIN_USERNAME = args["admin-email"] ?? "testuser123456";
 const ADMIN_PASSWORD = args["admin-password"] ?? "password";
-const PLAYERS = parseInt(args.players ?? "4", 10);
+const PLAYERS = Number.parseInt(args.players ?? "4", 10);
 const FORMAT = args.format ?? "round-robin";
 const ADVANCE = args.advance ?? null; // "K" | "half" | "all-but-last" | null
 const NAME_PREFIX = args["name-prefix"] ?? `seed-${Date.now().toString(36)}`;
@@ -357,7 +357,7 @@ async function main() {
     if (ADVANCE === "half" || ADVANCE === "all-but-last") {
       descriptor = ADVANCE;
     } else {
-      const n = parseInt(ADVANCE, 10);
+      const n = Number.parseInt(ADVANCE, 10);
       if (!Number.isFinite(n) || n < 1) {
         console.error(`Invalid --advance "${ADVANCE}"`);
         process.exit(1);

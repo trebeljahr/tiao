@@ -1,14 +1,14 @@
-import { IncomingMessage } from "http";
-import { Request, Response } from "express";
-import { Types, HydratedDocument } from "mongoose";
+import type { IncomingMessage } from "http";
 import { fromNodeHeaders } from "better-auth/node";
-import { auth } from "./auth";
-import { extractBearerUserId } from "./desktopSessionManager";
-import * as betterAuthUserLookup from "./betterAuthUserLookup";
-import GameAccount, { IGameAccount } from "../models/GameAccount";
-import Achievement from "../models/Achievement";
+import type { Request, Response } from "express";
+import { type HydratedDocument, Types } from "mongoose";
+import { type PlayerIdentity, isValidUsername } from "../../shared/src";
 import { ACHIEVEMENT_BADGE_MAP } from "../config/badgeRewards";
-import { PlayerIdentity, isValidUsername } from "../../shared/src";
+import Achievement from "../models/Achievement";
+import GameAccount, { type IGameAccount } from "../models/GameAccount";
+import { auth } from "./auth";
+import * as betterAuthUserLookup from "./betterAuthUserLookup";
+import { extractBearerUserId } from "./desktopSessionManager";
 
 // Track which players have already had their achievement→badge backfill
 // checked this process lifetime. Avoids an Achievement.find() query on

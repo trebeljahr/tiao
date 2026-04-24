@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useTranslations } from "next-intl";
-import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-import { Dialog } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
-import { reportPlayer, ApiError, type ReportReason } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
+import { ApiError, type ReportReason, reportPlayer } from "@/lib/api";
+import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const REASONS: ReportReason[] = [
   "offensive_username",

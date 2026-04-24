@@ -1,5 +1,5 @@
-import type Redis from "ioredis";
 import { randomBytes } from "node:crypto";
+import type Redis from "ioredis";
 import { getRedisClient } from "../config/redisClient";
 
 /**

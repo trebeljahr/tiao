@@ -1,26 +1,26 @@
-import React from "react";
-import { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
-import { toast } from "sonner";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import { TIER_STYLES } from "@/components/AchievementCard";
+import { AchievementIcon } from "@/components/AchievementIcon";
+import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
+import { translatePlayerColor } from "@/components/game/GameShared";
+import { RematchInviteCard } from "@/components/game/RematchInviteCard";
 import type { AuthResponse, SocialOverview } from "@shared";
 import { EMPTY_SOCIAL_OVERVIEW } from "@shared";
+import { type AchievementTier, getAchievementById } from "@shared";
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import type React from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { useLobbyMessage } from "./LobbySocketContext";
 import {
-  getSocialOverview,
   acceptFriendRequest,
   declineFriendRequest,
   declineGameInvitation,
-  requestRematchRest,
   declineRematchRest,
+  getSocialOverview,
+  requestRematchRest,
 } from "./api";
 import { toastError } from "./errors";
-import { useLobbyMessage } from "./LobbySocketContext";
-import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
-import { RematchInviteCard } from "@/components/game/RematchInviteCard";
-import { translatePlayerColor } from "@/components/game/GameShared";
-import { AchievementIcon } from "@/components/AchievementIcon";
-import { TIER_STYLES } from "@/components/AchievementCard";
-import { getAchievementById, type AchievementTier } from "@shared";
 
 // ---------------------------------------------------------------------------
 // sessionStorage helpers — track which notification IDs have been toasted so
@@ -193,7 +193,7 @@ export function SocialNotificationsProvider({
         {
           id: toastId,
           description: "sent you a friend request",
-          duration: Infinity,
+          duration: Number.POSITIVE_INFINITY,
           dismissible: true,
 
           action: {
@@ -289,7 +289,7 @@ export function SocialNotificationsProvider({
         {
           id: toastId,
           description: `invited you to a game${suffix}`,
-          duration: Infinity,
+          duration: Number.POSITIVE_INFINITY,
           dismissible: true,
 
           action: {
@@ -621,7 +621,7 @@ export function SocialNotificationsProvider({
       {
         id: `achievement-${achievement.id}`,
         description,
-        duration: Infinity,
+        duration: Number.POSITIVE_INFINITY,
         dismissible: true,
         action: {
           label: tAchievements("toastView"),

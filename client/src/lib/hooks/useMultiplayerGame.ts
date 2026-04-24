@@ -1,22 +1,22 @@
-import { useState, useCallback, useEffect, useRef } from "react";
-import { toast } from "sonner";
 import {
-  AuthResponse,
-  GameState,
-  Position,
-  MultiplayerSnapshot,
-  ClientToServerMessage,
-  ServerToClientMessage,
+  type AuthResponse,
+  type ClientToServerMessage,
+  type GameState,
+  type MultiplayerSnapshot,
+  type Position,
+  type ServerToClientMessage,
+  confirmPendingJump,
+  getPendingJumpDestination,
   jumpPiece,
   placePiece,
-  confirmPendingJump,
   undoPendingJumpStep,
-  getPendingJumpDestination,
 } from "@shared";
-import { buildWebSocketUrl, accessMultiplayerGame, getMultiplayerGame } from "../api";
-import { readableError, isRetryableError } from "../errors";
-import { createReconnectScheduler } from "../reconnect";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { createOptimisticSnapshot } from "../../components/game/GameShared";
+import { accessMultiplayerGame, buildWebSocketUrl, getMultiplayerGame } from "../api";
+import { isRetryableError, readableError } from "../errors";
+import { createReconnectScheduler } from "../reconnect";
 
 export type ConnectionState = "idle" | "connecting" | "connected" | "disconnected";
 

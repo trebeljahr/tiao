@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response, ErrorRequestHandler, Application } from "express";
+import type { Application, ErrorRequestHandler, NextFunction, Request, Response } from "express";
 import { captureException } from "../lib/glitchtip";
 
 interface MongoError extends Error {

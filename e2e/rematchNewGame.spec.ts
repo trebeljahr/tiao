@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { signUpViaAPI } from "./helpers";
 
 test("rematch creates a new game URL with fresh scores", async ({ browser }) => {

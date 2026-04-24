@@ -1,6 +1,6 @@
-import { cn } from "@/lib/utils";
-import { CardHeader, CardContent } from "@/components/ui/card";
+import { CardContent, CardHeader } from "@/components/ui/card";
 import { PaperCard } from "@/components/ui/paper-card";
+import { cn } from "@/lib/utils";
 
 /** Basic pulsing rectangle — pass className for width/height/rounding. */
 export function SkeletonBlock({ className }: { className?: string }) {

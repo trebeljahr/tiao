@@ -1,64 +1,64 @@
 "use client";
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter, useParams, useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { resolveDynamicParam } from "@/lib/desktopPathParam";
-import { toast } from "sonner";
-import type { PlayerColor, Position } from "@shared";
-import { useAuth } from "@/lib/AuthContext";
-import { safeLocalStorage } from "@/lib/safeLocalStorage";
-import { Button } from "@/components/ui/button";
-import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PaperCard } from "@/components/ui/paper-card";
-import { Badge } from "@/components/ui/badge";
-import { Dialog } from "@/components/ui/dialog";
+import { InviteFriendsModal } from "@/components/InviteFriendsModal";
 import { Navbar } from "@/components/Navbar";
-import { TiaoBoard } from "@/components/game/TiaoBoard";
-import { RematchInviteCard } from "@/components/game/RematchInviteCard";
+import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
+import { ReportPlayerButton } from "@/components/ReportPlayerButton";
+import { AnimatedScoreTile } from "@/components/game/AnimatedScoreTile";
 import {
+  InlineClockBadge,
+  formatClockTime,
+  useFirstMoveCountdown,
+  useGameClock,
+} from "@/components/game/GameClock";
+import {
+  EmptySeatAvatar,
   GamePanelBrand,
-  translatePlayerColor,
   HourglassSpinner,
   RoomCodeCopyPill,
   ShareLinkCopyPill,
   SpectateButton,
-  EmptySeatAvatar,
+  translatePlayerColor,
 } from "@/components/game/GameShared";
-import { AnimatedScoreTile } from "@/components/game/AnimatedScoreTile";
-import { useMultiplayerGame } from "@/lib/hooks/useMultiplayerGame";
-import { useSocialData } from "@/lib/hooks/useSocialData";
-import { useSocialNotifications } from "@/lib/SocialNotificationsContext";
-import { useLobbyMessage } from "@/lib/LobbySocketContext";
-import { useStonePlacementSound } from "@/lib/useStonePlacementSound";
+import { LoadingBoardSkeleton } from "@/components/game/LoadingBoardSkeleton";
+import { MoveList, MoveListNavButtons } from "@/components/game/MoveList";
+import { RematchInviteCard } from "@/components/game/RematchInviteCard";
+import { TiaoBoard } from "@/components/game/TiaoBoard";
 import { TournamentContextBar } from "@/components/tournament/TournamentContextBar";
 import { TournamentWaitingSpectatorBanner } from "@/components/tournament/TournamentWaitingSpectatorBanner";
-import confetti from "canvas-confetti";
-import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
-import { ReportPlayerButton } from "@/components/ReportPlayerButton";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog } from "@/components/ui/dialog";
+import { PaperCard } from "@/components/ui/paper-card";
+import { useAuth } from "@/lib/AuthContext";
+import { useLobbyMessage } from "@/lib/LobbySocketContext";
+import { useSocialNotifications } from "@/lib/SocialNotificationsContext";
+import { accessMultiplayerGame, getMultiplayerGame } from "@/lib/api";
+import { resolveDynamicParam } from "@/lib/desktopPathParam";
+import { useMultiplayerGame } from "@/lib/hooks/useMultiplayerGame";
+import { useSocialData } from "@/lib/hooks/useSocialData";
+import { useTournamentNextMatch } from "@/lib/hooks/useTournamentNextMatch";
+import { op } from "@/lib/openpanel";
+import { safeLocalStorage } from "@/lib/safeLocalStorage";
+import { useStonePlacementSound } from "@/lib/useStonePlacementSound";
+import { cn } from "@/lib/utils";
+import type { PlayerColor, Position } from "@shared";
 import {
-  isGameOver,
-  getWinner,
+  arePositionsEqual,
+  formatGameNotation,
   getFinishReason,
   getJumpTargets,
-  arePositionsEqual,
-  replayToMove,
+  getWinner,
   isBoardMove,
-  formatGameNotation,
+  isGameOver,
+  replayToMove,
 } from "@shared";
 import type { FinishReason } from "@shared";
-import { MoveList, MoveListNavButtons } from "@/components/game/MoveList";
-import {
-  useGameClock,
-  useFirstMoveCountdown,
-  InlineClockBadge,
-  formatClockTime,
-} from "@/components/game/GameClock";
-import { cn } from "@/lib/utils";
-import { accessMultiplayerGame, getMultiplayerGame } from "@/lib/api";
-import { op } from "@/lib/openpanel";
-import { useTournamentNextMatch } from "@/lib/hooks/useTournamentNextMatch";
-import { InviteFriendsModal } from "@/components/InviteFriendsModal";
-import { LoadingBoardSkeleton } from "@/components/game/LoadingBoardSkeleton";
+import confetti from "canvas-confetti";
+import { useTranslations } from "next-intl";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 function AnimatedEllipsis() {
   const [dots, setDots] = useState(0);
@@ -759,7 +759,7 @@ export function MultiplayerGamePage() {
           label: tCommon("decline"),
           onClick: () => sendMultiplayerMessage({ type: "decline-takeback" }),
         },
-        duration: Infinity,
+        duration: Number.POSITIVE_INFINITY,
       });
     }
     if (!takebackRequester) {
@@ -821,7 +821,7 @@ export function MultiplayerGamePage() {
           ),
           {
             id: rematchToastId,
-            duration: Infinity,
+            duration: Number.POSITIVE_INFINITY,
             // Override the global Toaster toastOptions.style — see
             // SocialNotificationsContext for the full rationale.
             style: {

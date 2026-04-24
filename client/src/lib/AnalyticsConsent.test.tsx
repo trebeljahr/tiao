@@ -1,10 +1,10 @@
-import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
-import { renderHook, act } from "@testing-library/react";
-import { ReactNode } from "react";
+import { act, renderHook } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
+  ANALYTICS_CONSENT_STORAGE_KEY,
   AnalyticsConsentProvider,
   useAnalyticsConsent,
-  ANALYTICS_CONSENT_STORAGE_KEY,
 } from "./AnalyticsConsent";
 
 // Mock @/lib/openpanel so we don't pull the real SDK and its

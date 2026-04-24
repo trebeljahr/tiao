@@ -19,10 +19,10 @@
  *   node server.mjs              (dev: PORT, handled by dev.mjs)
  */
 
+import { createReadStream, existsSync, statSync } from "fs";
 import { createServer, request as httpRequest } from "http";
 import { request as httpsRequest } from "https";
-import { existsSync, statSync, createReadStream } from "fs";
-import { join, extname, resolve } from "path";
+import { extname, join, resolve } from "path";
 import next from "next";
 import { buildGlitchtipEnvelopeTarget } from "./tunnel-envelope.mjs";
 
@@ -142,7 +142,7 @@ export function servePublicFile(req, res, pathname) {
 }
 
 const dev = process.env.NODE_ENV !== "production";
-const port = parseInt(process.env.PORT || "3000", 10);
+const port = Number.parseInt(process.env.PORT || "3000", 10);
 const apiTarget = process.env.API_URL || `http://127.0.0.1:${process.env.API_PORT || "5005"}`;
 const apiUrl = new URL(apiTarget);
 const isHttps = apiUrl.protocol === "https:";

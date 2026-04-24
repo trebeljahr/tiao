@@ -1,4 +1,4 @@
-import { UserBadge, type BadgeId } from "@/components/UserBadge";
+import { type BadgeId, UserBadge } from "@/components/UserBadge";
 
 /**
  * Toast payload that renders a `<UserBadge>` next to a title/description.

@@ -1,20 +1,20 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useBoardTheme } from "@/lib/useBoardTheme";
+import { playMoveSoundIfEnabled } from "@/lib/useStonePlacementSound";
+import { cn } from "@/lib/utils";
 import confetti from "canvas-confetti";
+import { AnimatePresence, motion } from "framer-motion";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   type Cell,
-  type Pos,
   type JumpRecord,
-  posEq,
+  type Pos,
+  canPlacePiece,
   cloneBoard,
   getJumpTargets,
   getSelectableJumpOrigins,
-  canPlacePiece,
+  posEq,
 } from "./tutorialEngine";
 import type { StepBoardConfig } from "./tutorialSteps";
-import { useBoardTheme } from "@/lib/useBoardTheme";
-import { cn } from "@/lib/utils";
-import { playMoveSoundIfEnabled } from "@/lib/useStonePlacementSound";
 
 const IS_TOUCH_DEVICE =
   typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
@@ -434,7 +434,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
 
   // Hover target detection
   const hoveredPos = hoveredKey
-    ? { x: parseInt(hoveredKey.split("-")[0]), y: parseInt(hoveredKey.split("-")[1]) }
+    ? { x: Number.parseInt(hoveredKey.split("-")[0]), y: Number.parseInt(hoveredKey.split("-")[1]) }
     : null;
   const isHoveringJumpTarget = hoveredPos && jumpTargetPositions.some((t) => posEq(t, hoveredPos));
   const hoveredJumpTarget = isHoveringJumpTarget ? hoveredPos : null;
@@ -865,7 +865,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
                 }}
                 transition={{
                   duration: 1.4,
-                  repeat: Infinity,
+                  repeat: Number.POSITIVE_INFINITY,
                   ease: "easeInOut",
                 }}
               />
@@ -890,7 +890,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
                 }}
                 transition={{
                   duration: 1.2,
-                  repeat: Infinity,
+                  repeat: Number.POSITIVE_INFINITY,
                   ease: "easeInOut",
                 }}
               />

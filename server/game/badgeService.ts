@@ -1,6 +1,6 @@
-import GameAccount from "../models/GameAccount";
-import Achievement from "../models/Achievement";
 import { ACHIEVEMENT_BADGE_MAP } from "../config/badgeRewards";
+import Achievement from "../models/Achievement";
+import GameAccount from "../models/GameAccount";
 
 // Reverse map: badge ID → achievement ID that grants it.
 const BADGE_TO_ACHIEVEMENT: Record<string, string> = {};

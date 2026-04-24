@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, test } from "node:test";
 import {
-  createTestGuest,
   createTestAccount,
-  resetTestSessions,
+  createTestGuest,
   installTestSessionMock,
+  resetTestSessions,
 } from "./testAuthHelper";
 
 process.env.TOKEN_SECRET ??= "test-token-secret";

@@ -1,8 +1,8 @@
-import express from "express";
-import { Express } from "express";
-import logger from "morgan";
 import cors from "cors";
+import express from "express";
+import type { Express } from "express";
 import helmet from "helmet";
+import logger from "morgan";
 import { FRONTEND_URL } from "./envVars";
 
 /**

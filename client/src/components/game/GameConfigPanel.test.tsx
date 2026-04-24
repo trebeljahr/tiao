@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
-import { GameConfigPanel } from "./GameConfigPanel";
 import { BOARD_SIZE_OPTIONS, SCORE_TO_WIN_OPTIONS } from "@shared";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { GameConfigPanel } from "./GameConfigPanel";
 
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string, values?: Record<string, any>) => {

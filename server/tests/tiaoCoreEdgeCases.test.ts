@@ -8,12 +8,12 @@ import {
   createInitialGameState,
   getJumpTargets,
   getWinner,
+  isBorderPosition,
   isGameOver,
   jumpPiece,
+  otherColor,
   undoLastTurn,
   undoPendingJumpStep,
-  isBorderPosition,
-  otherColor,
 } from "../../shared/src";
 import { assertRegion, at, serializePositions, stateFromDiagram } from "./boardHarness";
 

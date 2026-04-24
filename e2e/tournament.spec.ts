@@ -1,4 +1,4 @@
-import { test, expect, Page } from "@playwright/test";
+import { type Page, expect, test } from "@playwright/test";
 import { signUpViaAPI, waitForAppReady } from "./helpers";
 
 function uniqueName(prefix: string) {
@@ -178,7 +178,7 @@ test.describe("Tournament page", () => {
     await page.click('button:has-text("Leave")');
     await leaveResponse;
 
-    await expect(page.locator("text=/0\/8 players/")).toBeVisible({ timeout: 5000 });
+    await expect(page.locator("text=/0/8 players/")).toBeVisible({ timeout: 5000 });
 
     await context.close();
   });

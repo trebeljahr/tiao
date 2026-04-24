@@ -1,7 +1,7 @@
-import { describe, test, expect, beforeEach, vi } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { ANALYTICS_CONSENT_STORAGE_KEY, AnalyticsConsentProvider } from "@/lib/AnalyticsConsent";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { ConsentBanner } from "./ConsentBanner";
-import { AnalyticsConsentProvider, ANALYTICS_CONSENT_STORAGE_KEY } from "@/lib/AnalyticsConsent";
 
 // The banner reads openpanel config to decide whether to show at all.
 // Real SDK is irrelevant to these tests — stub it as "configured".

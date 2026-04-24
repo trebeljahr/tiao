@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import type { TimeControl, PlayerColor, TurnRecord } from "@shared";
+import type { PlayerColor, TimeControl, TurnRecord } from "@shared";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type LocalClockState = {
   white: number;

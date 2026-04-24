@@ -1,9 +1,9 @@
-import createNextIntlPlugin from "next-intl/plugin";
-import withSerwistInit from "@serwist/next";
+import { execSync } from "child_process";
+import { existsSync, readFileSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { readFileSync, existsSync } from "fs";
-import { execSync } from "child_process";
+import withSerwistInit from "@serwist/next";
+import createNextIntlPlugin from "next-intl/plugin";
 
 // Desktop Electron static-export build is selected via the env var.
 // Next.js 16 has no --config CLI option, so we branch inside this one

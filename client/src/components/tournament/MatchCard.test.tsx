@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
-import { MatchCard } from "./MatchCard";
 import type { TournamentMatch } from "@shared";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MatchCard } from "./MatchCard";
 
 // Mock PlayerIdentityRow
 vi.mock("@/components/PlayerIdentityRow", () => ({

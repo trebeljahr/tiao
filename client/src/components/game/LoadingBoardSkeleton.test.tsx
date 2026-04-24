@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
 import type { GameState } from "@shared";
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { LoadingBoardSkeleton } from "./LoadingBoardSkeleton";
 
 vi.mock("next-intl", () => ({

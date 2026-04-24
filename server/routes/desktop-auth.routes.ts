@@ -1,12 +1,12 @@
-import express, { Request, Response } from "express";
 import { fromNodeHeaders } from "better-auth/node";
+import express, { type Request, type Response } from "express";
 import { auth } from "../auth/auth";
-import { createSessionToken, verifySessionToken } from "../auth/desktopSessionManager";
 import {
-  getExchangeCodeStore,
-  generateCode,
   DEFAULT_EXCHANGE_TTL_SEC,
+  generateCode,
+  getExchangeCodeStore,
 } from "../auth/desktopExchangeStore";
+import { createSessionToken, verifySessionToken } from "../auth/desktopSessionManager";
 
 /**
  * OAuth bridge for desktop Electron clients.

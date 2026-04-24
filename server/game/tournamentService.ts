@@ -2,33 +2,32 @@ import type {
   MyNextMatchResult,
   PendingTournamentMatch,
   PlayerIdentity,
+  TournamentGroup,
+  TournamentListItem,
   TournamentMatch,
   TournamentMatchPlayer,
   TournamentParticipant,
+  TournamentPlayerIdentity,
   TournamentRound,
-  TournamentGroup,
   TournamentSettings,
   TournamentSnapshot,
-  TournamentListItem,
-  TournamentPlayerIdentity,
   TournamentStatus,
 } from "../../shared/src";
-import { GameService, GameServiceError, TournamentGameCallback } from "./gameService";
-import { LockProvider, InMemoryLockProvider } from "./lockProvider";
+import { type GameService, GameServiceError, type TournamentGameCallback } from "./gameService";
+import { InMemoryLockProvider, type LockProvider } from "./lockProvider";
 import {
-  TournamentStore,
-  StoredTournament,
   MongoTournamentStore,
-  ONGOING_TOURNAMENT_STATUSES,
+  type StoredTournament,
+  type TournamentStore,
 } from "./tournamentStore";
 
 // Maximum number of "ongoing" (draft/registration/active) tournaments a single
 // account may have at once. Prevents a single user from flooding the lobby.
 export const MAX_ONGOING_TOURNAMENTS_PER_CREATOR = 10;
-import { getWinner, getFinishReason } from "../../shared/src";
-import { getPlayerProfiles, type CachedPlayerProfile } from "../cache/playerIdentityCache";
-import { onTournamentWon } from "./achievementService";
+import { getFinishReason, getWinner } from "../../shared/src";
 import { track } from "../analytics/openpanel";
+import { getPlayerProfiles } from "../cache/playerIdentityCache";
+import { onTournamentWon } from "./achievementService";
 
 // ── Helpers ──
 
@@ -1762,8 +1761,8 @@ export class TournamentService implements TournamentGameCallback {
 
 // ── Singleton ──
 
-import { gameService } from "./gameService";
 import { getRedisClient } from "../config/redisClient";
+import { gameService } from "./gameService";
 import { RedisLockProvider } from "./lockProvider";
 
 function createTournamentService(): TournamentService {

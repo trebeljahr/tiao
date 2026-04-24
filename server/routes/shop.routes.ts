@@ -1,11 +1,11 @@
-import express, { Request, Response } from "express";
-import { getPlayerFromRequest } from "../auth/sessionHelper";
-import GameAccount, { ISubscription } from "../models/GameAccount";
-import { grantBadge, revokeBadge, grantTheme } from "../game/badgeService";
-import { handleRouteError } from "../error-handling/routeError";
-import { SHOP_ITEMS, findShopItem } from "../config/shopCatalog";
-import { FRONTEND_URL } from "../config/envVars";
+import express, { type Request, type Response } from "express";
 import { track, trackRevenue } from "../analytics/openpanel";
+import { getPlayerFromRequest } from "../auth/sessionHelper";
+import { FRONTEND_URL } from "../config/envVars";
+import { SHOP_ITEMS, findShopItem } from "../config/shopCatalog";
+import { handleRouteError } from "../error-handling/routeError";
+import { grantBadge, grantTheme, revokeBadge } from "../game/badgeService";
+import GameAccount, { type ISubscription } from "../models/GameAccount";
 
 const router = express.Router();
 

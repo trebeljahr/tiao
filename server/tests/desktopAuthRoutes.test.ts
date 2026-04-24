@@ -1,22 +1,22 @@
 import assert from "node:assert/strict";
-import { describe, test, beforeEach } from "node:test";
+import { type Server, createServer } from "node:http";
+import type { AddressInfo } from "node:net";
+import { beforeEach, describe, test } from "node:test";
 import express from "express";
-import { AddressInfo } from "node:net";
-import { createServer, Server } from "node:http";
 
 process.env.TOKEN_SECRET ??= "test-token-secret";
 process.env.MONGODB_URI ??= "mongodb://127.0.0.1:27017/tiao-test";
 process.env.S3_BUCKET_NAME ??= "tiao-test-assets";
 process.env.S3_PUBLIC_URL ??= "https://assets.test.local";
 
-import desktopAuthRoutes from "../routes/desktop-auth.routes";
 import {
-  resetExchangeCodeStoreForTests,
-  getExchangeCodeStore,
   DEFAULT_EXCHANGE_TTL_SEC,
   generateCode,
+  getExchangeCodeStore,
+  resetExchangeCodeStoreForTests,
 } from "../auth/desktopExchangeStore";
 import { verifySessionToken } from "../auth/desktopSessionManager";
+import desktopAuthRoutes from "../routes/desktop-auth.routes";
 
 /**
  * Spin up a minimal Express app with just the desktop auth router and

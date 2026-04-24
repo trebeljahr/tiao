@@ -58,7 +58,9 @@ function installDeepLinkHandler({ onAuth }) {
   // tiao:// argv entry, Electron fires `second-instance` on the
   // primary with the full argv of the secondary.
   app.on("second-instance", (_event, argv) => {
-    const deepLink = argv.find((arg) => typeof arg === "string" && arg.startsWith(`${DEEP_LINK_SCHEME}://`));
+    const deepLink = argv.find(
+      (arg) => typeof arg === "string" && arg.startsWith(`${DEEP_LINK_SCHEME}://`),
+    );
     if (deepLink) dispatchRawUrl(deepLink);
   });
 

@@ -25,11 +25,7 @@ const fs = require("node:fs");
 const { registerAppProtocol, DESKTOP_PROTOCOL_SCHEME } = require("./src/protocol.cjs");
 const { createMainWindow } = require("./src/window.cjs");
 const { buildMenu } = require("./src/menu.cjs");
-const {
-  registerAuthIpc,
-  loadPersistedToken,
-  handleAuthDeepLink,
-} = require("./src/authBridge.cjs");
+const { registerAuthIpc, loadPersistedToken, handleAuthDeepLink } = require("./src/authBridge.cjs");
 const {
   installDeepLinkHandler,
   flushPendingDeepLinks,
@@ -62,10 +58,7 @@ const {
 // exercised in this mode, so use regular `npm run dev` when you need
 // to test Electron-specific code paths.
 const HMR_RENDERER_URL =
-  !app.isPackaged && process.env.TIAO_DEV_RENDERER_URL
-    ? process.env.TIAO_DEV_RENDERER_URL
-    : null;
-
+  !app.isPackaged && process.env.TIAO_DEV_RENDERER_URL ? process.env.TIAO_DEV_RENDERER_URL : null;
 
 // Dev preflight: refuse to start if the static client bundle is missing.
 // In a packaged build the bundle is staged under app.asar/resources by
@@ -265,9 +258,7 @@ function bootstrap() {
   Menu.setApplicationMenu(buildMenu());
 
   if (!bundleRoot) {
-    console.error(
-      "[main] client-bundle missing. Run `npm run dev:build-client` or reinstall.",
-    );
+    console.error("[main] client-bundle missing. Run `npm run dev:build-client` or reinstall.");
     showMissingBundleError(mainWindow);
   }
 
@@ -359,19 +350,16 @@ function registerSteamIpc() {
     unlockSteamAchievement(apiName);
     return { ok: true };
   });
-  ipcMain.handle(
-    "steam:indicateAchievementProgress",
-    async (_event, apiName, current, max) => {
-      if (typeof apiName !== "string" || !apiName) {
-        return { ok: false, reason: "invalid_api_name" };
-      }
-      if (typeof current !== "number" || typeof max !== "number") {
-        return { ok: false, reason: "invalid_progress" };
-      }
-      indicateSteamAchievementProgress(apiName, current, max);
-      return { ok: true };
-    },
-  );
+  ipcMain.handle("steam:indicateAchievementProgress", async (_event, apiName, current, max) => {
+    if (typeof apiName !== "string" || !apiName) {
+      return { ok: false, reason: "invalid_api_name" };
+    }
+    if (typeof current !== "number" || typeof max !== "number") {
+      return { ok: false, reason: "invalid_progress" };
+    }
+    indicateSteamAchievementProgress(apiName, current, max);
+    return { ok: true };
+  });
 }
 
 app.whenReady().then(bootstrap);

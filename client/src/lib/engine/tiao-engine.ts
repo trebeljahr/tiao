@@ -1,15 +1,15 @@
 import {
   BOARD_SIZE,
   type GameState,
-  type Position,
   type PlayerColor,
-  otherColor,
-  isGameOver,
-  getWinner,
+  type Position,
   canPlacePiece,
-  jumpPiece,
   getJumpTargets,
   getSelectableJumpOrigins,
+  getWinner,
+  isGameOver,
+  jumpPiece,
+  otherColor,
 } from "@shared";
 
 // ─── Types ───────────────────────────────────────────────────────────

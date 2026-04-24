@@ -1,5 +1,5 @@
-import { test, expect } from "@playwright/test";
-import { signUpViaUI, signInViaUI } from "./helpers";
+import { expect, test } from "@playwright/test";
+import { signInViaUI, signUpViaUI } from "./helpers";
 
 test.describe("Authentication flows", () => {
   test("signup creates an account and shows account indicator", async ({ page }) => {

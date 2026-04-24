@@ -1,29 +1,28 @@
-import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
-import express, { Request, Response } from "express";
+import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import express, { type Request, type Response } from "express";
 import { Jimp } from "jimp";
-import mongoose from "mongoose";
 import { ObjectId } from "mongodb";
+import mongoose from "mongoose";
+import { isValidUsername } from "../../shared/src";
+import { anonymizeOpenPanelProfile, identify, track } from "../analytics/openpanel";
+import { auth } from "../auth/auth";
+import { sendEmailChangeVerification } from "../auth/email";
+import { getPlayerFromRequest, requireAccount, requireAdmin } from "../auth/sessionHelper";
+import { invalidatePlayerProfile } from "../cache/playerIdentityCache";
+import { BUCKET_NAME, CLOUDFRONT_URL, FRONTEND_URL, PORT } from "../config/envVars";
+import { s3Client } from "../config/s3Client";
+import { escapeRegExp } from "../error-handling/escapeRegExp";
+import { handleRouteError } from "../error-handling/routeError";
+import { onTutorialCompleted } from "../game/achievementService";
+import { grantBadge, revokeBadge } from "../game/badgeService";
+import { DELETED_PLAYER_NAME, gameService } from "../game/gameService";
+import { sanitizeDisplayName } from "../game/playerTokens";
+import { profilePictureUpload } from "../middleware/multerUploadMiddleware";
+import { authRateLimiter } from "../middleware/rateLimiter";
 import GameAccount from "../models/GameAccount";
 import GameInvitation from "../models/GameInvitation";
 import GameRoom from "../models/GameRoom";
-import Tournament from "../models/Tournament";
-import { gameService, DELETED_PLAYER_NAME } from "../game/gameService";
-import { invalidatePlayerProfile } from "../cache/playerIdentityCache";
-import { auth } from "../auth/auth";
-import { getPlayerFromRequest, requireAccount, requireAdmin } from "../auth/sessionHelper";
-import { sanitizeDisplayName } from "../game/playerTokens";
-import { isValidUsername } from "../../shared/src";
-import { BUCKET_NAME, CLOUDFRONT_URL, FRONTEND_URL, PORT } from "../config/envVars";
-import { sendEmailChangeVerification } from "../auth/email";
-import { s3Client } from "../config/s3Client";
-import { handleRouteError } from "../error-handling/routeError";
-import { escapeRegExp } from "../error-handling/escapeRegExp";
-import { grantBadge, revokeBadge } from "../game/badgeService";
-import { onTutorialCompleted } from "../game/achievementService";
-import { profilePictureUpload } from "../middleware/multerUploadMiddleware";
-import { authRateLimiter } from "../middleware/rateLimiter";
-import { anonymizeOpenPanelProfile, identify, track } from "../analytics/openpanel";
 import {
   deleteExport,
   enqueueExport,

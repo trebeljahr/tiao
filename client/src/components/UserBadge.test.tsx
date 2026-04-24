@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { UserBadge, BADGE_DEFINITIONS, ALL_BADGE_IDS, type BadgeId } from "./UserBadge";
+import { describe, expect, it, vi } from "vitest";
+import { ALL_BADGE_IDS, BADGE_DEFINITIONS, type BadgeId, UserBadge } from "./UserBadge";
 
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,

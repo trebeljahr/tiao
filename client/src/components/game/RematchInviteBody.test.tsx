@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { RematchInviteBody } from "./RematchInviteBody";
 
 // Stub next-intl so tests don't need the real locale loader. Returns keys

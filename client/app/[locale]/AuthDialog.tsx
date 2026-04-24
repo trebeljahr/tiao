@@ -16,18 +16,18 @@
  * Turbopack pull it in as a separate chunk via `next/dynamic`.
  */
 
-import { useState } from "react";
-import { toast } from "sonner";
-import { useAuth } from "@/lib/AuthContext";
 import type { AuthDialogMode } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
+import { useAuth } from "@/lib/AuthContext";
+import { useState } from "react";
 // Barrel import is fine — Next.js's `optimizePackageImports` includes
 // `react-icons/*` by default and rewrites this into per-icon imports
 // at compile time. No manual sub-path imports needed.
-import { FaGithub, FaGoogle, FaDiscord } from "react-icons/fa";
+import { FaDiscord, FaGithub, FaGoogle } from "react-icons/fa";
+import { toast } from "sonner";
 
 function OAuthButtons() {
   const { handleOAuthSignIn } = useAuth();

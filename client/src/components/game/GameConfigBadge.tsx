@@ -1,4 +1,4 @@
-import type { TimeControl, MultiplayerRoomType } from "@shared";
+import type { MultiplayerRoomType, TimeControl } from "@shared";
 import { useTranslations } from "next-intl";
 
 type GameConfigBadgeProps = {

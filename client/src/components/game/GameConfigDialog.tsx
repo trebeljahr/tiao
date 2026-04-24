@@ -1,5 +1,5 @@
-import { Dialog } from "@/components/ui/dialog";
 import { GameConfigPanel } from "@/components/game/GameConfigPanel";
+import { Dialog } from "@/components/ui/dialog";
 import type { useGameConfig } from "@/lib/hooks/useGameConfig";
 
 type GameConfigDialogProps = {

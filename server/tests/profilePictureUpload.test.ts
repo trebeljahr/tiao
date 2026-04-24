@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
-import { describe, test } from "node:test";
-import { createServer } from "node:http";
 import { once } from "node:events";
+import { createServer } from "node:http";
+import { describe, test } from "node:test";
 
 process.env.TOKEN_SECRET ??= "test-token-secret";
 process.env.MONGODB_URI ??= "mongodb://127.0.0.1:27017/tiao-test";
@@ -9,7 +9,7 @@ process.env.S3_BUCKET_NAME ??= "tiao-test-assets";
 process.env.S3_PUBLIC_URL ??= "https://assets.test.local";
 
 import express from "express";
-import { profilePictureUpload, MAX_FILE_SIZE } from "../middleware/multerUploadMiddleware";
+import { MAX_FILE_SIZE, profilePictureUpload } from "../middleware/multerUploadMiddleware";
 
 function buildApp() {
   const app = express();

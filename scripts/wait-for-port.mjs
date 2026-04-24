@@ -4,8 +4,8 @@
 
 import { connect } from "net";
 
-const port = parseInt(process.argv[2], 10);
-const timeout = (parseInt(process.argv[3], 10) || 30) * 1000;
+const port = Number.parseInt(process.argv[2], 10);
+const timeout = (Number.parseInt(process.argv[3], 10) || 30) * 1000;
 
 if (!port) {
   console.error("Usage: wait-for-port.mjs <port> [timeout_seconds]");

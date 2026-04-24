@@ -1,7 +1,7 @@
 import express from "express";
-import { Request, Response, NextFunction } from "express";
-import { isDatabaseReady } from "../db";
+import type { NextFunction, Request, Response } from "express";
 import { getRedisClient } from "../config/redisClient";
+import { isDatabaseReady } from "../db";
 
 const router = express.Router();
 

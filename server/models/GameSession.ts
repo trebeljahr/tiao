@@ -1,5 +1,5 @@
-import { Document, Schema, model, models } from "mongoose";
-import { IdentityKind } from "../../shared/src";
+import { type Document, Schema, model, models } from "mongoose";
+import type { IdentityKind } from "../../shared/src";
 
 export interface IGameSession extends Document {
   tokenDigest: string;

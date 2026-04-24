@@ -1,11 +1,11 @@
 import {
   type GameState,
-  type Position,
   type PlayerColor,
+  type Position,
   type RuleResult,
-  placePiece,
-  jumpPiece,
   confirmPendingJump,
+  jumpPiece,
+  placePiece,
 } from "@shared";
 import type { WorkerRequest, WorkerResponse } from "./engine/tiao-engine.worker";
 

@@ -2,10 +2,10 @@ import assert from "node:assert/strict";
 import { afterEach, beforeEach, test } from "node:test";
 import type { PlayerIdentity } from "../../shared/src";
 import {
-  createTestGuest,
   createTestAccount,
-  resetTestSessions,
+  createTestGuest,
   installTestSessionMock,
+  resetTestSessions,
 } from "./testAuthHelper";
 
 process.env.TOKEN_SECRET ??= "test-token-secret";

@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, act, waitFor } from "@testing-library/react";
-import { useTournament } from "./useTournament";
 import type { AuthResponse, TournamentSnapshot } from "@shared";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { useTournament } from "./useTournament";
 
 // --- Mocks ---
 

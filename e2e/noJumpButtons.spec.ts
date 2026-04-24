@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { signUpViaAPI, waitForAppReady } from "./helpers";
 
 function cell(page: import("@playwright/test").Page, x: number, y: number) {

@@ -1,5 +1,5 @@
-import { useCallback } from "react";
 import { cn } from "@/lib/utils";
+import { useCallback } from "react";
 
 type NumberStepperProps = {
   value: number;
@@ -51,7 +51,7 @@ export function NumberStepper({
             type="number"
             value={value}
             onChange={(e) => {
-              const parsed = parseInt(e.target.value, 10);
+              const parsed = Number.parseInt(e.target.value, 10);
               if (!isNaN(parsed)) onChange(clamp(parsed));
             }}
             min={min}

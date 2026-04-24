@@ -1,21 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { toast } from "sonner";
-import type { TournamentListItem } from "@shared";
-import { useAuth } from "@/lib/AuthContext";
 import { BackButton } from "@/components/BackButton";
 import { PageLayout } from "@/components/PageLayout";
+import { TournamentCard } from "@/components/tournament/TournamentCard";
+import { AnimatedCard } from "@/components/ui/animated-card";
 import { Button } from "@/components/ui/button";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PaperCard } from "@/components/ui/paper-card";
-import { AnimatedCard } from "@/components/ui/animated-card";
-import { TournamentCard } from "@/components/tournament/TournamentCard";
-import { isAdmin } from "@/lib/featureGate";
+import { useAuth } from "@/lib/AuthContext";
 import { adminListTournaments, adminSetTournamentFeatured } from "@/lib/api";
 import { toastError } from "@/lib/errors";
+import { isAdmin } from "@/lib/featureGate";
+import type { TournamentListItem } from "@shared";
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 /**
  * Admin view for curating the lobby tournament list. Lists every

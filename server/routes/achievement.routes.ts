@@ -1,8 +1,8 @@
-import { Router, Request, Response } from "express";
-import { getPlayerFromRequest } from "../auth/sessionHelper";
-import GameAccount from "../models/GameAccount";
-import { getPlayerAchievements, onAIGameWon } from "../game/achievementService";
+import { type Request, type Response, Router } from "express";
 import { ACHIEVEMENTS } from "../../shared/src/achievements";
+import { getPlayerFromRequest } from "../auth/sessionHelper";
+import { getPlayerAchievements, onAIGameWon } from "../game/achievementService";
+import GameAccount from "../models/GameAccount";
 
 const router = Router();
 

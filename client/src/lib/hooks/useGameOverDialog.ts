@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * Manages a game-over dialog that opens with a short delay (for confetti/animation)

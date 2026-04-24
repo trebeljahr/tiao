@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useCallback } from "react";
 import type { AuthResponse, LobbyClientMessage } from "@shared";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef } from "react";
 import { buildWebSocketUrl } from "./api";
 import { createReconnectScheduler } from "./reconnect";
 

@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
-import { usePwaInstall, type BeforeInstallPromptEvent } from "./usePwaInstall";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { type BeforeInstallPromptEvent, usePwaInstall } from "./usePwaInstall";
 
 const DISMISS_STORAGE_KEY = "tiao:pwa-install-dismissed";
 

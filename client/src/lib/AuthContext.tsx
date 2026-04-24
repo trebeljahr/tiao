@@ -1,31 +1,31 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  useCallback,
-  useRef,
-} from "react";
-import { useTranslations } from "next-intl";
-import { toast } from "sonner";
-import type { AuthResponse, PlayerIdentity } from "@shared";
 import type { AuthDialogMode } from "@/components/Navbar";
-import { getAuthClient } from "@/lib/auth-client";
 import {
-  login as loginWithUsername,
   getPlayerIdentity,
+  login as loginWithUsername,
   refreshElectronTokenFromBridge,
   setElectronTokenCache,
 } from "@/lib/api";
+import { getAuthClient } from "@/lib/auth-client";
 import { isNetworkError, readableError, toastError } from "@/lib/errors";
-import { op, setAuthReady } from "@/lib/openpanel";
-import { resetBoardTheme } from "@/lib/useBoardTheme";
-import { resetActiveBadges } from "@/lib/useActiveBadge";
-import { safeLocalStorage } from "@/lib/safeLocalStorage";
 import { setUser as setGlitchtipUser } from "@/lib/glitchtip";
+import { op, setAuthReady } from "@/lib/openpanel";
+import { safeLocalStorage } from "@/lib/safeLocalStorage";
+import { resetActiveBadges } from "@/lib/useActiveBadge";
+import { resetBoardTheme } from "@/lib/useBoardTheme";
+import type { AuthResponse, PlayerIdentity } from "@shared";
+import { useTranslations } from "next-intl";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { toast } from "sonner";
 
 export interface AuthContextValue {
   auth: AuthResponse | null;

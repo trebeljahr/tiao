@@ -1,7 +1,7 @@
-import { describe, test, expect, afterEach, vi } from "vitest";
-import { renderHook, act } from "@testing-library/react";
-import { useOnlineStatus } from "./useOnlineStatus";
 import { API_BASE_URL } from "@/lib/api";
+import { act, renderHook } from "@testing-library/react";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import { useOnlineStatus } from "./useOnlineStatus";
 
 describe("useOnlineStatus", () => {
   afterEach(() => {

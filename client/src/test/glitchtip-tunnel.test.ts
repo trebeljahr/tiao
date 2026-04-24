@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { buildGlitchtipEnvelopeTarget } from "../../tunnel-envelope.mjs";
 
 // Regression coverage for the /_e tunnel 403 in prod (2026-04-20):

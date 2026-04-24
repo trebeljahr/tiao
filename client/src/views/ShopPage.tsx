@@ -1,43 +1,43 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { toast } from "sonner";
-import { useAuth } from "@/lib/AuthContext";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PaperCard } from "@/components/ui/paper-card";
-import { AnimatedCard } from "@/components/ui/animated-card";
-import { Badge } from "@/components/ui/badge";
-import { Dialog } from "@/components/ui/dialog";
-import { SkeletonBlock, SkeletonPage } from "@/components/ui/skeleton";
-import { PageLayout } from "@/components/PageLayout";
 import { BackButton } from "@/components/BackButton";
 import { BadgeSelector } from "@/components/BadgeSelector";
-import {
-  UserBadge,
-  BADGE_DEFINITIONS,
-  useBadgeDescription,
-  type BadgeId,
-} from "@/components/UserBadge";
 import { BadgeToast } from "@/components/BadgeToast";
-import { THEMES } from "@/components/game/boardThemes";
-import { ThemeSwatch } from "@/components/game/ThemePicker";
+import { PageLayout } from "@/components/PageLayout";
 import {
-  getShopCatalog,
-  createCheckoutSession,
-  getMyAchievements,
-  getSubscriptions,
-  cancelSubscription,
+  BADGE_DEFINITIONS,
+  type BadgeId,
+  UserBadge,
+  useBadgeDescription,
+} from "@/components/UserBadge";
+import { ThemeSwatch } from "@/components/game/ThemePicker";
+import { THEMES } from "@/components/game/boardThemes";
+import { AnimatedCard } from "@/components/ui/animated-card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog } from "@/components/ui/dialog";
+import { PaperCard } from "@/components/ui/paper-card";
+import { SkeletonBlock, SkeletonPage } from "@/components/ui/skeleton";
+import { Link } from "@/i18n/navigation";
+import { useAuth } from "@/lib/AuthContext";
+import {
   type ShopCatalogItem,
   type Subscription,
+  cancelSubscription,
+  createCheckoutSession,
+  getMyAchievements,
+  getShopCatalog,
+  getSubscriptions,
 } from "@/lib/api";
-import { isAdmin, canSeeShop } from "@/lib/featureGate";
 import { toastError } from "@/lib/errors";
-import { Link } from "@/i18n/navigation";
+import { canSeeShop, isAdmin } from "@/lib/featureGate";
+import { cn } from "@/lib/utils";
 import confetti from "canvas-confetti";
+import { useTranslations } from "next-intl";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 // Achievement IDs that auto-grant a corresponding badge (must match server/config/badgeRewards.ts)
 const ACHIEVEMENT_BADGE_MAP: Record<string, string> = {

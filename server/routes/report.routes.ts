@@ -1,10 +1,10 @@
-import express, { Request, Response } from "express";
+import express, { type Request, type Response } from "express";
 import { Types } from "mongoose";
-import GameAccount from "../models/GameAccount";
-import PlayerReport, { REPORT_REASONS, type ReportReason } from "../models/PlayerReport";
+import { sendModerationAlert } from "../auth/email";
 import { requireAccount, requireAdmin } from "../auth/sessionHelper";
 import { handleRouteError } from "../error-handling/routeError";
-import { sendModerationAlert } from "../auth/email";
+import GameAccount from "../models/GameAccount";
+import PlayerReport, { REPORT_REASONS, type ReportReason } from "../models/PlayerReport";
 
 const REPORT_THRESHOLD = 5;
 
@@ -105,7 +105,7 @@ router.get("/admin/reports", async (req: Request, res: Response) => {
   // classic "needs review now" list). minReports=1 gives the full tail so
   // admins can catch patterns early.
   const minReportsRaw = req.query.minReports as string | undefined;
-  const minReports = minReportsRaw ? parseInt(minReportsRaw, 10) : undefined;
+  const minReports = minReportsRaw ? Number.parseInt(minReportsRaw, 10) : undefined;
 
   const filter =
     typeof minReports === "number" && minReports >= 1

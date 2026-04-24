@@ -1,5 +1,5 @@
-import type Redis from "ioredis";
 import { randomUUID } from "crypto";
+import type Redis from "ioredis";
 
 export type BroadcastChannel = "room" | "lobby" | "lobby-all";
 

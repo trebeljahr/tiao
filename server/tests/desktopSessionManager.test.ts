@@ -13,8 +13,8 @@ process.env.S3_PUBLIC_URL ??= "https://assets.test.local";
 
 import {
   createSessionToken,
-  verifySessionToken,
   extractBearerUserId,
+  verifySessionToken,
 } from "../auth/desktopSessionManager";
 
 describe("createSessionToken", () => {

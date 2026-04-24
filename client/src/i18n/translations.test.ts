@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
-import en from "../../messages/en.json";
+import { describe, expect, it } from "vitest";
 import de from "../../messages/de.json";
+import en from "../../messages/en.json";
 import es from "../../messages/es.json";
 
 /**

@@ -1,7 +1,7 @@
+import { cn } from "@/lib/utils";
 import * as React from "react";
 import { useState } from "react";
 import { Input } from "./input";
-import { cn } from "@/lib/utils";
 
 interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   /** Controlled visibility — when provided, the internal state is ignored. */

@@ -1,5 +1,5 @@
-import { test, expect } from "@playwright/test";
-import { signUpViaAPI, waitForAppReady } from "./helpers";
+import { expect, test } from "@playwright/test";
+import { signUpViaAPI } from "./helpers";
 
 test("spectator can view an active game without joining", async ({ browser }) => {
   const aliceContext = await browser.newContext();

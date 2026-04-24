@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
-import { MatchHistoryCard } from "./MatchHistoryCard";
 import type { MultiplayerGameSummary } from "@shared";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { MatchHistoryCard } from "./MatchHistoryCard";
 
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string, values?: Record<string, any>) => {

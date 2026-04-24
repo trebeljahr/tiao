@@ -1,10 +1,10 @@
-import React from "react";
-import { useTranslations } from "next-intl";
-import { cn } from "@/lib/utils";
-import { PlayerOverviewAvatar, ConnectionDot } from "@/components/game/GameShared";
-import { UserBadge, type BadgeId } from "@/components/UserBadge";
-import { resolvePlayerBadges, isDevFeatureEnabled } from "@/lib/featureGate";
+import { type BadgeId, UserBadge } from "@/components/UserBadge";
+import { ConnectionDot, PlayerOverviewAvatar } from "@/components/game/GameShared";
 import { Link } from "@/i18n/navigation";
+import { isDevFeatureEnabled, resolvePlayerBadges } from "@/lib/featureGate";
+import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
+import type React from "react";
 
 export const DELETED_PLAYER_NAME = "Deleted Player";
 

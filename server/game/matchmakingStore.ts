@@ -68,7 +68,7 @@ export class InMemoryMatchmakingStore implements MatchmakingStore {
   ): Promise<MatchmakingQueueEntry | null> {
     const now = Date.now();
     let bestIndex = -1;
-    let bestEloDiff = Infinity;
+    let bestEloDiff = Number.POSITIVE_INFINITY;
 
     for (let i = 0; i < this.queue.length; i++) {
       const e = this.queue[i];
@@ -145,7 +145,7 @@ export class RedisMatchmakingStore implements MatchmakingStore {
 
     let bestRaw: string | null = null;
     let bestEntry: MatchmakingQueueEntry | null = null;
-    let bestEloDiff = Infinity;
+    let bestEloDiff = Number.POSITIVE_INFINITY;
 
     for (const raw of members) {
       const entry = JSON.parse(raw) as MatchmakingQueueEntry;

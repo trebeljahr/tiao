@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
-import type { AuthResponse, TournamentListItem, TournamentStatus } from "@shared";
-import { listPublicTournaments, listMyTournaments } from "@/lib/api";
 import { useLobbyMessage } from "@/lib/LobbySocketContext";
+import { listMyTournaments, listPublicTournaments } from "@/lib/api";
+import type { AuthResponse, TournamentListItem, TournamentStatus } from "@shared";
+import { useCallback, useEffect, useState } from "react";
 
 export function useTournamentList(
   auth: AuthResponse | null,

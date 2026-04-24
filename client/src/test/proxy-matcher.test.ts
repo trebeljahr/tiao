@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { config } from "../../proxy";
 
 // The matcher is a Next.js PathToRegexp pattern: a single string prefixed

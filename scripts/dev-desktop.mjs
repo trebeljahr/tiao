@@ -21,8 +21,8 @@
 //   - server/.env populated with TOKEN_SECRET, MONGODB_URI, S3 creds
 //   - Redis + Mongo reachable (docker-compose.dev.yml handles this)
 
-import { createServer } from "net";
 import { spawn } from "child_process";
+import { createServer } from "net";
 
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -54,7 +54,7 @@ async function findRandomFreePort(min, max, maxAttempts = 20) {
 // maintainer pin a port from the command line for ad-hoc debugging).
 let apiPort;
 if (process.env.PORT) {
-  apiPort = parseInt(process.env.PORT, 10);
+  apiPort = Number.parseInt(process.env.PORT, 10);
 } else {
   apiPort = await findRandomFreePort(5100, 5999);
 }

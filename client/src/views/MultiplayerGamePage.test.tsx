@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, act } from "@testing-library/react";
-import { MultiplayerGamePage } from "./MultiplayerGamePage";
 import type { AuthResponse, MultiplayerSnapshot, TurnRecord } from "@shared";
-import { createInitialGameState, EMPTY_SOCIAL_OVERVIEW } from "@shared";
+import { EMPTY_SOCIAL_OVERVIEW, createInitialGameState } from "@shared";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MultiplayerGamePage } from "./MultiplayerGamePage";
 
 // --- Mock next/navigation ---
 
@@ -386,7 +386,7 @@ describe("MultiplayerGamePage", () => {
     expect(toast.custom).toHaveBeenCalledWith(
       expect.any(Function),
       expect.objectContaining({
-        duration: Infinity,
+        duration: Number.POSITIVE_INFINITY,
       }),
     );
   });

@@ -1,4 +1,8 @@
 "use client";
+import { PageLayout } from "@/components/PageLayout";
+import { Button } from "@/components/ui/button";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PaperCard } from "@/components/ui/paper-card";
 // Use next-intl's localized Link, NOT the raw `next/link` — a vanilla
 // Link emits locale-less hrefs like `/tutorial` which Next.js then
 // prefetches verbatim. In a web build the middleware rewrites those
@@ -9,10 +13,6 @@
 // the URL ever leaves the renderer.
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { PageLayout } from "@/components/PageLayout";
-import { PaperCard } from "@/components/ui/paper-card";
-import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 
 /**
  * Offline fallback for the lobby page in the desktop Electron build.

@@ -1,27 +1,27 @@
-import { useState, useCallback, useEffect, useRef } from "react";
 import {
-  AuthResponse,
-  SocialOverview,
-  SocialSearchResult,
-  SocialPlayerSummary,
+  type AuthResponse,
   EMPTY_SOCIAL_OVERVIEW,
+  type SocialOverview,
+  type SocialPlayerSummary,
+  type SocialSearchResult,
 } from "@shared";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useLobbyMessage } from "../LobbySocketContext";
+import { useSocialNotifications } from "../SocialNotificationsContext";
 import {
+  acceptFriendRequest,
+  cancelFriendRequest,
+  declineFriendRequest,
+  declineGameInvitation,
   getSocialOverview,
+  removeFriend,
+  revokeGameInvitation,
   searchPlayers,
   sendFriendRequest,
-  acceptFriendRequest,
-  declineFriendRequest,
-  cancelFriendRequest,
-  removeFriend,
   sendGameInvitation,
-  revokeGameInvitation,
-  declineGameInvitation,
 } from "../api";
 import { toastError } from "../errors";
 import { fetchWithRetry } from "../fetchWithRetry";
-import { useSocialNotifications } from "../SocialNotificationsContext";
-import { useLobbyMessage } from "../LobbySocketContext";
 
 /** Shape of the player-identity-update broadcast sent from gameService. */
 type PlayerIdentityUpdatePayload = {

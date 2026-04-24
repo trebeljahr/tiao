@@ -1,7 +1,7 @@
-import assert from "node:assert/strict";
-import { describe, test, before, beforeEach, mock } from "node:test";
-import type { Request, Response } from "express";
 import type { IncomingMessage } from "http";
+import assert from "node:assert/strict";
+import { beforeEach, describe, mock, test } from "node:test";
+import type { Request, Response } from "express";
 
 // ---------------------------------------------------------------------------
 // Environment variables required before importing any server modules
@@ -50,6 +50,7 @@ import GameAccount from "../models/GameAccount";
 (GameAccount as unknown as Record<string, unknown>).findById = (...args: unknown[]) =>
   stubFindById(...args);
 
+import { createSessionToken } from "../auth/desktopSessionManager";
 // ---------------------------------------------------------------------------
 // Now import the module under test — it will see our patched exports.
 // ---------------------------------------------------------------------------
@@ -59,7 +60,6 @@ import {
   requireAccount,
   requireAdmin,
 } from "../auth/sessionHelper";
-import { createSessionToken } from "../auth/desktopSessionManager";
 
 // ---------------------------------------------------------------------------
 // Helpers

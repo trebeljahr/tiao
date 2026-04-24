@@ -1,4 +1,4 @@
-import { Document, Schema, model, models, type Model } from "mongoose";
+import { type Document, type Model, Schema, model, models } from "mongoose";
 
 export interface IAchievement extends Document {
   playerId: Schema.Types.ObjectId;

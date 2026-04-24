@@ -1,5 +1,5 @@
-import { PaperCard } from "@/components/ui/paper-card";
 import { CardContent } from "@/components/ui/card";
+import { PaperCard } from "@/components/ui/paper-card";
 
 /**
  * Root-level 404 page. Rendered outside the [locale] segment so we cannot

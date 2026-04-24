@@ -1,5 +1,5 @@
-import { Document, Schema, model, models } from "mongoose";
-import { MultiplayerRoomType } from "../../shared/src";
+import { type Document, Schema, model, models } from "mongoose";
+import type { MultiplayerRoomType } from "../../shared/src";
 
 export type GameInvitationStatus = "pending" | "accepted" | "revoked" | "declined" | "expired";
 

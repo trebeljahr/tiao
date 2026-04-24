@@ -1,20 +1,20 @@
-import { useState, useCallback, useEffect, useRef } from "react";
 import {
-  createInitialGameState,
-  GameSettings,
-  Position,
-  GameState,
-  PlayerColor,
-  TurnRecord,
+  type GameSettings,
+  type GameState,
+  type PlayerColor,
+  type Position,
+  type TurnRecord,
   canPlacePiece,
-  placePiece,
-  getJumpTargets,
-  jumpPiece,
   confirmPendingJump,
+  createInitialGameState,
+  getJumpTargets,
+  isGameOver,
+  jumpPiece,
+  placePiece,
   undoLastTurn,
   undoPendingJumpStep,
-  isGameOver,
 } from "@shared";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 // Detected at call time so unit tests can simulate a touch device by setting
 // `navigator.maxTouchPoints` before invoking the click handler.

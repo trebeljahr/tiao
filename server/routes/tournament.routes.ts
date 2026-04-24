@@ -1,9 +1,9 @@
-import express, { Request, Response } from "express";
-import { tournamentService } from "../game/tournamentService";
-import { getPlayerFromRequest } from "../auth/sessionHelper";
-import { handleRouteError } from "../error-handling/routeError";
+import express, { type Request, type Response } from "express";
 import type { TournamentSettings, TournamentStatus } from "../../shared/src";
 import { track } from "../analytics/openpanel";
+import { getPlayerFromRequest } from "../auth/sessionHelper";
+import { handleRouteError } from "../error-handling/routeError";
+import { tournamentService } from "../game/tournamentService";
 
 const router = express.Router();
 

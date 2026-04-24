@@ -71,9 +71,7 @@ function getTokenFilePath() {
 function persistToken(token) {
   cachedToken = token;
   if (!safeStorage.isEncryptionAvailable()) {
-    console.warn(
-      "[authBridge] safeStorage unavailable — token will not survive app restart.",
-    );
+    console.warn("[authBridge] safeStorage unavailable — token will not survive app restart.");
     return;
   }
   try {

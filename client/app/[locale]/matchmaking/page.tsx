@@ -1,7 +1,7 @@
-import { Suspense } from "react";
+import { MatchmakingPage } from "@/views/MatchmakingPage";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { MatchmakingPage } from "@/views/MatchmakingPage";
+import { Suspense } from "react";
 
 type Props = { params: Promise<{ locale: string }> };
 

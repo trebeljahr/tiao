@@ -12,7 +12,7 @@ process.env.MONGODB_URI ??= "mongodb://127.0.0.1:27017/tiao-test";
 process.env.S3_BUCKET_NAME ??= "tiao-test-assets";
 process.env.S3_PUBLIC_URL ??= "https://assets.test.local";
 
-import { isAllowedOrigin, DESKTOP_ORIGIN } from "../lib/wsOrigin";
+import { DESKTOP_ORIGIN, isAllowedOrigin } from "../lib/wsOrigin";
 
 describe("isAllowedOrigin — web origin rules (unchanged)", () => {
   test("matches the configured FRONTEND_URL origin", () => {

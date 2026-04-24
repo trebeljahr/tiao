@@ -51,25 +51,19 @@
       "!node_modules/.cache/**",
       "!**/*.map"
     ],
-    "asarUnpack": [
-      "**/node_modules/steamworks.js/**"
-    ],
+    "asarUnpack": ["**/node_modules/steamworks.js/**"],
     "extraResources": [
       {
         "from": "client-bundle",
         "to": "client-bundle",
-        "filter": [
-          "**/*"
-        ]
+        "filter": ["**/*"]
       }
     ],
     "mac": {
       "target": [
         {
           "target": "dmg",
-          "arch": [
-            "universal"
-          ]
+          "arch": ["universal"]
         }
       ],
       "category": "public.app-category.board-games",
@@ -81,15 +75,11 @@
       "target": [
         {
           "target": "nsis",
-          "arch": [
-            "x64"
-          ]
+          "arch": ["x64"]
         },
         {
           "target": "portable",
-          "arch": [
-            "x64"
-          ]
+          "arch": ["x64"]
         }
       ],
       "icon": "assets/icon.png"
@@ -98,9 +88,7 @@
       "target": [
         {
           "target": "AppImage",
-          "arch": [
-            "x64"
-          ]
+          "arch": ["x64"]
         }
       ],
       "category": "Game",
@@ -111,9 +99,7 @@
     "protocols": [
       {
         "name": "Tiao",
-        "schemes": [
-          "tiao"
-        ]
+        "schemes": ["tiao"]
       }
     ],
     "publish": {

@@ -1,12 +1,12 @@
 "use client";
-import { useMemo } from "react";
-import { useTranslations } from "next-intl";
-import { createInitialGameState } from "@shared";
-import { TiaoBoard } from "@/components/game/TiaoBoard";
 import { HourglassSpinner } from "@/components/game/GameShared";
-import { PaperCard } from "@/components/ui/paper-card";
+import { TiaoBoard } from "@/components/game/TiaoBoard";
 import { CardContent, CardHeader } from "@/components/ui/card";
+import { PaperCard } from "@/components/ui/paper-card";
 import { SkeletonBlock } from "@/components/ui/skeleton";
+import { createInitialGameState } from "@shared";
+import { useTranslations } from "next-intl";
+import { useMemo } from "react";
 
 /**
  * Loading state for game pages — renders a real, non-interactive Tiao board

@@ -1,19 +1,19 @@
 import "dotenv/config";
-import express, { Router } from "express";
 import { toNodeHandler } from "better-auth/node";
+import express, { type Router } from "express";
 import { auth } from "./auth/auth";
 import { configureApp } from "./config";
 import addErrorHandlingToApp from "./error-handling";
+import achievementRoutes from "./routes/achievement.routes";
+import adminRoutes from "./routes/admin.routes";
+import desktopAuthRoutes from "./routes/desktop-auth.routes";
 import gameAuthRoutes from "./routes/game-auth.routes";
 import gameRoutes from "./routes/game.routes";
 import indexRoutes from "./routes/index.routes";
-import socialRoutes from "./routes/social.routes";
-import adminRoutes from "./routes/admin.routes";
 import reportRoutes from "./routes/report.routes";
-import tournamentRoutes from "./routes/tournament.routes";
 import shopRoutes from "./routes/shop.routes";
-import achievementRoutes from "./routes/achievement.routes";
-import desktopAuthRoutes from "./routes/desktop-auth.routes";
+import socialRoutes from "./routes/social.routes";
+import tournamentRoutes from "./routes/tournament.routes";
 const app = express();
 
 // Desktop OAuth bridge routes run BEFORE both the better-auth catchall

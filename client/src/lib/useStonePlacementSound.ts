@@ -1,7 +1,7 @@
-import { useEffect, useRef } from "react";
 import type { GameState } from "@shared";
-import { useSoundEnabled } from "./useSoundPreference";
+import { useEffect, useRef } from "react";
 import { safeLocalStorage } from "./safeLocalStorage";
+import { useSoundEnabled } from "./useSoundPreference";
 
 function countPieces(state: GameState) {
   return state.positions.reduce(

@@ -1,4 +1,4 @@
-import { test, expect, devices } from "@playwright/test";
+import { devices, expect, test } from "@playwright/test";
 import { waitForAppReady } from "./helpers";
 
 const iphone13 = devices["iPhone 13"];

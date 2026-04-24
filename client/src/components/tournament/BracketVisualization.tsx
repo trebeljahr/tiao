@@ -1,7 +1,7 @@
+import { cn } from "@/lib/utils";
 import type { TournamentRound } from "@shared";
 import { useTranslations } from "next-intl";
 import { MatchCard } from "./MatchCard";
-import { cn } from "@/lib/utils";
 
 // Width of the connector space reserved on the left/right of each match
 // wrapper. Matches sit between these margins and the connector lines are

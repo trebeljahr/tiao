@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, test } from "node:test";
+import type { AuthResponse, MultiplayerSnapshot } from "../../shared/src";
 import {
   createTestGuest,
-  resetTestSessions,
-  removeTestSession,
   installTestSessionMock,
+  removeTestSession,
+  resetTestSessions,
 } from "./testAuthHelper";
-import type { AuthResponse, MultiplayerSnapshot } from "../../shared/src";
 
 process.env.TOKEN_SECRET ??= "test-token-secret";
 process.env.MONGODB_URI ??= "mongodb://127.0.0.1:27017/tiao-test";

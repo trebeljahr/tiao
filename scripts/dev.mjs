@@ -31,8 +31,8 @@
 //   npm run dev:docs                     Random ports (client + server + docs)
 //   npm run dev:docs:fixed               Fixed ports (client + server + docs)
 
-import { createServer, Socket } from "net";
 import { execSync, spawn } from "child_process";
+import { Socket, createServer } from "net";
 
 const args = process.argv.slice(2);
 const fixedMode = args.includes("--fixed");
@@ -149,9 +149,9 @@ let instanceCount = 1;
 if (parallelMode) {
   const countArg = args.find((a) => /^\d+$/.test(a));
   if (countArg) {
-    instanceCount = parseInt(countArg, 10);
+    instanceCount = Number.parseInt(countArg, 10);
   } else if (process.env.DEV_PARALLEL_COUNT) {
-    instanceCount = parseInt(process.env.DEV_PARALLEL_COUNT, 10);
+    instanceCount = Number.parseInt(process.env.DEV_PARALLEL_COUNT, 10);
   } else {
     instanceCount = 2;
   }
@@ -219,7 +219,7 @@ if (parallelMode) {
 } else {
   let clientPort;
   if (process.env.PORT) {
-    clientPort = parseInt(process.env.PORT, 10);
+    clientPort = Number.parseInt(process.env.PORT, 10);
   } else if (fixedMode) {
     clientPort = 3000;
   } else {
@@ -229,7 +229,7 @@ if (parallelMode) {
 
   let apiPort;
   if (process.env.API_PORT) {
-    apiPort = parseInt(process.env.API_PORT, 10);
+    apiPort = Number.parseInt(process.env.API_PORT, 10);
   } else if (fixedMode) {
     apiPort = 5005;
   } else {
@@ -239,7 +239,7 @@ if (parallelMode) {
 
   if (includeDocs) {
     if (process.env.DOCS_PORT) {
-      docsPort = parseInt(process.env.DOCS_PORT, 10);
+      docsPort = Number.parseInt(process.env.DOCS_PORT, 10);
     } else if (fixedMode) {
       docsPort = 4004;
     } else {

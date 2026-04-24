@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { signUpViaAPI, waitForAppReady } from "./helpers";
 
 test.describe("Game review from My Games page", () => {
@@ -47,13 +47,13 @@ test.describe("Game review from My Games page", () => {
       const origRAF = window.requestAnimationFrame;
       // Patch canvas-confetti's typical pattern: it creates a canvas element
       const origCreate = document.createElement.bind(document);
-      document.createElement = function (tag: string) {
+      document.createElement = ((tag: string) => {
         if (tag === "canvas") {
           // confetti library creates a canvas — mark it
           (window as any).__confettiCanvasCreated = true;
         }
         return origCreate(tag);
-      } as typeof document.createElement;
+      }) as typeof document.createElement;
     });
 
     // Click Review on the finished game

@@ -1,7 +1,7 @@
-import { useEffect, useRef, useCallback, useState } from "react";
-import { createPortal } from "react-dom";
-import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 type DialogProps = {
   open: boolean;

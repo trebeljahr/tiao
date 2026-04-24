@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
 import type { AuthResponse } from "@shared";
+import { describe, expect, it } from "vitest";
 import { hasPreviewAccess, isAdmin, resolvePlayerBadges } from "./featureGate";
 
 function makeAuth(overrides: Partial<AuthResponse["player"]> = {}): AuthResponse {

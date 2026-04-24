@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, act, waitFor } from "@testing-library/react";
-import { useSocialData } from "./useSocialData";
 import type { AuthResponse, SocialOverview } from "@shared";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { useSocialData } from "./useSocialData";
 
 const mockGetSocialOverview = vi.fn();
 const mockSearchPlayers = vi.fn();

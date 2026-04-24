@@ -1,5 +1,5 @@
-import { useTranslations } from "next-intl";
 import { getAchievementById } from "@shared";
+import { useTranslations } from "next-intl";
 
 /**
  * Localized display helpers for achievements.

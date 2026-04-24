@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { InteractiveMiniBoard } from "./InteractiveMiniBoard";
 import type { Cell, Pos } from "./tutorialEngine";
 import type { StepBoardConfig } from "./tutorialSteps";

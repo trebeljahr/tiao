@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { renderHook, act } from "@testing-library/react";
-import { useBoardThemeId, useSetBoardTheme, resetBoardTheme } from "./useBoardTheme";
 import { DEFAULT_THEME_ID } from "@/components/game/boardThemes";
+import { act, renderHook } from "@testing-library/react";
+import { beforeEach, describe, expect, it } from "vitest";
+import { resetBoardTheme, useBoardThemeId, useSetBoardTheme } from "./useBoardTheme";
 
 beforeEach(() => {
   localStorage.clear();

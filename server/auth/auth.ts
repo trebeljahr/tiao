@@ -1,14 +1,14 @@
+import bcrypt from "bcrypt";
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
-import { anonymous } from "better-auth/plugins";
 import { APIError } from "better-auth/api";
-import bcrypt from "bcrypt";
+import { anonymous } from "better-auth/plugins";
 import { MongoClient } from "mongodb";
-import GameAccount from "../models/GameAccount";
-import { generateFunAnonymousName } from "../game/playerTokens";
-import { FRONTEND_URL, MONGODB_URI, TOKEN_SECRET, PORT } from "../config/envVars";
-import { sendPasswordResetEmail, sendVerificationEmail } from "./email";
 import { identify, track } from "../analytics/openpanel";
+import { FRONTEND_URL, MONGODB_URI, PORT, TOKEN_SECRET } from "../config/envVars";
+import { generateFunAnonymousName } from "../game/playerTokens";
+import GameAccount from "../models/GameAccount";
+import { sendPasswordResetEmail, sendVerificationEmail } from "./email";
 
 // Bcrypt is deliberately slow; 10 rounds is ~100ms which is fine in
 // production but adds up quickly in the e2e suite, where every test

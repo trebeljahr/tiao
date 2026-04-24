@@ -1,8 +1,8 @@
-import { useEffect, useRef } from "react";
-import confetti from "canvas-confetti";
-import type { PlayerColor } from "@shared";
-import { useBoardTheme } from "./useBoardTheme";
 import type { BoardTheme } from "@/components/game/boardThemes";
+import type { PlayerColor } from "@shared";
+import confetti from "canvas-confetti";
+import { useEffect, useRef } from "react";
+import { useBoardTheme } from "./useBoardTheme";
 
 type WinConfettiOptions = {
   /** The player viewing the result. When null (local mode), confetti always plays. */

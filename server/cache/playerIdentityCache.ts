@@ -1,7 +1,7 @@
 import { isValidObjectId } from "mongoose";
 import type { PlayerIdentity } from "../../shared/src";
-import GameAccount from "../models/GameAccount";
 import { getRedisClient } from "../config/redisClient";
+import GameAccount from "../models/GameAccount";
 
 /**
  * Cached subset of player identity that can be resolved from GameAccount.

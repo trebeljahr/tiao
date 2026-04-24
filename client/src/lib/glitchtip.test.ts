@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // The whole point of the 2026-04-16 cold-compile refactor is that
 // `@sentry/browser` must NOT enter the module graph when glitchtip is

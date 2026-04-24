@@ -4,17 +4,17 @@ process.env.S3_BUCKET_NAME = "tiao-test-assets";
 process.env.S3_PUBLIC_URL = "https://assets.test.local";
 process.env.NODE_ENV = "test";
 
-import { describe, test, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import type { Router, Request, Response } from "express";
+import { afterEach, beforeEach, describe, test } from "node:test";
+import type { Request, Response, Router } from "express";
+import mongoose from "mongoose";
+import GameAccount from "../models/GameAccount";
 import {
   createTestAccount,
   createTestGuest,
-  resetTestSessions,
   installTestSessionMock,
+  resetTestSessions,
 } from "./testAuthHelper";
-import GameAccount from "../models/GameAccount";
-import mongoose from "mongoose";
 
 // ---------------------------------------------------------------------------
 // Types

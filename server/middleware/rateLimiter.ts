@@ -1,7 +1,7 @@
-import { Request } from "express";
+import type { Request } from "express";
 import { ipKeyGenerator, rateLimit } from "express-rate-limit";
-import { getRedisClient } from "../config/redisClient";
 import { getPlayerFromRequest } from "../auth/sessionHelper";
+import { getRedisClient } from "../config/redisClient";
 
 const isTest = process.env.NODE_ENV === "test";
 

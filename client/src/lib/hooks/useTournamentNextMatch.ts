@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
-import type { MyNextMatchResult } from "@shared";
-import { getMyNextTournamentMatch } from "@/lib/api";
 import { useLobbyMessage } from "@/lib/LobbySocketContext";
+import { getMyNextTournamentMatch } from "@/lib/api";
+import type { MyNextMatchResult } from "@shared";
+import { useCallback, useEffect, useState } from "react";
 
 /**
  * Fetches the server's decision about what this player should do next in

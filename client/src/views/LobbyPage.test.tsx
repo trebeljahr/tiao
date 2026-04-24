@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@/test/navigation-mock";
-import { LobbyPage } from "./LobbyPage";
 import type { AuthResponse, MultiplayerGameSummary } from "@shared";
 import { EMPTY_SOCIAL_OVERVIEW } from "@shared";
+import { LobbyPage } from "./LobbyPage";
 
 vi.mock("@/lib/hooks/useGamesIndex", () => ({
   useGamesIndex: vi.fn(),

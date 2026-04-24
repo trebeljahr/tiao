@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, act } from "@testing-library/react";
-import { useMatchmakingData } from "./useMatchmakingData";
 import type { AuthResponse, LobbyClientMessage, MultiplayerSnapshot } from "@shared";
+import { act, renderHook } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { useMatchmakingData } from "./useMatchmakingData";
 
 // Shared handles + state used by the mock below. The mock of
 // ./../LobbySocketContext is hoisted by vitest, so we reach into these refs

@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
-import { GameState, PlayerColor, isGameOver } from "@shared";
-import type {
-  MultiplayerSnapshot,
-  MultiplayerGameSummary,
-  SocialPlayerSummary,
-  FinishReason,
-} from "@shared";
 import { cn } from "@/lib/utils";
+import { type GameState, type PlayerColor, isGameOver } from "@shared";
+import type {
+  FinishReason,
+  MultiplayerGameSummary,
+  MultiplayerSnapshot,
+  SocialPlayerSummary,
+} from "@shared";
+import { useEffect, useState } from "react";
 
 /** Loose translation function type compatible with next-intl's Translator. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

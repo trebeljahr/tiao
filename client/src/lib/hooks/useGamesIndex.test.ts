@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, waitFor, act } from "@testing-library/react";
-import { useGamesIndex } from "./useGamesIndex";
 import type { AuthResponse } from "@shared";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { useGamesIndex } from "./useGamesIndex";
 
 // Capture lobby message handlers so tests can simulate WebSocket events.
 const lobbyMessageHandlers: Array<(payload: Record<string, unknown>) => void> = [];

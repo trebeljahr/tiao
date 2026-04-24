@@ -1,11 +1,11 @@
 import type {
-  TournamentStatus,
-  TournamentSettings,
+  TournamentGroup,
   TournamentParticipant,
   TournamentRound,
-  TournamentGroup,
+  TournamentSettings,
+  TournamentStatus,
 } from "../../shared/src";
-import Tournament, { ITournament } from "../models/Tournament";
+import Tournament, { type ITournament } from "../models/Tournament";
 
 export type StoredTournament = {
   tournamentId: string;

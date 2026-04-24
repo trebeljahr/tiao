@@ -1114,9 +1114,7 @@ export function compactToHistory(compact: CompactHistory): TurnRecord[] {
       // Jump: [fromX, fromY, to1X, to1Y, to2X, to2Y, ...]
       const jumps: JumpStep[] = [];
       for (let j = 2; j < entry.length; j += 2) {
-        const from = j === 2
-          ? { x: entry[0], y: entry[1] }
-          : { x: entry[j - 2], y: entry[j - 1] };
+        const from = j === 2 ? { x: entry[0], y: entry[1] } : { x: entry[j - 2], y: entry[j - 1] };
         const to = { x: entry[j], y: entry[j + 1] };
         const over = {
           x: (from.x + to.x) / 2,

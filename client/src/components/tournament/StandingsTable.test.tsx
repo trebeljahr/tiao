@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
-import { StandingsTable } from "./StandingsTable";
 import type { TournamentGroupStanding } from "@shared";
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { StandingsTable } from "./StandingsTable";
 
 // Mock PlayerIdentityRow
 vi.mock("@/components/PlayerIdentityRow", () => ({

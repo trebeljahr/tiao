@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { describe, test, before, beforeEach, after } from "node:test";
+import { after, before, beforeEach, describe, test } from "node:test";
 import Redis from "ioredis";
 import { RedisLockProvider } from "../../game/lockProvider";
 

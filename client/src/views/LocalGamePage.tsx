@@ -1,22 +1,22 @@
 "use client";
-import { useState, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { useAuth } from "@/lib/AuthContext";
+import { Navbar } from "@/components/Navbar";
+import { GameConfigDialog } from "@/components/game/GameConfigDialog";
+import { translatePlayerColor } from "@/components/game/GameShared";
+import { GameSidePanel } from "@/components/game/GameSidePanel";
+import { TiaoBoard } from "@/components/game/TiaoBoard";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
-import { Navbar } from "@/components/Navbar";
-import { TiaoBoard } from "@/components/game/TiaoBoard";
-import { translatePlayerColor } from "@/components/game/GameShared";
-import { GameConfigDialog } from "@/components/game/GameConfigDialog";
-import { GameSidePanel } from "@/components/game/GameSidePanel";
+import { useAuth } from "@/lib/AuthContext";
 import { useGameConfig } from "@/lib/hooks/useGameConfig";
-import { useLocalGame } from "@/lib/hooks/useLocalGame";
+import { useGameOverDialog } from "@/lib/hooks/useGameOverDialog";
 import { useLocalClock } from "@/lib/hooks/useLocalClock";
+import { useLocalGame } from "@/lib/hooks/useLocalGame";
 import { useStonePlacementSound } from "@/lib/useStonePlacementSound";
 import { useWinConfetti } from "@/lib/useWinConfetti";
-import { useGameOverDialog } from "@/lib/hooks/useGameOverDialog";
-import { isGameOver, getWinner } from "@shared";
+import { getWinner, isGameOver } from "@shared";
+import { useTranslations } from "next-intl";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useRef, useState } from "react";
 
 export function LocalGamePage() {
   const { auth, onOpenAuth, onLogout } = useAuth();
@@ -39,8 +39,8 @@ export function LocalGamePage() {
     const tcInitial = searchParams.get("tcInitial");
     const tcIncrement = searchParams.get("tcIncrement");
     autostartConfig.current = {
-      boardSize: parseInt(searchParams.get("boardSize") || "19", 10),
-      scoreToWin: parseInt(searchParams.get("scoreToWin") || "10", 10),
+      boardSize: Number.parseInt(searchParams.get("boardSize") || "19", 10),
+      scoreToWin: Number.parseInt(searchParams.get("scoreToWin") || "10", 10),
       timeControl:
         tcInitial && tcIncrement
           ? { initialMs: Number(tcInitial), incrementMs: Number(tcIncrement) }

@@ -13,9 +13,9 @@
  */
 
 import { readFileSync } from "fs";
-import { resolve, dirname } from "path";
+import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
-import { visit, SKIP } from "unist-util-visit";
+import { SKIP, visit } from "unist-util-visit";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const LINKS_FILE = resolve(__dirname, "../source-links.json");

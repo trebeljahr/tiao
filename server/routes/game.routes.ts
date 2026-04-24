@@ -1,15 +1,15 @@
 import express, { type Request as ExpressRequest, type Response } from "express";
 import mongoose from "mongoose";
-import { handleRouteError } from "../error-handling/routeError";
-import { gameService } from "../game/gameService";
+import type { PlayerIdentity } from "../../shared/src";
 import { getPlayerFromRequest } from "../auth/sessionHelper";
 import { applySsoProfilePicturesToSummaries } from "../auth/ssoProfilePicture";
-import GameInvitation from "../models/GameInvitation";
-import GameAccount from "../models/GameAccount";
-import GameRoom, { type IGameRoom } from "../models/GameRoom";
-import { PlayerIdentity } from "../../shared/src";
-import { notifyLobbyUpdate } from "./social.routes";
+import { handleRouteError } from "../error-handling/routeError";
+import { gameService } from "../game/gameService";
 import { gameActionRateLimiter } from "../middleware/rateLimiter";
+import GameAccount from "../models/GameAccount";
+import GameInvitation from "../models/GameInvitation";
+import GameRoom, { type IGameRoom } from "../models/GameRoom";
+import { notifyLobbyUpdate } from "./social.routes";
 
 const router = express.Router();
 

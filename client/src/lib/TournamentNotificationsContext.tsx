@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef } from "react";
-import { toast } from "sonner";
+import type { AuthResponse, PendingTournamentMatch } from "@shared";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import type { AuthResponse, PendingTournamentMatch } from "@shared";
-import { getMyPendingTournamentMatches } from "./api";
+import type React from "react";
+import { useCallback, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { useLobbyMessage } from "./LobbySocketContext";
+import { getMyPendingTournamentMatches } from "./api";
 
 /**
  * Global "your tournament match is ready" notification layer. Server is
@@ -51,7 +52,7 @@ export function TournamentNotificationsProvider({
       toast(t("matchReadyToast"), {
         id: toastId,
         description,
-        duration: Infinity,
+        duration: Number.POSITIVE_INFINITY,
         dismissible: true,
         action: {
           label: tCommon("play"),

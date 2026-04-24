@@ -10,7 +10,7 @@
  */
 
 import assert from "node:assert/strict";
-import { describe, test, before, beforeEach } from "node:test";
+import { before, beforeEach, describe, test } from "node:test";
 import mongoose from "mongoose";
 import type { PlayerIdentity } from "../../shared/src";
 import { GameService } from "../game/gameService";

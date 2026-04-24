@@ -1,24 +1,24 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
-import { useTranslations } from "next-intl";
-import { useAuth } from "@/lib/AuthContext";
+import { AchievementCard } from "@/components/AchievementCard";
 import { BackButton } from "@/components/BackButton";
 import { PageLayout } from "@/components/PageLayout";
-import { useLobbyMessage } from "@/lib/LobbySocketContext";
-import { CardContent } from "@/components/ui/card";
-import { PaperCard } from "@/components/ui/paper-card";
 import { AnimatedCard } from "@/components/ui/animated-card";
 import { Button } from "@/components/ui/button";
+import { CardContent } from "@/components/ui/card";
+import { PaperCard } from "@/components/ui/paper-card";
 import { SkeletonCard } from "@/components/ui/skeleton";
-import { AchievementCard } from "@/components/AchievementCard";
-import { getMyAchievements, type PlayerAchievement } from "@/lib/api";
+import { useAuth } from "@/lib/AuthContext";
+import { useLobbyMessage } from "@/lib/LobbySocketContext";
+import { type PlayerAchievement, getMyAchievements } from "@/lib/api";
 import {
   ACHIEVEMENTS,
   ACHIEVEMENT_CATEGORIES,
-  type AchievementDefinition,
   type AchievementCategory,
+  type AchievementDefinition,
 } from "@shared";
+import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 const CATEGORY_ICONS: Record<AchievementCategory, string> = {
   games: "\u265f\ufe0e", // chess pawn

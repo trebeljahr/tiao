@@ -1,18 +1,18 @@
 "use client";
-import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { Navbar } from "@/components/Navbar";
 import { RequireAccount } from "@/components/RequireAccount";
-import { useAuth } from "@/lib/AuthContext";
+import { ActiveGamesList } from "@/components/game/ActiveGamesList";
+import { MatchHistoryCard } from "@/components/game/MatchHistoryCard";
+import { AnimatedCard } from "@/components/ui/animated-card";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PaperCard } from "@/components/ui/paper-card";
-import { AnimatedCard } from "@/components/ui/animated-card";
-import { MatchHistoryCard } from "@/components/game/MatchHistoryCard";
-import { ActiveGamesList } from "@/components/game/ActiveGamesList";
-import { Navbar } from "@/components/Navbar";
 import { SkeletonCard } from "@/components/ui/skeleton";
-import { useGamesIndex } from "@/lib/hooks/useGamesIndex";
+import { useAuth } from "@/lib/AuthContext";
 import { useLobbyMessage } from "@/lib/LobbySocketContext";
+import { useGamesIndex } from "@/lib/hooks/useGamesIndex";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 
 export function GamesPage() {
   const t = useTranslations("games");

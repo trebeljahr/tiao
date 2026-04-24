@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { renderHook, act } from "@testing-library/react";
-import { useGameClock, useFirstMoveCountdown, formatClockTime } from "./GameClock";
+import { act, renderHook } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { formatClockTime, useFirstMoveCountdown, useGameClock } from "./GameClock";
 
 describe("formatClockTime", () => {
   it("formats zero as 0:00", () => {

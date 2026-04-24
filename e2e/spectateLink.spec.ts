@@ -1,5 +1,5 @@
-import { test, expect } from "@playwright/test";
-import { signUpViaAPI, waitForAppReady } from "./helpers";
+import { expect, test } from "@playwright/test";
+import { signUpViaAPI } from "./helpers";
 
 function uniqueName(prefix: string) {
   return `${prefix}_${Math.random().toString(36).slice(2, 7)}`;

@@ -1,4 +1,4 @@
-import { Document, Schema, model, models } from "mongoose";
+import { type Document, Schema, model, models } from "mongoose";
 import type { TournamentMatchStatus } from "../../shared/src";
 
 export interface ITournamentMatch extends Document {

@@ -1,13 +1,13 @@
-import { describe, it, expect } from "vitest";
-import { createInitialGameState, type GameState } from "@shared";
+import { type GameState, createInitialGameState } from "@shared";
+import { describe, expect, it } from "vitest";
 import {
-  generateMoves,
-  evaluate,
+  AI_DIFFICULTY_LABELS,
+  type EngineMove,
   applyEngineMove,
   computeZobristHash,
+  evaluate,
   findBestMove,
-  type EngineMove,
-  AI_DIFFICULTY_LABELS,
+  generateMoves,
 } from "./tiao-engine";
 
 /** Create a board with specific pieces. Uses 7x7 by default for fast tests. */

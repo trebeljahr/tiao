@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ApiError } from "@/lib/api";
-import { readableError, isNetworkError, isRetryableError, toastError } from "./errors";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { isNetworkError, isRetryableError, readableError, toastError } from "./errors";
 
 vi.mock("sonner", () => ({
   toast: {

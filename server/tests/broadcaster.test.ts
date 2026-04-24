@@ -1,5 +1,5 @@
-import { describe, test, beforeEach } from "node:test";
 import assert from "node:assert/strict";
+import { beforeEach, describe, test } from "node:test";
 import { InMemoryBroadcaster } from "../game/broadcaster";
 import type { BroadcastChannel } from "../game/broadcaster";
 

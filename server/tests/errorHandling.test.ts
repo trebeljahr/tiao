@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, test } from "node:test";
 import { classifyMongoError } from "../error-handling";
-import { createTestGuest, resetTestSessions, installTestSessionMock } from "./testAuthHelper";
+import { createTestGuest, installTestSessionMock, resetTestSessions } from "./testAuthHelper";
 
 process.env.TOKEN_SECRET ??= "test-token-secret";
 process.env.MONGODB_URI ??= "mongodb://127.0.0.1:27017/tiao-test";

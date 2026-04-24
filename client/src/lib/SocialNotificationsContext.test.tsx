@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, act, waitFor } from "@testing-library/react";
-import { toast } from "sonner";
 import type { AuthResponse, SocialOverview } from "@shared";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { toast } from "sonner";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SocialNotificationsProvider, useSocialNotifications } from "./SocialNotificationsContext";
 
 // --- Mocks ---
@@ -144,7 +144,7 @@ describe("SocialNotificationsContext", () => {
       expect.objectContaining({
         id: "friend-request:alice-id",
         description: "sent you a friend request",
-        duration: Infinity,
+        duration: Number.POSITIVE_INFINITY,
         dismissible: true,
       }),
     );

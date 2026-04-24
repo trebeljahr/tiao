@@ -1,35 +1,35 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useTranslations } from "next-intl";
-import { toast } from "sonner";
-import { useAuth } from "@/lib/AuthContext";
+import { AchievementIcon } from "@/components/AchievementIcon";
 import { BackButton } from "@/components/BackButton";
+import { BadgeToast } from "@/components/BadgeToast";
 import { PageLayout } from "@/components/PageLayout";
+import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
+import { ALL_BADGE_IDS, BADGE_DEFINITIONS, type BadgeId, UserBadge } from "@/components/UserBadge";
+import { THEMES } from "@/components/game/boardThemes";
+import { AnimatedCard } from "@/components/ui/animated-card";
 import { Button } from "@/components/ui/button";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PaperCard } from "@/components/ui/paper-card";
-import { AnimatedCard } from "@/components/ui/animated-card";
 import { Input } from "@/components/ui/input";
-import { isAdmin } from "@/lib/featureGate";
-import { UserBadge, type BadgeId, BADGE_DEFINITIONS, ALL_BADGE_IDS } from "@/components/UserBadge";
-import { BadgeToast } from "@/components/BadgeToast";
-import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
+import { PaperCard } from "@/components/ui/paper-card";
+import { useAuth } from "@/lib/AuthContext";
+import { useAchievementDescription, useAchievementName } from "@/lib/achievementLabels";
 import {
-  adminSearchUsers,
-  adminGrantBadge,
-  adminRevokeBadge,
-  adminGrantTheme,
-  adminRevokeTheme,
-  adminGrantAchievement,
-  adminRevokeAchievement,
   type AdminUserResult,
+  adminGrantAchievement,
+  adminGrantBadge,
+  adminGrantTheme,
+  adminRevokeAchievement,
+  adminRevokeBadge,
+  adminRevokeTheme,
+  adminSearchUsers,
 } from "@/lib/api";
-import { THEMES } from "@/components/game/boardThemes";
 import { toastError } from "@/lib/errors";
+import { isAdmin } from "@/lib/featureGate";
 import { ACHIEVEMENTS, ACHIEVEMENT_CATEGORIES, type AchievementDefinition } from "@shared";
-import { AchievementIcon } from "@/components/AchievementIcon";
-import { useAchievementName, useAchievementDescription } from "@/lib/achievementLabels";
+import { useTranslations } from "next-intl";
+import { useCallback, useState } from "react";
+import { toast } from "sonner";
 
 export function AdminBadgesPage() {
   const t = useTranslations("adminBadges");

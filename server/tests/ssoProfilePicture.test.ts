@@ -82,14 +82,8 @@ describe("SSO profile picture resolution", () => {
       const results = applySsoFallback(accounts, ssoMap);
 
       assert.equal(results.length, 2);
-      assert.equal(
-        results[0].profilePicture,
-        "https://avatars.githubusercontent.com/u/12345",
-      );
-      assert.equal(
-        results[1].profilePicture,
-        "https://lh3.googleusercontent.com/a/avatar-id",
-      );
+      assert.equal(results[0].profilePicture, "https://avatars.githubusercontent.com/u/12345");
+      assert.equal(results[1].profilePicture, "https://lh3.googleusercontent.com/a/avatar-id");
     });
 
     it("does not overwrite existing profilePicture with SSO image", () => {
@@ -97,9 +91,7 @@ describe("SSO profile picture resolution", () => {
       const accounts: AccountLike[] = [
         { id: "user-1", displayName: "custom-pic-user", profilePicture: customPic },
       ];
-      const ssoMap = new Map([
-        ["user-1", "https://avatars.githubusercontent.com/u/99999"],
-      ]);
+      const ssoMap = new Map([["user-1", "https://avatars.githubusercontent.com/u/99999"]]);
 
       const results = applySsoFallback(accounts, ssoMap);
 
@@ -107,9 +99,7 @@ describe("SSO profile picture resolution", () => {
     });
 
     it("returns undefined when neither GameAccount nor SSO has a picture", () => {
-      const accounts: AccountLike[] = [
-        { id: "user-1", displayName: "no-pic-user" },
-      ];
+      const accounts: AccountLike[] = [{ id: "user-1", displayName: "no-pic-user" }];
       const ssoMap = new Map<string, string>();
 
       const results = applySsoFallback(accounts, ssoMap);
@@ -119,38 +109,30 @@ describe("SSO profile picture resolution", () => {
 
     it("handles mixed accounts (some with pictures, some without)", () => {
       const accounts: AccountLike[] = [
-        { id: "user-1", displayName: "has-custom", profilePicture: "https://cdn.example.com/a.jpg" },
+        {
+          id: "user-1",
+          displayName: "has-custom",
+          profilePicture: "https://cdn.example.com/a.jpg",
+        },
         { id: "user-2", displayName: "has-sso-only" },
         { id: "user-3", displayName: "has-nothing" },
       ];
-      const ssoMap = new Map([
-        ["user-2", "https://cdn.discordapp.com/avatars/123/abc.png"],
-      ]);
+      const ssoMap = new Map([["user-2", "https://cdn.discordapp.com/avatars/123/abc.png"]]);
 
       const results = applySsoFallback(accounts, ssoMap);
 
       assert.equal(results[0].profilePicture, "https://cdn.example.com/a.jpg");
-      assert.equal(
-        results[1].profilePicture,
-        "https://cdn.discordapp.com/avatars/123/abc.png",
-      );
+      assert.equal(results[1].profilePicture, "https://cdn.discordapp.com/avatars/123/abc.png");
       assert.equal(results[2].profilePicture, undefined);
     });
 
     it("handles _id field (lean documents) instead of id", () => {
-      const accounts: AccountLike[] = [
-        { _id: "user-1", displayName: "lean-doc-user" },
-      ];
-      const ssoMap = new Map([
-        ["user-1", "https://avatars.githubusercontent.com/u/55555"],
-      ]);
+      const accounts: AccountLike[] = [{ _id: "user-1", displayName: "lean-doc-user" }];
+      const ssoMap = new Map([["user-1", "https://avatars.githubusercontent.com/u/55555"]]);
 
       const results = applySsoFallback(accounts, ssoMap);
 
-      assert.equal(
-        results[0].profilePicture,
-        "https://avatars.githubusercontent.com/u/55555",
-      );
+      assert.equal(results[0].profilePicture, "https://avatars.githubusercontent.com/u/55555");
       assert.equal(results[0].playerId, "user-1");
     });
 

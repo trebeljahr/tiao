@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
-import { BracketVisualization } from "./BracketVisualization";
 import type { TournamentRound } from "@shared";
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { BracketVisualization } from "./BracketVisualization";
 
 // Mock MatchCard to isolate BracketVisualization tests
 vi.mock("./MatchCard", () => ({

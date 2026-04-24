@@ -1,23 +1,23 @@
-import express, { Request, Response } from "express";
+import express, { type Request, type Response } from "express";
 import mongoose from "mongoose";
-import {
+import type {
   GameInvitationSummary,
   SocialOverview,
   SocialPlayerSummary,
   SocialSearchRelationship,
   SocialSearchResult,
 } from "../../shared/src";
+import { track } from "../analytics/openpanel";
+import { requireAccount } from "../auth/sessionHelper";
 import { fetchSsoProfilePictures } from "../auth/ssoProfilePicture";
-import { gameService } from "../game/gameService";
-import { getPlayerFromRequest, requireAccount } from "../auth/sessionHelper";
-import { handleRouteError } from "../error-handling/routeError";
 import { escapeRegExp } from "../error-handling/escapeRegExp";
-import GameAccount, { IGameAccount } from "../models/GameAccount";
+import { handleRouteError } from "../error-handling/routeError";
+import { onFriendAdded } from "../game/achievementService";
+import { gameService } from "../game/gameService";
+import { userSearchRateLimiter } from "../middleware/rateLimiter";
+import GameAccount, { type IGameAccount } from "../models/GameAccount";
 import GameInvitation from "../models/GameInvitation";
 import GameRoom from "../models/GameRoom";
-import { userSearchRateLimiter } from "../middleware/rateLimiter";
-import { onFriendAdded } from "../game/achievementService";
-import { track } from "../analytics/openpanel";
 
 const router = express.Router();
 

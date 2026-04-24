@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { describe, test, beforeEach } from "node:test";
+import { beforeEach, describe, test } from "node:test";
 
 process.env.TOKEN_SECRET ??= "test-token-secret";
 process.env.MONGODB_URI ??= "mongodb://127.0.0.1:27017/tiao-test";
@@ -7,11 +7,11 @@ process.env.S3_BUCKET_NAME ??= "tiao-test-assets";
 process.env.S3_PUBLIC_URL ??= "https://assets.test.local";
 
 import {
+  DEFAULT_EXCHANGE_TTL_SEC,
   InMemoryExchangeCodeStore,
   generateCode,
-  DEFAULT_EXCHANGE_TTL_SEC,
-  resetExchangeCodeStoreForTests,
   getExchangeCodeStore,
+  resetExchangeCodeStoreForTests,
 } from "../auth/desktopExchangeStore";
 
 describe("InMemoryExchangeCodeStore", () => {

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 async function signUpViaApi(page: import("@playwright/test").Page) {
   const slug = Math.random().toString(36).slice(2, 7);

@@ -1,9 +1,9 @@
-import { useTranslations } from "next-intl";
-import type { TournamentListItem } from "@shared";
+import { GameConfigBadge } from "@/components/game/GameConfigBadge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { GameConfigBadge } from "@/components/game/GameConfigBadge";
 import { cn } from "@/lib/utils";
+import type { TournamentListItem } from "@shared";
+import { useTranslations } from "next-intl";
 
 function statusColor(status: string): string {
   switch (status) {

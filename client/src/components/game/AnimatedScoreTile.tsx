@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
-import { motion, useAnimationControls } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { ConnectionDot } from "./GameShared";
-import { formatClockTime } from "./GameClock";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
+import { cn } from "@/lib/utils";
+import { motion, useAnimationControls } from "framer-motion";
+import { useEffect } from "react";
+import { formatClockTime } from "./GameClock";
+import { ConnectionDot } from "./GameShared";
 
 export type AnimatedScoreTilePlayerInfo = {
   player: { displayName?: string; profilePicture?: string; playerId: string };

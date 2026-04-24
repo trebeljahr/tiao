@@ -1,8 +1,8 @@
-import { THEMES, DEFAULT_THEME_ID, type BoardTheme } from "./boardThemes";
-import { useSetBoardTheme } from "@/lib/useBoardTheme";
-import { isDevFeatureEnabled } from "@/lib/featureGate";
 import { Link } from "@/i18n/navigation";
+import { isDevFeatureEnabled } from "@/lib/featureGate";
+import { useSetBoardTheme } from "@/lib/useBoardTheme";
 import { cn } from "@/lib/utils";
+import { type BoardTheme, DEFAULT_THEME_ID, THEMES } from "./boardThemes";
 
 /** Mini board preview rendered as a tiny visual swatch for a theme. */
 export function ThemeSwatch({ theme }: { theme: BoardTheme }) {

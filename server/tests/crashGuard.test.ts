@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
-import { describe, test, beforeEach, afterEach } from "node:test";
-import { installCrashGuard, __resetCrashGuardForTests } from "../lib/crashGuard";
+import { afterEach, beforeEach, describe, test } from "node:test";
+import { __resetCrashGuardForTests, installCrashGuard } from "../lib/crashGuard";
 
 describe("crashGuard", () => {
   let originalExit: typeof process.exit;

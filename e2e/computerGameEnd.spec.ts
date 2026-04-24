@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { type Page, expect, test } from "@playwright/test";
 import { waitForAppReady } from "./helpers";
 
 function cell(page: Page, x: number, y: number) {

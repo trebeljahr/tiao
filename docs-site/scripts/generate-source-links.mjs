@@ -9,8 +9,8 @@
  * Output: docs-site/source-links.json
  */
 
-import { readFileSync, writeFileSync, existsSync } from "fs";
-import { resolve, relative, dirname, basename } from "path";
+import { existsSync, readFileSync, writeFileSync } from "fs";
+import { basename, dirname, relative, resolve } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

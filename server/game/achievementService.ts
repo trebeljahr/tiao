@@ -1,17 +1,13 @@
 import { isValidObjectId } from "mongoose";
+import { type AchievementDefinition, getAchievementById } from "../../shared/src/achievements";
+import { getFinishReason, getWinner, isBoardMove } from "../../shared/src/tiao";
+import type { GameState, JumpTurn, PlayerColor } from "../../shared/src/tiao";
+import { ACHIEVEMENT_BADGE_MAP } from "../config/badgeRewards";
 import Achievement from "../models/Achievement";
 import GameAccount from "../models/GameAccount";
 import GameRoom from "../models/GameRoom";
-import {
-  ACHIEVEMENTS,
-  getAchievementById,
-  type AchievementDefinition,
-} from "../../shared/src/achievements";
-import { getWinner, getFinishReason, isBoardMove } from "../../shared/src/tiao";
-import type { GameState, PlayerColor, JumpTurn } from "../../shared/src/tiao";
-import type { StoredMultiplayerRoom } from "./gameStore";
-import { ACHIEVEMENT_BADGE_MAP } from "../config/badgeRewards";
 import { grantBadge } from "./badgeService";
+import type { StoredMultiplayerRoom } from "./gameStore";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -231,7 +227,7 @@ export async function onGameCompleted(ctx: GameCompletedContext): Promise<void> 
     if (isWinner && room.timeControl) {
       void grant(p.id, "speed-demon");
 
-      const remainingMs = room.clockMs?.[p.color] ?? Infinity;
+      const remainingMs = room.clockMs?.[p.color] ?? Number.POSITIVE_INFINITY;
       if (remainingMs <= 10_000) {
         void grant(p.id, "buzzer-beater");
       }
@@ -427,8 +423,8 @@ async function countLosses(playerId: string): Promise<number> {
 
 function checkComebackWin(state: GameState, winnerColor: PlayerColor): boolean {
   // Replay the score progression to see if winner was ever down by 3+
-  let whiteScore = 0;
-  let blackScore = 0;
+  const whiteScore = 0;
+  const blackScore = 0;
   const opponentColor = winnerColor === "white" ? "black" : "white";
 
   for (const turn of state.history) {

@@ -1,36 +1,36 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import { useRouter, useParams, useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
-import type { TournamentSnapshot } from "@shared";
-import { useAuth } from "@/lib/AuthContext";
-import { resolveDynamicParam } from "@/lib/desktopPathParam";
+import { BackButton } from "@/components/BackButton";
 import { Navbar } from "@/components/Navbar";
-import { Badge } from "@/components/ui/badge";
+import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { GameConfigBadge } from "@/components/game/GameConfigBadge";
+import { BracketVisualization } from "@/components/tournament/BracketVisualization";
+import { MatchCard } from "@/components/tournament/MatchCard";
+import { StandingsTable } from "@/components/tournament/StandingsTable";
+import { AnimatedCard } from "@/components/ui/animated-card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PaperCard } from "@/components/ui/paper-card";
-import { AnimatedCard } from "@/components/ui/animated-card";
 import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { BracketVisualization } from "@/components/tournament/BracketVisualization";
-import { StandingsTable } from "@/components/tournament/StandingsTable";
-import { MatchCard } from "@/components/tournament/MatchCard";
+import { PaperCard } from "@/components/ui/paper-card";
 import { SkeletonPage } from "@/components/ui/skeleton";
-import { useTournament } from "@/lib/hooks/useTournament";
+import { useAuth } from "@/lib/AuthContext";
 import {
   accessTournament,
-  registerForTournament,
-  unregisterFromTournament,
-  startTournament as apiStartTournament,
   cancelTournament as apiCancelTournament,
   deleteTournament as apiDeleteTournament,
+  startTournament as apiStartTournament,
   randomizeTournamentSeeding,
+  registerForTournament,
+  unregisterFromTournament,
 } from "@/lib/api";
-import { BackButton } from "@/components/BackButton";
-import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
+import { resolveDynamicParam } from "@/lib/desktopPathParam";
 import { toastError } from "@/lib/errors";
+import { useTournament } from "@/lib/hooks/useTournament";
+import type { TournamentSnapshot } from "@shared";
+import { useTranslations } from "next-intl";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 export function TournamentPage() {

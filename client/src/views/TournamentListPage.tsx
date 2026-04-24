@@ -1,23 +1,23 @@
 "use client";
-import { useState } from "react";
-import type { TournamentSettings } from "@shared";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/AuthContext";
-import { Navbar } from "@/components/Navbar";
 import { BackButton } from "@/components/BackButton";
+import { Navbar } from "@/components/Navbar";
+import { TournamentCard } from "@/components/tournament/TournamentCard";
+import { TournamentCreationForm } from "@/components/tournament/TournamentCreationForm";
+import { AnimatedCard } from "@/components/ui/animated-card";
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 import { PaperCard } from "@/components/ui/paper-card";
-import { AnimatedCard } from "@/components/ui/animated-card";
-import { TournamentCreationForm } from "@/components/tournament/TournamentCreationForm";
-import { TournamentCard } from "@/components/tournament/TournamentCard";
-import { createTournament, ApiError } from "@/lib/api";
+import { useAuth } from "@/lib/AuthContext";
+import { ApiError, createTournament } from "@/lib/api";
 import { toastError } from "@/lib/errors";
+import type { TournamentSettings } from "@shared";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const MAX_ONGOING_TOURNAMENTS = 10;
+import { SkeletonBlock } from "@/components/ui/skeleton";
 import { useTournamentList } from "@/lib/hooks/useTournamentList";
 import { useTranslations } from "next-intl";
-import { SkeletonBlock } from "@/components/ui/skeleton";
 
 export function TournamentListPage() {
   const t = useTranslations("tournament");

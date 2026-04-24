@@ -1,5 +1,5 @@
-import type Redis from "ioredis";
 import { randomUUID } from "crypto";
+import type Redis from "ioredis";
 
 export interface LockProvider {
   withLock<T>(key: string, operation: () => Promise<T>): Promise<T>;

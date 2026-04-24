@@ -111,10 +111,7 @@ function initSteam() {
     client = steamworks.init(STEAM_APPID);
     console.info(`[steam] initialized against appid ${STEAM_APPID}`);
   } catch (err) {
-    console.warn(
-      `[steam] init(${STEAM_APPID}) failed — is the Steam client running?`,
-      err,
-    );
+    console.warn(`[steam] init(${STEAM_APPID}) failed — is the Steam client running?`, err);
     client = null;
     return false;
   }

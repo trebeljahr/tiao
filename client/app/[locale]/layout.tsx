@@ -1,11 +1,11 @@
-import type { Metadata, Viewport } from "next";
-import { Zen_Kaku_Gothic_New, Zen_Old_Mincho } from "next/font/google";
-import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { getMessages, setRequestLocale } from "next-intl/server";
+import { OfflineBanner } from "@/components/OfflineBanner";
 import { routing } from "@/i18n/routing";
+import type { Metadata, Viewport } from "next";
+import { NextIntlClientProvider, hasLocale } from "next-intl";
+import { getMessages, setRequestLocale } from "next-intl/server";
+import { Zen_Kaku_Gothic_New, Zen_Old_Mincho } from "next/font/google";
 import { notFound } from "next/navigation";
 import { Providers } from "./providers";
-import { OfflineBanner } from "@/components/OfflineBanner";
 import "./globals.css";
 
 const zenKaku = Zen_Kaku_Gothic_New({

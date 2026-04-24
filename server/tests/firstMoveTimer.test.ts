@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { test, mock } from "node:test";
+import { mock, test } from "node:test";
 import WebSocket from "ws";
 import type { PlayerIdentity, ServerToClientMessage, TimeControl } from "../../shared/src";
 import { GameService } from "../game/gameService";

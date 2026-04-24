@@ -1,17 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import {
-  positionsToSparse,
-  sparseToPositions,
-  historyToCompact,
+  type TileState,
+  type TurnRecord,
   compactToHistory,
   createInitialGameState,
+  historyToCompact,
   placePiece,
-  jumpPiece,
-  confirmPendingJump,
-  type TurnRecord,
-  type GameState,
-  type TileState,
+  positionsToSparse,
+  sparseToPositions,
 } from "../../shared/src";
 
 describe("positionsToSparse / sparseToPositions", () => {
@@ -38,8 +35,14 @@ describe("positionsToSparse / sparseToPositions", () => {
     board[3][0] = "black";
 
     const sparse = positionsToSparse(board);
-    assert.deepEqual(sparse.white, [[1, 0], [4, 4]]);
-    assert.deepEqual(sparse.black, [[3, 2], [0, 3]]);
+    assert.deepEqual(sparse.white, [
+      [1, 0],
+      [4, 4],
+    ]);
+    assert.deepEqual(sparse.black, [
+      [3, 2],
+      [0, 3],
+    ]);
 
     const restored = sparseToPositions(sparse, size);
     assert.deepEqual(restored, board);
@@ -77,7 +80,11 @@ describe("historyToCompact / compactToHistory", () => {
       { type: "put", color: "white", position: { x: 5, y: 3 } },
     ];
     const compact = historyToCompact(history);
-    assert.deepEqual(compact.m, [[9, 9], [10, 10], [5, 3]]);
+    assert.deepEqual(compact.m, [
+      [9, 9],
+      [10, 10],
+      [5, 3],
+    ]);
     assert.equal(compact.t, undefined); // no timestamps
 
     const restored = compactToHistory(compact);
@@ -221,9 +228,7 @@ describe("historyToCompact / compactToHistory", () => {
   });
 
   test("timestamps are omitted when none present", () => {
-    const history: TurnRecord[] = [
-      { type: "put", color: "white", position: { x: 0, y: 0 } },
-    ];
+    const history: TurnRecord[] = [{ type: "put", color: "white", position: { x: 0, y: 0 } }];
     const compact = historyToCompact(history);
     assert.equal(compact.t, undefined);
   });

@@ -1,5 +1,5 @@
+import { BADGE_DEFINITIONS, type BadgeId } from "@/components/UserBadge";
 import type { AuthResponse } from "@shared";
-import { type BadgeId, BADGE_DEFINITIONS } from "@/components/UserBadge";
 
 /**
  * Returns true if the current user has access to preview features (board themes, etc.).

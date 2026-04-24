@@ -1,10 +1,10 @@
-import { Document, Schema, model, models } from "mongoose";
+import { type Document, Schema, model, models } from "mongoose";
 import type {
-  TournamentStatus,
-  TournamentSettings,
+  TournamentGroup,
   TournamentParticipant,
   TournamentRound,
-  TournamentGroup,
+  TournamentSettings,
+  TournamentStatus,
 } from "../../shared/src";
 
 export interface ITournament extends Document {

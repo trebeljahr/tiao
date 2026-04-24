@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { useTranslations } from "next-intl";
-import type { TournamentFormat, TournamentSettings, TimeControl } from "@shared";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Dialog } from "@/components/ui/dialog";
 import { GameConfigPanel } from "@/components/game/GameConfigPanel";
+import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import type { TimeControl, TournamentFormat, TournamentSettings } from "@shared";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
 
 export function TournamentCreationForm({
   open,

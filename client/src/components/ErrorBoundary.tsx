@@ -1,7 +1,7 @@
-import { Component, ErrorInfo, ReactNode } from "react";
-import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { captureException } from "@/lib/glitchtip";
+import { useTranslations } from "next-intl";
+import { Component, type ErrorInfo, type ReactNode } from "react";
 
 interface Props {
   children: ReactNode;

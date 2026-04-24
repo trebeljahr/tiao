@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
-import { before, test, describe } from "node:test";
+import { before, describe, test } from "node:test";
 import type { PlayerIdentity, TournamentSettings } from "../../shared/src";
 import { GameService, GameServiceError } from "../game/gameService";
 import { InMemoryGameRoomStore } from "../game/gameStore";
-import { TournamentService, MAX_ONGOING_TOURNAMENTS_PER_CREATOR } from "../game/tournamentService";
-import { InMemoryTournamentStore } from "../game/tournamentStore";
 import { InMemoryLockProvider } from "../game/lockProvider";
+import { MAX_ONGOING_TOURNAMENTS_PER_CREATOR, TournamentService } from "../game/tournamentService";
+import { InMemoryTournamentStore } from "../game/tournamentStore";
 
 // Prevent achievement checks from hitting Mongoose (no DB in unit tests)
 before(async () => {

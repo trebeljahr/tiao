@@ -124,10 +124,8 @@ contextBridge.exposeInMainWorld("electron", {
      * @returns {() => void}
      */
     onAuthError: (cb) => {
-      const listener = (
-        /** @type {unknown} */ _event,
-        /** @type {{ reason: string }} */ payload,
-      ) => cb(payload);
+      const listener = (/** @type {unknown} */ _event, /** @type {{ reason: string }} */ payload) =>
+        cb(payload);
       ipcRenderer.on("auth:error", listener);
       return () => ipcRenderer.off("auth:error", listener);
     },

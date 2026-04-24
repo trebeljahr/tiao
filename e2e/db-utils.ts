@@ -1,4 +1,4 @@
-import { MongoClient, type Db, type Collection, type Document } from "mongodb";
+import { type Collection, type Db, type Document, MongoClient } from "mongodb";
 
 const MONGO_E2E_URI = "mongodb://127.0.0.1:27018";
 const DB_NAME = "tiao-e2e";

@@ -1,22 +1,22 @@
 import WebSocket from "ws";
 import {
-  ClientToServerMessage,
-  FinishReason,
-  FriendActiveGameSummary,
-  LobbyClientMessage,
-  MatchmakingState,
-  MultiplayerGameSummary,
-  MultiplayerGamesIndex,
-  MultiplayerRematchState,
-  MultiplayerRoomType,
-  MultiplayerSnapshot,
-  MultiplayerStatus,
-  GameSettings,
-  PlayerColor,
-  PlayerIdentity,
-  PlayerSlot,
-  TimeControl,
-  TurnRecord,
+  type ClientToServerMessage,
+  type FinishReason,
+  type FriendActiveGameSummary,
+  type GameSettings,
+  type LobbyClientMessage,
+  type MatchmakingState,
+  type MultiplayerGameSummary,
+  type MultiplayerGamesIndex,
+  type MultiplayerRematchState,
+  type MultiplayerRoomType,
+  type MultiplayerSnapshot,
+  type MultiplayerStatus,
+  type PlayerColor,
+  type PlayerIdentity,
+  type PlayerSlot,
+  type TimeControl,
+  type TurnRecord,
   confirmPendingJump,
   createInitialGameState,
   forfeitGame,
@@ -28,20 +28,19 @@ import {
   undoPendingJumpStep,
 } from "../../shared/src";
 import {
-  GameRoomStore,
-  MongoGameRoomStore,
-  StoredMultiplayerRoom,
-  StoredPlayerIdentity,
-  StoredSeatAssignments,
-  getPlayerColorForRoom,
-} from "./gameStore";
-import {
-  getPlayerProfile,
+  type CachedPlayerProfile,
+  enrichIdentity,
   getPlayerProfiles,
   invalidatePlayerProfile,
-  enrichIdentity,
-  type CachedPlayerProfile,
 } from "../cache/playerIdentityCache";
+import {
+  type GameRoomStore,
+  MongoGameRoomStore,
+  type StoredMultiplayerRoom,
+  type StoredPlayerIdentity,
+  type StoredSeatAssignments,
+  getPlayerColorForRoom,
+} from "./gameStore";
 
 export class GameServiceError extends Error {
   status: number;
@@ -54,30 +53,29 @@ export class GameServiceError extends Error {
   }
 }
 
-import { InMemoryLockProvider, LockProvider } from "./lockProvider";
-import { InMemoryMatchmakingStore, MatchmakingStore } from "./matchmakingStore";
-import { Broadcaster, InMemoryBroadcaster } from "./broadcaster";
-import {
-  TimerScheduler,
-  InMemoryTimerScheduler,
-  TimerHandlers,
-  MatchmakingSweepScheduler,
-  InMemoryMatchmakingSweepScheduler,
-} from "./timerQueue";
-import { computeNewRatings, DEFAULT_RATING } from "./elo";
+import mongoose, { isValidObjectId } from "mongoose";
+import { track } from "../analytics/openpanel";
 import GameAccount from "../models/GameAccount";
 import {
-  onGameCompleted as checkGameAchievements,
   onEloUpdated as checkEloAchievements,
   onFirstMoveMade as checkFirstMoveAchievement,
+  onGameCompleted as checkGameAchievements,
   onPieceCaptured as checkPieceCapturedAchievement,
   onSpectateStarted as checkSpectateAchievement,
-  setAchievementNotifier,
   setAchievementChangeNotifier,
+  setAchievementNotifier,
 } from "./achievementService";
-import mongoose, { isValidObjectId } from "mongoose";
-import type { RatingStatus } from "../models/GameRoom";
-import { track } from "../analytics/openpanel";
+import { type Broadcaster, InMemoryBroadcaster } from "./broadcaster";
+import { DEFAULT_RATING, computeNewRatings } from "./elo";
+import { InMemoryLockProvider, type LockProvider } from "./lockProvider";
+import { InMemoryMatchmakingStore, type MatchmakingStore } from "./matchmakingStore";
+import {
+  InMemoryMatchmakingSweepScheduler,
+  InMemoryTimerScheduler,
+  type MatchmakingSweepScheduler,
+  type TimerHandlers,
+  type TimerScheduler,
+} from "./timerQueue";
 
 type RoomConnections = Map<WebSocket, string>;
 
@@ -3052,10 +3050,10 @@ export class GameService {
 }
 
 import { getRedisClient } from "../config/redisClient";
+import { RedisBroadcaster } from "./broadcaster";
 import { RedisLockProvider } from "./lockProvider";
 import { RedisMatchmakingStore } from "./matchmakingStore";
-import { RedisBroadcaster } from "./broadcaster";
-import { BullMQTimerScheduler, BullMQMatchmakingSweepScheduler } from "./timerQueue";
+import { BullMQMatchmakingSweepScheduler, BullMQTimerScheduler } from "./timerQueue";
 
 /**
  * Build the singleton GameService.

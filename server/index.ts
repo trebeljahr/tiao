@@ -9,15 +9,15 @@ installCrashGuard();
 
 import { createServer } from "http";
 import WebSocket, { WebSocketServer } from "ws";
+import type { ClientToServerMessage } from "../shared/src";
 import app from "./app";
+import { verifySessionToken } from "./auth/desktopSessionManager";
+import { getPlayerFromUpgradeRequest } from "./auth/sessionHelper";
 import { PORT } from "./config/envVars";
 import { connectToDB, disconnectFromDB } from "./db";
-import { gameService, GameServiceError } from "./game/gameService";
-import { getPlayerFromUpgradeRequest } from "./auth/sessionHelper";
-import { verifySessionToken } from "./auth/desktopSessionManager";
-import { isAllowedOrigin } from "./lib/wsOrigin";
-import { ClientToServerMessage } from "../shared/src";
+import { GameServiceError, gameService } from "./game/gameService";
 import { createLogger } from "./lib/logger";
+import { isAllowedOrigin } from "./lib/wsOrigin";
 
 const log = createLogger("ws");
 const serverLog = createLogger("http");

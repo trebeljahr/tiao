@@ -171,9 +171,6 @@ describe("policy strings", () => {
       /\bhttp:/.test(connectSrc),
       `dev connect-src must permit http: — got '${connectSrc}'`,
     );
-    assert.ok(
-      /\bws:/.test(connectSrc),
-      `dev connect-src must permit ws: — got '${connectSrc}'`,
-    );
+    assert.ok(/\bws:/.test(connectSrc), `dev connect-src must permit ws: — got '${connectSrc}'`);
   });
 });

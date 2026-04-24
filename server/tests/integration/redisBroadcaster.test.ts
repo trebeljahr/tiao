@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { describe, test, before, beforeEach, afterEach, after } from "node:test";
+import { after, afterEach, before, beforeEach, describe, test } from "node:test";
 import Redis from "ioredis";
 import { RedisBroadcaster } from "../../game/broadcaster";
 import type { BroadcastChannel } from "../../game/broadcaster";

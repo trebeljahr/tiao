@@ -1,7 +1,7 @@
-import { useTranslations } from "next-intl";
 import { AchievementIcon } from "@/components/AchievementIcon";
-import { useAchievementName, useAchievementDescription } from "@/lib/achievementLabels";
+import { useAchievementDescription, useAchievementName } from "@/lib/achievementLabels";
 import type { AchievementDefinition, AchievementTier } from "@shared";
+import { useTranslations } from "next-intl";
 
 // ---------------------------------------------------------------------------
 // Tier styling — shared between AchievementsPage and the profile page so the

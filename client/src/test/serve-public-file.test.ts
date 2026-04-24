@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
-import { resolve, join } from "path";
+import { join, resolve } from "path";
+import { describe, expect, it, vi } from "vitest";
 
 // Mock fs before importing the module
 vi.mock("fs", () => ({

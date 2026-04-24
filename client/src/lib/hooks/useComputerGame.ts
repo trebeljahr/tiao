@@ -1,15 +1,15 @@
-import { useState, useEffect, useCallback, useRef } from "react";
 import type { GameSettings, PlayerColor, Position } from "@shared";
-import { isGameOver, undoLastTurn, jumpPiece, placePiece, confirmPendingJump } from "@shared";
-import { useLocalGame } from "./useLocalGame";
+import { confirmPendingJump, isGameOver, jumpPiece, placePiece, undoLastTurn } from "@shared";
+import type { GameState } from "@shared";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  type AIDifficulty,
   COMPUTER_THINK_MS,
+  type ComputerTurnPlan,
   randomComputerColor,
   requestComputerMove,
-  type AIDifficulty,
-  type ComputerTurnPlan,
 } from "../computer-ai";
-import type { GameState } from "@shared";
+import { useLocalGame } from "./useLocalGame";
 
 const AI_LINGER_MS = 600;
 const AI_JUMP_STEP_MS = 350;

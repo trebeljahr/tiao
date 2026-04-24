@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
-import { useTranslations } from "next-intl";
 import { useTournamentNextMatch } from "@/lib/hooks/useTournamentNextMatch";
+import { useTranslations } from "next-intl";
+import { useEffect } from "react";
 
 /**
  * Thin banner shown above the board when a tournament player has been

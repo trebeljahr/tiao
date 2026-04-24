@@ -1,4 +1,4 @@
-import { Document, Schema, model, models } from "mongoose";
+import { type Document, Schema, model, models } from "mongoose";
 
 export interface IRatingEntry {
   elo: number;

@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, act } from "@testing-library/react";
-import { useComputerGame } from "./useComputerGame";
 import { createInitialGameState } from "@shared";
+import { act, renderHook } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { useComputerGame } from "./useComputerGame";
 
 // Store resolve/reject callbacks so tests can control when the AI "responds"
 let resolveAI: ((plan: any) => void) | null = null;

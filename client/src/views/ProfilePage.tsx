@@ -1,39 +1,39 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { FaGithub, FaGoogle, FaDiscord } from "react-icons/fa";
-import { useAuth } from "@/lib/AuthContext";
-import { useLobbyMessage } from "@/lib/LobbySocketContext";
-import { getAuthClient } from "@/lib/auth-client";
 import { BackButton } from "@/components/BackButton";
+import { BadgeSelector } from "@/components/BadgeSelector";
 import { PageLayout } from "@/components/PageLayout";
+import { AnimatedCard } from "@/components/ui/animated-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PaperCard } from "@/components/ui/paper-card";
-import { AnimatedCard } from "@/components/ui/animated-card";
 import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { PaperCard } from "@/components/ui/paper-card";
 import { PasswordInput } from "@/components/ui/password-input";
+import { SkeletonBlock, SkeletonPage } from "@/components/ui/skeleton";
+import { Link } from "@/i18n/navigation";
+import { useAnalyticsConsent } from "@/lib/AnalyticsConsent";
+import { useAuth } from "@/lib/AuthContext";
+import { useLobbyMessage } from "@/lib/LobbySocketContext";
 import {
-  getAccountProfile,
   type AccountProfile,
+  type UserExportRow,
+  createDataExport,
+  deleteAccount,
+  deleteDataExport,
+  getAccountProfile,
+  getDataExportDownloadUrl,
+  listDataExports,
   updateAccountProfile,
   uploadAccountProfilePicture,
-  deleteAccount,
-  listDataExports,
-  createDataExport,
-  getDataExportDownloadUrl,
-  deleteDataExport,
-  type UserExportRow,
 } from "@/lib/api";
+import { requestEmailChange, setAccountPassword } from "@/lib/api";
+import { getAuthClient } from "@/lib/auth-client";
 import { isNetworkError, readableError, toastError } from "@/lib/errors";
-import { setAccountPassword, requestEmailChange } from "@/lib/api";
-import { toast } from "sonner";
-import { SkeletonBlock, SkeletonPage } from "@/components/ui/skeleton";
-import { BadgeSelector } from "@/components/BadgeSelector";
-import { useAnalyticsConsent } from "@/lib/AnalyticsConsent";
-import { Link } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { FaDiscord, FaGithub, FaGoogle } from "react-icons/fa";
+import { toast } from "sonner";
 
 const PROFILE_PIC_SIZE = 512;
 const PROFILE_PIC_QUALITY = 0.85;

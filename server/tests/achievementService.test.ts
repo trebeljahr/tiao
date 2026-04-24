@@ -2,14 +2,13 @@ process.env.TOKEN_SECRET = "test-secret";
 process.env.MONGODB_URI = "mongodb://127.0.0.1:27017/tiao-test";
 process.env.NODE_ENV = "test";
 
-import { describe, test, beforeEach } from "node:test";
 import assert from "node:assert/strict";
+import { describe, test } from "node:test";
 import {
   ACHIEVEMENTS,
-  getAchievementById,
-  ACHIEVEMENT_IDS,
   ACHIEVEMENT_CATEGORIES,
-  type AchievementDefinition,
+  ACHIEVEMENT_IDS,
+  getAchievementById,
 } from "../../shared/src/achievements";
 
 // ---------------------------------------------------------------------------

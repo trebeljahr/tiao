@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { signUpViaAPI, waitForAppReady } from "./helpers";
 
 test("game review mode shows review nav buttons and allows friend requests", async ({

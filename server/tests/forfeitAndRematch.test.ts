@@ -3,7 +3,7 @@ import { test } from "node:test";
 import WebSocket from "ws";
 import type { PlayerIdentity } from "../../shared/src";
 import { SCORE_TO_WIN, getWinner } from "../../shared/src";
-import { GameService, GameServiceError, DELETED_PLAYER_NAME } from "../game/gameService";
+import { DELETED_PLAYER_NAME, GameService, GameServiceError } from "../game/gameService";
 import { InMemoryGameRoomStore } from "../game/gameStore";
 
 function createPlayer(playerId: string, options: Partial<PlayerIdentity> = {}): PlayerIdentity {

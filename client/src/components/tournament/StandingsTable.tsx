@@ -1,6 +1,6 @@
+import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import type { TournamentGroupStanding } from "@shared";
 import { useTranslations } from "next-intl";
-import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 
 export function StandingsTable({
   standings,

@@ -13,9 +13,9 @@
  * all locale files).
  */
 
-import { useTranslations } from "next-intl";
 import { PageLayout } from "@/components/PageLayout";
 import { PaperCard } from "@/components/ui/paper-card";
+import { useTranslations } from "next-intl";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (

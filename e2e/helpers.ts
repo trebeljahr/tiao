@@ -1,4 +1,4 @@
-import { expect, Page } from "@playwright/test";
+import { type Page, expect } from "@playwright/test";
 
 /**
  * Wait for the page to be interactive. Most pages render the hamburger

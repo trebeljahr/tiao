@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type CopyGameIdButtonProps = {
   gameId: string;

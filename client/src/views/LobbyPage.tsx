@@ -1,44 +1,44 @@
 "use client";
-import { useState, useMemo, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { TIME_CONTROL_PRESETS, type PlayerColor } from "@shared";
-import { useAuth } from "@/lib/AuthContext";
-import { safeLocalStorage } from "@/lib/safeLocalStorage";
-import { useOnlineStatus } from "@/lib/hooks/useOnlineStatus";
 import { DesktopOfflineLobby } from "@/components/DesktopOfflineLobby";
+import { Navbar } from "@/components/Navbar";
+import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
+import { ActiveGamesList } from "@/components/game/ActiveGamesList";
+import { GameConfigBadge } from "@/components/game/GameConfigBadge";
+import { GameConfigDialog } from "@/components/game/GameConfigDialog";
+import { ColorDot, translatePlayerColor } from "@/components/game/GameShared";
+import { RematchInviteCard } from "@/components/game/RematchInviteCard";
+import { TournamentCard } from "@/components/tournament/TournamentCard";
+import { AnimatedCard } from "@/components/ui/animated-card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PaperCard } from "@/components/ui/paper-card";
-import { AnimatedCard } from "@/components/ui/animated-card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Dialog } from "@/components/ui/dialog";
-import { Navbar } from "@/components/Navbar";
-import { translatePlayerColor, ColorDot } from "@/components/game/GameShared";
-import { GameConfigBadge } from "@/components/game/GameConfigBadge";
-import { RematchInviteCard } from "@/components/game/RematchInviteCard";
-import { GameConfigDialog } from "@/components/game/GameConfigDialog";
-import { useGameConfig } from "@/lib/hooks/useGameConfig";
-import { ActiveGamesList } from "@/components/game/ActiveGamesList";
-import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
-import { useGamesIndex } from "@/lib/hooks/useGamesIndex";
-import { useSocialData } from "@/lib/hooks/useSocialData";
-import { useSocialNotifications } from "@/lib/SocialNotificationsContext";
-import { scrollToAndWiggle } from "@/lib/scroll-to-and-wiggle";
-import { useTournamentList } from "@/lib/hooks/useTournamentList";
-import { TournamentCard } from "@/components/tournament/TournamentCard";
+import { Input } from "@/components/ui/input";
+import { PaperCard } from "@/components/ui/paper-card";
+import { SkeletonCard } from "@/components/ui/skeleton";
+import { useAuth } from "@/lib/AuthContext";
 import { useLobbyMessage } from "@/lib/LobbySocketContext";
-import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { useSocialNotifications } from "@/lib/SocialNotificationsContext";
 import {
   createMultiplayerGame,
+  declineRematchRest,
   joinMultiplayerGame,
   requestRematchRest,
-  declineRematchRest,
 } from "@/lib/api";
 import { toastError } from "@/lib/errors";
-import { SkeletonCard } from "@/components/ui/skeleton";
+import { useGameConfig } from "@/lib/hooks/useGameConfig";
+import { useGamesIndex } from "@/lib/hooks/useGamesIndex";
+import { useOnlineStatus } from "@/lib/hooks/useOnlineStatus";
+import { useSocialData } from "@/lib/hooks/useSocialData";
+import { useTournamentList } from "@/lib/hooks/useTournamentList";
+import { safeLocalStorage } from "@/lib/safeLocalStorage";
+import { scrollToAndWiggle } from "@/lib/scroll-to-and-wiggle";
+import { cn } from "@/lib/utils";
+import { type PlayerColor, TIME_CONTROL_PRESETS } from "@shared";
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 
 /**
  * Top-level entry point.  In the desktop Electron build, when we're

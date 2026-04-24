@@ -1,18 +1,18 @@
 "use client";
-import { Suspense, useState, useCallback, useEffect, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
-import confetti from "canvas-confetti";
-import { useAuth } from "@/lib/AuthContext";
-import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
-import { markTutorialComplete } from "@/lib/api";
-import { op } from "@/lib/openpanel";
-import { cn } from "@/lib/utils";
-import { safeLocalStorage } from "@/lib/safeLocalStorage";
 import { InteractiveMiniBoard } from "@/components/tutorial/InteractiveMiniBoard";
 import { getTutorialSteps } from "@/components/tutorial/tutorialSteps";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/AuthContext";
+import { markTutorialComplete } from "@/lib/api";
+import { op } from "@/lib/openpanel";
+import { safeLocalStorage } from "@/lib/safeLocalStorage";
+import { cn } from "@/lib/utils";
+import confetti from "canvas-confetti";
+import { AnimatePresence, motion } from "framer-motion";
+import { useTranslations } from "next-intl";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 
 function fireBigConfetti() {
   const colors = [

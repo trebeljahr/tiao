@@ -1,11 +1,11 @@
-import { Document, Schema, model, models } from "mongoose";
+import { type Document, Schema, model, models } from "mongoose";
 import type {
   GameState,
   MultiplayerRematchState,
-  MultiplayerTakebackState,
-  MultiplayerSeatAssignments,
   MultiplayerRoomType,
+  MultiplayerSeatAssignments,
   MultiplayerStatus,
+  MultiplayerTakebackState,
 } from "../../shared/src";
 
 /**

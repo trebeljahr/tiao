@@ -1,4 +1,4 @@
-import { Document, Schema, model, models } from "mongoose";
+import { type Document, Schema, model, models } from "mongoose";
 
 /**
  * Async "Download my data" GDPR art. 15 export job.

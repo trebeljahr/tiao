@@ -1,4 +1,3 @@
-import { useState, useCallback, useEffect, useRef } from "react";
 import type {
   AuthResponse,
   LobbyServerMessage,
@@ -6,6 +5,7 @@ import type {
   MultiplayerSnapshot,
   TimeControl,
 } from "@shared";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLobbyMessage, useLobbySocket } from "../LobbySocketContext";
 import { toastError } from "../errors";
 

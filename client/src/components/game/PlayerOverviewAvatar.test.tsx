@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { PlayerOverviewAvatar } from "./GameShared";
 
 // Mock framer-motion to avoid animation issues in tests
@@ -61,10 +61,7 @@ describe("PlayerOverviewAvatar", () => {
 
     const img = screen.getByRole("img");
     expect(img).toBeInTheDocument();
-    expect(img).toHaveAttribute(
-      "src",
-      "https://avatars.githubusercontent.com/u/12345",
-    );
+    expect(img).toHaveAttribute("src", "https://avatars.githubusercontent.com/u/12345");
     expect(img).toHaveAttribute("alt", "sso-user");
   });
 
@@ -73,18 +70,14 @@ describe("PlayerOverviewAvatar", () => {
       <PlayerOverviewAvatar
         player={{
           displayName: "google-user",
-          profilePicture:
-            "https://lh3.googleusercontent.com/a/some-avatar-id",
+          profilePicture: "https://lh3.googleusercontent.com/a/some-avatar-id",
         }}
       />,
     );
 
     const img = screen.getByRole("img");
     expect(img).toBeInTheDocument();
-    expect(img).toHaveAttribute(
-      "src",
-      "https://lh3.googleusercontent.com/a/some-avatar-id",
-    );
+    expect(img).toHaveAttribute("src", "https://lh3.googleusercontent.com/a/some-avatar-id");
   });
 
   it("renders an img tag for SSO profile pictures from Discord", () => {
@@ -99,16 +92,11 @@ describe("PlayerOverviewAvatar", () => {
 
     const img = screen.getByRole("img");
     expect(img).toBeInTheDocument();
-    expect(img).toHaveAttribute(
-      "src",
-      "https://cdn.discordapp.com/avatars/123/abc.png",
-    );
+    expect(img).toHaveAttribute("src", "https://cdn.discordapp.com/avatars/123/abc.png");
   });
 
   it("renders initials fallback when no profilePicture is set", () => {
-    const { container } = render(
-      <PlayerOverviewAvatar player={{ displayName: "testuser" }} />,
-    );
+    const { container } = render(<PlayerOverviewAvatar player={{ displayName: "testuser" }} />);
 
     // No img tag should be present
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
@@ -136,10 +124,7 @@ describe("PlayerOverviewAvatar", () => {
 
   it("renders anonymous avatar when anonymous flag is set and no picture", () => {
     const { container } = render(
-      <PlayerOverviewAvatar
-        player={{ displayName: "anon" }}
-        anonymous={true}
-      />,
+      <PlayerOverviewAvatar player={{ displayName: "anon" }} anonymous={true} />,
     );
 
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
@@ -164,9 +149,7 @@ describe("PlayerOverviewAvatar", () => {
   });
 
   it("renders ? initial when displayName is undefined and no picture", () => {
-    const { container } = render(
-      <PlayerOverviewAvatar player={{}} />,
-    );
+    const { container } = render(<PlayerOverviewAvatar player={{}} />);
 
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
     expect(container.textContent).toBe("?");

@@ -1,7 +1,7 @@
-import { useSyncExternalStore, useCallback } from "react";
 import { type BoardTheme, DEFAULT_THEME_ID, getTheme } from "@/components/game/boardThemes";
 import { op } from "@/lib/openpanel";
 import { safeLocalStorage } from "@/lib/safeLocalStorage";
+import { useCallback, useSyncExternalStore } from "react";
 
 const STORAGE_KEY = "tiao:boardTheme";
 

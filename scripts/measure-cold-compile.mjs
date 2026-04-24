@@ -48,10 +48,10 @@
 //   median boot:    5907 ms
 
 import { spawn } from "child_process";
-import { rm, access } from "fs/promises";
+import { connect, createServer as createNetServer } from "net";
 import { resolve } from "path";
 import { fileURLToPath } from "url";
-import { createServer as createNetServer, connect } from "net";
+import { access, rm } from "fs/promises";
 
 const __dirname = resolve(fileURLToPath(import.meta.url), "..");
 const repoRoot = resolve(__dirname, "..");

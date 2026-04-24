@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { getAuthClient } from "@/lib/auth-client";
-import { useAuth } from "@/lib/AuthContext";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/password-input";
+import { useAuth } from "@/lib/AuthContext";
+import { getAuthClient } from "@/lib/auth-client";
+import { useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
+import { useState } from "react";
 
 export function ResetPasswordPage() {
   const searchParams = useSearchParams();

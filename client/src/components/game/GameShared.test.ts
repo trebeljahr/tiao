@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { formatPlayerColor, translatePlayerColor, getSummaryStatusLabel } from "./GameShared";
 import type { MultiplayerGameSummary } from "@shared";
+import { describe, expect, it } from "vitest";
+import { formatPlayerColor, getSummaryStatusLabel, translatePlayerColor } from "./GameShared";
 
 describe("formatPlayerColor", () => {
   it("capitalises 'white' to 'White'", () => {

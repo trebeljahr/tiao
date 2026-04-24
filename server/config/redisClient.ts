@@ -1,6 +1,6 @@
 import Redis from "ioredis";
-import { REDIS_URL } from "./envVars";
 import { createLogger } from "../lib/logger";
+import { REDIS_URL } from "./envVars";
 
 const log = createLogger("redis");
 

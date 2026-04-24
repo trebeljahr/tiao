@@ -1,7 +1,7 @@
-import { describe, it, expect, afterEach } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+import { type GameState, createInitialGameState, getJumpTargets } from "@shared";
+import { act, renderHook } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
 import { useLocalGame } from "./useLocalGame";
-import { createInitialGameState, GameState, getJumpTargets } from "@shared";
 
 /**
  * Helper: build a game state where white and black pieces are positioned

@@ -19,8 +19,8 @@
  *   - flip the settings toggle (status === "granted" | "denied")
  */
 
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { disableTracking, enableTracking, openPanelConfigured } from "@/lib/openpanel";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 
 export type AnalyticsConsentStatus = "pending" | "granted" | "denied";
 

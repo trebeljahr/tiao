@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
-import { createInitialGameState, BOARD_SIZE, getJumpTargets } from "@shared";
+import { BOARD_SIZE, createInitialGameState, getJumpTargets } from "@shared";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { touchToGridPosition } from "./TiaoBoard";
 
 // ---------- touchToGridPosition unit tests ----------

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { waitForAppReady } from "./helpers";
 
 // Text fragments from client/messages/en.json — kept short and distinctive

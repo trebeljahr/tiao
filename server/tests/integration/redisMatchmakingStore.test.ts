@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
-import { describe, test, before, beforeEach, after } from "node:test";
+import { after, before, beforeEach, describe, test } from "node:test";
 import Redis from "ioredis";
 import type { PlayerIdentity, TimeControl } from "../../../shared/src";
-import { RedisMatchmakingStore, type MatchmakingQueueEntry } from "../../game/matchmakingStore";
+import { type MatchmakingQueueEntry, RedisMatchmakingStore } from "../../game/matchmakingStore";
 
 // RedisMatchmakingStore hard-codes the key namespace ("tiao:matchmaking:*"),
 // so we isolate from the running dev server by using a dedicated Redis

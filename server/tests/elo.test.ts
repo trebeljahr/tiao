@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { computeExpectedScore, getKFactor, computeNewRatings, DEFAULT_RATING } from "../game/elo";
+import { DEFAULT_RATING, computeExpectedScore, computeNewRatings, getKFactor } from "../game/elo";
 
 describe("DEFAULT_RATING", () => {
   test("is 1500", () => {
