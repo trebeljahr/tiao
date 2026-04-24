@@ -135,6 +135,7 @@ let openPanelPromise: Promise<typeof import("@openpanel/web")> | null = null;
 function getOpenPanel(): Promise<typeof import("@openpanel/web")> | null {
   if (process.env.NODE_ENV !== "production" && !forceEnableInDev) return null;
   if (!openPanelConfigured) return null;
+  // biome-ignore lint/suspicious/noAssignInExpressions: lazy-init singleton via ??=
   return (openPanelPromise ??= import("@openpanel/web"));
 }
 

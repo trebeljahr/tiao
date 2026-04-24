@@ -504,6 +504,7 @@ function quiescence(
 
   const standPat = evaluate(state);
   if (standPat >= beta) return beta;
+  // biome-ignore lint/style/noParameterAssign: alpha-beta pruning mutates window
   if (alpha < standPat) alpha = standPat;
   if (depthLeft <= 0) return alpha;
 
@@ -517,6 +518,7 @@ function quiescence(
     const newState = applyEngineMove(state, move);
     const score = -quiescence(newState, -beta, -alpha, depthLeft - 1, ctx);
     if (score >= beta) return beta;
+    // biome-ignore lint/style/noParameterAssign: alpha-beta pruning mutates window
     if (score > alpha) alpha = score;
   }
 
@@ -616,6 +618,7 @@ function negamax(
     }
 
     if (score > alpha) {
+      // biome-ignore lint/style/noParameterAssign: alpha-beta pruning mutates window
       alpha = score;
       flag = "exact";
     }

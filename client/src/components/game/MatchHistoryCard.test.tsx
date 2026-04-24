@@ -232,7 +232,7 @@ describe("MatchHistoryCard", () => {
     // mobile, which keeps the row left-aligned under the name).
     const statsContainers = container.querySelectorAll(".flex.shrink-0.items-center.sm\\:ml-auto");
     expect(statsContainers.length).toBe(2);
-    statsContainers.forEach((el) => {
+    for (const el of statsContainers) {
       // Single flex row — no flex-col / sm:flex-row toggling anymore.
       expect(el.className).not.toContain("flex-col");
       // Left-aligned on mobile — no ml-auto unless at sm+.
@@ -240,7 +240,7 @@ describe("MatchHistoryCard", () => {
       // "|" separators sit as direct text children between groups.
       const pipes = Array.from(el.children).filter((c) => c.textContent === "|");
       expect(pipes.length).toBe(2);
-    });
+    }
     // The elo change is still rendered alongside the badge.
     expect(screen.getByText("+20")).toBeInTheDocument();
     expect(screen.getByText("-20")).toBeInTheDocument();
@@ -270,18 +270,18 @@ describe("MatchHistoryCard", () => {
     const { container } = render(<MatchHistoryCard {...defaultProps} />);
     const playerRows = container.querySelectorAll(".grid");
     expect(playerRows.length).toBeGreaterThanOrEqual(2);
-    playerRows.forEach((row) => {
+    for (const row of playerRows) {
       expect(row.className).toContain("grid-cols-[auto_1fr]");
       expect(row.className).toContain("sm:grid-cols-[auto_1fr_auto]");
-    });
+    }
     // The stats cell spans both columns on mobile (so it sits below the
     // dot + name row and aligns to the very left of the card, not indented
     // under the name column) and falls back to the natural third column at
     // sm+.
     const statsCells = container.querySelectorAll(".col-span-2");
     expect(statsCells.length).toBeGreaterThanOrEqual(2);
-    statsCells.forEach((cell) => {
+    for (const cell of statsCells) {
       expect(cell.className).toContain("sm:col-auto");
-    });
+    }
   });
 });

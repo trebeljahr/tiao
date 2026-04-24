@@ -49,7 +49,12 @@ export default function ErrorPage({
               <Button variant="outline" className="border-[#dcc7a2] px-6" onClick={reset}>
                 {t("tryAgain")}
               </Button>
-              <Button className="px-6" onClick={() => (window.location.href = "/")}>
+              <Button
+                className="px-6"
+                onClick={() => {
+                  window.location.href = "/";
+                }}
+              >
                 {t("backToLobby")}
               </Button>
             </div>

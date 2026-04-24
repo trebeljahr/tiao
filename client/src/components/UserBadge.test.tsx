@@ -90,9 +90,9 @@ describe("UserBadge", () => {
   });
 
   it("renders every defined badge without crashing", () => {
-    ALL_BADGE_IDS.forEach((id) => {
+    for (const id of ALL_BADGE_IDS) {
       const { container } = render(<UserBadge badge={id} />);
       expect(container.firstElementChild).toBeTruthy();
-    });
+    }
   });
 });

@@ -35,9 +35,15 @@ const sharedDir = path.resolve(__dirname, "../shared/src");
 let _cachedVersion;
 function getAppVersion() {
   if (_cachedVersion) return _cachedVersion;
-  if (process.env.APP_VERSION) return (_cachedVersion = process.env.APP_VERSION);
+  if (process.env.APP_VERSION) {
+    _cachedVersion = process.env.APP_VERSION;
+    return _cachedVersion;
+  }
   const pkgPath = path.resolve(__dirname, "../package.json");
-  if (!existsSync(pkgPath)) return (_cachedVersion = "0.0.0");
+  if (!existsSync(pkgPath)) {
+    _cachedVersion = "0.0.0";
+    return _cachedVersion;
+  }
   const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
   try {
     const commitCount = execSync("git rev-list --count HEAD", { encoding: "utf-8" }).trim();
@@ -154,9 +160,9 @@ const nextConfig = {
     config.resolve.alias["@shared"] = sharedDir;
 
     // Include shared dir in Next.js TS loader (no shared/package.json needed)
-    config.module.rules.forEach((rule) => {
+    for (const rule of config.module.rules) {
       if (rule.oneOf) {
-        rule.oneOf.forEach((oneOfRule) => {
+        for (const oneOfRule of rule.oneOf) {
           if (oneOfRule.test?.toString().includes("tsx|ts") && oneOfRule.include) {
             if (Array.isArray(oneOfRule.include)) {
               oneOfRule.include.push(sharedDir);
@@ -164,9 +170,9 @@ const nextConfig = {
               oneOfRule.include = [oneOfRule.include, sharedDir];
             }
           }
-        });
+        }
       }
-    });
+    }
 
     // Suppress next-intl dynamic import parsing warning (cosmetic, no functional impact)
     config.ignoreWarnings = [...(config.ignoreWarnings || []), { module: /next-intl/ }];

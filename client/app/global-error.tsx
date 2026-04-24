@@ -53,7 +53,9 @@ export default function GlobalError({
             Try again
           </button>
           <button
-            onClick={() => (window.location.href = "/")}
+            onClick={() => {
+              window.location.href = "/";
+            }}
             style={{
               padding: "0.5rem 1.5rem",
               border: "none",

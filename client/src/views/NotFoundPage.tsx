@@ -26,7 +26,12 @@ export function NotFoundPage() {
           </div>
           <h2 className="font-display text-2xl font-bold text-[#2b1e14]">{t("title")}</h2>
           <p className="max-w-sm text-sm text-[#6e5b48]">{t("description")}</p>
-          <Button className="mt-2 px-8" onClick={() => (window.location.href = "/")}>
+          <Button
+            className="mt-2 px-8"
+            onClick={() => {
+              window.location.href = "/";
+            }}
+          >
             {t("backToLobby")}
           </Button>
         </CardContent>

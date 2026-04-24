@@ -309,6 +309,7 @@ export class TournamentService implements TournamentGameCallback {
 
     // Auto-generate invite code for private tournaments if not provided
     if (settings.visibility === "private" && !settings.inviteCode) {
+      // biome-ignore lint/style/noParameterAssign: enrich settings with generated invite code
       settings = { ...settings, inviteCode: generateInviteCode() };
     }
 

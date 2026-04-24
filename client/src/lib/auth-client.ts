@@ -39,5 +39,6 @@ let clientPromise: ReturnType<typeof loadClient> | null = null;
  * dynamic import; subsequent calls return the cached promise.
  */
 export function getAuthClient() {
+  // biome-ignore lint/suspicious/noAssignInExpressions: lazy-init singleton via ??=
   return (clientPromise ??= loadClient());
 }

@@ -71,6 +71,7 @@ let sentryPromise: Promise<typeof import("@sentry/browser")> | null = null;
 function getSentry(): Promise<typeof import("@sentry/browser")> | null {
   if (process.env.NODE_ENV !== "production") return null;
   if (!glitchtipEnabled) return null;
+  // biome-ignore lint/suspicious/noAssignInExpressions: lazy-init singleton via ??=
   return (sentryPromise ??= import("@sentry/browser"));
 }
 
