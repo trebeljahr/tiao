@@ -1,6 +1,7 @@
 {
   "recommendations": [
     "biomejs.biome",
+    "unifiedjs.vscode-mdx",
     "eamodio.gitlens"
   ]
 }
