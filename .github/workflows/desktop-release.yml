@@ -65,24 +65,26 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v6
 
+      - uses: pnpm/action-setup@v4
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: npm
+          cache: pnpm
           cache-dependency-path: |
-            package-lock.json
-            client/package-lock.json
-            server/package-lock.json
-            desktop/package-lock.json
+            pnpm-lock.yaml
+            client/pnpm-lock.yaml
+            server/pnpm-lock.yaml
+            desktop/pnpm-lock.yaml
 
       - name: Install root + all workspaces (incl. desktop)
-        # SKIP_DESKTOP is NOT set — we want `npm --prefix desktop install`
+        # SKIP_DESKTOP is NOT set — we want `pnpm --dir desktop install`
         # to run so electron + electron-builder are available below.
-        run: npm install
+        run: pnpm install
 
       - name: Build static export for desktop
-        run: npm --prefix client run build:desktop
+        run: pnpm --dir client run build:desktop
         env:
           NEXT_PUBLIC_PLATFORM: desktop
           NEXT_PUBLIC_DESKTOP_API_URL: https://api.playtiao.com
@@ -90,10 +92,10 @@ jobs:
       - name: Stage client bundle into desktop/
         # Mirror what desktop/scripts/release.sh does so the protocol
         # handler finds client-bundle/ at package time.
-        run: npm --prefix desktop run dev:build-client
+        run: pnpm --dir desktop run dev:build-client
 
       - name: Package
-        run: npm --prefix desktop run package
+        run: pnpm --dir desktop run package
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Desktop build-time constants baked into the shipped JS.

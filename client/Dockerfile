@@ -47,15 +47,17 @@ ARG NEXT_PUBLIC_WS_URL
 ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
 ENV NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL}
 
-COPY client/package*.json client/
+RUN npm install -g pnpm@10.33.2
 
-RUN npm --prefix client ci
+COPY client/package.json client/pnpm-lock.yaml client/
+
+RUN pnpm --dir client install --frozen-lockfile
 
 COPY package.json ./
 COPY shared ./shared
 COPY client ./client
 
-RUN npm --prefix client run build
+RUN pnpm --dir client run build
 
 FROM node:24.14.1-bookworm-slim AS runtime
 WORKDIR /app

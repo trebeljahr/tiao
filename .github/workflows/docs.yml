@@ -28,29 +28,31 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v6
 
+      - uses: pnpm/action-setup@v4
+
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
-          cache: npm
+          cache: pnpm
           cache-dependency-path: |
-            docs-site/package-lock.json
-            server/package-lock.json
+            docs-site/pnpm-lock.yaml
+            server/pnpm-lock.yaml
 
       - name: Install server dependencies
-        run: npm --prefix server ci
+        run: pnpm --dir server install --frozen-lockfile
 
       - name: Install docs-site dependencies
-        run: npm --prefix docs-site ci --ignore-scripts
+        run: pnpm --dir docs-site install --frozen-lockfile --ignore-scripts
 
       - name: Generate OpenAPI spec
-        run: npx tsx server/scripts/generate-openapi.ts
+        run: pnpm dlx tsx server/scripts/generate-openapi.ts
 
       - name: Generate API docs from OpenAPI spec
-        run: npm --prefix docs-site run generate:api-docs
+        run: pnpm --dir docs-site run generate:api-docs
 
       - name: Build docs site
-        run: npm --prefix docs-site run build
+        run: pnpm --dir docs-site run build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4

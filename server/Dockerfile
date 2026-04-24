@@ -1,9 +1,11 @@
 FROM node:24.14.1-bookworm-slim AS deps
 WORKDIR /app
 
-COPY server/package*.json server/
+RUN npm install -g pnpm@10.33.2
 
-RUN npm --prefix server ci
+COPY server/package.json server/pnpm-lock.yaml server/
+
+RUN pnpm --dir server install --frozen-lockfile
 
 FROM deps AS build
 WORKDIR /app
@@ -11,8 +13,8 @@ WORKDIR /app
 COPY shared ./shared
 COPY server ./server
 
-RUN npm --prefix server run build
-RUN npm --prefix server prune --omit=dev
+RUN pnpm --dir server run build
+RUN pnpm --dir server install --prod --frozen-lockfile --ignore-scripts
 
 FROM node:24.14.1-bookworm-slim AS runtime
 WORKDIR /app/server

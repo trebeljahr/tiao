@@ -15,38 +15,28 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v6
 
+      - uses: pnpm/action-setup@v4
+
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            client/pnpm-lock.yaml
+            server/pnpm-lock.yaml
 
-      - name: Cache node_modules
-        id: nm-cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            client/node_modules
-            server/node_modules
-          key: nm-${{ runner.os }}-${{ hashFiles('package-lock.json', 'client/package-lock.json', 'server/package-lock.json') }}
-
-      - name: Install root dependencies
-        if: steps.nm-cache.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
-
-      - name: Install client dependencies
-        if: steps.nm-cache.outputs.cache-hit != 'true'
-        run: npm --prefix client ci
-
-      - name: Install server dependencies
-        if: steps.nm-cache.outputs.cache-hit != 'true'
-        run: npm --prefix server ci
+      - name: Install dependencies
+        env:
+          SKIP_DESKTOP: "1"
+        run: pnpm install --frozen-lockfile
 
       - name: Build repo
-        run: npm run build
+        run: pnpm run build
 
       - name: Run unit tests
-        run: npm run test:unit
+        run: pnpm run test:unit
 
   integration:
     runs-on: ubuntu-latest
@@ -64,30 +54,27 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v6
 
+      - uses: pnpm/action-setup@v4
+
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            server/pnpm-lock.yaml
 
-      - name: Cache node_modules
-        id: nm-cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            server/node_modules
-          key: nm-integration-${{ runner.os }}-${{ hashFiles('package-lock.json', 'server/package-lock.json') }}
-
-      - name: Install root dependencies
-        if: steps.nm-cache.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
+      - name: Install dependencies
+        env:
+          SKIP_DESKTOP: "1"
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Install server dependencies
-        if: steps.nm-cache.outputs.cache-hit != 'true'
-        run: npm --prefix server ci
+        run: pnpm --dir server install --frozen-lockfile
 
       - name: Run integration tests
-        run: npm run test:integration
+        run: pnpm run test:integration
 
   e2e:
     runs-on: ubuntu-latest
@@ -109,39 +96,29 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v6
 
+      - uses: pnpm/action-setup@v4
+
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            client/pnpm-lock.yaml
+            server/pnpm-lock.yaml
 
-      - name: Cache node_modules
-        id: nm-cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            client/node_modules
-            server/node_modules
-          key: nm-e2e-${{ runner.os }}-${{ hashFiles('package-lock.json', 'client/package-lock.json', 'server/package-lock.json') }}
-
-      - name: Install root dependencies
-        if: steps.nm-cache.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
-
-      - name: Install client dependencies
-        if: steps.nm-cache.outputs.cache-hit != 'true'
-        run: npm --prefix client ci
-
-      - name: Install server dependencies
-        if: steps.nm-cache.outputs.cache-hit != 'true'
-        run: npm --prefix server ci
+      - name: Install dependencies
+        env:
+          SKIP_DESKTOP: "1"
+        run: pnpm install --frozen-lockfile
 
       - name: Cache Playwright browsers
         id: playwright-cache
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Start MinIO and install Playwright (parallel)
         run: |
@@ -155,9 +132,9 @@ jobs:
 
           # Install Playwright while MinIO starts
           if [ "${{ steps.playwright-cache.outputs.cache-hit }}" != "true" ]; then
-            npx playwright install --with-deps chromium
+            pnpm exec playwright install --with-deps chromium
           else
-            npx playwright install-deps chromium
+            pnpm exec playwright install-deps chromium
           fi
 
           # Now initialize MinIO bucket (should be ready by now)
@@ -174,7 +151,7 @@ jobs:
         # `test:e2e` builds the client once then runs playwright; playwright's
         # webServer starts the prebuilt prod server once for the whole suite
         # and all tests (both workers) share it. No per-test rebuild.
-        run: npm run test:e2e
+        run: pnpm run test:e2e
         env:
           CI: "true"
           MONGODB_URI: mongodb://127.0.0.1:27018/tiao-e2e
