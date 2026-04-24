@@ -9,7 +9,7 @@ import { captureException } from "@/lib/glitchtip";
 import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 
-export default function Error({
+export default function ErrorPage({
   error,
   reset,
 }: {

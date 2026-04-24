@@ -4,6 +4,7 @@ import {
   type FinishReason,
   type FriendActiveGameSummary,
   type GameSettings,
+  type GameState,
   type LobbyClientMessage,
   type MatchmakingState,
   type MultiplayerGameSummary,
@@ -15,6 +16,7 @@ import {
   type PlayerColor,
   type PlayerIdentity,
   type PlayerSlot,
+  type RuleResult,
   type TimeControl,
   type TurnRecord,
   confirmPendingJump,
@@ -1074,7 +1076,7 @@ export class GameService {
         throw new GameServiceError(403, "NOT_IN_GAME", "You are not seated in this game.");
       }
 
-      let result;
+      let result: RuleResult<GameState>;
       switch (message.type) {
         case "request-rematch": {
           const savedRoom = await this.requestRematch(room, playerColor);

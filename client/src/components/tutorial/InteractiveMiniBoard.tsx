@@ -175,7 +175,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
       (interaction.type === "try-and-fail" || interaction.type === "try-and-fail-border") &&
       triedIllegal
     ) {
-      if (posEq(pos, interaction.then)) {
+      if (posEq(pos, interaction.successAt)) {
         const next = cloneBoard(board);
         next[pos.y][pos.x] = color;
         setBoard(next);
@@ -402,7 +402,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
     }
     if (interaction.type === "try-and-fail" || interaction.type === "try-and-fail-border") {
       if (!triedIllegal) return { pos: interaction.illegal, label: t("_tryPlacingHere") };
-      return { pos: interaction.then, label: t("_placeHereInstead") };
+      return { pos: interaction.successAt, label: t("_placeHereInstead") };
     }
     return null;
   }

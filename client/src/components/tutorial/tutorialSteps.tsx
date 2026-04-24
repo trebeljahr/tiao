@@ -14,13 +14,13 @@ export type InteractionMode =
       type: "try-and-fail";
       illegal: Pos;
       errorMessage: string;
-      then: Pos;
+      successAt: Pos;
     }
   | {
       type: "try-and-fail-border";
       illegal: Pos;
       errorMessage: string;
-      then: Pos;
+      successAt: Pos;
     };
 
 export type HintArrow = { from: Pos; to: Pos };
@@ -175,7 +175,7 @@ export function getTutorialSteps(t: T): TutorialStep[] {
           type: "try-and-fail-border",
           illegal: { x: 0, y: 0 },
           errorMessage: t("_borderBasic_error"),
-          then: { x: 4, y: 4 },
+          successAt: { x: 4, y: 4 },
         },
         hintArrows: [{ from: { x: 2, y: 2 }, to: { x: 4, y: 4 } }],
         overlayHint: t("_borderBasic_desc"),
@@ -232,7 +232,7 @@ export function getTutorialSteps(t: T): TutorialStep[] {
           type: "try-and-fail",
           illegal: { x: 4, y: 3 },
           errorMessage: t("_clusterBasic_error"),
-          then: { x: 5, y: 1 },
+          successAt: { x: 5, y: 1 },
         },
         overlayHint: t("_clusterBasic_desc"),
       },

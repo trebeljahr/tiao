@@ -30,23 +30,31 @@ function corsOriginPredicate(
   // Same-origin requests, curl, or node scripts don't send an Origin
   // header — allow them.  CORS only applies to browser cross-origin
   // fetches, so a missing Origin is not a security issue here.
-  if (!requestOrigin) return callback(null, true);
+  if (!requestOrigin) {
+    callback(null, true);
+    return;
+  }
 
-  if (requestOrigin === DESKTOP_ORIGIN) return callback(null, true);
+  if (requestOrigin === DESKTOP_ORIGIN) {
+    callback(null, true);
+    return;
+  }
 
   if (FRONTEND_URL && requestOrigin === FRONTEND_URL) {
-    return callback(null, true);
+    callback(null, true);
+    return;
   }
 
   // Dev-only: accept any localhost origin.  In production with
   // FRONTEND_URL set, this branch is not reached.
   if (!FRONTEND_URL && process.env.NODE_ENV !== "production") {
     if (/^https?:\/\/localhost(:\d+)?$/.test(requestOrigin)) {
-      return callback(null, true);
+      callback(null, true);
+      return;
     }
   }
 
-  return callback(null, false);
+  callback(null, false);
 }
 
 export const configureApp = (app: Express): void => {
