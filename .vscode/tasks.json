@@ -1,0 +1,246 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "type": "shell",
+      "command": "pnpm build",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "build:client",
+      "type": "shell",
+      "command": "pnpm build:client",
+      "problemMatcher": []
+    },
+    {
+      "label": "build:server",
+      "type": "shell",
+      "command": "pnpm build:server",
+      "problemMatcher": []
+    },
+    {
+      "label": "dev",
+      "type": "shell",
+      "command": "pnpm dev",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "dev:parallel",
+      "type": "shell",
+      "command": "pnpm dev:parallel",
+      "problemMatcher": []
+    },
+    {
+      "label": "dev:fixed",
+      "type": "shell",
+      "command": "pnpm dev:fixed",
+      "problemMatcher": []
+    },
+    {
+      "label": "dev:lan",
+      "type": "shell",
+      "command": "pnpm dev:lan",
+      "problemMatcher": []
+    },
+    {
+      "label": "dev:docs",
+      "type": "shell",
+      "command": "pnpm dev:docs",
+      "problemMatcher": []
+    },
+    {
+      "label": "dev:docs:fixed",
+      "type": "shell",
+      "command": "pnpm dev:docs:fixed",
+      "problemMatcher": []
+    },
+    {
+      "label": "dev:desktop",
+      "type": "shell",
+      "command": "pnpm dev:desktop",
+      "problemMatcher": []
+    },
+    {
+      "label": "dev:desktop:prod",
+      "type": "shell",
+      "command": "pnpm dev:desktop:prod",
+      "problemMatcher": []
+    },
+    {
+      "label": "typecheck",
+      "type": "shell",
+      "command": "pnpm typecheck",
+      "problemMatcher": []
+    },
+    {
+      "label": "typecheck:client",
+      "type": "shell",
+      "command": "pnpm typecheck:client",
+      "problemMatcher": []
+    },
+    {
+      "label": "typecheck:server",
+      "type": "shell",
+      "command": "pnpm typecheck:server",
+      "problemMatcher": []
+    },
+    {
+      "label": "eslint",
+      "type": "shell",
+      "command": "pnpm eslint",
+      "problemMatcher": []
+    },
+    {
+      "label": "eslint:client",
+      "type": "shell",
+      "command": "pnpm eslint:client",
+      "problemMatcher": []
+    },
+    {
+      "label": "eslint:server",
+      "type": "shell",
+      "command": "pnpm eslint:server",
+      "problemMatcher": []
+    },
+    {
+      "label": "test",
+      "type": "shell",
+      "command": "pnpm test",
+      "problemMatcher": [],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "test:unit",
+      "type": "shell",
+      "command": "pnpm test:unit",
+      "problemMatcher": [],
+      "group": {
+        "kind": "test",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "test:integration",
+      "type": "shell",
+      "command": "pnpm test:integration",
+      "problemMatcher": [],
+      "group": {
+        "kind": "test",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "test:e2e",
+      "type": "shell",
+      "command": "pnpm test:e2e",
+      "problemMatcher": [],
+      "group": {
+        "kind": "test",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "client",
+      "type": "shell",
+      "command": "pnpm client",
+      "problemMatcher": []
+    },
+    {
+      "label": "server",
+      "type": "shell",
+      "command": "pnpm server",
+      "problemMatcher": []
+    },
+    {
+      "label": "docs",
+      "type": "shell",
+      "command": "pnpm docs",
+      "problemMatcher": []
+    },
+    {
+      "label": "docs:build",
+      "type": "shell",
+      "command": "pnpm docs:build",
+      "problemMatcher": []
+    },
+    {
+      "label": "dev:infra",
+      "type": "shell",
+      "command": "pnpm dev:infra",
+      "problemMatcher": []
+    },
+    {
+      "label": "dev:infra:stop",
+      "type": "shell",
+      "command": "pnpm dev:infra:stop",
+      "problemMatcher": []
+    },
+    {
+      "label": "dev:infra:reset",
+      "type": "shell",
+      "command": "pnpm dev:infra:reset",
+      "problemMatcher": []
+    },
+    {
+      "label": "dev:docker",
+      "type": "shell",
+      "command": "pnpm dev:docker",
+      "problemMatcher": []
+    },
+    {
+      "label": "dev:docker:logs",
+      "type": "shell",
+      "command": "pnpm dev:docker:logs",
+      "problemMatcher": []
+    },
+    {
+      "label": "dev:docker:stop",
+      "type": "shell",
+      "command": "pnpm dev:docker:stop",
+      "problemMatcher": []
+    },
+    {
+      "label": "dev:docker:rebuild",
+      "type": "shell",
+      "command": "pnpm dev:docker:rebuild",
+      "problemMatcher": []
+    },
+    {
+      "label": "format",
+      "type": "shell",
+      "command": "pnpm format",
+      "problemMatcher": []
+    },
+    {
+      "label": "format:check",
+      "type": "shell",
+      "command": "pnpm format:check",
+      "problemMatcher": []
+    },
+    {
+      "label": "lint",
+      "type": "shell",
+      "command": "pnpm lint",
+      "problemMatcher": []
+    },
+    {
+      "label": "check",
+      "type": "shell",
+      "command": "pnpm check",
+      "problemMatcher": []
+    }
+  ]
+}
