@@ -200,6 +200,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Bootstrap: check better-auth session → if none, create anonymous guest.
   // If we have cached auth, skip showing the loading state (background refresh).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   useEffect(() => {
     if (!cacheHydrated) return;
     let cancelled = false;
@@ -405,6 +406,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [loginEmail, loginPassword, applyAuth]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   const handleSignupSubmit = useCallback(async () => {
     if (signupPassword !== signupConfirmPassword) {
       setAuthDialogError("Passwords do not match.");

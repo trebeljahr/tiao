@@ -107,6 +107,7 @@ function TutorialPageInner() {
 
   // Fire tutorial_started exactly once per mount. Onboarding funnel needs
   // this as step 1 of [started → step_completed → finished].
+  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   useEffect(() => {
     op.track("tutorial_started", {
       from: fromGame ? "game" : fromMatchmaking ? "matchmaking" : "direct",
@@ -128,6 +129,7 @@ function TutorialPageInner() {
   const isInteractive = !!step.board;
   const isStepDone = completedSteps.has(currentStep);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   const goTo = useCallback(
     (index: number) => {
       if (index === currentStep) return;

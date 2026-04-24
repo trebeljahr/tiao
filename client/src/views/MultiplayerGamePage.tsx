@@ -340,6 +340,7 @@ export function MultiplayerGamePage() {
     }
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   useEffect(() => {
     if (!auth || !gameId || !readyToJoin) return;
     // Capture into a locally-scoped const so TypeScript's narrowing
@@ -742,6 +743,7 @@ export function MultiplayerGamePage() {
 
   // Toast for incoming takeback requests
   const lastTakebackToastRef = useRef<string | null>(null);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   useEffect(() => {
     const takebackRequester = multiplayerSnapshot?.takeback?.requestedBy;
     if (
@@ -772,6 +774,7 @@ export function MultiplayerGamePage() {
   // because the lobby already showed that notification before the player navigated here.
   const lastRematchToastRef = useRef(false);
   const initialRematchSuppressedRef = useRef(false);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   useEffect(() => {
     // Spectators should never see rematch toasts
     if (!playerSeat) return;

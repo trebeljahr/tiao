@@ -122,6 +122,7 @@ function OAuthErrorHandler() {
     }
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   useEffect(() => {
     const pending = pendingErrorRef.current;
     if (!pending) return;

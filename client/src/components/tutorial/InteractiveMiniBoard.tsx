@@ -122,6 +122,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
   const lastJump = hasPending ? pendingJumps[pendingJumps.length - 1] : null;
 
   // Reset on step change
+  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   useEffect(() => {
     setBoard(cloneBoard(initialBoard));
     setSelected(null);
@@ -139,6 +140,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
     completedRef.current = false;
   }, [resetKey, initialBoard, overlayHint]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   const complete = useCallback(() => {
     if (completedRef.current) return;
     completedRef.current = true;

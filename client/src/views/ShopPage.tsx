@@ -161,6 +161,7 @@ export function ShopPage() {
   );
 
   const hasFetchedRef = useRef(false);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   useEffect(() => {
     // First fetch shows loading skeleton; subsequent (auth change) fetches are silent
     void fetchCatalog(hasFetchedRef.current);
@@ -224,6 +225,7 @@ export function ShopPage() {
     [isAccount, t],
   );
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   useEffect(() => {
     const success = searchParams?.get("success");
     const cancelled = searchParams?.get("cancelled");

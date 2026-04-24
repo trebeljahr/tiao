@@ -205,6 +205,7 @@ export function TiaoBoard({
   });
 
   // Clear preview on state changes (turn switch, new move, disable)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   useEffect(() => {
     setMobilePreview(null);
     setMobilePreviewDragging(false);
@@ -212,6 +213,7 @@ export function TiaoBoard({
   }, [state.currentTurn, state.history.length, disabled]);
 
   // Entrance animation trigger
+  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   useEffect(() => {
     if (mobilePreview) {
       // Small delay to allow DOM to mount before triggering CSS transition
@@ -246,6 +248,7 @@ export function TiaoBoard({
     [disabled, zoom.handlers],
   );
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   const handleTouchMove = useCallback(
     (e: React.TouchEvent) => {
       if (!IS_TOUCH_DEVICE || !boardRef.current) return;
@@ -296,6 +299,7 @@ export function TiaoBoard({
     [zoom.handlers, zoom.gestureActiveRef, mobilePreview, state.positions],
   );
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   const handleTouchEnd = useCallback(
     (e: React.TouchEvent) => {
       if (!IS_TOUCH_DEVICE || !boardRef.current) return;

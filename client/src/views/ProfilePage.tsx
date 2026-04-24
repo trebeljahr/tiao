@@ -777,6 +777,7 @@ export function ProfilePage() {
   // Show toast for ?emailChange=success|expired|invalid|error from the email
   // change flow. OAuth ?error= params are handled globally by OAuthErrorHandler
   // in providers.tsx.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const emailChange = params.get("emailChange");

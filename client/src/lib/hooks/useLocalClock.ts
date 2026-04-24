@@ -31,6 +31,7 @@ export function useLocalClock(
   const lastTickRef = useRef(Date.now());
 
   // Reset clock when timeControl changes (new game)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   useEffect(() => {
     setClock({
       white: timeControl?.initialMs ?? 0,
