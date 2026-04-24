@@ -1,4 +1,4 @@
-import { execSync } from "child_process";
+import { execSync } from "node:child_process";
 import { cleanDatabase, closeDbConnection } from "./db-utils";
 
 async function globalSetup(): Promise<void> {

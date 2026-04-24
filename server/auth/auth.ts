@@ -171,7 +171,7 @@ export const auth = betterAuth({
             }
 
             // If the user already has a custom-uploaded picture, don't overwrite
-            if (account.profilePicture && account.profilePicture.includes("cloudfront")) return;
+            if (account.profilePicture?.includes("cloudfront")) return;
 
             const ssoImage = baUser?.image as string | null | undefined;
 

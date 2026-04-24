@@ -47,11 +47,11 @@
 //   median compile: 17402 ms  (min 17239, max 18015, stddev 338)
 //   median boot:    5907 ms
 
-import { spawn } from "child_process";
-import { connect, createServer as createNetServer } from "net";
-import { resolve } from "path";
-import { fileURLToPath } from "url";
-import { access, rm } from "fs/promises";
+import { spawn } from "node:child_process";
+import { access, rm } from "node:fs/promises";
+import { connect, createServer as createNetServer } from "node:net";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const __dirname = resolve(fileURLToPath(import.meta.url), "..");
 const repoRoot = resolve(__dirname, "..");
@@ -71,7 +71,7 @@ if (!Number.isFinite(runs) || runs < 1 || runs > 10) {
 
 /** Pick a free TCP port in the given range. Returns the port number. */
 function pickFreePort(min, max) {
-  return new Promise((res, rej) => {
+  return new Promise((res, _rej) => {
     const port = min + Math.floor(Math.random() * (max - min + 1));
     const server = createNetServer();
     server.once("error", () => res(pickFreePort(min, max))); // collision, retry

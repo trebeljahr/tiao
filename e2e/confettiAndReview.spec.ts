@@ -44,7 +44,7 @@ test.describe("Game review from My Games page", () => {
     // Track whether confetti fires by intercepting the canvas-confetti calls
     await alicePage.evaluate(() => {
       (window as any).__confettiFired = false;
-      const origRAF = window.requestAnimationFrame;
+      const _origRAF = window.requestAnimationFrame;
       // Patch canvas-confetti's typical pattern: it creates a canvas element
       const origCreate = document.createElement.bind(document);
       document.createElement = ((tag: string) => {

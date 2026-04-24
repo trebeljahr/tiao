@@ -1,5 +1,5 @@
-import { mkdirSync, writeFileSync } from "fs";
-import { dirname, resolve } from "path";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import swaggerJsdoc from "swagger-jsdoc";
 
 const options: swaggerJsdoc.Options = {

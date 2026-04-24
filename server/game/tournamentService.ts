@@ -170,7 +170,7 @@ function generateSingleEliminationRounds(participants: TournamentParticipant[]):
 
   // Subsequent rounds: placeholders
   for (let r = 1; r < totalRounds; r++) {
-    const matchCount = size / Math.pow(2, r + 1);
+    const matchCount = size / 2 ** (r + 1);
     const matches: TournamentMatch[] = [];
     for (let m = 0; m < matchCount; m++) {
       matches.push({
@@ -258,7 +258,7 @@ function generateGroups(
 
 export class TournamentService implements TournamentGameCallback {
   constructor(
-    private readonly store: TournamentStore = new MongoTournamentStore(),
+    private readonly store: TournamentStore,
     private readonly gameService: GameService,
     private readonly lockProvider: LockProvider = new InMemoryLockProvider(),
   ) {

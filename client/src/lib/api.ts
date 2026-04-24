@@ -163,7 +163,7 @@ export async function refreshElectronTokenFromBridge(): Promise<string | null> {
  */
 function buildAuthHeaders(existing: Record<string, string> = {}): Record<string, string> {
   const headers = { ...existing };
-  if (cachedElectronToken) headers["Authorization"] = `Bearer ${cachedElectronToken}`;
+  if (cachedElectronToken) headers.Authorization = `Bearer ${cachedElectronToken}`;
   return headers;
 }
 

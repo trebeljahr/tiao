@@ -52,7 +52,7 @@ export function NumberStepper({
             value={value}
             onChange={(e) => {
               const parsed = Number.parseInt(e.target.value, 10);
-              if (!isNaN(parsed)) onChange(clamp(parsed));
+              if (!Number.isNaN(parsed)) onChange(clamp(parsed));
             }}
             min={min}
             max={max}

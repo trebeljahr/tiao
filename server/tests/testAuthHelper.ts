@@ -7,7 +7,7 @@
  * PlayerIdentity values based on a test cookie header.
  */
 
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import type { PlayerIdentity } from "../../shared/src";
 
 const testSessions = new Map<string, PlayerIdentity>();

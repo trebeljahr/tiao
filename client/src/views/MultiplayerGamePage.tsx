@@ -102,7 +102,7 @@ function AnimatedRatingChange({
       step++;
       // Ease-out: start fast, slow down at end
       const progress = step / totalSteps;
-      const eased = 1 - Math.pow(1 - progress, 3);
+      const eased = 1 - (1 - progress) ** 3;
       const current = Math.round(start + (end - start) * eased);
       setDisplayValue(current);
 

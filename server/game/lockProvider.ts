@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import type Redis from "ioredis";
 
 export interface LockProvider {

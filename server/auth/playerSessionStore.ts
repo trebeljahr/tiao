@@ -1,4 +1,4 @@
-import { createHmac, randomBytes } from "crypto";
+import { createHmac, randomBytes } from "node:crypto";
 import type { PlayerIdentity } from "../../shared/src";
 import { TOKEN_SECRET } from "../config/envVars";
 import GameSession from "../models/GameSession";

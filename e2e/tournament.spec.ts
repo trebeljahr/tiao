@@ -102,7 +102,7 @@ test.describe("Tournament list page", () => {
     const username = uniqueName("tourney");
     await signUpViaAPI(page, username, "password123");
 
-    const tournamentId = await createTournamentViaApi(page, "Test Cup");
+    const _tournamentId = await createTournamentViaApi(page, "Test Cup");
 
     await page.goto("/tournaments");
     await waitForAppReady(page);

@@ -375,8 +375,8 @@ export function TiaoBoard({
           [0, 1],
         ];
         const hasAdjacentPiece = adjacentOffsets.some(([ox, oy]) => {
-          const nx = pos.x + ox,
-            ny = pos.y + oy;
+          const nx = pos.x + ox;
+          const ny = pos.y + oy;
           return nx >= 0 && nx < bs && ny >= 0 && ny < bs && state.positions[ny]?.[nx] != null;
         });
         // Check pixel distance to the nearest adjacent piece — if closer to it

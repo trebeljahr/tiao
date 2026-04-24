@@ -19,10 +19,10 @@
  *   node server.mjs              (dev: PORT, handled by dev.mjs)
  */
 
-import { createReadStream, existsSync, statSync } from "fs";
-import { createServer, request as httpRequest } from "http";
-import { request as httpsRequest } from "https";
-import { extname, join, resolve } from "path";
+import { createReadStream, existsSync, statSync } from "node:fs";
+import { createServer, request as httpRequest } from "node:http";
+import { request as httpsRequest } from "node:https";
+import { extname, join, resolve } from "node:path";
 import next from "next";
 import { buildGlitchtipEnvelopeTarget } from "./tunnel-envelope.mjs";
 
@@ -56,7 +56,7 @@ const publicDir = resolve("./public");
  * Try to serve a static file from the public directory.
  * Returns true if the file was served, false otherwise.
  */
-export function servePublicFile(req, res, pathname) {
+export function servePublicFile(_req, res, pathname) {
   // Decode URI-encoded characters (e.g. %20 -> space)
   let decodedPath;
   try {

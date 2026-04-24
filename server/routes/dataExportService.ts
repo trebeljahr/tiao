@@ -27,7 +27,7 @@
  *     configured the section is an empty array — the export still works.
  */
 
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { exportOpenPanelEvents } from "../analytics/openpanel";

@@ -147,7 +147,7 @@ async function invokeRoute<T>(
 }
 
 let adminRoutes: TestRouter;
-let adminPlayerId: string;
+let _adminPlayerId: string;
 let adminCookie: string;
 
 beforeEach(async () => {
@@ -156,7 +156,7 @@ beforeEach(async () => {
 
   // Create an admin account with isAdmin flag
   const admin = createTestAccount("admin-user", "admin@example.com", { isAdmin: true });
-  adminPlayerId = admin.player.playerId;
+  _adminPlayerId = admin.player.playerId;
   adminCookie = admin.cookie;
 
   const adminRoutesModule = await import("../routes/admin.routes");

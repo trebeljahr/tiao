@@ -18,10 +18,7 @@ export function createReconnectScheduler(onReconnect: () => void, options: Recon
 
   function schedule() {
     clear();
-    const baseDelay = Math.min(
-      config.baseDelayMs * Math.pow(2, Math.min(attempt, 3)),
-      config.maxDelayMs,
-    );
+    const baseDelay = Math.min(config.baseDelayMs * 2 ** Math.min(attempt, 3), config.maxDelayMs);
     const delay = baseDelay + Math.random() * config.jitterMs;
     attempt += 1;
     timer = window.setTimeout(onReconnect, delay);

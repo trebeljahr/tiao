@@ -1,4 +1,4 @@
-import { execSync } from "child_process";
+import { execSync } from "node:child_process";
 
 const CONTAINERS = ["tiao-e2e-mongo", "tiao-e2e-redis", "tiao-e2e-minio"];
 

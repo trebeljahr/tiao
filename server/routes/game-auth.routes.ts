@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import express, { type Request, type Response } from "express";
 import { Jimp } from "jimp";
@@ -681,7 +681,7 @@ router.get("/profile/:username/games", async (req: Request, res: Response) => {
 
     const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 50);
     const before = req.query.before ? new Date(req.query.before as string) : undefined;
-    if (before && isNaN(before.getTime())) {
+    if (before && Number.isNaN(before.getTime())) {
       return res.status(400).json({ code: "INVALID_CURSOR", message: "Invalid 'before' date." });
     }
 

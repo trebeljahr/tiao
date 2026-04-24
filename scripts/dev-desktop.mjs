@@ -21,8 +21,8 @@
 //   - server/.env populated with TOKEN_SECRET, MONGODB_URI, S3 creds
 //   - Redis + Mongo reachable (docker-compose.dev.yml handles this)
 
-import { spawn } from "child_process";
-import { createServer } from "net";
+import { spawn } from "node:child_process";
+import { createServer } from "node:net";
 
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;

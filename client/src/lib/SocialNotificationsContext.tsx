@@ -465,12 +465,11 @@ export function SocialNotificationsProvider({
         const next = new Set(prev);
         next.add(summary.gameId);
         return next;
-      } else {
-        if (!prev.has(summary.gameId)) return prev;
-        const next = new Set(prev);
-        next.delete(summary.gameId);
-        return next;
       }
+      if (!prev.has(summary.gameId)) return prev;
+      const next = new Set(prev);
+      next.delete(summary.gameId);
+      return next;
     });
 
     // Don't show the toast when the user is already on the game page —

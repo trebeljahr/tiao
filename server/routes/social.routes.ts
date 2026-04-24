@@ -25,7 +25,7 @@ function isDatabaseReady(): boolean {
   return mongoose.connection.readyState === 1;
 }
 
-router.use((req, res, next) => {
+router.use((_req, res, next) => {
   if (!isDatabaseReady()) {
     return res.status(503).json({
       message: "Account social features are unavailable right now. You can still play as a guest.",

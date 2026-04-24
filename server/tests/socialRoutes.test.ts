@@ -223,13 +223,13 @@ function createMockInvitation(
 }
 
 let socialRoutes: TestRouter;
-let originalFindById: unknown;
-let originalFind: unknown;
-let originalUpdateMany: unknown;
-let originalInvFindOne: unknown;
-let originalInvFind: unknown;
-let originalInvCreate: unknown;
-let originalInvUpdateMany: unknown;
+let _originalFindById: unknown;
+let _originalFind: unknown;
+let _originalUpdateMany: unknown;
+let _originalInvFindOne: unknown;
+let _originalInvFind: unknown;
+let _originalInvCreate: unknown;
+let _originalInvUpdateMany: unknown;
 
 /**
  * Install mocks on the Mongoose models used by social.routes.ts.
@@ -240,13 +240,13 @@ async function installModelMocks() {
   const GameInvitation = (await import("../models/GameInvitation")).default;
 
   // Save originals
-  originalFindById = GameAccount.findById;
-  originalFind = GameAccount.find;
-  originalUpdateMany = GameInvitation.updateMany;
-  originalInvFindOne = GameInvitation.findOne;
-  originalInvFind = GameInvitation.find;
-  originalInvCreate = GameInvitation.create;
-  originalInvUpdateMany = GameInvitation.updateMany;
+  _originalFindById = GameAccount.findById;
+  _originalFind = GameAccount.find;
+  _originalUpdateMany = GameInvitation.updateMany;
+  _originalInvFindOne = GameInvitation.findOne;
+  _originalInvFind = GameInvitation.find;
+  _originalInvCreate = GameInvitation.create;
+  _originalInvUpdateMany = GameInvitation.updateMany;
 
   // Mock GameAccount.findById
   (GameAccount as unknown as Record<string, unknown>).findById = (id: string) => {

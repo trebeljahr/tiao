@@ -1,4 +1,4 @@
-import type { IncomingMessage } from "http";
+import type { IncomingMessage } from "node:http";
 import { fromNodeHeaders } from "better-auth/node";
 import type { Request, Response } from "express";
 import { type HydratedDocument, Types } from "mongoose";

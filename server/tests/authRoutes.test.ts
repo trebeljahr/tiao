@@ -276,42 +276,42 @@ test("login returns 400 for missing password", async () => {
 
 test("PUT /profile route exists", async () => {
   const layer = gameAuthRoutes.stack.find(
-    (entry) => entry.route?.path === "/profile" && entry.route.methods["put"],
+    (entry) => entry.route?.path === "/profile" && entry.route.methods.put,
   );
   assert.ok(layer?.route, "PUT /profile route should exist");
 });
 
 test("GET /profile route exists", async () => {
   const layer = gameAuthRoutes.stack.find(
-    (entry) => entry.route?.path === "/profile" && entry.route.methods["get"],
+    (entry) => entry.route?.path === "/profile" && entry.route.methods.get,
   );
   assert.ok(layer?.route, "GET /profile route should exist");
 });
 
 test("PUT /badges/active route exists", async () => {
   const layer = gameAuthRoutes.stack.find(
-    (entry) => entry.route?.path === "/badges/active" && entry.route.methods["put"],
+    (entry) => entry.route?.path === "/badges/active" && entry.route.methods.put,
   );
   assert.ok(layer?.route, "PUT /badges/active route should exist");
 });
 
 test("POST /tutorial-complete route exists", async () => {
   const layer = gameAuthRoutes.stack.find(
-    (entry) => entry.route?.path === "/tutorial-complete" && entry.route.methods["post"],
+    (entry) => entry.route?.path === "/tutorial-complete" && entry.route.methods.post,
   );
   assert.ok(layer?.route, "POST /tutorial-complete route should exist");
 });
 
 test("POST /login route exists", async () => {
   const layer = gameAuthRoutes.stack.find(
-    (entry) => entry.route?.path === "/login" && entry.route.methods["post"],
+    (entry) => entry.route?.path === "/login" && entry.route.methods.post,
   );
   assert.ok(layer?.route, "POST /login route should exist");
 });
 
 test("GET /me route exists", async () => {
   const layer = gameAuthRoutes.stack.find(
-    (entry) => entry.route?.path === "/me" && entry.route.methods["get"],
+    (entry) => entry.route?.path === "/me" && entry.route.methods.get,
   );
   assert.ok(layer?.route, "GET /me route should exist");
 });
@@ -320,21 +320,21 @@ test("GET /me route exists", async () => {
 
 test("POST /guest route no longer exists (handled by better-auth)", async () => {
   const layer = gameAuthRoutes.stack.find(
-    (entry) => entry.route?.path === "/guest" && entry.route.methods["post"],
+    (entry) => entry.route?.path === "/guest" && entry.route.methods.post,
   );
   assert.equal(layer, undefined, "POST /guest should not exist");
 });
 
 test("POST /signup route no longer exists (handled by better-auth)", async () => {
   const layer = gameAuthRoutes.stack.find(
-    (entry) => entry.route?.path === "/signup" && entry.route.methods["post"],
+    (entry) => entry.route?.path === "/signup" && entry.route.methods.post,
   );
   assert.equal(layer, undefined, "POST /signup should not exist");
 });
 
 test("POST /logout route exists", async () => {
   const layer = gameAuthRoutes.stack.find(
-    (entry) => entry.route?.path === "/logout" && entry.route.methods["post"],
+    (entry) => entry.route?.path === "/logout" && entry.route.methods.post,
   );
   assert.ok(layer?.route, "POST /logout should exist");
 });
@@ -343,14 +343,14 @@ test("POST /logout route exists", async () => {
 
 test("POST /admin/badges/grant route exists", async () => {
   const layer = gameAuthRoutes.stack.find(
-    (entry) => entry.route?.path === "/admin/badges/grant" && entry.route.methods["post"],
+    (entry) => entry.route?.path === "/admin/badges/grant" && entry.route.methods.post,
   );
   assert.ok(layer?.route, "POST /admin/badges/grant route should exist");
 });
 
 test("POST /admin/badges/revoke route exists", async () => {
   const layer = gameAuthRoutes.stack.find(
-    (entry) => entry.route?.path === "/admin/badges/revoke" && entry.route.methods["post"],
+    (entry) => entry.route?.path === "/admin/badges/revoke" && entry.route.methods.post,
   );
   assert.ok(layer?.route, "POST /admin/badges/revoke route should exist");
 });

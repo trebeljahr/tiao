@@ -69,7 +69,7 @@ async function createMatchmakingGame(
 /** Helper: finish a game and perform a rematch, returning the new game ID */
 async function finishAndRematch(
   service: GameService,
-  store: InMemoryGameRoomStore,
+  _store: InMemoryGameRoomStore,
   gameId: string,
   alice: PlayerIdentity,
   bob: PlayerIdentity,

@@ -63,7 +63,7 @@ function computeTargetScrollY(el: HTMLElement): number {
 
 // Cubic ease-out — matches the feel of a smooth scrollIntoView.
 function easeOutCubic(t: number): number {
-  return 1 - Math.pow(1 - t, 3);
+  return 1 - (1 - t) ** 3;
 }
 
 function animateScrollTo(targetY: number, durationMs: number): Promise<void> {

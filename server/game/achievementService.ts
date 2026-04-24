@@ -304,7 +304,7 @@ export async function onGameCompleted(ctx: GameCompletedContext): Promise<void> 
       // The player must have exactly one jump turn that scored all the points
       if (myJumps.length === 1 && myJumps[0]!.jumps.length >= room.state.scoreToWin) {
         // Verify no points came from placement captures — only from that one jump
-        const putTurns = room.state.history.filter((t) => t.type === "put" && t.color === p.color);
+        const _putTurns = room.state.history.filter((t) => t.type === "put" && t.color === p.color);
         // If there are put turns but score came entirely from the jump, it counts
         // Score = jumps captured in that chain = jumps.length
         if (myJumps[0]!.jumps.length >= room.state.scoreToWin) {
@@ -423,8 +423,8 @@ async function countLosses(playerId: string): Promise<number> {
 
 function checkComebackWin(state: GameState, winnerColor: PlayerColor): boolean {
   // Replay the score progression to see if winner was ever down by 3+
-  const whiteScore = 0;
-  const blackScore = 0;
+  const _whiteScore = 0;
+  const _blackScore = 0;
   const opponentColor = winnerColor === "white" ? "black" : "white";
 
   for (const turn of state.history) {

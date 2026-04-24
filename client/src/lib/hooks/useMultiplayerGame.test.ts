@@ -38,21 +38,21 @@ class MockWebSocket {
 
   close() {
     this.readyState = 3;
-    const listeners = this.eventListeners["close"] || [];
+    const listeners = this.eventListeners.close || [];
     for (const listener of listeners) {
       listener({ code: 1000, reason: "", wasClean: true });
     }
   }
 
   simulateOpen() {
-    const listeners = this.eventListeners["open"] || [];
+    const listeners = this.eventListeners.open || [];
     for (const listener of listeners) {
       listener();
     }
   }
 
   simulateMessage(data: unknown) {
-    const listeners = this.eventListeners["message"] || [];
+    const listeners = this.eventListeners.message || [];
     for (const listener of listeners) {
       listener({ data: JSON.stringify(data) });
     }
@@ -60,7 +60,7 @@ class MockWebSocket {
 
   simulateClose(code = 1000) {
     this.readyState = 3;
-    const listeners = this.eventListeners["close"] || [];
+    const listeners = this.eventListeners.close || [];
     for (const listener of listeners) {
       listener({ code, reason: "", wasClean: code === 1000 });
     }

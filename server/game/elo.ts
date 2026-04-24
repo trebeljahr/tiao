@@ -5,7 +5,7 @@
 const DEFAULT_RATING = 1500;
 
 export function computeExpectedScore(ratingA: number, ratingB: number): number {
-  return 1 / (1 + Math.pow(10, (ratingB - ratingA) / 400));
+  return 1 / (1 + 10 ** ((ratingB - ratingA) / 400));
 }
 
 export function getKFactor(rating: number, gamesPlayed: number): number {

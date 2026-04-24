@@ -1,5 +1,5 @@
-import type { IncomingMessage } from "http";
 import assert from "node:assert/strict";
+import type { IncomingMessage } from "node:http";
 import { beforeEach, describe, mock, test } from "node:test";
 import type { Request, Response } from "express";
 

@@ -974,8 +974,6 @@ export function replayToMove(
     const record = history[i];
 
     if (record.type === "win" || record.type === "draw") {
-      // Win/draw records are meta-events; the board state doesn't change
-      continue;
     } else if (record.type === "forfeit") {
       const result = forfeitGame(state, record.color, record.reason ?? "forfeit");
       if (result.ok) {

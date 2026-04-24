@@ -129,8 +129,8 @@ test.describe("Computer game undo", () => {
     const humanLabel = humanColor === "white" ? "White" : "Black";
 
     // Count baseline pieces
-    const whiteBaseline = await countPieces(page, "white");
-    const blackBaseline = await countPieces(page, "black");
+    const _whiteBaseline = await countPieces(page, "white");
+    const _blackBaseline = await countPieces(page, "black");
 
     // Cycle 1: place and undo (before AI responds)
     const candidates = [9, 8, 10, 7, 11, 6, 5];
@@ -185,16 +185,16 @@ test.describe("Computer game undo", () => {
     const humanLabel = humanColor === "white" ? "White" : "Black";
 
     // Count baseline last-move indicators (computer may have already placed)
-    const baselineLastMove = await page.locator("[data-last-move]").count();
+    const _baselineLastMove = await page.locator("[data-last-move]").count();
 
     // Human places at an enabled empty cell
     const candidates = [9, 8, 10, 7, 11, 6, 5];
-    let target = { x: 9, y: 9 };
+    let _target = { x: 9, y: 9 };
     for (const n of candidates) {
       const piece = await cell(page, n, n).getAttribute("data-piece");
       if (!piece) {
         await expect(cell(page, n, n)).toBeEnabled({ timeout: 20000 });
-        target = { x: n, y: n };
+        _target = { x: n, y: n };
         await cell(page, n, n).click();
         await expect(cell(page, n, n)).toHaveAttribute("data-piece", humanColor);
         break;
@@ -227,7 +227,7 @@ test.describe("Computer game undo", () => {
     await expect(cell(page, 9, 9)).toBeVisible();
 
     const humanColor = await waitForHumanTurn(page);
-    const computerColor = humanColor === "white" ? "black" : "white";
+    const _computerColor = humanColor === "white" ? "black" : "white";
     const humanLabel = humanColor === "white" ? "White" : "Black";
 
     // Round 1: human places, AI responds
@@ -298,7 +298,7 @@ test.describe("Computer game undo", () => {
     await expect(cell(page, 9, 9)).toBeVisible();
 
     const humanColor = await waitForHumanTurn(page);
-    const humanLabel = humanColor === "white" ? "White" : "Black";
+    const _humanLabel = humanColor === "white" ? "White" : "Black";
 
     // Count baseline pieces
     const whiteBaseline = await countPieces(page, "white");

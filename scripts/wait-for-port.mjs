@@ -2,7 +2,7 @@
 // Waits for a TCP port to accept connections, then exits 0.
 // Usage: node scripts/wait-for-port.mjs <port> [timeout_seconds]
 
-import { connect } from "net";
+import { connect } from "node:net";
 
 const port = Number.parseInt(process.argv[2], 10);
 const timeout = (Number.parseInt(process.argv[3], 10) || 30) * 1000;

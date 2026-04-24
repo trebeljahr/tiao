@@ -9,9 +9,9 @@
  * Output: docs-site/source-links.json
  */
 
-import { existsSync, readFileSync, writeFileSync } from "fs";
-import { basename, dirname, relative, resolve } from "path";
-import { fileURLToPath } from "url";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { basename, dirname, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "../..");
