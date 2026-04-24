@@ -47,6 +47,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
         >
           {visible ? (
             <svg
+              aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
               width="18"
               height="18"
@@ -64,6 +65,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
             </svg>
           ) : (
             <svg
+              aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
               width="18"
               height="18"

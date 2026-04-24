@@ -16,6 +16,7 @@ export function SoundToggle() {
       aria-label={enabled ? t("muteSounds") : t("unmuteSounds")}
     >
       <motion.svg
+        aria-hidden="true"
         key={enabled ? "on" : "off"}
         viewBox="0 0 20 20"
         fill="none"

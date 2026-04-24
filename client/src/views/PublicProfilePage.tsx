@@ -354,6 +354,7 @@ export function PublicProfilePage() {
                       {t("achievements")}
                     </h2>
                     <button
+                      type="button"
                       onClick={() => router.push(`/achievements`)}
                       className="inline-flex items-center gap-2 text-xs text-[#8b7356] hover:underline"
                     >

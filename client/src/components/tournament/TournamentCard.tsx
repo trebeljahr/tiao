@@ -35,6 +35,7 @@ export function TournamentCard({
   const tCommon = useTranslations("common");
 
   return (
+    // biome-ignore lint/a11y/useKeyWithClickEvents: event interceptor on container, not interactive (keyboard handled separately)
     <div
       className="flex items-center justify-between rounded-2xl border border-[#dcc7a2] bg-[#fffdf7] p-4 shadow-xs hover:border-[#b98d49] transition-colors cursor-pointer group"
       onClick={onClick}

@@ -27,6 +27,7 @@ export function OfflineBanner() {
   if (!isElectronRuntime()) return null;
 
   return (
+    // biome-ignore lint/a11y/useSemanticElements: intentional ARIA role on container; semantic element refactor deferred
     <div
       role="status"
       aria-live="polite"

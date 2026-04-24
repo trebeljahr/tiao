@@ -116,6 +116,7 @@ export function AchievementsPage() {
           <CardContent className="flex flex-col items-center gap-3 py-8">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-yellow-400/30 to-amber-600/20 shadow-[0_0_24px_rgba(234,179,8,0.2)]">
               <svg
+                aria-hidden="true"
                 className="h-8 w-8 text-yellow-600"
                 viewBox="0 0 24 24"
                 fill="none"

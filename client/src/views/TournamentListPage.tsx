@@ -96,6 +96,7 @@ export function TournamentListPage() {
               <div className="space-y-3 animate-pulse">
                 {Array.from({ length: 3 }, (_, i) => (
                   <div
+                    // biome-ignore lint/suspicious/noArrayIndexKey: stable list rendered once, no reorder
                     key={i}
                     className="flex items-center justify-between rounded-2xl border border-[#dcc7a2] bg-[#fffdf7] p-4"
                   >

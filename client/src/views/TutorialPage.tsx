@@ -61,6 +61,8 @@ function ProgressDots({
     <div className="flex items-center justify-center gap-2">
       {Array.from({ length: total }).map((_, i) => (
         <button
+          type="button"
+          // biome-ignore lint/suspicious/noArrayIndexKey: stable list rendered once, no reorder
           key={i}
           onClick={() => onDotClick(i)}
           className={cn(
@@ -389,6 +391,7 @@ function TutorialPageInner() {
                     {completing ? t("letsGo") : t("playAI")}
                   </Button>
                   <button
+                    type="button"
                     className="text-sm text-[#8d7760] underline hover:text-[#5d4732] transition-colors"
                     onClick={handleGoToLobby}
                     disabled={completing}

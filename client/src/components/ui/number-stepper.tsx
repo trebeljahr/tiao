@@ -35,6 +35,7 @@ export function NumberStepper({
             aria-label={`Decrease ${label}`}
           >
             <svg
+              aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
               width="14"
               height="14"
@@ -69,6 +70,7 @@ export function NumberStepper({
             aria-label={`Increase ${label}`}
           >
             <svg
+              aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
               width="14"
               height="14"

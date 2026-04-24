@@ -18,6 +18,7 @@ export function SkeletonCard({ rows = 3, className }: { rows?: number; className
         <CardContent className="space-y-3 pt-6">
           {Array.from({ length: rows }, (_, i) => (
             <div
+              // biome-ignore lint/suspicious/noArrayIndexKey: stable list rendered once, no reorder
               key={i}
               className="flex items-center justify-between rounded-2xl border border-[#dcc7a2] bg-[#fffdf7] p-4"
             >
@@ -73,6 +74,7 @@ export function SkeletonProfileStats({ className }: { className?: string }) {
           <SkeletonBlock className="mb-4 h-4 w-24 rounded-lg bg-[#ede3d2]" />
           <div className="grid grid-cols-3 gap-4">
             {Array.from({ length: 3 }, (_, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: stable list rendered once, no reorder
               <div key={i} className="flex flex-col items-center gap-1">
                 <SkeletonBlock className="h-8 w-12 rounded-lg" />
                 <SkeletonBlock className="h-3 w-16 rounded-lg bg-[#ede3d2]" />

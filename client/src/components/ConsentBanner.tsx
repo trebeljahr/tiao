@@ -105,6 +105,7 @@ export function ConsentBanner() {
   if (status !== "pending" && !dismissed) return null;
 
   return (
+    // biome-ignore lint/a11y/useSemanticElements: intentional ARIA role on container; semantic element refactor deferred
     <div
       role="dialog"
       aria-labelledby="consent-banner-title"

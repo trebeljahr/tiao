@@ -493,6 +493,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
               {Array.from({ length: size }, (_, i) => {
                 const coord = pointPct(i, size);
                 return (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: stable list rendered once, no reorder
                   <g key={i}>
                     <line
                       x1={gs}
@@ -654,6 +655,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
                   // Shorter arrows with bigger insets so they don't overlap pieces
                   const seg = getJumpTrailMetrics(arrow.from, arrow.to, size, 1.8, 2.2);
                   return (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: stable list rendered once, no reorder
                     <g key={`hint-${i}`}>
                       <motion.line
                         x1={seg.startX}
@@ -698,6 +700,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
               {pendingJumps.map((jump, index) => {
                 const seg = getJumpTrailMetrics(jump.from, jump.to, size);
                 return (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: stable list rendered once, no reorder
                   <g key={`trail-${index}`}>
                     <motion.line
                       x1={seg.startX}

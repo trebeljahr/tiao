@@ -181,6 +181,7 @@ export function SocialNotificationsProvider({
       const reqName = req.displayName || "Someone";
       const toastId = `friend-request:${reqPlayerId}`;
       toast(
+        // biome-ignore lint/a11y/useKeyWithClickEvents: event interceptor on container, not interactive (keyboard handled separately)
         <div className="min-w-0 cursor-pointer" onClick={() => toast.dismiss(toastId)}>
           <PlayerIdentityRow
             player={req}
@@ -277,6 +278,7 @@ export function SocialNotificationsProvider({
 
       const toastId = `game-invitation:${invId}`;
       toast(
+        // biome-ignore lint/a11y/useKeyWithClickEvents: event interceptor on container, not interactive (keyboard handled separately)
         <div className="min-w-0 cursor-pointer" onClick={() => toast.dismiss(toastId)}>
           <PlayerIdentityRow
             player={typeof sender === "object" ? sender : { displayName: senderName }}

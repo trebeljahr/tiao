@@ -86,11 +86,13 @@ export function Dialog({
   // otherwise have its backdrop scoped to that motion element instead of
   // covering the whole screen.
   return createPortal(
+    // biome-ignore lint/a11y/useKeyWithClickEvents: event interceptor on container, not interactive (keyboard handled separately)
     <div
       className="animate-dialog-backdrop fixed inset-0 z-300 flex items-center justify-center overflow-y-auto bg-slate-950/50 p-4 backdrop-blur-xs"
       onMouseDown={handleBackdropMouseDown}
       onClick={handleBackdropClick}
     >
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: event interceptor on container, not interactive (keyboard handled separately) */}
       <div
         className={cn(
           "animate-dialog-content w-full max-w-lg max-h-[90dvh] overflow-y-auto rounded-[1.75rem] border border-white/70 bg-card p-6 text-card-foreground shadow-[0_34px_80px_-36px_rgba(63,37,17,0.45)]",

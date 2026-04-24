@@ -68,6 +68,7 @@ export default function Home(): ReactNode {
           <div className="container">
             <div className="row">
               {features.map((feature, idx) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: stable list rendered once, no reorder
                 <div key={idx} className="col col--4" style={{ padding: "1rem" }}>
                   <Heading as="h3">{feature.title}</Heading>
                   <p>{feature.description}</p>

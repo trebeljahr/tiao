@@ -26,11 +26,11 @@ function ClockPill({ clockMs, muted = false }: { clockMs: number | null; muted?:
       )}
     >
       <svg
+        aria-hidden="true"
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 16 16"
         fill="currentColor"
         className="h-3 w-3 opacity-50"
-        aria-hidden
       >
         <path
           fillRule="evenodd"
@@ -120,6 +120,7 @@ export function ActiveGameCard({
               ) : (
                 <>
                   <svg
+                    aria-hidden="true"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 16 16"
                     fill="currentColor"

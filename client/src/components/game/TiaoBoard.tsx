@@ -556,6 +556,7 @@ export function TiaoBoard({
             const coordinate = pp(index);
 
             return (
+              // biome-ignore lint/suspicious/noArrayIndexKey: stable list rendered once, no reorder
               <g key={index}>
                 <line
                   x1={m.gridStart}
@@ -1252,7 +1253,7 @@ export function TiaoBoard({
                   className="flex h-11 w-11 items-center justify-center rounded-full border border-[#c9837b]/50 bg-[rgba(255,248,232,0.92)] text-[#9a5b52] shadow-[0_8px_20px_-8px_rgba(66,39,11,0.5)] backdrop-blur-sm transition-colors active:bg-[rgba(200,180,150,0.9)]"
                   aria-label="Cancel placement"
                 >
-                  <svg viewBox="0 0 14 14" fill="none" className="h-4 w-4">
+                  <svg aria-hidden="true" viewBox="0 0 14 14" fill="none" className="h-4 w-4">
                     <path
                       d="M3.5 3.5l7 7M10.5 3.5l-7 7"
                       stroke="currentColor"
@@ -1277,7 +1278,7 @@ export function TiaoBoard({
                   )}
                   aria-label="Confirm placement"
                 >
-                  <svg viewBox="0 0 14 14" fill="none" className="h-4 w-4">
+                  <svg aria-hidden="true" viewBox="0 0 14 14" fill="none" className="h-4 w-4">
                     <path
                       d="M3 7.5l2.8 2.8L11 4"
                       stroke="currentColor"
@@ -1300,7 +1301,7 @@ export function TiaoBoard({
                     className="flex h-11 w-11 items-center justify-center rounded-full border border-[#c9837b]/50 bg-[rgba(255,248,232,0.92)] text-[#9a5b52] shadow-[0_8px_20px_-8px_rgba(66,39,11,0.5)] backdrop-blur-sm transition-colors active:bg-[rgba(200,180,150,0.9)]"
                     aria-label="Undo last jump"
                   >
-                    <svg viewBox="0 0 14 14" fill="none" className="h-4 w-4">
+                    <svg aria-hidden="true" viewBox="0 0 14 14" fill="none" className="h-4 w-4">
                       <path
                         d="M3.5 3.5l7 7M10.5 3.5l-7 7"
                         stroke="currentColor"
@@ -1317,7 +1318,7 @@ export function TiaoBoard({
                     className="flex h-11 items-center gap-1.5 rounded-full border border-[#8aad6a]/50 bg-[rgba(255,248,232,0.92)] px-3.5 text-[#5e7b4e] shadow-[0_8px_20px_-8px_rgba(66,39,11,0.5)] backdrop-blur-sm transition-colors active:bg-[rgba(200,220,180,0.9)]"
                     aria-label="Confirm jump"
                   >
-                    <svg viewBox="0 0 14 14" fill="none" className="h-4 w-4">
+                    <svg aria-hidden="true" viewBox="0 0 14 14" fill="none" className="h-4 w-4">
                       <path
                         d="M3 7.5l2.8 2.8L11 4"
                         stroke="currentColor"

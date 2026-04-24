@@ -256,6 +256,7 @@ export function AdminBadgesPage() {
               <div className="mt-4 space-y-2">
                 {searchResults.map((user) => (
                   <button
+                    type="button"
                     key={user.playerId}
                     onClick={() => setSelectedUser(user)}
                     className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left transition-colors ${

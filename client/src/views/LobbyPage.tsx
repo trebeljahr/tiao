@@ -840,6 +840,7 @@ function OnlineLobbyPage() {
                     className="h-12 px-6 border-[#dcc7a2] hover:bg-[#f5f0fc]"
                   >
                     <svg
+                      aria-hidden="true"
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
                       height="16"
@@ -911,6 +912,7 @@ function OnlineLobbyPage() {
           </button>
           . {t("footerBuiltWith")}{" "}
           <svg
+            aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="#e8839b"

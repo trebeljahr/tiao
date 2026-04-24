@@ -25,6 +25,7 @@ type InviteFriendsModalProps = {
 function SearchIcon({ className }: { className?: string }) {
   return (
     <svg
+      aria-hidden="true"
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 20 20"
       fill="currentColor"
@@ -42,6 +43,7 @@ function SearchIcon({ className }: { className?: string }) {
 function EnvelopeIcon({ className }: { className?: string }) {
   return (
     <svg
+      aria-hidden="true"
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 20 20"
       fill="currentColor"
@@ -56,6 +58,7 @@ function EnvelopeIcon({ className }: { className?: string }) {
 function UndoIcon({ className }: { className?: string }) {
   return (
     <svg
+      aria-hidden="true"
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 20 20"
       fill="currentColor"
@@ -73,6 +76,7 @@ function UndoIcon({ className }: { className?: string }) {
 function UserGroupIcon({ className }: { className?: string }) {
   return (
     <svg
+      aria-hidden="true"
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 20 20"
       fill="currentColor"

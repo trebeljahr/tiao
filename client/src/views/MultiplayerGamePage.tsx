@@ -1278,6 +1278,7 @@ export function MultiplayerGamePage() {
                           )}
                           <div className="animate-pill-in flex items-center gap-2 rounded-full border border-[#c4b5d4] bg-[#f5f0fc]/96 px-3 py-2 text-sm font-semibold text-[#5a4570] shadow-[0_16px_28px_-22px_rgba(90,69,112,0.42)] backdrop-blur-sm">
                             <svg
+                              aria-hidden="true"
                               xmlns="http://www.w3.org/2000/svg"
                               width="14"
                               height="14"
@@ -1358,6 +1359,7 @@ export function MultiplayerGamePage() {
                               const slot = multiplayerSnapshot.players[index] ?? null;
                               return (
                                 <div
+                                  // biome-ignore lint/suspicious/noArrayIndexKey: stable list rendered once, no reorder
                                   key={`lobby-player-${index}`}
                                   className="flex items-center justify-between gap-3 rounded-3xl border border-[#d8c29c] bg-[#fffaf1] px-4 py-3"
                                 >
@@ -2131,6 +2133,7 @@ export function MultiplayerGamePage() {
                 onClick={handleCopySpectateLink}
               >
                 <svg
+                  aria-hidden="true"
                   xmlns="http://www.w3.org/2000/svg"
                   width="14"
                   height="14"
@@ -2162,6 +2165,7 @@ export function MultiplayerGamePage() {
                   }}
                 >
                   <svg
+                    aria-hidden="true"
                     xmlns="http://www.w3.org/2000/svg"
                     width="14"
                     height="14"

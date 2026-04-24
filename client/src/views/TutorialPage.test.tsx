@@ -73,7 +73,7 @@ vi.mock("@/components/tutorial/InteractiveMiniBoard", () => ({
     t: unknown;
   }) => (
     <div data-testid="mini-board">
-      <button data-testid="complete-challenge" onClick={onComplete}>
+      <button type="button" data-testid="complete-challenge" onClick={onComplete}>
         Complete
       </button>
     </div>

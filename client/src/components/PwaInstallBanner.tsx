@@ -16,6 +16,7 @@ export function PwaInstallBanner() {
   if (!canPrompt) return null;
 
   return (
+    // biome-ignore lint/a11y/useSemanticElements: intentional ARIA role on container; semantic element refactor deferred
     <div
       role="dialog"
       aria-label={t("title")}

@@ -90,6 +90,7 @@ export function MatchCard({
       <div className="min-w-0 space-y-1">
         {match.players.map((player, i) => (
           <div
+            // biome-ignore lint/suspicious/noArrayIndexKey: stable list rendered once, no reorder
             key={i}
             className={`flex min-w-0 items-center gap-2 text-sm ${
               match.winner && player?.playerId === match.winner

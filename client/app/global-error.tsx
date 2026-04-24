@@ -41,6 +41,7 @@ export default function GlobalError({
         </p>
         <div style={{ display: "flex", gap: "0.75rem" }}>
           <button
+            type="button"
             onClick={reset}
             style={{
               padding: "0.5rem 1.5rem",
@@ -53,6 +54,7 @@ export default function GlobalError({
             Try again
           </button>
           <button
+            type="button"
             onClick={() => {
               window.location.href = "/";
             }}

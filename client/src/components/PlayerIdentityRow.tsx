@@ -20,6 +20,7 @@ function InfoTooltip({
   return (
     <span className={cn("group/tip relative inline-flex items-center justify-center", className)}>
       <svg
+        aria-hidden="true"
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 20 20"
         fill="currentColor"
@@ -208,6 +209,7 @@ export function PlayerIdentityRow({
         >
           {t("pending")}
           <svg
+            aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 16 16"
             fill="currentColor"
@@ -232,6 +234,7 @@ export function PlayerIdentityRow({
           disabled={addFriendBusy}
         >
           <svg
+            aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
             fill="currentColor"

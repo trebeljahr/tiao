@@ -89,6 +89,7 @@ function PlayerRow({
   const clockEl = (
     <span className="inline-flex items-center gap-1 font-mono text-xs tabular-nums text-[#6b5a45]">
       <svg
+        aria-hidden="true"
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 16 16"
         fill="currentColor"

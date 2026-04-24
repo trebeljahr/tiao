@@ -126,6 +126,7 @@ export function AchievementCard({
         {unlocked && (
           <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/20">
             <svg
+              aria-hidden="true"
               className="h-3.5 w-3.5 text-emerald-600"
               fill="none"
               viewBox="0 0 24 24"

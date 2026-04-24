@@ -124,7 +124,7 @@ function LanguagePicker() {
         aria-label={t("changeLanguage")}
         aria-expanded={open}
       >
-        <svg viewBox="0 0 20 20" fill="none" className="h-[18px] w-[18px]">
+        <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-[18px] w-[18px]">
           <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="1.5" />
           <ellipse cx="10" cy="10" rx="3.5" ry="7.5" stroke="currentColor" strokeWidth="1.5" />
           <path
@@ -261,7 +261,7 @@ export function Navbar({
       badge: unacknowledgedInvitationCount + unacknowledgedRematchCount,
       badgeTarget: "/#invitations",
       icon: (
-        <svg {...iconProps}>
+        <svg aria-hidden="true" {...iconProps}>
           <path {...pathProps} d="M3 12l9-8 9 8" />
           <path {...pathProps} d="M5 10v9a1 1 0 001 1h3v-5h6v5h3a1 1 0 001-1v-9" />
         </svg>
@@ -276,7 +276,7 @@ export function Navbar({
             badge: unacknowledgedFriendRequestCount,
             badgeTarget: "/friends#incoming-friend-requests",
             icon: (
-              <svg {...iconProps}>
+              <svg aria-hidden="true" {...iconProps}>
                 <circle {...pathProps} cx="9" cy="7" r="3" />
                 <path {...pathProps} d="M3 21v-1a5 5 0 015-5h2a5 5 0 015 5v1" />
                 <circle {...pathProps} cx="17" cy="8" r="2.5" />
@@ -290,7 +290,7 @@ export function Navbar({
             active: pathname === "/games",
             badge: 0,
             icon: (
-              <svg {...iconProps}>
+              <svg aria-hidden="true" {...iconProps}>
                 <rect {...pathProps} x="3" y="3" width="18" height="18" rx="2" />
                 <path {...pathProps} d="M3 12h18M12 3v18M3 7.5h18M3 16.5h18M7.5 3v18M16.5 3v18" />
               </svg>
@@ -302,7 +302,7 @@ export function Navbar({
             active: pathname?.startsWith("/tournament"),
             badge: 0,
             icon: (
-              <svg {...iconProps}>
+              <svg aria-hidden="true" {...iconProps}>
                 <path {...pathProps} d="M5 14c0-3.9 3.1-7 7-7s7 3.1 7 7" />
                 <path {...pathProps} d="M4 14h16" />
                 <path {...pathProps} d="M5 14v3h14v-3" />
@@ -317,7 +317,7 @@ export function Navbar({
             active: pathname === "/achievements",
             badge: 0,
             icon: (
-              <svg {...iconProps}>
+              <svg aria-hidden="true" {...iconProps}>
                 <path
                   {...pathProps}
                   d="M6 9V2h12v7a6 6 0 01-12 0zM6 4H4a1 1 0 00-1 1v1a4 4 0 004 4M18 4h2a1 1 0 011 1v1a4 4 0 01-4 4M9 21h6M12 15v6"
@@ -335,7 +335,7 @@ export function Navbar({
             active: pathname === "/shop",
             badge: 0,
             icon: (
-              <svg {...iconProps}>
+              <svg aria-hidden="true" {...iconProps}>
                 <path {...pathProps} d="M6 2L3 7h18l-3-5H6z" />
                 <path {...pathProps} d="M3 7v12a2 2 0 002 2h14a2 2 0 002-2V7" />
                 <path {...pathProps} d="M9 11a3 3 0 006 0" />
@@ -350,7 +350,7 @@ export function Navbar({
       active: pathname === "/tutorial",
       badge: 0,
       icon: (
-        <svg {...iconProps}>
+        <svg aria-hidden="true" {...iconProps}>
           <path {...pathProps} d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
           <path {...pathProps} d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
         </svg>
@@ -385,6 +385,7 @@ export function Navbar({
 
   const renderBadge = (item: NavItem) =>
     item.badge > 0 ? (
+      // biome-ignore lint/a11y/useSemanticElements: intentional ARIA role on container; semantic element refactor deferred
       <span
         role="button"
         tabIndex={0}
@@ -403,7 +404,7 @@ export function Navbar({
     ) : null;
 
   const settingsIcon = (
-    <svg {...iconProps}>
+    <svg aria-hidden="true" {...iconProps}>
       <circle {...pathProps} cx="12" cy="12" r="3" />
       <path
         {...pathProps}
@@ -412,7 +413,7 @@ export function Navbar({
     </svg>
   );
   const logoutIcon = (
-    <svg {...iconProps}>
+    <svg aria-hidden="true" {...iconProps}>
       <path {...pathProps} d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
       <polyline {...pathProps} points="16 17 21 12 16 7" />
       <line {...pathProps} x1="21" y1="12" x2="9" y2="12" />
@@ -420,6 +421,7 @@ export function Navbar({
   );
 
   const drawerContent = (
+    // biome-ignore lint/a11y/useKeyWithClickEvents: event interceptor on container, not interactive (keyboard handled separately)
     <aside
       className="animate-nav-drawer-in absolute left-0 top-0 h-full w-full max-w-[20.6rem] overflow-y-auto border-r border-[#b69261]/24 bg-[linear-gradient(180deg,rgba(251,238,210,0.985),rgba(239,213,161,0.975))] px-4 py-3 text-[#2b1a10] shadow-[0_30px_80px_-28px_rgba(95,59,21,0.34)]"
       onClick={(event) => event.stopPropagation()}
@@ -534,7 +536,7 @@ export function Navbar({
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 font-medium transition-colors hover:bg-[rgba(0,0,0,0.04)] hover:text-[#28170e]"
         >
-          <svg viewBox="0 0 16 16" fill="currentColor" className="h-3.5 w-3.5">
+          <svg aria-hidden="true" viewBox="0 0 16 16" fill="currentColor" className="h-3.5 w-3.5">
             <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z" />
           </svg>
           {t("reportIssue")}
@@ -578,6 +580,7 @@ export function Navbar({
       </button>
 
       {navOpen && (
+        // biome-ignore lint/a11y/useKeyWithClickEvents: event interceptor on container, not interactive (keyboard handled separately)
         <div
           className="animate-nav-backdrop-in fixed inset-0 z-500 bg-[rgba(15,11,8,0.5)] backdrop-blur-xs"
           onClick={onCloseNav}

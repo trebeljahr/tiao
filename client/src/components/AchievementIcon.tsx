@@ -555,7 +555,7 @@ export function AchievementIcon({
   const IconComponent = ICON_MAP[id] ?? TrophyFallbackIcon;
 
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" strokeWidth={1.8}>
+    <svg aria-hidden="true" className={className} viewBox="0 0 24 24" fill="none" strokeWidth={1.8}>
       <IconComponent color={color} />
     </svg>
   );

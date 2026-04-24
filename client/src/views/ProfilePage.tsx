@@ -220,6 +220,7 @@ function DataExportCard() {
               aria-label={tCommon("delete")}
             >
               <svg
+                aria-hidden="true"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -1114,6 +1115,7 @@ export function ProfilePage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div
+                  // biome-ignore lint/a11y/useSemanticElements: intentional ARIA role on container; semantic element refactor deferred
                   ref={dropZoneRef}
                   role="button"
                   tabIndex={0}

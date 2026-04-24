@@ -155,6 +155,7 @@ export function SetUsernamePage() {
                       <img src={profileImage} alt="" className="h-full w-full object-cover" />
                       <div className="absolute inset-0 flex items-center justify-center bg-[rgba(0,0,0,0.4)] opacity-0 transition-opacity group-hover:opacity-100">
                         <svg
+                          aria-hidden="true"
                           xmlns="http://www.w3.org/2000/svg"
                           viewBox="0 0 20 20"
                           fill="white"
@@ -166,6 +167,7 @@ export function SetUsernamePage() {
                     </>
                   ) : (
                     <svg
+                      aria-hidden="true"
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 20 20"
                       fill="currentColor"
