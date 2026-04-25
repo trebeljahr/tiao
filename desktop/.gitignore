@@ -12,3 +12,14 @@ client-bundle/
 node_modules/
 *.log
 .DS_Store
+
+# env files (mirrors ~/.config/git/ignore — defense in depth)
+.env
+.env.local
+.env.dev
+.env.development
+.env.production
+.env.staging
+.env.test
+.envrc.local
+.vercel/

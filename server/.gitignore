@@ -19,3 +19,14 @@ ehthumbs.db
 dist/*
 
 public/uploads/profile_pictures/*
+
+# env files (mirrors ~/.config/git/ignore — defense in depth)
+.env
+.env.local
+.env.dev
+.env.development
+.env.production
+.env.staging
+.env.test
+.envrc.local
+.vercel/
