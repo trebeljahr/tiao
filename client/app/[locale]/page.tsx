@@ -1,3 +1,4 @@
+import { OG_IMAGES } from "@/lib/metadata";
 import { LobbyPage } from "@/views/LobbyPage";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
@@ -16,6 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: t("lobbyTitle"),
       description: t("lobbyDescription"),
+      images: OG_IMAGES,
     },
   };
 }

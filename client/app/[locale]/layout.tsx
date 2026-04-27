@@ -1,5 +1,6 @@
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { routing } from "@/i18n/routing";
+import { OG_IMAGES } from "@/lib/metadata";
 import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
@@ -36,7 +37,7 @@ export const metadata: Metadata = {
     title: "Tiao — Play Online",
     description:
       "A beautiful abstract strategy board game. Play online with friends, against AI, or over the board.",
-    images: [{ url: "/tiao-thumbnail.png", width: 1200, height: 630, alt: "Tiao board game" }],
+    images: OG_IMAGES,
   },
   twitter: {
     card: "summary_large_image",

@@ -1,3 +1,4 @@
+import { OG_IMAGES } from "@/lib/metadata";
 import { TutorialPage } from "@/views/TutorialPage";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -15,6 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: t("tutorialTitle"),
       description: t("tutorialDescription"),
+      images: OG_IMAGES,
     },
   };
 }

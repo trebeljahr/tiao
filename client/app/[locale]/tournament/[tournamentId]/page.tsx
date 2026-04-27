@@ -1,4 +1,5 @@
 import { DESKTOP_SPA_PARAM_VALUE } from "@/lib/desktopPathParam";
+import { OG_IMAGES } from "@/lib/metadata";
 import { TournamentPage } from "@/views/TournamentPage";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -55,7 +56,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title,
       description,
-      openGraph: { title, description },
+      openGraph: { title, description, images: OG_IMAGES },
     };
   }
 
@@ -66,7 +67,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title: fallback,
       description: t("tournamentsDescription"),
-      openGraph: { title: fallback, description: t("tournamentsDescription") },
+      openGraph: { title: fallback, description: t("tournamentsDescription"), images: OG_IMAGES },
     };
   }
 
@@ -80,7 +81,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    openGraph: { title, description },
+    openGraph: { title, description, images: OG_IMAGES },
   };
 }
 

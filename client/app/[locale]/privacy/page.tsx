@@ -1,3 +1,4 @@
+import { OG_IMAGES } from "@/lib/metadata";
 import { PrivacyPolicyPage } from "@/views/PrivacyPolicyPage";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -15,6 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: t("policyTitle"),
       description: t("policyMetaDescription"),
+      images: OG_IMAGES,
     },
   };
 }

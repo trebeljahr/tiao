@@ -1,3 +1,4 @@
+import { OG_IMAGES } from "@/lib/metadata";
 import type { Metadata } from "next";
 import AndreasCreator from "./AndreasCreator";
 
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
     title: "Andreas Edmeier — Creator of Tiao",
     description:
       "Meet the mind behind Tiao. Game designer and developer with a passion for board games and elegant mechanics.",
+    images: OG_IMAGES,
   },
 };
 

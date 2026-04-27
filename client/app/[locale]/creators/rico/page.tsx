@@ -1,3 +1,4 @@
+import { OG_IMAGES } from "@/lib/metadata";
 import type { Metadata } from "next";
 import RicoCreator from "./RicoCreator";
 
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
     title: "Rico Trebeljahr — Tiao Developer",
     description:
       "Meet the developer behind playtiao.com. Full-stack engineer and creator of the digital Tiao experience.",
+    images: OG_IMAGES,
   },
 };
 

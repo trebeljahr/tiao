@@ -1,3 +1,4 @@
+import { OG_IMAGES } from "@/lib/metadata";
 import { LocalGamePage } from "@/views/LocalGamePage";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -16,6 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: t("localTitle"),
       description: t("localDescription"),
+      images: OG_IMAGES,
     },
   };
 }

@@ -1,4 +1,5 @@
 import { DESKTOP_SPA_PARAM_VALUE } from "@/lib/desktopPathParam";
+import { OG_IMAGES } from "@/lib/metadata";
 import { MultiplayerGamePage } from "@/views/MultiplayerGamePage";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -66,7 +67,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title,
       description,
-      openGraph: { title, description },
+      openGraph: { title, description, images: OG_IMAGES },
     };
   }
 
@@ -80,7 +81,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title: fallbackTitle,
       description: fallbackDescription,
-      openGraph: { title: fallbackTitle, description: fallbackDescription },
+      openGraph: { title: fallbackTitle, description: fallbackDescription, images: OG_IMAGES },
     };
   }
 
@@ -135,6 +136,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title,
       description,
+      images: OG_IMAGES,
     },
   };
 }
