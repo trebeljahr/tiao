@@ -1,12 +1,17 @@
 "use client";
+import { type PlayerColor, TIME_CONTROL_PRESETS } from "@shared";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { DesktopOfflineLobby } from "@/components/DesktopOfflineLobby";
-import { Navbar } from "@/components/Navbar";
-import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { ActiveGamesList } from "@/components/game/ActiveGamesList";
 import { GameConfigBadge } from "@/components/game/GameConfigBadge";
 import { GameConfigDialog } from "@/components/game/GameConfigDialog";
 import { ColorDot, translatePlayerColor } from "@/components/game/GameShared";
 import { RematchInviteCard } from "@/components/game/RematchInviteCard";
+import { Navbar } from "@/components/Navbar";
+import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { TournamentCard } from "@/components/tournament/TournamentCard";
 import { AnimatedCard } from "@/components/ui/animated-card";
 import { Badge } from "@/components/ui/badge";
@@ -17,8 +22,6 @@ import { Input } from "@/components/ui/input";
 import { PaperCard } from "@/components/ui/paper-card";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/AuthContext";
-import { useLobbyMessage } from "@/lib/LobbySocketContext";
-import { useSocialNotifications } from "@/lib/SocialNotificationsContext";
 import {
   createMultiplayerGame,
   declineRematchRest,
@@ -31,14 +34,11 @@ import { useGamesIndex } from "@/lib/hooks/useGamesIndex";
 import { useOnlineStatus } from "@/lib/hooks/useOnlineStatus";
 import { useSocialData } from "@/lib/hooks/useSocialData";
 import { useTournamentList } from "@/lib/hooks/useTournamentList";
+import { useLobbyMessage } from "@/lib/LobbySocketContext";
+import { useSocialNotifications } from "@/lib/SocialNotificationsContext";
 import { safeLocalStorage } from "@/lib/safeLocalStorage";
 import { scrollToAndWiggle } from "@/lib/scroll-to-and-wiggle";
 import { cn } from "@/lib/utils";
-import { type PlayerColor, TIME_CONTROL_PRESETS } from "@shared";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
 
 /**
  * Top-level entry point.  In the desktop Electron build, when we're
@@ -118,7 +118,7 @@ function OnlineLobbyPage() {
       void refreshMultiplayerGames({ silent: true });
 
       const summary = payload.summary as any;
-      const hadPrev = Object.prototype.hasOwnProperty.call(seenHistoryRef.current, summary.gameId);
+      const hadPrev = Object.hasOwn(seenHistoryRef.current, summary.gameId);
       const prevLen = seenHistoryRef.current[summary.gameId];
       seenHistoryRef.current[summary.gameId] = summary.historyLength;
 
@@ -181,7 +181,7 @@ function OnlineLobbyPage() {
   // game-update for that game would look like "first sight".
   useEffect(() => {
     for (const game of activeGames) {
-      if (!Object.prototype.hasOwnProperty.call(seenHistoryRef.current, game.gameId)) {
+      if (!Object.hasOwn(seenHistoryRef.current, game.gameId)) {
         seenHistoryRef.current[game.gameId] = game.historyLength;
       }
     }

@@ -1,8 +1,8 @@
-import { OG_IMAGES } from "@/lib/metadata";
-import { LocalGamePage } from "@/views/LocalGamePage";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Suspense } from "react";
+import { OG_IMAGES } from "@/lib/metadata";
+import { LocalGamePage } from "@/views/LocalGamePage";
 
 type Props = { params: Promise<{ locale: string }> };
 

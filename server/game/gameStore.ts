@@ -1,18 +1,18 @@
 import {
   type CompactHistory,
+  cloneGameState,
+  compactToHistory,
   type GameState,
+  historyToCompact,
   type MultiplayerRematchState,
   type MultiplayerRoomType,
   type MultiplayerStatus,
   type MultiplayerTakebackState,
   type PlayerColor,
-  type SparsePositions,
-  type TimeControl,
-  cloneGameState,
-  compactToHistory,
-  historyToCompact,
   positionsToSparse,
+  type SparsePositions,
   sparseToPositions,
+  type TimeControl,
 } from "../../shared/src";
 import type { RatingStatus } from "../models/GameRoom";
 import GameRoom from "../models/GameRoom";

@@ -1,6 +1,6 @@
-import { API_BASE_URL } from "@/lib/api";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { API_BASE_URL } from "@/lib/api";
 import { useOnlineStatus } from "./useOnlineStatus";
 
 describe("useOnlineStatus", () => {

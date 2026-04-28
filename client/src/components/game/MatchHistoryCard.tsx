@@ -1,19 +1,19 @@
+import type { MultiplayerGameSummary, PlayerColor } from "@shared";
+import { useLocale, useTranslations } from "next-intl";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { MultiplayerGameSummary, PlayerColor } from "@shared";
-import { useLocale, useTranslations } from "next-intl";
 import { CopyGameIdButton } from "./CopyGameIdButton";
 import { formatClockTime } from "./GameClock";
 import { GameConfigBadge } from "./GameConfigBadge";
 import {
   ColorDot,
-  EmptySeatAvatar,
-  ScoreTargetIcon,
   describeResult,
+  EmptySeatAvatar,
   formatGameTimestamp,
   getPlayerResult,
+  ScoreTargetIcon,
   translatePlayerColor,
 } from "./GameShared";
 

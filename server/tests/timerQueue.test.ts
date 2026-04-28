@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, mock, test } from "node:test";
-import { InMemoryTimerScheduler } from "../game/timerQueue";
 import type { TimerHandlers } from "../game/timerQueue";
+import { InMemoryTimerScheduler } from "../game/timerQueue";
 
 describe("InMemoryTimerScheduler", () => {
   let scheduler: InMemoryTimerScheduler;

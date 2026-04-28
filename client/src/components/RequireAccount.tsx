@@ -1,10 +1,10 @@
 "use client";
 
-import { SkeletonPage } from "@/components/ui/skeleton";
-import { useAuth } from "@/lib/AuthContext";
 import type { AuthResponse } from "@shared";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { SkeletonPage } from "@/components/ui/skeleton";
+import { useAuth } from "@/lib/AuthContext";
 
 /**
  * Wraps account-only pages. Shows a skeleton while auth loads,

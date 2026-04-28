@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { LOG_BUFFER_SIZE, captureLog, dump, installDump, logBuffer, originalConsole } from "./dump";
+import { captureLog, dump, installDump, LOG_BUFFER_SIZE, logBuffer, originalConsole } from "./dump";
 
 describe("dump", () => {
   beforeEach(() => {

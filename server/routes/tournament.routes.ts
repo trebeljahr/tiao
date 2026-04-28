@@ -105,7 +105,7 @@ router.post("/tournaments", async (req: Request, res: Response) => {
         .json({ code: "VALIDATION_ERROR", message: "Tournament name is required." });
     }
 
-    if (!settings || !settings.format) {
+    if (!settings?.format) {
       return res.status(400).json({
         code: "VALIDATION_ERROR",
         message: "Tournament settings with format are required.",

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { type Server, createServer } from "node:http";
+import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { beforeEach, describe, test } from "node:test";
 import express from "express";

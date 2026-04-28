@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import {
+  createInitialGameState,
   type GameState,
   type PlayerColor,
   type Position,
   type ScoreState,
   type TurnRecord,
-  createInitialGameState,
 } from "../../shared/src";
 
 type DiagramStateOptions = {

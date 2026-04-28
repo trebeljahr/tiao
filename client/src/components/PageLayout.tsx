@@ -1,9 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/lib/AuthContext";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
 
 /**
  * Shared page layout: background gradient + navbar + main content area.

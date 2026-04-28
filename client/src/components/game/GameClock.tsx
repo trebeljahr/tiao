@@ -1,6 +1,6 @@
-import { cn } from "@/lib/utils";
 import type { ClockState, MultiplayerStatus, PlayerColor } from "@shared";
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 
 export function formatClockTime(ms: number): string {
   if (ms <= 0) return "0:00";

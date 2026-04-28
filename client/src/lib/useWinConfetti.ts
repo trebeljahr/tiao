@@ -1,7 +1,7 @@
-import type { BoardTheme } from "@/components/game/boardThemes";
 import type { PlayerColor } from "@shared";
 import confetti from "canvas-confetti";
 import { useEffect, useRef } from "react";
+import type { BoardTheme } from "@/components/game/boardThemes";
 import { useBoardTheme } from "./useBoardTheme";
 
 type WinConfettiOptions = {

@@ -1,17 +1,15 @@
-import { TIER_STYLES } from "@/components/AchievementCard";
-import { AchievementIcon } from "@/components/AchievementIcon";
-import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
-import { translatePlayerColor } from "@/components/game/GameShared";
-import { RematchInviteCard } from "@/components/game/RematchInviteCard";
 import type { AuthResponse, SocialOverview } from "@shared";
-import { EMPTY_SOCIAL_OVERVIEW } from "@shared";
-import { type AchievementTier, getAchievementById } from "@shared";
-import { useTranslations } from "next-intl";
+import { type AchievementTier, EMPTY_SOCIAL_OVERVIEW, getAchievementById } from "@shared";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import type React from "react";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useLobbyMessage } from "./LobbySocketContext";
+import { TIER_STYLES } from "@/components/AchievementCard";
+import { AchievementIcon } from "@/components/AchievementIcon";
+import { translatePlayerColor } from "@/components/game/GameShared";
+import { RematchInviteCard } from "@/components/game/RematchInviteCard";
+import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import {
   acceptFriendRequest,
   declineFriendRequest,
@@ -21,6 +19,7 @@ import {
   requestRematchRest,
 } from "./api";
 import { toastError } from "./errors";
+import { useLobbyMessage } from "./LobbySocketContext";
 
 // ---------------------------------------------------------------------------
 // sessionStorage helpers — track which notification IDs have been toasted so

@@ -1,6 +1,5 @@
-import type { GameSettings, PlayerColor, Position } from "@shared";
+import type { GameSettings, GameState, PlayerColor, Position } from "@shared";
 import { confirmPendingJump, isGameOver, jumpPiece, placePiece, undoLastTurn } from "@shared";
-import type { GameState } from "@shared";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   type AIDifficulty,

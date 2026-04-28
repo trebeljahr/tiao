@@ -1,10 +1,10 @@
-import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
+import type { TournamentMatch } from "@shared";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { formatFinishReason } from "@/components/game/GameShared";
+import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { TournamentMatch } from "@shared";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 
 function statusColor(status: TournamentMatch["status"]): string {
   switch (status) {

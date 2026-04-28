@@ -1,7 +1,7 @@
-import { OG_IMAGES } from "@/lib/metadata";
-import { TutorialPage } from "@/views/TutorialPage";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { OG_IMAGES } from "@/lib/metadata";
+import { TutorialPage } from "@/views/TutorialPage";
 
 type Props = { params: Promise<{ locale: string }> };
 

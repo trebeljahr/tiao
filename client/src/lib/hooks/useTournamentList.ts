@@ -1,7 +1,7 @@
-import { useLobbyMessage } from "@/lib/LobbySocketContext";
-import { listMyTournaments, listPublicTournaments } from "@/lib/api";
 import type { AuthResponse, TournamentListItem, TournamentStatus } from "@shared";
 import { useCallback, useEffect, useState } from "react";
+import { listMyTournaments, listPublicTournaments } from "@/lib/api";
+import { useLobbyMessage } from "@/lib/LobbySocketContext";
 
 export function useTournamentList(
   auth: AuthResponse | null,

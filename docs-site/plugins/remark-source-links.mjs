@@ -37,7 +37,7 @@ function loadLinks() {
 }
 
 // Match "][fn-name]" possibly with trailing text
-const CLOSE_REF = /^\]\[(fn-[\w.\-]+)\](.*)/s;
+const CLOSE_REF = /^\]\[(fn-[\w.-]+)\](.*)/s;
 
 export default function remarkSourceLinks() {
   return (tree) => {

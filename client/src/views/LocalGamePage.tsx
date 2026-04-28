@@ -1,9 +1,13 @@
 "use client";
-import { Navbar } from "@/components/Navbar";
+import { getWinner, isGameOver } from "@shared";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRef, useState } from "react";
 import { GameConfigDialog } from "@/components/game/GameConfigDialog";
 import { translatePlayerColor } from "@/components/game/GameShared";
 import { GameSidePanel } from "@/components/game/GameSidePanel";
 import { TiaoBoard } from "@/components/game/TiaoBoard";
+import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/AuthContext";
@@ -13,10 +17,6 @@ import { useLocalClock } from "@/lib/hooks/useLocalClock";
 import { useLocalGame } from "@/lib/hooks/useLocalGame";
 import { useStonePlacementSound } from "@/lib/useStonePlacementSound";
 import { useWinConfetti } from "@/lib/useWinConfetti";
-import { getWinner, isGameOver } from "@shared";
-import { useTranslations } from "next-intl";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useRef, useState } from "react";
 
 export function LocalGamePage() {
   const { auth, onOpenAuth, onLogout } = useAuth();

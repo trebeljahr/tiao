@@ -19,7 +19,8 @@
       "!**/_next",
       "!**/desktop/client-bundle",
       "!**/docs-site/docs/api-reference",
-      "!**/docs-site/static/openapi.json"
+      "!**/docs-site/static/openapi.json",
+      "!**/*.css"
     ]
   },
   "formatter": {
@@ -41,13 +42,15 @@
     "rules": {
       "recommended": true,
       "suspicious": {
-        "noExplicitAny": "warn"
+        "noExplicitAny": "warn",
+        "noUnknownAtRules": "off"
       },
       "style": {
         "noNonNullAssertion": "off",
         "useImportType": "error",
         "useTemplate": "off",
-        "noUnusedTemplateLiteral": "off"
+        "noUnusedTemplateLiteral": "off",
+        "noDescendingSpecificity": "off"
       },
       "performance": {
         "noDelete": "off"
@@ -55,6 +58,9 @@
       "correctness": {
         "noUnusedVariables": "warn",
         "noUnusedImports": "error"
+      },
+      "a11y": {
+        "useGenericFontNames": "off"
       }
     }
   }

@@ -1,5 +1,10 @@
 "use client";
 
+import type { TournamentListItem } from "@shared";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { BackButton } from "@/components/BackButton";
 import { PageLayout } from "@/components/PageLayout";
 import { TournamentCard } from "@/components/tournament/TournamentCard";
@@ -11,11 +16,6 @@ import { useAuth } from "@/lib/AuthContext";
 import { adminListTournaments, adminSetTournamentFeatured } from "@/lib/api";
 import { toastError } from "@/lib/errors";
 import { isAdmin } from "@/lib/featureGate";
-import type { TournamentListItem } from "@shared";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 
 /**
  * Admin view for curating the lobby tournament list. Lists every

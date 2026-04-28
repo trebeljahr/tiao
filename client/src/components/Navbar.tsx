@@ -1,6 +1,9 @@
 "use client";
-import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
+import type { AuthResponse } from "@shared";
+import { useLocale, useTranslations } from "next-intl";
+import { lazy, Suspense, useCallback, useRef, useState } from "react";
 import { ThemePicker } from "@/components/game/ThemePicker";
+import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { Button } from "@/components/ui/button";
 import {
   Link,
@@ -8,13 +11,9 @@ import {
   useRouter as useIntlRouter,
 } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
-import { useSocialNotifications } from "@/lib/SocialNotificationsContext";
 import { canSeeShop } from "@/lib/featureGate";
+import { useSocialNotifications } from "@/lib/SocialNotificationsContext";
 import { cn } from "@/lib/utils";
-import type { AuthResponse } from "@shared";
-import { useLocale, useTranslations } from "next-intl";
-import { Suspense, lazy } from "react";
-import { useCallback, useRef, useState } from "react";
 
 // Lazy-load SoundToggle so framer-motion isn't in the initial bundle.
 // It only renders inside the nav drawer, which the user must open first.

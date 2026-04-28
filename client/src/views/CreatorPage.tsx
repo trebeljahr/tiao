@@ -1,14 +1,14 @@
 "use client";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { BackButton } from "@/components/BackButton";
 import { PageLayout } from "@/components/PageLayout";
 import { AnimatedCard } from "@/components/ui/animated-card";
 import { CardContent } from "@/components/ui/card";
 import { PaperCard } from "@/components/ui/paper-card";
 import { getPublicProfile } from "@/lib/api";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
-import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
 
 type CreatorLink = { label: string; href: string };
 

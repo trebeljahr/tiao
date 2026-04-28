@@ -1,8 +1,8 @@
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import type { TurnRecord } from "@shared";
 import { formatTurnRecord, isBoardMove } from "@shared";
-import React, { useRef, useEffect } from "react";
+import React, { useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 type MoveListProps = {
   history: TurnRecord[];

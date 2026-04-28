@@ -1,12 +1,12 @@
+import type { GameInvitationSummary, SocialOverview, SocialPlayerSummary } from "@shared";
+import { useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import type { GameInvitationSummary, SocialOverview, SocialPlayerSummary } from "@shared";
-import { useTranslations } from "next-intl";
-import { useMemo, useState } from "react";
 
 type InviteFriendsModalProps = {
   open: boolean;

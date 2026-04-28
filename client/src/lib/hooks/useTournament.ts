@@ -1,5 +1,3 @@
-import { useLobbyMessage } from "@/lib/LobbySocketContext";
-import { getTournament } from "@/lib/api";
 import type {
   AuthResponse,
   TournamentGroup,
@@ -8,6 +6,8 @@ import type {
   TournamentSnapshot,
 } from "@shared";
 import { useCallback, useEffect, useState } from "react";
+import { getTournament } from "@/lib/api";
+import { useLobbyMessage } from "@/lib/LobbySocketContext";
 
 export function useTournament(
   _auth: AuthResponse | null,

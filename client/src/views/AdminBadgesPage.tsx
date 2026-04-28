@@ -1,12 +1,16 @@
 "use client";
 
+import { ACHIEVEMENT_CATEGORIES, ACHIEVEMENTS, type AchievementDefinition } from "@shared";
+import { useTranslations } from "next-intl";
+import { useCallback, useState } from "react";
+import { toast } from "sonner";
 import { AchievementIcon } from "@/components/AchievementIcon";
 import { BackButton } from "@/components/BackButton";
 import { BadgeToast } from "@/components/BadgeToast";
+import { THEMES } from "@/components/game/boardThemes";
 import { PageLayout } from "@/components/PageLayout";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { ALL_BADGE_IDS, BADGE_DEFINITIONS, type BadgeId, UserBadge } from "@/components/UserBadge";
-import { THEMES } from "@/components/game/boardThemes";
 import { AnimatedCard } from "@/components/ui/animated-card";
 import { Button } from "@/components/ui/button";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,10 +30,6 @@ import {
 } from "@/lib/api";
 import { toastError } from "@/lib/errors";
 import { isAdmin } from "@/lib/featureGate";
-import { ACHIEVEMENTS, ACHIEVEMENT_CATEGORIES, type AchievementDefinition } from "@shared";
-import { useTranslations } from "next-intl";
-import { useCallback, useState } from "react";
-import { toast } from "sonner";
 
 export function AdminBadgesPage() {
   const t = useTranslations("adminBadges");

@@ -1,5 +1,17 @@
 "use client";
 
+import type { AuthResponse, PlayerIdentity } from "@shared";
+import { useTranslations } from "next-intl";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { toast } from "sonner";
 import type { AuthDialogMode } from "@/components/Navbar";
 import {
   getPlayerIdentity,
@@ -14,18 +26,6 @@ import { op, setAuthReady } from "@/lib/openpanel";
 import { safeLocalStorage } from "@/lib/safeLocalStorage";
 import { resetActiveBadges } from "@/lib/useActiveBadge";
 import { resetBoardTheme } from "@/lib/useBoardTheme";
-import type { AuthResponse, PlayerIdentity } from "@shared";
-import { useTranslations } from "next-intl";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { toast } from "sonner";
 
 export interface AuthContextValue {
   auth: AuthResponse | null;
@@ -422,7 +422,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: signupEmail,
         password: signupPassword,
         name: signupDisplayName,
-      // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
+        // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
       } as any);
 
       if (error) {

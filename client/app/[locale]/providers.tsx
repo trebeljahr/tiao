@@ -30,16 +30,16 @@
  *    per-icon imports at compile time automatically.
  */
 
+import dynamic from "next/dynamic";
+import { usePathname, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useEffect, useRef } from "react";
+import { Toaster } from "sonner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AnalyticsConsentProvider } from "@/lib/AnalyticsConsent";
 import { AuthProvider, useAuth } from "@/lib/AuthContext";
 import { toastError } from "@/lib/errors";
 import { getOAuthErrorMessage } from "@/lib/oauthErrors";
-import { useTranslations } from "next-intl";
-import dynamic from "next/dynamic";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
-import { Toaster } from "sonner";
 import { LobbyProviders } from "./LobbyProviders";
 
 // ─── Dynamic imports ─────────────────────────────────────────────────

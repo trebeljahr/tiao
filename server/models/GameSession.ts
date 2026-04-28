@@ -1,4 +1,4 @@
-import { type Document, Schema, model, models } from "mongoose";
+import { type Document, model, models, Schema } from "mongoose";
 import type { IdentityKind } from "../../shared/src";
 
 export interface IGameSession extends Document {

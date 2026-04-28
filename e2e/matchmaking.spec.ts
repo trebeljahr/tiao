@@ -1,4 +1,4 @@
-import { type Page, expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import { signUpViaAPI, waitForAppReady } from "./helpers";
 
 // Multiplayer matchmaking tests create many browser contexts; serialize to avoid

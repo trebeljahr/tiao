@@ -103,7 +103,7 @@ router.get("/start", async (req: Request, res: Response) => {
     }
 
     const body = (await baResponse.json()) as { url?: string; redirect?: boolean };
-    if (!body || !body.redirect || typeof body.url !== "string") {
+    if (!body?.redirect || typeof body.url !== "string") {
       return res.status(500).json({
         code: "OAUTH_INIT_FAILED",
         message: "Could not start the OAuth flow.",

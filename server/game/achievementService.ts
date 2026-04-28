@@ -1,7 +1,7 @@
 import { isValidObjectId } from "mongoose";
 import { type AchievementDefinition, getAchievementById } from "../../shared/src/achievements";
-import { getFinishReason, getWinner, isBoardMove } from "../../shared/src/tiao";
 import type { GameState, JumpTurn, PlayerColor } from "../../shared/src/tiao";
+import { getFinishReason, getWinner, isBoardMove } from "../../shared/src/tiao";
 import { ACHIEVEMENT_BADGE_MAP } from "../config/badgeRewards";
 import Achievement from "../models/Achievement";
 import GameAccount from "../models/GameAccount";
@@ -84,7 +84,7 @@ async function grant(playerId: string, achievementId: string): Promise<boolean> 
   return true;
 }
 
-async function hasAchievement(playerId: string, achievementId: string): Promise<boolean> {
+async function _hasAchievement(playerId: string, achievementId: string): Promise<boolean> {
   const count = await Achievement.countDocuments({ playerId, achievementId });
   return count > 0;
 }

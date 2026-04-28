@@ -1,7 +1,7 @@
-import type { GameConfigMode } from "@/components/game/GameConfigPanel";
-import type { AIDifficulty } from "@/lib/computer-ai";
 import type { PlayerColor, TimeControl } from "@shared";
 import { useMemo, useState } from "react";
+import type { GameConfigMode } from "@/components/game/GameConfigPanel";
+import type { AIDifficulty } from "@/lib/computer-ai";
 
 type InitialGameConfig = {
   boardSize?: number;

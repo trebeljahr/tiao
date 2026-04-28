@@ -1,13 +1,13 @@
 "use client";
 
 import type { AuthResponse, PendingTournamentMatch } from "@shared";
-import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import type React from "react";
 import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { useLobbyMessage } from "./LobbySocketContext";
 import { getMyPendingTournamentMatches } from "./api";
+import { useLobbyMessage } from "./LobbySocketContext";
 
 /**
  * Global "your tournament match is ready" notification layer. Server is

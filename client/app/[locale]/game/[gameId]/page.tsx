@@ -1,8 +1,8 @@
+import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { DESKTOP_SPA_PARAM_VALUE } from "@/lib/desktopPathParam";
 import { OG_IMAGES } from "@/lib/metadata";
 import { MultiplayerGamePage } from "@/views/MultiplayerGamePage";
-import type { Metadata } from "next";
-import { getTranslations, setRequestLocale } from "next-intl/server";
 
 type Props = { params: Promise<{ locale: string; gameId: string }> };
 

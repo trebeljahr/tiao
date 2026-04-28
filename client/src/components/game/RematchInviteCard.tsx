@@ -1,8 +1,8 @@
+import type { MultiplayerRoomType, PlayerColor, TimeControl } from "@shared";
+import { useTranslations } from "next-intl";
 import { RematchInviteBody } from "@/components/game/RematchInviteBody";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { MultiplayerRoomType, PlayerColor, TimeControl } from "@shared";
-import { useTranslations } from "next-intl";
 
 function CloseIcon() {
   return (

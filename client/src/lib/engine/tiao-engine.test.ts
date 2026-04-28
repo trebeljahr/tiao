@@ -1,10 +1,10 @@
-import { type GameState, createInitialGameState } from "@shared";
+import { createInitialGameState, type GameState } from "@shared";
 import { describe, expect, it } from "vitest";
 import {
   AI_DIFFICULTY_LABELS,
-  type EngineMove,
   applyEngineMove,
   computeZobristHash,
+  type EngineMove,
   evaluate,
   findBestMove,
   generateMoves,

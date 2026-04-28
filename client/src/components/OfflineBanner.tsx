@@ -1,6 +1,6 @@
 "use client";
-import { useOnlineStatus } from "@/lib/hooks/useOnlineStatus";
 import { useTranslations } from "next-intl";
+import { useOnlineStatus } from "@/lib/hooks/useOnlineStatus";
 
 type ElectronBridge = { isElectron?: boolean };
 

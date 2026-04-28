@@ -1,6 +1,6 @@
+import { useCallback, useSyncExternalStore } from "react";
 import type { BadgeId } from "@/components/UserBadge";
 import { safeLocalStorage } from "@/lib/safeLocalStorage";
-import { useCallback, useSyncExternalStore } from "react";
 
 const STORAGE_KEY = "tiao:activeBadges";
 

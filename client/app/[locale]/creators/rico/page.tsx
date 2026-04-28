@@ -1,5 +1,5 @@
-import { OG_IMAGES } from "@/lib/metadata";
 import type { Metadata } from "next";
+import { OG_IMAGES } from "@/lib/metadata";
 import RicoCreator from "./RicoCreator";
 
 export const metadata: Metadata = {

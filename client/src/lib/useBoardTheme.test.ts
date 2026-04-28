@@ -1,6 +1,6 @@
-import { DEFAULT_THEME_ID } from "@/components/game/boardThemes";
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
+import { DEFAULT_THEME_ID } from "@/components/game/boardThemes";
 import { resetBoardTheme, useBoardThemeId, useSetBoardTheme } from "./useBoardTheme";
 
 beforeEach(() => {

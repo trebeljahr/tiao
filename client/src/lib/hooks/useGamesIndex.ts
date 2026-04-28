@@ -1,8 +1,8 @@
 import type { AuthResponse, MultiplayerGamesIndex, PlayerColor, PlayerIdentity } from "@shared";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useLobbyMessage } from "../LobbySocketContext";
 import { listMultiplayerGames } from "../api";
 import { fetchWithRetry } from "../fetchWithRetry";
+import { useLobbyMessage } from "../LobbySocketContext";
 
 /** Shape of the player-identity-update broadcast sent from gameService. */
 type PlayerIdentityUpdatePayload = {

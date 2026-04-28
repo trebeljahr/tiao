@@ -1,8 +1,8 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
-import { useTranslations } from "next-intl";
 
 /**
  * Small bottom-of-screen banner that prompts the user to install Tiao as a

@@ -1,8 +1,8 @@
 "use client";
 
-import { useToggleSound } from "@/lib/useSoundPreference";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
+import { useToggleSound } from "@/lib/useSoundPreference";
 
 export function SoundToggle() {
   const t = useTranslations("nav");

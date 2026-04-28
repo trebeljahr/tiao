@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { beforeEach, describe, test } from "node:test";
-import { InMemoryBroadcaster } from "../game/broadcaster";
 import type { BroadcastChannel } from "../game/broadcaster";
+import { InMemoryBroadcaster } from "../game/broadcaster";
 
 describe("InMemoryBroadcaster", () => {
   let broadcaster: InMemoryBroadcaster;

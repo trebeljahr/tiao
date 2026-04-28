@@ -1,5 +1,5 @@
-import { ApiError } from "@/lib/api";
 import { toast } from "sonner";
+import { ApiError } from "@/lib/api";
 
 export function readableError(error: unknown) {
   if (typeof error === "string") {

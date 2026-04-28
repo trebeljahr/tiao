@@ -1,8 +1,13 @@
 "use client";
+import type { TournamentSnapshot } from "@shared";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { BackButton } from "@/components/BackButton";
+import { GameConfigBadge } from "@/components/game/GameConfigBadge";
 import { Navbar } from "@/components/Navbar";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
-import { GameConfigBadge } from "@/components/game/GameConfigBadge";
 import { BracketVisualization } from "@/components/tournament/BracketVisualization";
 import { MatchCard } from "@/components/tournament/MatchCard";
 import { StandingsTable } from "@/components/tournament/StandingsTable";
@@ -27,11 +32,6 @@ import {
 import { resolveDynamicParam } from "@/lib/desktopPathParam";
 import { toastError } from "@/lib/errors";
 import { useTournament } from "@/lib/hooks/useTournament";
-import type { TournamentSnapshot } from "@shared";
-import { useTranslations } from "next-intl";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 
 export function TournamentPage() {
   const t = useTranslations("tournament");

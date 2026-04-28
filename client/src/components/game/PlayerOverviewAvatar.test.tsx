@@ -15,7 +15,9 @@ vi.mock("framer-motion", () => ({
       <button {...filterDomProps(props)}>{children as React.ReactNode}</button>
     ),
     svg: ({ children, ...props }: Record<string, unknown>) => (
-      <svg aria-hidden="true" {...filterDomProps(props)}>{children as React.ReactNode}</svg>
+      <svg aria-hidden="true" {...filterDomProps(props)}>
+        {children as React.ReactNode}
+      </svg>
     ),
   },
   useAnimationControls: () => ({

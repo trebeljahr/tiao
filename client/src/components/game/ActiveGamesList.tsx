@@ -1,14 +1,14 @@
 "use client";
 
+import type { MultiplayerGameSummary } from "@shared";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useCallback, useMemo, useState } from "react";
 import { ActiveGameCard } from "@/components/game/ActiveGameCard";
 import { isSummaryYourTurn } from "@/components/game/GameShared";
 import { cancelMultiplayerGame, cancelRematchRequest } from "@/lib/api";
 import { toastError } from "@/lib/errors";
 import { cn } from "@/lib/utils";
-import type { MultiplayerGameSummary } from "@shared";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
 
 type ActiveGamesListProps = {
   games: MultiplayerGameSummary[];

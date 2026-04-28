@@ -1,18 +1,18 @@
-import { usePinchZoom } from "@/hooks/usePinchZoom";
-import { useBoardTheme } from "@/lib/useBoardTheme";
-import { cn } from "@/lib/utils";
 import {
+  arePositionsEqual,
   BOARD_SIZE,
   type GameState,
-  type Position,
-  type TurnRecord,
-  arePositionsEqual,
   getPendingJumpDestination,
   getSelectableJumpOrigins,
   isPositionMarkedForCapture,
+  type Position,
+  type TurnRecord,
 } from "@shared";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { usePinchZoom } from "@/hooks/usePinchZoom";
+import { useBoardTheme } from "@/lib/useBoardTheme";
+import { cn } from "@/lib/utils";
 
 export type LastMoveHighlight = TurnRecord | null;
 

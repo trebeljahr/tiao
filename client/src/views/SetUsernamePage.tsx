@@ -1,4 +1,8 @@
 "use client";
+import { isValidUsername } from "@shared";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useCallback, useRef, useState } from "react";
 import { AnimatedCard } from "@/components/ui/animated-card";
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
@@ -7,10 +11,6 @@ import { PaperCard } from "@/components/ui/paper-card";
 import { useAuth } from "@/lib/AuthContext";
 import { setUsername, uploadAccountProfilePicture } from "@/lib/api";
 import { readableError, toastError } from "@/lib/errors";
-import { isValidUsername } from "@shared";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
-import { useCallback, useRef, useState } from "react";
 
 const PROFILE_PIC_SIZE = 512;
 const PROFILE_PIC_QUALITY = 0.85;

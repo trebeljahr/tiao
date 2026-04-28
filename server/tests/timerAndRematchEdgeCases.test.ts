@@ -428,7 +428,7 @@ test("pushes pending incoming rematch game-update to newly connected lobby socke
   const rematchUpdate = gameUpdates.find(
     // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
     (m) => (m as any).summary?.gameId === created.gameId,
-  // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
+    // biome-ignore lint/suspicious/noExplicitAny: explicit any acknowledged
   ) as any;
   assert.ok(rematchUpdate, "game-update should contain the game with pending rematch");
   assert.equal(rematchUpdate.summary.status, "finished");

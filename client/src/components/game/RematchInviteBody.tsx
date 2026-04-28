@@ -1,9 +1,9 @@
-import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
-import { GameConfigBadge } from "@/components/game/GameConfigBadge";
-import { ColorDot, translatePlayerColor } from "@/components/game/GameShared";
-import { cn } from "@/lib/utils";
 import type { MultiplayerRoomType, PlayerColor, TimeControl } from "@shared";
 import { useTranslations } from "next-intl";
+import { GameConfigBadge } from "@/components/game/GameConfigBadge";
+import { ColorDot, translatePlayerColor } from "@/components/game/GameShared";
+import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
+import { cn } from "@/lib/utils";
 
 type RematchInviteOpponent = {
   playerId?: string;

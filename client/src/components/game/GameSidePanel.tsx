@@ -1,10 +1,10 @@
+import type { GameState, PlayerColor, TimeControl } from "@shared";
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PaperCard } from "@/components/ui/paper-card";
 import { cn } from "@/lib/utils";
-import type { GameState, PlayerColor, TimeControl } from "@shared";
-import { useTranslations } from "next-intl";
 import { AnimatedScoreTile, type AnimatedScoreTilePlayerInfo } from "./AnimatedScoreTile";
 import { formatClockTime } from "./GameClock";
 import { GamePanelBrand } from "./GameShared";

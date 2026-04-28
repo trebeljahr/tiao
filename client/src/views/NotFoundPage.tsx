@@ -1,10 +1,10 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 import { PaperCard } from "@/components/ui/paper-card";
-import { useTranslations } from "next-intl";
 
 export function NotFoundPage() {
   const t = useTranslations("notFound");

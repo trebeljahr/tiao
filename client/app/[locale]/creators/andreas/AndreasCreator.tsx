@@ -1,7 +1,7 @@
 "use client";
 
-import { CreatorPage } from "@/views/CreatorPage";
 import type { ReactNode } from "react";
+import { CreatorPage } from "@/views/CreatorPage";
 
 const linkClass =
   "font-medium text-[#5d4732] underline decoration-[#d4c4a8] underline-offset-2 hover:text-[#3a2818]";

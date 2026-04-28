@@ -1,16 +1,16 @@
-import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
+import type { FriendActiveGameSummary, PlayerColor, SocialPlayerSummary } from "@shared";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useState } from "react";
 import { GameConfigBadge } from "@/components/game/GameConfigBadge";
 import { ColorDot, EmptySeatAvatar } from "@/components/game/GameShared";
+import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/AuthContext";
 import { getFriendActiveGames } from "@/lib/api";
 import { toastError } from "@/lib/errors";
 import { cn } from "@/lib/utils";
-import type { FriendActiveGameSummary, PlayerColor, SocialPlayerSummary } from "@shared";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
 
 type FriendActiveGamesModalProps = {
   friend: SocialPlayerSummary | null;

@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import {
   BOARD_SIZE,
-  SCORE_TO_WIN,
   canPlacePiece,
   confirmPendingJump,
   createInitialGameState,
@@ -12,6 +11,7 @@ import {
   isGameOver,
   jumpPiece,
   otherColor,
+  SCORE_TO_WIN,
   undoLastTurn,
   undoPendingJumpStep,
 } from "../../shared/src";

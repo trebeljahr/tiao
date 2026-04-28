@@ -1,5 +1,8 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+import { useCallback, useState } from "react";
+import { toast } from "sonner";
 import { BackButton } from "@/components/BackButton";
 import { PageLayout } from "@/components/PageLayout";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
@@ -9,17 +12,14 @@ import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PaperCard } from "@/components/ui/paper-card";
 import { useAuth } from "@/lib/AuthContext";
 import {
-  type FlaggedPlayer,
-  type PlayerReportEntry,
   adminDismissReports,
   adminGetFlaggedPlayers,
   adminGetPlayerReports,
+  type FlaggedPlayer,
+  type PlayerReportEntry,
 } from "@/lib/api";
 import { toastError } from "@/lib/errors";
 import { isAdmin } from "@/lib/featureGate";
-import { useTranslations } from "next-intl";
-import { useCallback, useState } from "react";
-import { toast } from "sonner";
 
 export function AdminReportsPage() {
   const t = useTranslations("adminReports");

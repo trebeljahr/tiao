@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { after, afterEach, before, beforeEach, describe, test } from "node:test";
 import Redis from "ioredis";
-import { BullMQTimerScheduler } from "../../game/timerQueue";
 import type { TimerHandlers } from "../../game/timerQueue";
+import { BullMQTimerScheduler } from "../../game/timerQueue";
 
 // BullMQTimerScheduler uses hard-coded queue names:
 //   tiao-timer-clock, tiao-timer-abandon, tiao-timer-first-move

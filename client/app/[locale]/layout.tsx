@@ -1,11 +1,11 @@
+import type { Metadata, Viewport } from "next";
+import localFont from "next/font/local";
+import { notFound } from "next/navigation";
+import { hasLocale, NextIntlClientProvider } from "next-intl";
+import { getMessages, setRequestLocale } from "next-intl/server";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { routing } from "@/i18n/routing";
 import { OG_IMAGES } from "@/lib/metadata";
-import type { Metadata, Viewport } from "next";
-import { NextIntlClientProvider, hasLocale } from "next-intl";
-import { getMessages, setRequestLocale } from "next-intl/server";
-import localFont from "next/font/local";
-import { notFound } from "next/navigation";
 import { Providers } from "./providers";
 import "./globals.css";
 

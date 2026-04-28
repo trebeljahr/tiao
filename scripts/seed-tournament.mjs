@@ -94,7 +94,7 @@ function parseSessionCookie(setCookieHeader) {
   // (or similar) entry and return just the `name=value` portion.
   if (!setCookieHeader) return "";
   return setCookieHeader
-    .split(/,(?=\s*[A-Za-z0-9_\-]+=)/)
+    .split(/,(?=\s*[A-Za-z0-9_-]+=)/)
     .map((c) => c.trim().split(";")[0])
     .filter(Boolean)
     .join("; ");

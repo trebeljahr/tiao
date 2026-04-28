@@ -1,32 +1,32 @@
 "use client";
+import type { MultiplayerGameSummary } from "@shared";
+import { ACHIEVEMENTS } from "@shared";
+import { useParams, useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { useEffect, useMemo, useState } from "react";
 import { AchievementCard } from "@/components/AchievementCard";
 import { BackButton } from "@/components/BackButton";
+import { MatchHistoryCard } from "@/components/game/MatchHistoryCard";
 import { PageLayout } from "@/components/PageLayout";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { ReportPlayerButton } from "@/components/ReportPlayerButton";
 import { BADGE_DEFINITIONS, type BadgeId, UserBadge } from "@/components/UserBadge";
-import { MatchHistoryCard } from "@/components/game/MatchHistoryCard";
 import { AnimatedCard } from "@/components/ui/animated-card";
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 import { PaperCard } from "@/components/ui/paper-card";
 import { SkeletonProfileHeader, SkeletonProfileStats } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/AuthContext";
-import { useLobbyMessage } from "@/lib/LobbySocketContext";
 import {
-  type PlayerAchievement,
-  type PublicProfile,
   getPlayerAchievements,
   getPlayerMatchHistory,
   getPublicProfile,
+  type PlayerAchievement,
+  type PublicProfile,
 } from "@/lib/api";
 import { resolveDynamicParam } from "@/lib/desktopPathParam";
 import { useSocialData } from "@/lib/hooks/useSocialData";
-import type { MultiplayerGameSummary } from "@shared";
-import { ACHIEVEMENTS } from "@shared";
-import { useLocale, useTranslations } from "next-intl";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useLobbyMessage } from "@/lib/LobbySocketContext";
 
 export function PublicProfilePage() {
   const t = useTranslations("publicProfile");

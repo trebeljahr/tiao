@@ -2,7 +2,7 @@ import express, { type Request, type Response } from "express";
 import { track, trackRevenue } from "../analytics/openpanel";
 import { getPlayerFromRequest } from "../auth/sessionHelper";
 import { FRONTEND_URL } from "../config/envVars";
-import { SHOP_ITEMS, findShopItem } from "../config/shopCatalog";
+import { findShopItem, SHOP_ITEMS } from "../config/shopCatalog";
 import { handleRouteError } from "../error-handling/routeError";
 import { grantBadge, grantTheme, revokeBadge } from "../game/badgeService";
 import GameAccount, { type ISubscription } from "../models/GameAccount";

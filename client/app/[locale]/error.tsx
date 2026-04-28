@@ -1,13 +1,13 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+import { useEffect } from "react";
 import { BackButton } from "@/components/BackButton";
 import { PageLayout } from "@/components/PageLayout";
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 import { PaperCard } from "@/components/ui/paper-card";
 import { captureException } from "@/lib/glitchtip";
-import { useTranslations } from "next-intl";
-import { useEffect } from "react";
 
 export default function ErrorPage({
   error,

@@ -2,7 +2,7 @@ import type { IncomingMessage } from "node:http";
 import { fromNodeHeaders } from "better-auth/node";
 import type { Request, Response } from "express";
 import { type HydratedDocument, Types } from "mongoose";
-import { type PlayerIdentity, isValidUsername } from "../../shared/src";
+import { isValidUsername, type PlayerIdentity } from "../../shared/src";
 import { ACHIEVEMENT_BADGE_MAP } from "../config/badgeRewards";
 import Achievement from "../models/Achievement";
 import GameAccount, { type IGameAccount } from "../models/GameAccount";

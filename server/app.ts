@@ -7,13 +7,14 @@ import addErrorHandlingToApp from "./error-handling";
 import achievementRoutes from "./routes/achievement.routes";
 import adminRoutes from "./routes/admin.routes";
 import desktopAuthRoutes from "./routes/desktop-auth.routes";
-import gameAuthRoutes from "./routes/game-auth.routes";
 import gameRoutes from "./routes/game.routes";
+import gameAuthRoutes from "./routes/game-auth.routes";
 import indexRoutes from "./routes/index.routes";
 import reportRoutes from "./routes/report.routes";
 import shopRoutes from "./routes/shop.routes";
 import socialRoutes from "./routes/social.routes";
 import tournamentRoutes from "./routes/tournament.routes";
+
 const app = express();
 
 // Desktop OAuth bridge routes run BEFORE both the better-auth catchall

@@ -96,7 +96,8 @@
 
   body {
     @apply min-h-screen bg-background font-sans text-foreground antialiased;
-    background-image: radial-gradient(circle at top, rgba(255, 248, 234, 0.86), transparent 30%),
+    background-image:
+      radial-gradient(circle at top, rgba(255, 248, 234, 0.86), transparent 30%),
       linear-gradient(130deg, rgba(112, 84, 45, 0.08), transparent 34%),
       linear-gradient(180deg, #f6ecd8 0%, #ecdcbf 50%, #dfc69c 100%);
   }
@@ -165,13 +166,13 @@
    so toasts wrap their content vertically instead of growing into it. */
 @media (max-width: 600px) {
   [data-sonner-toaster][data-y-position="top"] {
-    left: 64px !important;
-    right: 12px !important;
-    width: auto !important;
+    left: 64px;
+    right: 12px;
+    width: auto;
   }
   [data-sonner-toaster] [data-sonner-toast] {
-    width: 100% !important;
-    max-width: 100% !important;
+    width: 100%;
+    max-width: 100%;
   }
 }
 /* Move sonner's close X from its default top-left corner to the top-right
@@ -191,10 +192,13 @@ html [data-sonner-toaster][dir="ltr"] {
    writing four separate per-type overrides that beat that specificity,
    and it makes the intent obvious: the X should always look the same. */
 [data-sonner-toast] [data-close-button] {
-  background: #fffdf7 !important;
-  border-color: #dbc6a2 !important;
-  color: #4a3728 !important;
-  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  background: #fffdf7;
+  border-color: #dbc6a2;
+  color: #4a3728;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    color 0.2s;
 }
 /* Sonner has a (0,4,2) rule on
    [data-sonner-toast][data-styled="true"]:hover [data-close-button]:hover
@@ -203,9 +207,9 @@ html [data-sonner-toaster][dir="ltr"] {
    pure-neutral gray here — #e5e5e5 picks up a cool/blue cast via
    simultaneous contrast against the warm cream toast body. */
 html [data-sonner-toast][data-styled="true"]:hover [data-close-button]:hover {
-  background: #f1f1f1 !important;
-  border-color: #dcdcdc !important;
-  color: #2b2b2b !important;
+  background: #f1f1f1;
+  border-color: #dcdcdc;
+  color: #2b2b2b;
 }
 
 /* Give sonner's action/cancel buttons (Accept, Decline, Join, View, etc.)
@@ -216,7 +220,10 @@ html [data-sonner-toast][data-styled="true"]:hover [data-close-button]:hover {
    `transition: opacity 0.4s, box-shadow 0.2s`. Match the selector and
    prefix `html` to reach (0,3,2) so our transform transition wins. */
 html [data-sonner-toast][data-styled="true"] [data-button] {
-  transition: transform 0.2s, opacity 0.4s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    opacity 0.4s,
+    box-shadow 0.2s;
 }
 html [data-sonner-toast][data-styled="true"] [data-button]:hover {
   transform: translateY(-1px);
@@ -422,21 +429,27 @@ html [data-sonner-toast][data-styled="true"] [data-button]:active {
     transform: scale(1);
   }
   10% {
-    box-shadow: 0 0 0 4px rgba(185, 141, 73, 0.5), 0 0 20px rgba(185, 141, 73, 0.25);
+    box-shadow:
+      0 0 0 4px rgba(185, 141, 73, 0.5),
+      0 0 20px rgba(185, 141, 73, 0.25);
     transform: scale(1.035);
   }
   25% {
     transform: scale(0.985);
   }
   40% {
-    box-shadow: 0 0 0 3px rgba(185, 141, 73, 0.35), 0 0 14px rgba(185, 141, 73, 0.15);
+    box-shadow:
+      0 0 0 3px rgba(185, 141, 73, 0.35),
+      0 0 14px rgba(185, 141, 73, 0.15);
     transform: scale(1.02);
   }
   55% {
     transform: scale(0.995);
   }
   70% {
-    box-shadow: 0 0 0 2px rgba(185, 141, 73, 0.2), 0 0 8px rgba(185, 141, 73, 0.1);
+    box-shadow:
+      0 0 0 2px rgba(185, 141, 73, 0.2),
+      0 0 8px rgba(185, 141, 73, 0.1);
     transform: scale(1.005);
   }
   100% {
@@ -481,6 +494,8 @@ html [data-sonner-toast][data-styled="true"] [data-button]:active {
 }
 .shop-purchase-wiggle {
   animation: purchase-wiggle 0.7s ease-out both;
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4), 0 0 40px rgba(255, 215, 0, 0.15);
-  border-color: rgba(255, 215, 0, 0.5) !important;
+  box-shadow:
+    0 0 20px rgba(255, 215, 0, 0.4),
+    0 0 40px rgba(255, 215, 0, 0.15);
+  border-color: rgba(255, 215, 0, 0.5);
 }

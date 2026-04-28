@@ -1,17 +1,17 @@
-import { useBoardTheme } from "@/lib/useBoardTheme";
-import { playMoveSoundIfEnabled } from "@/lib/useStonePlacementSound";
-import { cn } from "@/lib/utils";
 import confetti from "canvas-confetti";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useBoardTheme } from "@/lib/useBoardTheme";
+import { playMoveSoundIfEnabled } from "@/lib/useStonePlacementSound";
+import { cn } from "@/lib/utils";
 import {
   type Cell,
-  type JumpRecord,
-  type Pos,
   canPlacePiece,
   cloneBoard,
   getJumpTargets,
   getSelectableJumpOrigins,
+  type JumpRecord,
+  type Pos,
   posEq,
 } from "./tutorialEngine";
 import type { StepBoardConfig } from "./tutorialSteps";
@@ -436,7 +436,10 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
 
   // Hover target detection
   const hoveredPos = hoveredKey
-    ? { x: Number.parseInt(hoveredKey.split("-")[0]), y: Number.parseInt(hoveredKey.split("-")[1]) }
+    ? {
+        x: Number.parseInt(hoveredKey.split("-")[0], 10),
+        y: Number.parseInt(hoveredKey.split("-")[1], 10),
+      }
     : null;
   const isHoveringJumpTarget = hoveredPos && jumpTargetPositions.some((t) => posEq(t, hoveredPos));
   const hoveredJumpTarget = isHoveringJumpTarget ? hoveredPos : null;

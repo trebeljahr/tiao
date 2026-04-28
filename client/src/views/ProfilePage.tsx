@@ -1,4 +1,9 @@
 "use client";
+import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { FaDiscord, FaGithub, FaGoogle } from "react-icons/fa";
+import { toast } from "sonner";
 import { BackButton } from "@/components/BackButton";
 import { BadgeSelector } from "@/components/BadgeSelector";
 import { PageLayout } from "@/components/PageLayout";
@@ -13,27 +18,23 @@ import { SkeletonBlock, SkeletonPage } from "@/components/ui/skeleton";
 import { Link } from "@/i18n/navigation";
 import { useAnalyticsConsent } from "@/lib/AnalyticsConsent";
 import { useAuth } from "@/lib/AuthContext";
-import { useLobbyMessage } from "@/lib/LobbySocketContext";
 import {
   type AccountProfile,
-  type UserExportRow,
   createDataExport,
   deleteAccount,
   deleteDataExport,
   getAccountProfile,
   getDataExportDownloadUrl,
   listDataExports,
+  requestEmailChange,
+  setAccountPassword,
+  type UserExportRow,
   updateAccountProfile,
   uploadAccountProfilePicture,
 } from "@/lib/api";
-import { requestEmailChange, setAccountPassword } from "@/lib/api";
 import { getAuthClient } from "@/lib/auth-client";
 import { isNetworkError, readableError, toastError } from "@/lib/errors";
-import { useLocale, useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { FaDiscord, FaGithub, FaGoogle } from "react-icons/fa";
-import { toast } from "sonner";
+import { useLobbyMessage } from "@/lib/LobbySocketContext";
 
 const PROFILE_PIC_SIZE = 512;
 const PROFILE_PIC_QUALITY = 0.85;
@@ -884,7 +885,7 @@ export function ProfilePage() {
     setEmailError(null);
 
     const trimmed = newEmailValue.trim().toLowerCase();
-    if (!trimmed || !trimmed.includes("@")) {
+    if (!trimmed?.includes("@")) {
       setEmailError(t("emailInvalid"));
       return;
     }

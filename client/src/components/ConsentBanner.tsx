@@ -16,12 +16,12 @@
  * hydrate before rendering at all.
  */
 
+import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PaperCard } from "@/components/ui/paper-card";
 import { Link } from "@/i18n/navigation";
 import { useAnalyticsConsent } from "@/lib/AnalyticsConsent";
-import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
 
 export function ConsentBanner() {
   const { status, hydrated, configured, grant, revoke } = useAnalyticsConsent();

@@ -1,10 +1,16 @@
 import WebSocket from "ws";
 import {
   type ClientToServerMessage,
+  confirmPendingJump,
+  createInitialGameState,
   type FinishReason,
   type FriendActiveGameSummary,
+  forfeitGame,
   type GameSettings,
   type GameState,
+  getWinner,
+  isGameOver,
+  jumpPiece,
   type LobbyClientMessage,
   type MatchmakingState,
   type MultiplayerGameSummary,
@@ -16,16 +22,10 @@ import {
   type PlayerColor,
   type PlayerIdentity,
   type PlayerSlot,
+  placePiece,
   type RuleResult,
   type TimeControl,
   type TurnRecord,
-  confirmPendingJump,
-  createInitialGameState,
-  forfeitGame,
-  getWinner,
-  isGameOver,
-  jumpPiece,
-  placePiece,
   undoLastTurn,
   undoPendingJumpStep,
 } from "../../shared/src";
@@ -37,11 +37,11 @@ import {
 } from "../cache/playerIdentityCache";
 import {
   type GameRoomStore,
+  getPlayerColorForRoom,
   MongoGameRoomStore,
   type StoredMultiplayerRoom,
   type StoredPlayerIdentity,
   type StoredSeatAssignments,
-  getPlayerColorForRoom,
 } from "./gameStore";
 
 export class GameServiceError extends Error {
@@ -68,7 +68,7 @@ import {
   setAchievementNotifier,
 } from "./achievementService";
 import { type Broadcaster, InMemoryBroadcaster } from "./broadcaster";
-import { DEFAULT_RATING, computeNewRatings } from "./elo";
+import { computeNewRatings, DEFAULT_RATING } from "./elo";
 import { InMemoryLockProvider, type LockProvider } from "./lockProvider";
 import { InMemoryMatchmakingStore, type MatchmakingStore } from "./matchmakingStore";
 import {
@@ -686,50 +686,6 @@ export class GameService {
       });
       this.broadcastSnapshotSafe(savedRoom);
     });
-  }
-
-  /** Enrich game summaries with fresh player data from the identity cache. */
-  private async enrichSummaries(summaries: MultiplayerGameSummary[]): Promise<void> {
-    const playerIds = new Set<string>();
-    for (const s of summaries) {
-      for (const color of ["white", "black"] as const) {
-        const slot = s.seats[color];
-        if (slot?.player.playerId) playerIds.add(slot.player.playerId);
-      }
-    }
-    if (playerIds.size === 0) return;
-
-    const profiles = await getPlayerProfiles([...playerIds]);
-
-    for (const s of summaries) {
-      for (const color of ["white", "black"] as const) {
-        const slot = s.seats[color];
-        if (!slot) continue;
-        const profile = profiles.get(slot.player.playerId);
-        if (!profile) continue;
-        slot.player = {
-          ...slot.player,
-          displayName: profile.displayName,
-          profilePicture: profile.profilePicture,
-          activeBadges: profile.activeBadges,
-          badges: profile.badges,
-          rating: profile.rating,
-        };
-      }
-      // Also enrich the players list (derived from seats)
-      for (const slot of s.players) {
-        const profile = profiles.get(slot.player.playerId);
-        if (!profile) continue;
-        slot.player = {
-          ...slot.player,
-          displayName: profile.displayName,
-          profilePicture: profile.profilePicture,
-          activeBadges: profile.activeBadges,
-          badges: profile.badges,
-          rating: profile.rating,
-        };
-      }
-    }
   }
 
   /** Batch-resolve profiles for every seated player across a list of rooms. */

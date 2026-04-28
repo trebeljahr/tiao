@@ -1,12 +1,11 @@
+import type { PlayerColor, TimeControl } from "@shared";
+import { BOARD_SIZE_OPTIONS, SCORE_TO_WIN_OPTIONS, TIME_CONTROL_PRESETS } from "@shared";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { NumberStepper } from "@/components/ui/number-stepper";
 import type { AIDifficulty } from "@/lib/computer-ai";
 import { cn } from "@/lib/utils";
-import type { TimeControl } from "@shared";
-import { BOARD_SIZE_OPTIONS, SCORE_TO_WIN_OPTIONS, TIME_CONTROL_PRESETS } from "@shared";
-import type { PlayerColor } from "@shared";
-import { useTranslations } from "next-intl";
-import { useState } from "react";
 
 export type GameConfigMode = "computer" | "local" | "multiplayer" | "matchmaking" | "tournament";
 

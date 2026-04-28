@@ -1,9 +1,9 @@
 "use client";
 
-import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
-import { cn } from "@/lib/utils";
 import { motion, useAnimationControls } from "framer-motion";
 import { useEffect } from "react";
+import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
+import { cn } from "@/lib/utils";
 import { formatClockTime } from "./GameClock";
 import { ConnectionDot } from "./GameShared";
 

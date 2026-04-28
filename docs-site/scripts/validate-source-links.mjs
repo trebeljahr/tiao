@@ -7,7 +7,7 @@
  * Exit code 1 on any failure — intended to run in CI / docs:build.
  */
 
-import { readFileSync, readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -77,7 +77,7 @@ for (const [key, entry] of Object.entries(links)) {
 
 // --- Check 2: every [fn-*] reference in docs has a matching entry ---
 
-const FN_REF_RE = /\[fn-([\w.\-]+)\]/g;
+const FN_REF_RE = /\[fn-([\w.-]+)\]/g;
 
 function walkDir(dir) {
   const files = [];

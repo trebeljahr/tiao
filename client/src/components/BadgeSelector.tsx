@@ -1,5 +1,8 @@
 "use client";
 
+import type { AuthResponse } from "@shared";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { BadgeToast } from "@/components/BadgeToast";
 import { BADGE_DEFINITIONS, type BadgeId, UserBadge, useBadgeName } from "@/components/UserBadge";
 import { AnimatedCard } from "@/components/ui/animated-card";
@@ -8,9 +11,6 @@ import { PaperCard } from "@/components/ui/paper-card";
 import { updateActiveBadges } from "@/lib/api";
 import { toastError } from "@/lib/errors";
 import { cn } from "@/lib/utils";
-import type { AuthResponse } from "@shared";
-import { useTranslations } from "next-intl";
-import { toast } from "sonner";
 
 export function BadgeSelector({
   auth,

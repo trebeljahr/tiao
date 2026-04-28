@@ -1,5 +1,5 @@
 import type { GameState } from "@shared";
-import { type EngineConfig, type SearchResult, findBestMove } from "./tiao-engine";
+import { type EngineConfig, findBestMove, type SearchResult } from "./tiao-engine";
 
 export type WorkerRequest =
   | { type: "search"; id: number; state: GameState; config: EngineConfig }

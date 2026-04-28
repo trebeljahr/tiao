@@ -1,12 +1,24 @@
 "use client";
-import { InviteFriendsModal } from "@/components/InviteFriendsModal";
-import { Navbar } from "@/components/Navbar";
-import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
-import { ReportPlayerButton } from "@/components/ReportPlayerButton";
+import type { FinishReason, PlayerColor, Position } from "@shared";
+import {
+  arePositionsEqual,
+  formatGameNotation,
+  getFinishReason,
+  getJumpTargets,
+  getWinner,
+  isBoardMove,
+  isGameOver,
+  replayToMove,
+} from "@shared";
+import confetti from "canvas-confetti";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { AnimatedScoreTile } from "@/components/game/AnimatedScoreTile";
 import {
-  InlineClockBadge,
   formatClockTime,
+  InlineClockBadge,
   useFirstMoveCountdown,
   useGameClock,
 } from "@/components/game/GameClock";
@@ -23,6 +35,10 @@ import { LoadingBoardSkeleton } from "@/components/game/LoadingBoardSkeleton";
 import { MoveList, MoveListNavButtons } from "@/components/game/MoveList";
 import { RematchInviteCard } from "@/components/game/RematchInviteCard";
 import { TiaoBoard } from "@/components/game/TiaoBoard";
+import { InviteFriendsModal } from "@/components/InviteFriendsModal";
+import { Navbar } from "@/components/Navbar";
+import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
+import { ReportPlayerButton } from "@/components/ReportPlayerButton";
 import { TournamentContextBar } from "@/components/tournament/TournamentContextBar";
 import { TournamentWaitingSpectatorBanner } from "@/components/tournament/TournamentWaitingSpectatorBanner";
 import { Badge } from "@/components/ui/badge";
@@ -31,34 +47,17 @@ import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog } from "@/components/ui/dialog";
 import { PaperCard } from "@/components/ui/paper-card";
 import { useAuth } from "@/lib/AuthContext";
-import { useLobbyMessage } from "@/lib/LobbySocketContext";
-import { useSocialNotifications } from "@/lib/SocialNotificationsContext";
 import { accessMultiplayerGame, getMultiplayerGame } from "@/lib/api";
 import { resolveDynamicParam } from "@/lib/desktopPathParam";
 import { useMultiplayerGame } from "@/lib/hooks/useMultiplayerGame";
 import { useSocialData } from "@/lib/hooks/useSocialData";
 import { useTournamentNextMatch } from "@/lib/hooks/useTournamentNextMatch";
+import { useLobbyMessage } from "@/lib/LobbySocketContext";
 import { op } from "@/lib/openpanel";
+import { useSocialNotifications } from "@/lib/SocialNotificationsContext";
 import { safeLocalStorage } from "@/lib/safeLocalStorage";
 import { useStonePlacementSound } from "@/lib/useStonePlacementSound";
 import { cn } from "@/lib/utils";
-import type { PlayerColor, Position } from "@shared";
-import {
-  arePositionsEqual,
-  formatGameNotation,
-  getFinishReason,
-  getJumpTargets,
-  getWinner,
-  isBoardMove,
-  isGameOver,
-  replayToMove,
-} from "@shared";
-import type { FinishReason } from "@shared";
-import confetti from "canvas-confetti";
-import { useTranslations } from "next-intl";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 
 function AnimatedEllipsis() {
   const [dots, setDots] = useState(0);
@@ -2002,35 +2001,31 @@ export function MultiplayerGamePage() {
                   </button>
                 )}
               </>
+            ) : multiplayerSnapshot?.rematch?.requestedBy.includes(playerSeat as PlayerColor) ? (
+              <p className="text-center text-sm font-medium text-[#56703f] py-2">
+                {t("rematchRequestedWaiting")}
+              </p>
             ) : (
-              <>
-                {multiplayerSnapshot?.rematch?.requestedBy.includes(playerSeat as PlayerColor) ? (
-                  <p className="text-center text-sm font-medium text-[#56703f] py-2">
-                    {t("rematchRequestedWaiting")}
-                  </p>
-                ) : (
-                  <Button
-                    onClick={() => {
-                      sendMultiplayerMessage({ type: "request-rematch" });
-                      op.track("rematch_requested", {
-                        game_id: multiplayerSnapshot?.gameId,
-                        source: "game_over_dialog",
-                        is_accept: Boolean(multiplayerSnapshot?.rematch?.requestedBy.length),
-                      });
-                      if (multiplayerSnapshot?.rematch?.requestedBy.length) {
-                        toast.dismiss(`rematch-${multiplayerSnapshot.gameId}`);
-                      } else {
-                        toast.success(t("rematchSent"));
-                      }
-                      setGameOverDialogOpen(false);
-                    }}
-                  >
-                    {multiplayerSnapshot?.rematch?.requestedBy.length
-                      ? t("acceptRematch")
-                      : t("rematch")}
-                  </Button>
-                )}
-              </>
+              <Button
+                onClick={() => {
+                  sendMultiplayerMessage({ type: "request-rematch" });
+                  op.track("rematch_requested", {
+                    game_id: multiplayerSnapshot?.gameId,
+                    source: "game_over_dialog",
+                    is_accept: Boolean(multiplayerSnapshot?.rematch?.requestedBy.length),
+                  });
+                  if (multiplayerSnapshot?.rematch?.requestedBy.length) {
+                    toast.dismiss(`rematch-${multiplayerSnapshot.gameId}`);
+                  } else {
+                    toast.success(t("rematchSent"));
+                  }
+                  setGameOverDialogOpen(false);
+                }}
+              >
+                {multiplayerSnapshot?.rematch?.requestedBy.length
+                  ? t("acceptRematch")
+                  : t("rematch")}
+              </Button>
             )
           ) : null}
           <Button

@@ -8,9 +8,9 @@ process.env.S3_PUBLIC_URL ??= "https://assets.test.local";
 
 import {
   DEFAULT_EXCHANGE_TTL_SEC,
-  InMemoryExchangeCodeStore,
   generateCode,
   getExchangeCodeStore,
+  InMemoryExchangeCodeStore,
   resetExchangeCodeStoreForTests,
 } from "../auth/desktopExchangeStore";
 

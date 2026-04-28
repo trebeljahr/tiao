@@ -1,6 +1,10 @@
 "use client";
-import { Navbar } from "@/components/Navbar";
+import type { MultiplayerSnapshot, TimeControl } from "@shared";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { HourglassSpinner } from "@/components/game/GameShared";
+import { Navbar } from "@/components/Navbar";
 import { AnimatedCard } from "@/components/ui/animated-card";
 import { Button } from "@/components/ui/button";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,10 +13,6 @@ import { SkeletonPage } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/AuthContext";
 import { useMatchmakingData } from "@/lib/hooks/useMatchmakingData";
 import { safeLocalStorage } from "@/lib/safeLocalStorage";
-import type { MultiplayerSnapshot, TimeControl } from "@shared";
-import { useTranslations } from "next-intl";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
 
 export function MatchmakingPage() {
   const t = useTranslations("matchmaking");

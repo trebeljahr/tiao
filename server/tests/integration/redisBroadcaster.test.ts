@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { after, afterEach, before, beforeEach, describe, test } from "node:test";
 import Redis from "ioredis";
-import { RedisBroadcaster } from "../../game/broadcaster";
 import type { BroadcastChannel } from "../../game/broadcaster";
+import { RedisBroadcaster } from "../../game/broadcaster";
 
 // RedisBroadcaster uses Redis Pub/Sub, whose channel names are GLOBAL
 // across all databases on a Redis instance (Pub/Sub is not db-namespaced).

@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { PageLayout } from "@/components/PageLayout";
 import { Button } from "@/components/ui/button";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +13,6 @@ import { PaperCard } from "@/components/ui/paper-card";
 // console. The localized Link prefixes the current locale before
 // the URL ever leaves the renderer.
 import { Link } from "@/i18n/navigation";
-import { useTranslations } from "next-intl";
 
 /**
  * Offline fallback for the lobby page in the desktop Electron build.

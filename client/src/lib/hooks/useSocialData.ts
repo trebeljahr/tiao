@@ -6,8 +6,6 @@ import {
   type SocialSearchResult,
 } from "@shared";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useLobbyMessage } from "../LobbySocketContext";
-import { useSocialNotifications } from "../SocialNotificationsContext";
 import {
   acceptFriendRequest,
   cancelFriendRequest,
@@ -22,6 +20,8 @@ import {
 } from "../api";
 import { toastError } from "../errors";
 import { fetchWithRetry } from "../fetchWithRetry";
+import { useLobbyMessage } from "../LobbySocketContext";
+import { useSocialNotifications } from "../SocialNotificationsContext";
 
 /** Shape of the player-identity-update broadcast sent from gameService. */
 type PlayerIdentityUpdatePayload = {

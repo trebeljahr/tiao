@@ -6,8 +6,8 @@ import type {
   TimeControl,
 } from "@shared";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useLobbyMessage, useLobbySocket } from "../LobbySocketContext";
 import { toastError } from "../errors";
+import { useLobbyMessage, useLobbySocket } from "../LobbySocketContext";
 
 /**
  * Matchmaking hook backed by the lobby WebSocket.

@@ -1,6 +1,6 @@
 "use client";
-import { API_BASE_URL } from "@/lib/api";
 import { useEffect, useState } from "react";
+import { API_BASE_URL } from "@/lib/api";
 
 /**
  * Hook reporting whether the client is currently online.

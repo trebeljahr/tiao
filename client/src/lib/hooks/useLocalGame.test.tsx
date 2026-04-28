@@ -1,4 +1,4 @@
-import { type GameState, createInitialGameState, getJumpTargets } from "@shared";
+import { createInitialGameState, type GameState, getJumpTargets } from "@shared";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { useLocalGame } from "./useLocalGame";

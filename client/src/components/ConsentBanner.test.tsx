@@ -1,6 +1,6 @@
-import { ANALYTICS_CONSENT_STORAGE_KEY, AnalyticsConsentProvider } from "@/lib/AnalyticsConsent";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { ANALYTICS_CONSENT_STORAGE_KEY, AnalyticsConsentProvider } from "@/lib/AnalyticsConsent";
 import { ConsentBanner } from "./ConsentBanner";
 
 // The banner reads openpanel config to decide whether to show at all.

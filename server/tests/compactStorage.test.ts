@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import {
-  type TileState,
-  type TurnRecord,
   compactToHistory,
   createInitialGameState,
   historyToCompact,
   placePiece,
   positionsToSparse,
   sparseToPositions,
+  type TileState,
+  type TurnRecord,
 } from "../../shared/src";
 
 describe("positionsToSparse / sparseToPositions", () => {

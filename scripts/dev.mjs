@@ -32,7 +32,7 @@
 //   npm run dev:docs:fixed               Fixed ports (client + server + docs)
 
 import { execSync, spawn } from "node:child_process";
-import { Socket, createServer } from "node:net";
+import { createServer, Socket } from "node:net";
 
 const args = process.argv.slice(2);
 const fixedMode = args.includes("--fixed");

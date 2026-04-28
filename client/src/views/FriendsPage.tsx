@@ -1,9 +1,13 @@
 "use client";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { FriendActiveGamesModal } from "@/components/FriendActiveGamesModal";
+import { GameConfigDialog } from "@/components/game/GameConfigDialog";
 import { Navbar } from "@/components/Navbar";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { RequireAccount } from "@/components/RequireAccount";
-import { GameConfigDialog } from "@/components/game/GameConfigDialog";
 import { AnimatedCard } from "@/components/ui/animated-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,17 +16,13 @@ import { Input } from "@/components/ui/input";
 import { PaperCard } from "@/components/ui/paper-card";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/AuthContext";
-import { useLobbyMessage } from "@/lib/LobbySocketContext";
-import { useSocialNotifications } from "@/lib/SocialNotificationsContext";
 import { createMultiplayerGame } from "@/lib/api";
 import { toastError } from "@/lib/errors";
 import { useGameConfig } from "@/lib/hooks/useGameConfig";
 import { useSocialData } from "@/lib/hooks/useSocialData";
+import { useLobbyMessage } from "@/lib/LobbySocketContext";
+import { useSocialNotifications } from "@/lib/SocialNotificationsContext";
 import { scrollToAndWiggle } from "@/lib/scroll-to-and-wiggle";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
 
 export function FriendsPage() {
   const t = useTranslations("friends");

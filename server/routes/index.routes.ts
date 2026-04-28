@@ -1,5 +1,5 @@
-import express from "express";
 import type { NextFunction, Request, Response } from "express";
+import express from "express";
 import { getRedisClient } from "../config/redisClient";
 import { isDatabaseReady } from "../db";
 

@@ -1,6 +1,6 @@
 import { createInitialGameState } from "@shared";
 import { describe, expect, it } from "vitest";
-import { type ComputerTurnPlan, applyComputerTurnPlan } from "./computer-ai";
+import { applyComputerTurnPlan, type ComputerTurnPlan } from "./computer-ai";
 
 describe("applyComputerTurnPlan", () => {
   it("applies a placement plan", () => {

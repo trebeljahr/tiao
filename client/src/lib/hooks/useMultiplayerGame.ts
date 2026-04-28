@@ -1,14 +1,14 @@
 import {
   type AuthResponse,
   type ClientToServerMessage,
-  type GameState,
-  type MultiplayerSnapshot,
-  type Position,
-  type ServerToClientMessage,
   confirmPendingJump,
+  type GameState,
   getPendingJumpDestination,
   jumpPiece,
+  type MultiplayerSnapshot,
+  type Position,
   placePiece,
+  type ServerToClientMessage,
   undoPendingJumpStep,
 } from "@shared";
 import { useCallback, useEffect, useRef, useState } from "react";

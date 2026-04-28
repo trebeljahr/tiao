@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  ACHIEVEMENT_CATEGORIES,
+  ACHIEVEMENTS,
+  type AchievementCategory,
+  type AchievementDefinition,
+} from "@shared";
+import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AchievementCard } from "@/components/AchievementCard";
 import { BackButton } from "@/components/BackButton";
 import { PageLayout } from "@/components/PageLayout";
@@ -9,16 +17,8 @@ import { CardContent } from "@/components/ui/card";
 import { PaperCard } from "@/components/ui/paper-card";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/AuthContext";
+import { getMyAchievements, type PlayerAchievement } from "@/lib/api";
 import { useLobbyMessage } from "@/lib/LobbySocketContext";
-import { type PlayerAchievement, getMyAchievements } from "@/lib/api";
-import {
-  ACHIEVEMENTS,
-  ACHIEVEMENT_CATEGORIES,
-  type AchievementCategory,
-  type AchievementDefinition,
-} from "@shared";
-import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useState } from "react";
 
 const CATEGORY_ICONS: Record<AchievementCategory, string> = {
   games: "\u265f\ufe0e", // chess pawn

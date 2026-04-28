@@ -1,10 +1,15 @@
 "use client";
 
-import { Navbar } from "@/components/Navbar";
+import type { PlayerColor } from "@shared";
+import { getWinner, isGameOver } from "@shared";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import React, { useCallback, useEffect, useState } from "react";
 import { GameConfigDialog } from "@/components/game/GameConfigDialog";
 import { HourglassSpinner, translatePlayerColor } from "@/components/game/GameShared";
 import { GameSidePanel } from "@/components/game/GameSidePanel";
 import { TiaoBoard } from "@/components/game/TiaoBoard";
+import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/AuthContext";
@@ -15,11 +20,6 @@ import { useGameConfig } from "@/lib/hooks/useGameConfig";
 import { useGameOverDialog } from "@/lib/hooks/useGameOverDialog";
 import { useStonePlacementSound } from "@/lib/useStonePlacementSound";
 import { useWinConfetti } from "@/lib/useWinConfetti";
-import type { PlayerColor } from "@shared";
-import { getWinner, isGameOver } from "@shared";
-import { useTranslations } from "next-intl";
-import { useRouter, useSearchParams } from "next/navigation";
-import React, { useState, useCallback, useEffect } from "react";
 
 export function ComputerGamePage() {
   const { auth, onOpenAuth, onLogout } = useAuth();

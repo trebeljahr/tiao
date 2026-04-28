@@ -1,5 +1,5 @@
-import { OG_IMAGES } from "@/lib/metadata";
 import type { Metadata } from "next";
+import { OG_IMAGES } from "@/lib/metadata";
 import AndreasCreator from "./AndreasCreator";
 
 export const metadata: Metadata = {

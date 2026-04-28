@@ -1,7 +1,7 @@
 "use client";
 
-import { captureException } from "@/lib/glitchtip";
 import { useEffect } from "react";
+import { captureException } from "@/lib/glitchtip";
 
 /**
  * Root-level error boundary. Catches errors in the root layout itself.

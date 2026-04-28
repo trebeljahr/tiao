@@ -5,9 +5,9 @@ process.env.NODE_ENV = "test";
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import {
-  ACHIEVEMENTS,
   ACHIEVEMENT_CATEGORIES,
   ACHIEVEMENT_IDS,
+  ACHIEVEMENTS,
   getAchievementById,
 } from "../../shared/src/achievements";
 

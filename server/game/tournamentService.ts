@@ -24,6 +24,7 @@ import {
 // Maximum number of "ongoing" (draft/registration/active) tournaments a single
 // account may have at once. Prevents a single user from flooding the lobby.
 export const MAX_ONGOING_TOURNAMENTS_PER_CREATOR = 10;
+
 import { getFinishReason, getWinner } from "../../shared/src";
 import { track } from "../analytics/openpanel";
 import { getPlayerProfiles } from "../cache/playerIdentityCache";
