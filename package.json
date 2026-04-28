@@ -4,7 +4,7 @@
   "packageManager": "pnpm@10.33.2",
   "private": true,
   "engines": {
-    "node": "24.14.x"
+    "node": ">=24"
   },
   "scripts": {
     "postinstall": "pnpm --dir ./client install && pnpm --dir ./server install && pnpm --dir docs-site install && (test \"$SKIP_DESKTOP\" = \"1\" || pnpm --dir ./desktop install)",
@@ -22,9 +22,6 @@
     "typecheck": "concurrently --kill-others-on-fail -n client,server -c blue,green \"npm:typecheck:client\" \"npm:typecheck:server\"",
     "typecheck:client": "pnpm --dir ./client run typecheck",
     "typecheck:server": "pnpm --dir ./server run typecheck",
-    "eslint": "concurrently --kill-others-on-fail -n client,server -c blue,green \"npm:eslint:client\" \"npm:eslint:server\"",
-    "eslint:client": "pnpm --dir ./client run eslint",
-    "eslint:server": "pnpm --dir ./server run eslint",
     "test": "pnpm test:unit && pnpm test:e2e",
     "test:unit": "concurrently -n server,client,desktop -c green,blue,magenta \"pnpm --dir ./server test\" \"pnpm --dir ./client test\" \"pnpm --dir ./desktop test\"",
     "test:integration": "pnpm --dir ./server run test:integration",
@@ -52,7 +49,7 @@
     ]
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
+    "@biomejs/biome": "^2.4.13",
     "@playwright/test": "^1.59.1",
     "concurrently": "^9.2.1",
     "husky": "^9.1.7",

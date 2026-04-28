@@ -1,24 +1,25 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.13/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
     "useIgnoreFile": true
   },
   "files": {
-    "ignore": [
-      "dist",
-      "build",
-      "node_modules",
-      ".next",
-      "out",
-      "coverage",
-      "*.min.js",
-      "*.min.css",
-      "**/_next",
-      "desktop/client-bundle",
-      "docs-site/docs/api-reference",
-      "docs-site/static/openapi.json"
+    "includes": [
+      "**",
+      "!**/dist",
+      "!**/build",
+      "!**/node_modules",
+      "!**/.next",
+      "!**/out",
+      "!**/coverage",
+      "!**/*.min.js",
+      "!**/*.min.css",
+      "!**/_next",
+      "!**/desktop/client-bundle",
+      "!**/docs-site/docs/api-reference",
+      "!**/docs-site/static/openapi.json"
     ]
   },
   "formatter": {

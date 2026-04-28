@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": "24.14.x"
+    "node": ">=24"
   },
   "scripts": {
     "dev": "node server.mjs",
@@ -11,7 +11,6 @@
     "build:desktop": "NEXT_PUBLIC_PLATFORM=desktop next build --webpack",
     "start": "NODE_ENV=production node server.mjs",
     "typecheck": "next typegen && tsc",
-    "eslint": "eslint src/",
     "test": "vitest run"
   },
   "dependencies": {
@@ -39,9 +38,6 @@
     "@types/node": "^25.0.3",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.57.2",
-    "@typescript-eslint/parser": "^8.57.2",
-    "eslint": "^10.1.0",
     "jsdom": "^25.0.1",
     "postcss": "^8.3.0",
     "serwist": "^9.5.7",

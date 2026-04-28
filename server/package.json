@@ -2,12 +2,11 @@
   "name": "tiao-server",
   "version": "0.1.0",
   "engines": {
-    "node": "24.14.x"
+    "node": ">=24"
   },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "eslint": "eslint .",
     "start": "NODE_ENV=production node dist/server/index.js",
     "dev": "NODE_ENV=development NODE_OPTIONS='--no-deprecation --no-warnings' node --watch --import tsx index.ts",
     "dev:e2e": "NODE_ENV=test NODE_OPTIONS='--no-warnings' node --watch --import tsx index.ts",
@@ -47,9 +46,6 @@
     "@types/node": "^22.15.0",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/ws": "^8.18.1",
-    "@typescript-eslint/eslint-plugin": "^8.57.2",
-    "@typescript-eslint/parser": "^8.57.2",
-    "eslint": "^10.1.0",
     "nodemon": "^3.1.14",
     "swagger-jsdoc": "^6.2.8",
     "tsx": "^4.21.0",
