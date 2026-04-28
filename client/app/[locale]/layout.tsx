@@ -4,21 +4,26 @@ import { OG_IMAGES } from "@/lib/metadata";
 import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
-import { Zen_Kaku_Gothic_New, Zen_Old_Mincho } from "next/font/google";
+import localFont from "next/font/local";
 import { notFound } from "next/navigation";
 import { Providers } from "./providers";
 import "./globals.css";
 
-const zenKaku = Zen_Kaku_Gothic_New({
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
+const zenKaku = localFont({
+  src: [
+    { path: "../fonts/ZenKakuGothicNew-Regular.woff2", weight: "400", style: "normal" },
+    { path: "../fonts/ZenKakuGothicNew-Medium.woff2", weight: "500", style: "normal" },
+    { path: "../fonts/ZenKakuGothicNew-Bold.woff2", weight: "700", style: "normal" },
+  ],
   variable: "--font-zen-kaku",
   display: "swap",
 });
 
-const zenOldMincho = Zen_Old_Mincho({
-  subsets: ["latin"],
-  weight: ["500", "700"],
+const zenOldMincho = localFont({
+  src: [
+    { path: "../fonts/ZenOldMincho-Medium.woff2", weight: "500", style: "normal" },
+    { path: "../fonts/ZenOldMincho-Bold.woff2", weight: "700", style: "normal" },
+  ],
   variable: "--font-zen-old-mincho",
   display: "swap",
 });
