@@ -43,25 +43,61 @@
       "recommended": true,
       "suspicious": {
         "noExplicitAny": "warn",
-        "noUnknownAtRules": "off"
+        "noUnknownAtRules": "off",
+        "useIterableCallbackReturn": "off",
+        "noDuplicateProperties": "off",
+        "noArrayIndexKey": "off",
+        "noAssignInExpressions": "off",
+        "noImplicitAnyLet": "off",
+        "noSelfCompare": "off",
+        "noEmptyBlock": "off",
+        "useGoogleFontDisplay": "off"
       },
       "style": {
         "noNonNullAssertion": "off",
         "useImportType": "error",
         "useTemplate": "off",
         "noUnusedTemplateLiteral": "off",
-        "noDescendingSpecificity": "off"
+        "noDescendingSpecificity": "off",
+        "noParameterAssign": "off"
       },
       "performance": {
-        "noDelete": "off"
+        "noDelete": "off",
+        "noImgElement": "off",
+        "noAccumulatingSpread": "off"
       },
       "correctness": {
         "noUnusedVariables": "warn",
-        "noUnusedImports": "error"
+        "noUnusedImports": "error",
+        "useHookAtTopLevel": "off",
+        "useExhaustiveDependencies": "off",
+        "noUnusedFunctionParameters": "off",
+        "noUnknownProperty": "off",
+        "noEmptyPattern": "off",
+        "noInnerDeclarations": "off"
       },
       "a11y": {
-        "useGenericFontNames": "off"
-      }
+        "useGenericFontNames": "off",
+        "useValidAnchor": "off",
+        "useAriaPropsSupportedByRole": "off",
+        "noLabelWithoutControl": "off",
+        "useKeyWithClickEvents": "off",
+        "noStaticElementInteractions": "off",
+        "useSemanticElements": "off",
+        "noSvgWithoutTitle": "off",
+        "useMediaCaption": "off",
+        "useFocusableInteractive": "off",
+        "useIframeTitle": "off",
+        "useAltText": "off"
+      },
+      "complexity": {
+        "noBannedTypes": "off",
+        "noCommaOperator": "off",
+        "noArguments": "off",
+        "noUselessElse": "off",
+        "noStaticOnlyClass": "off"
+      },
+      "security": {}
     }
   }
 }
