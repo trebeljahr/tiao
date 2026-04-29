@@ -35,7 +35,7 @@ const { initAnalytics, track, setEnabled: setAnalyticsEnabled } = require("./src
 const { maybeInitUpdater } = require("./src/updater.cjs");
 const {
   initGlitchtip,
-  captureException: captureGlitchtipException,
+  captureException: _captureGlitchtipException,
   flush: flushGlitchtip,
 } = require("./src/glitchtip.cjs");
 const { resolveApiUrl } = require("./src/config.cjs");

@@ -29,7 +29,7 @@
  * is known-working.
  */
 
-const { app, dialog, autoUpdater: electronNativeUpdater } = require("electron");
+const { app, dialog, autoUpdater: _electronNativeUpdater } = require("electron");
 
 // Lazy-load electron-updater so the dependency can be absent in dev
 // without crashing — the module is only required when we know

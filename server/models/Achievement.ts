@@ -57,7 +57,9 @@ const Achievement = new Proxy({} as Model<IAchievement>, {
     if (_overrides.has(prop)) return _overrides.get(prop);
     const realModel = getModel();
     const value = (realModel as unknown as Record<string | symbol, unknown>)[prop];
-    return typeof value === "function" ? (value as Function).bind(realModel) : value;
+    return typeof value === "function"
+      ? (value as (...args: unknown[]) => unknown).bind(realModel)
+      : value;
   },
   set(_target, prop, value) {
     _overrides.set(prop, value);

@@ -71,14 +71,20 @@ function createMockResponse<T = unknown>(): { _result: RouteResult<T> } {
   return res;
 }
 
-async function runHandler(handler: Function, req: unknown, res: unknown) {
+type Handler = (req: unknown, res: unknown, next: (err?: unknown) => void) => unknown;
+
+async function runHandler(handler: Handler, req: unknown, res: unknown) {
   return new Promise<void>((resolve, reject) => {
     const result = handler(req, res, (err?: unknown) => {
       if (err) reject(err);
       else resolve();
     });
-    if (result && typeof result.then === "function") {
-      result.then(resolve, reject);
+    if (
+      result &&
+      typeof result === "object" &&
+      typeof (result as { then?: unknown }).then === "function"
+    ) {
+      (result as Promise<unknown>).then(() => resolve(), reject);
     }
   });
 }
@@ -117,7 +123,7 @@ async function invokeRoute<T = unknown>(
   const res = createMockResponse<T>();
 
   for (const handler of layer.route.stack) {
-    await runHandler(handler.handle, req, res);
+    await runHandler(handler.handle as Handler, req, res);
   }
 
   return res._result;

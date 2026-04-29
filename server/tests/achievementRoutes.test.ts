@@ -66,14 +66,20 @@ function createMockResponse<T = unknown>() {
   return res;
 }
 
-async function runHandler(handler: Function, req: unknown, res: unknown) {
+type Handler = (req: unknown, res: unknown, next: (err?: unknown) => void) => unknown;
+
+async function runHandler(handler: Handler, req: unknown, res: unknown) {
   return new Promise<void>((resolve, reject) => {
     const result = handler(req, res, (err?: unknown) => {
       if (err) reject(err);
       else resolve();
     });
-    if (result && typeof result.then === "function") {
-      result.then(resolve, reject);
+    if (
+      result &&
+      typeof result === "object" &&
+      typeof (result as { then?: unknown }).then === "function"
+    ) {
+      (result as Promise<unknown>).then(() => resolve(), reject);
     }
   });
 }
@@ -90,7 +96,7 @@ async function invokeRoute<T = unknown>(
     const route = l.route as unknown as {
       path: string;
       methods: Record<string, boolean>;
-      stack: Array<{ handle: Function }>;
+      stack: Array<{ handle: Handler }>;
     };
     if (!route.methods[method.toLowerCase()]) return false;
 
@@ -101,7 +107,7 @@ async function invokeRoute<T = unknown>(
     return routeParts.every((part, i) => part.startsWith(":") || part === pathParts[i]);
   });
   const route = layer?.route as unknown as
-    | { path: string; methods: Record<string, boolean>; stack: Array<{ handle: Function }> }
+    | { path: string; methods: Record<string, boolean>; stack: Array<{ handle: Handler }> }
     | undefined;
   if (!route) throw new Error(`Route ${method} ${path} not found`);
 
@@ -136,7 +142,7 @@ async function invokeRoute<T = unknown>(
   const res = createMockResponse<T>();
 
   for (const handler of route.stack) {
-    await runHandler(handler.handle, req, res);
+    await runHandler(handler.handle as Handler, req, res);
   }
 
   return res._result;
