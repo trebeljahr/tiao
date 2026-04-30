@@ -4,11 +4,57 @@ on:
   push:
     branches:
       - main
+    # Skip the whole workflow when only obviously-non-code paths
+    # changed. AND-based: if ANY non-ignored path also changed, the
+    # workflow still runs. Saves ~12 min of CI on pure-docs / README /
+    # husky / desktop pushes.
+    paths-ignore:
+      - "docs/**"
+      - "docs-site/**"
+      - "**.md"
+      - ".husky/**"
+      - "desktop/**"
 
 permissions:
   contents: read
 
 jobs:
+  # Lightweight pre-flight that computes booleans for the rest of the
+  # workflow. Lets us skip the e2e job (~10 min) when the diff doesn't
+  # touch anything e2e actually exercises — server/tests-only pushes,
+  # client unit-test-only pushes, isolated workflow tweaks for non-tests
+  # workflows, etc.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      e2e_affected: ${{ steps.filter.outputs.e2e_affected }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Compute changed paths
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          # micromatch syntax. `!` excludes. Filter is "affected" if any
+          # included path changed AND no rule explicitly bumps it back
+          # to safe. Conservative — if in doubt about a path, leave it
+          # out of the ignore set so e2e still runs.
+          filters: |
+            e2e_affected:
+              - 'client/src/**'
+              - '!client/src/**/*.test.*'
+              - 'client/next.config.*'
+              - 'client/server.mjs'
+              - 'client/package*.json'
+              - 'server/**'
+              - '!server/tests/**'
+              - 'shared/**'
+              - 'e2e/**'
+              - 'playwright.config.ts'
+              - 'package*.json'
+              - '.github/workflows/tests.yml'
+
   unit:
     runs-on: ubuntu-latest
     steps:
@@ -78,6 +124,12 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
+    # Skip e2e when nothing it can observe changed. unit + integration
+    # always run regardless — they're cheap (~100s + ~75s) and we don't
+    # want test-related changes to silently get zero CI coverage. This
+    # filter only gates the ~10-min e2e job.
+    needs: changes
+    if: needs.changes.outputs.e2e_affected == 'true'
     services:
       mongo-e2e:
         image: mongo:7
