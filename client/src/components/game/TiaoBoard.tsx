@@ -1,15 +1,19 @@
 import {
   arePositionsEqual,
   BOARD_SIZE,
+  canPlacePiece,
   type GameState,
   getPendingJumpDestination,
   getSelectableJumpOrigins,
   isPositionMarkedForCapture,
   type Position,
+  type RuleFailureCode,
   type TurnRecord,
 } from "@shared";
 import { AnimatePresence, motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { usePinchZoom } from "@/hooks/usePinchZoom";
 import { useBoardTheme } from "@/lib/useBoardTheme";
 import { cn } from "@/lib/utils";
@@ -45,6 +49,19 @@ const IS_TOUCH_DEVICE =
 
 const DRAG_THRESHOLD = 10;
 const DRAG_Y_OFFSET = 4; // grid cells to offset above finger during drag
+
+const PLACEMENT_ERROR_KEYS: Record<RuleFailureCode, string | null> = {
+  GAME_OVER: "gameOverToast",
+  OUT_OF_BOUNDS: null,
+  OCCUPIED: "occupiedToast",
+  PENDING_JUMP: "pendingJumpToast",
+  INVALID_CLUSTER: "invalidClusterToast",
+  INVALID_BORDER: "invalidBorderToast",
+  NO_PIECE: null,
+  NOT_YOUR_PIECE: null,
+  INVALID_JUMP: null,
+  NO_PENDING_JUMP: null,
+};
 
 function getStarPoints(bs: number): number[] {
   if (bs === 19) return [3, 9, 15];
@@ -144,6 +161,7 @@ export function TiaoBoard({
   onUndoLastJump,
   onConfirmJump,
 }: TiaoBoardProps) {
+  const t = useTranslations("game");
   const theme = useBoardTheme();
   const bs = state.boardSize ?? BOARD_SIZE;
   const m = useMemo(() => gridMetrics(bs), [bs]);
@@ -177,6 +195,10 @@ export function TiaoBoard({
   const [hoveredEmptyKey, setHoveredEmptyKey] = useState<string | null>(null);
   const [confirmHovered, setConfirmHovered] = useState(false);
   const [undoHovered, setUndoHovered] = useState(false);
+  // Bumped each time the user attempts an invalid placement; the changing
+  // value remounts/restarts the shake animation on the offending ghost stone
+  // so a second invalid click still re-triggers it.
+  const [invalidShake, setInvalidShake] = useState<{ key: string; nonce: number } | null>(null);
   const selectableOrigins = getSelectableJumpOrigins(state).map((position) =>
     getPositionKey(position),
   );
@@ -203,6 +225,39 @@ export function TiaoBoard({
     containerRef: boardRef,
     panDisabled: mobilePreview !== null,
   });
+
+  // Whether placement is even possible from the player's current state. When
+  // there's an active jump origin or a pending jump, empty-cell clicks aren't
+  // placement attempts (they may be jump targets or deselect actions), so we
+  // suppress the invalid-placement feedback in those cases.
+  const placementContextActive = !disabled && !activeOrigin && !hasPendingJump;
+
+  const mobilePreviewCheck = mobilePreview ? canPlacePiece(state, mobilePreview) : null;
+  const mobilePreviewValid = mobilePreviewCheck?.ok ?? false;
+
+  const hoveredEmptyValidity = useMemo(() => {
+    if (!hoveredEmptyKey || !placementContextActive || IS_TOUCH_DEVICE) return null;
+    const [hx, hy] = hoveredEmptyKey.split("-").map(Number);
+    if (state.positions[hy]?.[hx] != null) return null;
+    return canPlacePiece(state, { x: hx, y: hy });
+  }, [hoveredEmptyKey, placementContextActive, state]);
+  const hoveredEmptyInvalid = hoveredEmptyValidity !== null && !hoveredEmptyValidity.ok;
+
+  const showPlacementError = useCallback(
+    (code: RuleFailureCode) => {
+      const key = PLACEMENT_ERROR_KEYS[code];
+      if (!key) return;
+      toast.error(t(key));
+    },
+    [t],
+  );
+
+  const triggerInvalidShake = useCallback((position: Position) => {
+    setInvalidShake((prev) => ({
+      key: getPositionKey(position),
+      nonce: (prev?.nonce ?? 0) + 1,
+    }));
+  }, []);
 
   // Clear preview on state changes (turn switch, new move, disable)
   // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
@@ -400,14 +455,14 @@ export function TiaoBoard({
       }
 
       // Quick tap to confirm: if a preview is showing at this very cell,
-      // the preview position is valid, and the tap was short and sharp
-      // (< 150ms), confirm placement. Tapping a DIFFERENT empty cell
-      // should move the preview (handled below), not commit the old one.
+      // the preview position is a fully valid placement, and the tap was
+      // short and sharp (< 150ms), confirm placement. Tapping a DIFFERENT
+      // empty cell should move the preview (handled below), not commit
+      // the old one.
       const tapDuration = Date.now() - touchStartTimeRef.current;
-      const previewValid =
-        mobilePreview && state.positions[mobilePreview.y]?.[mobilePreview.x] == null;
+      const previewFullyValid = mobilePreview != null && canPlacePiece(state, mobilePreview).ok;
       const tappedPreviewPos = mobilePreview && arePositionsEqual(mobilePreview, pos);
-      if (mobilePreview && previewValid && tappedPreviewPos && tapDuration < 150) {
+      if (mobilePreview && previewFullyValid && tappedPreviewPos && tapDuration < 150) {
         e.preventDefault();
         suppressClickRef.current = true;
         const confirmPos = mobilePreview;
@@ -416,19 +471,32 @@ export function TiaoBoard({
         return;
       }
 
-      // Empty intersection with no selection — mobile preview flow
+      // Empty intersection with no selection — mobile preview flow.
+      // If the chosen cell isn't a legal placement, give the player
+      // explicit feedback (toast + shake) right away rather than just
+      // disabling the Place button silently.
       e.preventDefault();
       suppressClickRef.current = true;
+      if (!activeOrigin && !hasPendingJump) {
+        const check = canPlacePiece(state, pos);
+        if (!check.ok) {
+          triggerInvalidShake(pos);
+          showPlacementError(check.code);
+        }
+      }
       // Tap repositions the preview (or creates it if none exists)
       setMobilePreview(pos);
     },
     [
-      state.positions,
+      state,
       activeOrigin,
+      hasPendingJump,
       mobilePreview,
       onPointClick,
       zoom.handlers,
       zoom.gestureActiveRef,
+      triggerInvalidShake,
+      showPlacementError,
     ],
   );
 
@@ -438,9 +506,35 @@ export function TiaoBoard({
         suppressClickRef.current = false;
         return;
       }
+      // Pre-validate placement attempts so we can give the player a reason
+      // for the rejection (toast + shake) instead of the click silently
+      // doing nothing. Only intercept when the click really is a placement
+      // attempt — empty cell, no active origin, no pending jump — so jump
+      // targets, deselect-cells, and piece selections still flow through.
+      if (
+        !disabled &&
+        !activeOrigin &&
+        !hasPendingJump &&
+        state.positions[position.y]?.[position.x] == null
+      ) {
+        const check = canPlacePiece(state, position);
+        if (!check.ok) {
+          triggerInvalidShake(position);
+          showPlacementError(check.code);
+          return;
+        }
+      }
       onPointClick?.(position);
     },
-    [onPointClick],
+    [
+      onPointClick,
+      disabled,
+      activeOrigin,
+      hasPendingJump,
+      state,
+      triggerInvalidShake,
+      showPlacementError,
+    ],
   );
 
   useEffect(() => {
@@ -495,10 +589,6 @@ export function TiaoBoard({
       setUndoHovered(false);
     }
   }, [canUndoLastJump]);
-
-  const mobilePreviewValid = mobilePreview
-    ? state.positions[mobilePreview.y]?.[mobilePreview.x] == null
-    : false;
 
   return (
     <div
@@ -800,17 +890,36 @@ export function TiaoBoard({
                   }}
                 />
               ) : isHoveredEmpty ? (
-                <span
-                  className="pointer-events-none absolute inset-[5.5%] z-10 rounded-full border opacity-40 shadow-xs"
-                  style={{
-                    borderColor:
-                      state.currentTurn === "black"
-                        ? theme.blackPieceBorder
-                        : theme.whitePieceBorder,
-                    background:
-                      state.currentTurn === "black" ? theme.blackPieceBg : theme.whitePieceBg,
-                  }}
-                />
+                (() => {
+                  const showInvalid = hoveredEmptyKey === pieceKey && hoveredEmptyInvalid;
+                  const shaking = invalidShake?.key === pieceKey && invalidShake.nonce > 0;
+                  return (
+                    <motion.span
+                      key={shaking ? `shake-${invalidShake.nonce}` : "ghost"}
+                      animate={shaking ? { x: [0, -3, 3, -3, 3, -2, 2, 0] } : { x: 0 }}
+                      transition={shaking ? { duration: 0.42, ease: "easeInOut" } : { duration: 0 }}
+                      className="pointer-events-none absolute inset-[5.5%] z-10 rounded-full border opacity-40 shadow-xs"
+                      style={
+                        showInvalid
+                          ? {
+                              borderColor: "rgba(196,74,58,0.7)",
+                              background:
+                                "radial-gradient(circle at 30% 28%,#d4847a,#b85a4e 58%,#8a3028)",
+                            }
+                          : {
+                              borderColor:
+                                state.currentTurn === "black"
+                                  ? theme.blackPieceBorder
+                                  : theme.whitePieceBorder,
+                              background:
+                                state.currentTurn === "black"
+                                  ? theme.blackPieceBg
+                                  : theme.whitePieceBg,
+                            }
+                      }
+                    />
+                  );
+                })()
               ) : null}
             </button>
           );
@@ -1182,59 +1291,68 @@ export function TiaoBoard({
         )}
 
         {/* Mobile ghost stone preview */}
-        {mobilePreview && !disabled && (
-          <span
-            data-testid="mobile-preview-loupe"
-            className="pointer-events-none absolute z-30"
-            style={{
-              left: `${pp(mobilePreview.x)}%`,
-              top: `${pp(mobilePreview.y)}%`,
-              width: `${cellPercent * 0.88}%`,
-              aspectRatio: "1",
-              transform: `translate(-50%, -50%) scale(${mobilePreviewVisible ? 1 : 0.5})`,
-              opacity: mobilePreviewVisible ? 1 : 0,
-              transition: mobilePreviewDragging
-                ? "left 70ms ease-out, top 70ms ease-out"
-                : "left 70ms ease-out, top 70ms ease-out, transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 120ms ease-out",
-            }}
-          >
-            {/* Hovering shadow */}
-            <span
-              className="absolute inset-[-4%] rounded-full"
-              style={{
-                background: "radial-gradient(circle, rgba(0,0,0,0.18) 0%, transparent 70%)",
-                transform: mobilePreviewDragging
-                  ? "translateY(12%) scale(1.1)"
-                  : "translateY(8%) scale(1.05)",
-                opacity: mobilePreviewDragging ? 0.5 : 0.7,
-                transition: "transform 150ms ease-out, opacity 150ms ease-out",
-              }}
-            />
-            {/* Stone */}
-            <span
-              className={cn("relative block h-full w-full rounded-full", "border")}
-              style={{
-                borderColor: !mobilePreviewValid
-                  ? "rgba(196,74,58,0.6)"
-                  : state.currentTurn === "black"
-                    ? theme.blackPieceBorder
-                    : theme.whitePieceBorder,
-                background: !mobilePreviewValid
-                  ? "radial-gradient(circle at 30% 28%,#d4847a,#b85a4e 58%,#8a3028)"
-                  : state.currentTurn === "black"
-                    ? theme.blackPieceBg
-                    : theme.whitePieceBg,
-                opacity: !mobilePreviewValid ? 0.45 : mobilePreviewDragging ? 0.6 : 0.8,
-                transform: mobilePreviewDragging ? "translateY(-3px)" : "translateY(-1px)",
-                boxShadow: mobilePreviewDragging
-                  ? "0 6px 16px rgba(0,0,0,0.25), inset 0 2px 10px rgba(255,255,255,0.18)"
-                  : "0 3px 8px rgba(0,0,0,0.2), inset 0 2px 10px rgba(255,255,255,0.18)",
-                transition:
-                  "opacity 150ms ease-out, transform 150ms ease-out, box-shadow 150ms ease-out",
-              }}
-            />
-          </span>
-        )}
+        {mobilePreview &&
+          !disabled &&
+          (() => {
+            const previewKey = getPositionKey(mobilePreview);
+            const shaking = invalidShake?.key === previewKey && invalidShake.nonce > 0;
+            return (
+              <motion.span
+                data-testid="mobile-preview-loupe"
+                key={shaking ? `mobile-shake-${invalidShake.nonce}` : "mobile-ghost"}
+                animate={shaking ? { x: [0, -4, 4, -4, 4, -2, 2, 0] } : { x: 0 }}
+                transition={shaking ? { duration: 0.42, ease: "easeInOut" } : { duration: 0 }}
+                className="pointer-events-none absolute z-30"
+                style={{
+                  left: `${pp(mobilePreview.x)}%`,
+                  top: `${pp(mobilePreview.y)}%`,
+                  width: `${cellPercent * 0.88}%`,
+                  aspectRatio: "1",
+                  transform: `translate(-50%, -50%) scale(${mobilePreviewVisible ? 1 : 0.5})`,
+                  opacity: mobilePreviewVisible ? 1 : 0,
+                  transition: mobilePreviewDragging
+                    ? "left 70ms ease-out, top 70ms ease-out"
+                    : "left 70ms ease-out, top 70ms ease-out, transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 120ms ease-out",
+                }}
+              >
+                {/* Hovering shadow */}
+                <span
+                  className="absolute inset-[-4%] rounded-full"
+                  style={{
+                    background: "radial-gradient(circle, rgba(0,0,0,0.18) 0%, transparent 70%)",
+                    transform: mobilePreviewDragging
+                      ? "translateY(12%) scale(1.1)"
+                      : "translateY(8%) scale(1.05)",
+                    opacity: mobilePreviewDragging ? 0.5 : 0.7,
+                    transition: "transform 150ms ease-out, opacity 150ms ease-out",
+                  }}
+                />
+                {/* Stone */}
+                <span
+                  className={cn("relative block h-full w-full rounded-full", "border")}
+                  style={{
+                    borderColor: !mobilePreviewValid
+                      ? "rgba(196,74,58,0.6)"
+                      : state.currentTurn === "black"
+                        ? theme.blackPieceBorder
+                        : theme.whitePieceBorder,
+                    background: !mobilePreviewValid
+                      ? "radial-gradient(circle at 30% 28%,#d4847a,#b85a4e 58%,#8a3028)"
+                      : state.currentTurn === "black"
+                        ? theme.blackPieceBg
+                        : theme.whitePieceBg,
+                    opacity: !mobilePreviewValid ? 0.45 : mobilePreviewDragging ? 0.6 : 0.8,
+                    transform: mobilePreviewDragging ? "translateY(-3px)" : "translateY(-1px)",
+                    boxShadow: mobilePreviewDragging
+                      ? "0 6px 16px rgba(0,0,0,0.25), inset 0 2px 10px rgba(255,255,255,0.18)"
+                      : "0 3px 8px rgba(0,0,0,0.2), inset 0 2px 10px rgba(255,255,255,0.18)",
+                    transition:
+                      "opacity 150ms ease-out, transform 150ms ease-out, box-shadow 150ms ease-out",
+                  }}
+                />
+              </motion.span>
+            );
+          })()}
       </div>
 
       {/* Bottom-right floating controls */}

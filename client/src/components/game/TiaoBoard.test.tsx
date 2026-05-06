@@ -404,3 +404,72 @@ describe("TiaoBoard – crosshair overlay", () => {
     expect(board.querySelector('[class*="z-35"]')).toBeNull();
   });
 });
+
+describe("TiaoBoard – invalid placement feedback", () => {
+  it("blocks onPointClick and toasts when clicking an empty cell that violates the border rule", async () => {
+    // Border rule: a placement on a corner/edge with no enemy threat is invalid.
+    // (0,0) on the default board is a corner with no enemy that could ever
+    // jump over it, so placing there for the very first move is rejected.
+    const { TiaoBoard } = await import("./TiaoBoard");
+    const sonner = await import("sonner");
+    const errorSpy = vi.spyOn(sonner.toast, "error").mockImplementation(() => "" as never);
+
+    const onPointClick = vi.fn();
+    const state = createInitialGameState();
+
+    render(
+      <TiaoBoard state={state} selectedPiece={null} jumpTargets={[]} onPointClick={onPointClick} />,
+    );
+
+    const cell = screen.getByTestId("cell-0-0");
+    fireEvent.click(cell);
+
+    expect(onPointClick).not.toHaveBeenCalled();
+    expect(errorSpy).toHaveBeenCalledTimes(1);
+    expect(errorSpy.mock.calls[0]![0]).toMatch(/border/i);
+    errorSpy.mockRestore();
+  });
+
+  it("still calls onPointClick for valid placements", async () => {
+    const { TiaoBoard } = await import("./TiaoBoard");
+    const sonner = await import("sonner");
+    const errorSpy = vi.spyOn(sonner.toast, "error").mockImplementation(() => "" as never);
+
+    const onPointClick = vi.fn();
+    const state = createInitialGameState();
+
+    render(
+      <TiaoBoard state={state} selectedPiece={null} jumpTargets={[]} onPointClick={onPointClick} />,
+    );
+
+    // Center is always a valid first placement
+    const cell = screen.getByTestId("cell-9-9");
+    fireEvent.click(cell);
+
+    expect(onPointClick).toHaveBeenCalledWith({ x: 9, y: 9 });
+    expect(errorSpy).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
+
+  it("does not toast when clicking on an own piece (selection, not placement)", async () => {
+    const { TiaoBoard } = await import("./TiaoBoard");
+    const sonner = await import("sonner");
+    const errorSpy = vi.spyOn(sonner.toast, "error").mockImplementation(() => "" as never);
+
+    const state = createInitialGameState();
+    state.positions[9][9] = state.currentTurn;
+    const onPointClick = vi.fn();
+
+    render(
+      <TiaoBoard state={state} selectedPiece={null} jumpTargets={[]} onPointClick={onPointClick} />,
+    );
+
+    const cell = screen.getByTestId("cell-9-9");
+    fireEvent.click(cell);
+
+    // Selection click should pass through and never produce an error toast
+    expect(errorSpy).not.toHaveBeenCalled();
+    expect(onPointClick).toHaveBeenCalledWith({ x: 9, y: 9 });
+    errorSpy.mockRestore();
+  });
+});
