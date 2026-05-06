@@ -1,5 +1,5 @@
 "use client";
-import { type PlayerColor, TIME_CONTROL_PRESETS } from "@shared";
+import type { PlayerColor } from "@shared";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -67,7 +67,6 @@ function OnlineLobbyPage() {
   const router = useRouter();
   const t = useTranslations("lobby");
   const tc = useTranslations("common");
-  const tConfig = useTranslations("config");
   const tGame = useTranslations("game");
   const { multiplayerGames, multiplayerGamesLoaded, refreshMultiplayerGames } = useGamesIndex(auth);
 
@@ -577,7 +576,7 @@ function OnlineLobbyPage() {
                   {t("matchmakingDesc")}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4 pb-6">
+              <CardContent className="space-y-3 pb-6">
                 <Button
                   size="lg"
                   className={cn("w-full h-12 text-base")}
@@ -587,49 +586,21 @@ function OnlineLobbyPage() {
                   {t("unlimitedTimeGame")}
                 </Button>
 
-                <div className="space-y-2">
-                  <p className="text-[0.68rem] text-[#8d7760]">
-                    {t("timeFormat", { format: "" })}
-                    <span className="font-semibold">{t("timeFormatBold")}</span>
-                  </p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {TIME_CONTROL_PRESETS.map((preset) => {
-                      const minutes = Math.floor(preset.initialMs / 60_000);
-                      const increment = Math.floor(preset.incrementMs / 1_000);
-                      const tooltip =
-                        increment > 0
-                          ? t("timeControlTooltip", { minutes, increment })
-                          : t("timeControlTooltipNoIncrement", { minutes });
-
-                      return (
-                        <Button
-                          key={preset.label}
-                          variant="secondary"
-                          title={needsTutorial ? t("tutorialGateTitle") : tooltip}
-                          className={cn(
-                            "flex flex-col items-center gap-0.5 h-auto py-2.5 border-[#dcc7a2] hover:border-[#b98d49] hover:bg-[#fff8ee] transition-all",
-                          )}
-                          onClick={() =>
-                            handleMatchmakingClick(
-                              `/matchmaking?initial=${preset.initialMs}&increment=${preset.incrementMs}`,
-                            )
-                          }
-                        >
-                          <span className="text-sm font-bold text-[#2b1e14]">{preset.label}</span>
-                          <span className="text-[0.6rem] uppercase tracking-wider text-[#8d7760]">
-                            {tConfig(
-                              preset.category.toLowerCase() as
-                                | "bullet"
-                                | "blitz"
-                                | "rapid"
-                                | "classical",
-                            )}
-                          </span>
-                        </Button>
-                      );
-                    })}
-                  </div>
-                </div>
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="w-full h-12 text-base border-[#dcc7a2]"
+                  onClick={() =>
+                    handleMatchmakingClick(`/matchmaking?initial=${600_000}&increment=${0}`)
+                  }
+                  title={
+                    needsTutorial
+                      ? t("tutorialGateTitle")
+                      : t("timeControlTooltipNoIncrement", { minutes: 10 })
+                  }
+                >
+                  {t("tenMinutesGame")}
+                </Button>
               </CardContent>
             </PaperCard>
           </AnimatedCard>
