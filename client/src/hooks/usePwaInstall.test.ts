@@ -168,6 +168,50 @@ describe("usePwaInstall", () => {
     expect(window.localStorage.getItem(DISMISS_STORAGE_KEY)).not.toBeNull();
   });
 
+  it("canInstall stays true after dismissal — the nav drawer entry point should remain reachable", () => {
+    // The PWA banner uses canPrompt (which respects the 14-day cooldown).
+    // The nav drawer's "Download the app" section uses canInstall, which
+    // intentionally ignores dismissal so users who clicked away the banner
+    // still have a clear path to install.
+    const { result } = renderHook(() => usePwaInstall());
+
+    act(() => {
+      window.dispatchEvent(makeBeforeInstallPromptEvent("accepted"));
+    });
+    expect(result.current.canPrompt).toBe(true);
+    expect(result.current.canInstall).toBe(true);
+
+    act(() => {
+      result.current.dismiss();
+    });
+
+    expect(result.current.canPrompt).toBe(false);
+    expect(result.current.canInstall).toBe(true);
+  });
+
+  it("canInstall is false when the app is already standalone", () => {
+    matchMediaSpy.mockImplementation(
+      (query: string) =>
+        ({
+          matches: query === "(display-mode: standalone)",
+          media: query,
+          onchange: null,
+          addListener: () => {},
+          removeListener: () => {},
+          addEventListener: () => {},
+          removeEventListener: () => {},
+          dispatchEvent: () => true,
+        }) as MediaQueryList,
+    );
+
+    const { result } = renderHook(() => usePwaInstall());
+
+    act(() => {
+      window.dispatchEvent(makeBeforeInstallPromptEvent("accepted"));
+    });
+    expect(result.current.canInstall).toBe(false);
+  });
+
   it("appinstalled event marks the app as standalone and hides the banner", () => {
     const { result } = renderHook(() => usePwaInstall());
 

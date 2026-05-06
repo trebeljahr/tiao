@@ -5,6 +5,7 @@ import { lazy, Suspense, useCallback, useRef, useState } from "react";
 import { ThemePicker } from "@/components/game/ThemePicker";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { Button } from "@/components/ui/button";
+import { usePwaInstall } from "@/hooks/usePwaInstall";
 import {
   Link,
   usePathname as useIntlPathname,
@@ -160,6 +161,35 @@ function LanguagePicker() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function DownloadAppSection({ onClose }: { onClose: () => void }) {
+  const t = useTranslations("pwaInstall");
+  const { canInstall, promptInstall } = usePwaInstall();
+  if (!canInstall) return null;
+
+  return (
+    <div className="mt-5 rounded-3xl border border-[#b69261]/22 bg-[rgba(255,248,232,0.94)] p-4">
+      <div className="flex items-start gap-3">
+        <img src="/tiao-icon-192.png" alt="" className="h-10 w-10 flex-shrink-0 rounded-lg" />
+        <div className="min-w-0 flex-1">
+          <h2 className="text-sm font-semibold text-[#28170e]">{t("navTitle")}</h2>
+          <p className="text-xs text-[#6e5b48]">{t("navDescription")}</p>
+        </div>
+      </div>
+      <Button
+        size="sm"
+        className="mt-3 w-full"
+        onClick={() => {
+          void promptInstall().then((outcome) => {
+            if (outcome === "accepted") onClose();
+          });
+        }}
+      >
+        {t("install")}
+      </Button>
     </div>
   );
 }
@@ -527,6 +557,8 @@ export function Navbar({
       <div className="mt-5 rounded-3xl border border-[#b69261]/22 bg-[rgba(255,248,232,0.94)] p-4">
         <ThemePicker unlockedThemeIds={auth?.player.unlockedThemes} onNavigate={onCloseNav} />
       </div>
+
+      <DownloadAppSection onClose={onCloseNav} />
 
       <div className="mt-5 flex flex-col items-center gap-2 text-xs text-[#7a6a58]">
         <a

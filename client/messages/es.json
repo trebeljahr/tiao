@@ -1144,7 +1144,9 @@
     "title": "Instalar Tiao",
     "description": "Añade Tiao a tu pantalla de inicio para una experiencia más rápida a pantalla completa.",
     "install": "Instalar",
-    "dismiss": "Ahora no"
+    "dismiss": "Ahora no",
+    "navTitle": "Descargar la app",
+    "navDescription": "Instala Tiao en tu dispositivo para una experiencia más rápida a pantalla completa."
   },
   "desktop": {
     "offline": {

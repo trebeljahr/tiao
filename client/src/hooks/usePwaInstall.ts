@@ -45,6 +45,8 @@ function isDismissCooldownActive(now: number = Date.now()): boolean {
 export interface UsePwaInstallResult {
   /** True when `beforeinstallprompt` has fired and the user hasn't dismissed or installed. */
   canPrompt: boolean;
+  /** True when an install prompt is available and the app isn't already standalone — ignores dismissal cooldown. Use for entry points (e.g. nav drawer) that should always be reachable, even after the user dismissed the banner. */
+  canInstall: boolean;
   /** True when the app is already running in standalone / installed mode. */
   isStandalone: boolean;
   /** Triggers the native browser install prompt. Resolves to the user's choice. */
@@ -115,7 +117,8 @@ export function usePwaInstall(): UsePwaInstallResult {
     setDismissed(true);
   }, []);
 
-  const canPrompt = deferredEvent !== null && !isStandalone && !dismissed;
+  const canInstall = deferredEvent !== null && !isStandalone;
+  const canPrompt = canInstall && !dismissed;
 
-  return { canPrompt, isStandalone, promptInstall, dismiss };
+  return { canPrompt, canInstall, isStandalone, promptInstall, dismiss };
 }
