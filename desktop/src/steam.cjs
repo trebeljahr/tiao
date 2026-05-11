@@ -52,6 +52,9 @@
  *   getSteamUser()             → { steamId, displayName, country } | null
  *   unlockAchievement(apiName) → Steam API name (not localised label)
  *   indicateAchievementProgress(apiName, current, max)
+ *   getAchievementStates(names) → { [apiName]: boolean } batch fetch
+ *   openOverlay(dialog)        → activate Friends / Achievements / etc.
+ *   openOverlayUrl(url)        → activate overlay to a web URL
  *
  * The renderer reaches these via the `steam` surface on the
  * preload contextBridge (see desktop/preload.cjs, added alongside
@@ -114,6 +117,24 @@ function initSteam() {
     console.warn(`[steam] init(${STEAM_APPID}) failed — is the Steam client running?`, err);
     client = null;
     return false;
+  }
+
+  // Enable Steam's in-game overlay (Shift+Tab, Friends, Achievements
+  // panels, the web browser the store uses, etc.) inside the Electron
+  // BrowserWindow. Without this call the overlay process attaches but
+  // never renders — the user hits Shift+Tab and nothing happens.
+  //
+  // Note: Valve's macOS overlay support for non-native apps (including
+  // Electron) is flaky — the overlay may not appear, or appear without
+  // proper input routing. Windows and Linux are unaffected. The call
+  // is best-effort and never throws meaningfully here; we still log
+  // failures so a packaging regression is visible in the console.
+  try {
+    if (typeof steamworks.electronEnableSteamOverlay === "function") {
+      steamworks.electronEnableSteamOverlay();
+    }
+  } catch (err) {
+    console.warn("[steam] electronEnableSteamOverlay failed:", err);
   }
 
   // Pump the Steam callback queue.  Without this, achievement
@@ -219,12 +240,119 @@ function indicateAchievementProgress(apiName, current, max) {
   }
 }
 
+/**
+ * Batch-read the current unlock state of every achievement the caller
+ * asks about. Used by the renderer on cold start to reconcile its
+ * local "unlocked" cache against Steam's authoritative state — covers
+ * the case where the user unlocked an achievement on another machine
+ * (Steam Cloud sync) or directly via the Steam client UI.
+ *
+ * Returns an empty object when Steam isn't active so the renderer can
+ * call this unconditionally without a separate isActive() guard.
+ *
+ * @param {string[]} apiNames
+ * @returns {Record<string, boolean>}
+ */
+function getAchievementStates(apiNames) {
+  /** @type {Record<string, boolean>} */
+  const out = {};
+  if (!client) return out;
+  if (!Array.isArray(apiNames)) return out;
+  for (const name of apiNames) {
+    if (typeof name !== "string" || !name) continue;
+    try {
+      const ach = client.achievement;
+      if (typeof ach?.isActivated === "function") {
+        out[name] = !!ach.isActivated(name);
+      } else {
+        out[name] = false;
+      }
+    } catch (err) {
+      console.warn(`[steam] isActivated(${name}) failed:`, err);
+      out[name] = false;
+    }
+  }
+  return out;
+}
+
+/**
+ * Steam overlay panel codes. The numeric values mirror the Steamworks
+ * SDK's `EOverlayToStoreFlag` / dialog-name enum. We accept the named
+ * string from the renderer (typo-safe, no magic numbers in renderer
+ * code) and translate here.
+ *
+ * @type {Record<string, number>}
+ */
+const OVERLAY_DIALOG_CODES = {
+  Friends: 0,
+  Community: 1,
+  Players: 2,
+  Settings: 3,
+  OfficialGameGroup: 4,
+  Stats: 5,
+  Achievements: 6,
+};
+
+/**
+ * Open one of Steam's named overlay panels (Friends, Achievements,
+ * Stats, etc.). No-op when Steam isn't active; returns false so the
+ * renderer can fall back to an in-app fallback dialog instead of
+ * silently doing nothing.
+ *
+ * @param {string} dialog
+ * @returns {boolean}
+ */
+function openOverlay(dialog) {
+  if (!client) return false;
+  const code = OVERLAY_DIALOG_CODES[dialog];
+  if (code == null) return false;
+  try {
+    const overlay = client.overlay;
+    if (typeof overlay?.activateDialog === "function") {
+      overlay.activateDialog(code);
+      return true;
+    }
+    return false;
+  } catch (err) {
+    console.warn(`[steam] openOverlay(${dialog}) failed:`, err);
+    return false;
+  }
+}
+
+/**
+ * Open the Steam overlay's in-game web browser to an arbitrary URL.
+ * Useful for store pages, news posts, community guides — anything you
+ * want the player to see without leaving the game.
+ *
+ * @param {string} url
+ * @returns {boolean}
+ */
+function openOverlayUrl(url) {
+  if (!client) return false;
+  if (typeof url !== "string" || !/^https?:\/\//i.test(url)) return false;
+  try {
+    const overlay = client.overlay;
+    if (typeof overlay?.activateToWebPage === "function") {
+      overlay.activateToWebPage(url);
+      return true;
+    }
+    return false;
+  } catch (err) {
+    console.warn(`[steam] openOverlayUrl(${url}) failed:`, err);
+    return false;
+  }
+}
+
 module.exports = {
   STEAM_ENABLED,
+  OVERLAY_DIALOG_CODES,
   initSteam,
   shutdownSteam,
   isSteamActive,
   getSteamUser,
   unlockAchievement,
   indicateAchievementProgress,
+  getAchievementStates,
+  openOverlay,
+  openOverlayUrl,
 };

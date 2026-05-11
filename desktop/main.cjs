@@ -47,6 +47,9 @@ const {
   getSteamUser,
   unlockAchievement: unlockSteamAchievement,
   indicateAchievementProgress: indicateSteamAchievementProgress,
+  getAchievementStates: getSteamAchievementStates,
+  openOverlay: openSteamOverlay,
+  openOverlayUrl: openSteamOverlayUrl,
 } = require("./src/steam.cjs");
 
 // HMR dev mode: if TIAO_DEV_RENDERER_URL is set and we're unpackaged,
@@ -359,6 +362,29 @@ function registerSteamIpc() {
     }
     indicateSteamAchievementProgress(apiName, current, max);
     return { ok: true };
+  });
+  // Batched read of every achievement state the renderer cares about.
+  // Used on cold start to reconcile the local "unlocked" cache against
+  // Steam's authoritative state (covers Steam Cloud + manual unlocks
+  // via the Steam client UI). Returns {} when Steam isn't active so
+  // the renderer doesn't need a separate isActive() guard.
+  ipcMain.handle("steam:getAchievementStates", async (_event, apiNames) => {
+    if (!Array.isArray(apiNames)) return {};
+    return getSteamAchievementStates(apiNames);
+  });
+  // Open one of Steam's named overlay panels.  Returns true if the
+  // overlay was activated, false if Steam is inactive or refused the
+  // call so the renderer can fall back to an in-app dialog.
+  ipcMain.handle("steam:openOverlay", async (_event, dialog) => {
+    if (typeof dialog !== "string" || !dialog) return false;
+    return openSteamOverlay(dialog);
+  });
+  // Open the Steam overlay's web browser at the given URL. Only
+  // http(s) URLs are honored — file:// or about: would route through
+  // the Steam browser unexpectedly.
+  ipcMain.handle("steam:openOverlayUrl", async (_event, url) => {
+    if (typeof url !== "string" || !url) return false;
+    return openSteamOverlayUrl(url);
   });
 }
 

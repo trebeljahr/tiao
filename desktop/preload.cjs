@@ -179,5 +179,34 @@ contextBridge.exposeInMainWorld("electron", {
      */
     indicateAchievementProgress: (apiName, current, max) =>
       ipcRenderer.invoke("steam:indicateAchievementProgress", apiName, current, max),
+
+    /**
+     * Batch-read the unlock state of the given achievements. Returns
+     * an empty object when Steam isn't active so callers can use the
+     * result unconditionally.
+     *
+     * @param {string[]} apiNames
+     * @returns {Promise<Record<string, boolean>>}
+     */
+    getAchievementStates: (apiNames) => ipcRenderer.invoke("steam:getAchievementStates", apiNames),
+
+    /**
+     * Activate one of Steam's named overlay panels. Returns false when
+     * Steam isn't active or the dialog name is unrecognized so the
+     * renderer can fall back to an in-app dialog.
+     *
+     * @param {"Friends"|"Community"|"Players"|"Settings"|"OfficialGameGroup"|"Stats"|"Achievements"} dialog
+     * @returns {Promise<boolean>}
+     */
+    openOverlay: (dialog) => ipcRenderer.invoke("steam:openOverlay", dialog),
+
+    /**
+     * Open the Steam overlay's web browser to an http(s) URL. No-op
+     * (returns false) for non-http URLs or when Steam isn't active.
+     *
+     * @param {string} url
+     * @returns {Promise<boolean>}
+     */
+    openOverlayUrl: (url) => ipcRenderer.invoke("steam:openOverlayUrl", url),
   },
 });
