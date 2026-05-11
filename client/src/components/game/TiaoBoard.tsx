@@ -18,6 +18,7 @@ import { usePinchZoom } from "@/hooks/usePinchZoom";
 import { IS_TOUCH_DEVICE } from "@/lib/isTouchDevice";
 import { useBoardTheme } from "@/lib/useBoardTheme";
 import { cn } from "@/lib/utils";
+import type { BoardTheme } from "./boardThemes";
 
 export type LastMoveHighlight = TurnRecord | null;
 
@@ -78,6 +79,18 @@ function pointPercent(index: number, gs: number = GRID_START, gst: number = GRID
 
 function getPositionKey(position: Position) {
   return `${position.x}-${position.y}`;
+}
+
+// Border + background for a "ghost" stone preview. Both the desktop hover
+// ghost and the mobile-preview loupe share the same valid/invalid + turn
+// colour selection — pulled out so the two callers can't drift apart.
+function getGhostStoneColors(theme: BoardTheme, valid: boolean, turn: GameState["currentTurn"]) {
+  if (!valid) {
+    return { borderColor: theme.invalidPieceBorder, background: theme.invalidPieceBg };
+  }
+  return turn === "black"
+    ? { borderColor: theme.blackPieceBorder, background: theme.blackPieceBg }
+    : { borderColor: theme.whitePieceBorder, background: theme.whitePieceBg };
 }
 
 export function touchToGridPosition(
@@ -905,23 +918,7 @@ export function TiaoBoard({
                       animate={shaking ? { x: [0, -3, 3, -3, 3, -2, 2, 0] } : { x: 0 }}
                       transition={shaking ? { duration: 0.42, ease: "easeInOut" } : { duration: 0 }}
                       className="pointer-events-none absolute inset-[5.5%] z-10 rounded-full border opacity-40 shadow-xs"
-                      style={
-                        showInvalid
-                          ? {
-                              borderColor: theme.invalidPieceBorder,
-                              background: theme.invalidPieceBg,
-                            }
-                          : {
-                              borderColor:
-                                state.currentTurn === "black"
-                                  ? theme.blackPieceBorder
-                                  : theme.whitePieceBorder,
-                              background:
-                                state.currentTurn === "black"
-                                  ? theme.blackPieceBg
-                                  : theme.whitePieceBg,
-                            }
-                      }
+                      style={getGhostStoneColors(theme, !showInvalid, state.currentTurn)}
                     />
                   );
                 })()
@@ -1336,16 +1333,7 @@ export function TiaoBoard({
                 <span
                   className={cn("relative block h-full w-full rounded-full", "border")}
                   style={{
-                    borderColor: !mobilePreviewValid
-                      ? theme.invalidPieceBorder
-                      : state.currentTurn === "black"
-                        ? theme.blackPieceBorder
-                        : theme.whitePieceBorder,
-                    background: !mobilePreviewValid
-                      ? theme.invalidPieceBg
-                      : state.currentTurn === "black"
-                        ? theme.blackPieceBg
-                        : theme.whitePieceBg,
+                    ...getGhostStoneColors(theme, mobilePreviewValid, state.currentTurn),
                     opacity: !mobilePreviewValid ? 0.45 : mobilePreviewDragging ? 0.6 : 0.8,
                     transform: mobilePreviewDragging ? "translateY(-3px)" : "translateY(-1px)",
                     boxShadow: mobilePreviewDragging
