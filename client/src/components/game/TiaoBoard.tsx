@@ -9,7 +9,7 @@ import {
   type Position,
   type RuleFailureCode,
 } from "@shared";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -17,11 +17,13 @@ import { usePinchZoom } from "@/hooks/usePinchZoom";
 import { IS_TOUCH_DEVICE } from "@/lib/isTouchDevice";
 import { useBoardTheme } from "@/lib/useBoardTheme";
 import { cn } from "@/lib/utils";
+import { BoardArrowsLayer } from "./BoardArrowsLayer";
+import { BoardControls } from "./BoardControls";
+import { MobilePreviewLayer } from "./MobilePreviewLayer";
 import {
   DRAG_THRESHOLD,
   DRAG_Y_OFFSET,
   getGhostStoneColors,
-  getJumpTrailMetrics,
   getPositionKey,
   gridMetrics,
   isFatFingerNearAdjacentPiece,
@@ -782,264 +784,17 @@ export function TiaoBoard({
           );
         })}
 
-        <svg
-          className="pointer-events-none absolute inset-0 z-80 h-full w-full"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        >
-          <defs>
-            <marker
-              id={`${jumpTrailMarkerId}-overlay-green`}
-              viewBox="0 0 8 8"
-              refX="6.2"
-              refY="4"
-              markerWidth="5.4"
-              markerHeight="5.4"
-              orient="auto"
-              markerUnits="strokeWidth"
-            >
-              <path d="M0 0L8 4L0 8L2.15 4Z" fill={theme.jumpArrowGreenFill} fillOpacity="1" />
-            </marker>
-            <marker
-              id={`${jumpTrailMarkerId}-overlay-red`}
-              viewBox="0 0 8 8"
-              refX="6.2"
-              refY="4"
-              markerWidth="5.4"
-              markerHeight="5.4"
-              orient="auto"
-              markerUnits="strokeWidth"
-            >
-              <path d="M0 0L8 4L0 8L2.15 4Z" fill={theme.jumpArrowRedFill} fillOpacity="1" />
-            </marker>
-            <marker
-              id={`${jumpTrailMarkerId}-overlay-gold`}
-              viewBox="0 0 8 8"
-              refX="6.2"
-              refY="4"
-              markerWidth="5.4"
-              markerHeight="5.4"
-              orient="auto"
-              markerUnits="strokeWidth"
-            >
-              <path d="M0 0L8 4L0 8L2.15 4Z" fill={theme.lastMoveArrowFill} fillOpacity="0.85" />
-            </marker>
-          </defs>
-
-          {state.pendingJump.map((jump, index) => {
-            const segment = getJumpTrailMetrics(jump.from, jump.to, pp);
-            const arrowKey = `${jump.from.x}-${jump.from.y}-${jump.to.x}-${jump.to.y}-${index}`;
-
-            return (
-              <g key={arrowKey}>
-                <motion.line
-                  x1={segment.startX}
-                  y1={segment.startY}
-                  x2={segment.endX}
-                  y2={segment.endY}
-                  initial={{
-                    x2: segment.startX,
-                    y2: segment.startY,
-                    opacity: 0,
-                  }}
-                  animate={{
-                    x2: segment.endX,
-                    y2: segment.endY,
-                    opacity: 1,
-                  }}
-                  transition={{
-                    duration: 0.24,
-                    ease: [0.22, 1, 0.36, 1],
-                  }}
-                  stroke={theme.jumpTrailDarkGreen}
-                  strokeOpacity="1"
-                  strokeWidth="3.15"
-                  strokeLinecap="round"
-                  vectorEffect="non-scaling-stroke"
-                />
-                <motion.line
-                  x1={segment.startX}
-                  y1={segment.startY}
-                  x2={segment.endX}
-                  y2={segment.endY}
-                  initial={{
-                    x2: segment.startX,
-                    y2: segment.startY,
-                    opacity: 0,
-                  }}
-                  animate={{
-                    x2: segment.endX,
-                    y2: segment.endY,
-                    opacity: 1,
-                  }}
-                  transition={{
-                    duration: 0.3,
-                    delay: 0.04,
-                    ease: [0.22, 1, 0.36, 1],
-                  }}
-                  stroke={theme.jumpTrailBrightGreen}
-                  strokeOpacity="1"
-                  strokeWidth="2.45"
-                  strokeLinecap="round"
-                  markerEnd={`url(#${jumpTrailMarkerId}-overlay-green)`}
-                  vectorEffect="non-scaling-stroke"
-                />
-              </g>
-            );
-          })}
-
-          {/* Last move jump trail arrows (review mode) */}
-          {lastMove?.type === "jump" &&
-            lastMove.jumps.map((jump, index) => {
-              const segment = getJumpTrailMetrics(jump.from, jump.to, pp);
-              const arrowKey = `lastmove-${jump.from.x}-${jump.from.y}-${jump.to.x}-${jump.to.y}-${index}`;
-
-              return (
-                <g key={arrowKey}>
-                  <line
-                    x1={segment.startX}
-                    y1={segment.startY}
-                    x2={segment.endX}
-                    y2={segment.endY}
-                    stroke={theme.lastMoveDark}
-                    strokeOpacity="0.5"
-                    strokeWidth="3.15"
-                    strokeLinecap="round"
-                    vectorEffect="non-scaling-stroke"
-                  />
-                  <line
-                    x1={segment.startX}
-                    y1={segment.startY}
-                    x2={segment.endX}
-                    y2={segment.endY}
-                    stroke={theme.lastMoveBright}
-                    strokeOpacity="0.7"
-                    strokeWidth="2.45"
-                    strokeLinecap="round"
-                    markerEnd={`url(#${jumpTrailMarkerId}-overlay-gold)`}
-                    vectorEffect="non-scaling-stroke"
-                  />
-                </g>
-              );
-            })}
-
-          {activeOrigin && hoveredJumpTarget
-            ? (() => {
-                const segment = getJumpTrailMetrics(activeOrigin, hoveredJumpTarget, pp);
-                const previewKey = `preview-${getPositionKey(activeOrigin)}-${getPositionKey(hoveredJumpTarget)}`;
-
-                return (
-                  <g key={previewKey}>
-                    <motion.line
-                      x1={segment.startX}
-                      y1={segment.startY}
-                      x2={segment.endX}
-                      y2={segment.endY}
-                      initial={{
-                        x2: segment.startX,
-                        y2: segment.startY,
-                      }}
-                      animate={{
-                        x2: segment.endX,
-                        y2: segment.endY,
-                      }}
-                      transition={{
-                        duration: 0.28,
-                        ease: [0.2, 0.96, 0.3, 1],
-                      }}
-                      stroke={theme.jumpTrailDarkGreen}
-                      strokeWidth="3.4"
-                      strokeLinecap="round"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                    <motion.line
-                      x1={segment.startX}
-                      y1={segment.startY}
-                      x2={segment.endX}
-                      y2={segment.endY}
-                      initial={{
-                        x2: segment.startX,
-                        y2: segment.startY,
-                      }}
-                      animate={{
-                        x2: segment.endX,
-                        y2: segment.endY,
-                      }}
-                      transition={{
-                        duration: 0.34,
-                        delay: 0.03,
-                        ease: [0.2, 0.96, 0.3, 1],
-                      }}
-                      stroke={theme.jumpTrailPreviewGreen}
-                      strokeWidth="2.7"
-                      strokeLinecap="round"
-                      markerEnd={`url(#${jumpTrailMarkerId}-overlay-green)`}
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  </g>
-                );
-              })()
-            : null}
-
-          {undoHovered && lastPendingJump
-            ? (() => {
-                const segment = getJumpTrailMetrics(lastPendingJump.to, lastPendingJump.from, pp);
-                const undoPreviewKey = `undo-preview-${getPositionKey(lastPendingJump.to)}-${getPositionKey(lastPendingJump.from)}`;
-
-                return (
-                  <g key={undoPreviewKey}>
-                    <motion.line
-                      x1={segment.startX}
-                      y1={segment.startY}
-                      x2={segment.endX}
-                      y2={segment.endY}
-                      initial={{
-                        x2: segment.startX,
-                        y2: segment.startY,
-                      }}
-                      animate={{
-                        x2: segment.endX,
-                        y2: segment.endY,
-                      }}
-                      transition={{
-                        duration: 0.26,
-                        ease: [0.2, 0.96, 0.3, 1],
-                      }}
-                      stroke={theme.jumpTrailDarkRed}
-                      strokeWidth="3.25"
-                      strokeLinecap="round"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                    <motion.line
-                      x1={segment.startX}
-                      y1={segment.startY}
-                      x2={segment.endX}
-                      y2={segment.endY}
-                      initial={{
-                        x2: segment.startX,
-                        y2: segment.startY,
-                      }}
-                      animate={{
-                        x2: segment.endX,
-                        y2: segment.endY,
-                      }}
-                      transition={{
-                        duration: 0.31,
-                        delay: 0.03,
-                        ease: [0.2, 0.96, 0.3, 1],
-                      }}
-                      stroke={theme.jumpTrailBrightRed}
-                      strokeWidth="2.55"
-                      strokeLinecap="round"
-                      markerEnd={`url(#${jumpTrailMarkerId}-overlay-red)`}
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  </g>
-                );
-              })()
-            : null}
-        </svg>
+        <BoardArrowsLayer
+          state={state}
+          lastMove={lastMove}
+          activeOrigin={activeOrigin}
+          hoveredJumpTarget={hoveredJumpTarget}
+          undoHovered={undoHovered}
+          lastPendingJump={lastPendingJump}
+          theme={theme}
+          pp={pp}
+          jumpTrailMarkerId={jumpTrailMarkerId}
+        />
 
         {showConfirmOverlay && forcedJumpOrigin ? (
           <span
@@ -1112,219 +867,36 @@ export function TiaoBoard({
           </span>
         ) : null}
 
-        {/* Mobile crosshair overlay */}
         {mobilePreview && !disabled && IS_TOUCH_DEVICE && (
-          <svg
-            className="pointer-events-none absolute inset-0 z-35 h-full w-full"
-            viewBox="0 0 100 100"
-            preserveAspectRatio="none"
-            aria-hidden="true"
-          >
-            <motion.line
-              x1={m.gridStart}
-              y1={pp(mobilePreview.y)}
-              x2={m.gridEnd}
-              y2={pp(mobilePreview.y)}
-              stroke={theme.crosshairColor}
-              strokeOpacity="0.35"
-              strokeWidth="1.5"
-              vectorEffect="non-scaling-stroke"
-              animate={{ y1: pp(mobilePreview.y), y2: pp(mobilePreview.y) }}
-              transition={{ duration: 0.08, ease: "easeOut" }}
-            />
-            <motion.line
-              x1={pp(mobilePreview.x)}
-              y1={m.gridStart}
-              x2={pp(mobilePreview.x)}
-              y2={m.gridEnd}
-              stroke={theme.crosshairColor}
-              strokeOpacity="0.35"
-              strokeWidth="1.5"
-              vectorEffect="non-scaling-stroke"
-              animate={{ x1: pp(mobilePreview.x), x2: pp(mobilePreview.x) }}
-              transition={{ duration: 0.08, ease: "easeOut" }}
-            />
-          </svg>
+          <MobilePreviewLayer
+            mobilePreview={mobilePreview}
+            mobilePreviewVisible={mobilePreviewVisible}
+            mobilePreviewDragging={mobilePreviewDragging}
+            mobilePreviewValid={mobilePreviewValid}
+            invalidShake={invalidShake}
+            theme={theme}
+            m={m}
+            pp={pp}
+            cellPercent={cellPercent}
+            currentTurn={state.currentTurn}
+          />
         )}
-
-        {/* Mobile ghost stone preview */}
-        {mobilePreview &&
-          !disabled &&
-          (() => {
-            const previewKey = getPositionKey(mobilePreview);
-            const shaking = invalidShake?.key === previewKey && invalidShake.nonce > 0;
-            return (
-              <motion.span
-                data-testid="mobile-preview-loupe"
-                key={shaking ? `mobile-shake-${invalidShake.nonce}` : "mobile-ghost"}
-                animate={shaking ? { x: [0, -4, 4, -4, 4, -2, 2, 0] } : { x: 0 }}
-                transition={shaking ? { duration: 0.42, ease: "easeInOut" } : { duration: 0 }}
-                className="pointer-events-none absolute z-30"
-                style={{
-                  left: `${pp(mobilePreview.x)}%`,
-                  top: `${pp(mobilePreview.y)}%`,
-                  width: `${cellPercent * 0.88}%`,
-                  aspectRatio: "1",
-                  transform: `translate(-50%, -50%) scale(${mobilePreviewVisible ? 1 : 0.5})`,
-                  opacity: mobilePreviewVisible ? 1 : 0,
-                  transition: mobilePreviewDragging
-                    ? "left 70ms ease-out, top 70ms ease-out"
-                    : "left 70ms ease-out, top 70ms ease-out, transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 120ms ease-out",
-                }}
-              >
-                {/* Hovering shadow */}
-                <span
-                  className="absolute inset-[-4%] rounded-full"
-                  style={{
-                    background: "radial-gradient(circle, rgba(0,0,0,0.18) 0%, transparent 70%)",
-                    transform: mobilePreviewDragging
-                      ? "translateY(12%) scale(1.1)"
-                      : "translateY(8%) scale(1.05)",
-                    opacity: mobilePreviewDragging ? 0.5 : 0.7,
-                    transition: "transform 150ms ease-out, opacity 150ms ease-out",
-                  }}
-                />
-                {/* Stone */}
-                <span
-                  className={cn("relative block h-full w-full rounded-full", "border")}
-                  style={{
-                    ...getGhostStoneColors(theme, mobilePreviewValid, state.currentTurn),
-                    opacity: !mobilePreviewValid ? 0.45 : mobilePreviewDragging ? 0.6 : 0.8,
-                    transform: mobilePreviewDragging ? "translateY(-3px)" : "translateY(-1px)",
-                    boxShadow: mobilePreviewDragging
-                      ? "0 6px 16px rgba(0,0,0,0.25), inset 0 2px 10px rgba(255,255,255,0.18)"
-                      : "0 3px 8px rgba(0,0,0,0.2), inset 0 2px 10px rgba(255,255,255,0.18)",
-                    transition:
-                      "opacity 150ms ease-out, transform 150ms ease-out, box-shadow 150ms ease-out",
-                  }}
-                />
-              </motion.span>
-            );
-          })()}
       </div>
 
-      {/* Bottom-right floating controls */}
-      <AnimatePresence>
-        {IS_TOUCH_DEVICE && (zoom.isZoomed || mobilePreview || (hasPendingJump && !disabled)) && (
-          <motion.div
-            key="board-controls"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.15 }}
-            className="absolute bottom-5 right-5 z-100 flex items-center gap-2"
-          >
-            {/* Cancel + Confirm placement */}
-            {mobilePreview && !disabled && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setMobilePreview(null)}
-                  className="flex h-11 w-11 items-center justify-center rounded-full border border-[#c9837b]/50 bg-[rgba(255,248,232,0.92)] text-[#9a5b52] shadow-[0_8px_20px_-8px_rgba(66,39,11,0.5)] backdrop-blur-sm transition-colors active:bg-[rgba(200,180,150,0.9)]"
-                  aria-label="Cancel placement"
-                >
-                  <svg aria-hidden="true" viewBox="0 0 14 14" fill="none" className="h-4 w-4">
-                    <path
-                      d="M3.5 3.5l7 7M10.5 3.5l-7 7"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  disabled={!mobilePreviewValid}
-                  onClick={() => {
-                    const pos = mobilePreview;
-                    setMobilePreview(null);
-                    onPointClick?.(pos);
-                  }}
-                  className={cn(
-                    "flex h-11 items-center gap-1.5 rounded-full border px-3.5 shadow-[0_8px_20px_-8px_rgba(66,39,11,0.5)] backdrop-blur-sm transition-colors",
-                    mobilePreviewValid
-                      ? "border-[#8aad6a]/50 bg-[rgba(255,248,232,0.92)] text-[#5e7b4e] active:bg-[rgba(200,220,180,0.9)]"
-                      : "border-[#c4a978]/30 bg-[rgba(255,248,232,0.6)] text-[#b0a08a] cursor-not-allowed",
-                  )}
-                  aria-label="Confirm placement"
-                >
-                  <svg aria-hidden="true" viewBox="0 0 14 14" fill="none" className="h-4 w-4">
-                    <path
-                      d="M3 7.5l2.8 2.8L11 4"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  <span className="text-sm font-semibold">Place</span>
-                </button>
-              </>
-            )}
-            {/* Undo + Confirm jump (mobile only) */}
-            {hasPendingJump && !disabled && !mobilePreview && (
-              <>
-                {onUndoLastJump && (
-                  <button
-                    type="button"
-                    onClick={onUndoLastJump}
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-[#c9837b]/50 bg-[rgba(255,248,232,0.92)] text-[#9a5b52] shadow-[0_8px_20px_-8px_rgba(66,39,11,0.5)] backdrop-blur-sm transition-colors active:bg-[rgba(200,180,150,0.9)]"
-                    aria-label="Undo last jump"
-                  >
-                    <svg aria-hidden="true" viewBox="0 0 14 14" fill="none" className="h-4 w-4">
-                      <path
-                        d="M3.5 3.5l7 7M10.5 3.5l-7 7"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                  </button>
-                )}
-                {onConfirmJump && (
-                  <button
-                    type="button"
-                    onClick={onConfirmJump}
-                    className="flex h-11 items-center gap-1.5 rounded-full border border-[#8aad6a]/50 bg-[rgba(255,248,232,0.92)] px-3.5 text-[#5e7b4e] shadow-[0_8px_20px_-8px_rgba(66,39,11,0.5)] backdrop-blur-sm transition-colors active:bg-[rgba(200,220,180,0.9)]"
-                    aria-label="Confirm jump"
-                  >
-                    <svg aria-hidden="true" viewBox="0 0 14 14" fill="none" className="h-4 w-4">
-                      <path
-                        d="M3 7.5l2.8 2.8L11 4"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <span className="text-sm font-semibold">Confirm</span>
-                  </button>
-                )}
-              </>
-            )}
-            {/* Zoom indicator — tap to reset */}
-            {zoom.isZoomed && (
-              <button
-                type="button"
-                onClick={zoom.resetZoom}
-                className="flex h-9 items-center gap-1.5 rounded-full border border-[#af8a56]/50 bg-[rgba(255,248,232,0.92)] px-3 text-[#3a2818] shadow-[0_8px_20px_-8px_rgba(66,39,11,0.5)] backdrop-blur-sm"
-              >
-                <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" aria-hidden="true">
-                  <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5" />
-                  <path
-                    d="M11 11l3.5 3.5"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                  <path d="M5 7h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-                <span className="text-xs font-semibold">{Math.round(zoom.scale * 10) / 10}x</span>
-              </button>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <BoardControls
+        mobilePreview={mobilePreview}
+        mobilePreviewValid={mobilePreviewValid}
+        disabled={disabled}
+        hasPendingJump={hasPendingJump}
+        zoom={{ isZoomed: zoom.isZoomed, scale: zoom.scale, resetZoom: zoom.resetZoom }}
+        onCancelPreview={() => setMobilePreview(null)}
+        onConfirmPreview={(pos) => {
+          setMobilePreview(null);
+          onPointClick?.(pos);
+        }}
+        onUndoLastJump={onUndoLastJump}
+        onConfirmJump={onConfirmJump}
+      />
     </div>
   );
 }
