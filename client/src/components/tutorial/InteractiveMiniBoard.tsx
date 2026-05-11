@@ -119,8 +119,9 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
   const selectableOrigins = getSelectableJumpOrigins(board, color, size, pendingCaptures);
   const lastJump = hasPending ? pendingJumps[pendingJumps.length - 1] : null;
 
-  // Reset on step change
-  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
+  // Reset on step change. `resetKey` drives WHEN the reset fires; body uses
+  // only setters but a new key value means parent wants a fresh attempt.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: resetKey is the change trigger, not a data read
   useEffect(() => {
     setBoard(cloneBoard(initialBoard));
     setSelected(null);
@@ -138,14 +139,13 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
     completedRef.current = false;
   }, [resetKey, initialBoard, overlayHint]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   const complete = useCallback(() => {
     if (completedRef.current) return;
     completedRef.current = true;
     setCompleted(true);
     fireLightConfetti(theme.victoryColors);
     setTimeout(() => onComplete(), 400);
-  }, [onComplete]);
+  }, [onComplete, theme.victoryColors]);
 
   // --- Click handler (mirrors useLocalGame state machine) ---
   function handleClick(pos: Pos) {

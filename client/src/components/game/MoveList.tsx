@@ -109,7 +109,7 @@ export function MoveList({
   const scrollRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef<HTMLButtonElement>(null);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
+  // biome-ignore lint/correctness/useExhaustiveDependencies: currentMoveIndex drives WHEN to scroll — the body reads only refs but a different button receives `activeRef` after each index change
   useEffect(() => {
     if (activeRef.current && scrollRef.current) {
       // Only scroll within the move list container, not the page

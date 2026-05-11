@@ -200,7 +200,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Bootstrap: check better-auth session → if none, create anonymous guest.
   // If we have cached auth, skip showing the loading state (background refresh).
-  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
+  // biome-ignore lint/correctness/useExhaustiveDependencies: one-shot per hydration; fetchPlayerIdentity is a module fn and the bootstrap branches set their own auth state — re-running on identity-fn changes would loop the session check
   useEffect(() => {
     if (!cacheHydrated) return;
     let cancelled = false;
@@ -283,7 +283,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [cacheHydrated]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [cacheHydrated]);
 
   // Desktop Electron: subscribe to the preload bridge's auth-complete
   // event so we can refresh the cached token and player identity
@@ -406,7 +406,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [loginEmail, loginPassword, applyAuth]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fetchPlayerIdentity is a per-render closure (not a useCallback) — putting it in deps would re-create the submit callback every render
   const handleSignupSubmit = useCallback(async () => {
     if (signupPassword !== signupConfirmPassword) {
       setAuthDialogError("Passwords do not match.");

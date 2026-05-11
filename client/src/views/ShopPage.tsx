@@ -161,12 +161,13 @@ export function ShopPage() {
   );
 
   const hasFetchedRef = useRef(false);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   useEffect(() => {
-    // First fetch shows loading skeleton; subsequent (auth change) fetches are silent
+    // First fetch shows loading skeleton; subsequent (auth change) fetches are silent.
+    // fetchCatalog's identity already covers the auth change (isAccount is derived
+    // from auth and lives in fetchCatalog's own deps), so no separate `auth` dep.
     void fetchCatalog(hasFetchedRef.current);
     hasFetchedRef.current = true;
-  }, [fetchCatalog, auth]);
+  }, [fetchCatalog]);
 
   // Handle Stripe redirect — track the purchased item for confetti after load
   const [purchasedItem, setPurchasedItem] = useState<string | null>(null);
@@ -225,7 +226,7 @@ export function ShopPage() {
     [isAccount, t],
   );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Stripe redirect handler — read params once on mount; clearing them via history.replaceState would otherwise loop the effect
   useEffect(() => {
     const success = searchParams?.get("success");
     const cancelled = searchParams?.get("cancelled");
@@ -238,7 +239,7 @@ export function ShopPage() {
       toast(t("purchaseCancelled"));
       window.history.replaceState({}, "", window.location.pathname);
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // Fire confetti + scroll once the purchased item element appears in the DOM
   useEffect(() => {

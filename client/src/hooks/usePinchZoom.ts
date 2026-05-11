@@ -149,7 +149,6 @@ export function usePinchZoom({ containerRef, panDisabled }: UsePinchZoomOptions)
     [panDisabled, containerRef],
   );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   const onTouchMove = useCallback(
     (e: React.TouchEvent) => {
       if (!IS_TOUCH_DEVICE) return;
@@ -203,7 +202,7 @@ export function usePinchZoom({ containerRef, panDisabled }: UsePinchZoomOptions)
         }
       }
     },
-    [containerRef, updateTransform],
+    [updateTransform],
   );
 
   const onTouchEnd = useCallback(

@@ -107,12 +107,11 @@ function TutorialPageInner() {
 
   // Fire tutorial_started exactly once per mount. Onboarding funnel needs
   // this as step 1 of [started → step_completed → finished].
-  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fire-once-on-mount; from* values are a snapshot of how the user arrived, not a re-trigger
   useEffect(() => {
     op.track("tutorial_started", {
       from: fromGame ? "game" : fromMatchmaking ? "matchmaking" : "direct",
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [navOpen, setNavOpen] = useState(false);
@@ -129,7 +128,6 @@ function TutorialPageInner() {
   const isInteractive = !!step.board;
   const isStepDone = completedSteps.has(currentStep);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   const goTo = useCallback(
     (index: number) => {
       if (index === currentStep) return;
@@ -146,7 +144,7 @@ function TutorialPageInner() {
         });
       }
     },
-    [currentStep, completedSteps],
+    [currentStep, completedSteps, steps],
   );
 
   const goNext = useCallback(() => {

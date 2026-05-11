@@ -74,7 +74,6 @@ export function useComputerGame(
   const histLen = local.localGame.history.length;
   const currentTurn = local.localGame.currentTurn;
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   useEffect(() => {
     // Detect board resets: when resetGeneration changes, clear the
     // searchedForRef guard so the effect doesn't skip the new (identical-

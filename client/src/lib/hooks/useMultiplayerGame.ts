@@ -348,7 +348,6 @@ export function useMultiplayerGame(
     ],
   );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   const reconnectToCurrentRoom = useCallback(async () => {
     const snapshot = latestMultiplayerSnapshotRef.current;
     if (!snapshot) {
