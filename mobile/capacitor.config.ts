@@ -1,0 +1,83 @@
+import type { CapacitorConfig } from "@capacitor/cli";
+
+/*
+ * Tiao — Capacitor (iOS + Android) configuration.
+ *
+ * Architecture mirrors the Electron desktop wrapper at `../desktop/`:
+ *   • The Next.js client is built once with `NEXT_PUBLIC_PLATFORM=mobile`
+ *     into `client/.next-mobile/` (see `client/next.config.mjs`).
+ *     `webDir` below points at that directory — `cap sync` copies the
+ *     static export into the native iOS / Android projects.
+ *   • A small redirect `index.html` is written at the root of
+ *     `.next-mobile/` by `mobile/scripts/write-index-redirect.sh` so
+ *     the WebView lands on `/en/` (or whichever locale the browser
+ *     prefers) instead of a Next-intl 404. Next's static export
+ *     emits per-locale directories but no root entry point, since
+ *     locale negotiation normally happens in middleware on the web
+ *     build — middleware doesn't run in static exports.
+ *   • The mobile API URL is baked in at build time via
+ *     NEXT_PUBLIC_MOBILE_API_URL (default: production). The Capacitor
+ *     WebView has no preload bridge to inject a URL at runtime the
+ *     way the Electron build does.
+ *   • Bundle id is `site.playtiao.mobile`. The Android Java naming
+ *     rules forbid hyphens, so the desktop appId (`site.playtiao.desktop`)
+ *     stays distinct from this one and is namespaced under the same
+ *     reverse-DNS prefix.
+ */
+const config: CapacitorConfig = {
+  appId: "site.playtiao.mobile",
+  appName: "Tiao",
+  webDir: "../client/.next-mobile",
+
+  // Match the existing brand background so the splash → app
+  // transition doesn't flash a different hue. #2a1d13 is the same
+  // brown tone used elsewhere in the client shell.
+  backgroundColor: "#2a1d13",
+
+  android: {
+    // Production builds block plain HTTP. We override to `false`
+    // explicitly so the intent is visible in code review and matches
+    // the network-security-config that ships in the Android project.
+    allowMixedContent: false,
+  },
+
+  // Live-reload during development. When CAP_DEV_URL is set at
+  // `cap sync` time (by scripts/android-dev.sh / scripts/ios-dev.sh),
+  // the WebView loads from the Next.js dev server on your LAN
+  // instead of the bundled `.next-mobile/` folder. Edits to
+  // client/src hot-reload in place — no APK rebuild per change.
+  //
+  // On production builds (CAP_DEV_URL unset), this block is omitted
+  // entirely and the WebView loads bundled assets as normal.
+  //
+  // cleartext: true because the dev server speaks plain HTTP. This
+  // only applies when server.url is set — the production build keeps
+  // cleartext blocked.
+  ...(process.env.CAP_DEV_URL
+    ? {
+        server: {
+          url: process.env.CAP_DEV_URL,
+          cleartext: true,
+        },
+      }
+    : {}),
+
+  plugins: {
+    SplashScreen: {
+      // Hold the splash long enough for the client's auth bootstrap
+      // (token cache → /me round-trip) to settle. The Next.js shell
+      // calls SplashScreen.hide() once the lobby is mounted; until
+      // then this prevents the player seeing the unauthenticated
+      // landing page flicker through.
+      launchShowDuration: 2500,
+      launchAutoHide: false,
+      backgroundColor: "#2a1d13",
+      androidScaleType: "CENTER_CROP",
+      showSpinner: false,
+      splashFullScreen: true,
+      splashImmersive: true,
+    },
+  },
+};
+
+export default config;

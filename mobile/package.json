@@ -1,0 +1,48 @@
+{
+  "name": "tiao-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Capacitor wrapper for the Tiao Android + iOS apps.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build:client": "pnpm --dir ../client run build:mobile && bash scripts/write-index-redirect.sh",
+    "cap:sync": "pnpm run build:client && cap sync",
+    "cap:open:ios": "cap open ios",
+    "cap:open:android": "bash -c 'source scripts/android-env.sh && cap open android'",
+    "cap:run:ios": "pnpm run cap:sync && cap run ios",
+    "cap:run:android": "bash -c 'source scripts/android-env.sh && pnpm run build:client && cap sync android && cap run android'",
+    "dev:android": "bash scripts/android-dev.sh",
+    "dev:ios": "bash scripts/ios-dev.sh",
+    "build:android:release": "bash -c 'source scripts/android-env.sh && pnpm run cap:sync && cd android && ./gradlew bundleRelease && echo \"\n✅ AAB: android/app/build/outputs/bundle/release/app-release.aab\"'",
+    "build:android:apk": "bash -c 'source scripts/android-env.sh && pnpm run cap:sync && cd android && ./gradlew assembleRelease && echo \"\n✅ APK: android/app/build/outputs/apk/release/app-release.apk\"'",
+    "build:ios:release": "bash -c 'echo \"⚠️  iOS release builds need an Apple Developer account, Team ID configured in Xcode, and a distribution certificate + provisioning profile. See mobile/README.md.\"; pnpm run cap:sync && cap open ios'",
+    "android:emulator": "bash -c 'source scripts/android-env.sh && emulator -avd ${AVD:-Pixel_9_Pro} -netdelay none -netspeed full'",
+    "android:kill-emulator": "bash -c 'source scripts/android-env.sh && adb emu kill'",
+    "android:avds": "bash -c 'source scripts/android-env.sh && emulator -list-avds'",
+    "android:devices": "bash -c 'source scripts/android-env.sh && adb devices'",
+    "android:logcat": "bash -c 'source scripts/android-env.sh && adb logcat -s Capacitor Capacitor/Console Capacitor/WebView chromium'",
+    "mobile:assets": "capacitor-assets generate --ios --android --iconBackgroundColor \"#2a1d13\" --splashBackgroundColor \"#2a1d13\"",
+    "itch:push:android": "butler push --userversion $npm_package_version android/app/build/outputs/apk/release/app-release.apk $ITCH_USER/$ITCH_GAME:android"
+  },
+  "dependencies": {
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/core": "^8.3.1",
+    "@capacitor/filesystem": "^8.1.2",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/preferences": "^8.0.1",
+    "@capacitor/screen-orientation": "^8.0.1",
+    "@capacitor/share": "^8.0.1",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.2"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.3.1",
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.3.1",
+    "@capacitor/ios": "^8.3.1",
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.3"
+  }
+}

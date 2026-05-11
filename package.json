@@ -7,7 +7,7 @@
     "node": ">=24"
   },
   "scripts": {
-    "postinstall": "pnpm --dir ./client install && pnpm --dir ./server install && pnpm --dir docs-site install && (test \"$SKIP_DESKTOP\" = \"1\" || pnpm --dir ./desktop install)",
+    "postinstall": "pnpm --dir ./client install && pnpm --dir ./server install && pnpm --dir docs-site install && (test \"$SKIP_DESKTOP\" = \"1\" || pnpm --dir ./desktop install) && (test \"$SKIP_MOBILE\" = \"1\" || pnpm --dir ./mobile install)",
     "build": "concurrently --kill-others-on-fail -n client,server -c blue,green \"npm:build:client\" \"npm:build:server\"",
     "build:client": "pnpm --dir ./client run build",
     "build:server": "pnpm --dir ./server run build",
