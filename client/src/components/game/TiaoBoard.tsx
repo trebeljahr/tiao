@@ -302,25 +302,27 @@ export function TiaoBoard({
     }));
   }, []);
 
-  // Clear preview on state changes (turn switch, new move, disable)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
+  // Clear preview on state changes (turn switch, new move, disable). The
+  // body uses only stable setters, but the deps drive WHEN this fires —
+  // we genuinely want a re-run whenever turn/history/disabled flip.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: deps are the change trigger, not the data read
   useEffect(() => {
     setMobilePreview(null);
     setMobilePreviewDragging(false);
     setMobilePreviewVisible(false);
   }, [state.currentTurn, state.history.length, disabled]);
 
-  // Entrance animation trigger
-  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
+  // Entrance animation trigger — fire only when preview toggles between
+  // null/non-null, not on every position change as the user drags.
+  const isPreviewActive = mobilePreview != null;
   useEffect(() => {
-    if (mobilePreview) {
-      // Small delay to allow DOM to mount before triggering CSS transition
+    if (isPreviewActive) {
       const raf = requestAnimationFrame(() => setMobilePreviewVisible(true));
       return () => cancelAnimationFrame(raf);
     }
     setMobilePreviewVisible(false);
     return undefined;
-  }, [mobilePreview !== null]);
+  }, [isPreviewActive]);
 
   const handleTouchStart = useCallback(
     (e: React.TouchEvent) => {
@@ -346,7 +348,6 @@ export function TiaoBoard({
     [disabled, zoom.handlers],
   );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   const handleTouchMove = useCallback(
     (e: React.TouchEvent) => {
       if (!IS_TOUCH_DEVICE || !boardRef.current) return;
@@ -394,7 +395,7 @@ export function TiaoBoard({
         }
       }
     },
-    [zoom.handlers, zoom.gestureActiveRef, mobilePreview, state.positions],
+    [zoom.handlers, zoom.gestureActiveRef, mobilePreview, bs],
   );
 
   const handleTouchEnd = useCallback(
