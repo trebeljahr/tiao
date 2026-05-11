@@ -97,6 +97,39 @@ export function touchToGridPosition(
   };
 }
 
+// True if `pos` has at least one occupied 4-neighbor AND the touch point
+// landed farther than 60% of a grid step from the snapped intersection
+// center. In that case the tap was probably aimed at the adjacent piece,
+// so handleTouchEnd should bail and let the underlying button onClick
+// (with its larger hit area) take the event.
+function isFatFingerNearAdjacentPiece(
+  pos: Position,
+  touchClientX: number,
+  touchClientY: number,
+  rect: DOMRect,
+  positions: GameState["positions"],
+  bs: number,
+  m: ReturnType<typeof gridMetrics>,
+  pp: (index: number) => number,
+) {
+  const adjacent: Array<[number, number]> = [
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [0, 1],
+  ];
+  const hasAdjacent = adjacent.some(([ox, oy]) => {
+    const nx = pos.x + ox;
+    const ny = pos.y + oy;
+    return nx >= 0 && nx < bs && ny >= 0 && ny < bs && positions[ny]?.[nx] != null;
+  });
+  if (!hasAdjacent) return false;
+  const touchPctX = ((touchClientX - rect.left) / rect.width) * 100;
+  const touchPctY = ((touchClientY - rect.top) / rect.height) * 100;
+  const distToSnap = Math.hypot(touchPctX - pp(pos.x), touchPctY - pp(pos.y));
+  return distToSnap > m.gridStep * 0.6;
+}
+
 function getJumpTrailMetrics(
   from: Position,
   to: Position,
@@ -351,12 +384,11 @@ export function TiaoBoard({
     [zoom.handlers, zoom.gestureActiveRef, mobilePreview, state.positions],
   );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: verify dependency list manually — auto-suppressed during biome migration
   const handleTouchEnd = useCallback(
     (e: React.TouchEvent) => {
       if (!IS_TOUCH_DEVICE || !boardRef.current) return;
 
-      // Let zoom hook see all events
+      // Let zoom hook see all events first
       zoom.handlers.onTouchEnd(e);
       if (zoom.gestureActiveRef.current) {
         touchStartRef.current = null;
@@ -364,7 +396,8 @@ export function TiaoBoard({
         return;
       }
 
-      // Drag-to-adjust: on release, stop dragging and show confirm/cancel
+      // Drag-to-adjust release: stop dragging, keep preview in place so
+      // the confirm/cancel buttons stay visible.
       if (isDraggingPreviewRef.current && mobilePreview) {
         e.preventDefault();
         suppressClickRef.current = true;
@@ -372,90 +405,65 @@ export function TiaoBoard({
         dragOffsetRef.current = null;
         setMobilePreviewDragging(false);
         touchStartRef.current = null;
-        // Keep preview in place — confirm/cancel buttons will show
         return;
       }
 
       isDraggingPreviewRef.current = false;
       dragOffsetRef.current = null;
       setMobilePreviewDragging(false);
-      const touch = e.changedTouches[0];
 
-      // Check if this was a drag (scrolling), not a tap
-      if (touchStartRef.current) {
-        const dx = touch.clientX - touchStartRef.current.x;
-        const dy = touch.clientY - touchStartRef.current.y;
-        if (Math.hypot(dx, dy) > DRAG_THRESHOLD) {
-          touchStartRef.current = null;
-          return;
-        }
+      const touch = e.changedTouches[0];
+      const startRef = touchStartRef.current;
+      touchStartRef.current = null;
+
+      // Scroll, not a tap → ignore.
+      if (startRef) {
+        const dx = touch.clientX - startRef.x;
+        const dy = touch.clientY - startRef.y;
+        if (Math.hypot(dx, dy) > DRAG_THRESHOLD) return;
       }
 
       const rect = boardRef.current.getBoundingClientRect();
       const pos = touchToGridPosition(touch.clientX, touch.clientY, rect, bs);
-      touchStartRef.current = null;
-
-      // If there's already a piece, a selection, or a jump target at this
-      // position, skip preview and handle it directly. We can't rely on
-      // the browser generating a synthetic click from the touch event —
-      // some browsers/environments (e.g. Playwright) don't, so we call
-      // the handler ourselves and suppress the click to avoid double-fires.
-      //
-      // Exception: if a mobile preview is active, tapping a piece should
-      // cancel the preview first — don't forward to the game logic or the
-      // piece gets selected for jumping while the preview stays visible.
       const piece = state.positions[pos.y]?.[pos.x];
       const hasActiveOrigin = !!activeOrigin;
 
+      // Tap on a piece or while a jump origin is active. We can't rely on
+      // the browser generating a synthetic click — some browsers (and
+      // Playwright) don't — so call onPointClick directly and suppress
+      // the click to avoid double-fires.
       if (piece || hasActiveOrigin) {
+        e.preventDefault();
+        suppressClickRef.current = true;
+        // If a preview is showing, tapping a piece should cancel the
+        // preview first, NOT select it for jumping.
         if (mobilePreview && !hasActiveOrigin) {
-          e.preventDefault();
-          suppressClickRef.current = true;
           setMobilePreview(null);
           return;
         }
-        e.preventDefault();
-        suppressClickRef.current = true;
         onPointClick?.(pos);
         return;
       }
 
-      // Fat-finger tolerance: if tapped an empty cell but there's a piece
-      // on an adjacent intersection, let the click handler deal with it
-      // (the button's hit area will catch it)
-      if (!piece && !hasActiveOrigin) {
-        const adjacentOffsets = [
-          [-1, 0],
-          [1, 0],
-          [0, -1],
-          [0, 1],
-        ];
-        const hasAdjacentPiece = adjacentOffsets.some(([ox, oy]) => {
-          const nx = pos.x + ox;
-          const ny = pos.y + oy;
-          return nx >= 0 && nx < bs && ny >= 0 && ny < bs && state.positions[ny]?.[nx] != null;
-        });
-        // Check pixel distance to the nearest adjacent piece — if closer to it
-        // than the grid step, skip preview
-        if (hasAdjacentPiece) {
-          const touchPctX = ((touch.clientX - rect.left) / rect.width) * 100;
-          const touchPctY = ((touch.clientY - rect.top) / rect.height) * 100;
-          const snapPctX = pp(pos.x);
-          const snapPctY = pp(pos.y);
-          const distToSnap = Math.hypot(touchPctX - snapPctX, touchPctY - snapPctY);
-          // If tap was far from the snapped cell center (> 60% of grid step),
-          // likely meant to tap the adjacent piece
-          if (distToSnap > m.gridStep * 0.6) {
-            return; // let onClick handle it
-          }
-        }
+      // Fat-finger near an adjacent piece → fall through to onClick on the
+      // larger button hit area.
+      if (
+        isFatFingerNearAdjacentPiece(
+          pos,
+          touch.clientX,
+          touch.clientY,
+          rect,
+          state.positions,
+          bs,
+          m,
+          pp,
+        )
+      ) {
+        return;
       }
 
-      // Quick tap to confirm: if a preview is showing at this very cell,
-      // the preview position is a fully valid placement, and the tap was
-      // short and sharp (< 150ms), confirm placement. Tapping a DIFFERENT
-      // empty cell should move the preview (handled below), not commit
-      // the old one.
+      // Quick-tap confirm: short tap on the EXISTING valid preview cell
+      // commits the placement. Taps on a different cell reposition instead.
       const tapDuration = Date.now() - touchStartTimeRef.current;
       const tappedPreviewPos = mobilePreview && arePositionsEqual(mobilePreview, pos);
       if (mobilePreview && mobilePreviewValid && tappedPreviewPos && tapDuration < 150) {
@@ -467,9 +475,8 @@ export function TiaoBoard({
         return;
       }
 
-      // Empty intersection with no selection — mobile preview flow.
-      // If the chosen cell isn't a legal placement, give the player
-      // explicit feedback (toast + shake) right away rather than just
+      // Empty intersection, no selection → preview flow. If the cell is
+      // illegal, give explicit feedback (toast + shake) instead of just
       // disabling the Place button silently.
       e.preventDefault();
       suppressClickRef.current = true;
@@ -480,7 +487,6 @@ export function TiaoBoard({
           showPlacementError(check.code);
         }
       }
-      // Tap repositions the preview (or creates it if none exists)
       setMobilePreview(pos);
     },
     [
@@ -494,6 +500,9 @@ export function TiaoBoard({
       zoom.gestureActiveRef,
       triggerInvalidShake,
       showPlacementError,
+      bs,
+      m,
+      pp,
     ],
   );
 
