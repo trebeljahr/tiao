@@ -20,7 +20,12 @@
     "package": "electron-builder -p never",
     "package:all": "electron-builder -mwl -p never",
     "package:steam": "STEAM_BUILD=true electron-builder -p never",
-    "release": "./scripts/release.sh"
+    "release": "./scripts/release.sh",
+    "release:tag": "bash scripts/release-tag.sh",
+    "release:tag:push": "bash scripts/release-tag.sh --push",
+    "itch:push:mac": "butler push --userversion $npm_package_version dist/*-mac.zip $ITCH_USER/$ITCH_GAME:osx",
+    "itch:push:win": "butler push --userversion $npm_package_version dist/*-win.zip $ITCH_USER/$ITCH_GAME:windows",
+    "itch:push:linux": "butler push --userversion $npm_package_version dist/*.AppImage $ITCH_USER/$ITCH_GAME:linux"
   },
   "dependencies": {
     "@sentry/node": "^10.48.0",
