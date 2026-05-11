@@ -1,6 +1,7 @@
 import confetti from "canvas-confetti";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { IS_TOUCH_DEVICE } from "@/lib/isTouchDevice";
 import { useBoardTheme } from "@/lib/useBoardTheme";
 import { playMoveSoundIfEnabled } from "@/lib/useStonePlacementSound";
 import { cn } from "@/lib/utils";
@@ -15,9 +16,6 @@ import {
   posEq,
 } from "./tutorialEngine";
 import type { StepBoardConfig } from "./tutorialSteps";
-
-const IS_TOUCH_DEVICE =
-  typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
 
 function fireLightConfetti(colors: string[]) {
   confetti({

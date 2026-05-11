@@ -75,6 +75,10 @@ export type BoardTheme = {
 
   // Mobile crosshair
   crosshairColor: string;
+
+  // Invalid placement preview (red ghost stone)
+  invalidPieceBorder: string;
+  invalidPieceBg: string;
 };
 
 // ---------------------------------------------------------------------------
@@ -149,6 +153,9 @@ export const CLASSIC: BoardTheme = {
   defeatColors: ["#8b7355", "#a69278", "#c4b49a", "#d6cbb8"],
 
   crosshairColor: "#6c4926",
+
+  invalidPieceBorder: "rgba(196,74,58,0.7)",
+  invalidPieceBg: "radial-gradient(circle at 30% 28%,#d4847a,#b85a4e 58%,#8a3028)",
 };
 
 // ---------------------------------------------------------------------------
@@ -224,6 +231,9 @@ export const NIGHT: BoardTheme = {
   defeatColors: ["#3a3a52", "#4a4a64", "#5a5a76", "#6a6a88"],
 
   crosshairColor: "#5a5a76",
+
+  invalidPieceBorder: "rgba(220,90,80,0.7)",
+  invalidPieceBg: "radial-gradient(circle at 30% 28%,#a85a52,#7a3028 58%,#4a1812)",
 };
 
 // ---------------------------------------------------------------------------
@@ -298,6 +308,9 @@ export const SAKURA: BoardTheme = {
   defeatColors: ["#9a7a7c", "#aa8a8c", "#ba9a9c", "#caaaac"],
 
   crosshairColor: "#b8787c",
+
+  invalidPieceBorder: "rgba(180,60,70,0.75)",
+  invalidPieceBg: "radial-gradient(circle at 30% 28%,#c46878,#9a3848 58%,#6a1828)",
 };
 
 // ---------------------------------------------------------------------------
@@ -372,6 +385,9 @@ export const OCEAN: BoardTheme = {
   defeatColors: ["#4a6a78", "#5a7a88", "#6a8a98", "#7a9aa8"],
 
   crosshairColor: "#3a7080",
+
+  invalidPieceBorder: "rgba(190,70,60,0.7)",
+  invalidPieceBg: "radial-gradient(circle at 30% 28%,#c47878,#92403a 58%,#5e1c18)",
 };
 
 // ---------------------------------------------------------------------------
@@ -446,6 +462,9 @@ export const MARBLE: BoardTheme = {
   defeatColors: ["#6a6a78", "#7a7a88", "#8a8a98", "#9a9aa8"],
 
   crosshairColor: "#7a7a88",
+
+  invalidPieceBorder: "rgba(190,80,80,0.7)",
+  invalidPieceBg: "radial-gradient(circle at 30% 28%,#c47878,#92484a 58%,#5e2424)",
 };
 
 // ---------------------------------------------------------------------------

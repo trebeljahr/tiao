@@ -15,6 +15,7 @@ import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { usePinchZoom } from "@/hooks/usePinchZoom";
+import { IS_TOUCH_DEVICE } from "@/lib/isTouchDevice";
 import { useBoardTheme } from "@/lib/useBoardTheme";
 import { cn } from "@/lib/utils";
 
@@ -44,23 +45,19 @@ const DEFAULT_METRICS = gridMetrics(BOARD_SIZE);
 const GRID_START = DEFAULT_METRICS.gridStart;
 const GRID_STEP = DEFAULT_METRICS.gridStep;
 
-const IS_TOUCH_DEVICE =
-  typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
-
 const DRAG_THRESHOLD = 10;
 const DRAG_Y_OFFSET = 4; // grid cells to offset above finger during drag
 
-const PLACEMENT_ERROR_KEYS: Record<RuleFailureCode, string | null> = {
+// Maps placement-path RuleFailureCodes to translation keys. Codes not listed
+// (NO_PIECE/NOT_YOUR_PIECE/INVALID_JUMP/NO_PENDING_JUMP/OUT_OF_BOUNDS) shouldn't
+// fire from an empty-cell click, but fall back to a generic toast so a future
+// rule-engine change doesn't silently swallow the feedback.
+const PLACEMENT_ERROR_KEYS: Partial<Record<RuleFailureCode, string>> = {
   GAME_OVER: "gameOverToast",
-  OUT_OF_BOUNDS: null,
   OCCUPIED: "occupiedToast",
   PENDING_JUMP: "pendingJumpToast",
   INVALID_CLUSTER: "invalidClusterToast",
   INVALID_BORDER: "invalidBorderToast",
-  NO_PIECE: null,
-  NOT_YOUR_PIECE: null,
-  INVALID_JUMP: null,
-  NO_PENDING_JUMP: null,
 };
 
 function getStarPoints(bs: number): number[] {
@@ -171,19 +168,21 @@ export function TiaoBoard({
   const jumpTrailMarkerId = `tiao-jump-trail-arrow-${theme.id}`;
 
   // Compute last-move highlight positions
-  const lastMovePositions = new Set<string>();
-  if (lastMove) {
+  const lastMovePositions = useMemo(() => {
+    const set = new Set<string>();
+    if (!lastMove) return set;
     if (lastMove.type === "put") {
-      lastMovePositions.add(getPositionKey(lastMove.position));
+      set.add(getPositionKey(lastMove.position));
     } else if (lastMove.type === "jump") {
       for (const step of lastMove.jumps) {
-        lastMovePositions.add(getPositionKey(step.to));
+        set.add(getPositionKey(step.to));
       }
       if (lastMove.jumps.length > 0) {
-        lastMovePositions.add(getPositionKey(lastMove.jumps[0].from));
+        set.add(getPositionKey(lastMove.jumps[0].from));
       }
     }
-  }
+    return set;
+  }, [lastMove]);
   const forcedJumpOrigin = getPendingJumpDestination(state);
   const activeOrigin = forcedJumpOrigin ?? selectedPiece;
   const hasPendingJump = state.pendingJump.length > 0;
@@ -245,9 +244,7 @@ export function TiaoBoard({
 
   const showPlacementError = useCallback(
     (code: RuleFailureCode) => {
-      const key = PLACEMENT_ERROR_KEYS[code];
-      if (!key) return;
-      toast.error(t(key));
+      toast.error(t(PLACEMENT_ERROR_KEYS[code] ?? "invalidPlacementToast"));
     },
     [t],
   );
@@ -460,9 +457,8 @@ export function TiaoBoard({
       // empty cell should move the preview (handled below), not commit
       // the old one.
       const tapDuration = Date.now() - touchStartTimeRef.current;
-      const previewFullyValid = mobilePreview != null && canPlacePiece(state, mobilePreview).ok;
       const tappedPreviewPos = mobilePreview && arePositionsEqual(mobilePreview, pos);
-      if (mobilePreview && previewFullyValid && tappedPreviewPos && tapDuration < 150) {
+      if (mobilePreview && mobilePreviewValid && tappedPreviewPos && tapDuration < 150) {
         e.preventDefault();
         suppressClickRef.current = true;
         const confirmPos = mobilePreview;
@@ -492,6 +488,7 @@ export function TiaoBoard({
       activeOrigin,
       hasPendingJump,
       mobilePreview,
+      mobilePreviewValid,
       onPointClick,
       zoom.handlers,
       zoom.gestureActiveRef,
@@ -902,9 +899,8 @@ export function TiaoBoard({
                       style={
                         showInvalid
                           ? {
-                              borderColor: "rgba(196,74,58,0.7)",
-                              background:
-                                "radial-gradient(circle at 30% 28%,#d4847a,#b85a4e 58%,#8a3028)",
+                              borderColor: theme.invalidPieceBorder,
+                              background: theme.invalidPieceBg,
                             }
                           : {
                               borderColor:
@@ -1332,12 +1328,12 @@ export function TiaoBoard({
                   className={cn("relative block h-full w-full rounded-full", "border")}
                   style={{
                     borderColor: !mobilePreviewValid
-                      ? "rgba(196,74,58,0.6)"
+                      ? theme.invalidPieceBorder
                       : state.currentTurn === "black"
                         ? theme.blackPieceBorder
                         : theme.whitePieceBorder,
                     background: !mobilePreviewValid
-                      ? "radial-gradient(circle at 30% 28%,#d4847a,#b85a4e 58%,#8a3028)"
+                      ? theme.invalidPieceBg
                       : state.currentTurn === "black"
                         ? theme.blackPieceBg
                         : theme.whitePieceBg,

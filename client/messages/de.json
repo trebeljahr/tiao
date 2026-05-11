@@ -290,6 +290,7 @@
     "occupiedToast": "Dieser Punkt ist bereits besetzt.",
     "pendingJumpToast": "Beende erst den laufenden Sprung.",
     "gameOverToast": "Das Spiel ist bereits vorbei.",
+    "invalidPlacementToast": "Diese Platzierung ist nicht erlaubt.",
     "gotItPlay": "Verstanden, los geht's!",
     "startSpectating": "Zuschauen starten",
     "learnToPlay": "Erst lernen, wie man spielt",

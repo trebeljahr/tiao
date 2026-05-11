@@ -1,7 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-
-const IS_TOUCH_DEVICE =
-  typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+import { IS_TOUCH_DEVICE } from "@/lib/isTouchDevice";
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 3;
