@@ -89,6 +89,12 @@ function getApiBaseUrl() {
   if (process.env.NEXT_PUBLIC_PLATFORM === "desktop" && process.env.NEXT_PUBLIC_DESKTOP_API_URL) {
     return process.env.NEXT_PUBLIC_DESKTOP_API_URL;
   }
+  // Mobile (Capacitor) static export: no preload bridge to inject a
+  // runtime URL, so the value is baked in at build time via
+  // NEXT_PUBLIC_MOBILE_API_URL (see client/next.config.mjs).
+  if (process.env.NEXT_PUBLIC_PLATFORM === "mobile" && process.env.NEXT_PUBLIC_MOBILE_API_URL) {
+    return process.env.NEXT_PUBLIC_MOBILE_API_URL;
+  }
   if (process.env.NEXT_PUBLIC_API_BASE_URL) {
     return process.env.NEXT_PUBLIC_API_BASE_URL;
   }
@@ -104,6 +110,9 @@ function getWebSocketBaseUrl(): string {
 
   if (process.env.NEXT_PUBLIC_PLATFORM === "desktop" && process.env.NEXT_PUBLIC_DESKTOP_API_URL) {
     return process.env.NEXT_PUBLIC_DESKTOP_API_URL;
+  }
+  if (process.env.NEXT_PUBLIC_PLATFORM === "mobile" && process.env.NEXT_PUBLIC_MOBILE_API_URL) {
+    return process.env.NEXT_PUBLIC_MOBILE_API_URL;
   }
   if (process.env.NEXT_PUBLIC_API_BASE_URL) {
     return process.env.NEXT_PUBLIC_API_BASE_URL;

@@ -13,16 +13,31 @@ import createNextIntlPlugin from "next-intl/plugin";
 // origin and is redundant when the bundle already lives on disk).
 const IS_DESKTOP_BUILD = process.env.NEXT_PUBLIC_PLATFORM === "desktop";
 
+// Capacitor Android / iOS build. Same static-export shape as desktop
+// — the WebView reads files directly off disk — but with a separate
+// distDir (.next-mobile) and a different default API URL pulled from
+// NEXT_PUBLIC_MOBILE_API_URL. The mobile app has no preload bridge,
+// so the API URL must be baked in at build time (no Electron-style
+// runtime config injection).
+const IS_MOBILE_BUILD = process.env.NEXT_PUBLIC_PLATFORM === "mobile";
+
+// Either standalone-asset build shares the same output: "export"
+// settings (no Node runtime to serve from, image optimizer is off,
+// trailing slashes for index.html-per-dir layout). The only thing
+// that differs is the distDir.
+const IS_STATIC_EXPORT = IS_DESKTOP_BUILD || IS_MOBILE_BUILD;
+
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const withSerwist = withSerwistInit({
   swSrc: "app/sw.ts",
   swDest: "public/sw.js",
   // Disable the service worker in development (stale caches while
-  // iterating) and in the desktop Electron build (the bundle is
-  // already on disk, SW precaching is redundant and interferes with
-  // the `app://` protocol handler).
-  disable: process.env.NODE_ENV === "development" || IS_DESKTOP_BUILD,
+  // iterating) and in any static-export build — the bundle is already
+  // on disk (Electron app://, Capacitor capacitor://), SW precaching
+  // is redundant and the custom schemes don't allow SW registration
+  // in the first place.
+  disable: process.env.NODE_ENV === "development" || IS_STATIC_EXPORT,
   reloadOnOnline: true,
 });
 
@@ -69,17 +84,18 @@ const nextConfig = {
   // don't want them shipped to end users.
   productionBrowserSourceMaps: process.env.EMIT_SOURCE_MAPS === "1",
 
-  // Desktop static export overrides.  These keys are only present
-  // when NEXT_PUBLIC_PLATFORM=desktop is set at build time.  See
-  // the comment at the top of the file for the full rationale.
-  ...(IS_DESKTOP_BUILD && {
+  // Static-export overrides for the Electron (desktop) and Capacitor
+  // (mobile) bundles. Both targets serve files from disk with no Node
+  // runtime, so they share output mode, image-optimizer disablement,
+  // and index.html-per-dir layout. Only the distDir differs so the
+  // two outputs don't stomp on each other.
+  ...(IS_STATIC_EXPORT && {
     // Full static export — produces HTML/JS/CSS on disk with no
-    // Node runtime required to serve them.  The Electron `app://`
-    // protocol handler reads files directly from the bundled dir.
+    // Node runtime required to serve them. The Electron `app://`
+    // protocol handler and the Capacitor `capacitor://` WebView both
+    // read files directly off disk.
     output: "export",
-    // Keep web and desktop build outputs separate so back-to-back
-    // invocations don't stomp on each other.
-    distDir: ".next-desktop",
+    distDir: IS_MOBILE_BUILD ? ".next-mobile" : ".next-desktop",
     // Static export can't use Next.js's built-in image optimizer
     // (which needs a runtime). Assets in public/ are served raw.
     images: { unoptimized: true },
@@ -99,6 +115,16 @@ const nextConfig = {
       NEXT_PUBLIC_PLATFORM: "desktop",
       NEXT_PUBLIC_DESKTOP_API_URL:
         process.env.NEXT_PUBLIC_DESKTOP_API_URL || "https://api.playtiao.com",
+    }),
+    ...(IS_MOBILE_BUILD && {
+      // Capacitor has no preload bridge to inject the API URL at
+      // runtime, so the value must be baked in here. Defaults to
+      // production; override with NEXT_PUBLIC_MOBILE_API_URL for
+      // dev/staging builds. The Android/iOS WebView reads the same
+      // bearer-token path as Electron (handled in client/src/lib/api.ts).
+      NEXT_PUBLIC_PLATFORM: "mobile",
+      NEXT_PUBLIC_MOBILE_API_URL:
+        process.env.NEXT_PUBLIC_MOBILE_API_URL || "https://api.playtiao.com",
     }),
   },
   // Parallel dev mode (DEV_PARALLEL=1, set by scripts/dev.mjs):

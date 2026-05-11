@@ -9,6 +9,7 @@
     "dev": "node server.mjs",
     "build": "next build --webpack",
     "build:desktop": "NEXT_PUBLIC_PLATFORM=desktop next build --webpack",
+    "build:mobile": "NEXT_PUBLIC_PLATFORM=mobile next build --webpack",
     "start": "NODE_ENV=production node server.mjs",
     "typecheck": "next typegen && tsc",
     "test": "vitest run"
