@@ -616,6 +616,7 @@
   "achievements": {
     "title": "Logros",
     "progress": "{count} de {total} desbloqueados",
+    "openInSteam": "Abrir en el overlay de Steam",
     "signInRequired": "Inicia sesión para seguir tus logros.",
     "secretHint": "Hay logros ocultos esperando ser descubiertos...",
     "secretHintShort": "Este es un logro secreto.",

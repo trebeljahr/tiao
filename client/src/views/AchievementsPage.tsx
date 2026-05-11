@@ -19,6 +19,8 @@ import { SkeletonCard } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/AuthContext";
 import { getMyAchievements, type PlayerAchievement } from "@/lib/api";
 import { useLobbyMessage } from "@/lib/LobbySocketContext";
+import { isSteamActive, openSteamOverlay } from "@/lib/SteamBridge";
+import { useSteamAchievementSync } from "@/lib/useSteamAchievementSync";
 
 const CATEGORY_ICONS: Record<AchievementCategory, string> = {
   games: "\u265f\ufe0e", // chess pawn
@@ -90,6 +92,26 @@ export function AchievementsPage() {
     return m;
   }, [achievements]);
 
+  // Stable id array for the Steam reconcile effect — recomputing
+  // only when the unlocked set changes prevents the hook from
+  // refiring on every render of this page.
+  const unlockedIds = useMemo(() => achievements.map((a) => a.achievementId), [achievements]);
+  useSteamAchievementSync(unlockedIds);
+
+  // Detect Steam once on mount so the "Open in Steam" button only
+  // renders inside the packaged Electron Steam build with a live
+  // steamworks client. `isSteamActive` is memoized internally.
+  const [steamReady, setSteamReady] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    void isSteamActive().then((active) => {
+      if (!cancelled) setSteamReady(active);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const unlockedCount = achievements.length;
   const totalCount = ACHIEVEMENTS.length;
 
@@ -143,6 +165,18 @@ export function AchievementsPage() {
                 }}
               />
             </div>
+            {steamReady && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="mt-2 text-xs text-[#8d7760]"
+                onClick={() => {
+                  void openSteamOverlay("Achievements");
+                }}
+              >
+                {t("openInSteam")}
+              </Button>
+            )}
           </CardContent>
         </PaperCard>
       </AnimatedCard>

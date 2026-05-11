@@ -616,6 +616,7 @@
   "achievements": {
     "title": "Erfolge",
     "progress": "{count} von {total} freigeschaltet",
+    "openInSteam": "Im Steam-Overlay öffnen",
     "signInRequired": "Melde dich an, um deine Erfolge zu verfolgen.",
     "secretHint": "Es gibt versteckte Erfolge, die darauf warten, entdeckt zu werden...",
     "secretHintShort": "Dies ist ein geheimer Erfolg.",

@@ -616,6 +616,7 @@
   "achievements": {
     "title": "Achievements",
     "progress": "{count} of {total} unlocked",
+    "openInSteam": "Open in Steam overlay",
     "signInRequired": "Log in to track your achievements.",
     "secretHint": "There are hidden achievements waiting to be discovered...",
     "secretHintShort": "This is a secret achievement.",
