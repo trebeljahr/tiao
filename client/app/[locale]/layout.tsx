@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { notFound } from "next/navigation";
+import Script from "next/script";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { OfflineBanner } from "@/components/OfflineBanner";
@@ -27,6 +28,11 @@ const zenOldMincho = localFont({
   variable: "--font-zen-old-mincho",
   display: "swap",
 });
+
+const plausibleDomain = "playtiao.com";
+const plausibleScriptUrl =
+  "https://plausible.trebeljahr.com/js/script.file-downloads.hash.outbound-links.pageview-props.revenue.tagged-events.js";
+const shouldLoadPlausible = process.env.NODE_ENV === "production";
 
 export const metadata: Metadata = {
   title: {
@@ -94,6 +100,24 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body>
+        {shouldLoadPlausible ? (
+          <Script id="plausible-loader" strategy="afterInteractive">
+            {`
+              (function () {
+                var domain = ${JSON.stringify(plausibleDomain)};
+                if (location.hostname !== domain) return;
+                window.plausible = window.plausible || function() {
+                  (window.plausible.q = window.plausible.q || []).push(arguments);
+                };
+                var script = document.createElement("script");
+                script.defer = true;
+                script.dataset.domain = domain;
+                script.src = ${JSON.stringify(plausibleScriptUrl)};
+                document.head.appendChild(script);
+              })();
+            `}
+          </Script>
+        ) : null}
         <NextIntlClientProvider messages={messages}>
           <OfflineBanner />
           <Providers>{children}</Providers>
