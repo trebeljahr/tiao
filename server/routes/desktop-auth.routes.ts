@@ -1,6 +1,7 @@
 import { fromNodeHeaders } from "better-auth/node";
 import express, { type Request, type Response } from "express";
 import { auth } from "../auth/auth";
+import { normalizeAuthId } from "../auth/betterAuthIds";
 import {
   DEFAULT_EXCHANGE_TTL_SEC,
   generateCode,
@@ -144,7 +145,11 @@ router.get("/callback", async (req: Request, res: Response) => {
       return res.redirect(`tiao://auth/error?state=${encodeURIComponent(state)}&reason=no_session`);
     }
 
-    const userId = session.user.id;
+    const userId = normalizeAuthId(session.user.id);
+    if (!userId) {
+      return res.redirect(`tiao://auth/error?state=${encodeURIComponent(state)}&reason=no_session`);
+    }
+
     const code = generateCode();
     await getExchangeCodeStore().put(state, code, userId, DEFAULT_EXCHANGE_TTL_SEC);
 

@@ -88,8 +88,14 @@ function fakeResponse() {
   };
 }
 
+function objectIdBuffer(hex: string) {
+  const pairs = hex.match(/.{2}/g);
+  assert.ok(pairs);
+  return { buffer: Uint8Array.from(pairs.map((pair) => Number.parseInt(pair, 16))) };
+}
+
 function makeSession(user: {
-  id: string;
+  id: unknown;
   name: string;
   email: string;
   image?: string | null;
@@ -158,6 +164,27 @@ describe("getPlayerFromRequest", () => {
     assert.equal(result.badges, undefined);
   });
 
+  test("normalizes anonymous BSON buffer ids to strings", async () => {
+    const id = "6a04f6ce043c0ca47157db95";
+    stubGetSession.mock.mockImplementation(() =>
+      Promise.resolve(
+        makeSession({
+          id: objectIdBuffer(id),
+          name: "BufferGuest",
+          email: "",
+          isAnonymous: true,
+        }),
+      ),
+    );
+
+    const result = await getPlayerFromRequest(fakeRequest());
+
+    assert.ok(result);
+    assert.equal(result.kind, "guest");
+    assert.equal(result.playerId, id);
+    assert.equal(stubFindById.mock.callCount(), 0);
+  });
+
   test("returns a full account identity with badges and rating", async () => {
     stubGetSession.mock.mockImplementation(() =>
       Promise.resolve(
@@ -185,6 +212,30 @@ describe("getPlayerFromRequest", () => {
     assert.equal(result.rating, 1600);
     // isAdmin false should not be spread into the identity
     assert.equal(result.isAdmin, undefined);
+  });
+
+  test("normalizes account BSON buffer ids before querying GameAccount", async () => {
+    const id = "69ca69aa8be97cc13b3c8bce";
+    stubGetSession.mock.mockImplementation(() =>
+      Promise.resolve(
+        makeSession({
+          id: objectIdBuffer(id),
+          name: "validuser",
+          email: "user@example.com",
+        }),
+      ),
+    );
+    stubFindById.mock.mockImplementation((actualId) => {
+      assert.equal(actualId, id);
+      return Promise.resolve(null);
+    });
+
+    const result = await getPlayerFromRequest(fakeRequest());
+
+    assert.ok(result);
+    assert.equal(result.kind, "account");
+    assert.equal(result.playerId, id);
+    assert.equal(stubFindById.mock.callCount(), 1);
   });
 });
 

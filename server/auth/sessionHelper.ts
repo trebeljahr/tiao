@@ -7,6 +7,7 @@ import { ACHIEVEMENT_BADGE_MAP } from "../config/badgeRewards";
 import Achievement from "../models/Achievement";
 import GameAccount, { type IGameAccount } from "../models/GameAccount";
 import { auth } from "./auth";
+import { type BetterAuthUserLike, normalizeAuthUser } from "./betterAuthIds";
 import * as betterAuthUserLookup from "./betterAuthUserLookup";
 import { extractBearerUserId } from "./desktopSessionManager";
 
@@ -34,20 +35,16 @@ function getRequestAccount(req: Request): HydratedDocument<IGameAccount> | null 
 }
 
 async function toPlayerIdentity(
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    image?: string | null;
-    isAnonymous?: boolean | null;
-    displayName?: string | null;
-  },
+  rawUser: BetterAuthUserLike,
   req?: Request,
-): Promise<PlayerIdentity> {
+): Promise<PlayerIdentity | null> {
+  const user = normalizeAuthUser(rawUser);
+  if (!user) return null;
+
   if (user.isAnonymous) {
     return {
       playerId: user.id,
-      displayName: user.name,
+      displayName: user.name || `guest-${user.id.slice(0, 6)}`,
       kind: "guest",
     };
   }

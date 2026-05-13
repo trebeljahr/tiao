@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { betterAuthIdFilter, normalizeAuthId } from "./betterAuthIds";
 
 /**
  * Shape of the subset of the better-auth `user` collection document that
@@ -34,16 +35,12 @@ export async function lookupBetterAuthUser(userId: string): Promise<BetterAuthUs
   try {
     const db = mongoose.connection.getClient().db();
     // better-auth stores _id as the user's primary key (string or ObjectId
-    // depending on adapter config).  Passing `userId` as a string works
-    // for the MongoDB adapter's default string _ids.  `as any` matches
-    // the pattern in auth.ts's databaseHooks session callback (where the
-    // same query is used) — the mongo driver's type declares _id as
-    // ObjectId by default, but the runtime accepts strings too.
+    // depending on adapter config), so match both when the id is ObjectId-like.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const doc = await db.collection("user").findOne({ _id: userId as any });
+    const doc = await db.collection("user").findOne({ _id: betterAuthIdFilter(userId) as any });
     if (!doc) return null;
     return {
-      id: String(doc._id),
+      id: normalizeAuthId(doc._id) ?? String(doc._id),
       name: typeof doc.name === "string" ? doc.name : "",
       email: typeof doc.email === "string" ? doc.email : "",
       image: typeof doc.image === "string" ? doc.image : null,
