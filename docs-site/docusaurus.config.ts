@@ -4,6 +4,10 @@ import type * as OpenApiPlugin from "docusaurus-plugin-openapi-docs";
 import { themes as prismThemes } from "prism-react-renderer";
 import remarkSourceLinks from "./plugins/remark-source-links.mjs";
 
+const plausibleDomain = "docs.tiao.ricos.site";
+const plausibleScriptUrl =
+  "https://plausible.trebeljahr.com/js/script.file-downloads.hash.outbound-links.pageview-props.revenue.tagged-events.js";
+
 const config: Config = {
   title: "Tiao",
   tagline: 'Tiao is an open-source multiplayer board game platform — think "lichess for Tiao."',
@@ -21,6 +25,26 @@ const config: Config = {
 
   onBrokenLinks: "warn",
   onBrokenMarkdownLinks: "warn",
+
+  headTags: [
+    {
+      tagName: "script",
+      innerHTML: `
+        (function () {
+          var domain = ${JSON.stringify(plausibleDomain)};
+          if (location.hostname !== domain) return;
+          window.plausible = window.plausible || function() {
+            (window.plausible.q = window.plausible.q || []).push(arguments);
+          };
+          var script = document.createElement("script");
+          script.defer = true;
+          script.dataset.domain = domain;
+          script.src = ${JSON.stringify(plausibleScriptUrl)};
+          document.head.appendChild(script);
+        })();
+      `,
+    },
+  ],
 
   i18n: {
     defaultLocale: "en",
