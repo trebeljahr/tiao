@@ -20,6 +20,15 @@ export const NO_INDEX_ROBOTS: Metadata["robots"] = {
   },
 };
 
+export const NO_INDEX_FOLLOW_ROBOTS: Metadata["robots"] = {
+  index: false,
+  follow: true,
+  googleBot: {
+    index: false,
+    follow: true,
+  },
+};
+
 function isLocale(locale: string): locale is Locale {
   return (locales as readonly string[]).includes(locale);
 }

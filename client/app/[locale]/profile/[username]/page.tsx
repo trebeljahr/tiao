@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { DESKTOP_SPA_PARAM_VALUE } from "@/lib/desktopPathParam";
-import { localizedAlternates, localizedOpenGraphImage } from "@/lib/metadata";
+import {
+  localizedAlternates,
+  localizedOpenGraphImage,
+  NO_INDEX_FOLLOW_ROBOTS,
+} from "@/lib/metadata";
 import { fetchPublicProfile } from "@/lib/publicSeoData";
 import { PublicProfilePage } from "@/views/PublicProfilePage";
 
@@ -32,6 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title,
       description,
+      robots: NO_INDEX_FOLLOW_ROBOTS,
       alternates: localizedAlternates(locale, pathname),
       openGraph: { title, description, images: routeImages },
       twitter: { card: "summary_large_image", title, description, images: [routeImages[0].url] },
@@ -47,6 +52,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
+    robots: NO_INDEX_FOLLOW_ROBOTS,
     alternates: localizedAlternates(locale, pathname),
     openGraph: { title, description, images: routeImages },
     twitter: { card: "summary_large_image", title, description, images: [routeImages[0].url] },

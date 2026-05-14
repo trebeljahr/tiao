@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { DESKTOP_SPA_PARAM_VALUE } from "@/lib/desktopPathParam";
-import { localizedAlternates, localizedOpenGraphImage } from "@/lib/metadata";
+import {
+  localizedAlternates,
+  localizedOpenGraphImage,
+  NO_INDEX_FOLLOW_ROBOTS,
+} from "@/lib/metadata";
 import { fetchGameOg } from "@/lib/publicSeoData";
 import { MultiplayerGamePage } from "@/views/MultiplayerGamePage";
 
@@ -42,6 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title,
       description,
+      robots: NO_INDEX_FOLLOW_ROBOTS,
       alternates: localizedAlternates(locale, pathname),
       openGraph: { title, description, images: routeImages },
       twitter: { card: "summary_large_image", title, description, images: [routeImages[0].url] },
@@ -58,6 +63,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title: fallbackTitle,
       description: fallbackDescription,
+      robots: NO_INDEX_FOLLOW_ROBOTS,
       alternates: localizedAlternates(locale, pathname),
       openGraph: { title: fallbackTitle, description: fallbackDescription, images: routeImages },
       twitter: {
@@ -117,6 +123,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description: ogDescription,
+    robots: NO_INDEX_FOLLOW_ROBOTS,
     alternates: localizedAlternates(locale, pathname),
     openGraph: {
       title,
