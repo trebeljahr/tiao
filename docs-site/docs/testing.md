@@ -1,6 +1,7 @@
 ---
 sidebar_position: 5
 title: Testing
+description: Testing guide for Tiao across server unit tests, client unit tests, and Playwright end-to-end coverage.
 ---
 
 # Testing Guide

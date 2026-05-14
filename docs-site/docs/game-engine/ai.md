@@ -1,6 +1,7 @@
 ---
 sidebar_position: 2
 title: AI Engine
+description: Architecture of the browser-based Tiao AI engine, including Web Worker execution, search flow, evaluation, and difficulty tuning.
 ---
 
 # AI Engine

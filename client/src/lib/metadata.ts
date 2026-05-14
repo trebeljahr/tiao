@@ -5,8 +5,9 @@ import { defaultLocale, type Locale, locales } from "@/i18n/routing";
 // so every page that overrides `openGraph` must re-declare `images` or the
 // share image goes missing for that URL.
 export const OG_IMAGES = [
-  { url: "/tiao-thumbnail.png", width: 1200, height: 630, alt: "Tiao board game" },
+  { url: "/opengraph-image", width: 1200, height: 630, alt: "Tiao online board game" },
 ];
+export const TWITTER_IMAGES = ["/twitter-image"];
 
 export const SITE_URL = "https://playtiao.com";
 
@@ -46,6 +47,20 @@ export function localizedPath(locale: string, pathname = "/"): string {
 
 export function localizedUrl(locale: string, pathname = "/"): string {
   return new URL(localizedPath(locale, pathname), SITE_URL).toString();
+}
+
+export function localizedImagePath(locale: string, pathname: string, imageName: string): string {
+  const basePath = localizedPath(locale, pathname).replace(/\/+$/, "") || "/";
+  return basePath === "/" ? `/${imageName}` : `${basePath}/${imageName}`;
+}
+
+export function localizedOpenGraphImage(locale: string, pathname: string, alt: string) {
+  return {
+    url: localizedImagePath(locale, pathname, "opengraph-image"),
+    width: 1200,
+    height: 630,
+    alt,
+  };
 }
 
 export function languageAlternates(pathname = "/"): Record<string, string> {

@@ -8,6 +8,7 @@ const config: Config = {
   title: "Tiao",
   tagline: 'Tiao is an open-source multiplayer board game platform — think "lichess for Tiao."',
   favicon: "img/favicon.png",
+  titleDelimiter: "·",
 
   future: {
     v4: true,
@@ -38,6 +39,12 @@ const config: Config = {
           beforeDefaultRemarkPlugins: [remarkSourceLinks],
         },
         blog: false,
+        sitemap: {
+          lastmod: "date",
+          changefreq: "weekly",
+          priority: 0.7,
+          ignorePatterns: ["/markdown-page"],
+        },
         theme: {
           customCss: "./src/css/custom.css",
         },
@@ -68,7 +75,7 @@ const config: Config = {
   themes: ["docusaurus-theme-openapi-docs"],
 
   themeConfig: {
-    image: "img/tiao-icon.svg",
+    image: "img/social-card.png",
     metadata: [
       {
         name: "description",
@@ -77,6 +84,9 @@ const config: Config = {
       },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Tiao Docs" },
+      { property: "og:image:alt", content: "Tiao Docs" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image:alt", content: "Tiao Docs" },
     ],
     colorMode: {
       respectPrefersColorScheme: true,

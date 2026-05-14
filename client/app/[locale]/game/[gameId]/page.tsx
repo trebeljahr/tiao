@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { DESKTOP_SPA_PARAM_VALUE } from "@/lib/desktopPathParam";
-import { localizedAlternates, OG_IMAGES } from "@/lib/metadata";
+import { localizedAlternates, localizedOpenGraphImage } from "@/lib/metadata";
+import { fetchGameOg } from "@/lib/publicSeoData";
 import { MultiplayerGamePage } from "@/views/MultiplayerGamePage";
 
 type Props = { params: Promise<{ locale: string; gameId: string }> };
@@ -11,34 +12,6 @@ type Props = { params: Promise<{ locale: string; gameId: string }> };
 // a full SSR-ready route for web AND a single placeholder HTML for
 // the desktop static export.
 const IS_DESKTOP_BUILD = process.env.NEXT_PUBLIC_PLATFORM === "desktop";
-
-/** Server-side fetch to the backend for public game OG metadata.
- *  Skipped in dev to avoid blocking page loads with server-to-server HTTP. */
-async function fetchGameOg(gameId: string) {
-  if (process.env.NODE_ENV === "development") return null;
-  const apiBase = process.env.API_URL || `http://127.0.0.1:${process.env.API_PORT || "5005"}`;
-  try {
-    const res = await fetch(`${apiBase}/api/games/${encodeURIComponent(gameId)}/og`, {
-      next: { revalidate: 30 },
-    });
-    if (!res.ok) return null;
-    return (await res.json()) as {
-      gameId: string;
-      status: string;
-      boardSize: number;
-      scoreToWin: number;
-      score: { white: number; black: number };
-      white: string | null;
-      black: string | null;
-      whiteRating?: number;
-      blackRating?: number;
-      timeControl: { initialMs: number; incrementMs: number } | null;
-      roomType: string;
-    };
-  } catch {
-    return null;
-  }
-}
 
 /**
  * Desktop builds pre-render a single placeholder HTML file for this
@@ -57,6 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "og" });
   const pathname = `/game/${encodeURIComponent(gameId)}`;
+  const routeImages = [localizedOpenGraphImage(locale, pathname, "Tiao game preview")];
 
   // Desktop static export: no per-game OG fetch. The Electron shell
   // serves one placeholder HTML for every /game/* URL, so per-game
@@ -69,7 +43,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       alternates: localizedAlternates(locale, pathname),
-      openGraph: { title, description, images: OG_IMAGES },
+      openGraph: { title, description, images: routeImages },
+      twitter: { card: "summary_large_image", title, description, images: [routeImages[0].url] },
     };
   }
 
@@ -84,7 +59,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: fallbackTitle,
       description: fallbackDescription,
       alternates: localizedAlternates(locale, pathname),
-      openGraph: { title: fallbackTitle, description: fallbackDescription, images: OG_IMAGES },
+      openGraph: { title: fallbackTitle, description: fallbackDescription, images: routeImages },
+      twitter: {
+        card: "summary_large_image",
+        title: fallbackTitle,
+        description: fallbackDescription,
+        images: [routeImages[0].url],
+      },
     };
   }
 
@@ -140,7 +121,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      images: OG_IMAGES,
+      images: routeImages,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: ogDescription,
+      images: [routeImages[0].url],
     },
   };
 }

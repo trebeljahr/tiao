@@ -1,6 +1,7 @@
 ---
 sidebar_position: 2
 title: Game Rules
+description: Rules for playing Tiao on a 19x19 board, including setup, placement, jumps, captures, chained moves, and win conditions.
 ---
 
 # Tiao Game Rules

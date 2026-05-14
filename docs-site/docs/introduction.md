@@ -2,6 +2,7 @@
 sidebar_position: 1
 title: Introduction
 slug: /
+description: Overview of Tiao, an open-source multiplayer board game platform with local play, AI opponents, online matchmaking, accounts, and tournaments.
 ---
 
 # Tiao

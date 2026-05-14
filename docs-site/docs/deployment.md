@@ -1,6 +1,7 @@
 ---
 sidebar_position: 6
 title: Deployment
+description: Production deployment notes for Tiao on Coolify, including frontend and backend containers, routing, environment variables, and operations.
 ---
 
 # Tiao On Coolify

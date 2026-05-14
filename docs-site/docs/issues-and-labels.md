@@ -1,6 +1,7 @@
 ---
 sidebar_position: 5
 title: Issues, Labels & Workflows
+description: How Tiao uses GitHub Issues, templates, labels, priorities, and workflows to track bugs, features, tasks, and contributor work.
 ---
 
 # Issues, Labels & Workflows

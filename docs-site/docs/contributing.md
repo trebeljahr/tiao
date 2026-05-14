@@ -1,6 +1,7 @@
 ---
 sidebar_position: 4
 title: Contributing
+description: Contributor setup guide for Tiao, including prerequisites, local development, project workflow, and contribution expectations.
 ---
 
 # Contributing to Tiao

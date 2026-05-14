@@ -1,6 +1,7 @@
 ---
 sidebar_position: 1
 title: Game Engine Reference
+description: Reference for the pure TypeScript Tiao game engine, including game state, move validation, captures, scoring, and shared client/server usage.
 ---
 
 # Game Engine Reference

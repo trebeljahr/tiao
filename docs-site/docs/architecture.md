@@ -1,6 +1,7 @@
 ---
 sidebar_position: 3
 title: Architecture
+description: System architecture for Tiao contributors, covering the shared game engine, server layer, client app, realtime protocol, and deployment model.
 ---
 
 # Tiao Architecture

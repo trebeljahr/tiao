@@ -4,6 +4,7 @@ import { SITE_URL } from "@/lib/metadata";
 
 const privatePaths = ["/settings", "/friends", "/matchmaking", "/onboarding", "/reset-password"];
 const privateTrees = ["/admin"];
+const infrastructurePaths = ["/api/", "/ws/", "/_vercel/", "/collect/", "/_e/"];
 
 function localizedPrivatePaths(): string[] {
   const paths = [...privatePaths, ...privateTrees];
@@ -17,7 +18,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: localizedPrivatePaths(),
+      disallow: [...localizedPrivatePaths(), ...infrastructurePaths],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
     host: SITE_URL,

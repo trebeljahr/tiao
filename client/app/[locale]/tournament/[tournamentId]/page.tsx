@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { DESKTOP_SPA_PARAM_VALUE } from "@/lib/desktopPathParam";
-import { localizedAlternates, OG_IMAGES } from "@/lib/metadata";
+import { localizedAlternates, localizedOpenGraphImage } from "@/lib/metadata";
+import { fetchTournament } from "@/lib/publicSeoData";
 import { TournamentPage } from "@/views/TournamentPage";
 
 type Props = { params: Promise<{ locale: string; tournamentId: string }> };
@@ -9,27 +10,6 @@ type Props = { params: Promise<{ locale: string; tournamentId: string }> };
 // See the matching constant in /app/[locale]/game/[gameId]/page.tsx —
 // controls the web/desktop split for the shareable dynamic routes.
 const IS_DESKTOP_BUILD = process.env.NEXT_PUBLIC_PLATFORM === "desktop";
-
-async function fetchTournament(tournamentId: string) {
-  if (process.env.NODE_ENV === "development") return null;
-  const apiBase = process.env.API_URL || `http://127.0.0.1:${process.env.API_PORT || "5005"}`;
-  try {
-    const res = await fetch(`${apiBase}/api/tournaments/${encodeURIComponent(tournamentId)}`, {
-      next: { revalidate: 60 },
-    });
-    if (!res.ok) return null;
-    const data = (await res.json()) as {
-      tournament: {
-        name: string;
-        settings: { format: string };
-        participants: unknown[];
-      };
-    };
-    return data.tournament;
-  } catch {
-    return null;
-  }
-}
 
 const FORMAT_LABELS: Record<string, string> = {
   "round-robin": "Round Robin",
@@ -48,6 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "og" });
   const pathname = `/tournament/${encodeURIComponent(tournamentId)}`;
+  const routeImages = [localizedOpenGraphImage(locale, pathname, "Tiao tournament preview")];
 
   // Desktop static export: static fallback metadata only. See the
   // matching /game/[gameId]/page.tsx branch for the reasoning.
@@ -58,7 +39,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       alternates: localizedAlternates(locale, pathname),
-      openGraph: { title, description, images: OG_IMAGES },
+      openGraph: { title, description, images: routeImages },
+      twitter: { card: "summary_large_image", title, description, images: [routeImages[0].url] },
     };
   }
 
@@ -70,7 +52,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: fallback,
       description: t("tournamentsDescription"),
       alternates: localizedAlternates(locale, pathname),
-      openGraph: { title: fallback, description: t("tournamentsDescription"), images: OG_IMAGES },
+      openGraph: { title: fallback, description: t("tournamentsDescription"), images: routeImages },
+      twitter: {
+        card: "summary_large_image",
+        title: fallback,
+        description: t("tournamentsDescription"),
+        images: [routeImages[0].url],
+      },
     };
   }
 
@@ -85,7 +73,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     description,
     alternates: localizedAlternates(locale, pathname),
-    openGraph: { title, description, images: OG_IMAGES },
+    openGraph: { title, description, images: routeImages },
+    twitter: { card: "summary_large_image", title, description, images: [routeImages[0].url] },
   };
 }
 

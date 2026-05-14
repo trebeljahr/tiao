@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Tiao Docs">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1c1510" />
+      <stop offset=".58" stop-color="#5d3b1f" />
+      <stop offset="1" stop-color="#d9a75c" />
+    </linearGradient>
+    <linearGradient id="board" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7e7c0" />
+      <stop offset="1" stop-color="#d5a15a" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <circle cx="1014" cy="116" r="210" fill="#fff7e8" opacity=".14" />
+  <circle cx="92" cy="552" r="230" fill="#fff7e8" opacity=".11" />
+  <g transform="translate(844 118)">
+    <rect width="252" height="252" rx="52" fill="url(#board)" stroke="#fff7e8" stroke-width="8" opacity=".96" />
+    <g stroke="#7a542d" stroke-width="4" opacity=".35">
+      <path d="M52 68h148M52 114h148M52 160h148M52 206h148M68 52v166M114 52v166M160 52v166M206 52v166" />
+    </g>
+    <circle cx="114" cy="114" r="13" fill="#19100b" />
+    <circle cx="160" cy="160" r="13" fill="#fff7e8" stroke="#19100b" stroke-width="4" />
+    <circle cx="206" cy="206" r="13" fill="#19100b" />
+  </g>
+  <text x="76" y="128" fill="#fff7e8" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700">Tiao Docs</text>
+  <text x="76" y="284" fill="#fff7e8" font-family="Inter, Arial, sans-serif" font-size="72" font-weight="800">Multiplayer board</text>
+  <text x="76" y="366" fill="#fff7e8" font-family="Inter, Arial, sans-serif" font-size="72" font-weight="800">game platform docs.</text>
+  <text x="80" y="470" fill="rgba(255,247,232,.86)" font-family="Inter, Arial, sans-serif" font-size="34">Game rules, architecture, testing, deployment, and API reference.</text>
+  <text x="80" y="552" fill="rgba(255,247,232,.72)" font-family="Inter, Arial, sans-serif" font-size="26">Open source / Real-time multiplayer / REST API</text>
+</svg>

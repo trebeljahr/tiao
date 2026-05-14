@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { DESKTOP_SPA_PARAM_VALUE } from "@/lib/desktopPathParam";
-import { localizedAlternates, OG_IMAGES } from "@/lib/metadata";
+import { localizedAlternates, localizedOpenGraphImage } from "@/lib/metadata";
+import { fetchPublicProfile } from "@/lib/publicSeoData";
 import { PublicProfilePage } from "@/views/PublicProfilePage";
 
 type Props = { params: Promise<{ locale: string; username: string }> };
@@ -9,23 +10,6 @@ type Props = { params: Promise<{ locale: string; username: string }> };
 // See the matching constant in /app/[locale]/game/[gameId]/page.tsx —
 // controls the web/desktop split for the shareable dynamic routes.
 const IS_DESKTOP_BUILD = process.env.NEXT_PUBLIC_PLATFORM === "desktop";
-
-async function fetchPublicProfile(username: string) {
-  if (process.env.NODE_ENV === "development") return null;
-  const apiBase = process.env.API_URL || `http://127.0.0.1:${process.env.API_PORT || "5005"}`;
-  try {
-    const res = await fetch(`${apiBase}/api/player/profile/${encodeURIComponent(username)}`, {
-      next: { revalidate: 120 },
-    });
-    if (!res.ok) return null;
-    const data = (await res.json()) as {
-      profile: { displayName: string; profilePicture?: string };
-    };
-    return data.profile;
-  } catch {
-    return null;
-  }
-}
 
 /** See the twin function in /app/[locale]/game/[gameId]/page.tsx. */
 export function generateStaticParams() {
@@ -38,6 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "og" });
   const pathname = `/profile/${encodeURIComponent(username)}`;
+  const routeImages = [localizedOpenGraphImage(locale, pathname, "Tiao public profile preview")];
 
   // Desktop static export: static fallback metadata only. See the
   // matching /game/[gameId]/page.tsx branch for the reasoning.
@@ -48,7 +33,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       alternates: localizedAlternates(locale, pathname),
-      openGraph: { title, description, images: OG_IMAGES },
+      openGraph: { title, description, images: routeImages },
+      twitter: { card: "summary_large_image", title, description, images: [routeImages[0].url] },
     };
   }
 
@@ -62,7 +48,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     description,
     alternates: localizedAlternates(locale, pathname),
-    openGraph: { title, description, images: OG_IMAGES },
+    openGraph: { title, description, images: routeImages },
+    twitter: { card: "summary_large_image", title, description, images: [routeImages[0].url] },
   };
 }
 

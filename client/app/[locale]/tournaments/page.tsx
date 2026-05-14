@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const t = await getTranslations({ locale, namespace: "og" });
 
   return {
-    title: t("tournamentsTitle"),
+    title: { absolute: t("tournamentsTitle") },
     description: t("tournamentsDescription"),
     alternates: localizedAlternates(locale, "/tournaments"),
     openGraph: {
