@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { NO_INDEX_ROBOTS } from "@/lib/metadata";
-import { SetUsernamePage } from "@/views/SetUsernamePage";
 
 export const metadata: Metadata = {
-  title: "Choose username",
+  title: "Admin",
   robots: NO_INDEX_ROBOTS,
 };
 
-export default function Page() {
-  return <SetUsernamePage />;
+export default function AdminLayout({ children }: { children: ReactNode }) {
+  return children;
 }

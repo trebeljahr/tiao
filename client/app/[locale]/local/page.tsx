@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Suspense } from "react";
-import { OG_IMAGES } from "@/lib/metadata";
+import { localizedAlternates, OG_IMAGES } from "@/lib/metadata";
 import { LocalGamePage } from "@/views/LocalGamePage";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -14,6 +14,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: t("localTitle"),
     description: t("localDescription"),
+    alternates: localizedAlternates(locale, "/local"),
     openGraph: {
       title: t("localTitle"),
       description: t("localDescription"),

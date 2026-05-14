@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { OG_IMAGES } from "@/lib/metadata";
+import { NO_INDEX_ROBOTS, OG_IMAGES } from "@/lib/metadata";
 import { ProfilePage } from "@/views/ProfilePage";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -13,6 +13,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: t("settingsTitle"),
     description: t("profileDescription"),
+    robots: NO_INDEX_ROBOTS,
     openGraph: {
       title: t("settingsTitle"),
       description: t("profileDescription"),

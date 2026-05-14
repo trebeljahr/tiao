@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { DESKTOP_SPA_PARAM_VALUE } from "@/lib/desktopPathParam";
-import { OG_IMAGES } from "@/lib/metadata";
+import { localizedAlternates, OG_IMAGES } from "@/lib/metadata";
 import { TournamentPage } from "@/views/TournamentPage";
 
 type Props = { params: Promise<{ locale: string; tournamentId: string }> };
@@ -47,6 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, tournamentId } = await params;
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "og" });
+  const pathname = `/tournament/${encodeURIComponent(tournamentId)}`;
 
   // Desktop static export: static fallback metadata only. See the
   // matching /game/[gameId]/page.tsx branch for the reasoning.
@@ -56,6 +57,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title,
       description,
+      alternates: localizedAlternates(locale, pathname),
       openGraph: { title, description, images: OG_IMAGES },
     };
   }
@@ -67,6 +69,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title: fallback,
       description: t("tournamentsDescription"),
+      alternates: localizedAlternates(locale, pathname),
       openGraph: { title: fallback, description: t("tournamentsDescription"), images: OG_IMAGES },
     };
   }
@@ -81,6 +84,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
+    alternates: localizedAlternates(locale, pathname),
     openGraph: { title, description, images: OG_IMAGES },
   };
 }

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { DESKTOP_SPA_PARAM_VALUE } from "@/lib/desktopPathParam";
-import { OG_IMAGES } from "@/lib/metadata";
+import { localizedAlternates, OG_IMAGES } from "@/lib/metadata";
 import { MultiplayerGamePage } from "@/views/MultiplayerGamePage";
 
 type Props = { params: Promise<{ locale: string; gameId: string }> };
@@ -56,6 +56,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, gameId } = await params;
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "og" });
+  const pathname = `/game/${encodeURIComponent(gameId)}`;
 
   // Desktop static export: no per-game OG fetch. The Electron shell
   // serves one placeholder HTML for every /game/* URL, so per-game
@@ -67,6 +68,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title,
       description,
+      alternates: localizedAlternates(locale, pathname),
       openGraph: { title, description, images: OG_IMAGES },
     };
   }
@@ -81,6 +83,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title: fallbackTitle,
       description: fallbackDescription,
+      alternates: localizedAlternates(locale, pathname),
       openGraph: { title: fallbackTitle, description: fallbackDescription, images: OG_IMAGES },
     };
   }
@@ -133,6 +136,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description: ogDescription,
+    alternates: localizedAlternates(locale, pathname),
     openGraph: {
       title,
       description,

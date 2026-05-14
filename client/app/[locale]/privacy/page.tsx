@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { OG_IMAGES } from "@/lib/metadata";
+import { localizedAlternates, OG_IMAGES } from "@/lib/metadata";
 import { PrivacyPolicyPage } from "@/views/PrivacyPolicyPage";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -13,6 +13,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: t("policyTitle"),
     description: t("policyMetaDescription"),
+    alternates: localizedAlternates(locale, "/privacy"),
     openGraph: {
       title: t("policyTitle"),
       description: t("policyMetaDescription"),

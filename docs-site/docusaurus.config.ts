@@ -68,6 +68,16 @@ const config: Config = {
   themes: ["docusaurus-theme-openapi-docs"],
 
   themeConfig: {
+    image: "img/tiao-icon.svg",
+    metadata: [
+      {
+        name: "description",
+        content:
+          'Developer documentation for Tiao, an open-source multiplayer board game platform — think "lichess for Tiao."',
+      },
+      { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Tiao Docs" },
+    ],
     colorMode: {
       respectPrefersColorScheme: true,
     },
