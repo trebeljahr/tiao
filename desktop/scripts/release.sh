@@ -14,22 +14,21 @@ set -euo pipefail
 #                                   main-process analytics wrapper
 #   TIAO_OPENPANEL_API_URL        — OpenPanel ingest URL
 #
-# When macOS code signing is added (follow-up worktree), also:
+# For signed macOS builds, set (see desktop/README.md "Signing"):
+#   CSC_LINK                      — base64 of Developer ID .p12 or file:// path
+#   CSC_KEY_PASSWORD              — .p12 keystore password
 #   APPLE_ID                      — developer Apple ID email
-#   APPLE_APP_SPECIFIC_PASSWORD   — app-specific password
+#   APPLE_APP_SPECIFIC_PASSWORD   — app-specific password (appleid.apple.com)
 #   APPLE_TEAM_ID                 — Developer Team ID
 #
-# AND, in the same commit that wires up those secrets, flip these
-# fields in package.json's "build.mac" block to true:
+# For signed Windows builds, set:
+#   CSC_LINK                      — base64 of .pfx or file:// path
+#   CSC_KEY_PASSWORD              — .pfx keystore password
 #
-#   hardenedRuntime: true
-#   gatekeeperAssess: true
-#
-# They are intentionally false in Phase 3a so the unsigned dmgs are
-# still installable on Apple Silicon.  Apple's notary service REJECTS
-# any app that is signed but doesn't have hardenedRuntime enabled, so
-# leaving them false alongside a signing config will fail every build
-# at the notarization step with a confusing error.
+# All of the above are optional — leaving them unset produces an
+# unsigned build.  hardenedRuntime is already enabled in package.json
+# so signed builds will pass Apple's notary requirements; unsigned
+# builds still install (Gatekeeper quarantines them on first launch).
 #
 # Usage:
 #   ./scripts/release.sh                 # host platform only

@@ -262,10 +262,23 @@ xattr -d com.apple.quarantine /Applications/Tiao.app
 open desktop/dist/mac-universal/Tiao.app
 ```
 
-`build.mac.hardenedRuntime` and `build.mac.gatekeeperAssess` are intentionally
-`false` in `package.json` — they **must be flipped to `true`** when code signing
-lands, otherwise Apple's notary service will reject every build. Pointers in
-`scripts/release.sh` and `.github/workflows/desktop-release.yml`.
+`build.mac.hardenedRuntime` is `true` in `package.json` (required for Apple
+notarization), but unsigned local builds still install — Gatekeeper just
+quarantines them on first launch. See the [Signing](#signing) section for
+the env vars that flip on real signing/notarization, and
+`scripts/release.sh` / `.github/workflows/desktop-release.yml` for where
+the CI secrets get wired.
+
+**Auto-discovery gotcha.** If your dev Mac happens to have *any* Developer
+ID Application certificate in the keychain (e.g. from another project),
+electron-builder will auto-discover it and attempt to sign the build with
+hardened runtime — which may fail or produce a signed-but-not-notarized
+app and surprise you. To force a clean unsigned local build regardless of
+keychain state:
+
+```bash
+CSC_IDENTITY_AUTO_DISCOVERY=false npm run package
+```
 
 ### All platforms
 
@@ -288,9 +301,71 @@ tag.
 | `TIAO_API_URL`                | API base URL (read at **runtime**; default: `https://api.playtiao.com` for packaged, `http://localhost:5005` for dev) |
 | `TIAO_OPENPANEL_CLIENT_ID`    | OpenPanel public client id for main-process events                                                                    |
 | `TIAO_OPENPANEL_API_URL`      | OpenPanel ingest URL                                                                                                  |
-| `APPLE_ID`                    | (signing follow-up) Developer Apple ID email                                                                          |
-| `APPLE_APP_SPECIFIC_PASSWORD` | (signing follow-up) app-specific password                                                                             |
-| `APPLE_TEAM_ID`               | (signing follow-up) Developer Team ID                                                                                 |
+| `TIAO_STEAM_APPID`            | Steam appid baked into the build (see "Steam appid swap" below)                                                       |
+
+## Signing
+
+The signing/notarization scaffolding is wired into `package.json` and
+`scripts/notarize.cjs` (the electron-builder `afterSign` hook). **All
+secrets are opt-in** — if you leave the env vars unset, the build still
+succeeds and produces an unsigned binary. Set the vars below to flip on
+signing without touching any code.
+
+### macOS — Developer ID code signing
+
+Set these to sign the `.app` bundle and `.dmg` with a Developer ID
+Application certificate:
+
+| Variable           | Purpose                                                                                            |
+| ------------------ | -------------------------------------------------------------------------------------------------- |
+| `CSC_LINK`         | Base64-encoded `.p12` (or `file://` path to a `.p12`) of your Developer ID Application certificate |
+| `CSC_KEY_PASSWORD` | Password for the `.p12` keystore                                                                   |
+
+electron-builder reads `CSC_LINK` / `CSC_KEY_PASSWORD` automatically — no
+config change required. If both are unset, the build proceeds unsigned.
+
+### macOS — Apple notarization
+
+Set these to send the signed `.app` to Apple's notary service via
+`@electron/notarize` (invoked from `scripts/notarize.cjs`):
+
+| Variable                      | Purpose                                                              |
+| ----------------------------- | -------------------------------------------------------------------- |
+| `APPLE_ID`                    | Developer Apple ID email                                             |
+| `APPLE_APP_SPECIFIC_PASSWORD` | App-specific password generated at appleid.apple.com (NOT real pwd)  |
+| `APPLE_TEAM_ID`               | Developer Team ID (10-character string from developer.apple.com)     |
+
+The notarize hook short-circuits if any of the three are missing —
+unsigned/un-notarized local builds still complete normally. Notarization
+requires the build to also be signed (`CSC_LINK` set), and it requires
+`mac.hardenedRuntime: true` (already enabled in `package.json`).
+
+### Windows — code signing
+
+electron-builder auto-reads the same `CSC_LINK` / `CSC_KEY_PASSWORD` env
+vars on Windows when packaging the NSIS installer and portable build.
+For Azure Trusted Signing or an EV hardware token, additional config is
+needed in `build.win.signtoolOptions` — out of scope for this scaffolding.
+
+| Variable           | Purpose                                                                                                                  |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| `CSC_LINK`         | Base64-encoded `.pfx` (or `file://` path) of your Windows code-signing certificate                                       |
+| `CSC_KEY_PASSWORD` | Password for the `.pfx` keystore                                                                                         |
+
+Without these, Windows builds succeed but SmartScreen will warn end
+users on first run until enough installs build reputation.
+
+### Steam appid swap
+
+`desktop/steam_appid.txt` currently holds `480` (Valve's Spacewar test
+appid — fine for dev). Before a Steam release:
+
+1. Replace the contents of `desktop/steam_appid.txt` with the real Tiao
+   Steam appid.
+2. Set `TIAO_STEAM_APPID=<id>` in `.env.release` so future tooling that
+   reads it from env stays consistent.
+3. Rebuild — the file is included in `build.files`, so the new appid
+   ends up bundled into the installer.
 
 ## Security posture
 
@@ -344,49 +419,17 @@ release, and before adding any new native dependency.
 
 ### macOS code signing & notarization
 
-The biggest looming piece of work. Phase 3a ships unsigned dmgs, which is
-fine for internal testing but means:
+The scaffolding is in place — see the [Signing](#signing) section above
+for the env vars that flip it on. Without `CSC_LINK` / `APPLE_ID` set,
+builds still succeed and produce unsigned dmgs (Gatekeeper quarantine
+applies; auto-updater cannot apply updates; Mac App Store distribution
+blocked). Once the env vars are populated:
 
-- End users see "Tiao is damaged and can't be opened" on first launch
-  (Gatekeeper quarantine) and have to right-click → Open.
-- `electron-updater` **cannot** apply updates to an unsigned app. Even if
-  the updater downloads a new version, `quitAndInstall` fails silently.
-- The app can't be distributed via the Mac App Store.
-
-What's needed:
-
-1. **Apple Developer Program** membership ($99/year).
-2. **Developer ID Application** certificate exported as a `.p12` file,
-   referenced via `CSC_LINK` (base64 data URL or file path) and
-   `CSC_KEY_PASSWORD` env vars.
-3. **Notarization credentials**: `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`
-   (generated at appleid.apple.com, NOT your real password), `APPLE_TEAM_ID`.
-   The secret hooks are already in `.github/workflows/desktop-release.yml`
-   and `desktop/scripts/release.sh` — just populate them.
-4. **Flip the hardened runtime flags** in `desktop/package.json`:
-
-   ```json
-   "mac": {
-     "hardenedRuntime": true,
-     "gatekeeperAssess": true
-   }
-   ```
-
-   Apple's notary service **rejects** signed apps that don't have
-   hardenedRuntime enabled. Leaving them false alongside signing creds
-   will fail every build at the notarize step with a confusing error.
-
-5. **Entitlements file** (`build/entitlements.mac.plist`) — at minimum:
-
-   ```xml
-   <key>com.apple.security.cs.allow-jit</key><true/>
-   <key>com.apple.security.cs.allow-unsigned-executable-memory</key><true/>
-   <key>com.apple.security.cs.disable-library-validation</key><true/>
-   ```
-
-   Required because Electron's V8 uses JIT. The unsigned-memory flag is
-   specifically needed for `steamworks.js` and any other native module
-   whose libraries weren't signed by Apple.
+- `mac.hardenedRuntime` is already `true` in `package.json`
+- `build/entitlements.mac.plist` covers JIT, unsigned executable memory,
+  library validation disable (for `steamworks.js`), and network client/server
+- `scripts/notarize.cjs` is wired as `afterSign` and skips cleanly when
+  notarization creds are missing
 
 Budget at least **a full day** for the first signed build — the first
 notarization round-trip almost always fails on something, and the error
@@ -394,9 +437,9 @@ messages are famously unhelpful.
 
 ### Auto-updater requires signed builds
 
-Currently gated behind `TIAO_ENABLE_UPDATER=1` in `src/updater.cjs` for
-exactly this reason. The gate flips off in the same commit that lands
-macOS signing. Until then:
+Currently gated behind `TIAO_ENABLE_UPDATER=1` in `src/updater.cjs`.
+The gate flips off in the same commit that ships the first
+notarized macOS build. Until then:
 
 - CI can build unsigned dmgs and attach to GitHub Releases
 - End users download and install manually

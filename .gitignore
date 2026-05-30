@@ -27,6 +27,10 @@ client/public/swe-worker-*.js
 
 # production
 **/build
+# electron-builder reads desktop/build/{entitlements.mac.plist,icon.icns,icon.ico,icon.png}
+# at package time — these are source files, not build output. Keep them tracked.
+!desktop/build/
+!desktop/build/**
 
 # misc
 **/.DS_Store

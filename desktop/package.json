@@ -33,6 +33,7 @@
     "steamworks.js": "^0.4.0"
   },
   "devDependencies": {
+    "@electron/notarize": "^2.5.0",
     "@types/node": "^22.15.0",
     "electron": "^36.0.0",
     "electron-builder": "^25.0.0",
@@ -43,6 +44,7 @@
     "productName": "Tiao",
     "copyright": "Copyright © 2026 Tiao contributors",
     "asar": true,
+    "afterSign": "scripts/notarize.cjs",
     "directories": {
       "output": "dist",
       "buildResources": "assets"
@@ -79,8 +81,10 @@
       ],
       "category": "public.app-category.board-games",
       "icon": "assets/icon.png",
-      "hardenedRuntime": false,
-      "gatekeeperAssess": false
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
     },
     "win": {
       "target": [
@@ -97,7 +101,10 @@
           ]
         }
       ],
-      "icon": "assets/icon.png"
+      "icon": "assets/icon.png",
+      "signingHashAlgorithms": [
+        "sha256"
+      ]
     },
     "linux": {
       "target": [
