@@ -13,25 +13,56 @@ The flow:
    `mobile/android/` and `mobile/ios/`.
 4. The native projects build APKs/AABs/IPAs the usual way.
 
-## One-time bootstrap
+## First-time bootstrap (mac)
 
 The native projects (`android/`, `ios/`) are NOT in this commit — they
 need a one-time generation on a machine with Android Studio and Xcode
-installed.
+installed. Follow these steps in order:
 
-```bash
-cd mobile
-pnpm install
-pnpm run build:client          # produces ../client/.next-mobile/
-pnpm exec cap add android      # creates ./android/
-pnpm exec cap add ios          # creates ./ios/  (needs Xcode CLI tools)
-pnpm exec cap sync             # copies the static export into both
-```
+1. **Add icon + splash masters**: drop a 1024×1024 `icon.png` and a
+   2732×2732 `splash.png` into `mobile/resources/`
+   (see `resources/README.md` for export instructions from the Tiao
+   SVG sources).
+2. **Install deps**: `pnpm install`
+3. **Build the renderer**: `pnpm run build:client`
+   (produces `../client/.next-mobile/`, the static export Capacitor
+   bundles into the WebView).
+4. **Add native projects** (one time only):
+   - `pnpm exec cap add android` — requires Android Studio + SDK
+   - `pnpm exec cap add ios` — requires Xcode (mac only)
+5. **Generate platform icons + splashes**: `pnpm run mobile:assets`
+   (expands the two masters into every Android density + iOS appiconset
+   slot inside the freshly-generated native trees).
+6. **Generate Android keystore** (one time, keep it safe — losing it
+   means you can never push an update to an already-published listing):
+   ```bash
+   keytool -genkey -v -keystore release.keystore \
+     -alias tiao -keyalg RSA -keysize 2048 -validity 10000
+   ```
+7. **Set signing env** in your shell rc:
+   - `TIAO_KEYSTORE_PATH` — absolute path to `release.keystore`
+   - `TIAO_KEYSTORE_PASSWORD`
+   - `TIAO_KEY_ALIAS` (defaults to `tiao` if unset)
+   - `TIAO_KEY_PASSWORD`
+8. **Append signing config**: copy the contents of
+   `android-signing.gradle.template` into `android/app/build.gradle`
+   (merge the `android { signingConfigs { … } buildTypes { … } }`
+   blocks with whatever Capacitor scaffolded).
+9. **Sync + build**:
+   `pnpm exec cap sync android && pnpm run build:android:release`
 
 After that, commit the freshly-generated `android/` and `ios/`
 directories — Gradle plugins, AndroidManifest tweaks, signing config,
 Info.plist customizations all live inside those trees and need to be
-under version control.
+under version control. The `.gitignore` already excludes build outputs
+and secrets, so a plain `git add android/ ios/` is safe.
+
+## iOS
+
+1. Open `ios/App/App.xcworkspace` in Xcode.
+2. Select your team in **Signing & Capabilities** (uses your Apple
+   Developer account).
+3. **Product → Archive → Distribute App → App Store Connect**.
 
 ## Dev loop (HMR)
 
