@@ -1,0 +1,182 @@
+name: mobile-release
+
+# Builds the Tiao mobile Capacitor app (Android only for now) and
+# uploads the unsigned APK as a workflow artifact for ad-hoc testing.
+#
+# Triggered by:
+#   - `workflow_dispatch` (manual, via the Actions tab)
+#   - `push: tags: mobile-v*` or `v*-mobile` (tag-based release)
+#
+# Completely separate from `desktop-release.yml` and
+# `build-and-deploy.yml` — this only touches the `mobile/` workspace
+# and Capacitor's generated `mobile/android/` Gradle project.
+#
+# Signing: unsigned across the board for now. The APK Gradle spits
+# out is signed with the debug keystore and is fine for sideloading
+# onto a test device but won't install over a Play-signed build and
+# can't be uploaded to the Play Store. Wiring real signing means
+# adding an upload keystore + secrets (KEYSTORE_BASE64,
+# KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD) and switching from
+# `assembleDebug` to `assembleRelease` / `bundleRelease`.
+#
+# iOS: see the commented-out `build-ios` job at the bottom. Headless
+# iOS builds need a macos-latest runner plus an Apple Developer
+# account, a distribution certificate, and a provisioning profile,
+# all of which are out of scope for this workflow. EAS Build or
+# Codemagic is usually the lower-friction path than rolling it here.
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "mobile-v*"
+      - "v*-mobile"
+
+concurrency:
+  group: tiao-mobile-release-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-android:
+    name: Build Android (unsigned APK)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            client/pnpm-lock.yaml
+            server/pnpm-lock.yaml
+
+      - name: Set up JDK (Temurin 21)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Pre-flight — ensure mobile/android exists
+        # Capacitor's `cap add android` writes a Gradle project into
+        # `mobile/android/`.  That directory has to be committed to
+        # the repo for CI to build it — we don't run `cap add` here
+        # because it would also touch source-controlled config files
+        # and isn't safe to re-run idempotently in a CI context.
+        run: |
+          if [ ! -d "mobile/android" ]; then
+            echo "::error::mobile/android not found. Mobile native projects aren't bootstrapped."
+            echo "::error::Run 'pnpm exec cap add android' locally inside the mobile/ workspace and commit the generated android/ directory."
+            exit 1
+          fi
+
+      - name: Install root + all workspaces (incl. mobile)
+        # Repo has no pnpm-workspace.yaml — each sub-project is
+        # installed independently via the root postinstall hook
+        # (`pnpm --dir ./client install && pnpm --dir ./server install &&
+        # docs-site && desktop && mobile`).  SKIP_DESKTOP=1 skips the
+        # heavy Electron install which this job doesn't need.  We do
+        # NOT use --frozen-lockfile because mobile/pnpm-lock.yaml does
+        # not exist until the postinstall chain runs.
+        run: SKIP_DESKTOP=1 pnpm install
+        env:
+          NEXT_PUBLIC_PLATFORM: mobile
+
+      - name: Build static export for mobile
+        # Mirrors `mobile/package.json` -> `build:client`, which is
+        # what `cap sync` expects to find on disk before copying the
+        # web bundle into the native project.  Use `--dir` (not
+        # `--filter`) because the repo has no pnpm workspace config.
+        run: pnpm --dir ./mobile run build:client
+        env:
+          NEXT_PUBLIC_PLATFORM: mobile
+
+      - name: Capacitor sync (Android)
+        run: pnpm --dir ./mobile exec cap sync android
+
+      - name: Gradle assembleDebug
+        # `assembleDebug` produces an APK signed with the standard
+        # Android debug keystore — sufficient for sideloading and
+        # workflow-artifact distribution. Switch to `assembleRelease`
+        # (and wire signing secrets) for Play Store builds.
+        working-directory: mobile/android
+        run: ./gradlew assembleDebug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tiao-mobile-android-debug
+          path: mobile/android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+  # ---------------------------------------------------------------------------
+  # TODO: iOS build job
+  # ---------------------------------------------------------------------------
+  # Wiring iOS into CI is non-trivial because:
+  #   - It needs a `macos-latest` runner (paid minutes on private repos).
+  #   - It needs an active Apple Developer Program membership ($99/yr).
+  #   - It needs a distribution certificate (.p12) plus a provisioning
+  #     profile (.mobileprovision), both base64-encoded into GitHub
+  #     secrets and imported into the runner's keychain at build time.
+  #   - Even unsigned `xcodebuild` invocations require accepting the
+  #     Xcode license and selecting an Xcode version (`xcode-select`).
+  #   - Capacitor's iOS template uses CocoaPods, which adds another
+  #     install step and cache key on top of the npm/pnpm cache.
+  #
+  # Easier path: use a managed service like EAS Build (Expo) or
+  # Codemagic, both of which handle the keychain / provisioning
+  # plumbing and just hand you back an .ipa.
+  #
+  # Skeleton kept here for whoever picks this up:
+  #
+  # build-ios:
+  #   name: Build iOS (unsigned IPA)
+  #   runs-on: macos-latest
+  #   steps:
+  #     - name: Check out source
+  #       uses: actions/checkout@v4
+  #     - uses: pnpm/action-setup@v4
+  #     - name: Set up Node
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version-file: .nvmrc
+  #         cache: pnpm
+  #     - name: Install root + all workspaces (incl. mobile)
+  #       run: SKIP_DESKTOP=1 pnpm install
+  #     - name: Build static export for mobile
+  #       run: pnpm --dir ./mobile run build:client
+  #       env:
+  #         NEXT_PUBLIC_PLATFORM: mobile
+  #     - name: Capacitor sync (iOS)
+  #       run: pnpm --dir ./mobile exec cap sync ios
+  #     - name: Pod install
+  #       working-directory: mobile/ios/App
+  #       run: pod install
+  #     - name: xcodebuild archive (unsigned)
+  #       working-directory: mobile/ios/App
+  #       run: |
+  #         xcodebuild -workspace App.xcworkspace \
+  #           -scheme App \
+  #           -configuration Release \
+  #           -archivePath build/App.xcarchive \
+  #           CODE_SIGNING_ALLOWED=NO \
+  #           archive
+  #     - name: Upload archive artifact
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: tiao-mobile-ios-unsigned
+  #         path: mobile/ios/App/build/App.xcarchive
+  #         if-no-files-found: error
+  #         retention-days: 14
