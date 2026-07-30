@@ -5,13 +5,18 @@
 #
 # Why this exists: `git tag vX.Y.Z` alone never reaches itch.io. Butler
 # picks up version info from the --userversion flag passed at push time
-# (see the `itch:push:*` scripts in desktop/package.json). So a Steam /
-# itch release needs all three:
+# (see the `itch:push:*` scripts in desktop/package.json). So an itch
+# release needs all three:
 #
 #   1. Bump desktop/package.json's "version" locally.
 #   2. Run this script to stamp a git tag at the release commit.
 #   3. Let the `itch:push:*` scripts forward $npm_package_version to
 #      butler so itch.io renders the right "Version" column.
+#
+# Steam does NOT go through this path. Steam builds are a separate
+# artifact (Steam gate baked in, auto-updater disabled) pushed via
+# SteamPipe — see desktop/scripts/steam-upload.sh and the
+# `steam-release` workflow, which triggers on `steam-v*` tags.
 #
 # Tag format: `desktop-vX.Y.Z`. The `desktop-` prefix keeps the tag
 # namespace separate from any future tags on the client / server /

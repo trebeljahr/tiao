@@ -7,13 +7,19 @@ on:
     # Skip the whole workflow when only obviously-non-code paths
     # changed. AND-based: if ANY non-ignored path also changed, the
     # workflow still runs. Saves ~12 min of CI on pure-docs / README /
-    # husky / desktop pushes.
+    # husky pushes.
+    #
+    # `desktop/**` is deliberately NOT ignored. It used to be, which
+    # meant a push touching only desktop/src/steam.cjs ran no tests at
+    # all — including that file's own suite. The e2e job stays skipped
+    # for desktop-only diffs anyway, since nothing in `e2e_affected`
+    # matches them, so the cost of running is the unit job rather than
+    # the full ~12 minutes.
     paths-ignore:
       - "docs/**"
       - "docs-site/**"
       - "**.md"
       - ".husky/**"
-      - "desktop/**"
 
 permissions:
   contents: read
@@ -83,6 +89,14 @@ jobs:
 
       - name: Run unit tests
         run: pnpm run test:unit
+
+      - name: Validate Steam achievement API names
+        # Cheap, and the failure it catches is otherwise invisible:
+        # Steam silently discards unlock calls for API names it doesn't
+        # recognise, so a malformed name breaks an achievement with no
+        # error anywhere. Runs here rather than only in the Steam
+        # release lane so a bad name is caught when it's introduced.
+        run: pnpm run steam:achievements:check
 
   integration:
     runs-on: ubuntu-latest
