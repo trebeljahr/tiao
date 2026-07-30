@@ -22,6 +22,10 @@
  *     can enable updates with zero code changes — the maintainer
  *     just sets `TIAO_ENABLE_UPDATER=1` in the release env.
  *
+ * Independently of that gate, the updater is hard-disabled on Steam
+ * builds: Steam owns the installed files and ships updates through
+ * SteamPipe.  See the comment in `maybeInitUpdater`.
+ *
  * The update UX on first release is intentionally minimal:
  * `autoDownload = false` so we can surface a "Download update?"
  * UI later, `quitAndInstall()` on download complete.  Full in-app
@@ -30,6 +34,8 @@
  */
 
 const { app, dialog, autoUpdater: _electronNativeUpdater } = require("electron");
+
+const { STEAM_ENABLED } = require("./steam.cjs");
 
 // Lazy-load electron-updater so the dependency can be absent in dev
 // without crashing — the module is only required when we know
@@ -53,6 +59,22 @@ function loadAutoUpdater() {
 function maybeInitUpdater() {
   if (!app.isPackaged) {
     console.info("[updater] skipped (dev mode)");
+    return;
+  }
+  // Steam builds must never self-update. Steam owns the installed
+  // files: it verifies them against the depot manifest, and content
+  // it did not write is reverted on the next validation — so an
+  // electron-updater `quitAndInstall()` either gets undone or leaves
+  // the install in a state Steam considers corrupt. Valve requires
+  // updates to ship through SteamPipe.
+  //
+  // This check sits ABOVE the TIAO_ENABLE_UPDATER gate deliberately.
+  // That gate is documented as temporary ("flip the default to
+  // always-on in a one-line follow-up commit"), and when it flips,
+  // this is the only thing standing between a Steam build and a
+  // self-inflicted update loop.
+  if (STEAM_ENABLED) {
+    console.info("[updater] skipped (Steam build — updates ship via SteamPipe)");
     return;
   }
   if (process.env.TIAO_ENABLE_UPDATER !== "1") {
