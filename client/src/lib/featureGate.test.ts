@@ -95,7 +95,10 @@ describe("resolvePlayerBadges", () => {
 
 describe("canSeeShop", () => {
   afterEach(() => {
-    // biome-ignore lint/performance/noDelete: restoring the absent-bridge shape matters, undefined !== missing
+    // Delete rather than set undefined: the non-desktop case is an
+    // absent `electron` global, and `isSteamBuild()` reads through it
+    // with optional chaining either way — but leaving a stub behind
+    // would quietly make every later test a desktop test.
     delete (window as unknown as { electron?: unknown }).electron;
   });
 
