@@ -155,6 +155,17 @@ If your change affects the API, game rules, or architecture, please update the r
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — system design
 - [docs/TESTING.md](docs/TESTING.md) — testing guide
 
+## Licensing of Contributions
+
+Tiao is [AGPL-3.0](LICENSE) plus a linking exception for the proprietary
+Steamworks SDK, which the desktop build needs
+([LICENSE-EXCEPTIONS.md](LICENSE-EXCEPTIONS.md)).
+
+Opening a pull request means you agree your contribution is licensed
+under both. An AGPL-only contribution would leave part of the codebase
+uncovered by the exception, which would make the Steam build
+undistributable until that code was removed.
+
 ## Need Help?
 
 - Read the [architecture overview](docs/ARCHITECTURE.md) to understand how the pieces fit together

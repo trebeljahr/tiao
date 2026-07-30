@@ -191,4 +191,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions, coding convention
 
 ## License
 
-TBD
+[GNU Affero General Public License v3.0](LICENSE), with one additional
+permission: the desktop build may be linked against the proprietary
+Steamworks SDK. See [LICENSE-EXCEPTIONS.md](LICENSE-EXCEPTIONS.md) for
+the grant and the reasoning.
+
+Contributions are accepted under the AGPL-3.0 and that exception
+together.
