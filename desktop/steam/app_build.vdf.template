@@ -1,0 +1,28 @@
+// SteamPipe app build script — rendered by scripts/steam-upload.sh.
+//
+// Placeholders are substituted with envsubst at upload time; see
+// desktop/steam/README.md for why this is a template and not config.
+"appbuild"
+{
+	"appid"		"${TIAO_STEAM_APPID}"
+	"desc"		"${TIAO_STEAM_BUILD_DESC}"
+
+	// Both are relative to this file's location once rendered into the
+	// staging directory, which sits at the repo's desktop/ root.
+	"buildoutput"	"${TIAO_STEAM_BUILD_OUTPUT}"
+	"contentroot"	"${TIAO_STEAM_CONTENT_ROOT}"
+
+	// Empty = upload the build but leave every branch untouched. A
+	// build nobody has run yet should not be live; promote it from the
+	// Partner Portal once it has been smoke-tested.
+	"setlive"	"${TIAO_STEAM_BRANCH}"
+
+	// 1 would do a dry run that reports what *would* upload without
+	// transferring anything. The script exposes this as --preview.
+	"preview"	"${TIAO_STEAM_PREVIEW}"
+
+	"depots"
+	{
+${TIAO_STEAM_DEPOT_ENTRIES}
+	}
+}

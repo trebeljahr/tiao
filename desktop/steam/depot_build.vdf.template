@@ -1,0 +1,26 @@
+// SteamPipe depot build script — rendered once per platform by
+// scripts/steam-upload.sh.
+"DepotBuild"
+{
+	"DepotID"		"${TIAO_STEAM_DEPOT_ID}"
+	"contentroot"	"${TIAO_STEAM_DEPOT_CONTENT}"
+
+	"FileMapping"
+	{
+		"LocalPath"		"*"
+		"DepotPath"		"."
+		"recursive"		"1"
+	}
+
+	// Debug symbols and source maps are build byproducts that would
+	// otherwise ship to every player and inflate the depot.
+	"FileExclusion"	"*.pdb"
+	"FileExclusion"	"*.map"
+	"FileExclusion"	"**/.DS_Store"
+
+	// electron-updater's metadata. Harmless but misleading inside a
+	// Steam depot: updates ship through SteamPipe, and the updater is
+	// hard-disabled in Steam builds (see desktop/src/updater.cjs).
+	"FileExclusion"	"app-update.yml"
+	"FileExclusion"	"latest*.yml"
+}
