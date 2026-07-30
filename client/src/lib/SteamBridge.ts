@@ -45,6 +45,29 @@ function getBridge(): SteamBridge | null {
 }
 
 /**
+ * True when the running binary was packaged as a Steam build.
+ *
+ * Deliberately synchronous and deliberately *not* the same question as
+ * `isSteamActive()`:
+ *
+ *   - `isSteamActive()` asks "can we talk to Steam right now?" — false
+ *     if the Steam client isn't running. Use it to gate Steam
+ *     *features* (overlay buttons, achievement mirroring).
+ *   - `isSteamBuild()` asks "was this shipped through Steam?" — true
+ *     regardless of client state. Use it to gate anything Valve's
+ *     distribution rules forbid, which stays forbidden whether or not
+ *     Steam happens to be reachable.
+ *
+ * Being synchronous matters: callers like `canSeeShop()` run during
+ * render and cannot await an IPC round-trip.
+ */
+export function isSteamBuild(): boolean {
+  if (typeof window === "undefined") return false;
+  const w = window as unknown as { electron?: { config?: { isSteamBuild?: boolean } } };
+  return w.electron?.config?.isSteamBuild === true;
+}
+
+/**
  * Resolves true only inside the packaged Electron Steam build with a
  * live `steamworks.js` client. Use this to gate Steam-only UI (e.g.
  * the "Open in Steam" overlay buttons).

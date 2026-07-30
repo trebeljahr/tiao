@@ -55,6 +55,7 @@ function readArgValue(prefix) {
 }
 const runtimeConfig = {
   apiUrl: readArgValue("--tiao-api-url=") || "",
+  isSteamBuild: readArgValue("--tiao-steam-build=") === "1",
 };
 
 contextBridge.exposeInMainWorld("electron", {
@@ -71,6 +72,15 @@ contextBridge.exposeInMainWorld("electron", {
    */
   config: Object.freeze({
     apiUrl: runtimeConfig.apiUrl,
+    /**
+     * True in a Steam-distributed build. Distinct from
+     * `steam.isActive()`: this reflects how the binary was packaged,
+     * not whether the Steam client is currently reachable, and it is
+     * readable synchronously. Use it to gate anything Valve's rules
+     * forbid in a Steam build (external payment flows, self-updates)
+     * — those must stay hidden even when Steam isn't running.
+     */
+    isSteamBuild: runtimeConfig.isSteamBuild,
   }),
 
   auth: {

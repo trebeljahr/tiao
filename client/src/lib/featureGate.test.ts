@@ -1,6 +1,6 @@
 import type { AuthResponse } from "@shared";
-import { describe, expect, it } from "vitest";
-import { hasPreviewAccess, isAdmin, resolvePlayerBadges } from "./featureGate";
+import { afterEach, describe, expect, it } from "vitest";
+import { canSeeShop, hasPreviewAccess, isAdmin, resolvePlayerBadges } from "./featureGate";
 
 function makeAuth(overrides: Partial<AuthResponse["player"]> = {}): AuthResponse {
   return {
@@ -90,5 +90,38 @@ describe("resolvePlayerBadges", () => {
 
   it("returns empty array when no activeBadges property exists", () => {
     expect(resolvePlayerBadges({})).toEqual([]);
+  });
+});
+
+describe("canSeeShop", () => {
+  afterEach(() => {
+    // biome-ignore lint/performance/noDelete: restoring the absent-bridge shape matters, undefined !== missing
+    delete (window as unknown as { electron?: unknown }).electron;
+  });
+
+  function setSteamBuild(isSteamBuild: boolean) {
+    (window as unknown as { electron?: unknown }).electron = { config: { isSteamBuild } };
+  }
+
+  it("is visible to an admin outside a Steam build", () => {
+    expect(canSeeShop(makeAuth({ isAdmin: true }))).toBe(true);
+  });
+
+  it("is hidden in a Steam build even for an admin", () => {
+    // Valve requires in-game purchases to use Steam's payment system.
+    // The admin escape hatch exists to playtest Stripe — doing that
+    // inside the Steam client is the violation, not an exception to it.
+    setSteamBuild(true);
+    expect(canSeeShop(makeAuth({ isAdmin: true }))).toBe(false);
+  });
+
+  it("is hidden in a Steam build for a signed-out visitor", () => {
+    setSteamBuild(true);
+    expect(canSeeShop(null)).toBe(false);
+  });
+
+  it("is unaffected by a desktop build that is not a Steam build", () => {
+    setSteamBuild(false);
+    expect(canSeeShop(makeAuth({ isAdmin: true }))).toBe(true);
   });
 });

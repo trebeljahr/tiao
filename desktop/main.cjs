@@ -280,6 +280,12 @@ function bootstrap() {
     // § "Runtime API URL" for the full rationale.
     runtimeConfig: {
       apiUrl: resolveApiUrl(),
+      // Forwarded so the renderer can gate Steam-incompatible UI
+      // synchronously at module load. Note this is the *build* flag,
+      // not `isSteamActive()` — a Steam build with the Steam client
+      // closed is still a Steam build and still bound by Valve's
+      // rules about external payment.
+      isSteamBuild: STEAM_ENABLED,
     },
   });
   track("desktop:window_created", HMR_RENDERER_URL ? { hmr: true } : undefined);

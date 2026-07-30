@@ -1,5 +1,6 @@
 import type { AuthResponse } from "@shared";
 import { BADGE_DEFINITIONS, type BadgeId } from "@/components/UserBadge";
+import { isSteamBuild } from "./SteamBridge";
 
 /**
  * Returns true if the current user has access to preview features (board themes, etc.).
@@ -35,8 +36,16 @@ export function isDevFeatureEnabled(): boolean {
  * Returns true if the shop should be visible to the current user.
  * Visible in development for everyone; in production only to admins
  * (used to playtest shop/Stripe flows without exposing them publicly).
+ *
+ * Never visible in a Steam build, and that check comes first — Valve
+ * requires in-game purchases to go through Steam's own payment system,
+ * so routing a player to an external Stripe Checkout is a store-policy
+ * violation. The admin and dev escapes must not reopen it: an admin
+ * playtesting inside the Steam client would be doing exactly the thing
+ * the rule forbids.
  */
 export function canSeeShop(auth: AuthResponse | null): boolean {
+  if (isSteamBuild()) return false;
   return isDevFeatureEnabled() || isAdmin(auth);
 }
 
