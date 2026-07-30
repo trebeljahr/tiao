@@ -21,6 +21,9 @@ const assert = require("node:assert/strict");
 
 const {
   STEAM_ENABLED,
+  STEAM_APPID,
+  maybeRestartForSteam,
+  prepareSteamOverlay,
   initSteam,
   isSteamActive,
   getSteamUser,
@@ -32,15 +35,54 @@ const {
   OVERLAY_DIALOG_CODES,
 } = require("./steam.cjs");
 
+const pkg = require("../package.json");
+
 describe("steam module gating", () => {
-  test("STEAM_ENABLED reflects the STEAM_BUILD env flag", () => {
-    assert.equal(STEAM_ENABLED, process.env.STEAM_BUILD === "true");
+  test("STEAM_ENABLED honors the env flag OR baked package metadata", () => {
+    // Two independent sources flip the gate on: STEAM_BUILD in the
+    // environment (dev/CI) and `steamBuild` baked into package.json by
+    // `package:steam` (the packaged artifact).  The packaged path is
+    // the load-bearing one — env vars do not survive packaging, and
+    // Steam launches the binary with its own environment.
+    const fromEnv = process.env.STEAM_BUILD === "true";
+    const fromMeta = pkg.steamBuild === true || pkg.steamBuild === "true";
+    assert.equal(STEAM_ENABLED, fromEnv || fromMeta);
+  });
+
+  test("STEAM_APPID falls back to Valve's Spacewar test app", () => {
+    // 480 is the placeholder until a real appid is provisioned via the
+    // Partner Portal. If this assertion starts failing because a real
+    // appid was baked in, that's the good outcome — update it.
+    const explicit =
+      Number.parseInt(process.env.TIAO_STEAM_APPID ?? "", 10) ||
+      Number.parseInt(String(pkg.steamAppId ?? ""), 10);
+    assert.equal(STEAM_APPID, explicit || 480);
   });
 
   test("initSteam returns false and isSteamActive stays false when gate off", () => {
     if (STEAM_ENABLED) return; // skip in steam-build CI lane
     assert.equal(initSteam(), false);
     assert.equal(isSteamActive(), false);
+  });
+});
+
+describe("pre-ready phases", () => {
+  // Both of these run before app.whenReady() in main.cjs. They must be
+  // safe to call unconditionally — a standalone build calls them too.
+  test("maybeRestartForSteam is false when the gate is off", () => {
+    if (STEAM_ENABLED) return;
+    assert.equal(maybeRestartForSteam(true), false);
+  });
+
+  test("maybeRestartForSteam is false in unpackaged (dev) runs", () => {
+    // Dev legitimately runs outside Steam; the DRM check must never
+    // hijack the dev loop even in a STEAM_BUILD=true shell.
+    assert.equal(maybeRestartForSteam(false), false);
+  });
+
+  test("prepareSteamOverlay is a no-op that reports failure when gate off", () => {
+    if (STEAM_ENABLED) return;
+    assert.equal(prepareSteamOverlay(), false);
   });
 });
 

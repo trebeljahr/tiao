@@ -358,14 +358,58 @@ users on first run until enough installs build reputation.
 ### Steam appid swap
 
 `desktop/steam_appid.txt` currently holds `480` (Valve's Spacewar test
-appid — fine for dev). Before a Steam release:
+appid). That file only matters for **dev**, where the process CWD is
+`desktop/` and `steamworks.init()` can find it. Packaged builds do not
+rely on it: `src/steam.cjs` passes the appid to `init()` explicitly, and
+steamworks-rs sets `SteamAppId`/`SteamGameId` from that argument. This
+matters because a packaged app's CWD is wherever the user launched from
+— often `/` — so a CWD-relative lookup would fail, and the file itself
+lives inside `app.asar` where the native SDK cannot read it anyway.
+
+Before a Steam release:
 
 1. Replace the contents of `desktop/steam_appid.txt` with the real Tiao
-   Steam appid.
-2. Set `TIAO_STEAM_APPID=<id>` in `.env.release` so future tooling that
-   reads it from env stays consistent.
-3. Rebuild — the file is included in `build.files`, so the new appid
-   ends up bundled into the installer.
+   appid (keeps `npm run dev` pointed at the right app).
+2. Build with `TIAO_STEAM_APPID=<id> npm run package:steam`.
+
+### How a build becomes a Steam build
+
+`package:steam` does **not** work by setting an env var. Env vars do not
+survive packaging: Steam launches the installed binary with the Steam
+client's own environment, which will never contain `STEAM_BUILD`. An
+env-only gate would therefore be off in precisely the build that needs
+it on.
+
+Instead the script injects two keys into the packaged `package.json` via
+electron-builder's `--config.extraMetadata`:
+
+```
+steamBuild: true
+steamAppId: <TIAO_STEAM_APPID, default 480>
+```
+
+`src/steam.cjs` reads those at startup, with `STEAM_BUILD=true` /
+`TIAO_STEAM_APPID` in the environment still honored as a dev override.
+Check a built artifact with:
+
+```bash
+npx asar extract-file dist/mac-universal/Tiao.app/Contents/Resources/app.asar package.json /dev/stdout | grep steam
+```
+
+### Steam depot contents
+
+SteamPipe wants an unpacked game directory, not an installer.
+electron-builder produces one as an intermediate for every target, so
+there is nothing extra to configure — point the depot at:
+
+| Platform | Depot root                        |
+| -------- | --------------------------------- |
+| macOS    | `dist/mac-universal/Tiao.app`     |
+| Windows  | `dist/win-unpacked/`              |
+| Linux    | `dist/linux-unpacked/`            |
+
+Do **not** ship the `.dmg` / NSIS `.exe` / `.AppImage` through Steam —
+those are for the itch.io and direct-download channels.
 
 ## Security posture
 

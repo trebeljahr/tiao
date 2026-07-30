@@ -41,6 +41,8 @@ const {
 const { resolveApiUrl } = require("./src/config.cjs");
 const {
   STEAM_ENABLED,
+  maybeRestartForSteam,
+  prepareSteamOverlay,
   initSteam,
   shutdownSteam,
   isSteamActive,
@@ -111,6 +113,30 @@ protocol.registerSchemesAsPrivileged([
     },
   },
 ]);
+
+// ── Steam: both pre-ready phases ──────────────────────────────────
+//
+// Everything here is a no-op outside a Steam build (see src/steam.cjs
+// for how that gate is resolved).  Both calls MUST stay above
+// `app.whenReady()`:
+//
+//   1. The DRM relaunch check has to happen before any window exists,
+//      or the user watches a window appear and immediately die.
+//      Bailing follows the same app.quit() + process.exit(0) pattern
+//      as the single-instance lock below, and for the same reason:
+//      app.quit() is async and wouldn't stop this module from
+//      finishing its load.
+//   2. The overlay hooks append Chromium command-line switches, and
+//      Chromium reads its command line exactly once during startup.
+//      Called after whenReady() they are silently dropped and the
+//      Steam overlay never renders — a failure that looks like a
+//      broken platform rather than a mis-ordered call.
+if (maybeRestartForSteam(app.isPackaged)) {
+  app.quit();
+  // eslint-disable-next-line no-process-exit
+  process.exit(0);
+}
+prepareSteamOverlay();
 
 // Register the custom URL scheme with the OS so `tiao://auth/complete`
 // deep links route back to this app.  On packaged builds this writes

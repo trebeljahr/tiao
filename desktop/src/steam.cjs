@@ -5,14 +5,23 @@
  *
  * ## Gating
  *
- * This module is a no-op unless `STEAM_BUILD=true` is set at launch
- * time.  The gate is runtime so a single packaged binary can in
- * principle serve both the standalone (itch.io / direct download)
- * and the Steam distribution — electron-builder's extraMetadata +
- * per-target env var injection flips the flag.  In Phase 3b we ship
- * two separate builds anyway (see package:steam), but the runtime
- * check keeps the door open for a unified binary if the bundle
- * size delta ever becomes acceptable.
+ * Steam integration is off unless the build is flagged as a Steam
+ * build.  Two independent sources flip it on, checked in order:
+ *
+ *   1. `STEAM_BUILD=true` in the environment — the dev/CI path.
+ *      `npm run dev` with the var set exercises the Steam code path
+ *      against a locally running Steam client.
+ *   2. `steamBuild: true` in the app's own package.json — the
+ *      *packaged* path.  `npm run package:steam` injects this via
+ *      electron-builder's `--config.extraMetadata`, so the flag
+ *      travels inside the artifact.
+ *
+ * (2) exists because env vars do NOT survive packaging.  Steam
+ * launches the installed binary with whatever environment the Steam
+ * client has, which will never contain `STEAM_BUILD` — so an
+ * env-only gate silently disables Steam in exactly the build that
+ * needs it.  The baked metadata is the load-bearing mechanism; the
+ * env var is a dev-time override on top.
  *
  * When the gate is off:
  *   - `initSteam()` returns immediately
@@ -20,32 +29,51 @@
  *     cost avoided entirely)
  *   - every other export is a no-op stub
  *
- * ## Lifecycle
+ * ## Lifecycle — three phases, and the order matters
  *
- * Steamworks requires `steam_appid.txt` in the process's current
- * working directory AND a running Steam client.  On init failure
- * (Steam not running, wrong appid, missing binding) we log a
- * warning and disable the module — the rest of the app keeps
- * working as a regular standalone build.  No crash, no blocked
- * boot.
+ * Steam integration is NOT a single init call.  Two things must
+ * happen before Electron's `app` is ready, and only the third can
+ * wait for `whenReady()`:
  *
- * Callbacks from Steam (achievement unlocks, friend updates, Rich
- * Presence queries) arrive via `runCallbacks()` which we pump on a
- * 100 ms interval.  That's not aggressive enough to spin a CPU
- * but fast enough that achievement popups feel responsive.
+ *   1. `maybeRestartForSteam()` — pre-ready.  Steam's DRM wrapper
+ *      wants the game relaunched through the Steam client when it
+ *      was started directly from the filesystem.  Must run before
+ *      any window exists, otherwise the user sees a window flash
+ *      and die.
+ *   2. `prepareSteamOverlay()` — pre-ready, and this one is easy to
+ *      get wrong.  `electronEnableSteamOverlay()` appends the
+ *      `in-process-gpu` and `disable-direct-composition` Chromium
+ *      switches.  Chromium reads its command line once, during app
+ *      startup — switches appended after `whenReady()` are simply
+ *      ignored, and the overlay then attaches but never renders.
+ *      The failure mode looks exactly like "Valve's Electron
+ *      overlay support is broken on this platform", which is why
+ *      it is worth being explicit: it is an ordering bug, not a
+ *      platform bug.
+ *   3. `initSteam()` — post-ready.  Opens the actual SDK
+ *      connection.  Needs a running Steam client.
+ *
+ * On failure at any phase (Steam not running, wrong appid, missing
+ * native binding) we log a warning and degrade to standalone
+ * behavior.  No crash, no blocked boot.
+ *
+ * Callbacks are pumped by `steamworks.js` itself — `init()` starts
+ * its own 30 Hz `runCallbacks` interval internally, and strips
+ * `runCallbacks` off the client object it returns.  This module
+ * must NOT add a second pump.
  *
  * ## Current state
  *
- * This is SCAFFOLDING.  The appid points at Valve's public Spacewar
- * test app (480) which anyone with a Steam account can init
- * against — useful for local verification that the SDK loads.
- * A real Tiao appid needs to be provisioned via the Steam Partner
- * Portal before a real Steam release.  When that happens, set
- * `TIAO_STEAM_APPID` in the env (release.sh / CI secrets) and the
- * module picks it up automatically.
+ * The default appid is Valve's public Spacewar test app (480),
+ * which anyone with a Steam account can init against — useful for
+ * verifying the SDK loads at all.  A real Tiao appid must be
+ * provisioned via the Steam Partner Portal before release and
+ * passed as `TIAO_STEAM_APPID` at package time.
  *
- * ## Exposed surface (for IPC)
+ * ## Exposed surface
  *
+ *   maybeRestartForSteam()     → pre-ready; true = we're quitting
+ *   prepareSteamOverlay()      → pre-ready; installs GPU switches
  *   initSteam()                → called once from main.cjs bootstrap
  *   shutdownSteam()            → called from before-quit
  *   isSteamActive()            → `true` once Steam init succeeded
@@ -62,19 +90,43 @@
  * `window.electron.steam?.isActive` before calling any of these.
  */
 
-/** Env-var gate: STEAM_BUILD=true flips Steam integration on. */
-const STEAM_ENABLED = process.env.STEAM_BUILD === "true";
+/**
+ * Build metadata baked into the packaged app's package.json by
+ * `package:steam` (electron-builder `--config.extraMetadata.*`).
+ * Absent in dev and in standalone builds, hence the try/catch.
+ *
+ * @type {{ steamBuild?: boolean | string; steamAppId?: number | string }}
+ */
+let bakedMeta = {};
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  bakedMeta = require("../package.json");
+} catch {
+  /* no package.json reachable — treat as standalone */
+}
 
 /**
- * App ID used when TIAO_STEAM_APPID is unset.  480 is Valve's
+ * Gate: env var (dev override) OR baked metadata (packaged Steam
+ * build).  electron-builder's CLI parser can hand back either a
+ * real boolean or the string "true" depending on how the value is
+ * quoted, so accept both.
+ */
+const STEAM_ENABLED =
+  process.env.STEAM_BUILD === "true" ||
+  bakedMeta.steamBuild === true ||
+  bakedMeta.steamBuild === "true";
+
+/**
+ * App ID used when nothing else specifies one.  480 is Valve's
  * public Spacewar test app — achievements, stats, and callbacks
  * all work against it for anyone with a Steam account, which makes
  * it useful as a scaffolding placeholder.
  */
 const SPACEWAR_APPID = 480;
-const STEAM_APPID = Number.parseInt(process.env.TIAO_STEAM_APPID ?? "", 10) || SPACEWAR_APPID;
-
-const CALLBACK_INTERVAL_MS = 100;
+const STEAM_APPID =
+  Number.parseInt(process.env.TIAO_STEAM_APPID ?? "", 10) ||
+  Number.parseInt(String(bakedMeta.steamAppId ?? ""), 10) ||
+  SPACEWAR_APPID;
 
 /**
  * `steamworks.js` client instance once initialized.  Kept module-local
@@ -85,12 +137,93 @@ const CALLBACK_INTERVAL_MS = 100;
  */
 let client = null;
 
-/** @type {NodeJS.Timeout | null} */
-let callbackTimer = null;
+/**
+ * Lazy-load `steamworks.js`.  Deferred so the native binding load
+ * cost only hits Steam builds, and so a standalone build can ship
+ * without the dependency present at all.  Returns null (never
+ * throws) when the module or its prebuild is unavailable.
+ *
+ * @returns {any | null}
+ */
+function loadSteamworks() {
+  if (!STEAM_ENABLED) return null;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require("steamworks.js");
+  } catch (err) {
+    console.warn("[steam] steamworks.js not available:", err);
+    return null;
+  }
+}
 
 /**
- * Initialize the Steamworks SDK.  Safe to call unconditionally —
- * silently returns when STEAM_BUILD is not set.
+ * Steam's DRM relaunch check.  When the packaged game is started
+ * directly (double-clicked from the install directory rather than
+ * launched from the Steam library), this asks Steam to relaunch it
+ * properly and reports that the current process should exit.
+ *
+ * MUST be called before `app.whenReady()` — the caller is expected
+ * to quit immediately when this returns true, and quitting after a
+ * window exists gives the user a visible flash-and-die.
+ *
+ * Only meaningful in a packaged build: during development the app
+ * legitimately runs outside Steam, so the check is skipped rather
+ * than fighting the dev loop.
+ *
+ * @param {boolean} isPackaged  `app.isPackaged` from the caller
+ * @returns {boolean} true if the app should quit and let Steam relaunch it
+ */
+function maybeRestartForSteam(isPackaged) {
+  if (!STEAM_ENABLED || !isPackaged) return false;
+  const steamworks = loadSteamworks();
+  if (!steamworks) return false;
+  try {
+    if (typeof steamworks.restartAppIfNecessary !== "function") return false;
+    const shouldRestart = !!steamworks.restartAppIfNecessary(STEAM_APPID);
+    if (shouldRestart) {
+      console.info(`[steam] relaunching through Steam for appid ${STEAM_APPID}`);
+    }
+    return shouldRestart;
+  } catch (err) {
+    // A throw here means the SDK could not talk to Steam at all.
+    // Carrying on unlaunched is strictly better than refusing to boot.
+    console.warn("[steam] restartAppIfNecessary failed:", err);
+    return false;
+  }
+}
+
+/**
+ * Install the Chromium switches Steam's in-game overlay needs, and
+ * hook up the per-window frame invalidation it relies on.
+ *
+ * MUST be called before `app.whenReady()`.  `electronEnableSteamOverlay`
+ * appends `in-process-gpu` and `disable-direct-composition` to the
+ * command line, and Chromium parses its command line exactly once
+ * during startup — appending later is silently ignored and the
+ * overlay attaches without ever rendering.  See the module header.
+ *
+ * Best-effort: a failure here costs the overlay, not the app.
+ *
+ * @returns {boolean} true if the overlay hooks were installed
+ */
+function prepareSteamOverlay() {
+  const steamworks = loadSteamworks();
+  if (!steamworks) return false;
+  try {
+    if (typeof steamworks.electronEnableSteamOverlay !== "function") return false;
+    steamworks.electronEnableSteamOverlay();
+    return true;
+  } catch (err) {
+    console.warn("[steam] electronEnableSteamOverlay failed:", err);
+    return false;
+  }
+}
+
+/**
+ * Open the Steamworks SDK connection.  Safe to call unconditionally
+ * — silently returns when the Steam gate is off.  Call after
+ * `app.whenReady()`; the pre-ready phases are separate functions
+ * (see module header).
  *
  * @returns {boolean} true if Steam initialized successfully
  */
@@ -98,18 +231,13 @@ function initSteam() {
   if (!STEAM_ENABLED) return false;
   if (client) return true; // idempotent
 
-  let steamworks;
-  try {
-    // Lazy require so the native binding load cost only hits the
-    // Steam build.  Also lets the standalone build ship without
-    // steamworks.js in node_modules if we ever split the deps.
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    steamworks = require("steamworks.js");
-  } catch (err) {
-    console.warn("[steam] steamworks.js not available:", err);
-    return false;
-  }
+  const steamworks = loadSteamworks();
+  if (!steamworks) return false;
 
+  // steamworks-rs sets SteamAppId/SteamGameId from the appid we pass
+  // to init(), so the SDK does not need to find steam_appid.txt in
+  // the process CWD.  That matters for packaged builds, where the
+  // CWD is wherever the user launched from — often `/`.
   try {
     client = steamworks.init(STEAM_APPID);
     console.info(`[steam] initialized against appid ${STEAM_APPID}`);
@@ -119,50 +247,24 @@ function initSteam() {
     return false;
   }
 
-  // Enable Steam's in-game overlay (Shift+Tab, Friends, Achievements
-  // panels, the web browser the store uses, etc.) inside the Electron
-  // BrowserWindow. Without this call the overlay process attaches but
-  // never renders — the user hits Shift+Tab and nothing happens.
-  //
-  // Note: Valve's macOS overlay support for non-native apps (including
-  // Electron) is flaky — the overlay may not appear, or appear without
-  // proper input routing. Windows and Linux are unaffected. The call
-  // is best-effort and never throws meaningfully here; we still log
-  // failures so a packaging regression is visible in the console.
-  try {
-    if (typeof steamworks.electronEnableSteamOverlay === "function") {
-      steamworks.electronEnableSteamOverlay();
-    }
-  } catch (err) {
-    console.warn("[steam] electronEnableSteamOverlay failed:", err);
-  }
-
-  // Pump the Steam callback queue.  Without this, achievement
-  // unlocks silently fail to fire on the Steam servers and the
-  // overlay never gets UI updates.
-  callbackTimer = setInterval(() => {
-    try {
-      if (client && typeof client.callbacks?.runCallbacks === "function") {
-        client.callbacks.runCallbacks();
-      }
-    } catch (err) {
-      console.error("[steam] runCallbacks threw:", err);
-    }
-  }, CALLBACK_INTERVAL_MS);
-  callbackTimer.unref?.();
+  // No callback pump here on purpose: steamworks.js starts its own
+  // 30 Hz `runCallbacks` interval inside init() and destructures
+  // `runCallbacks` off the object it hands back.  A second pump
+  // would either double-dispatch or, as before, quietly call a
+  // method that does not exist on the client.
 
   return true;
 }
 
 /**
- * Tear down Steam callbacks before the process exits.  Called from
- * main.cjs's before-quit handler.
+ * Release the Steam client handle before the process exits.  Called
+ * from main.cjs's before-quit handler.
+ *
+ * The callback interval belongs to steamworks.js, which clears it on
+ * the next init(); there is nothing of ours to tear down beyond
+ * dropping the reference.
  */
 function shutdownSteam() {
-  if (callbackTimer) {
-    clearInterval(callbackTimer);
-    callbackTimer = null;
-  }
   client = null;
 }
 
@@ -345,7 +447,10 @@ function openOverlayUrl(url) {
 
 module.exports = {
   STEAM_ENABLED,
+  STEAM_APPID,
   OVERLAY_DIALOG_CODES,
+  maybeRestartForSteam,
+  prepareSteamOverlay,
   initSteam,
   shutdownSteam,
   isSteamActive,
