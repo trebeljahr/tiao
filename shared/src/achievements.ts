@@ -19,8 +19,20 @@ export type AchievementCategory =
 
 export type AchievementDefinition = {
   id: string;
-  /** Stable key for Steamworks mapping. Defaults to id if omitted. */
-  steamKey?: string;
+  /**
+   * Steamworks achievement API name. Required, and must match the API
+   * name configured for this achievement in the Steam Partner Portal
+   * exactly — Steam silently ignores unlock calls for names it doesn't
+   * know, so a typo here fails without any error at runtime.
+   *
+   * Kept separate from `id` rather than derived from it: `id` is the
+   * server-side identifier persisted in the database, while this is an
+   * external contract with Valve. Deriving one from the other would
+   * mean a database rename silently breaks live achievements.
+   *
+   * Convention: `ACH_` + the id in upper snake case.
+   */
+  steamKey: string;
   name: string;
   description: string;
   category: AchievementCategory;
@@ -41,6 +53,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   // ── Games Played ──────────────────────────────────────────────────────
   {
     id: "first-move",
+    steamKey: "ACH_FIRST_MOVE",
     name: "First Move",
     description: "Make your first move in a multiplayer game.",
     category: "games",
@@ -50,6 +63,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   },
   {
     id: "getting-started",
+    steamKey: "ACH_GETTING_STARTED",
     name: "Getting the Hang of It",
     description: "Play 5 games.",
     category: "games",
@@ -60,6 +74,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   },
   {
     id: "regular",
+    steamKey: "ACH_REGULAR",
     name: "Table Regular",
     description: "Play 10 games.",
     category: "games",
@@ -70,6 +85,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   },
   {
     id: "centurion",
+    steamKey: "ACH_CENTURION",
     name: "Centurion",
     description: "Play 100 games.",
     category: "games",
@@ -80,6 +96,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   },
   {
     id: "veteran",
+    steamKey: "ACH_VETERAN",
     name: "Grizzled Veteran",
     description: "Play 1,000 games.",
     category: "games",
@@ -92,6 +109,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   // ── Losses ────────────────────────────────────────────────────────────
   {
     id: "first-fall",
+    steamKey: "ACH_FIRST_FALL",
     name: "Everybody Falls",
     description: "Lose your first game.",
     category: "combat",
@@ -102,6 +120,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   },
   {
     id: "tough-luck",
+    steamKey: "ACH_TOUGH_LUCK",
     name: "Tough Luck",
     description: "Lose 5 games.",
     category: "combat",
@@ -112,6 +131,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   },
   {
     id: "punching-bag",
+    steamKey: "ACH_PUNCHING_BAG",
     name: "Human Punching Bag",
     description: "Lose 10 games.",
     category: "combat",
@@ -124,6 +144,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   // ── Timed Wins ────────────────────────────────────────────────────────
   {
     id: "speed-demon",
+    steamKey: "ACH_SPEED_DEMON",
     name: "Speed Demon",
     description: "Win a timed game.",
     category: "speed",
@@ -133,6 +154,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   },
   {
     id: "buzzer-beater",
+    steamKey: "ACH_BUZZER_BEATER",
     name: "Buzzer Beater",
     description: "Win a timed game with less than 10 seconds on your clock.",
     category: "speed",
@@ -142,6 +164,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   },
   {
     id: "one-second-glory",
+    steamKey: "ACH_ONE_SECOND_GLORY",
     name: "Living on the Edge",
     description: "Win a timed game with 1 second or less on your clock.",
     category: "speed",
@@ -153,6 +176,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   // ── AI Opponents ──────────────────────────────────────────────────────
   {
     id: "ai-easy",
+    steamKey: "ACH_AI_EASY",
     name: "Baby Steps",
     description: "Beat an Easy AI.",
     category: "combat",
@@ -162,6 +186,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   },
   {
     id: "ai-medium",
+    steamKey: "ACH_AI_MEDIUM",
     name: "Holding My Own",
     description: "Beat a Medium AI.",
     category: "combat",
@@ -171,6 +196,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   },
   {
     id: "ai-hard",
+    steamKey: "ACH_AI_HARD",
     name: "Skynet Who?",
     description: "Beat a Hard AI.",
     category: "combat",
@@ -182,6 +208,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   // ── Social ────────────────────────────────────────────────────────────
   {
     id: "first-friend",
+    steamKey: "ACH_FIRST_FRIEND",
     name: "New Kid on the Block",
     description: "Make your first friend.",
     category: "social",
@@ -192,6 +219,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   },
   {
     id: "social-butterfly",
+    steamKey: "ACH_SOCIAL_BUTTERFLY",
     name: "Social Butterfly",
     description: "Make 10 friends.",
     category: "social",
@@ -204,6 +232,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   // ── Ranking ───────────────────────────────────────────────────────────
   {
     id: "top-one-percent",
+    steamKey: "ACH_TOP_ONE_PERCENT",
     name: "The One Percent",
     description: "Reach the top 1% of players.",
     category: "ranking",
@@ -215,6 +244,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   // ── Tournament ────────────────────────────────────────────────────────
   {
     id: "tournament-champion",
+    steamKey: "ACH_TOURNAMENT_CHAMPION",
     name: "Tournament Champion",
     description: "Win a tournament.",
     category: "tournament",
@@ -226,6 +256,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   // ── Learning ──────────────────────────────────────────────────────────
   {
     id: "tutorial-complete",
+    steamKey: "ACH_TUTORIAL_COMPLETE",
     name: "Star Student",
     description: "Complete the tutorial.",
     category: "learning",
@@ -237,6 +268,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   // ── Spectating ────────────────────────────────────────────────────────
   {
     id: "spectator",
+    steamKey: "ACH_SPECTATOR",
     name: "Armchair General",
     description: "Spectate a game.",
     category: "social",
@@ -248,6 +280,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   // ── Captures ───────────────────────────────────────────────────────────
   {
     id: "first-blood",
+    steamKey: "ACH_FIRST_BLOOD",
     name: "First Blood",
     description: "Capture your first piece.",
     category: "combat",
@@ -257,6 +290,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   },
   {
     id: "chain-reaction",
+    steamKey: "ACH_CHAIN_REACTION",
     name: "Chain Reaction",
     description: "Capture 5 or more pieces in a single chain jump.",
     category: "combat",
@@ -267,6 +301,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   },
   {
     id: "one-jump-wonder",
+    steamKey: "ACH_ONE_JUMP_WONDER",
     name: "One Jump Wonder",
     description: "Win an entire game from a single chain jump.",
     category: "combat",
@@ -278,6 +313,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   // ── Secret Achievements ───────────────────────────────────────────────
   {
     id: "rage-quit",
+    steamKey: "ACH_RAGE_QUIT",
     name: "Rage Quit",
     description: "Forfeit a game within the first 3 moves.",
     category: "secret",
@@ -287,6 +323,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   },
   {
     id: "night-owl",
+    steamKey: "ACH_NIGHT_OWL",
     name: "Night Owl",
     description: "Play a game between 2 AM and 5 AM.",
     category: "secret",
@@ -296,6 +333,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   },
   {
     id: "speedrun",
+    steamKey: "ACH_SPEEDRUN",
     name: "Speedrun Any%",
     description: "Win a game in under 30 seconds.",
     category: "secret",
@@ -305,6 +343,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   },
   {
     id: "comeback-kid",
+    steamKey: "ACH_COMEBACK_KID",
     name: "Comeback Kid",
     description: "Win after being down by 3 or more points.",
     category: "secret",
@@ -314,6 +353,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   },
   {
     id: "flawless-victory",
+    steamKey: "ACH_FLAWLESS_VICTORY",
     name: "Flawless Victory",
     description: "Win a game without losing a single piece to capture.",
     category: "secret",
@@ -323,6 +363,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   },
   {
     id: "david-vs-goliath",
+    steamKey: "ACH_DAVID_VS_GOLIATH",
     name: "David vs. Goliath",
     description: "Beat a player rated 300+ points above you.",
     category: "secret",
@@ -332,6 +373,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
   },
   {
     id: "checkered-past",
+    steamKey: "ACH_CHECKERED_PAST",
     name: "Checkered Past",
     description: "Play on every board size.",
     category: "secret",

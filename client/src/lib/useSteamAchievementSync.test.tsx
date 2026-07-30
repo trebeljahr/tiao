@@ -25,13 +25,13 @@ describe("useSteamAchievementSync", () => {
     expect(unlockSpy).not.toHaveBeenCalled();
   });
 
-  it("pushes every supplied unlocked id once", async () => {
+  it("pushes every supplied unlocked id once, translated to its Steam API name", async () => {
     renderHook(() => useSteamAchievementSync(["first-move", "speed-demon"]));
     // The effect is async — flush microtasks before asserting.
     await new Promise((r) => setTimeout(r, 0));
     expect(unlockSpy).toHaveBeenCalledTimes(2);
-    expect(unlockSpy).toHaveBeenCalledWith("first-move");
-    expect(unlockSpy).toHaveBeenCalledWith("speed-demon");
+    expect(unlockSpy).toHaveBeenCalledWith("ACH_FIRST_MOVE");
+    expect(unlockSpy).toHaveBeenCalledWith("ACH_SPEED_DEMON");
   });
 
   it("does not re-push ids that have already been handed to the bridge", async () => {
@@ -45,12 +45,18 @@ describe("useSteamAchievementSync", () => {
     rerender({ ids: ["first-move", "speed-demon"] });
     await new Promise((r) => setTimeout(r, 0));
     expect(unlockSpy).toHaveBeenCalledTimes(2);
-    expect(unlockSpy).toHaveBeenLastCalledWith("speed-demon");
+    expect(unlockSpy).toHaveBeenLastCalledWith("ACH_SPEED_DEMON");
   });
 
-  it("falls back to the id when no steamKey override is defined", async () => {
-    renderHook(() => useSteamAchievementSync(["first-move"]));
+  it("skips ids with no local definition instead of sending the raw id", async () => {
+    // A server running ahead of this bundle can report an achievement
+    // that isn't in ACHIEVEMENTS yet. Its kebab-case id is never a valid
+    // Steam API name, so passing it through would be a silent no-op on
+    // Steam's side — and silent no-ops are how mismapped achievements go
+    // unnoticed until a player complains.
+    renderHook(() => useSteamAchievementSync(["not-a-real-achievement", "first-move"]));
     await new Promise((r) => setTimeout(r, 0));
-    expect(unlockSpy).toHaveBeenCalledWith("first-move");
+    expect(unlockSpy).toHaveBeenCalledTimes(1);
+    expect(unlockSpy).toHaveBeenCalledWith("ACH_FIRST_MOVE");
   });
 });

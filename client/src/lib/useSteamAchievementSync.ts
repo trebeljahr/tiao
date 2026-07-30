@@ -19,9 +19,13 @@ import { unlockSteamAchievement } from "./SteamBridge";
  * Promise<false> and never reaches IPC — so this hook stays safe to
  * call unconditionally from any page that knows the unlocked-id set.
  *
- * The id ↔ Steam API name mapping follows `AchievementDefinition.steamKey`
- * (falls back to `id`), matching the convention documented in
- * `shared/src/achievements.ts`.
+ * The id ↔ Steam API name mapping comes from
+ * `AchievementDefinition.steamKey` in `shared/src/achievements.ts`.
+ * Ids the local definitions don't know about are skipped rather than
+ * passed through: a server running ahead of this bundle can report an
+ * achievement that isn't in ACHIEVEMENTS yet, and its raw kebab-case
+ * id is never a valid Steam API name, so sending it would be a
+ * guaranteed silent no-op on Steam's side.
  */
 export function useSteamAchievementSync(unlockedIds: readonly string[]): void {
   // Cache of ids already handed to the bridge during this mount.
@@ -38,12 +42,12 @@ export function useSteamAchievementSync(unlockedIds: readonly string[]): void {
         if (cancelled) return;
         if (pushed.current.has(id)) continue;
         const def = ACHIEVEMENTS.find((a) => a.id === id);
-        const apiName = def?.steamKey ?? id;
         // Mark BEFORE the await: even a failed push shouldn't be
         // retried on the next render of the same id — the renderer
         // can't repair a Steam SDK failure from this side.
         pushed.current.add(id);
-        await unlockSteamAchievement(apiName);
+        if (!def) continue;
+        await unlockSteamAchievement(def.steamKey);
       }
     })();
 
