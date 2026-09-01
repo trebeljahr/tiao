@@ -139,9 +139,13 @@ function composeTile(inner, state) {
   // treatment its UI expects.
   const ink = state === "locked" ? inner.split(APP_MUTED).join(LOCKED_INK) : inner;
 
+  // Square, not rounded. Steam stores achievement icons as JPEG, which
+  // has no alpha channel — rounded corners would composite against the
+  // matte and show as a bright halo on Steam's dark achievement lists.
+  // Steam draws its own rounded frames around these anyway.
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${VIEWBOX}" height="${VIEWBOX}" viewBox="0 0 ${VIEWBOX} ${VIEWBOX}">
-  <rect width="${VIEWBOX}" height="${VIEWBOX}" rx="14" fill="${bg}"/>
-  <rect x="0.75" y="0.75" width="${VIEWBOX - 1.5}" height="${VIEWBOX - 1.5}" rx="13.25" fill="none" stroke="${border}" stroke-width="1.5"/>
+  <rect width="${VIEWBOX}" height="${VIEWBOX}" fill="${bg}"/>
+  <rect x="0.75" y="0.75" width="${VIEWBOX - 1.5}" height="${VIEWBOX - 1.5}" fill="none" stroke="${border}" stroke-width="1.5"/>
   <g transform="translate(${OFFSET} ${OFFSET}) scale(${SCALE})" fill="none" stroke-width="1.8">${ink}</g>
 </svg>
 `;
@@ -168,7 +172,6 @@ function resolveRasterizer() {
     return (svg, png, size) =>
       execFileSync("rsvg-convert", ["-w", String(size), "-h", String(size), "-o", png, svg]);
   }
-
   if (has("magick")) {
     // Render at high density then downsample — ImageMagick rasterises
     // SVG at the document size first, so converting straight to 64px
