@@ -36,38 +36,58 @@ const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const CLIENT = join(REPO_ROOT, "client");
 const TSX = join(REPO_ROOT, "server/node_modules/.bin/tsx");
 
-const SIZE = 64;
+/**
+ * The tile is always composed in a 64-unit coordinate space and
+ * rasterised at whatever pixel size is asked for. The source art is
+ * vector, so a larger render costs nothing and loses nothing.
+ */
+const VIEWBOX = 64;
 
 /**
- * Icon geometry. The source components draw in a 24x24 viewBox; we
- * scale that up and centre it, leaving a margin so the artwork doesn't
- * collide with the tile's rounded corners.
- *
- * 42px of art in a 64px tile puts the 1.8-unit stroke at a little over
- * 3px. That reads as deliberately bold, which is what you want — Steam
- * renders these small in the overlay and achievement lists, and thin
+ * Steam stores achievement icons at 256x256 and downscales to 64x64 for
+ * the achievement lists, so uploading at 64 throws away detail that
+ * Big Picture and Deck would otherwise use. 256 is what goes to the
+ * portal; the 64 set is kept as a fallback in case an upload form
+ * rejects the larger file.
+ */
+const SIZES = [256, 64];
+
+/**
+ * Icon geometry, in the 64-unit tile space. 42 units of art leaves a
+ * margin so the drawing doesn't collide with the rounded corners, and
+ * puts the 1.8-unit stroke at a little over 3 units — deliberately
+ * bold, because Steam renders these small in the overlay and thin
  * strokes disappear there.
  */
 const ART = 42;
-const OFFSET = (SIZE - ART) / 2;
+const OFFSET = (VIEWBOX - ART) / 2;
 const SCALE = ART / 24;
 
 /**
- * Two tile palettes rather than one.
- *
- * Unlocked icons sit on Tiao's parchment with the achievement's tier
- * colour. Locked icons sit on a dark tile with the muted colour the app
- * already uses for them. Keeping the muted icon on a light tile would
- * have been more consistent, but #a89a7e on parchment is barely legible
- * at 64px — and Steam shows locked achievements far more often than
- * unlocked ones, so that is the state that has to survive being small.
- *
- * The light/dark split also does real work: a wall of achievements
- * reads at a glance as "lit" versus "off".
+ * The muted colour AchievementIcon uses for its locked state. Replaced
+ * with a neutral grey below — see LOCKED_INK.
  */
+const APP_MUTED = "#a89a7e";
+
+/**
+ * Locked icons are greyscale, which is the near-universal convention on
+ * Steam: the locked and unlocked art should read as two states of one
+ * icon, so only the colour changes. Valve does not enforce this — it
+ * does not generate the locked variant for you either, whatever you
+ * upload is what players see — but breaking the convention makes a
+ * locked achievement look like a different achievement rather than an
+ * unearned one.
+ *
+ * The app's own muted tan (#a89a7e) is carried over as a flat grey
+ * rather than kept, because it is a colour, and because at 64px on a
+ * pale tile it is barely legible. #808080 on #e7e7e7 holds about 3.2:1,
+ * which a 3-unit stroke reads fine at.
+ */
+const LOCKED_INK = "#808080";
+
 const TILES = {
   unlocked: { bg: "#f2e7d0", border: "#c9b894" },
-  locked: { bg: "#2f2a24", border: "#4a4239" },
+  locked: { bg: "#e7e7e7", border: "#bdbdbd" },
 };
 
 function parseArgs(argv) {
@@ -100,10 +120,16 @@ function extractInner(svgMarkup) {
 
 function composeTile(inner, state) {
   const { bg, border } = TILES[state];
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">
-  <rect width="${SIZE}" height="${SIZE}" rx="14" fill="${bg}"/>
-  <rect x="0.75" y="0.75" width="${SIZE - 1.5}" height="${SIZE - 1.5}" rx="13.25" fill="none" stroke="${border}" stroke-width="1.5"/>
-  <g transform="translate(${OFFSET} ${OFFSET}) scale(${SCALE})" fill="none" stroke-width="1.8">${inner}</g>
+  // The component hands back its locked variant already coloured with
+  // the app's muted tan. Swapping the hex here keeps AchievementIcon as
+  // the single source of shape while letting Steam have the greyscale
+  // treatment its UI expects.
+  const ink = state === "locked" ? inner.split(APP_MUTED).join(LOCKED_INK) : inner;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${VIEWBOX}" height="${VIEWBOX}" viewBox="0 0 ${VIEWBOX} ${VIEWBOX}">
+  <rect width="${VIEWBOX}" height="${VIEWBOX}" rx="14" fill="${bg}"/>
+  <rect x="0.75" y="0.75" width="${VIEWBOX - 1.5}" height="${VIEWBOX - 1.5}" rx="13.25" fill="none" stroke="${border}" stroke-width="1.5"/>
+  <g transform="translate(${OFFSET} ${OFFSET}) scale(${SCALE})" fill="none" stroke-width="1.8">${ink}</g>
 </svg>
 `;
 }
@@ -126,22 +152,22 @@ function resolveRasterizer() {
   };
 
   if (has("rsvg-convert")) {
-    return (svg, png) =>
-      execFileSync("rsvg-convert", ["-w", String(SIZE), "-h", String(SIZE), "-o", png, svg]);
+    return (svg, png, size) =>
+      execFileSync("rsvg-convert", ["-w", String(size), "-h", String(size), "-o", png, svg]);
   }
   if (has("magick")) {
     // Render at high density then downsample — ImageMagick rasterises
     // SVG at the document size first, so converting straight to 64px
     // produces visibly chunky strokes.
-    return (svg, png) =>
+    return (svg, png, size) =>
       execFileSync("magick", [
         "-background",
         "none",
         "-density",
-        "384",
+        String(size * 6),
         svg,
         "-resize",
-        `${SIZE}x${SIZE}`,
+        `${size}x${size}`,
         png,
       ]);
   }
@@ -179,10 +205,12 @@ function main() {
     ),
   );
 
-  mkdirSync(args.out, { recursive: true });
-
   let written = 0;
   const missingArt = [];
+
+  for (const size of SIZES) {
+    mkdirSync(join(args.out, `${size}x${size}`), { recursive: true });
+  }
 
   for (const a of achievements) {
     const variants = rendered[a.id];
@@ -192,13 +220,18 @@ function main() {
     }
 
     for (const state of ["unlocked", "locked"]) {
-      const svgPath = join(args.out, `${a.steamKey}-${state}.svg`);
-      const pngPath = join(args.out, `${a.steamKey}-${state}.png`);
+      const svg = composeTile(extractInner(variants[state]), state);
 
-      writeFileSync(svgPath, composeTile(extractInner(variants[state]), state));
-      rasterize(svgPath, pngPath);
-      if (!args.svg) rmSync(svgPath);
-      written++;
+      for (const size of SIZES) {
+        const dir = join(args.out, `${size}x${size}`);
+        const svgPath = join(dir, `${a.steamKey}-${state}.svg`);
+        const pngPath = join(dir, `${a.steamKey}-${state}.png`);
+
+        writeFileSync(svgPath, svg);
+        rasterize(svgPath, pngPath, size);
+        if (!args.svg) rmSync(svgPath);
+        written++;
+      }
     }
   }
 
@@ -207,8 +240,11 @@ function main() {
     process.exitCode = 1;
   }
 
-  console.log(`Wrote ${written} PNGs (${SIZE}x${SIZE}) to ${args.out}`);
-  console.log("Upload in the Partner Portal under App Admin -> Community -> Achievements.");
+  console.log(`Wrote ${written} PNGs to ${args.out}`);
+  for (const size of SIZES) {
+    console.log(`  ${size}x${size}/  ${achievements.length * 2} files`);
+  }
+  console.log("Upload the 256x256 set — Steam stores that and downscales for the lists.");
 }
 
 main();
