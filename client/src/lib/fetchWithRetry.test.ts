@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ApiError } from "./api";
 import { fetchWithRetry } from "./fetchWithRetry";
 
 vi.mock("sonner", () => ({
@@ -10,6 +11,11 @@ vi.mock("sonner", () => ({
 }));
 
 import { toast } from "sonner";
+
+/** A transient failure: `request()` throws status 0 when fetch itself rejects. */
+function networkError() {
+  return new ApiError(0, "Could not reach the server. Please try again later.");
+}
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -34,7 +40,7 @@ describe("fetchWithRetry", () => {
   });
 
   it("retries and returns on second attempt", async () => {
-    const fn = vi.fn().mockRejectedValueOnce(new Error("fail")).mockResolvedValue("ok");
+    const fn = vi.fn().mockRejectedValueOnce(networkError()).mockResolvedValue("ok");
 
     const promise = fetchWithRetry(fn, "test");
     // Advance past the first retry delay (1500ms)
@@ -51,8 +57,8 @@ describe("fetchWithRetry", () => {
   it("retries and returns on third attempt", async () => {
     const fn = vi
       .fn()
-      .mockRejectedValueOnce(new Error("fail"))
-      .mockRejectedValueOnce(new Error("fail"))
+      .mockRejectedValueOnce(networkError())
+      .mockRejectedValueOnce(networkError())
       .mockResolvedValue("ok");
 
     const promise = fetchWithRetry(fn, "test");
@@ -68,7 +74,7 @@ describe("fetchWithRetry", () => {
   });
 
   it("throws after all retries are exhausted", async () => {
-    const error = new Error("persistent failure");
+    const error = networkError();
     const fn = vi.fn().mockRejectedValue(error);
 
     const promise = fetchWithRetry(fn, "test").catch((e) => e);
@@ -82,7 +88,7 @@ describe("fetchWithRetry", () => {
   });
 
   it("calls toast.loading on each retry attempt with correct messages", async () => {
-    const fn = vi.fn().mockRejectedValue(new Error("fail"));
+    const fn = vi.fn().mockRejectedValue(networkError());
 
     const promise = fetchWithRetry(fn, "load").catch(() => {});
     await vi.advanceTimersByTimeAsync(1500);
@@ -107,7 +113,7 @@ describe("fetchWithRetry", () => {
   });
 
   it("calls toast.error on final failure", async () => {
-    const fn = vi.fn().mockRejectedValue(new Error("fail"));
+    const fn = vi.fn().mockRejectedValue(networkError());
 
     const promise = fetchWithRetry(fn, "test").catch(() => {});
     await vi.advanceTimersByTimeAsync(1500);
@@ -128,5 +134,75 @@ describe("fetchWithRetry", () => {
     await fetchWithRetry(fn, "test");
 
     expect(toast.dismiss).not.toHaveBeenCalled();
+  });
+
+  it("retries 5xx responses", async () => {
+    const fn = vi
+      .fn()
+      .mockRejectedValueOnce(new ApiError(503, "Service unavailable"))
+      .mockResolvedValue("ok");
+
+    const promise = fetchWithRetry(fn, "test");
+    await vi.advanceTimersByTimeAsync(1500);
+
+    expect(await promise).toBe("ok");
+    expect(fn).toHaveBeenCalledTimes(2);
+  });
+
+  // A logged-out visitor whose cached identity outlived its session cookie
+  // gets 401 NOT_AUTHENTICATED until AuthContext signs a fresh anonymous
+  // session in. Retrying that is pointless, and the connection toasts made
+  // it look like the network was down.
+  it("does not retry or toast on a 401", async () => {
+    const error = new ApiError(401, "Authenticate as a guest or account before using multiplayer.");
+    const fn = vi.fn().mockRejectedValue(error);
+
+    const caught = await fetchWithRetry(fn, "games").catch((e) => e);
+
+    expect(caught).toBe(error);
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(toast.loading).not.toHaveBeenCalled();
+    expect(toast.error).not.toHaveBeenCalled();
+    expect(toast.dismiss).not.toHaveBeenCalled();
+  });
+
+  it("does not retry other 4xx responses", async () => {
+    const error = new ApiError(403, "Forbidden");
+    const fn = vi.fn().mockRejectedValue(error);
+
+    const caught = await fetchWithRetry(fn, "test").catch((e) => e);
+
+    expect(caught).toBe(error);
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("does not retry non-ApiError failures", async () => {
+    const error = new TypeError("boom");
+    const fn = vi.fn().mockRejectedValue(error);
+
+    const caught = await fetchWithRetry(fn, "test").catch((e) => e);
+
+    expect(caught).toBe(error);
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("dismisses the retry toast when a retried call turns non-retryable", async () => {
+    const fn = vi
+      .fn()
+      .mockRejectedValueOnce(networkError())
+      .mockRejectedValue(new ApiError(401, "Not authenticated"));
+
+    const promise = fetchWithRetry(fn, "games").catch((e) => e);
+    await vi.advanceTimersByTimeAsync(1500);
+
+    const caught = await promise;
+
+    expect(caught).toBeInstanceOf(ApiError);
+    expect(fn).toHaveBeenCalledTimes(2);
+    expect(toast.loading).toHaveBeenCalledTimes(1);
+    expect(toast.dismiss).toHaveBeenCalledWith("retry-games");
+    expect(toast.error).not.toHaveBeenCalled();
   });
 });
