@@ -32,7 +32,7 @@ export function PublicProfilePage() {
   const t = useTranslations("publicProfile");
   const tCommon = useTranslations("common");
   const tConfig = useTranslations("config");
-  const { auth } = useAuth();
+  const { auth, authBootstrapped } = useAuth();
   const router = useRouter();
   const params = useParams<{ username: string }>();
   // See `resolveDynamicParam` for why this fallback exists (desktop
@@ -48,7 +48,7 @@ export function PublicProfilePage() {
   const [playerAchievements, setPlayerAchievements] = useState<PlayerAchievement[]>([]);
   const locale = useLocale();
 
-  const social = useSocialData(auth, false);
+  const social = useSocialData(auth, authBootstrapped, false);
 
   // Auto-refresh social data when a social-update arrives via WebSocket
   useLobbyMessage((payload) => {

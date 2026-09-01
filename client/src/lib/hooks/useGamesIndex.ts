@@ -28,7 +28,7 @@ function applyIdentityPatch(
   };
 }
 
-export function useGamesIndex(auth: AuthResponse | null) {
+export function useGamesIndex(auth: AuthResponse | null, authBootstrapped: boolean) {
   const t = useTranslations("error");
   const [multiplayerGames, setMultiplayerGames] = useState<MultiplayerGamesIndex>({
     active: [],
@@ -86,14 +86,18 @@ export function useGamesIndex(auth: AuthResponse | null) {
     [auth, applyMultiplayerGamesIndex, t],
   );
 
-  // Initial fetch — only runs once per auth identity (guarded by multiplayerGamesLoaded)
+  // Initial fetch — only runs once per auth identity (guarded by multiplayerGamesLoaded).
+  // Waits for `authBootstrapped` because `auth` may still hold the optimistic
+  // identity hydrated from localStorage, which the server hasn't confirmed yet.
+  // Firing early against a session that died server-side buys a guaranteed 401
+  // plus a flash of an empty list before bootstrap re-signs and we refetch.
   const refreshRef = useRef(refreshMultiplayerGames);
   refreshRef.current = refreshMultiplayerGames;
   useEffect(() => {
-    if (auth && !multiplayerGamesLoaded && !multiplayerGamesLoading) {
+    if (authBootstrapped && auth && !multiplayerGamesLoaded && !multiplayerGamesLoading) {
       void refreshRef.current();
     }
-  }, [auth, multiplayerGamesLoaded, multiplayerGamesLoading]);
+  }, [authBootstrapped, auth, multiplayerGamesLoaded, multiplayerGamesLoading]);
 
   // Patch any player identity changes (e.g. a badge equip) into both the
   // active and finished games lists so cached rows update in real time.

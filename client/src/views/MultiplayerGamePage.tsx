@@ -63,7 +63,7 @@ import { AnimatedEllipsis, AnimatedRatingChange } from "./multiplayer/AnimatedRa
 export function MultiplayerGamePage() {
   const t = useTranslations("game");
   const tCommon = useTranslations("common");
-  const { auth, onOpenAuth, onLogout } = useAuth();
+  const { auth, authBootstrapped, onOpenAuth, onLogout } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const params = useParams<{ gameId: string }>();
@@ -115,7 +115,7 @@ export function MultiplayerGamePage() {
     setMultiplayerBusy,
   } = multi;
 
-  const social = useSocialData(auth, false);
+  const social = useSocialData(auth, authBootstrapped, false);
   const liveSocialOverview = social.socialOverview;
   const { clearRematchNotification } = useSocialNotifications();
 

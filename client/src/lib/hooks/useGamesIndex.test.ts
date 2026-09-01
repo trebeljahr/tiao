@@ -59,7 +59,7 @@ beforeEach(() => {
 describe("useGamesIndex", () => {
   it("initialises with empty active and finished arrays", () => {
     mockListMultiplayerGames.mockResolvedValue({ games: { active: [], finished: [] } });
-    const { result } = renderHook(() => useGamesIndex(null));
+    const { result } = renderHook(() => useGamesIndex(null, true));
 
     expect(result.current.multiplayerGames).toEqual({
       active: [],
@@ -69,7 +69,7 @@ describe("useGamesIndex", () => {
 
   it("does not fetch when auth is null", async () => {
     mockListMultiplayerGames.mockResolvedValue({ games: { active: [], finished: [] } });
-    renderHook(() => useGamesIndex(null));
+    renderHook(() => useGamesIndex(null, true));
 
     // Flush pending microtasks so any effect-driven async code runs.
     // The hook's useEffect early-returns for null auth, so the mock
@@ -79,6 +79,40 @@ describe("useGamesIndex", () => {
     expect(mockListMultiplayerGames).not.toHaveBeenCalled();
   });
 
+  it("does not fetch while auth bootstrap is still pending", async () => {
+    // `auth` here is the optimistic identity hydrated from localStorage —
+    // the server hasn't confirmed the session yet, so fetching now would
+    // spend a request that 401s whenever the cached session is dead.
+    mockListMultiplayerGames.mockResolvedValue({ games: { active: [], finished: [] } });
+    renderHook(() => useGamesIndex(mockAuth, false));
+
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(mockListMultiplayerGames).not.toHaveBeenCalled();
+  });
+
+  it("fetches once auth bootstrap resolves", async () => {
+    mockListMultiplayerGames.mockResolvedValue({
+      games: { active: [{ gameId: "ABC123" }], finished: [] },
+    });
+
+    const { result, rerender } = renderHook(
+      ({ bootstrapped }) => useGamesIndex(mockAuth, bootstrapped),
+      { initialProps: { bootstrapped: false } },
+    );
+
+    await Promise.resolve();
+    expect(mockListMultiplayerGames).not.toHaveBeenCalled();
+
+    rerender({ bootstrapped: true });
+
+    await waitFor(() => {
+      expect(result.current.multiplayerGamesLoaded).toBe(true);
+    });
+    expect(mockListMultiplayerGames).toHaveBeenCalledTimes(1);
+    expect(result.current.multiplayerGames.active[0].gameId).toBe("ABC123");
+  });
+
   it("fetches games when auth is an account", async () => {
     const games = {
       active: [{ gameId: "ABC123", status: "waiting" }],
@@ -86,7 +120,7 @@ describe("useGamesIndex", () => {
     };
     mockListMultiplayerGames.mockResolvedValue({ games });
 
-    const { result } = renderHook(() => useGamesIndex(mockAuth));
+    const { result } = renderHook(() => useGamesIndex(mockAuth, true));
 
     await waitFor(() => {
       expect(result.current.multiplayerGamesLoaded).toBe(true);
@@ -103,7 +137,7 @@ describe("useGamesIndex", () => {
       games: { finished: [] } as any,
     });
 
-    const { result } = renderHook(() => useGamesIndex(mockAuth));
+    const { result } = renderHook(() => useGamesIndex(mockAuth, true));
 
     await waitFor(() => {
       expect(result.current.multiplayerGamesLoaded).toBe(true);
@@ -118,7 +152,7 @@ describe("useGamesIndex", () => {
     // Simulate response.games being undefined
     mockListMultiplayerGames.mockResolvedValue({ games: undefined });
 
-    const { result } = renderHook(() => useGamesIndex(mockAuth));
+    const { result } = renderHook(() => useGamesIndex(mockAuth, true));
 
     await waitFor(() => {
       expect(result.current.multiplayerGamesLoaded).toBe(true);
@@ -135,7 +169,7 @@ describe("useGamesIndex", () => {
       .mockResolvedValueOnce({ games: oldGames })
       .mockResolvedValueOnce({ games: newGames });
 
-    const { result, rerender } = renderHook(({ auth }) => useGamesIndex(auth), {
+    const { result, rerender } = renderHook(({ auth }) => useGamesIndex(auth, true), {
       initialProps: { auth: mockAuth as AuthResponse | null },
     });
 
@@ -167,7 +201,7 @@ describe("useGamesIndex", () => {
   it("retries up to 3 times then stops on persistent error", async () => {
     mockListMultiplayerGames.mockRejectedValue(new Error("502 Bad Gateway"));
 
-    const { result } = renderHook(() => useGamesIndex(mockAuth));
+    const { result } = renderHook(() => useGamesIndex(mockAuth, true));
 
     // Wait for all retries to complete (1 initial + 3 retries = 4 calls)
     await waitFor(
@@ -221,7 +255,7 @@ describe("useGamesIndex", () => {
     };
     mockListMultiplayerGames.mockResolvedValue({ games });
 
-    const { result } = renderHook(() => useGamesIndex(mockAuth));
+    const { result } = renderHook(() => useGamesIndex(mockAuth, true));
 
     await waitFor(() => {
       expect(result.current.multiplayerGamesLoaded).toBe(true);
@@ -266,7 +300,7 @@ describe("useGamesIndex", () => {
     };
     mockListMultiplayerGames.mockResolvedValue({ games });
 
-    const { result } = renderHook(() => useGamesIndex(mockAuth));
+    const { result } = renderHook(() => useGamesIndex(mockAuth, true));
     await waitFor(() => {
       expect(result.current.multiplayerGamesLoaded).toBe(true);
     });
@@ -286,7 +320,7 @@ describe("useGamesIndex", () => {
     const games = { active: [{ gameId: "X" }], finished: [] };
     mockListMultiplayerGames.mockResolvedValue({ games });
 
-    const { result, rerender } = renderHook(({ auth }) => useGamesIndex(auth), {
+    const { result, rerender } = renderHook(({ auth }) => useGamesIndex(auth, true), {
       initialProps: { auth: mockAuth as AuthResponse | null },
     });
 

@@ -30,6 +30,16 @@ import { resetBoardTheme } from "@/lib/useBoardTheme";
 export interface AuthContextValue {
   auth: AuthResponse | null;
   authLoading: boolean;
+  /**
+   * True once the bootstrap effect has finished verifying the session
+   * cookie with better-auth. Distinct from `authLoading`, which is
+   * deliberately flipped false early when a cached identity is present so
+   * the UI doesn't flash a skeleton — at that point `auth` holds an
+   * optimistic, unverified identity. Consumers that fire authenticated
+   * requests on mount should gate on this instead, or they'll spend a
+   * guaranteed-401 request whenever the cached session is dead server-side.
+   */
+  authBootstrapped: boolean;
   appError: string | null;
   authDialogOpen: boolean;
   authDialogMode: AuthDialogMode;
@@ -106,6 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const t = useTranslations("common");
   const [auth, setAuth] = useState<AuthResponse | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [authBootstrapped, setAuthBootstrapped] = useState(false);
   const [appError, setAppError] = useState<string | null>(null);
 
   // Track whether sessionStorage had cached auth at mount time.
@@ -274,7 +285,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setAppError(readableError(error));
         }
       } finally {
-        if (!cancelled) setAuthLoading(false);
+        if (!cancelled) {
+          setAuthLoading(false);
+          setAuthBootstrapped(true);
+        }
       }
     }
 
@@ -592,6 +606,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       auth,
       authLoading,
+      authBootstrapped,
       appError,
       authDialogOpen,
       authDialogForced,
@@ -625,6 +640,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [
       auth,
       authLoading,
+      authBootstrapped,
       appError,
       authDialogOpen,
       authDialogForced,

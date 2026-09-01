@@ -96,13 +96,13 @@ describe("useSocialData", () => {
 
   it("initializes with empty social overview", () => {
     mockGetSocialOverview.mockResolvedValue({ overview: emptyOverview });
-    const { result } = renderHook(() => useSocialData(null, false));
+    const { result } = renderHook(() => useSocialData(null, true, false));
     expect(result.current.socialOverview.friends).toEqual([]);
     expect(result.current.socialLoaded).toBe(false);
   });
 
   it("does not fetch when auth is null", async () => {
-    renderHook(() => useSocialData(null, false));
+    renderHook(() => useSocialData(null, true, false));
     // Flush any pending microtasks so the early-return path in the
     // useEffect has a chance to run. Real flake protection: assert the
     // mock wasn't called instead of sleeping and hoping nothing happens.
@@ -113,10 +113,41 @@ describe("useSocialData", () => {
 
   it("does not fetch for guest players", async () => {
     mockGetSocialOverview.mockResolvedValue({ overview: emptyOverview });
-    renderHook(() => useSocialData(mockGuestAuth, false));
+    renderHook(() => useSocialData(mockGuestAuth, true, false));
     await Promise.resolve();
     await Promise.resolve();
     expect(mockGetSocialOverview).not.toHaveBeenCalled();
+  });
+
+  it("does not fetch while auth bootstrap is still pending", async () => {
+    // `auth` here is the optimistic identity hydrated from localStorage —
+    // the server hasn't confirmed the session yet, so fetching now would
+    // spend a request that 401s whenever the cached session is dead.
+    mockGetSocialOverview.mockResolvedValue({ overview: emptyOverview });
+    renderHook(() => useSocialData(mockAuth, false, false));
+
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(mockGetSocialOverview).not.toHaveBeenCalled();
+  });
+
+  it("fetches once auth bootstrap resolves", async () => {
+    mockGetSocialOverview.mockResolvedValue({ overview: emptyOverview });
+
+    const { result, rerender } = renderHook(
+      ({ bootstrapped }) => useSocialData(mockAuth, bootstrapped, false),
+      { initialProps: { bootstrapped: false } },
+    );
+
+    await Promise.resolve();
+    expect(mockGetSocialOverview).not.toHaveBeenCalled();
+
+    rerender({ bootstrapped: true });
+
+    await waitFor(() => {
+      expect(result.current.socialLoaded).toBe(true);
+    });
+    expect(mockGetSocialOverview).toHaveBeenCalledTimes(1);
   });
 
   it("fetches social overview for account players", async () => {
@@ -126,7 +157,7 @@ describe("useSocialData", () => {
     };
     mockGetSocialOverview.mockResolvedValue({ overview });
 
-    const { result } = renderHook(() => useSocialData(mockAuth, false));
+    const { result } = renderHook(() => useSocialData(mockAuth, true, false));
 
     await waitFor(() => {
       expect(result.current.socialLoaded).toBe(true);
@@ -141,7 +172,7 @@ describe("useSocialData", () => {
     mockSendFriendRequest.mockResolvedValue({ message: "Sent" });
     mockSearchPlayers.mockResolvedValue({ results: [] });
 
-    const { result } = renderHook(() => useSocialData(mockAuth, false));
+    const { result } = renderHook(() => useSocialData(mockAuth, true, false));
 
     await waitFor(() => {
       expect(result.current.socialLoaded).toBe(true);
@@ -161,7 +192,7 @@ describe("useSocialData", () => {
     mockAcceptFriendRequest.mockResolvedValue({ message: "Accepted" });
     mockSearchPlayers.mockResolvedValue({ results: [] });
 
-    const { result } = renderHook(() => useSocialData(mockAuth, false));
+    const { result } = renderHook(() => useSocialData(mockAuth, true, false));
 
     await waitFor(() => {
       expect(result.current.socialLoaded).toBe(true);
@@ -179,7 +210,7 @@ describe("useSocialData", () => {
     mockDeclineFriendRequest.mockResolvedValue({ message: "Declined" });
     mockSearchPlayers.mockResolvedValue({ results: [] });
 
-    const { result } = renderHook(() => useSocialData(mockAuth, false));
+    const { result } = renderHook(() => useSocialData(mockAuth, true, false));
 
     await waitFor(() => {
       expect(result.current.socialLoaded).toBe(true);
@@ -197,7 +228,7 @@ describe("useSocialData", () => {
     mockCancelFriendRequest.mockResolvedValue({ message: "Cancelled" });
     mockSearchPlayers.mockResolvedValue({ results: [] });
 
-    const { result } = renderHook(() => useSocialData(mockAuth, false));
+    const { result } = renderHook(() => useSocialData(mockAuth, true, false));
 
     await waitFor(() => {
       expect(result.current.socialLoaded).toBe(true);
@@ -213,7 +244,7 @@ describe("useSocialData", () => {
   it("friend search requires non-empty query", async () => {
     mockGetSocialOverview.mockResolvedValue({ overview: emptyOverview });
 
-    const { result } = renderHook(() => useSocialData(mockAuth, false));
+    const { result } = renderHook(() => useSocialData(mockAuth, true, false));
 
     await waitFor(() => {
       expect(result.current.socialLoaded).toBe(true);
@@ -238,7 +269,7 @@ describe("useSocialData", () => {
       ],
     });
 
-    const { result } = renderHook(() => useSocialData(mockAuth, false));
+    const { result } = renderHook(() => useSocialData(mockAuth, true, false));
 
     await waitFor(() => {
       expect(result.current.socialLoaded).toBe(true);
@@ -266,7 +297,7 @@ describe("useSocialData", () => {
       },
     });
 
-    const { result, rerender } = renderHook(({ auth }) => useSocialData(auth, false), {
+    const { result, rerender } = renderHook(({ auth }) => useSocialData(auth, true, false), {
       initialProps: { auth: mockAuth as AuthResponse | null },
     });
 
@@ -287,7 +318,7 @@ describe("useSocialData", () => {
   it("retries up to 3 times then stops on persistent error", async () => {
     mockGetSocialOverview.mockRejectedValue(new Error("502 Bad Gateway"));
 
-    const { result } = renderHook(() => useSocialData(mockAuth, false));
+    const { result } = renderHook(() => useSocialData(mockAuth, true, false));
 
     // Wait for all retries to complete (1 initial + 3 retries = 4 calls)
     await waitFor(
@@ -323,7 +354,7 @@ describe("useSocialData", () => {
     };
     mockGetSocialOverview.mockResolvedValue({ overview });
 
-    const { result } = renderHook(() => useSocialData(mockAuth, false));
+    const { result } = renderHook(() => useSocialData(mockAuth, true, false));
 
     await waitFor(() => {
       expect(result.current.socialLoaded).toBe(true);
@@ -350,7 +381,7 @@ describe("useSocialData", () => {
     };
     mockGetSocialOverview.mockResolvedValue({ overview });
 
-    const { result } = renderHook(() => useSocialData(mockAuth, false));
+    const { result } = renderHook(() => useSocialData(mockAuth, true, false));
     await waitFor(() => expect(result.current.socialLoaded).toBe(true));
 
     const before = result.current.socialOverview;
@@ -367,7 +398,7 @@ describe("useSocialData", () => {
   it("does not trigger social actions for guest players", async () => {
     mockGetSocialOverview.mockResolvedValue({ overview: emptyOverview });
 
-    const { result } = renderHook(() => useSocialData(mockGuestAuth, false));
+    const { result } = renderHook(() => useSocialData(mockGuestAuth, true, false));
 
     await act(async () => {
       await result.current.handleSendFriendRequest("some-id");

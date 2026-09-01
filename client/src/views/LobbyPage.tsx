@@ -62,16 +62,20 @@ export function LobbyPage() {
 }
 
 function OnlineLobbyPage() {
-  const { auth, authLoading, onOpenAuth, onLogout } = useAuth();
+  const { auth, authLoading, authBootstrapped, onOpenAuth, onLogout } = useAuth();
   const isGuest = !auth || auth.player.kind === "guest";
   const router = useRouter();
   const t = useTranslations("lobby");
   const tc = useTranslations("common");
   const tGame = useTranslations("game");
-  const { multiplayerGames, multiplayerGamesLoaded, refreshMultiplayerGames } = useGamesIndex(auth);
+  const { multiplayerGames, multiplayerGamesLoaded, refreshMultiplayerGames } = useGamesIndex(
+    auth,
+    authBootstrapped,
+  );
 
   const { socialOverview, refreshSocialOverview, handleDeclineGameInvitation } = useSocialData(
     auth,
+    authBootstrapped,
     true,
   );
 

@@ -22,6 +22,7 @@ vi.mock("@/lib/AuthContext", () => ({
   useAuth: () => ({
     auth: mockAuth,
     authLoading: false,
+    authBootstrapped: true,
     onOpenAuth: vi.fn(),
     onLogout: vi.fn(),
   }),

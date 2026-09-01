@@ -16,11 +16,14 @@ import { useLobbyMessage } from "@/lib/LobbySocketContext";
 
 export function GamesPage() {
   const t = useTranslations("games");
-  const { auth, onOpenAuth, onLogout } = useAuth();
+  const { auth, authBootstrapped, onOpenAuth, onLogout } = useAuth();
   const router = useRouter();
   const [navOpen, setNavOpen] = useState(false);
 
-  const { multiplayerGames, multiplayerGamesLoaded, refreshMultiplayerGames } = useGamesIndex(auth);
+  const { multiplayerGames, multiplayerGamesLoaded, refreshMultiplayerGames } = useGamesIndex(
+    auth,
+    authBootstrapped,
+  );
 
   // Real-time updates for games page
   useLobbyMessage((payload) => {

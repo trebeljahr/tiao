@@ -28,11 +28,11 @@ export function FriendsPage() {
   const t = useTranslations("friends");
   const tCommon = useTranslations("common");
   const tLobby = useTranslations("lobby");
-  const { auth, onOpenAuth, onLogout } = useAuth();
+  const { auth, authBootstrapped, onOpenAuth, onLogout } = useAuth();
   const router = useRouter();
   const [navOpen, setNavOpen] = useState(false);
 
-  const social = useSocialData(auth, false);
+  const social = useSocialData(auth, authBootstrapped, false);
   const { acknowledgeFriendRequests, isFriendRequestAcknowledged } = useSocialNotifications();
   const [inviteBusy, setInviteBusy] = useState<string | null>(null);
   const [inviteDialogFriendId, setInviteDialogFriendId] = useState<string | null>(null);

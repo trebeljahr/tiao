@@ -48,7 +48,11 @@ function patchSocialSummary(
   };
 }
 
-export function useSocialData(auth: AuthResponse | null, canToastIncomingInvites: boolean) {
+export function useSocialData(
+  auth: AuthResponse | null,
+  authBootstrapped: boolean,
+  canToastIncomingInvites: boolean,
+) {
   const t = useTranslations("error");
   const { refreshNotifications, clearFriendRequestNotification } = useSocialNotifications();
   const [socialOverview, setSocialOverview] = useState<SocialOverview>(EMPTY_SOCIAL_OVERVIEW);
@@ -315,14 +319,18 @@ export function useSocialData(auth: AuthResponse | null, canToastIncomingInvites
     [auth, refreshSocialOverview],
   );
 
-  // Initial fetch — only runs once per auth identity (guarded by socialLoaded)
+  // Initial fetch — only runs once per auth identity (guarded by socialLoaded).
+  // Waits for `authBootstrapped` because `auth` may still hold the optimistic
+  // identity hydrated from localStorage, which the server hasn't confirmed yet.
+  // Firing early against a session that died server-side buys a guaranteed 401
+  // before bootstrap re-signs and we refetch.
   const refreshSocialRef = useRef(refreshSocialOverview);
   refreshSocialRef.current = refreshSocialOverview;
   useEffect(() => {
-    if (auth?.player.kind === "account" && !socialLoaded && !socialLoading) {
+    if (authBootstrapped && auth?.player.kind === "account" && !socialLoaded && !socialLoading) {
       void refreshSocialRef.current({ allowInviteToast: true });
     }
-  }, [auth, socialLoaded, socialLoading]);
+  }, [authBootstrapped, auth, socialLoaded, socialLoading]);
 
   // Patch identity updates (badge equip, display-name change, etc.) into the
   // cached overview so friends / pending requests / invitations update live.

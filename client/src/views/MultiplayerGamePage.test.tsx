@@ -122,6 +122,7 @@ vi.mock("@/lib/AuthContext", () => ({
   useAuth: () => ({
     auth: guestAuth,
     authLoading: false,
+    authBootstrapped: true,
     onOpenAuth: vi.fn(),
     onLogout: vi.fn(),
     applyAuth: vi.fn(),
@@ -492,6 +493,7 @@ describe("MultiplayerGamePage", () => {
     vi.spyOn(authModule, "useAuth").mockReturnValue({
       auth: spectatorAuth,
       authLoading: false,
+      authBootstrapped: true,
       appError: null,
       authDialogOpen: false,
       authDialogForced: false,
@@ -563,6 +565,7 @@ describe("MultiplayerGamePage", () => {
         ({
           auth: { player: { ...newAccountAuth.player } },
           authLoading: false,
+          authBootstrapped: true,
           appError: null,
           authDialogOpen: false,
           authDialogForced: false,
@@ -653,6 +656,7 @@ describe("MultiplayerGamePage", () => {
     vi.spyOn(authModule, "useAuth").mockReturnValue({
       auth: spectatorAuth,
       authLoading: false,
+      authBootstrapped: true,
       appError: null,
       authDialogOpen: false,
       authDialogForced: false,
@@ -708,6 +712,7 @@ describe("MultiplayerGamePage", () => {
     vi.spyOn(authModule, "useAuth").mockReturnValue({
       auth: spectatorAuth,
       authLoading: false,
+      authBootstrapped: true,
       appError: null,
       authDialogOpen: false,
       authDialogForced: false,
@@ -759,6 +764,7 @@ describe("MultiplayerGamePage", () => {
     vi.spyOn(authModule, "useAuth").mockReturnValue({
       auth: spectatorAuth,
       authLoading: false,
+      authBootstrapped: true,
       appError: null,
       authDialogOpen: false,
       authDialogForced: false,
@@ -836,6 +842,7 @@ describe("MultiplayerGamePage", () => {
     vi.spyOn(authModule, "useAuth").mockReturnValue({
       auth: spectatorAuth,
       authLoading: false,
+      authBootstrapped: true,
       appError: null,
       authDialogOpen: false,
       authDialogForced: false,
@@ -937,6 +944,7 @@ describe("MultiplayerGamePage", () => {
     vi.spyOn(authModule, "useAuth").mockReturnValue({
       auth: accountAuth,
       authLoading: false,
+      authBootstrapped: true,
       appError: null,
       authDialogOpen: false,
       authDialogForced: false,
@@ -1050,6 +1058,7 @@ describe("MultiplayerGamePage", () => {
     vi.spyOn(authModule, "useAuth").mockReturnValue({
       auth: accountAuth,
       authLoading: false,
+      authBootstrapped: true,
       appError: null,
       authDialogOpen: false,
       authDialogForced: false,
@@ -1119,6 +1128,7 @@ describe("MultiplayerGamePage", () => {
     vi.spyOn(authModule, "useAuth").mockReturnValue({
       auth: accountAuth,
       authLoading: false,
+      authBootstrapped: true,
       appError: null,
       authDialogOpen: false,
       authDialogForced: false,
@@ -1202,6 +1212,7 @@ describe("MultiplayerGamePage", () => {
     vi.spyOn(authModule, "useAuth").mockReturnValue({
       auth: accountAuth,
       authLoading: false,
+      authBootstrapped: true,
       appError: null,
       authDialogOpen: false,
       authDialogForced: false,
@@ -1270,6 +1281,7 @@ describe("MultiplayerGamePage", () => {
     vi.spyOn(authModule, "useAuth").mockReturnValue({
       auth: guestAuth,
       authLoading: false,
+      authBootstrapped: true,
       onOpenAuth: vi.fn(),
       onLogout: vi.fn(),
       applyAuth: vi.fn(),
@@ -1300,6 +1312,7 @@ describe("MultiplayerGamePage", () => {
     vi.spyOn(authModule, "useAuth").mockReturnValue({
       auth: guestAuth,
       authLoading: false,
+      authBootstrapped: true,
       onOpenAuth: vi.fn(),
       onLogout: vi.fn(),
       applyAuth: vi.fn(),
@@ -1330,6 +1343,7 @@ describe("MultiplayerGamePage", () => {
     vi.spyOn(authModule, "useAuth").mockReturnValue({
       auth: spectatorAuth,
       authLoading: false,
+      authBootstrapped: true,
       appError: null,
       authDialogOpen: false,
       authDialogForced: false,
@@ -1475,6 +1489,7 @@ describe("MultiplayerGamePage", () => {
     const useAuthSpy = vi.spyOn(authModule, "useAuth").mockReturnValue({
       auth: newAccountAuth,
       authLoading: false,
+      authBootstrapped: true,
       onOpenAuth: vi.fn(),
       onLogout: vi.fn(),
       applyAuth: vi.fn(),
@@ -1546,6 +1561,7 @@ describe("MultiplayerGamePage", () => {
     const useAuthSpy = vi.spyOn(authModule, "useAuth").mockReturnValue({
       auth: accountAuth,
       authLoading: false,
+      authBootstrapped: true,
       onOpenAuth: vi.fn(),
       onLogout: vi.fn(),
       applyAuth: vi.fn(),
@@ -1595,6 +1611,7 @@ describe("MultiplayerGamePage", () => {
     const useAuthSpy = vi.spyOn(authModule, "useAuth").mockReturnValue({
       auth: accountAuth,
       authLoading: false,
+      authBootstrapped: true,
       onOpenAuth: vi.fn(),
       onLogout: vi.fn(),
       applyAuth: vi.fn(),
