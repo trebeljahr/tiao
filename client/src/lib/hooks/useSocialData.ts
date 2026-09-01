@@ -5,6 +5,7 @@ import {
   type SocialPlayerSummary,
   type SocialSearchResult,
 } from "@shared";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   acceptFriendRequest,
@@ -48,6 +49,7 @@ function patchSocialSummary(
 }
 
 export function useSocialData(auth: AuthResponse | null, canToastIncomingInvites: boolean) {
+  const t = useTranslations("error");
   const { refreshNotifications, clearFriendRequestNotification } = useSocialNotifications();
   const [socialOverview, setSocialOverview] = useState<SocialOverview>(EMPTY_SOCIAL_OVERVIEW);
   const [socialLoading, setSocialLoading] = useState(false);
@@ -110,7 +112,7 @@ export function useSocialData(auth: AuthResponse | null, canToastIncomingInvites
       try {
         const response = options.silent
           ? await getSocialOverview()
-          : await fetchWithRetry(() => getSocialOverview(), "social");
+          : await fetchWithRetry(() => getSocialOverview(), "social", t);
         applySocialOverview(response.overview, options.allowInviteToast ?? false);
         refreshNotifications();
       } catch {
@@ -120,7 +122,7 @@ export function useSocialData(auth: AuthResponse | null, canToastIncomingInvites
         setSocialLoading(false);
       }
     },
-    [auth, applySocialOverview, refreshNotifications],
+    [auth, applySocialOverview, refreshNotifications, t],
   );
 
   const runFriendSearch = useCallback(async () => {

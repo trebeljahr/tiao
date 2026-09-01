@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import deMessages from "../../messages/de.json";
+import enMessages from "../../messages/en.json";
 import { ApiError } from "./api";
-import { fetchWithRetry } from "./fetchWithRetry";
+import { type ErrorTranslator, fetchWithRetry } from "./fetchWithRetry";
 
 vi.mock("sonner", () => ({
   toast: {
@@ -11,6 +13,26 @@ vi.mock("sonner", () => ({
 }));
 
 import { toast } from "sonner";
+
+/**
+ * Stands in for next-intl's `useTranslations("error")`: looks the key up in a
+ * real message catalogue and interpolates `{placeholders}`. Sourcing the
+ * strings from `messages/*.json` rather than hardcoding them means these
+ * tests fail if the keys are renamed or dropped.
+ */
+function translatorFor(messages: { error: Record<string, string> }): ErrorTranslator {
+  const translate = (key: string, values?: Record<string, string | number>) => {
+    const template = messages.error[key] ?? key;
+    if (!values) return template;
+    return Object.entries(values).reduce(
+      (text, [name, value]) => text.replace(`{${name}}`, String(value)),
+      template,
+    );
+  };
+  return translate as unknown as ErrorTranslator;
+}
+
+const t = translatorFor(enMessages);
 
 /** A transient failure: `request()` throws status 0 when fetch itself rejects. */
 function networkError() {
@@ -30,7 +52,7 @@ describe("fetchWithRetry", () => {
   it("returns result on first try without toasts", async () => {
     const fn = vi.fn().mockResolvedValue("ok");
 
-    const result = await fetchWithRetry(fn, "test");
+    const result = await fetchWithRetry(fn, "test", t);
 
     expect(result).toBe("ok");
     expect(fn).toHaveBeenCalledTimes(1);
@@ -42,7 +64,7 @@ describe("fetchWithRetry", () => {
   it("retries and returns on second attempt", async () => {
     const fn = vi.fn().mockRejectedValueOnce(networkError()).mockResolvedValue("ok");
 
-    const promise = fetchWithRetry(fn, "test");
+    const promise = fetchWithRetry(fn, "test", t);
     // Advance past the first retry delay (1500ms)
     await vi.advanceTimersByTimeAsync(1500);
 
@@ -61,7 +83,7 @@ describe("fetchWithRetry", () => {
       .mockRejectedValueOnce(networkError())
       .mockResolvedValue("ok");
 
-    const promise = fetchWithRetry(fn, "test");
+    const promise = fetchWithRetry(fn, "test", t);
     await vi.advanceTimersByTimeAsync(1500);
     await vi.advanceTimersByTimeAsync(3000);
 
@@ -77,7 +99,7 @@ describe("fetchWithRetry", () => {
     const error = networkError();
     const fn = vi.fn().mockRejectedValue(error);
 
-    const promise = fetchWithRetry(fn, "test").catch((e) => e);
+    const promise = fetchWithRetry(fn, "test", t).catch((e) => e);
     await vi.advanceTimersByTimeAsync(1500);
     await vi.advanceTimersByTimeAsync(3000);
     await vi.advanceTimersByTimeAsync(5000);
@@ -90,7 +112,7 @@ describe("fetchWithRetry", () => {
   it("calls toast.loading on each retry attempt with correct messages", async () => {
     const fn = vi.fn().mockRejectedValue(networkError());
 
-    const promise = fetchWithRetry(fn, "load").catch(() => {});
+    const promise = fetchWithRetry(fn, "load", t).catch(() => {});
     await vi.advanceTimersByTimeAsync(1500);
     await vi.advanceTimersByTimeAsync(3000);
     await vi.advanceTimersByTimeAsync(5000);
@@ -115,7 +137,7 @@ describe("fetchWithRetry", () => {
   it("calls toast.error on final failure", async () => {
     const fn = vi.fn().mockRejectedValue(networkError());
 
-    const promise = fetchWithRetry(fn, "test").catch(() => {});
+    const promise = fetchWithRetry(fn, "test", t).catch(() => {});
     await vi.advanceTimersByTimeAsync(1500);
     await vi.advanceTimersByTimeAsync(3000);
     await vi.advanceTimersByTimeAsync(5000);
@@ -128,10 +150,32 @@ describe("fetchWithRetry", () => {
     );
   });
 
+  // Regression guard: these toasts used to be hardcoded English, so German
+  // and Spanish players saw English text on a failed lobby fetch.
+  it("renders the toasts in the caller's locale", async () => {
+    const fn = vi.fn().mockRejectedValue(networkError());
+
+    const promise = fetchWithRetry(fn, "test", translatorFor(deMessages)).catch(() => {});
+    await vi.advanceTimersByTimeAsync(1500);
+    await vi.advanceTimersByTimeAsync(3000);
+    await vi.advanceTimersByTimeAsync(5000);
+
+    await promise;
+
+    expect(toast.loading).toHaveBeenNthCalledWith(1, "Verbindungsproblem — Versuch 1/3...", {
+      id: "retry-test",
+      duration: 1500,
+    });
+    expect(toast.error).toHaveBeenCalledWith(
+      "Verbindung zum Server fehlgeschlagen. Bitte überprüfe deine Verbindung.",
+      { id: "retry-test" },
+    );
+  });
+
   it("does not call toast.dismiss when first attempt succeeds", async () => {
     const fn = vi.fn().mockResolvedValue("ok");
 
-    await fetchWithRetry(fn, "test");
+    await fetchWithRetry(fn, "test", t);
 
     expect(toast.dismiss).not.toHaveBeenCalled();
   });
@@ -142,7 +186,7 @@ describe("fetchWithRetry", () => {
       .mockRejectedValueOnce(new ApiError(503, "Service unavailable"))
       .mockResolvedValue("ok");
 
-    const promise = fetchWithRetry(fn, "test");
+    const promise = fetchWithRetry(fn, "test", t);
     await vi.advanceTimersByTimeAsync(1500);
 
     expect(await promise).toBe("ok");
@@ -157,7 +201,7 @@ describe("fetchWithRetry", () => {
     const error = new ApiError(401, "Authenticate as a guest or account before using multiplayer.");
     const fn = vi.fn().mockRejectedValue(error);
 
-    const caught = await fetchWithRetry(fn, "games").catch((e) => e);
+    const caught = await fetchWithRetry(fn, "games", t).catch((e) => e);
 
     expect(caught).toBe(error);
     expect(fn).toHaveBeenCalledTimes(1);
@@ -170,7 +214,7 @@ describe("fetchWithRetry", () => {
     const error = new ApiError(403, "Forbidden");
     const fn = vi.fn().mockRejectedValue(error);
 
-    const caught = await fetchWithRetry(fn, "test").catch((e) => e);
+    const caught = await fetchWithRetry(fn, "test", t).catch((e) => e);
 
     expect(caught).toBe(error);
     expect(fn).toHaveBeenCalledTimes(1);
@@ -181,7 +225,7 @@ describe("fetchWithRetry", () => {
     const error = new TypeError("boom");
     const fn = vi.fn().mockRejectedValue(error);
 
-    const caught = await fetchWithRetry(fn, "test").catch((e) => e);
+    const caught = await fetchWithRetry(fn, "test", t).catch((e) => e);
 
     expect(caught).toBe(error);
     expect(fn).toHaveBeenCalledTimes(1);
@@ -194,7 +238,7 @@ describe("fetchWithRetry", () => {
       .mockRejectedValueOnce(networkError())
       .mockRejectedValue(new ApiError(401, "Not authenticated"));
 
-    const promise = fetchWithRetry(fn, "games").catch((e) => e);
+    const promise = fetchWithRetry(fn, "games", t).catch((e) => e);
     await vi.advanceTimersByTimeAsync(1500);
 
     const caught = await promise;

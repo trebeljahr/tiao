@@ -1,8 +1,19 @@
+import type { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { isRetryableError } from "./errors";
 
 const MAX_RETRIES = 3;
 const RETRY_DELAYS = [1500, 3000, 5000];
+
+/**
+ * The `error`-namespace translator, as returned by `useTranslations("error")`.
+ *
+ * `fetchWithRetry` is a plain async function, so it can't call the hook
+ * itself — callers (all of which are hooks or components) pass their `t` in.
+ * Same pattern as `achievementLabels.ts`: next-intl's `t` is referentially
+ * stable across renders, so it's safe in a `useCallback` dependency list.
+ */
+export type ErrorTranslator = ReturnType<typeof useTranslations<"error">>;
 
 /**
  * Wraps an async fetch call with up to 3 retries and toast notifications.
@@ -24,7 +35,11 @@ const RETRY_DELAYS = [1500, 3000, 5000];
  * connectivity failure is what surfaced a spurious "connection lost" toast
  * on the lobby for users who were never logged in.
  */
-export async function fetchWithRetry<T>(fn: () => Promise<T>, label: string): Promise<T> {
+export async function fetchWithRetry<T>(
+  fn: () => Promise<T>,
+  label: string,
+  t: ErrorTranslator,
+): Promise<T> {
   const toastId = `retry-${label}`;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
@@ -47,13 +62,13 @@ export async function fetchWithRetry<T>(fn: () => Promise<T>, label: string): Pr
 
       if (attempt < MAX_RETRIES) {
         const next = attempt + 1;
-        toast.loading(`Connection issue — retrying (${next}/${MAX_RETRIES})...`, {
+        toast.loading(t("connectionRetrying", { attempt: next, max: MAX_RETRIES }), {
           id: toastId,
           duration: RETRY_DELAYS[attempt],
         });
         await new Promise((r) => setTimeout(r, RETRY_DELAYS[attempt]));
       } else {
-        toast.error("Could not connect to the server. Please check your connection.", {
+        toast.error(t("connectionError"), {
           id: toastId,
         });
         throw error;

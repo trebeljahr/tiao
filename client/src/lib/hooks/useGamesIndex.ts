@@ -1,4 +1,5 @@
 import type { AuthResponse, MultiplayerGamesIndex, PlayerColor, PlayerIdentity } from "@shared";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { listMultiplayerGames } from "../api";
 import { fetchWithRetry } from "../fetchWithRetry";
@@ -28,6 +29,7 @@ function applyIdentityPatch(
 }
 
 export function useGamesIndex(auth: AuthResponse | null) {
+  const t = useTranslations("error");
   const [multiplayerGames, setMultiplayerGames] = useState<MultiplayerGamesIndex>({
     active: [],
     finished: [],
@@ -72,7 +74,7 @@ export function useGamesIndex(auth: AuthResponse | null) {
       try {
         const response = options.silent
           ? await listMultiplayerGames()
-          : await fetchWithRetry(() => listMultiplayerGames(), "games");
+          : await fetchWithRetry(() => listMultiplayerGames(), "games", t);
         applyMultiplayerGamesIndex(response.games);
       } catch {
         // Mark as loaded even on error to prevent infinite retry loops
@@ -81,7 +83,7 @@ export function useGamesIndex(auth: AuthResponse | null) {
         setMultiplayerGamesLoading(false);
       }
     },
-    [auth, applyMultiplayerGamesIndex],
+    [auth, applyMultiplayerGamesIndex, t],
   );
 
   // Initial fetch — only runs once per auth identity (guarded by multiplayerGamesLoaded)
