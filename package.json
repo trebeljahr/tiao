@@ -20,6 +20,7 @@
     "dev:desktop": "node scripts/dev-desktop.mjs",
     "steam:achievements": "node scripts/steam-achievements.mjs",
     "steam:achievements:check": "node scripts/steam-achievements.mjs --check",
+    "steam:icons": "node scripts/steam-achievement-icons.mjs",
     "dev:desktop:prod": "pnpm --dir ./desktop run dev:prod",
     "typecheck": "concurrently --kill-others-on-fail -n client,server -c blue,green \"npm:typecheck:client\" \"npm:typecheck:server\"",
     "typecheck:client": "pnpm --dir ./client run typecheck",

@@ -97,3 +97,6 @@ venv/
 .env.test
 .envrc.local
 .vercel/
+
+# Generated Steam upload assets (regenerate with `pnpm steam:icons`)
+/build/

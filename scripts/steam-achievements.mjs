@@ -28,7 +28,7 @@
  * mismatch is a diff instead of an archaeology session.
  */
 
-import { readFileSync } from "node:fs";
+import { readFileSync, realpathSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -68,7 +68,7 @@ const DESCRIPTION_SOFT_MAX = 100;
  * refactor that breaks the assumption fails loudly instead of silently
  * reporting three achievements.
  */
-function parseAchievements() {
+export function parseAchievements() {
   const src = readFileSync(SOURCE, "utf8");
   const body = src.slice(src.indexOf("export const ACHIEVEMENTS"));
 
@@ -219,4 +219,9 @@ function main() {
   printTable(achievements);
 }
 
-main();
+// Only run the CLI when invoked directly. `steam-achievement-icons.mjs`
+// imports parseAchievements() from here rather than carrying a second
+// copy of the parser that could drift from this one.
+if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main();
+}
