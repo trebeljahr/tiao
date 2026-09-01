@@ -50,6 +50,7 @@ const {
   unlockAchievement: unlockSteamAchievement,
   indicateAchievementProgress: indicateSteamAchievementProgress,
   getAchievementStates: getSteamAchievementStates,
+  setStats: setSteamStats,
   openOverlay: openSteamOverlay,
   openOverlayUrl: openSteamOverlayUrl,
 } = require("./src/steam.cjs");
@@ -403,6 +404,15 @@ function registerSteamIpc() {
   ipcMain.handle("steam:getAchievementStates", async (_event, apiNames) => {
     if (!Array.isArray(apiNames)) return {};
     return getSteamAchievementStates(apiNames);
+  });
+  // Write the progress-bar stats. Takes a whole record rather than one
+  // stat per call: Steam only flushes on store(), and store() is
+  // rate-limited, so batching is both faster and better behaved.
+  ipcMain.handle("steam:setStats", async (_event, stats) => {
+    if (!stats || typeof stats !== "object" || Array.isArray(stats)) {
+      return { ok: false, written: 0, stored: false };
+    }
+    return setSteamStats(stats);
   });
   // Open one of Steam's named overlay panels.  Returns true if the
   // overlay was activated, false if Steam is inactive or refused the

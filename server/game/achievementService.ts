@@ -1,5 +1,6 @@
 import { isValidObjectId } from "mongoose";
 import { type AchievementDefinition, getAchievementById } from "../../shared/src/achievements";
+import type { AchievementProgress } from "../../shared/src/steamStats";
 import type { GameState, JumpTurn, PlayerColor } from "../../shared/src/tiao";
 import { getFinishReason, getWinner, isBoardMove } from "../../shared/src/tiao";
 import { ACHIEVEMENT_BADGE_MAP } from "../config/badgeRewards";
@@ -400,6 +401,33 @@ export async function onAIGameWon(playerId: string, difficulty: 1 | 2 | 3): Prom
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/**
+ * Current values behind the progress-bar achievements.
+ *
+ * Mirrors the counts this service already checks when granting: games played
+ * from the account's rating record, losses by replaying finished games, and
+ * friends from the account's own list. Kept next to the granting logic on
+ * purpose — if a threshold check here and the value reported to Steam ever
+ * disagreed, the progress bar would drift away from the unlock.
+ *
+ * Cost note: `countLosses` scans every finished game for the player. That is
+ * already paid on each game end, but it makes this a deliberately
+ * low-frequency call — the desktop client fetches it on the achievements
+ * screen, not per render.
+ */
+export async function getAchievementProgress(playerId: string): Promise<AchievementProgress> {
+  const account = await GameAccount.findById(playerId);
+  if (!account) {
+    return { gamesPlayed: 0, gamesLost: 0, friendCount: 0 };
+  }
+
+  return {
+    gamesPlayed: account.rating?.overall?.gamesPlayed ?? 0,
+    gamesLost: await countLosses(playerId),
+    friendCount: account.friends?.length ?? 0,
+  };
+}
 
 async function countLosses(playerId: string): Promise<number> {
   // Count finished games where this player lost

@@ -34,6 +34,9 @@ type SteamBridge = {
     max: number,
   ) => Promise<{ ok: true } | { ok: false; reason: string }>;
   getAchievementStates: (apiNames: string[]) => Promise<Record<string, boolean>>;
+  setStats: (
+    stats: Record<string, number>,
+  ) => Promise<{ ok: boolean; written: number; stored: boolean }>;
   openOverlay: (dialog: SteamOverlayDialog) => Promise<boolean>;
   openOverlayUrl: (url: string) => Promise<boolean>;
 };
@@ -161,6 +164,34 @@ export async function openSteamOverlayUrl(url: string): Promise<boolean> {
   if (!(await isSteamActive())) return false;
   try {
     return await bridge.openOverlayUrl(url);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Push integer stats to Steam and persist them.
+ *
+ * Stats are what put a progress bar on a partly-completed achievement
+ * ("37 / 100 games"). They are independent of unlocking: pushing a stat
+ * never unlocks anything, and `unlockSteamAchievement` never moves a bar.
+ * Tiao's server grants the unlocks, so this exists purely so the bar agrees
+ * with the unlock the player already has.
+ *
+ * Sent as one record rather than per-stat because Steam buffers writes and
+ * flushes on a rate-limited `store()` — see `setStats` in desktop/src/steam.cjs.
+ *
+ * Returns false when Steam isn't active, so callers can fire it
+ * unconditionally.
+ */
+export async function setSteamStats(stats: Record<string, number>): Promise<boolean> {
+  const bridge = getBridge();
+  if (!bridge) return false;
+  if (Object.keys(stats).length === 0) return false;
+  if (!(await isSteamActive())) return false;
+  try {
+    const res = await bridge.setStats(stats);
+    return res.ok;
   } catch {
     return false;
   }

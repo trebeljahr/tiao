@@ -81,6 +81,7 @@
  *   unlockAchievement(apiName) → Steam API name (not localised label)
  *   indicateAchievementProgress(apiName, current, max)
  *   getAchievementStates(names) → { [apiName]: boolean } batch fetch
+ *   setStats(stats)            → write + persist integer stats
  *   openOverlay(dialog)        → activate Friends / Achievements / etc.
  *   openOverlayUrl(url)        → activate overlay to a web URL
  *
@@ -378,6 +379,58 @@ function getAchievementStates(apiNames) {
 }
 
 /**
+ * Write integer stats and persist them to Steam in one shot.
+ *
+ * Stats are what drive the progress bars Steam shows on partially-completed
+ * achievements ("37 / 100 games"). They are a separate mechanism from
+ * unlocking: `unlockAchievement` never moves a bar, and setting a stat never
+ * unlocks anything. Both have to happen.
+ *
+ * Batched deliberately. Steam buffers stat writes locally and only sends them
+ * on `store()`, so setting three stats and storing once is one round trip to
+ * Steam's servers instead of three. `store()` is also rate-limited by Valve,
+ * which makes per-stat storing a bad habit at any scale.
+ *
+ * Values are floored to integers — every Tiao stat is a count, and Steam
+ * rejects a float written to an INT stat.
+ *
+ * @param {Record<string, number>} stats  API name → value
+ * @returns {{ ok: boolean; written: number; stored: boolean }}
+ */
+function setStats(stats) {
+  if (!client) return { ok: false, written: 0, stored: false };
+  if (!stats || typeof stats !== "object") return { ok: false, written: 0, stored: false };
+
+  let written = 0;
+  for (const [name, value] of Object.entries(stats)) {
+    if (typeof name !== "string" || !name) continue;
+    if (typeof value !== "number" || !Number.isFinite(value)) continue;
+    try {
+      if (typeof client.stats?.setInt === "function") {
+        client.stats.setInt(name, Math.max(0, Math.floor(value)));
+        written++;
+      }
+    } catch (err) {
+      // One bad stat name shouldn't cost the others their write.
+      console.warn(`[steam] setInt(${name}) failed:`, err);
+    }
+  }
+
+  if (written === 0) return { ok: false, written: 0, stored: false };
+
+  try {
+    if (typeof client.stats?.store === "function") {
+      client.stats.store();
+      return { ok: true, written, stored: true };
+    }
+    return { ok: true, written, stored: false };
+  } catch (err) {
+    console.error("[steam] stats.store() failed:", err);
+    return { ok: false, written, stored: false };
+  }
+}
+
+/**
  * Steam overlay panel codes. The numeric values mirror the Steamworks
  * SDK's `EOverlayToStoreFlag` / dialog-name enum. We accept the named
  * string from the renderer (typo-safe, no magic numbers in renderer
@@ -458,6 +511,7 @@ module.exports = {
   unlockAchievement,
   indicateAchievementProgress,
   getAchievementStates,
+  setStats,
   openOverlay,
   openOverlayUrl,
 };

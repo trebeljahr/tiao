@@ -41,6 +41,16 @@ export type AchievementDefinition = {
   secret: boolean;
   /** For progressive achievements — the target count. */
   threshold?: number;
+  /**
+   * Steam stat backing this achievement's progress bar, if any.
+   *
+   * Only meaningful alongside `threshold`: the pair becomes the stat plus
+   * the `max` configured against it in the Partner Portal. Several
+   * achievements intentionally share one stat at different thresholds — see
+   * `steamStats.ts`. Achievements granted from a single event rather than an
+   * accumulating count leave this unset.
+   */
+  progressStat?: string;
   /** Sort order within category. */
   order: number;
 };
@@ -70,6 +80,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     tier: "bronze",
     secret: false,
     threshold: 5,
+    progressStat: "STAT_GAMES_PLAYED",
     order: 1,
   },
   {
@@ -81,6 +92,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     tier: "silver",
     secret: false,
     threshold: 10,
+    progressStat: "STAT_GAMES_PLAYED",
     order: 2,
   },
   {
@@ -92,6 +104,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     tier: "gold",
     secret: false,
     threshold: 100,
+    progressStat: "STAT_GAMES_PLAYED",
     order: 3,
   },
   {
@@ -103,6 +116,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     tier: "platinum",
     secret: false,
     threshold: 1000,
+    progressStat: "STAT_GAMES_PLAYED",
     order: 4,
   },
 
@@ -116,6 +130,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     tier: "bronze",
     secret: false,
     threshold: 1,
+    progressStat: "STAT_GAMES_LOST",
     order: 10,
   },
   {
@@ -127,6 +142,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     tier: "silver",
     secret: false,
     threshold: 5,
+    progressStat: "STAT_GAMES_LOST",
     order: 11,
   },
   {
@@ -138,6 +154,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     tier: "gold",
     secret: false,
     threshold: 10,
+    progressStat: "STAT_GAMES_LOST",
     order: 12,
   },
 
@@ -215,6 +232,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     tier: "bronze",
     secret: false,
     threshold: 1,
+    progressStat: "STAT_FRIENDS",
     order: 40,
   },
   {
@@ -226,6 +244,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     tier: "gold",
     secret: false,
     threshold: 10,
+    progressStat: "STAT_FRIENDS",
     order: 41,
   },
 

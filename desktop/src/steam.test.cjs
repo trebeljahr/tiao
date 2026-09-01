@@ -30,6 +30,7 @@ const {
   unlockAchievement,
   indicateAchievementProgress,
   getAchievementStates,
+  setStats,
   openOverlay,
   openOverlayUrl,
   OVERLAY_DIALOG_CODES,
@@ -97,6 +98,24 @@ describe("inactive-client safety", () => {
 
   test("indicateAchievementProgress is a no-op (no throw)", () => {
     assert.doesNotThrow(() => indicateAchievementProgress("ACH_TEST", 1, 10));
+  });
+
+  test("setStats reports failure without writing when the client is null", () => {
+    // Stats drive achievement progress bars. With no Steam client there is
+    // nothing to write to, and the caller needs to know the push didn't
+    // land rather than assuming Steam has the value.
+    assert.deepEqual(setStats({ STAT_GAMES_PLAYED: 5 }), {
+      ok: false,
+      written: 0,
+      stored: false,
+    });
+  });
+
+  test("setStats tolerates junk input without throwing", () => {
+    for (const bad of [null, undefined, "nope", 42, []]) {
+      // @ts-expect-error — intentionally passing non-record values
+      assert.doesNotThrow(() => setStats(bad));
+    }
   });
 
   test("getAchievementStates returns {} for any input shape", () => {

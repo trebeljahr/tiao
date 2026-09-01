@@ -201,6 +201,16 @@ contextBridge.exposeInMainWorld("electron", {
     getAchievementStates: (apiNames) => ipcRenderer.invoke("steam:getAchievementStates", apiNames),
 
     /**
+     * Write integer stats and persist them, e.g.
+     * `{ STAT_GAMES_PLAYED: 37 }`. These drive the progress bars Steam
+     * draws on partly-completed achievements; unlocking is separate.
+     *
+     * @param {Record<string, number>} stats
+     * @returns {Promise<{ ok: boolean; written: number; stored: boolean }>}
+     */
+    setStats: (stats) => ipcRenderer.invoke("steam:setStats", stats),
+
+    /**
      * Activate one of Steam's named overlay panels. Returns false when
      * Steam isn't active or the dialog name is unrecognized so the
      * renderer can fall back to an in-app dialog.

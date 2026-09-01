@@ -21,6 +21,7 @@ import { getMyAchievements, type PlayerAchievement } from "@/lib/api";
 import { useLobbyMessage } from "@/lib/LobbySocketContext";
 import { isSteamActive, openSteamOverlay } from "@/lib/SteamBridge";
 import { useSteamAchievementSync } from "@/lib/useSteamAchievementSync";
+import { useSteamStatsSync } from "@/lib/useSteamStatsSync";
 
 const CATEGORY_ICONS: Record<AchievementCategory, string> = {
   games: "\u265f\ufe0e", // chess pawn
@@ -97,6 +98,11 @@ export function AchievementsPage() {
   // refiring on every render of this page.
   const unlockedIds = useMemo(() => achievements.map((a) => a.achievementId), [achievements]);
   useSteamAchievementSync(unlockedIds);
+
+  // Mirror the raw counts into Steam stats so partly-completed achievements
+  // show a progress bar. Gated on being a signed-in account: the counts are
+  // per-player and the endpoint 401s for guests.
+  useSteamStatsSync(auth?.player.kind === "account");
 
   // Detect Steam once on mount so the "Open in Steam" button only
   // renders inside the packaged Electron Steam build with a live

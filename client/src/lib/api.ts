@@ -1,5 +1,6 @@
 import type {
   AchievementDefinition,
+  AchievementProgress,
   AuthResponse,
   FriendActiveGameSummary,
   MultiplayerGameSummary,
@@ -826,6 +827,16 @@ export type AchievementsResponse = {
 
 export function getMyAchievements() {
   return request<AchievementsResponse>("/api/player/achievements");
+}
+
+/**
+ * Raw counts behind the progress-bar achievements. Only the Steam desktop
+ * build needs these — it mirrors them into Steam stats so the overlay draws
+ * progress. Noticeably more expensive than getMyAchievements(); don't call it
+ * on every render.
+ */
+export function getAchievementProgress() {
+  return request<AchievementProgress>("/api/player/achievements/progress");
 }
 
 export function getPlayerAchievements(username: string) {

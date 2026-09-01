@@ -1,7 +1,11 @@
 import { type Request, type Response, Router } from "express";
 import { ACHIEVEMENTS } from "../../shared/src/achievements";
 import { getPlayerFromRequest } from "../auth/sessionHelper";
-import { getPlayerAchievements, onAIGameWon } from "../game/achievementService";
+import {
+  getAchievementProgress,
+  getPlayerAchievements,
+  onAIGameWon,
+} from "../game/achievementService";
 import GameAccount from "../models/GameAccount";
 
 const router = Router();
@@ -22,6 +26,31 @@ router.get("/achievements", async (req: Request, res: Response) => {
   } catch (error) {
     console.error("[achievements] Error fetching own achievements:", error);
     return res.status(500).json({ error: "Unable to load achievements." });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// GET /achievements/progress — counts behind the progress-bar achievements
+// ---------------------------------------------------------------------------
+//
+// Exists for the Steam build: Steam only draws a progress bar on an
+// achievement when the game pushes the backing stat's value, so the desktop
+// client needs the raw counts, not just which achievements are unlocked.
+//
+// Separate from GET /achievements because it is markedly more expensive (see
+// getAchievementProgress) and the web client has no use for it.
+
+router.get("/achievements/progress", async (req: Request, res: Response) => {
+  try {
+    const player = await getPlayerFromRequest(req);
+    if (!player || player.kind !== "account") {
+      return res.status(401).json({ error: "Authentication required." });
+    }
+
+    return res.json(await getAchievementProgress(player.playerId));
+  } catch (error) {
+    console.error("[achievements] Error fetching progress:", error);
+    return res.status(500).json({ error: "Unable to load achievement progress." });
   }
 });
 
