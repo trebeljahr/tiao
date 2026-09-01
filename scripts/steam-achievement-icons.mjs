@@ -14,6 +14,19 @@
  * overlay and the web app cannot show different art for the same
  * achievement.
  *
+ * The Partner Portal's own guidance, quoted from the achievement
+ * configuration page:
+ *
+ *   "For best results, achievement icons should be 256x256 px JPG
+ *    images. They can be as small as 64x64, but it is recommended you
+ *    use the larger size. We recommend that achieved icons be colorful;
+ *    unachieved icons should be grayscale."
+ *
+ * Hence 256x256 JPG as the primary output. PNG is written alongside
+ * because the upload endpoint accepts it and it is the better format
+ * for flat-colour line art; the JPGs exist to match Valve's stated
+ * expectation. 64x64 is kept as a fallback.
+ *
  * Usage:
  *   node scripts/steam-achievement-icons.mjs
  *   node scripts/steam-achievement-icons.mjs --out some/dir
@@ -155,6 +168,7 @@ function resolveRasterizer() {
     return (svg, png, size) =>
       execFileSync("rsvg-convert", ["-w", String(size), "-h", String(size), "-o", png, svg]);
   }
+
   if (has("magick")) {
     // Render at high density then downsample — ImageMagick rasterises
     // SVG at the document size first, so converting straight to 64px
@@ -178,6 +192,16 @@ function resolveRasterizer() {
   process.exit(1);
 }
 
+/**
+ * Flatten a rendered PNG to JPG. The tiles are fully opaque, so there
+ * is no alpha to lose — but JPG has no alpha at all, and a transparent
+ * source would composite against black and ruin the artwork, so the
+ * white matte is set explicitly rather than left to chance.
+ */
+function toJpeg(png, jpg) {
+  execFileSync("magick", [png, "-background", "white", "-flatten", "-quality", "92", jpg]);
+}
+
 function main() {
   const args = parseArgs(process.argv.slice(2));
   const achievements = parseAchievements();
@@ -189,6 +213,16 @@ function main() {
   }
 
   const rasterize = resolveRasterizer();
+
+  // JPG is what Valve asks for, but it needs ImageMagick. Missing it
+  // degrades to PNG-only rather than failing — the endpoint takes both.
+  let canJpeg = true;
+  try {
+    execFileSync("/usr/bin/env", ["which", "magick"], { stdio: "ignore" });
+  } catch {
+    canJpeg = false;
+    console.warn("warning: magick not found — writing PNG only (Valve's docs ask for JPG)");
+  }
 
   // One tsx process for all 60 renders. Spawning per icon would spend
   // more time starting node than drawing.
@@ -231,6 +265,11 @@ function main() {
         rasterize(svgPath, pngPath, size);
         if (!args.svg) rmSync(svgPath);
         written++;
+
+        if (canJpeg) {
+          toJpeg(pngPath, join(dir, `${a.steamKey}-${state}.jpg`));
+          written++;
+        }
       }
     }
   }
@@ -240,9 +279,11 @@ function main() {
     process.exitCode = 1;
   }
 
-  console.log(`Wrote ${written} PNGs to ${args.out}`);
+  console.log(`Wrote ${written} files to ${args.out}`);
   for (const size of SIZES) {
-    console.log(`  ${size}x${size}/  ${achievements.length * 2} files`);
+    console.log(
+      `  ${size}x${size}/  ${achievements.length * 2} icons${canJpeg ? " (.jpg + .png)" : " (.png)"}`,
+    );
   }
   console.log("Upload the 256x256 set — Steam stores that and downscales for the lists.");
 }
