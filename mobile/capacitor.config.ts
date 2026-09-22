@@ -19,13 +19,17 @@ import type { CapacitorConfig } from "@capacitor/cli";
  *     NEXT_PUBLIC_MOBILE_API_URL (default: production). The Capacitor
  *     WebView has no preload bridge to inject a URL at runtime the
  *     way the Electron build does.
- *   • Bundle id is `site.playtiao.mobile`. The Android Java naming
- *     rules forbid hyphens, so the desktop appId (`site.playtiao.desktop`)
- *     stays distinct from this one and is namespaced under the same
- *     reverse-DNS prefix.
+ *   • Bundle id is `com.ricoslabs.tiao` — the same appId the Electron
+ *     desktop build uses (`../desktop/package.json`), registered as an
+ *     Apple App ID under the Ricos Labs LLC team (4BHY8H2J25). One id
+ *     lets the iOS and macOS / Mac App Store builds share one App Store
+ *     Connect record. `cap add` writes it into the native projects once
+ *     (PRODUCT_BUNDLE_IDENTIFIER, applicationId / namespace); a later
+ *     change here does not reach an already generated ios/ or android/.
+ *     Registered is final: the App ID cannot be renamed.
  */
 const config: CapacitorConfig = {
-  appId: "site.playtiao.mobile",
+  appId: "com.ricoslabs.tiao",
   appName: "Tiao",
   webDir: "../client/.next-mobile",
 

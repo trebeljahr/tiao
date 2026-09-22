@@ -130,7 +130,9 @@ iOS release builds require:
 
 1. An Apple Developer Program membership.
 2. A Team ID configured in Xcode (Signing & Capabilities tab of the
-   App target).
+   App target). The bundle id is `com.ricoslabs.tiao` (from
+   `capacitor.config.ts`, shared with the desktop build), registered
+   under the Ricos Labs LLC team `4BHY8H2J25`.
 3. A distribution certificate + provisioning profile in your keychain.
 
 Once those are in place, use Xcode's **Product → Archive** to produce

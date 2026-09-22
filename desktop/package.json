@@ -40,7 +40,7 @@
     "typescript": "^5.8.3"
   },
   "build": {
-    "appId": "site.playtiao.desktop",
+    "appId": "com.ricoslabs.tiao",
     "productName": "Tiao",
     "copyright": "Copyright © 2026 Tiao contributors",
     "asar": true,
