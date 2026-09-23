@@ -8,6 +8,8 @@ root.
 | `db-backup.sh` | Dump MongoDB, upload the archive with rclone, prune old copies. See below. |
 | `dev.mjs` / `dev-preview.sh` | Start client, server and infra for development. |
 | `dev-desktop.mjs` | Dev orchestrator for the Electron desktop app. |
+| `discord-register-commands.ts` | Bulk-register the Tiao slash commands with Discord (`pnpm discord:register`). |
+| `discord-setup.ts` | Bootstrap the community Discord server: categories, channels, roles, game-results webhook. Idempotent; `pnpm setup:discord --dry-run` prints the plan. |
 | `measure-cold-compile.mjs` | Measure client cold-compile time for a Next.js route. |
 | `seed-tournament.mjs` | Dev-only: create bot accounts and drive a tournament. |
 | `steam-achievements.mjs` | Turn `shared/src/achievements.ts` into Partner Portal shapes. |
