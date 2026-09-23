@@ -598,6 +598,16 @@ export function Navbar({
             ·
           </span>
           <Link
+            href="/press"
+            onClick={onCloseNav}
+            className="font-medium underline-offset-2 hover:text-[#28170e] hover:underline"
+          >
+            {tLegal("press")}
+          </Link>
+          <span aria-hidden className="opacity-40">
+            ·
+          </span>
+          <Link
             href="/impressum"
             onClick={onCloseNav}
             className="font-medium underline-offset-2 hover:text-[#28170e] hover:underline"

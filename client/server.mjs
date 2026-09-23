@@ -36,6 +36,8 @@ const MIME_TYPES = {
   ".ico": "image/x-icon",
   ".webp": "image/webp",
   ".webm": "video/webm",
+  // Press kit bundle at /press/tiao-press-kit.zip (see views/PressPage.tsx).
+  ".zip": "application/zip",
   // Service worker bundles (e.g. /sw.js) must be served with a JS
   // content type — Chromium refuses to register a worker whose
   // script is delivered as application/octet-stream, which blocks
