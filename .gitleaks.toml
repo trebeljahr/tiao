@@ -95,7 +95,10 @@ paths = [
     '''(?:^|/)coverage/''',
     '''(?:^|/)dist/''',
     '''(?:^|/)out/''',
-    '''^build/''',
+    # any build/ output dir (docs-site/build, mobile native builds, root
+    # Steam asset build). desktop/build/ is tracked but holds only icons
+    # and the macOS entitlements plist, so losing it here costs nothing.
+    '''(?:^|/)build/''',
     '''^\.claude/worktrees/''',
     '''^SECURITY-AUDIT\.md$''',
 ]
