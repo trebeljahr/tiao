@@ -1,6 +1,7 @@
 import express, { type Request as ExpressRequest, type Response } from "express";
 import mongoose from "mongoose";
-import type { PlayerIdentity } from "../../shared/src";
+import type { PlayerIdentity, PublicGameReplay } from "../../shared/src";
+import { getFinishReason, getWinner } from "../../shared/src";
 import { getPlayerFromRequest } from "../auth/sessionHelper";
 import { applySsoProfilePicturesToSummaries } from "../auth/ssoProfilePicture";
 import { handleRouteError } from "../error-handling/routeError";
@@ -502,6 +503,63 @@ router.get("/games/:gameId/og", async (req: ExpressRequest, res: Response) => {
     });
   } catch {
     return res.status(500).json({ code: "INTERNAL_ERROR", message: "Unable to load game info." });
+  }
+});
+
+/**
+ * @openapi
+ * /api/games/{gameId}/replay:
+ *   get:
+ *     summary: Public replay data for a finished game (no auth required)
+ *     description: |
+ *       Backs the embeddable `/embed/game/{gameId}` page, which runs inside
+ *       third-party iframes where the session cookie is never sent. Only
+ *       finished games are served; waiting or active games return 404 so
+ *       the endpoint cannot be used to peek at live positions.
+ *     tags:
+ *       - Games
+ *     parameters:
+ *       - in: path
+ *         name: gameId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Finished game replay payload
+ *       404:
+ *         description: Game not found or not finished yet
+ */
+router.get("/games/:gameId/replay", async (req: ExpressRequest, res: Response) => {
+  if (!isValidGameId(req.params.gameId as string)) {
+    return res.status(400).json({ code: "INVALID_GAME_ID", message: "Invalid game ID." });
+  }
+
+  try {
+    const snapshot = await gameService.getSnapshot(req.params.gameId as string);
+    if (snapshot.status !== "finished") {
+      return res
+        .status(404)
+        .json({ code: "GAME_NOT_FINISHED", message: "Only finished games can be replayed." });
+    }
+
+    const replay: PublicGameReplay = {
+      gameId: snapshot.gameId,
+      status: "finished",
+      boardSize: snapshot.state.boardSize,
+      scoreToWin: snapshot.state.scoreToWin,
+      score: snapshot.state.score,
+      history: snapshot.state.history,
+      winner: getWinner(snapshot.state),
+      finishReason: getFinishReason(snapshot.state),
+      white: snapshot.seats.white ? { displayName: snapshot.seats.white.player.displayName } : null,
+      black: snapshot.seats.black ? { displayName: snapshot.seats.black.player.displayName } : null,
+      createdAt: snapshot.createdAt,
+      updatedAt: snapshot.updatedAt,
+    };
+    return res.status(200).json({ replay });
+  } catch (error) {
+    return handleRouteError(res, error, "Unable to load that game right now.", req);
   }
 });
 

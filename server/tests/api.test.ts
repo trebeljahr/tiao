@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, test } from "node:test";
-import type { AuthResponse, MultiplayerSnapshot } from "../../shared/src";
+import type { AuthResponse, MultiplayerSnapshot, PublicGameReplay } from "../../shared/src";
 import {
   createTestGuest,
   installTestSessionMock,
@@ -22,6 +22,7 @@ type PatchedGameService = {
   enterMatchmaking: unknown;
   getMatchmakingState: unknown;
   leaveMatchmaking: unknown;
+  testForceFinishGame: unknown;
 };
 
 type TestRouter = {
@@ -233,6 +234,7 @@ beforeEach(async () => {
     enterMatchmaking: singletonGameService.enterMatchmaking,
     getMatchmakingState: singletonGameService.getMatchmakingState,
     leaveMatchmaking: singletonGameService.leaveMatchmaking,
+    testForceFinishGame: singletonGameService.testForceFinishGame,
   };
 
   singletonGameService.createGame = service.createGame.bind(service);
@@ -243,6 +245,7 @@ beforeEach(async () => {
   singletonGameService.enterMatchmaking = service.enterMatchmaking.bind(service);
   singletonGameService.getMatchmakingState = service.getMatchmakingState.bind(service);
   singletonGameService.leaveMatchmaking = service.leaveMatchmaking.bind(service);
+  singletonGameService.testForceFinishGame = service.testForceFinishGame.bind(service);
 
   indexRoutes = indexRoutesModule.default as TestRouter;
   gameAuthRoutes = gameAuthRoutesModule.default as TestRouter;
@@ -440,4 +443,75 @@ test("multiplayer routes reject unauthenticated callers", async () => {
     response.body.message,
     /authenticate as a guest or account before using multiplayer/i,
   );
+});
+
+test("public replay endpoint serves finished games without auth and hides live ones", async () => {
+  const host = await createGuest("Host");
+  const challenger = await createGuest("Challenger");
+
+  const created = await invokeRoute<{ snapshot: MultiplayerSnapshot }>(gameRoutes, {
+    method: "post",
+    path: "/games",
+    cookie: host.cookie,
+  });
+  assert.equal(created.status, 201);
+  const gameId = created.body.snapshot.gameId;
+
+  // Waiting game: not replayable (and must not leak the position).
+  const waiting = await invokeRoute<{ code: string }>(gameRoutes, {
+    method: "get",
+    path: "/games/:gameId/replay",
+    params: { gameId },
+  });
+  assert.equal(waiting.status, 404);
+  assert.equal(waiting.body.code, "GAME_NOT_FINISHED");
+
+  const joined = await invokeRoute<{ snapshot: MultiplayerSnapshot }>(gameRoutes, {
+    method: "post",
+    path: "/games/:gameId/join",
+    params: { gameId },
+    cookie: challenger.cookie,
+  });
+  assert.equal(joined.status, 200);
+
+  // Active game: still hidden.
+  const active = await invokeRoute<{ code: string }>(gameRoutes, {
+    method: "get",
+    path: "/games/:gameId/replay",
+    params: { gameId },
+  });
+  assert.equal(active.status, 404);
+
+  const finish = await invokeRoute<{ message: string }>(gameRoutes, {
+    method: "post",
+    path: "/games/:gameId/test-finish",
+    params: { gameId },
+    body: { winner: "white" },
+  });
+  assert.equal(finish.status, 200);
+
+  // Finished game: public, no cookie needed.
+  const replayed = await invokeRoute<{ replay: PublicGameReplay }>(gameRoutes, {
+    method: "get",
+    path: "/games/:gameId/replay",
+    params: { gameId },
+  });
+  assert.equal(replayed.status, 200);
+  const replay = replayed.body.replay;
+  assert.equal(replay.gameId, gameId);
+  assert.equal(replay.status, "finished");
+  assert.equal(replay.winner, "white");
+  assert.equal(replay.white?.displayName, "Host");
+  assert.equal(replay.black?.displayName, "Challenger");
+  assert.ok(Array.isArray(replay.history));
+  assert.equal(typeof replay.boardSize, "number");
+  // No player ids / emails leak through the public payload.
+  assert.equal("playerId" in (replay.white as object), false);
+
+  const invalid = await invokeRoute<{ code: string }>(gameRoutes, {
+    method: "get",
+    path: "/games/:gameId/replay",
+    params: { gameId: "nope!" },
+  });
+  assert.equal(invalid.status, 400);
 });

@@ -66,7 +66,8 @@
     "oauthErrorUserExists": "An account with that email already exists. Try logging in instead.",
     "oauthErrorCreateFailed": "Could not create your account. Please try again.",
     "oauthErrorAccessDenied": "Access was denied. Please try again and authorize the app.",
-    "desktopPersistenceWarning": "Sign-in won't be saved between sessions — secure storage is unavailable on this device."
+    "desktopPersistenceWarning": "Sign-in won't be saved between sessions — secure storage is unavailable on this device.",
+    "copiedEmbedCode": "Copied embed code"
   },
   "lobby": {
     "tagline": "A beautiful abstract strategy game. Play online, with friends, or against an AI.",
@@ -317,7 +318,8 @@
     "guestUpgradeCtaBody": "Create an account to save this game to your history and send friend requests.",
     "guestUpgradeCtaSignUp": "Sign up",
     "guestUpgradeCtaLogIn": "Log in",
-    "guestUpgradeBanner": "You're playing as {name}. <link>Create an account</link> to save this game and add friends."
+    "guestUpgradeBanner": "You're playing as {name}. <link>Create an account</link> to save this game and add friends.",
+    "copyEmbedCode": "Copy embed code"
   },
   "config": {
     "difficulty": "Difficulty",
@@ -931,6 +933,15 @@
     "achievementsDescription": "Track your Tiao achievements and milestones. Earn trophies by playing games, winning tournaments, and climbing the ladder.",
     "publicProfileTitle": "{name} on Tiao",
     "publicProfileDescription": "View {name}'s Tiao profile, match history, ratings, and badges."
+  },
+  "embed": {
+    "loading": "Loading game…",
+    "notAvailable": "This game can be replayed once it has finished.",
+    "notFound": "Game not found.",
+    "unavailable": "Could not load this game right now.",
+    "openOnTiao": "Open on Tiao",
+    "wins": "{name} wins",
+    "moveOf": "Move {current} of {total}"
   },
   "onboarding": {
     "title": "Set up your profile",

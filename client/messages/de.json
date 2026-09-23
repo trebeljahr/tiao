@@ -66,7 +66,8 @@
     "oauthErrorUserExists": "Ein Konto mit dieser E-Mail existiert bereits. Versuche dich stattdessen anzumelden.",
     "oauthErrorCreateFailed": "Konto konnte nicht erstellt werden. Bitte versuche es erneut.",
     "oauthErrorAccessDenied": "Zugriff verweigert. Bitte versuche es erneut und autorisiere die App.",
-    "desktopPersistenceWarning": "Anmeldung wird zwischen Sitzungen nicht gespeichert — sicherer Speicher ist auf diesem Gerät nicht verfügbar."
+    "desktopPersistenceWarning": "Anmeldung wird zwischen Sitzungen nicht gespeichert — sicherer Speicher ist auf diesem Gerät nicht verfügbar.",
+    "copiedEmbedCode": "Einbettungscode kopiert"
   },
   "lobby": {
     "tagline": "Ein wunderschönes abstraktes Strategiespiel. Spiele online, mit Freunden oder gegen eine KI.",
@@ -317,7 +318,8 @@
     "guestUpgradeCtaBody": "Erstelle ein Konto, um dieses Spiel in deinem Verlauf zu speichern und Freundschaftsanfragen zu senden.",
     "guestUpgradeCtaSignUp": "Registrieren",
     "guestUpgradeCtaLogIn": "Anmelden",
-    "guestUpgradeBanner": "Du spielst als {name}. <link>Erstelle ein Konto</link>, um dieses Spiel zu sichern und Freund*innen hinzuzufügen."
+    "guestUpgradeBanner": "Du spielst als {name}. <link>Erstelle ein Konto</link>, um dieses Spiel zu sichern und Freund*innen hinzuzufügen.",
+    "copyEmbedCode": "Einbettungscode kopieren"
   },
   "config": {
     "difficulty": "Schwierigkeit",
@@ -931,6 +933,15 @@
     "achievementsDescription": "Verfolge deine Tiao-Erfolge und Meilensteine. Verdiene Trophäen durch Spielen, Turniersiege und das Erklimmen der Rangliste.",
     "publicProfileTitle": "{name} auf Tiao",
     "publicProfileDescription": "Sieh dir Tiao-Profil, Spielverlauf, Wertung und Abzeichen von {name} an."
+  },
+  "embed": {
+    "loading": "Partie wird geladen…",
+    "notAvailable": "Diese Partie kann erst nach ihrem Ende wiedergegeben werden.",
+    "notFound": "Partie nicht gefunden.",
+    "unavailable": "Diese Partie konnte gerade nicht geladen werden.",
+    "openOnTiao": "Auf Tiao öffnen",
+    "wins": "{name} gewinnt",
+    "moveOf": "Zug {current} von {total}"
   },
   "onboarding": {
     "title": "Profil einrichten",

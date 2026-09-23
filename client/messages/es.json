@@ -66,7 +66,8 @@
     "oauthErrorUserExists": "Ya existe una cuenta con ese correo electrónico. Intenta iniciar sesión.",
     "oauthErrorCreateFailed": "No se pudo crear tu cuenta. Por favor, inténtalo de nuevo.",
     "oauthErrorAccessDenied": "Acceso denegado. Inténtalo de nuevo y autoriza la aplicación.",
-    "desktopPersistenceWarning": "El inicio de sesión no se guardará entre sesiones — el almacenamiento seguro no está disponible en este dispositivo."
+    "desktopPersistenceWarning": "El inicio de sesión no se guardará entre sesiones — el almacenamiento seguro no está disponible en este dispositivo.",
+    "copiedEmbedCode": "Código de inserción copiado"
   },
   "lobby": {
     "tagline": "Un elegante juego abstracto de estrategia. Juega en línea, con amigos o contra la IA.",
@@ -317,7 +318,8 @@
     "guestUpgradeCtaBody": "Crea una cuenta para guardar esta partida en tu historial y enviar solicitudes de amistad.",
     "guestUpgradeCtaSignUp": "Crear cuenta",
     "guestUpgradeCtaLogIn": "Iniciar sesión",
-    "guestUpgradeBanner": "Estás jugando como {name}. <link>Crea una cuenta</link> para guardar esta partida y añadir amig@s."
+    "guestUpgradeBanner": "Estás jugando como {name}. <link>Crea una cuenta</link> para guardar esta partida y añadir amig@s.",
+    "copyEmbedCode": "Copiar código de inserción"
   },
   "config": {
     "difficulty": "Dificultad",
@@ -931,6 +933,15 @@
     "achievementsDescription": "Sigue tus logros e hitos en Tiao. Gana trofeos jugando partidas, ganando torneos y subiendo en el ranking.",
     "publicProfileTitle": "{name} en Tiao",
     "publicProfileDescription": "Ve el perfil de Tiao, historial de partidas, puntuación e insignias de {name}."
+  },
+  "embed": {
+    "loading": "Cargando partida…",
+    "notAvailable": "Esta partida se podrá repetir cuando haya terminado.",
+    "notFound": "Partida no encontrada.",
+    "unavailable": "No se pudo cargar esta partida ahora mismo.",
+    "openOnTiao": "Abrir en Tiao",
+    "wins": "{name} gana",
+    "moveOf": "Jugada {current} de {total}"
   },
   "onboarding": {
     "title": "Configura tu perfil",

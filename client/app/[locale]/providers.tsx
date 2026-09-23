@@ -39,6 +39,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AnalyticsConsentProvider } from "@/lib/AnalyticsConsent";
 import { AuthProvider, useAuth } from "@/lib/AuthContext";
 import { toastError } from "@/lib/errors";
+import { isEmbedPath } from "@/lib/frameHeaders";
 import { getOAuthErrorMessage } from "@/lib/oauthErrors";
 import { LobbyProviders } from "./LobbyProviders";
 
@@ -240,6 +241,16 @@ function AppShell({ children }: { children: React.ReactNode }) {
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+
+  // `/embed/*` renders inside third-party iframes. It gets none of the
+  // app shell: no auth bootstrap (would mint a guest session per host
+  // page, and the cookie is blocked cross-site anyway), no lobby socket,
+  // no consent / PWA banners, no toaster. Just the page.
+  if (isEmbedPath(pathname ?? "")) {
+    return <ErrorBoundary>{children}</ErrorBoundary>;
+  }
+
   return (
     <ErrorBoundary>
       <AnalyticsConsentProvider>

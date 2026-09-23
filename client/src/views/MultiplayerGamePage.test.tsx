@@ -320,6 +320,40 @@ describe("MultiplayerGamePage", () => {
     expect(screen.getByLabelText("Go to end")).toBeInTheDocument();
   });
 
+  it("offers the embed code only for finished games and copies an iframe snippet", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+
+    const state = createInitialGameState();
+    state.history = [{ type: "put", color: "white", position: { x: 9, y: 9 } }];
+    const snapshot = makeMatchmakingSnapshot({ status: "finished", state });
+
+    await setupMocks(snapshot);
+    render(<MultiplayerGamePage />);
+
+    const pill = screen.getByRole("button", { name: "Copy embed code" });
+    fireEvent.click(pill);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(writeText).toHaveBeenCalledTimes(1);
+    const code = writeText.mock.calls[0][0] as string;
+    expect(code).toMatch(/^<iframe src="http:\/\/localhost(?::\d+)?\/embed\/game\/ABC123" /);
+    expect(code).toContain('width="480"');
+    expect(code).toContain('height="600"');
+    expect(code).toMatch(/<\/iframe>$/);
+  });
+
+  it("hides the embed code pill while the game is still active", async () => {
+    const snapshot = makeMatchmakingSnapshot({ status: "active" });
+    await setupMocks(snapshot);
+    render(<MultiplayerGamePage />);
+
+    expect(screen.queryByRole("button", { name: "Copy embed code" })).not.toBeInTheDocument();
+  });
+
   it("does not render review nav buttons when game is active", async () => {
     const snapshot = makeMatchmakingSnapshot({ status: "active" });
     await setupMocks(snapshot);

@@ -9,6 +9,7 @@ import type {
   MyNextMatchResult,
   PendingTournamentMatch,
   PlayerIdentity,
+  PublicGameReplay,
   SocialOverview,
   SocialSearchResult,
   TournamentListItem,
@@ -340,6 +341,14 @@ export function accessMultiplayerGame(gameId: string) {
 
 export function getMultiplayerGame(gameId: string) {
   return request<{ snapshot: MultiplayerSnapshot }>(`/api/games/${gameId}`);
+}
+
+/**
+ * Public replay payload for a finished game. No auth required, so it
+ * works inside third-party iframes where the session cookie is blocked.
+ */
+export function getGameReplay(gameId: string) {
+  return request<{ replay: PublicGameReplay }>(`/api/games/${encodeURIComponent(gameId)}/replay`);
 }
 
 export function listMultiplayerGames() {

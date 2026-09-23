@@ -1,7 +1,25 @@
+import type { NextRequest } from "next/server";
 import createMiddleware from "next-intl/middleware";
 import { routing } from "@/i18n/routing";
+import { frameHeadersFor } from "@/lib/frameHeaders";
 
-export default createMiddleware(routing);
+const intlMiddleware = createMiddleware(routing);
+
+/**
+ * Locale routing (next-intl) plus the frame-embedding policy.
+ *
+ * Every HTML route refuses to be iframed except `/embed/*`, which is the
+ * one surface built for third-party embedding (finished-game replays).
+ * The header decision lives in `@/lib/frameHeaders` so it is unit-tested
+ * without spinning up the middleware runtime.
+ */
+export default function proxy(request: NextRequest) {
+  const response = intlMiddleware(request);
+  for (const [key, value] of Object.entries(frameHeadersFor(request.nextUrl.pathname))) {
+    response.headers.set(key, value);
+  }
+  return response;
+}
 
 // Exclusions (the negative-lookahead group):
 //   api, ws           — backend proxied by server.mjs.

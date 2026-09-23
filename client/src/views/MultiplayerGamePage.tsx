@@ -12,7 +12,7 @@ import {
 } from "@shared";
 import confetti from "canvas-confetti";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AnimatedScoreTile } from "@/components/game/AnimatedScoreTile";
@@ -23,6 +23,7 @@ import {
   useGameClock,
 } from "@/components/game/GameClock";
 import {
+  EmbedCodeCopyPill,
   EmptySeatAvatar,
   GamePanelBrand,
   HourglassSpinner,
@@ -46,9 +47,11 @@ import { Button } from "@/components/ui/button";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog } from "@/components/ui/dialog";
 import { PaperCard } from "@/components/ui/paper-card";
+import { routing } from "@/i18n/routing";
 import { useAuth } from "@/lib/AuthContext";
 import { accessMultiplayerGame, getMultiplayerGame } from "@/lib/api";
 import { resolveDynamicParam } from "@/lib/desktopPathParam";
+import { buildEmbedCode } from "@/lib/embed";
 import { useMultiplayerGame } from "@/lib/hooks/useMultiplayerGame";
 import { useSocialData } from "@/lib/hooks/useSocialData";
 import { useTournamentNextMatch } from "@/lib/hooks/useTournamentNextMatch";
@@ -63,6 +66,7 @@ import { AnimatedEllipsis, AnimatedRatingChange } from "./multiplayer/AnimatedRa
 export function MultiplayerGamePage() {
   const t = useTranslations("game");
   const tCommon = useTranslations("common");
+  const locale = useLocale();
   const { auth, authBootstrapped, onOpenAuth, onLogout } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -869,6 +873,28 @@ export function MultiplayerGamePage() {
     }
   }
 
+  async function handleCopyEmbedCode() {
+    if (!multiplayerSnapshot) return;
+    try {
+      const code = buildEmbedCode({
+        origin: window.location.origin,
+        gameId: multiplayerSnapshot.gameId,
+        locale,
+        defaultLocale: routing.defaultLocale,
+      });
+      await copyToClipboard(code);
+      setCopyFeedback(tCommon("copied"));
+      setCopyFeedbackKey("embed-code");
+      toast.success(tCommon("copiedEmbedCode"));
+      setTimeout(() => {
+        setCopyFeedback(null);
+        setCopyFeedbackKey(null);
+      }, 2000);
+    } catch {
+      toast.error(tCommon("failedToCopy"));
+    }
+  }
+
   async function handleCopySpectateLink() {
     if (!multiplayerSnapshot) return;
     try {
@@ -1226,6 +1252,13 @@ export function MultiplayerGamePage() {
                           copied={copyFeedbackKey === "share-link" && !!copyFeedback}
                           onCopy={handleCopyGameLink}
                         />
+                        {isReviewMode && (
+                          <EmbedCodeCopyPill
+                            copied={copyFeedbackKey === "embed-code" && !!copyFeedback}
+                            onCopy={handleCopyEmbedCode}
+                            label={t("copyEmbedCode")}
+                          />
+                        )}
                         <SpectateButton
                           copied={copyFeedbackKey === "spectate-link" && !!copyFeedback}
                           spectatorCount={spectatorCount}

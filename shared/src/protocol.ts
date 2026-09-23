@@ -1,4 +1,4 @@
-import type { GameState, PlayerColor, Position, ScoreState } from "./tiao";
+import type { GameState, PlayerColor, Position, ScoreState, TurnRecord } from "./tiao";
 
 export type IdentityKind = "guest" | "account";
 
@@ -112,6 +112,28 @@ export type MultiplayerSnapshot = {
 };
 
 export type FinishReason = "captured" | "forfeit" | "timeout" | "board_full";
+
+/**
+ * Public, unauthenticated replay payload for a finished game. Served by
+ * `GET /api/games/:gameId/replay` and consumed by the embeddable
+ * `/embed/game/:gameId` page, which runs inside third-party iframes
+ * where the session cookie is not sent. Contains only what a spectator
+ * can already see on the share page: names, result, and the move list.
+ */
+export type PublicGameReplay = {
+  gameId: string;
+  status: "finished";
+  boardSize: number;
+  scoreToWin: number;
+  score: ScoreState;
+  history: TurnRecord[];
+  winner: PlayerColor | null;
+  finishReason: FinishReason | null;
+  white: { displayName: string } | null;
+  black: { displayName: string } | null;
+  createdAt: string;
+  updatedAt: string;
+};
 
 export type MultiplayerGameSummary = {
   gameId: string;

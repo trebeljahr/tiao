@@ -88,6 +88,20 @@ export function LinkIcon({ className }: { className?: string }) {
   );
 }
 
+export function CodeIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className={cn("h-4 w-4", className)}>
+      <path
+        d="m7 5.5-4.5 4.5L7 14.5m6-9 4.5 4.5L13 14.5m-1.5-11-3 13"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function EyeIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className={cn("h-4 w-4", className)}>
@@ -523,6 +537,31 @@ export function ShareLinkCopyPill({ copied, onCopy }: { copied: boolean; onCopy:
       onClick={onCopy}
       icon={<LinkIcon />}
       ariaLabel="Copy share link"
+      className="h-10 w-10"
+    />
+  );
+}
+
+/**
+ * Copies the `<iframe>` snippet for the finished-game embed. Only shown in
+ * review mode — the embed endpoint refuses games that are still running.
+ */
+export function EmbedCodeCopyPill({
+  copied,
+  onCopy,
+  label,
+}: {
+  copied: boolean;
+  onCopy: () => void;
+  label: string;
+}) {
+  return (
+    <DarkPillButton
+      copied={copied}
+      onClick={onCopy}
+      icon={<CodeIcon />}
+      ariaLabel={label}
+      title={label}
       className="h-10 w-10"
     />
   );
