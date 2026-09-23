@@ -231,6 +231,31 @@ If you see `no available server`, that usually means:
 
 For Tiao, that almost always means the frontend is crashing, restarting, or failing `/healthz`, or the frontend cannot reach the backend upstream.
 
+### Static offline page (`/503.html`)
+
+[client/public/503.html](/Users/rico/projects/tiao/client/public/503.html) is a plain HTML page (no JS, no external assets, inline CSS) that says Tiao is temporarily offline and lists the contact email, the GitHub repo, and the license. The frontend container serves it at `https://your-domain-example.com/503.html` whenever the app is up, but the point of the page is to be shown when the app is *down*, which the frontend container cannot do for itself.
+
+To show it instead of Traefik's bare `no available server` text, host the file somewhere that stays up independently of `tiao-client`, then point a Traefik `errors` middleware at it:
+
+1. Create a small static Coolify resource (for example an `nginx:alpine` or `static` app) whose document root contains only `503.html`. Give it no public domain; it only needs to be reachable by Traefik on the Coolify proxy network. Note its Traefik service name (`http-<app-uuid>` in Coolify's generated labels, visible under the app's `Labels` tab).
+2. On the `tiao-client` app, add these custom Traefik labels (Coolify: `Advanced` → `Custom Docker labels`), replacing `<fallback-service>` with the service name from step 1 and `<router>` with the existing frontend router name from the generated labels:
+
+   ```text
+   traefik.http.middlewares.tiao-offline.errors.status=502-504
+   traefik.http.middlewares.tiao-offline.errors.service=<fallback-service>
+   traefik.http.middlewares.tiao-offline.errors.query=/503.html
+   traefik.http.routers.<router>.middlewares=tiao-offline@docker
+   ```
+
+   If the router already has a middleware chain (Coolify adds one for gzip and redirects), append `tiao-offline@docker` to the existing comma-separated list instead of overwriting it.
+3. Redeploy `tiao-client`. Traefik now answers 502, 503, and 504 responses from the frontend with the static page while keeping the original status code.
+
+Caveats:
+
+- The `errors` middleware only fires when the router still resolves to a service that replies with an error. During a full container replacement Traefik briefly has no backend at all and still returns its own `no available server` text for that window. For a longer planned outage, stop `tiao-client` and attach the public domain to the fallback service directly.
+- Keep the fallback page as a separate copy on the static resource. Do not point the middleware at `tiao-client` itself, because a crashed frontend cannot serve its own `/503.html`.
+- The frontend serves everything under `public/` with a year-long `immutable` cache header. That is harmless here because the middleware fetches the page from the fallback service, not from the frontend, but keep it in mind if a CDN sits in front of the fallback host.
+
 ## Deploy Flow
 
 1. Push to `main`

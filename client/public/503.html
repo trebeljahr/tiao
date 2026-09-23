@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Tiao is temporarily offline</title>
+    <style>
+      /*
+        Static fallback page. No JavaScript, no external assets, so it can be
+        served by anything (Traefik errors middleware, a bare nginx) while the
+        Tiao containers are down.
+
+        Palette mirrors the Tiao theme:
+          --bg      desktop window background (desktop/src/window.cjs)
+          --card    web --foreground, hsl(24 23% 15%)
+          --text    web --primary-foreground, hsl(38 44% 95%)
+          --muted   web --border, hsl(38 31% 71%)
+          --accent  web --accent, hsl(39 46% 78%)
+      */
+      :root {
+        --bg: #1a0f06;
+        --card: #2f241d;
+        --text: #f8f4ed;
+        --muted: #ccbb9e;
+        --accent: #e1cfad;
+        --border: rgba(225, 207, 173, 0.25);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+
+      body {
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px 16px;
+        background: var(--bg);
+        background-image:
+          radial-gradient(circle at top, rgba(225, 207, 173, 0.12), transparent 40%),
+          linear-gradient(180deg, #1a0f06 0%, #150c05 100%);
+        color: var(--text);
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      main {
+        width: 100%;
+        max-width: 520px;
+        padding: 32px 28px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--card);
+      }
+
+      h1 {
+        margin-bottom: 12px;
+        font-family: ui-serif, Georgia, "Times New Roman", serif;
+        font-size: 1.75rem;
+        font-weight: 500;
+        line-height: 1.2;
+        letter-spacing: 0.01em;
+      }
+
+      p {
+        margin-bottom: 12px;
+      }
+
+      p.muted {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      a:hover {
+        color: var(--text);
+      }
+
+      hr {
+        margin: 20px 0;
+        border: 0;
+        border-top: 1px solid var(--border);
+      }
+
+      ul {
+        margin-bottom: 12px;
+        padding-left: 20px;
+      }
+
+      li {
+        margin-bottom: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Tiao is temporarily offline</h1>
+      <p>The server is down for maintenance or is restarting. Try again in a few minutes.</p>
+      <p>Multiplayer rooms are stored in the database and are still there when the server comes back.</p>
+      <hr />
+      <ul>
+        <li>Contact: <a href="mailto:ricotrebeljahr@gmail.com">ricotrebeljahr@gmail.com</a></li>
+        <li>Source code: <a href="https://github.com/trebeljahr/tiao">github.com/trebeljahr/tiao</a></li>
+        <li>Discord: coming soon</li>
+      </ul>
+      <p class="muted">
+        Tiao is free software, licensed under the GNU AGPL-3.0. The full source is available at the
+        link above.
+      </p>
+    </main>
+  </body>
+</html>
