@@ -2,8 +2,10 @@
  * Minimal Discord REST client for bot-token calls.
  *
  * Deliberately tiny: no discord.js, no gateway, just the three message
- * endpoints the leaderboard job needs. `fetchImpl` is injectable so unit
- * tests can assert on the exact requests without touching the network.
+ * endpoints the leaderboard job needs plus the slash-command registration
+ * call used by scripts/discord-register-commands.ts. `fetchImpl` is
+ * injectable so unit tests can assert on the exact requests without
+ * touching the network.
  */
 
 const DISCORD_API_BASE = "https://discord.com/api/v10";
@@ -29,10 +31,25 @@ export class DiscordRestError extends Error {
   }
 }
 
+export interface RegisteredCommand {
+  id: string;
+  name: string;
+}
+
 export interface DiscordRest {
   createMessage(channelId: string, content: string): Promise<DiscordMessage>;
   editMessage(channelId: string, messageId: string, content: string): Promise<DiscordMessage>;
   pinMessage(channelId: string, messageId: string): Promise<void>;
+  /**
+   * Replace the application's slash commands wholesale (PUT). With a
+   * `guildId` the commands are scoped to that guild and go live at once;
+   * without one they are global and may take up to an hour to propagate.
+   */
+  bulkOverwriteCommands(
+    applicationId: string,
+    commands: unknown[],
+    guildId?: string,
+  ): Promise<RegisteredCommand[]>;
 }
 
 export interface DiscordRestOptions {
@@ -79,6 +96,12 @@ export function createDiscordRest(options: DiscordRestOptions): DiscordRest {
     },
     async pinMessage(channelId, messageId) {
       await request<void>("PUT", `/channels/${channelId}/pins/${messageId}`);
+    },
+    bulkOverwriteCommands(applicationId, commands, guildId) {
+      const path = guildId
+        ? `/applications/${applicationId}/guilds/${guildId}/commands`
+        : `/applications/${applicationId}/commands`;
+      return request<RegisteredCommand[]>("PUT", path, commands);
     },
   };
 }

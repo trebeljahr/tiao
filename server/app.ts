@@ -7,6 +7,7 @@ import addErrorHandlingToApp from "./error-handling";
 import achievementRoutes from "./routes/achievement.routes";
 import adminRoutes from "./routes/admin.routes";
 import desktopAuthRoutes from "./routes/desktop-auth.routes";
+import discordRoutes from "./routes/discord.routes";
 import gameRoutes from "./routes/game.routes";
 import gameAuthRoutes from "./routes/game-auth.routes";
 import indexRoutes from "./routes/index.routes";
@@ -25,6 +26,14 @@ const app = express();
 // express.json body parser for POST endpoints so there's no
 // dependency on configureApp() ordering.
 app.use("/api/auth/desktop", express.json({ limit: "10kb" }), desktopAuthRoutes);
+
+// Discord interactions verify an Ed25519 signature over the raw request
+// bytes, so the router parses its own raw body and must sit in front of
+// the global express.json().  Both path variants are mounted here by hand
+// because mountRouteVariants() is only defined after configureApp().
+// When DISCORD_BOT_TOKEN / DISCORD_PUBLIC_KEY are unset the route is a 404.
+app.use("/discord", discordRoutes);
+app.use("/api/discord", discordRoutes);
 
 // Mount better-auth BEFORE express.json() to avoid body consumption conflicts
 app.all("/api/auth/*splat", toNodeHandler(auth));
