@@ -13,6 +13,45 @@ if (typeof window !== "undefined") {
   Element.prototype.scrollTo = vi.fn() as unknown as typeof Element.prototype.scrollTo;
 }
 
+// Node >= 25 ships a native `localStorage` / `sessionStorage` global that
+// is `undefined` unless the process runs with `--localstorage-file`.
+// vitest's jsdom environment doesn't overwrite globals that already exist,
+// so under Node 25+ every `localStorage.getItem(...)` in a test or hook
+// blows up with "Cannot read properties of undefined". Node 24 (the CI
+// runtime) has no such global and gets jsdom's Storage as usual. Install
+// a minimal in-memory Storage when the global is missing so the suite
+// behaves the same on both.
+class MemoryStorage implements Storage {
+  private map = new Map<string, string>();
+  get length() {
+    return this.map.size;
+  }
+  clear() {
+    this.map.clear();
+  }
+  getItem(key: string) {
+    return this.map.has(key) ? (this.map.get(key) as string) : null;
+  }
+  key(index: number) {
+    return Array.from(this.map.keys())[index] ?? null;
+  }
+  removeItem(key: string) {
+    this.map.delete(key);
+  }
+  setItem(key: string, value: string) {
+    this.map.set(key, String(value));
+  }
+}
+for (const name of ["localStorage", "sessionStorage"] as const) {
+  if (typeof globalThis[name] === "undefined") {
+    Object.defineProperty(globalThis, name, {
+      value: new MemoryStorage(),
+      configurable: true,
+      writable: true,
+    });
+  }
+}
+
 // Mock next/navigation — must be in setup so it's available before next-intl resolves it
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
