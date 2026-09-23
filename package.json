@@ -43,6 +43,7 @@
     "format": "biome format --write .",
     "format:check": "biome format .",
     "lint": "biome lint .",
+    "scan:secrets": "gitleaks detect --no-banner --no-git --config .gitleaks.toml",
     "check": "biome check --write .",
     "prepare": "husky"
   },

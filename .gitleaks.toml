@@ -1,0 +1,101 @@
+# Gitleaks configuration for the tiao monorepo.
+#
+# Extends gitleaks' built-in default ruleset (the same file as
+# https://github.com/gitleaks/gitleaks/blob/master/config/gitleaks.toml,
+# compiled into the binary) with project-specific allowlists. Extending
+# rather than vendoring keeps the ~220 upstream rules current with every
+# gitleaks upgrade; only what is listed below differs from stock.
+#
+# Run locally:  pnpm scan:secrets            (working tree, no history)
+# Full history: gitleaks detect --source . --log-opts="--all"
+#
+# Every allowlist here is deliberately narrow. Content allowlists match the
+# secret text itself, never a path: gitleaks skips a whole file when a
+# global allowlist `paths` entry matches it (even with condition = "AND"),
+# so a path entry would blind the scanner to a real secret in that file.
+# Do not widen one to silence a finding — add a new entry that names the
+# exact non-secret it covers.
+
+title = "tiao gitleaks config"
+minVersion = "v8.25.0"
+
+[extend]
+useDefault = true
+
+# ---------------------------------------------------------------------------
+# Generated API reference pages.
+#
+# docusaurus-plugin-openapi-docs writes each endpoint's spec into the page
+# front matter as `api: <zlib+base64 blob>`. The blob is high-entropy by
+# construction and trips `generic-api-key`. It is derived from
+# server/scripts/generate-openapi.ts output and holds no credentials.
+# ---------------------------------------------------------------------------
+# Matched on the rule match text rather than on a path: a `paths` entry in a
+# global allowlist skips the whole file, which would blind the scanner to a
+# real secret pasted into one of these pages. The `eJ` prefix is the zlib
+# stream header, so nothing but a compressed blob can satisfy this.
+[[allowlists]]
+description = "docusaurus-openapi-docs compressed spec blobs in generated MDX front matter"
+regexTarget = "match"
+regexes = ['''^api:\s*eJ[A-Za-z0-9+/=]{20,}''']
+
+# ---------------------------------------------------------------------------
+# OpenPanel public client ids.
+#
+# OpenPanel "client ids" are public identifiers shipped in the browser
+# bundle (NEXT_PUBLIC_*) and in desktop builds. They are not secrets; the
+# write-protected part of OpenPanel auth is the client *secret*, which is
+# never committed. Only the id in the deploy workflow is pinned here.
+# ---------------------------------------------------------------------------
+[[allowlists]]
+description = "OpenPanel public client id (UUID) assigned to an *_OPENPANEL_CLIENT_ID variable"
+regexTarget = "line"
+regexes = ['''(?i)OPENPANEL_CLIENT_ID\s*[=:]\s*["']?[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}["']?''']
+
+# ---------------------------------------------------------------------------
+# Placeholder credentials used by tests, local dev and example env files.
+#
+# These literal values appear in server/tests/*.test.ts, playwright.config.ts,
+# docker-compose.dev*.yml, server/.env.development and the .env.example files.
+# They are matched on the secret value itself so the surrounding file is
+# still scanned for anything real.
+# ---------------------------------------------------------------------------
+[[allowlists]]
+description = "known placeholder secret values (tests, local docker, env examples)"
+regexes = [
+    '''^(?:test|e2e|dev-token|dev-docker-token)-secret(?:-not-for-production)?$''',
+    '''^test-client$''',
+    '''^minioadmin$''',
+    '''^replace-me(?:-[a-z0-9-]+)?$''',
+    '''^mongodb://user:password@mongo:27017/[a-z-]+$''',
+]
+
+# 24-hex MongoDB ObjectId fixtures such as "000000000000000000000002" that
+# server/tests/socialRoutes.test.ts uses as stand-in account ids.
+[[allowlists]]
+description = "zero-padded ObjectId fixtures in server tests"
+regexes = ['''^0{18,}[0-9a-f]{1,6}$''']
+
+# ---------------------------------------------------------------------------
+# Local, gitignored files that `pnpm scan:secrets` (--no-git) would otherwise
+# walk. These never reach the repository (see .gitignore) and hold real
+# per-machine credentials on purpose. Tracked example/dev files are NOT
+# excluded — `.env.example` and `.env.development` are still scanned.
+# ---------------------------------------------------------------------------
+[[allowlists]]
+description = "gitignored per-machine env files and local build output"
+paths = [
+    '''(?:^|/)\.env(?:\.local|\.docker|\.production|\.staging|\.test|\.dev)?$''',
+    '''(?:^|/)\.env\.(?:development|test|production)\.local$''',
+    '''(?:^|/)\.envrc\.local$''',
+    '''(?:^|/)\.next(?:-[^/]+)?/''',
+    '''(?:^|/)\.docusaurus/''',
+    '''(?:^|/)playwright-report/''',
+    '''(?:^|/)test-results/''',
+    '''(?:^|/)coverage/''',
+    '''(?:^|/)dist/''',
+    '''(?:^|/)out/''',
+    '''^build/''',
+    '''^\.claude/worktrees/''',
+    '''^SECURITY-AUDIT\.md$''',
+]

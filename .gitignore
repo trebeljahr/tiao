@@ -100,3 +100,6 @@ venv/
 
 # Generated Steam upload assets (regenerate with `pnpm steam:icons`)
 /build/
+
+# local-only output of the secret/history audit (see .gitleaks.toml)
+SECURITY-AUDIT.md
