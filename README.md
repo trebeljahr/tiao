@@ -2,6 +2,8 @@
 
 Tiao (跳, "jump") is an open-source multiplayer board game platform. Two players place and jump pieces on a 19x19 board, competing to be the first to capture 10 enemy stones. Think of it as the [Lichess](https://lichess.org) for Tiao — free, open-source, and community-driven.
 
+![Tiao mid-game: a 19x19 board with black and white stones, the last capture jump highlighted, and the match panel showing both players and the score](docs/images/board.png)
+
 ## The Game
 
 Players take turns placing pieces or jumping over enemy pieces to capture them:
