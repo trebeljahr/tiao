@@ -791,3 +791,33 @@ test("migratePlayerIdentity updates seat assignments", async () => {
   assert.equal(migratedSeat.displayName, "newuser");
   assert.equal(migratedSeat.kind, "account");
 });
+
+test("formatGameResult renders the Discord one-liner with names, ratings and move count", async () => {
+  const store = new InMemoryGameRoomStore();
+  const service = new GameService(store, () => 0.9);
+  const alice = createPlayer("alice", { displayName: "Alice" });
+  const bob = createPlayer("bob", { displayName: "Bob" });
+
+  const created = await service.createGame(alice);
+  await service.joinGame(created.gameId, bob);
+  // seatRandom=0.9 → creator (Alice) is black, joiner (Bob) is white
+  const room = await store.getRoom(created.gameId);
+  assert.ok(room);
+  room.state.score.white = 10;
+  room.status = "finished";
+  room.ratingAfter = { white: 1520, black: 1480 };
+
+  assert.equal(
+    GameService.formatGameResult(room),
+    "⚔️ Bob (ELO 1520) vs Alice (ELO 1480). Winner: Bob in 0 moves.",
+  );
+
+  // Draw and unrated (guest) games degrade gracefully
+  room.state.score.white = 0;
+  room.ratingAfter = null;
+  room.ratingBefore = null;
+  assert.equal(
+    GameService.formatGameResult(room),
+    "⚔️ Bob (ELO unrated) vs Alice (ELO unrated). Draw after 0 moves.",
+  );
+});

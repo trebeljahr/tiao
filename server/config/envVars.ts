@@ -69,10 +69,16 @@ const OPENPANEL_API_URL = process.env.OPENPANEL_API_URL;
 const OPENPANEL_READ_CLIENT_ID = process.env.OPENPANEL_READ_CLIENT_ID;
 const OPENPANEL_READ_CLIENT_SECRET = process.env.OPENPANEL_READ_CLIENT_SECRET;
 
+// --- Discord webhooks -------------------------------------------------------
+// Each announcement feature has its own webhook URL. Unset means the feature
+// is a silent no-op (see server/discord/webhooks.ts).
+const DISCORD_WEBHOOK_GAME_RESULTS = process.env.DISCORD_WEBHOOK_GAME_RESULTS;
+
 export {
   BUCKET_NAME,
   CLOUDFRONT_URL,
   CORRECT_PATH,
+  DISCORD_WEBHOOK_GAME_RESULTS,
   FRONTEND_URL,
   GLITCHTIP_DSN,
   MONGODB_URI,

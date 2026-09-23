@@ -9,6 +9,7 @@ import {
   type GameSettings,
   type GameState,
   getWinner,
+  isBoardMove,
   isGameOver,
   jumpPiece,
   type LobbyClientMessage,
@@ -44,6 +45,9 @@ import {
   type StoredSeatAssignments,
 } from "./gameStore";
 
+/** Discord game-result posts are capped to one per this window; extras are dropped. */
+const GAME_RESULT_WEBHOOK_MIN_INTERVAL_MS = 30_000;
+
 export class GameServiceError extends Error {
   status: number;
   code: string;
@@ -57,6 +61,8 @@ export class GameServiceError extends Error {
 
 import mongoose, { isValidObjectId } from "mongoose";
 import { track } from "../analytics/openpanel";
+import { DISCORD_WEBHOOK_GAME_RESULTS } from "../config/envVars";
+import { postWebhook } from "../discord/webhooks";
 import GameAccount from "../models/GameAccount";
 import {
   onEloUpdated as checkEloAchievements,
@@ -1801,10 +1807,36 @@ export class GameService {
           void checkGameAchievements({ room: saved }).catch((err) => {
             console.error("[game] Achievement check failed for room", saved.id, err);
           });
+          // Announce on Discord after the ELO update so the ratings are fresh.
+          // Rate-limited and error-swallowing inside postWebhook — never
+          // affects the game flow.
+          void postWebhook(DISCORD_WEBHOOK_GAME_RESULTS, GameService.formatGameResult(saved), {
+            minIntervalMs: GAME_RESULT_WEBHOOK_MIN_INTERVAL_MS,
+          });
         });
     }
 
     return saved;
+  }
+
+  /**
+   * One-line Discord summary of a finished game, e.g.
+   * "⚔️ Alice (ELO 1520) vs Bob (ELO 1480). Winner: Alice in 42 moves."
+   * Uses the post-game rating when available, otherwise "unrated".
+   */
+  static formatGameResult(room: StoredMultiplayerRoom): string {
+    const name = (color: PlayerColor) => room.seats[color]?.displayName ?? "Unknown";
+    const elo = (color: PlayerColor) => {
+      const rating = room.ratingAfter?.[color] ?? room.ratingBefore?.[color];
+      return rating === undefined || rating === null ? "unrated" : String(rating);
+    };
+    const moveCount = room.state.history.filter(isBoardMove).length;
+    const winner = getWinner(room.state);
+    const outcome =
+      winner === null
+        ? `Draw after ${moveCount} moves.`
+        : `Winner: ${name(winner)} in ${moveCount} moves.`;
+    return `⚔️ ${name("white")} (ELO ${elo("white")}) vs ${name("black")} (ELO ${elo("black")}). ${outcome}`;
   }
 
   private async updateEloRatings(
