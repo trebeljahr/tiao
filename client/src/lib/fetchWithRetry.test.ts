@@ -232,6 +232,37 @@ describe("fetchWithRetry", () => {
     expect(toast.error).not.toHaveBeenCalled();
   });
 
+  // Background fetches for not-logged-in visitors retry for resilience but
+  // stay silent — a transient blip must not flash "Connection issue" on the
+  // public lobby.
+  it("retries without any toast in quiet mode", async () => {
+    const fn = vi.fn().mockRejectedValueOnce(networkError()).mockResolvedValue("ok");
+
+    const promise = fetchWithRetry(fn, "games", t, { quiet: true });
+    await vi.advanceTimersByTimeAsync(1500);
+
+    expect(await promise).toBe("ok");
+    expect(fn).toHaveBeenCalledTimes(2);
+    expect(toast.loading).not.toHaveBeenCalled();
+    expect(toast.dismiss).not.toHaveBeenCalled();
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("throws after exhausting retries in quiet mode without an error toast", async () => {
+    const error = networkError();
+    const fn = vi.fn().mockRejectedValue(error);
+
+    const promise = fetchWithRetry(fn, "games", t, { quiet: true }).catch((e) => e);
+    await vi.advanceTimersByTimeAsync(1500);
+    await vi.advanceTimersByTimeAsync(3000);
+    await vi.advanceTimersByTimeAsync(5000);
+
+    expect(await promise).toBe(error);
+    expect(fn).toHaveBeenCalledTimes(4); // 1 initial + 3 retries
+    expect(toast.loading).not.toHaveBeenCalled();
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
   it("dismisses the retry toast when a retried call turns non-retryable", async () => {
     const fn = vi
       .fn()

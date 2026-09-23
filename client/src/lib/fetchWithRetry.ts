@@ -34,19 +34,30 @@ export type ErrorTranslator = ReturnType<typeof useTranslations<"error">>;
  * signed a fresh anonymous session in. Treating that window as a
  * connectivity failure is what surfaced a spurious "connection lost" toast
  * on the lobby for users who were never logged in.
+ *
+ * `quiet` retries with the same backoff but shows no toast. It's for
+ * *background* fetches on a not-logged-in visitor — the lobby games list,
+ * say — where a transient blip (a cold origin, a Cloudflare 52x, a brief
+ * network drop) would otherwise flash an alarming "Connection issue" toast
+ * on the public landing page for non-critical data the visitor never asked
+ * for. Foreground actions (create/join a game) surface their own errors, so
+ * real connectivity problems still reach the user; only the passive
+ * auto-load stays silent.
  */
 export async function fetchWithRetry<T>(
   fn: () => Promise<T>,
   label: string,
   t: ErrorTranslator,
+  options: { quiet?: boolean } = {},
 ): Promise<T> {
   const toastId = `retry-${label}`;
+  const { quiet = false } = options;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
       const result = await fn();
       // If we succeeded after retries, dismiss the retry toast
-      if (attempt > 0) {
+      if (attempt > 0 && !quiet) {
         toast.dismiss(toastId);
       }
       return result;
@@ -54,7 +65,7 @@ export async function fetchWithRetry<T>(
       if (!isRetryableError(error)) {
         // Dismiss any retry toast from an earlier attempt so a
         // now-permanent failure doesn't leave a stale spinner behind.
-        if (attempt > 0) {
+        if (attempt > 0 && !quiet) {
           toast.dismiss(toastId);
         }
         throw error;
@@ -62,15 +73,19 @@ export async function fetchWithRetry<T>(
 
       if (attempt < MAX_RETRIES) {
         const next = attempt + 1;
-        toast.loading(t("connectionRetrying", { attempt: next, max: MAX_RETRIES }), {
-          id: toastId,
-          duration: RETRY_DELAYS[attempt],
-        });
+        if (!quiet) {
+          toast.loading(t("connectionRetrying", { attempt: next, max: MAX_RETRIES }), {
+            id: toastId,
+            duration: RETRY_DELAYS[attempt],
+          });
+        }
         await new Promise((r) => setTimeout(r, RETRY_DELAYS[attempt]));
       } else {
-        toast.error(t("connectionError"), {
-          id: toastId,
-        });
+        if (!quiet) {
+          toast.error(t("connectionError"), {
+            id: toastId,
+          });
+        }
         throw error;
       }
     }

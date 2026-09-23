@@ -38,9 +38,17 @@ vi.mock("../errors", () => ({
   toastError: vi.fn(),
 }));
 
-// Mock fetchWithRetry to skip delays in tests but still retry
+// Mock fetchWithRetry to skip delays in tests but still retry. Records the
+// options each call was made with so tests can assert on `quiet`.
+const fetchWithRetryOptions: Array<{ quiet?: boolean } | undefined> = [];
 vi.mock("../fetchWithRetry", () => ({
-  fetchWithRetry: async (fn: () => Promise<unknown>) => {
+  fetchWithRetry: async (
+    fn: () => Promise<unknown>,
+    _label: string,
+    _t: unknown,
+    options?: { quiet?: boolean },
+  ) => {
+    fetchWithRetryOptions.push(options);
     for (let i = 0; i <= 3; i++) {
       try {
         return await fn();
@@ -51,9 +59,18 @@ vi.mock("../fetchWithRetry", () => ({
   },
 }));
 
+const guestAuth: AuthResponse = {
+  player: {
+    kind: "guest",
+    playerId: "guest-1",
+    displayName: "Guest",
+  } as AuthResponse["player"],
+};
+
 beforeEach(() => {
   mockListMultiplayerGames.mockReset();
   lobbyMessageHandlers.length = 0;
+  fetchWithRetryOptions.length = 0;
 });
 
 describe("useGamesIndex", () => {
@@ -128,6 +145,33 @@ describe("useGamesIndex", () => {
 
     expect(result.current.multiplayerGames.active).toHaveLength(1);
     expect(result.current.multiplayerGames.active[0].gameId).toBe("ABC123");
+  });
+
+  // A not-logged-in visitor's lobby games list is background data — it must
+  // retry transient failures quietly, never flashing a "Connection issue"
+  // toast on the public landing page.
+  it("fetches quietly (no connection toast) for a not-logged-in guest", async () => {
+    mockListMultiplayerGames.mockResolvedValue({ games: { active: [], finished: [] } });
+
+    const { result } = renderHook(() => useGamesIndex(guestAuth, true));
+
+    await waitFor(() => {
+      expect(result.current.multiplayerGamesLoaded).toBe(true);
+    });
+
+    expect(fetchWithRetryOptions).toEqual([{ quiet: true }]);
+  });
+
+  it("fetches with the visible retry toast for a logged-in account", async () => {
+    mockListMultiplayerGames.mockResolvedValue({ games: { active: [], finished: [] } });
+
+    const { result } = renderHook(() => useGamesIndex(mockAuth, true));
+
+    await waitFor(() => {
+      expect(result.current.multiplayerGamesLoaded).toBe(true);
+    });
+
+    expect(fetchWithRetryOptions).toEqual([{ quiet: false }]);
   });
 
   it("handles API returning games without active field (the bug fix)", async () => {

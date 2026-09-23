@@ -71,10 +71,17 @@ export function useGamesIndex(auth: AuthResponse | null, authBootstrapped: boole
 
       setMultiplayerGamesLoading(true);
 
+      // Not-logged-in visitors (guests) get the lobby games list as
+      // background data — retry transient failures for resilience, but
+      // without the "Connection issue" toast, which reads as a scary
+      // network error on the public landing page. Signed-in accounts keep
+      // the visible retry feedback: for them the games list is the point.
+      const quiet = auth.player.kind !== "account";
+
       try {
         const response = options.silent
           ? await listMultiplayerGames()
-          : await fetchWithRetry(() => listMultiplayerGames(), "games", t);
+          : await fetchWithRetry(() => listMultiplayerGames(), "games", t, { quiet });
         applyMultiplayerGamesIndex(response.games);
       } catch {
         // Mark as loaded even on error to prevent infinite retry loops
