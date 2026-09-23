@@ -14,7 +14,9 @@ import app from "./app";
 import { verifySessionToken } from "./auth/desktopSessionManager";
 import { getPlayerFromUpgradeRequest } from "./auth/sessionHelper";
 import { PORT } from "./config/envVars";
+import { getRedisClient } from "./config/redisClient";
 import { connectToDB, disconnectFromDB } from "./db";
+import { type DailyJobScheduler, startDiscordLeaderboardJob } from "./discord/leaderboardJob";
 import { GameServiceError, gameService } from "./game/gameService";
 import { createLogger } from "./lib/logger";
 import { isAllowedOrigin } from "./lib/wsOrigin";
@@ -283,6 +285,9 @@ pruneHandle.unref();
 
 gameService.startMatchmakingSweep();
 
+// Armed after the DB connects (see start()) — no-op unless DISCORD_* is set.
+let discordLeaderboardJob: DailyJobScheduler | null = null;
+
 let isShuttingDown = false;
 
 function closeHttpServer(): Promise<void> {
@@ -331,6 +336,7 @@ async function shutdown(signal: NodeJS.Signals): Promise<void> {
   forceExitTimer.unref();
 
   try {
+    await discordLeaderboardJob?.close();
     await gameService.close();
     await closeWebSocketServer();
     await closeHttpServer();
@@ -359,6 +365,8 @@ async function start(): Promise<void> {
 
     // Restore in-memory clock timers for active timed games (lost on restart)
     await gameService.restoreClockTimers();
+
+    discordLeaderboardJob = startDiscordLeaderboardJob(getRedisClient());
 
     server.listen(PORT, () => {
       console.info(`Tiao server listening on http://localhost:${PORT}`);
