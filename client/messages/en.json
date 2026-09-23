@@ -135,7 +135,8 @@
     "computerGameTitle": "Play against a Bot",
     "computerGameDesc": "Choose your difficulty and settings.",
     "startGame": "Start Game",
-    "customGameRequiresAccount": "Log in or create an account to create and join custom games."
+    "customGameRequiresAccount": "Log in or create an account to create and join custom games.",
+    "footerAbout": "About Tiao"
   },
   "game": {
     "white": "White",
@@ -793,7 +794,8 @@
     "changeLanguage": "Change language",
     "reportIssue": "Report an Issue",
     "settings": "Settings",
-    "notificationBadgeAria": "{label}: {count} new — view"
+    "notificationBadgeAria": "{label}: {count} new — view",
+    "about": "About"
   },
   "badges": {
     "supporter": "Supporter",
@@ -999,7 +1001,8 @@
   },
   "legalFooter": {
     "impressum": "Imprint",
-    "privacy": "Privacy policy"
+    "privacy": "Privacy policy",
+    "about": "About"
   },
   "dataExport": {
     "title": "Download my data",
@@ -1099,6 +1102,35 @@
     "liabilityLinksBody": "Our service contains links to external third-party websites whose content we have no influence over. Therefore, we cannot assume any liability for this third-party content. The respective provider or operator of the pages is always responsible for the content of the linked pages. The linked pages were checked for possible legal violations at the time of linking. Illegal content was not discernible at that time. However, permanent content control of linked pages is unreasonable without specific indications of a legal violation. Upon becoming aware of legal violations, we will remove such links immediately.",
     "copyrightTitle": "Copyright",
     "copyrightBody": "The content and works created by the site operator on these pages are subject to German copyright law. Duplication, processing, distribution and any kind of exploitation outside the limits of copyright law require the written consent of the respective author or creator. Downloads and copies of this site are only permitted for private, non-commercial use. Insofar as the content on this site was not created by the operator, the copyrights of third parties are respected. Should you nevertheless become aware of a copyright infringement, please let us know. Upon becoming aware of legal violations, we will remove such content immediately."
+  },
+  "about": {
+    "title": "About Tiao",
+    "metaDescription": "What Tiao is, why its code is open source under AGPL-3.0, how to support it, and who made it.",
+    "whatTitle": "What Tiao is",
+    "whatIntro": "Tiao is a two-player abstract strategy board game designed by Andreas Edmeier. There is no hidden information and no luck.",
+    "whatRules": "The rules are short. Each turn you place one stone on an empty point of the 19×19 board, or you jump one of your stones over a neighbouring enemy stone to capture it. A jump can chain into another jump, so one move can take several stones. The first player to capture ten stones wins.",
+    "whatSite": "This website lets you play Tiao in any modern browser. You can play online against other players, on one screen with a friend, or against the computer. It is free and shows no ads. The tutorial explains the rules.",
+    "openSourceTitle": "Why the code is open",
+    "openSourceWhy": "Tiao is a small game for a small audience. A paywall or ads would shrink that audience further. So the website is free, and its source code is public.",
+    "openSourceLicense": "The code is licensed under the GNU Affero General Public License, version 3 (AGPL-3.0). Anyone may read the code, run their own copy, and change it. In return, anyone who runs a changed copy as a public service must publish their changes under the same license. That closes the loophole a plain GPL leaves open for hosted services.",
+    "openSourceException": "One exception exists. The desktop build links against the Steamworks SDK, which Valve distributes under its own terms. <exceptions>LICENSE-EXCEPTIONS.md</exceptions> grants the extra permission needed to ship that build. Every other obligation of the AGPL stays in force.",
+    "openSourceContribute": "The license covers the code. The game rules are Andreas Edmeier's work. Contributions are welcome: pull requests to the <repo>GitHub repository</repo> are accepted under the AGPL and the Steamworks exception.",
+    "supportTitle": "How to support Tiao",
+    "supportIntro": "Tiao has no ads and no paid features that affect play. Servers and development time cost money. If you want to help, here is how:",
+    "supportKofi": "Ko-fi",
+    "supportKofiDesc": "a one-off donation.",
+    "supportSponsors": "GitHub Sponsors",
+    "supportSponsorsDesc": "a monthly or one-off contribution.",
+    "supportCode": "Contribute code",
+    "supportCodeDesc": "report a bug, translate a string, or send a pull request.",
+    "supportDiscord": "Discord",
+    "supportDiscordDesc": "chat with other players and the developers.",
+    "supportDiscordPlanned": "A Discord server is planned. Until it opens, use GitHub issues to reach us.",
+    "peopleTitle": "Who made it",
+    "peopleBody": "<andreas>Andreas Edmeier</andreas> designed the game and refined its rules over years of playtesting. <rico>Rico Trebeljahr</rico> built this website and runs it.",
+    "licenseTitle": "Source and license",
+    "licenseNotice": "Copyright © Rico Trebeljahr. The Tiao website is free software. You can redistribute it and modify it under the terms of the <license>GNU Affero General Public License, version 3</license>, with the additional permission in <exceptions>LICENSE-EXCEPTIONS.md</exceptions>. It comes without any warranty.",
+    "licenseRepoLink": "Source code on GitHub"
   },
   "report": {
     "reportPlayer": "Report player",

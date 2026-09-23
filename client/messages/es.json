@@ -135,7 +135,8 @@
     "computerGameTitle": "Jugar contra la IA",
     "computerGameDesc": "Elige tu dificultad y ajustes.",
     "startGame": "Iniciar partida",
-    "customGameRequiresAccount": "Inicia sesión o crea una cuenta para crear y unirte a partidas personalizadas."
+    "customGameRequiresAccount": "Inicia sesión o crea una cuenta para crear y unirte a partidas personalizadas.",
+    "footerAbout": "Acerca de Tiao"
   },
   "game": {
     "white": "Blancas",
@@ -793,7 +794,8 @@
     "changeLanguage": "Cambiar idioma",
     "reportIssue": "Reportar un problema",
     "settings": "Configuración",
-    "notificationBadgeAria": "{label}: {count} nuevos — ver"
+    "notificationBadgeAria": "{label}: {count} nuevos — ver",
+    "about": "Acerca de"
   },
   "badges": {
     "supporter": "Colaborador",
@@ -999,7 +1001,8 @@
   },
   "legalFooter": {
     "impressum": "Aviso legal",
-    "privacy": "Privacidad"
+    "privacy": "Privacidad",
+    "about": "Acerca de"
   },
   "dataExport": {
     "title": "Descargar mis datos",
@@ -1099,6 +1102,35 @@
     "liabilityLinksBody": "Nuestro servicio contiene enlaces a sitios web externos de terceros sobre cuyo contenido no tenemos influencia. Por lo tanto, no podemos asumir ninguna responsabilidad por estos contenidos de terceros. El respectivo proveedor u operador de las páginas es siempre responsable del contenido de las páginas enlazadas. Las páginas enlazadas fueron revisadas en busca de posibles infracciones legales en el momento del enlace. En ese momento no se detectaron contenidos ilegales. Sin embargo, un control permanente del contenido de las páginas enlazadas no es razonable sin indicios concretos de una infracción legal. Al conocer infracciones legales, retiraremos dichos enlaces de inmediato.",
     "copyrightTitle": "Derechos de autor",
     "copyrightBody": "Los contenidos y obras creados por el operador del sitio en estas páginas están sujetos a la legislación alemana sobre derechos de autor. La duplicación, el procesamiento, la distribución y cualquier tipo de explotación fuera de los límites de los derechos de autor requieren el consentimiento por escrito del autor o creador correspondiente. Las descargas y copias de este sitio solo están permitidas para uso privado y no comercial. En la medida en que los contenidos de este sitio no hayan sido creados por el operador, se respetan los derechos de autor de terceros. Si aun así detectas una infracción de derechos de autor, te pedimos que nos lo comuniques. Al conocer infracciones legales, retiraremos dichos contenidos de inmediato."
+  },
+  "about": {
+    "title": "Acerca de Tiao",
+    "metaDescription": "Qué es Tiao, por qué su código es abierto bajo AGPL-3.0, cómo apoyar el proyecto y quién lo hizo.",
+    "whatTitle": "Qué es Tiao",
+    "whatIntro": "Tiao es un juego de mesa de estrategia abstracta para dos jugadores, diseñado por Andreas Edmeier. No hay información oculta ni azar.",
+    "whatRules": "Las reglas son cortas. En cada turno colocas una piedra en un punto libre del tablero de 19×19, o saltas con una de tus piedras sobre una piedra enemiga adyacente para capturarla. Un salto puede encadenarse con otro, así que un solo movimiento puede capturar varias piedras. Gana quien captura diez piedras primero.",
+    "whatSite": "En este sitio juegas a Tiao en cualquier navegador moderno. Puedes jugar en línea contra otras personas, a dos en una misma pantalla o contra la computadora. Es gratis y no muestra anuncios. El tutorial explica las reglas.",
+    "openSourceTitle": "Por qué el código es abierto",
+    "openSourceWhy": "Tiao es un juego pequeño para un público pequeño. Un muro de pago o anuncios reducirían aún más ese público. Por eso el sitio es gratis y su código fuente es público.",
+    "openSourceLicense": "El código está bajo la GNU Affero General Public License, versión 3 (AGPL-3.0). Cualquiera puede leer el código, ejecutar su propia copia y modificarla. A cambio, quien ejecute una copia modificada como servicio público debe publicar sus cambios bajo la misma licencia. Eso cierra el hueco que una GPL normal deja abierto para servicios alojados.",
+    "openSourceException": "Existe una excepción. La versión de escritorio enlaza con el Steamworks SDK, que Valve distribuye bajo sus propios términos. <exceptions>LICENSE-EXCEPTIONS.md</exceptions> concede el permiso adicional necesario para distribuir esa versión. Todas las demás obligaciones de la AGPL siguen vigentes.",
+    "openSourceContribute": "La licencia cubre el código. Las reglas del juego son obra de Andreas Edmeier. Las contribuciones son bienvenidas: los pull requests al <repo>repositorio de GitHub</repo> se aceptan bajo la AGPL y la excepción de Steamworks.",
+    "supportTitle": "Cómo apoyar a Tiao",
+    "supportIntro": "Tiao no tiene anuncios ni funciones de pago que afecten al juego. Los servidores y el tiempo de desarrollo cuestan dinero. Si quieres ayudar, así puedes hacerlo:",
+    "supportKofi": "Ko-fi",
+    "supportKofiDesc": "una donación única.",
+    "supportSponsors": "GitHub Sponsors",
+    "supportSponsorsDesc": "una aportación mensual o única.",
+    "supportCode": "Contribuir código",
+    "supportCodeDesc": "reportar un error, traducir un texto o enviar un pull request.",
+    "supportDiscord": "Discord",
+    "supportDiscordDesc": "charlar con otros jugadores y con los desarrolladores.",
+    "supportDiscordPlanned": "Un servidor de Discord está en preparación. Hasta que abra, contáctanos por GitHub Issues.",
+    "peopleTitle": "Quién lo hizo",
+    "peopleBody": "<andreas>Andreas Edmeier</andreas> diseñó el juego y afinó sus reglas durante años de pruebas. <rico>Rico Trebeljahr</rico> construyó este sitio y lo mantiene.",
+    "licenseTitle": "Código fuente y licencia",
+    "licenseNotice": "Copyright © Rico Trebeljahr. El sitio web de Tiao es software libre. Puedes redistribuirlo y modificarlo bajo los términos de la <license>GNU Affero General Public License, versión 3</license>, con el permiso adicional de <exceptions>LICENSE-EXCEPTIONS.md</exceptions>. Se distribuye sin ninguna garantía.",
+    "licenseRepoLink": "Código fuente en GitHub"
   },
   "report": {
     "reportPlayer": "Reportar jugador",

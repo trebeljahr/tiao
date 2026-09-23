@@ -906,6 +906,15 @@ function OnlineLobbyPage() {
           </button>
           .
         </p>
+        <p className="mt-2">
+          <button
+            type="button"
+            className="font-medium text-[#8b7356] underline decoration-[#d4c4a8] underline-offset-2 hover:text-[#5d4732]"
+            onClick={() => router.push("/about")}
+          >
+            {t("footerAbout")}
+          </button>
+        </p>
       </footer>
 
       <GameConfigDialog

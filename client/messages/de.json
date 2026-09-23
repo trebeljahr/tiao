@@ -135,7 +135,8 @@
     "computerGameTitle": "Gegen einen Bot spielen",
     "computerGameDesc": "Wähle deine Schwierigkeit und Einstellungen.",
     "startGame": "Spiel starten",
-    "customGameRequiresAccount": "Melde dich an oder erstelle ein Konto, um eigene Spiele zu erstellen und beizutreten."
+    "customGameRequiresAccount": "Melde dich an oder erstelle ein Konto, um eigene Spiele zu erstellen und beizutreten.",
+    "footerAbout": "Über Tiao"
   },
   "game": {
     "white": "Weiß",
@@ -793,7 +794,8 @@
     "changeLanguage": "Sprache ändern",
     "reportIssue": "Problem melden",
     "settings": "Einstellungen",
-    "notificationBadgeAria": "{label}: {count} neue – ansehen"
+    "notificationBadgeAria": "{label}: {count} neue – ansehen",
+    "about": "Über Tiao"
   },
   "badges": {
     "supporter": "Unterstützer",
@@ -999,7 +1001,8 @@
   },
   "legalFooter": {
     "impressum": "Impressum",
-    "privacy": "Datenschutz"
+    "privacy": "Datenschutz",
+    "about": "Über Tiao"
   },
   "dataExport": {
     "title": "Meine Daten herunterladen",
@@ -1099,6 +1102,35 @@
     "liabilityLinksBody": "Unser Angebot enthält Links zu externen Webseiten Dritter, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich. Die verlinkten Seiten wurden zum Zeitpunkt der Verlinkung auf mögliche Rechtsverstöße überprüft. Rechtswidrige Inhalte waren zum Zeitpunkt der Verlinkung nicht erkennbar. Eine permanente inhaltliche Kontrolle der verlinkten Seiten ist jedoch ohne konkrete Anhaltspunkte einer Rechtsverletzung nicht zumutbar. Bei Bekanntwerden von Rechtsverletzungen werden wir derartige Links umgehend entfernen.",
     "copyrightTitle": "Urheberrecht",
     "copyrightBody": "Die durch den Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Die Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechtes bedürfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers. Downloads und Kopien dieser Seite sind nur für den privaten, nicht kommerziellen Gebrauch gestattet. Soweit die Inhalte auf dieser Seite nicht vom Betreiber erstellt wurden, werden die Urheberrechte Dritter beachtet. Sollten Sie trotzdem auf eine Urheberrechtsverletzung aufmerksam werden, bitten wir um einen entsprechenden Hinweis. Bei Bekanntwerden von Rechtsverletzungen werden wir derartige Inhalte umgehend entfernen."
+  },
+  "about": {
+    "title": "Über Tiao",
+    "metaDescription": "Was Tiao ist, warum der Code unter AGPL-3.0 offen ist, wie du das Projekt unterstützen kannst und wer es gemacht hat.",
+    "whatTitle": "Was Tiao ist",
+    "whatIntro": "Tiao ist ein abstraktes Strategie-Brettspiel für zwei Personen, entworfen von Andreas Edmeier. Es gibt keine verdeckten Informationen und keinen Zufall.",
+    "whatRules": "Die Regeln sind kurz. In jedem Zug setzt du einen Stein auf einen freien Punkt des 19×19-Bretts, oder du springst mit einem deiner Steine über einen benachbarten gegnerischen Stein und schlägst ihn. Ein Sprung kann in einen weiteren Sprung übergehen, sodass ein Zug mehrere Steine schlagen kann. Wer zuerst zehn Steine schlägt, gewinnt.",
+    "whatSite": "Auf dieser Website spielst du Tiao in jedem modernen Browser. Du kannst online gegen andere spielen, zu zweit an einem Bildschirm oder gegen den Computer. Sie ist kostenlos und zeigt keine Werbung. Das Tutorial erklärt die Regeln.",
+    "openSourceTitle": "Warum der Code offen ist",
+    "openSourceWhy": "Tiao ist ein kleines Spiel für ein kleines Publikum. Eine Bezahlschranke oder Werbung würde dieses Publikum weiter verkleinern. Deshalb ist die Website kostenlos und ihr Quellcode öffentlich.",
+    "openSourceLicense": "Der Code steht unter der GNU Affero General Public License, Version 3 (AGPL-3.0). Jeder darf den Code lesen, eine eigene Kopie betreiben und ihn verändern. Im Gegenzug muss jeder, der eine veränderte Kopie als öffentlichen Dienst betreibt, seine Änderungen unter derselben Lizenz veröffentlichen. Das schließt die Lücke, die eine einfache GPL bei gehosteten Diensten offenlässt.",
+    "openSourceException": "Es gibt eine Ausnahme. Die Desktop-Version bindet das Steamworks SDK ein, das Valve unter eigenen Bedingungen verteilt. <exceptions>LICENSE-EXCEPTIONS.md</exceptions> erteilt die zusätzliche Erlaubnis, die für diese Version nötig ist. Alle anderen Pflichten der AGPL bleiben bestehen.",
+    "openSourceContribute": "Die Lizenz gilt für den Code. Die Spielregeln sind das Werk von Andreas Edmeier. Beiträge sind willkommen: Pull Requests im <repo>GitHub-Repository</repo> werden unter der AGPL und der Steamworks-Ausnahme angenommen.",
+    "supportTitle": "So kannst du Tiao unterstützen",
+    "supportIntro": "Tiao hat keine Werbung und keine bezahlten Funktionen, die das Spiel beeinflussen. Server und Entwicklungszeit kosten Geld. Wenn du helfen möchtest, geht das so:",
+    "supportKofi": "Ko-fi",
+    "supportKofiDesc": "eine einmalige Spende.",
+    "supportSponsors": "GitHub Sponsors",
+    "supportSponsorsDesc": "ein monatlicher oder einmaliger Beitrag.",
+    "supportCode": "Am Code mitarbeiten",
+    "supportCodeDesc": "einen Fehler melden, einen Text übersetzen oder einen Pull Request schicken.",
+    "supportDiscord": "Discord",
+    "supportDiscordDesc": "mit anderen Spielern und den Entwicklern chatten.",
+    "supportDiscordPlanned": "Ein Discord-Server ist geplant. Bis er eröffnet ist, erreichst du uns über GitHub Issues.",
+    "peopleTitle": "Wer es gemacht hat",
+    "peopleBody": "<andreas>Andreas Edmeier</andreas> hat das Spiel entworfen und die Regeln über Jahre im Spieltest verfeinert. <rico>Rico Trebeljahr</rico> hat diese Website gebaut und betreibt sie.",
+    "licenseTitle": "Quellcode und Lizenz",
+    "licenseNotice": "Copyright © Rico Trebeljahr. Die Tiao-Website ist freie Software. Du darfst sie unter den Bedingungen der <license>GNU Affero General Public License, Version 3</license> weitergeben und verändern, mit der zusätzlichen Erlaubnis in <exceptions>LICENSE-EXCEPTIONS.md</exceptions>. Sie wird ohne jede Gewährleistung bereitgestellt.",
+    "licenseRepoLink": "Quellcode auf GitHub"
   },
   "report": {
     "reportPlayer": "Spieler melden",

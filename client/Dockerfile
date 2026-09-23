@@ -40,6 +40,13 @@ ARG NEXT_PUBLIC_CREATOR_ANDREAS_ID
 ENV NEXT_PUBLIC_CREATOR_RICO_ID=${NEXT_PUBLIC_CREATOR_RICO_ID}
 ENV NEXT_PUBLIC_CREATOR_ANDREAS_ID=${NEXT_PUBLIC_CREATOR_ANDREAS_ID}
 
+# Support links on /about (Ko-fi donation page, Discord invite). Optional:
+# each link is hidden when its URL is unset.
+ARG NEXT_PUBLIC_KOFI_URL
+ARG NEXT_PUBLIC_DISCORD_URL
+ENV NEXT_PUBLIC_KOFI_URL=${NEXT_PUBLIC_KOFI_URL}
+ENV NEXT_PUBLIC_DISCORD_URL=${NEXT_PUBLIC_DISCORD_URL}
+
 # Direct-origin backend overrides. Only needed if the frontend shouldn't
 # proxy /api and /ws through its own server (default deployment does).
 ARG NEXT_PUBLIC_API_BASE_URL

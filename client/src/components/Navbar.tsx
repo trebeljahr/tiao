@@ -385,6 +385,19 @@ export function Navbar({
         </svg>
       ),
     },
+    {
+      label: t("about"),
+      href: "/about",
+      active: pathname === "/about",
+      badge: 0,
+      icon: (
+        <svg aria-hidden="true" {...iconProps}>
+          <circle {...pathProps} cx="12" cy="12" r="10" />
+          <path {...pathProps} d="M12 16v-4" />
+          <path {...pathProps} d="M12 8h.01" />
+        </svg>
+      ),
+    },
   ];
 
   const handleBadgeClick = (
@@ -574,6 +587,16 @@ export function Navbar({
         </a>
 
         <nav className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+          <Link
+            href="/about"
+            onClick={onCloseNav}
+            className="font-medium underline-offset-2 hover:text-[#28170e] hover:underline"
+          >
+            {tLegal("about")}
+          </Link>
+          <span aria-hidden className="opacity-40">
+            ·
+          </span>
           <Link
             href="/impressum"
             onClick={onCloseNav}
