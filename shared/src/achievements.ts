@@ -415,6 +415,25 @@ export function getAchievementById(id: string): AchievementDefinition | undefine
 
 export const ACHIEVEMENT_IDS = ACHIEVEMENTS.map((a) => a.id);
 
+/**
+ * Achievements that are NOT announced in the Discord achievements channel.
+ *
+ * Every new account earns these within its first session or two — first
+ * move, first capture, first loss, first friend, tutorial, first spectate —
+ * so announcing them would turn the channel into a signup feed and bury the
+ * unlocks people actually want to see (the secret ones, the 100-game
+ * grind, tournament wins). The 5-game "getting-started" milestone stays
+ * announced on purpose: it is the first sign a player is sticking around.
+ */
+export const DISCORD_SILENT_ACHIEVEMENT_IDS: readonly string[] = [
+  "first-move",
+  "first-blood",
+  "first-fall",
+  "first-friend",
+  "spectator",
+  "tutorial-complete",
+];
+
 /** Achievement categories in display order. */
 export const ACHIEVEMENT_CATEGORIES: { key: AchievementCategory; label: string }[] = [
   { key: "games", label: "Games" },

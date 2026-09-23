@@ -1,9 +1,14 @@
 import { isValidObjectId } from "mongoose";
-import { type AchievementDefinition, getAchievementById } from "../../shared/src/achievements";
+import {
+  type AchievementDefinition,
+  DISCORD_SILENT_ACHIEVEMENT_IDS,
+  getAchievementById,
+} from "../../shared/src/achievements";
 import type { AchievementProgress } from "../../shared/src/steamStats";
 import type { GameState, JumpTurn, PlayerColor } from "../../shared/src/tiao";
 import { getFinishReason, getWinner, isBoardMove } from "../../shared/src/tiao";
 import { ACHIEVEMENT_BADGE_MAP } from "../config/badgeRewards";
+import { postWebhook } from "../discord/webhooks";
 import Achievement from "../models/Achievement";
 import GameAccount from "../models/GameAccount";
 import GameRoom from "../models/GameRoom";
@@ -72,6 +77,8 @@ async function grant(playerId: string, achievementId: string): Promise<boolean> 
 
   if (_notifier) _notifier(playerId, def);
 
+  void announceGrantOnDiscord(playerId, def);
+
   // Auto-grant corresponding badge if this achievement has one
   const badgeId = ACHIEVEMENT_BADGE_MAP[achievementId];
   if (badgeId) {
@@ -83,6 +90,64 @@ async function grant(playerId: string, achievementId: string): Promise<boolean> 
   }
 
   return true;
+}
+
+// ---------------------------------------------------------------------------
+// Discord announcements
+// ---------------------------------------------------------------------------
+
+export function formatAchievementUnlock(displayName: string, def: AchievementDefinition): string {
+  return `🏆 ${displayName} unlocked '${def.name}'`;
+}
+
+export type AnnounceDeps = {
+  /** Webhook URL; defaults to `DISCORD_WEBHOOK_ACHIEVEMENTS`. */
+  webhookUrl?: string;
+  post?: (url: string, content: string) => Promise<boolean>;
+};
+
+/**
+ * Post a freshly granted achievement to the Discord achievements channel.
+ *
+ * Returns `true` only when a post was attempted and accepted. Resolves
+ * `false` (never rejects) when the webhook is not configured, the
+ * achievement is on the silent list, or Discord refused the post.
+ *
+ * Secret achievements are announced by name like any other: they are hidden
+ * only until earned, and the announcement fires after the unlock, so nothing
+ * is leaked that the player cannot already see on their own profile.
+ *
+ * The env var is read per call rather than at module load so the feature can
+ * be toggled in tests and so a missing var at boot never pins the service
+ * into a disabled state.
+ */
+export async function announceAchievementUnlock(
+  displayName: string,
+  def: AchievementDefinition,
+  deps: AnnounceDeps = {},
+): Promise<boolean> {
+  const url = deps.webhookUrl ?? process.env.DISCORD_WEBHOOK_ACHIEVEMENTS;
+  if (!url) return false;
+  if (DISCORD_SILENT_ACHIEVEMENT_IDS.includes(def.id)) return false;
+  const post = deps.post ?? postWebhook;
+  return post(url, formatAchievementUnlock(displayName, def));
+}
+
+/**
+ * Grant-path wrapper: looks up the player's display name and announces.
+ * Fully isolated from the caller — a DB hiccup here logs and returns; the
+ * achievement itself was already persisted before this runs.
+ */
+async function announceGrantOnDiscord(playerId: string, def: AchievementDefinition): Promise<void> {
+  if (!process.env.DISCORD_WEBHOOK_ACHIEVEMENTS) return;
+  if (DISCORD_SILENT_ACHIEVEMENT_IDS.includes(def.id)) return;
+  try {
+    const account = await GameAccount.findById(playerId).select("displayName");
+    if (!account?.displayName) return;
+    await announceAchievementUnlock(account.displayName, def);
+  } catch (err) {
+    console.error(`[achievement] Discord announcement failed for "${def.id}":`, err);
+  }
 }
 
 async function _hasAchievement(playerId: string, achievementId: string): Promise<boolean> {
