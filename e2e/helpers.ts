@@ -7,9 +7,9 @@ import { expect, type Page } from "@playwright/test";
  * page's <main> element which is present on every layout.
  */
 export async function waitForAppReady(page: Page) {
-  await expect(page.locator('[aria-label="Open navigation"], main'))
-    .first()
-    .toBeVisible({ timeout: 30_000 });
+  await expect(page.locator('[aria-label="Open navigation"], main').first()).toBeVisible({
+    timeout: 30_000,
+  });
 }
 
 /**
