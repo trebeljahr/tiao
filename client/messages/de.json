@@ -113,6 +113,7 @@
     "createGameButton": "Spiel erstellen",
     "footer": "Tiao ist ein Spiel von",
     "footerBuiltWith": "Diese digitale Version wurde gebaut mit",
+    "footerLove": "Liebe",
     "footerBy": "von",
     "yourMoveToast": "Du bist dran in {gameId}",
     "yourTurnDesc": "Du bist am Zug gegen {opponent}.",

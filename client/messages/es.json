@@ -113,6 +113,7 @@
     "createGameButton": "Crear partida",
     "footer": "Tiao es un juego creado por",
     "footerBuiltWith": "Esta versión digital está hecha con",
+    "footerLove": "amor",
     "footerBy": "por",
     "yourMoveToast": "Tu turno en {gameId}",
     "yourTurnDesc": "Es tu turno contra {opponent}.",
