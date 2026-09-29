@@ -105,7 +105,7 @@ async function signUpBot(index) {
   // `.invalid` TLD is reserved by RFC 2606 for addresses that must never
   // reach real mail infrastructure. Paired with the @tiao-seed.invalid
   // skip check in server/auth/email.ts, this guarantees seed signups
-  // never burn through Resend quota.
+  // never burn through the email provider's quota.
   const email = `${name}@tiao-seed.invalid`;
   const password = "SeedBot1!";
 

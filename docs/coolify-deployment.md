@@ -145,6 +145,8 @@ Optional:
 - `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET` — Discord OAuth
 - `BETTER_AUTH_URL` — custom auth base URL (falls back to `FRONTEND_URL`)
 - `BETTER_AUTH_SECRET` — auth signing secret (falls back to `TOKEN_SECRET`)
+- `LISTMONK_URL`, `LISTMONK_API_USER`, `LISTMONK_API_TOKEN`, `LISTMONK_TX_TEMPLATE_ID`, `LISTMONK_FROM` — account email through Listmonk `/api/tx`; used only when all five are set, and then preferred over Resend
+- `RESEND_API_KEY`, `EMAIL_FROM` — account email through Resend
 
 Notes:
 

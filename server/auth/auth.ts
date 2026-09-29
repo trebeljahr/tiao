@@ -47,7 +47,7 @@ export const auth = betterAuth({
   emailVerification: {
     // Disable email sends in NODE_ENV=test: better-auth awaits
     // sendVerificationEmail as part of its signup handler, which in
-    // the e2e suite would otherwise hit Resend for every test user
+    // the e2e suite would otherwise hit the email provider for every test user
     // and inflate the test-auth round-trip from ~100ms to several
     // seconds under load. Production keeps the real behaviour.
     sendOnSignUp: process.env.NODE_ENV !== "test",
