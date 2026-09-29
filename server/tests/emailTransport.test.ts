@@ -7,6 +7,8 @@ import {
   missingListmonkVars,
   selectEmailTransport,
   sendEmailChangeVerification,
+  sendModerationAlert,
+  sendPasswordResetEmail,
   sendVerificationEmail,
   sendViaListmonk,
 } from "../auth/email";
@@ -106,6 +108,22 @@ describe("listmonkTxBody", () => {
     assert.equal(body.content_type, "html");
     assert.deepEqual(body.data, { subject: message.subject, body: message.html });
   });
+
+  // The whole body, written out, so an added or renamed field shows up here
+  // and not as a 400 from the live Listmonk.
+  test("is exactly the body Listmonk's /api/tx expects", () => {
+    assert.deepEqual(listmonkTxBody(message, fullListmonk), {
+      subscriber_email: "new-player@example.com",
+      subscriber_mode: "external",
+      template_id: 15,
+      from_email: "Tiao <noreply@mail.playtiao.com>",
+      data: {
+        subject: "Verify your Tiao email",
+        body: '<p><a href="https://playtiao.com/v?t=1&amp;u=2">Verify email</a></p>',
+      },
+      content_type: "html",
+    });
+  });
 });
 
 type FetchCall = { url: string; init: RequestInit };
@@ -189,6 +207,49 @@ describe("account emails", () => {
     assert.equal(body.from_email, "Tiao <noreply@mail.playtiao.com>");
     assert.equal(body.data.subject, "Verify your Tiao email");
     assert.match(body.data.body, /href="https:\/\/playtiao.com\/verify\?token=abc"/);
+  });
+
+  test("all four senders go through Listmonk with tiao's From", async () => {
+    Object.assign(process.env, fullListmonk, { RESEND_API_KEY: "re_123" });
+    const calls = stubFetch(() => okJson({ data: true }));
+
+    await sendPasswordResetEmail("player@example.com", "https://playtiao.com/reset?token=r");
+    await sendVerificationEmail("player@example.com", "https://playtiao.com/verify?token=v");
+    await sendEmailChangeVerification("new@example.com", "https://playtiao.com/confirm?token=c");
+    await sendModerationAlert("Troublemaker", 3);
+
+    assert.deepEqual(
+      calls.map((call) => {
+        const body = JSON.parse(call.init.body as string);
+        return [call.url, body.subscriber_email, body.from_email, body.data.subject];
+      }),
+      [
+        [
+          "https://listmonk.example.com/api/tx",
+          "player@example.com",
+          "Tiao <noreply@mail.playtiao.com>",
+          "Reset your Tiao password",
+        ],
+        [
+          "https://listmonk.example.com/api/tx",
+          "player@example.com",
+          "Tiao <noreply@mail.playtiao.com>",
+          "Verify your Tiao email",
+        ],
+        [
+          "https://listmonk.example.com/api/tx",
+          "new@example.com",
+          "Tiao <noreply@mail.playtiao.com>",
+          "Confirm your new Tiao email",
+        ],
+        [
+          "https://listmonk.example.com/api/tx",
+          "moderation@playtiao.com",
+          "Tiao <noreply@mail.playtiao.com>",
+          "[Tiao] Player flagged for review: Troublemaker",
+        ],
+      ],
+    );
   });
 
   test("stay on Resend, from EMAIL_FROM, while the Listmonk set is incomplete", async () => {
