@@ -68,8 +68,8 @@ services:
       - --accesslog=true
       - --log.level=INFO
     ports:
-      - "80:80"
-      - "8080:8080"
+      - "127.0.0.1:80:80"
+      - "127.0.0.1:8080:8080"
     volumes:
       # Read-only socket mount — Traefik queries Docker for labels,
       # never spawns containers of its own.
