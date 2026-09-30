@@ -7,7 +7,8 @@
     - text: Tournaments | 19x19 | 10pts | Unlimited
     - button "W6N3RX"
     - button "Resume"
-    - text: Playing as Black ∞ 3 /10 vs. M
+    - text: Playing as Black ∞ 3 /10 vs.
+    - img "mira"
     - link "mira":
       - /url: /profile/mira
     - text: (1563) ∞ 4 /10 Your turn 39 moves
@@ -16,30 +17,33 @@
     - text: Won Score target reached
     - button "Q7K2MP"
     - button "Review"
-    - text: M
+    - img "mira"
     - link "mira":
       - /url: /profile/mira
-    - text: (1563) ∞ 9 /10 Loser A
+    - text: (1563) ∞ 9 /10 Loser
+    - img "aki"
     - link "aki (you)":
       - /url: /profile/aki
-    - text: (1580) ∞ 10 /10 Winner Oct 1, 8:27 AM | 63 moves Custom Game | 19x19 | 10pts | Unlimited Lost Opponent reached score target
+    - text: (1580) ∞ 10 /10 Winner Oct 1, 8:32 AM | 63 moves Custom Game | 19x19 | 10pts | Unlimited Lost Opponent reached score target
     - button "H3R8VN"
     - button "Review"
-    - text: R
+    - img "rowan"
     - link "rowan":
       - /url: /profile/rowan
-    - text: (1546) ∞ 10 /10 Winner A
+    - text: (1546) ∞ 10 /10 Winner
+    - img "aki"
     - link "aki (you)":
       - /url: /profile/aki
-    - text: (1580) ∞ 2 /10 Loser Oct 1, 6:27 AM | 40 moves Custom Game | 19x19 | 10pts | Unlimited Lost Opponent reached score target
+    - text: (1580) ∞ 2 /10 Loser Oct 1, 6:32 AM | 40 moves Custom Game | 19x19 | 10pts | Unlimited Lost Opponent reached score target
     - button "D9S4LA"
     - button "Review"
-    - text: S
+    - img "sora"
     - link "sora":
       - /url: /profile/sora
-    - text: (1529) ∞ 10 /10 Winner A
+    - text: (1529) ∞ 10 /10 Winner
+    - img "aki"
     - link "aki (you)":
       - /url: /profile/aki
-    - text: (1580) ∞ 8 /10 Loser Sep 30, 10:27 AM | 66 moves Custom Game | 19x19 | 10pts | Unlimited
+    - text: (1580) ∞ 8 /10 Loser Sep 30, 10:32 AM | 66 moves Custom Game | 19x19 | 10pts | Unlimited
 - region "Notifications alt+T"
 - alert

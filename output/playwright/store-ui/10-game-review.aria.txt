@@ -373,14 +373,14 @@
     - button "Copy spectate link"
     - heading "Black wins" [level=3]
     - status "Player is online"
-    - text: A
+    - img "aki"
     - link "aki (you)":
       - /url: /profile/aki
     - text: (1580)
     - paragraph: Black
     - paragraph: 10 / 10
     - status "Player is online"
-    - text: M
+    - img "mira"
     - link "mira":
       - /url: /profile/mira
     - text: (1563) Friend

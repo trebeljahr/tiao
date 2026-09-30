@@ -1,0 +1,46 @@
+{
+  "provider": "Random User Generator",
+  "copyright": "https://randomuser.me/copyright",
+  "profiles": {
+    "aki": {
+      "source": "https://randomuser.me/api/portraits/men/11.jpg",
+      "local": "aki.jpg",
+      "purpose": "Fictional demo player avatar; not an actual Tiao account"
+    },
+    "mira": {
+      "source": "https://randomuser.me/api/portraits/women/44.jpg",
+      "local": "mira.jpg",
+      "purpose": "Fictional demo player avatar; not an actual Tiao account"
+    },
+    "rowan": {
+      "source": "https://randomuser.me/api/portraits/men/32.jpg",
+      "local": "rowan.jpg",
+      "purpose": "Fictional demo player avatar; not an actual Tiao account"
+    },
+    "sora": {
+      "source": "https://randomuser.me/api/portraits/women/65.jpg",
+      "local": "sora.jpg",
+      "purpose": "Fictional demo player avatar; not an actual Tiao account"
+    },
+    "jules": {
+      "source": "https://randomuser.me/api/portraits/women/68.jpg",
+      "local": "jules.jpg",
+      "purpose": "Fictional demo player avatar; not an actual Tiao account"
+    },
+    "niko": {
+      "source": "https://randomuser.me/api/portraits/men/46.jpg",
+      "local": "niko.jpg",
+      "purpose": "Fictional demo player avatar; not an actual Tiao account"
+    },
+    "rin": {
+      "source": "https://randomuser.me/api/portraits/women/47.jpg",
+      "local": "rin.jpg",
+      "purpose": "Fictional demo player avatar; not an actual Tiao account"
+    },
+    "kai": {
+      "source": "https://randomuser.me/api/portraits/men/75.jpg",
+      "local": "kai.jpg",
+      "purpose": "Fictional demo player avatar; not an actual Tiao account"
+    }
+  }
+}

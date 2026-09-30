@@ -7,20 +7,20 @@
     - button "Search"
     - heading "Pending" [level=3]
     - heading "Incoming" [level=4]
-    - text: R
+    - img "rin"
     - link "rin":
       - /url: /profile/rin
     - text: (1478)
     - button "Accept"
     - button "Decline"
     - heading "Outgoing" [level=4]
-    - text: K
+    - img "kai"
     - link "kai":
       - /url: /profile/kai
     - text: (1461)
     - button "Cancel"
     - heading "Friends" [level=3]
-    - text: M
+    - img "mira"
     - link "mira":
       - /url: /profile/mira
     - text: (1563)
@@ -28,7 +28,7 @@
     - button "Active games"
     - button "Invite to game"
     - button "Unfriend"
-    - text: R
+    - img "rowan"
     - link "rowan":
       - /url: /profile/rowan
     - text: (1546)
@@ -36,7 +36,7 @@
     - button "Active games"
     - button "Invite to game"
     - button "Unfriend"
-    - text: S
+    - img "sora"
     - link "sora":
       - /url: /profile/sora
     - text: (1529)
@@ -44,7 +44,7 @@
     - button "Active games"
     - button "Invite to game"
     - button "Unfriend"
-    - text: J
+    - img "jules"
     - link "jules":
       - /url: /profile/jules
     - text: (1512)

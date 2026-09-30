@@ -72,6 +72,7 @@ const names = ["aki", "mira", "rowan", "sora", "jules", "niko", "rin", "kai"];
 const people = names.map((displayName, i) => ({
   playerId: `sample-${displayName}`,
   displayName,
+  profilePicture: `/sample-avatars/${displayName}.jpg`,
   kind: "account",
   rating: 1580 - i * 17,
   hasSeenTutorial: true,
@@ -331,6 +332,14 @@ try {
     unexpected.add(path);
     return route.fulfill({ status: 404, json: { message: `No local sample for ${path}` } });
   });
+  await context.route("**/sample-avatars/*.jpg", async (route) => {
+    const name = new URL(route.request().url()).pathname.split("/").at(-1);
+    assert(names.some((player) => name === `${player}.jpg`));
+    await route.fulfill({
+      contentType: "image/jpeg",
+      body: readFileSync(resolve(output, "avatars", name)),
+    });
+  });
   await context.routeWebSocket(/\/api\/ws/, (socket) => {
     socket.onMessage(() => {});
   });
@@ -344,6 +353,14 @@ try {
     await page.waitForTimeout(1200);
   }
   async function shoot(name, fullPage = false) {
+    const avatarImages = page.locator('img[src^="/sample-avatars/"]');
+    if (name !== "06-tournaments") {
+      assert((await avatarImages.count()) > 0, `${name}: missing profile images`);
+      await avatarImages.evaluateAll(async (images) => {
+        await Promise.all(images.map((img) => img.decode()));
+        if (images.some((img) => img.naturalWidth === 0)) throw new Error("Broken profile image");
+      });
+    }
     await page.mouse.move(1900, 1060);
     await page.screenshot({
       path: resolve(output, `${name}.png`),

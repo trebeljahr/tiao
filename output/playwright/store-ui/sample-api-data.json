@@ -10,13 +10,14 @@
     "session": {
       "id": "sample-session",
       "userId": "sample-aki",
-      "expiresAt": "2026-10-01T23:27:40.377Z"
+      "expiresAt": "2026-10-01T23:32:11.425Z"
     }
   },
   "/api/player/me": {
     "player": {
       "playerId": "sample-aki",
       "displayName": "aki",
+      "profilePicture": "/sample-avatars/aki.jpg",
       "kind": "account",
       "rating": 1580,
       "hasSeenTutorial": true,
@@ -33,6 +34,7 @@
         {
           "playerId": "sample-mira",
           "displayName": "mira",
+          "profilePicture": "/sample-avatars/mira.jpg",
           "kind": "account",
           "rating": 1563,
           "hasSeenTutorial": true,
@@ -43,6 +45,7 @@
         {
           "playerId": "sample-rowan",
           "displayName": "rowan",
+          "profilePicture": "/sample-avatars/rowan.jpg",
           "kind": "account",
           "rating": 1546,
           "hasSeenTutorial": true,
@@ -53,6 +56,7 @@
         {
           "playerId": "sample-sora",
           "displayName": "sora",
+          "profilePicture": "/sample-avatars/sora.jpg",
           "kind": "account",
           "rating": 1529,
           "hasSeenTutorial": true,
@@ -63,6 +67,7 @@
         {
           "playerId": "sample-jules",
           "displayName": "jules",
+          "profilePicture": "/sample-avatars/jules.jpg",
           "kind": "account",
           "rating": 1512,
           "hasSeenTutorial": true,
@@ -75,6 +80,7 @@
         {
           "playerId": "sample-rin",
           "displayName": "rin",
+          "profilePicture": "/sample-avatars/rin.jpg",
           "kind": "account",
           "rating": 1478,
           "hasSeenTutorial": true,
@@ -86,6 +92,7 @@
         {
           "playerId": "sample-kai",
           "displayName": "kai",
+          "profilePicture": "/sample-avatars/kai.jpg",
           "kind": "account",
           "rating": 1461,
           "hasSeenTutorial": true,
@@ -103,6 +110,7 @@
         "player": {
           "playerId": "sample-rin",
           "displayName": "rin",
+          "profilePicture": "/sample-avatars/rin.jpg",
           "kind": "account",
           "rating": 1478,
           "hasSeenTutorial": true,
@@ -943,13 +951,14 @@
           },
           "roomType": "tournament",
           "status": "active",
-          "createdAt": "2026-09-30T22:27:40.367Z",
-          "updatedAt": "2026-09-30T23:27:40.367Z",
+          "createdAt": "2026-09-30T22:32:11.416Z",
+          "updatedAt": "2026-09-30T23:32:11.416Z",
           "players": [
             {
               "player": {
                 "playerId": "sample-aki",
                 "displayName": "aki",
+                "profilePicture": "/sample-avatars/aki.jpg",
                 "kind": "account",
                 "rating": 1580,
                 "hasSeenTutorial": true,
@@ -962,6 +971,7 @@
               "player": {
                 "playerId": "sample-mira",
                 "displayName": "mira",
+                "profilePicture": "/sample-avatars/mira.jpg",
                 "kind": "account",
                 "rating": 1563,
                 "hasSeenTutorial": true,
@@ -977,6 +987,7 @@
               "player": {
                 "playerId": "sample-aki",
                 "displayName": "aki",
+                "profilePicture": "/sample-avatars/aki.jpg",
                 "kind": "account",
                 "rating": 1580,
                 "hasSeenTutorial": true,
@@ -989,6 +1000,7 @@
               "player": {
                 "playerId": "sample-mira",
                 "displayName": "mira",
+                "profilePicture": "/sample-avatars/mira.jpg",
                 "kind": "account",
                 "rating": 1563,
                 "hasSeenTutorial": true,
@@ -2202,13 +2214,14 @@
           },
           "roomType": "direct",
           "status": "finished",
-          "createdAt": "2026-09-30T21:27:40.361Z",
-          "updatedAt": "2026-09-30T22:27:40.361Z",
+          "createdAt": "2026-09-30T21:32:11.410Z",
+          "updatedAt": "2026-09-30T22:32:11.410Z",
           "players": [
             {
               "player": {
                 "playerId": "sample-aki",
                 "displayName": "aki",
+                "profilePicture": "/sample-avatars/aki.jpg",
                 "kind": "account",
                 "rating": 1580,
                 "hasSeenTutorial": true,
@@ -2221,6 +2234,7 @@
               "player": {
                 "playerId": "sample-mira",
                 "displayName": "mira",
+                "profilePicture": "/sample-avatars/mira.jpg",
                 "kind": "account",
                 "rating": 1563,
                 "hasSeenTutorial": true,
@@ -2236,6 +2250,7 @@
               "player": {
                 "playerId": "sample-aki",
                 "displayName": "aki",
+                "profilePicture": "/sample-avatars/aki.jpg",
                 "kind": "account",
                 "rating": 1580,
                 "hasSeenTutorial": true,
@@ -2248,6 +2263,7 @@
               "player": {
                 "playerId": "sample-mira",
                 "displayName": "mira",
+                "profilePicture": "/sample-avatars/mira.jpg",
                 "kind": "account",
                 "rating": 1563,
                 "hasSeenTutorial": true,
@@ -3173,13 +3189,14 @@
           },
           "roomType": "direct",
           "status": "finished",
-          "createdAt": "2026-09-30T19:27:40.365Z",
-          "updatedAt": "2026-09-30T20:27:40.365Z",
+          "createdAt": "2026-09-30T19:32:11.414Z",
+          "updatedAt": "2026-09-30T20:32:11.414Z",
           "players": [
             {
               "player": {
                 "playerId": "sample-aki",
                 "displayName": "aki",
+                "profilePicture": "/sample-avatars/aki.jpg",
                 "kind": "account",
                 "rating": 1580,
                 "hasSeenTutorial": true,
@@ -3192,6 +3209,7 @@
               "player": {
                 "playerId": "sample-rowan",
                 "displayName": "rowan",
+                "profilePicture": "/sample-avatars/rowan.jpg",
                 "kind": "account",
                 "rating": 1546,
                 "hasSeenTutorial": true,
@@ -3207,6 +3225,7 @@
               "player": {
                 "playerId": "sample-aki",
                 "displayName": "aki",
+                "profilePicture": "/sample-avatars/aki.jpg",
                 "kind": "account",
                 "rating": 1580,
                 "hasSeenTutorial": true,
@@ -3219,6 +3238,7 @@
               "player": {
                 "playerId": "sample-rowan",
                 "displayName": "rowan",
+                "profilePicture": "/sample-avatars/rowan.jpg",
                 "kind": "account",
                 "rating": 1546,
                 "hasSeenTutorial": true,
@@ -4428,13 +4448,14 @@
           },
           "roomType": "direct",
           "status": "finished",
-          "createdAt": "2026-09-29T23:27:40.367Z",
-          "updatedAt": "2026-09-30T00:27:40.367Z",
+          "createdAt": "2026-09-29T23:32:11.416Z",
+          "updatedAt": "2026-09-30T00:32:11.416Z",
           "players": [
             {
               "player": {
                 "playerId": "sample-aki",
                 "displayName": "aki",
+                "profilePicture": "/sample-avatars/aki.jpg",
                 "kind": "account",
                 "rating": 1580,
                 "hasSeenTutorial": true,
@@ -4447,6 +4468,7 @@
               "player": {
                 "playerId": "sample-sora",
                 "displayName": "sora",
+                "profilePicture": "/sample-avatars/sora.jpg",
                 "kind": "account",
                 "rating": 1529,
                 "hasSeenTutorial": true,
@@ -4462,6 +4484,7 @@
               "player": {
                 "playerId": "sample-aki",
                 "displayName": "aki",
+                "profilePicture": "/sample-avatars/aki.jpg",
                 "kind": "account",
                 "rating": 1580,
                 "hasSeenTutorial": true,
@@ -4474,6 +4497,7 @@
               "player": {
                 "playerId": "sample-sora",
                 "displayName": "sora",
+                "profilePicture": "/sample-avatars/sora.jpg",
                 "kind": "account",
                 "rating": 1529,
                 "hasSeenTutorial": true,
@@ -4514,7 +4538,7 @@
         "boardSize": 19,
         "scoreToWin": 10,
         "isFeatured": false,
-        "createdAt": "2026-09-29T23:27:40.377Z",
+        "createdAt": "2026-09-29T23:32:11.425Z",
         "name": "Autumn Cup",
         "tournamentId": "AUTUMN8",
         "status": "active",
@@ -4530,7 +4554,7 @@
         "boardSize": 19,
         "scoreToWin": 10,
         "isFeatured": false,
-        "createdAt": "2026-09-29T23:27:40.377Z",
+        "createdAt": "2026-09-29T23:32:11.425Z",
         "name": "Weekend Round Robin",
         "tournamentId": "WEEKEND",
         "status": "registration",
@@ -4549,7 +4573,7 @@
         "boardSize": 19,
         "scoreToWin": 10,
         "isFeatured": false,
-        "createdAt": "2026-09-29T23:27:40.377Z",
+        "createdAt": "2026-09-29T23:32:11.425Z",
         "name": "Evening Blitz",
         "tournamentId": "BLITZ08",
         "status": "registration",
@@ -4565,7 +4589,7 @@
         "boardSize": 19,
         "scoreToWin": 10,
         "isFeatured": false,
-        "createdAt": "2026-09-29T23:27:40.377Z",
+        "createdAt": "2026-09-29T23:32:11.425Z",
         "name": "September Open",
         "tournamentId": "SEPT026",
         "status": "finished",
@@ -4585,7 +4609,7 @@
         "boardSize": 19,
         "scoreToWin": 10,
         "isFeatured": false,
-        "createdAt": "2026-09-29T23:27:40.377Z",
+        "createdAt": "2026-09-29T23:32:11.425Z",
         "name": "Autumn Cup",
         "tournamentId": "AUTUMN8",
         "status": "active",
@@ -4601,7 +4625,7 @@
         "boardSize": 19,
         "scoreToWin": 10,
         "isFeatured": false,
-        "createdAt": "2026-09-29T23:27:40.377Z",
+        "createdAt": "2026-09-29T23:32:11.425Z",
         "name": "Weekend Round Robin",
         "tournamentId": "WEEKEND",
         "status": "registration",
@@ -4638,6 +4662,7 @@
         {
           "playerId": "sample-aki",
           "displayName": "aki",
+          "profilePicture": "/sample-avatars/aki.jpg",
           "kind": "account",
           "rating": 1580,
           "hasSeenTutorial": true,
@@ -4648,6 +4673,7 @@
         {
           "playerId": "sample-mira",
           "displayName": "mira",
+          "profilePicture": "/sample-avatars/mira.jpg",
           "kind": "account",
           "rating": 1563,
           "hasSeenTutorial": true,
@@ -4658,6 +4684,7 @@
         {
           "playerId": "sample-rowan",
           "displayName": "rowan",
+          "profilePicture": "/sample-avatars/rowan.jpg",
           "kind": "account",
           "rating": 1546,
           "hasSeenTutorial": true,
@@ -4668,6 +4695,7 @@
         {
           "playerId": "sample-sora",
           "displayName": "sora",
+          "profilePicture": "/sample-avatars/sora.jpg",
           "kind": "account",
           "rating": 1529,
           "hasSeenTutorial": true,
@@ -4678,6 +4706,7 @@
         {
           "playerId": "sample-jules",
           "displayName": "jules",
+          "profilePicture": "/sample-avatars/jules.jpg",
           "kind": "account",
           "rating": 1512,
           "hasSeenTutorial": true,
@@ -4688,6 +4717,7 @@
         {
           "playerId": "sample-niko",
           "displayName": "niko",
+          "profilePicture": "/sample-avatars/niko.jpg",
           "kind": "account",
           "rating": 1495,
           "hasSeenTutorial": true,
@@ -4698,6 +4728,7 @@
         {
           "playerId": "sample-rin",
           "displayName": "rin",
+          "profilePicture": "/sample-avatars/rin.jpg",
           "kind": "account",
           "rating": 1478,
           "hasSeenTutorial": true,
@@ -4708,6 +4739,7 @@
         {
           "playerId": "sample-kai",
           "displayName": "kai",
+          "profilePicture": "/sample-avatars/kai.jpg",
           "kind": "account",
           "rating": 1461,
           "hasSeenTutorial": true,
@@ -4730,6 +4762,7 @@
                 {
                   "playerId": "sample-aki",
                   "displayName": "aki",
+                  "profilePicture": "/sample-avatars/aki.jpg",
                   "kind": "account",
                   "rating": 1580,
                   "hasSeenTutorial": true,
@@ -4739,6 +4772,7 @@
                 {
                   "playerId": "sample-kai",
                   "displayName": "kai",
+                  "profilePicture": "/sample-avatars/kai.jpg",
                   "kind": "account",
                   "rating": 1461,
                   "hasSeenTutorial": true,
@@ -4762,6 +4796,7 @@
                 {
                   "playerId": "sample-sora",
                   "displayName": "sora",
+                  "profilePicture": "/sample-avatars/sora.jpg",
                   "kind": "account",
                   "rating": 1529,
                   "hasSeenTutorial": true,
@@ -4771,6 +4806,7 @@
                 {
                   "playerId": "sample-jules",
                   "displayName": "jules",
+                  "profilePicture": "/sample-avatars/jules.jpg",
                   "kind": "account",
                   "rating": 1512,
                   "hasSeenTutorial": true,
@@ -4794,6 +4830,7 @@
                 {
                   "playerId": "sample-mira",
                   "displayName": "mira",
+                  "profilePicture": "/sample-avatars/mira.jpg",
                   "kind": "account",
                   "rating": 1563,
                   "hasSeenTutorial": true,
@@ -4803,6 +4840,7 @@
                 {
                   "playerId": "sample-rin",
                   "displayName": "rin",
+                  "profilePicture": "/sample-avatars/rin.jpg",
                   "kind": "account",
                   "rating": 1478,
                   "hasSeenTutorial": true,
@@ -4826,6 +4864,7 @@
                 {
                   "playerId": "sample-rowan",
                   "displayName": "rowan",
+                  "profilePicture": "/sample-avatars/rowan.jpg",
                   "kind": "account",
                   "rating": 1546,
                   "hasSeenTutorial": true,
@@ -4835,6 +4874,7 @@
                 {
                   "playerId": "sample-niko",
                   "displayName": "niko",
+                  "profilePicture": "/sample-avatars/niko.jpg",
                   "kind": "account",
                   "rating": 1495,
                   "hasSeenTutorial": true,
@@ -4865,6 +4905,7 @@
                 {
                   "playerId": "sample-aki",
                   "displayName": "aki",
+                  "profilePicture": "/sample-avatars/aki.jpg",
                   "kind": "account",
                   "rating": 1580,
                   "hasSeenTutorial": true,
@@ -4874,6 +4915,7 @@
                 {
                   "playerId": "sample-sora",
                   "displayName": "sora",
+                  "profilePicture": "/sample-avatars/sora.jpg",
                   "kind": "account",
                   "rating": 1529,
                   "hasSeenTutorial": true,
@@ -4897,6 +4939,7 @@
                 {
                   "playerId": "sample-mira",
                   "displayName": "mira",
+                  "profilePicture": "/sample-avatars/mira.jpg",
                   "kind": "account",
                   "rating": 1563,
                   "hasSeenTutorial": true,
@@ -4906,6 +4949,7 @@
                 {
                   "playerId": "sample-rowan",
                   "displayName": "rowan",
+                  "profilePicture": "/sample-avatars/rowan.jpg",
                   "kind": "account",
                   "rating": 1546,
                   "hasSeenTutorial": true,
@@ -4936,6 +4980,7 @@
                 {
                   "playerId": "sample-aki",
                   "displayName": "aki",
+                  "profilePicture": "/sample-avatars/aki.jpg",
                   "kind": "account",
                   "rating": 1580,
                   "hasSeenTutorial": true,
@@ -4945,6 +4990,7 @@
                 {
                   "playerId": "sample-mira",
                   "displayName": "mira",
+                  "profilePicture": "/sample-avatars/mira.jpg",
                   "kind": "account",
                   "rating": 1563,
                   "hasSeenTutorial": true,
@@ -4970,6 +5016,7 @@
         "sample-aki": {
           "playerId": "sample-aki",
           "displayName": "aki",
+          "profilePicture": "/sample-avatars/aki.jpg",
           "kind": "account",
           "rating": 1580,
           "hasSeenTutorial": true,
@@ -4979,6 +5026,7 @@
         "sample-mira": {
           "playerId": "sample-mira",
           "displayName": "mira",
+          "profilePicture": "/sample-avatars/mira.jpg",
           "kind": "account",
           "rating": 1563,
           "hasSeenTutorial": true,
@@ -4988,6 +5036,7 @@
         "sample-rowan": {
           "playerId": "sample-rowan",
           "displayName": "rowan",
+          "profilePicture": "/sample-avatars/rowan.jpg",
           "kind": "account",
           "rating": 1546,
           "hasSeenTutorial": true,
@@ -4997,6 +5046,7 @@
         "sample-sora": {
           "playerId": "sample-sora",
           "displayName": "sora",
+          "profilePicture": "/sample-avatars/sora.jpg",
           "kind": "account",
           "rating": 1529,
           "hasSeenTutorial": true,
@@ -5006,6 +5056,7 @@
         "sample-jules": {
           "playerId": "sample-jules",
           "displayName": "jules",
+          "profilePicture": "/sample-avatars/jules.jpg",
           "kind": "account",
           "rating": 1512,
           "hasSeenTutorial": true,
@@ -5015,6 +5066,7 @@
         "sample-niko": {
           "playerId": "sample-niko",
           "displayName": "niko",
+          "profilePicture": "/sample-avatars/niko.jpg",
           "kind": "account",
           "rating": 1495,
           "hasSeenTutorial": true,
@@ -5024,6 +5076,7 @@
         "sample-rin": {
           "playerId": "sample-rin",
           "displayName": "rin",
+          "profilePicture": "/sample-avatars/rin.jpg",
           "kind": "account",
           "rating": 1478,
           "hasSeenTutorial": true,
@@ -5033,6 +5086,7 @@
         "sample-kai": {
           "playerId": "sample-kai",
           "displayName": "kai",
+          "profilePicture": "/sample-avatars/kai.jpg",
           "kind": "account",
           "rating": 1461,
           "hasSeenTutorial": true,
@@ -5040,8 +5094,8 @@
           "seed": 8
         }
       },
-      "createdAt": "2026-09-29T23:27:40.376Z",
-      "updatedAt": "2026-09-30T23:27:40.360Z"
+      "createdAt": "2026-09-29T23:32:11.425Z",
+      "updatedAt": "2026-09-30T23:32:11.409Z"
     }
   },
   "/api/games/W6N3RX": {
@@ -5872,13 +5926,14 @@
       },
       "roomType": "tournament",
       "status": "active",
-      "createdAt": "2026-09-30T22:27:40.367Z",
-      "updatedAt": "2026-09-30T23:27:40.367Z",
+      "createdAt": "2026-09-30T22:32:11.416Z",
+      "updatedAt": "2026-09-30T23:32:11.416Z",
       "players": [
         {
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -5891,6 +5946,7 @@
           "player": {
             "playerId": "sample-mira",
             "displayName": "mira",
+            "profilePicture": "/sample-avatars/mira.jpg",
             "kind": "account",
             "rating": 1563,
             "hasSeenTutorial": true,
@@ -5906,6 +5962,7 @@
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -5918,6 +5975,7 @@
           "player": {
             "playerId": "sample-mira",
             "displayName": "mira",
+            "profilePicture": "/sample-avatars/mira.jpg",
             "kind": "account",
             "rating": 1563,
             "hasSeenTutorial": true,
@@ -6763,13 +6821,14 @@
       },
       "roomType": "tournament",
       "status": "active",
-      "createdAt": "2026-09-30T22:27:40.367Z",
-      "updatedAt": "2026-09-30T23:27:40.367Z",
+      "createdAt": "2026-09-30T22:32:11.416Z",
+      "updatedAt": "2026-09-30T23:32:11.416Z",
       "players": [
         {
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -6782,6 +6841,7 @@
           "player": {
             "playerId": "sample-mira",
             "displayName": "mira",
+            "profilePicture": "/sample-avatars/mira.jpg",
             "kind": "account",
             "rating": 1563,
             "hasSeenTutorial": true,
@@ -6797,6 +6857,7 @@
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -6809,6 +6870,7 @@
           "player": {
             "playerId": "sample-mira",
             "displayName": "mira",
+            "profilePicture": "/sample-avatars/mira.jpg",
             "kind": "account",
             "rating": 1563,
             "hasSeenTutorial": true,
@@ -8010,13 +8072,14 @@
       },
       "roomType": "direct",
       "status": "finished",
-      "createdAt": "2026-09-30T21:27:40.361Z",
-      "updatedAt": "2026-09-30T22:27:40.361Z",
+      "createdAt": "2026-09-30T21:32:11.410Z",
+      "updatedAt": "2026-09-30T22:32:11.410Z",
       "players": [
         {
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -8029,6 +8092,7 @@
           "player": {
             "playerId": "sample-mira",
             "displayName": "mira",
+            "profilePicture": "/sample-avatars/mira.jpg",
             "kind": "account",
             "rating": 1563,
             "hasSeenTutorial": true,
@@ -8044,6 +8108,7 @@
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -8056,6 +8121,7 @@
           "player": {
             "playerId": "sample-mira",
             "displayName": "mira",
+            "profilePicture": "/sample-avatars/mira.jpg",
             "kind": "account",
             "rating": 1563,
             "hasSeenTutorial": true,
@@ -9256,13 +9322,14 @@
       },
       "roomType": "direct",
       "status": "finished",
-      "createdAt": "2026-09-30T21:27:40.361Z",
-      "updatedAt": "2026-09-30T22:27:40.361Z",
+      "createdAt": "2026-09-30T21:32:11.410Z",
+      "updatedAt": "2026-09-30T22:32:11.410Z",
       "players": [
         {
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -9275,6 +9342,7 @@
           "player": {
             "playerId": "sample-mira",
             "displayName": "mira",
+            "profilePicture": "/sample-avatars/mira.jpg",
             "kind": "account",
             "rating": 1563,
             "hasSeenTutorial": true,
@@ -9290,6 +9358,7 @@
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -9302,6 +9371,7 @@
           "player": {
             "playerId": "sample-mira",
             "displayName": "mira",
+            "profilePicture": "/sample-avatars/mira.jpg",
             "kind": "account",
             "rating": 1563,
             "hasSeenTutorial": true,
@@ -10217,13 +10287,14 @@
       },
       "roomType": "direct",
       "status": "finished",
-      "createdAt": "2026-09-30T19:27:40.365Z",
-      "updatedAt": "2026-09-30T20:27:40.365Z",
+      "createdAt": "2026-09-30T19:32:11.414Z",
+      "updatedAt": "2026-09-30T20:32:11.414Z",
       "players": [
         {
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -10236,6 +10307,7 @@
           "player": {
             "playerId": "sample-rowan",
             "displayName": "rowan",
+            "profilePicture": "/sample-avatars/rowan.jpg",
             "kind": "account",
             "rating": 1546,
             "hasSeenTutorial": true,
@@ -10251,6 +10323,7 @@
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -10263,6 +10336,7 @@
           "player": {
             "playerId": "sample-rowan",
             "displayName": "rowan",
+            "profilePicture": "/sample-avatars/rowan.jpg",
             "kind": "account",
             "rating": 1546,
             "hasSeenTutorial": true,
@@ -11178,13 +11252,14 @@
       },
       "roomType": "direct",
       "status": "finished",
-      "createdAt": "2026-09-30T19:27:40.365Z",
-      "updatedAt": "2026-09-30T20:27:40.365Z",
+      "createdAt": "2026-09-30T19:32:11.414Z",
+      "updatedAt": "2026-09-30T20:32:11.414Z",
       "players": [
         {
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -11197,6 +11272,7 @@
           "player": {
             "playerId": "sample-rowan",
             "displayName": "rowan",
+            "profilePicture": "/sample-avatars/rowan.jpg",
             "kind": "account",
             "rating": 1546,
             "hasSeenTutorial": true,
@@ -11212,6 +11288,7 @@
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -11224,6 +11301,7 @@
           "player": {
             "playerId": "sample-rowan",
             "displayName": "rowan",
+            "profilePicture": "/sample-avatars/rowan.jpg",
             "kind": "account",
             "rating": 1546,
             "hasSeenTutorial": true,
@@ -12423,13 +12501,14 @@
       },
       "roomType": "direct",
       "status": "finished",
-      "createdAt": "2026-09-29T23:27:40.367Z",
-      "updatedAt": "2026-09-30T00:27:40.367Z",
+      "createdAt": "2026-09-29T23:32:11.416Z",
+      "updatedAt": "2026-09-30T00:32:11.416Z",
       "players": [
         {
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -12442,6 +12521,7 @@
           "player": {
             "playerId": "sample-sora",
             "displayName": "sora",
+            "profilePicture": "/sample-avatars/sora.jpg",
             "kind": "account",
             "rating": 1529,
             "hasSeenTutorial": true,
@@ -12457,6 +12537,7 @@
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -12469,6 +12550,7 @@
           "player": {
             "playerId": "sample-sora",
             "displayName": "sora",
+            "profilePicture": "/sample-avatars/sora.jpg",
             "kind": "account",
             "rating": 1529,
             "hasSeenTutorial": true,
@@ -13668,13 +13750,14 @@
       },
       "roomType": "direct",
       "status": "finished",
-      "createdAt": "2026-09-29T23:27:40.367Z",
-      "updatedAt": "2026-09-30T00:27:40.367Z",
+      "createdAt": "2026-09-29T23:32:11.416Z",
+      "updatedAt": "2026-09-30T00:32:11.416Z",
       "players": [
         {
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -13687,6 +13770,7 @@
           "player": {
             "playerId": "sample-sora",
             "displayName": "sora",
+            "profilePicture": "/sample-avatars/sora.jpg",
             "kind": "account",
             "rating": 1529,
             "hasSeenTutorial": true,
@@ -13702,6 +13786,7 @@
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -13714,6 +13799,7 @@
           "player": {
             "playerId": "sample-sora",
             "displayName": "sora",
+            "profilePicture": "/sample-avatars/sora.jpg",
             "kind": "account",
             "rating": 1529,
             "hasSeenTutorial": true,
@@ -14901,13 +14987,14 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T20:27:40.369Z",
-      "updatedAt": "2026-09-30T21:27:40.369Z",
+      "createdAt": "2026-09-30T20:32:11.418Z",
+      "updatedAt": "2026-09-30T21:32:11.418Z",
       "players": [
         {
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -14920,6 +15007,7 @@
           "player": {
             "playerId": "sample-kai",
             "displayName": "kai",
+            "profilePicture": "/sample-avatars/kai.jpg",
             "kind": "account",
             "rating": 1461,
             "hasSeenTutorial": true,
@@ -14935,6 +15023,7 @@
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -14947,6 +15036,7 @@
           "player": {
             "playerId": "sample-kai",
             "displayName": "kai",
+            "profilePicture": "/sample-avatars/kai.jpg",
             "kind": "account",
             "rating": 1461,
             "hasSeenTutorial": true,
@@ -16135,13 +16225,14 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T20:27:40.369Z",
-      "updatedAt": "2026-09-30T21:27:40.369Z",
+      "createdAt": "2026-09-30T20:32:11.418Z",
+      "updatedAt": "2026-09-30T21:32:11.418Z",
       "players": [
         {
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -16154,6 +16245,7 @@
           "player": {
             "playerId": "sample-kai",
             "displayName": "kai",
+            "profilePicture": "/sample-avatars/kai.jpg",
             "kind": "account",
             "rating": 1461,
             "hasSeenTutorial": true,
@@ -16169,6 +16261,7 @@
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -16181,6 +16274,7 @@
           "player": {
             "playerId": "sample-kai",
             "displayName": "kai",
+            "profilePicture": "/sample-avatars/kai.jpg",
             "kind": "account",
             "rating": 1461,
             "hasSeenTutorial": true,
@@ -17353,13 +17447,14 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T20:27:40.372Z",
-      "updatedAt": "2026-09-30T21:27:40.372Z",
+      "createdAt": "2026-09-30T20:32:11.421Z",
+      "updatedAt": "2026-09-30T21:32:11.421Z",
       "players": [
         {
           "player": {
             "playerId": "sample-sora",
             "displayName": "sora",
+            "profilePicture": "/sample-avatars/sora.jpg",
             "kind": "account",
             "rating": 1529,
             "hasSeenTutorial": true,
@@ -17372,6 +17467,7 @@
           "player": {
             "playerId": "sample-jules",
             "displayName": "jules",
+            "profilePicture": "/sample-avatars/jules.jpg",
             "kind": "account",
             "rating": 1512,
             "hasSeenTutorial": true,
@@ -17387,6 +17483,7 @@
           "player": {
             "playerId": "sample-sora",
             "displayName": "sora",
+            "profilePicture": "/sample-avatars/sora.jpg",
             "kind": "account",
             "rating": 1529,
             "hasSeenTutorial": true,
@@ -17399,6 +17496,7 @@
           "player": {
             "playerId": "sample-jules",
             "displayName": "jules",
+            "profilePicture": "/sample-avatars/jules.jpg",
             "kind": "account",
             "rating": 1512,
             "hasSeenTutorial": true,
@@ -18571,13 +18669,14 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T20:27:40.372Z",
-      "updatedAt": "2026-09-30T21:27:40.372Z",
+      "createdAt": "2026-09-30T20:32:11.421Z",
+      "updatedAt": "2026-09-30T21:32:11.421Z",
       "players": [
         {
           "player": {
             "playerId": "sample-sora",
             "displayName": "sora",
+            "profilePicture": "/sample-avatars/sora.jpg",
             "kind": "account",
             "rating": 1529,
             "hasSeenTutorial": true,
@@ -18590,6 +18689,7 @@
           "player": {
             "playerId": "sample-jules",
             "displayName": "jules",
+            "profilePicture": "/sample-avatars/jules.jpg",
             "kind": "account",
             "rating": 1512,
             "hasSeenTutorial": true,
@@ -18605,6 +18705,7 @@
           "player": {
             "playerId": "sample-sora",
             "displayName": "sora",
+            "profilePicture": "/sample-avatars/sora.jpg",
             "kind": "account",
             "rating": 1529,
             "hasSeenTutorial": true,
@@ -18617,6 +18718,7 @@
           "player": {
             "playerId": "sample-jules",
             "displayName": "jules",
+            "profilePicture": "/sample-avatars/jules.jpg",
             "kind": "account",
             "rating": 1512,
             "hasSeenTutorial": true,
@@ -19641,13 +19743,14 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T20:27:40.373Z",
-      "updatedAt": "2026-09-30T21:27:40.373Z",
+      "createdAt": "2026-09-30T20:32:11.422Z",
+      "updatedAt": "2026-09-30T21:32:11.422Z",
       "players": [
         {
           "player": {
             "playerId": "sample-mira",
             "displayName": "mira",
+            "profilePicture": "/sample-avatars/mira.jpg",
             "kind": "account",
             "rating": 1563,
             "hasSeenTutorial": true,
@@ -19660,6 +19763,7 @@
           "player": {
             "playerId": "sample-rin",
             "displayName": "rin",
+            "profilePicture": "/sample-avatars/rin.jpg",
             "kind": "account",
             "rating": 1478,
             "hasSeenTutorial": true,
@@ -19675,6 +19779,7 @@
           "player": {
             "playerId": "sample-mira",
             "displayName": "mira",
+            "profilePicture": "/sample-avatars/mira.jpg",
             "kind": "account",
             "rating": 1563,
             "hasSeenTutorial": true,
@@ -19687,6 +19792,7 @@
           "player": {
             "playerId": "sample-rin",
             "displayName": "rin",
+            "profilePicture": "/sample-avatars/rin.jpg",
             "kind": "account",
             "rating": 1478,
             "hasSeenTutorial": true,
@@ -20711,13 +20817,14 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T20:27:40.373Z",
-      "updatedAt": "2026-09-30T21:27:40.373Z",
+      "createdAt": "2026-09-30T20:32:11.422Z",
+      "updatedAt": "2026-09-30T21:32:11.422Z",
       "players": [
         {
           "player": {
             "playerId": "sample-mira",
             "displayName": "mira",
+            "profilePicture": "/sample-avatars/mira.jpg",
             "kind": "account",
             "rating": 1563,
             "hasSeenTutorial": true,
@@ -20730,6 +20837,7 @@
           "player": {
             "playerId": "sample-rin",
             "displayName": "rin",
+            "profilePicture": "/sample-avatars/rin.jpg",
             "kind": "account",
             "rating": 1478,
             "hasSeenTutorial": true,
@@ -20745,6 +20853,7 @@
           "player": {
             "playerId": "sample-mira",
             "displayName": "mira",
+            "profilePicture": "/sample-avatars/mira.jpg",
             "kind": "account",
             "rating": 1563,
             "hasSeenTutorial": true,
@@ -20757,6 +20866,7 @@
           "player": {
             "playerId": "sample-rin",
             "displayName": "rin",
+            "profilePicture": "/sample-avatars/rin.jpg",
             "kind": "account",
             "rating": 1478,
             "hasSeenTutorial": true,
@@ -21670,13 +21780,14 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T20:27:40.374Z",
-      "updatedAt": "2026-09-30T21:27:40.374Z",
+      "createdAt": "2026-09-30T20:32:11.423Z",
+      "updatedAt": "2026-09-30T21:32:11.423Z",
       "players": [
         {
           "player": {
             "playerId": "sample-rowan",
             "displayName": "rowan",
+            "profilePicture": "/sample-avatars/rowan.jpg",
             "kind": "account",
             "rating": 1546,
             "hasSeenTutorial": true,
@@ -21689,6 +21800,7 @@
           "player": {
             "playerId": "sample-niko",
             "displayName": "niko",
+            "profilePicture": "/sample-avatars/niko.jpg",
             "kind": "account",
             "rating": 1495,
             "hasSeenTutorial": true,
@@ -21704,6 +21816,7 @@
           "player": {
             "playerId": "sample-rowan",
             "displayName": "rowan",
+            "profilePicture": "/sample-avatars/rowan.jpg",
             "kind": "account",
             "rating": 1546,
             "hasSeenTutorial": true,
@@ -21716,6 +21829,7 @@
           "player": {
             "playerId": "sample-niko",
             "displayName": "niko",
+            "profilePicture": "/sample-avatars/niko.jpg",
             "kind": "account",
             "rating": 1495,
             "hasSeenTutorial": true,
@@ -22629,13 +22743,14 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T20:27:40.374Z",
-      "updatedAt": "2026-09-30T21:27:40.374Z",
+      "createdAt": "2026-09-30T20:32:11.423Z",
+      "updatedAt": "2026-09-30T21:32:11.423Z",
       "players": [
         {
           "player": {
             "playerId": "sample-rowan",
             "displayName": "rowan",
+            "profilePicture": "/sample-avatars/rowan.jpg",
             "kind": "account",
             "rating": 1546,
             "hasSeenTutorial": true,
@@ -22648,6 +22763,7 @@
           "player": {
             "playerId": "sample-niko",
             "displayName": "niko",
+            "profilePicture": "/sample-avatars/niko.jpg",
             "kind": "account",
             "rating": 1495,
             "hasSeenTutorial": true,
@@ -22663,6 +22779,7 @@
           "player": {
             "playerId": "sample-rowan",
             "displayName": "rowan",
+            "profilePicture": "/sample-avatars/rowan.jpg",
             "kind": "account",
             "rating": 1546,
             "hasSeenTutorial": true,
@@ -22675,6 +22792,7 @@
           "player": {
             "playerId": "sample-niko",
             "displayName": "niko",
+            "profilePicture": "/sample-avatars/niko.jpg",
             "kind": "account",
             "rating": 1495,
             "hasSeenTutorial": true,
@@ -23868,13 +23986,14 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T19:27:40.375Z",
-      "updatedAt": "2026-09-30T20:27:40.375Z",
+      "createdAt": "2026-09-30T19:32:11.424Z",
+      "updatedAt": "2026-09-30T20:32:11.424Z",
       "players": [
         {
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -23887,6 +24006,7 @@
           "player": {
             "playerId": "sample-sora",
             "displayName": "sora",
+            "profilePicture": "/sample-avatars/sora.jpg",
             "kind": "account",
             "rating": 1529,
             "hasSeenTutorial": true,
@@ -23902,6 +24022,7 @@
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -23914,6 +24035,7 @@
           "player": {
             "playerId": "sample-sora",
             "displayName": "sora",
+            "profilePicture": "/sample-avatars/sora.jpg",
             "kind": "account",
             "rating": 1529,
             "hasSeenTutorial": true,
@@ -25107,13 +25229,14 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T19:27:40.375Z",
-      "updatedAt": "2026-09-30T20:27:40.375Z",
+      "createdAt": "2026-09-30T19:32:11.424Z",
+      "updatedAt": "2026-09-30T20:32:11.424Z",
       "players": [
         {
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -25126,6 +25249,7 @@
           "player": {
             "playerId": "sample-sora",
             "displayName": "sora",
+            "profilePicture": "/sample-avatars/sora.jpg",
             "kind": "account",
             "rating": 1529,
             "hasSeenTutorial": true,
@@ -25141,6 +25265,7 @@
           "player": {
             "playerId": "sample-aki",
             "displayName": "aki",
+            "profilePicture": "/sample-avatars/aki.jpg",
             "kind": "account",
             "rating": 1580,
             "hasSeenTutorial": true,
@@ -25153,6 +25278,7 @@
           "player": {
             "playerId": "sample-sora",
             "displayName": "sora",
+            "profilePicture": "/sample-avatars/sora.jpg",
             "kind": "account",
             "rating": 1529,
             "hasSeenTutorial": true,
@@ -26246,13 +26372,14 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T19:27:40.376Z",
-      "updatedAt": "2026-09-30T20:27:40.376Z",
+      "createdAt": "2026-09-30T19:32:11.425Z",
+      "updatedAt": "2026-09-30T20:32:11.425Z",
       "players": [
         {
           "player": {
             "playerId": "sample-mira",
             "displayName": "mira",
+            "profilePicture": "/sample-avatars/mira.jpg",
             "kind": "account",
             "rating": 1563,
             "hasSeenTutorial": true,
@@ -26265,6 +26392,7 @@
           "player": {
             "playerId": "sample-rowan",
             "displayName": "rowan",
+            "profilePicture": "/sample-avatars/rowan.jpg",
             "kind": "account",
             "rating": 1546,
             "hasSeenTutorial": true,
@@ -26280,6 +26408,7 @@
           "player": {
             "playerId": "sample-mira",
             "displayName": "mira",
+            "profilePicture": "/sample-avatars/mira.jpg",
             "kind": "account",
             "rating": 1563,
             "hasSeenTutorial": true,
@@ -26292,6 +26421,7 @@
           "player": {
             "playerId": "sample-rowan",
             "displayName": "rowan",
+            "profilePicture": "/sample-avatars/rowan.jpg",
             "kind": "account",
             "rating": 1546,
             "hasSeenTutorial": true,
@@ -27385,13 +27515,14 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T19:27:40.376Z",
-      "updatedAt": "2026-09-30T20:27:40.376Z",
+      "createdAt": "2026-09-30T19:32:11.425Z",
+      "updatedAt": "2026-09-30T20:32:11.425Z",
       "players": [
         {
           "player": {
             "playerId": "sample-mira",
             "displayName": "mira",
+            "profilePicture": "/sample-avatars/mira.jpg",
             "kind": "account",
             "rating": 1563,
             "hasSeenTutorial": true,
@@ -27404,6 +27535,7 @@
           "player": {
             "playerId": "sample-rowan",
             "displayName": "rowan",
+            "profilePicture": "/sample-avatars/rowan.jpg",
             "kind": "account",
             "rating": 1546,
             "hasSeenTutorial": true,
@@ -27419,6 +27551,7 @@
           "player": {
             "playerId": "sample-mira",
             "displayName": "mira",
+            "profilePicture": "/sample-avatars/mira.jpg",
             "kind": "account",
             "rating": 1563,
             "hasSeenTutorial": true,
@@ -27431,6 +27564,7 @@
           "player": {
             "playerId": "sample-rowan",
             "displayName": "rowan",
+            "profilePicture": "/sample-avatars/rowan.jpg",
             "kind": "account",
             "rating": 1546,
             "hasSeenTutorial": true,
