@@ -1428,7 +1428,7 @@
     "setupBody": "One player takes white, the other black. White moves first. Stones go on the intersections, not inside the squares.",
     "turnTitle": "You can place a stone or jump",
     "turnBody": "You can place one stone on a legal empty intersection, or you can capture with a stone already on the board. Placing a stone ends your turn.",
-    "jumpTitle": "You can jump to capture",
+    "jumpTitle": "Capture an enemy stone",
     "jumpBody": "You can jump over an adjacent enemy stone to the empty intersection immediately beyond it. You can jump horizontally, vertically, or diagonally.",
     "chainTitle": "You can continue or stop",
     "chainBody": "After a jump, you can make another legal capture with the same stone, or you can end your turn.",
