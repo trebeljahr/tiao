@@ -6,6 +6,20 @@ import { RuleExample } from "@/components/tutorial/RuleExample";
 import { getRuleExample, type RuleExampleId } from "@/components/tutorial/ruleExamples";
 import styles from "./PublicSite.module.css";
 
+const descriptions = {
+  place: "turnBody",
+  jump: "jumpBody",
+  chain: "chainBody",
+  "confirm-undo": "confirmBody",
+  "border-basic": "borderBody",
+  "border-chain": "border-chainBody",
+  "cluster-basic": "clusterBody",
+  "cluster-diagonal": "cluster-diagonalBody",
+  "cluster-merge": "cluster-mergeBody",
+  "cluster-enemy": "cluster-enemyBody",
+  "cluster-jump": "cluster-jumpBody",
+} as const satisfies Record<RuleExampleId, string>;
+
 export function RuleSection({
   stepId,
   title,
@@ -17,40 +31,29 @@ export function RuleSection({
 }) {
   const tutorial = useTranslations("tutorial");
   const t = useTranslations("rules");
-  // Keep the initial board stable when completion or reset state changes.
+  // Keep the initial board stable when resetting an example.
   const step = useMemo(() => getRuleExample(stepId, tutorial), [tutorial, stepId]);
   const [resetKey, setResetKey] = useState(0);
-  const [complete, setComplete] = useState(false);
 
   return (
     <section className={styles.rulesExplorer} aria-labelledby={`rule-${stepId}`}>
       <div className={styles.rulesBoardCopy}>
         <h2 id={`rule-${stepId}`}>{title ?? step.title}</h2>
-        {children}
-        <div className={styles.ruleDescription}>{step.description}</div>
+        <div className={styles.ruleDescription}>{children ?? <p>{t(descriptions[stepId])}</p>}</div>
         <div className={styles.actions}>
           <button
             type="button"
             className={styles.textLink}
             onClick={() => {
               setResetKey((key) => key + 1);
-              setComplete(false);
             }}
           >
             {t("resetBoard")}
           </button>
         </div>
-        <p className={styles.boardStatus} role="status">
-          {complete ? t("exampleComplete") : t("boardHint")}
-        </p>
       </div>
       <div className={styles.rulesBoardSurface}>
-        <RuleExample
-          config={step.board}
-          resetKey={resetKey}
-          onComplete={() => setComplete(true)}
-          t={tutorial}
-        />
+        <RuleExample config={step.board} resetKey={resetKey} onComplete={() => {}} t={tutorial} />
       </div>
     </section>
   );

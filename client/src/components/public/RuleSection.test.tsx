@@ -25,7 +25,7 @@ vi.mock("@/components/tutorial/InteractiveMiniBoard", () => ({
 }));
 
 describe("RuleSection", () => {
-  it("keeps completion and reset independent for each rule", () => {
+  it("keeps resets independent without status text", () => {
     render(
       <>
         <RuleSection stepId="place" title="Placement">
@@ -55,10 +55,9 @@ describe("RuleSection", () => {
       "data-overlay",
     );
     fireEvent.click(placement.getByRole("button", { name: "Play example 0" }));
-    expect(placement.getByRole("status")).toHaveTextContent("Done. Reset the board");
-    expect(capture.getByRole("status")).toHaveTextContent("Click the board");
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
     fireEvent.click(placement.getByRole("button", { name: "Reset board" }));
-    expect(placement.getByRole("status")).toHaveTextContent("Click the board");
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(placement.getByRole("button", { name: "Play example 1" })).toBeInTheDocument();
     expect(capture.getByRole("button", { name: "Play example 0" })).toBeInTheDocument();
   });
