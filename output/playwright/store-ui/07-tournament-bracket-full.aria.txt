@@ -1,0 +1,78 @@
+- main:
+  - button "Open navigation"
+  - button "← Back"
+  - heading "Autumn Cup" [level=1]
+  - text: active Single Elimination
+  - paragraph: Eight players. Single elimination. First to ten captures.
+  - text: 8/8 players 19x19 | 10 to win | Unlimited
+  - heading "Current Matches" [level=3]
+  - text: "Live #1 A"
+  - link "aki (you)":
+    - /url: /profile/aki
+  - text: "(1580) 3 #2 M"
+  - link "mira":
+    - /url: /profile/mira
+  - text: (1563) 4
+  - button "Play"
+  - heading "Bracket" [level=3]
+  - heading "Quarterfinals" [level=4]
+  - text: "Quarterfinals Score reached () 65 moves #1 A"
+  - link "aki (you)":
+    - /url: /profile/aki
+  - text: "(1580) Won 10 #8 K"
+  - link "kai":
+    - /url: /profile/kai
+  - text: (1461) 8
+  - button "Review"
+  - text: "Quarterfinals Score reached () 62 moves #4 S"
+  - link "sora":
+    - /url: /profile/sora
+  - text: "(1529) Won 11 #5 J"
+  - link "jules":
+    - /url: /profile/jules
+  - text: (1512) 7
+  - button "Review"
+  - text: "Quarterfinals Score reached () 54 moves #2 M"
+  - link "mira":
+    - /url: /profile/mira
+  - text: "(1563) Won 10 #7 R"
+  - link "rin":
+    - /url: /profile/rin
+  - text: (1478) 2
+  - button "Review"
+  - text: "Quarterfinals Score reached () 38 moves #3 R"
+  - link "rowan":
+    - /url: /profile/rowan
+  - text: "(1546) Won 11 #6 N"
+  - link "niko":
+    - /url: /profile/niko
+  - text: (1495) 2
+  - button "Review"
+  - heading "Semifinals" [level=4]
+  - text: "Semifinals Score reached () 63 moves #1 A"
+  - link "aki (you)":
+    - /url: /profile/aki
+  - text: "(1580) Won 10 #4 S"
+  - link "sora":
+    - /url: /profile/sora
+  - text: (1529) 9
+  - button "Review"
+  - text: "Semifinals Score reached () 54 moves #2 M"
+  - link "mira":
+    - /url: /profile/mira
+  - text: "(1563) Won 12 #3 R"
+  - link "rowan":
+    - /url: /profile/rowan
+  - text: (1546) 5
+  - button "Review"
+  - heading "Final" [level=4]
+  - text: "Final Live #1 A"
+  - link "aki (you)":
+    - /url: /profile/aki
+  - text: "(1580) 3 #2 M"
+  - link "mira":
+    - /url: /profile/mira
+  - text: (1563) 4
+  - button "Play"
+- region "Notifications alt+T"
+- alert

@@ -1,0 +1,17 @@
+- main:
+  - button "Open navigation"
+  - button "← Back"
+  - heading "Tournaments" [level=1]
+  - button "Create Tournament"
+  - button "Browse"
+  - button "My Tournaments"
+  - text: Autumn Cup active 8/8 players · by niko
+  - button "View"
+  - text: Weekend Round Robin registration 6/8 players · by niko
+  - button "View"
+  - text: Evening Blitz registration 5/16 players · by niko 3+2
+  - button "View"
+  - text: September Open finished 16/16 players · by niko
+  - button "View"
+- region "Notifications alt+T"
+- alert
