@@ -55,7 +55,6 @@ export default async function Page({ params }: Props) {
               {t("tutorial")}
             </Link>
           </div>
-          <p className={styles.note}>{t("note")}</p>
         </div>
         <div className={styles.heroArt}>
           <BoardIllustration title={t("boardAlt")} />
