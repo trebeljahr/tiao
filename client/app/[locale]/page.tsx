@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { BoardIllustration } from "@/components/public/BoardIllustration";
 import { CaptureDemo } from "@/components/public/CaptureDemo";
 import { EntryRedirect } from "@/components/public/EntryRedirect";
 import { PublicFooter, PublicHeader } from "@/components/public/PublicSite";
@@ -57,7 +57,7 @@ export default async function Page({ params }: Props) {
           <p className={styles.note}>{t("note")}</p>
         </div>
         <div className={styles.heroArt}>
-          <Image src="/tiao-icon.svg" alt="" width={512} height={512} fetchPriority="high" />
+          <BoardIllustration title={t("boardAlt")} />
         </div>
       </section>
       <section className={styles.explanation} aria-labelledby="rules-title">

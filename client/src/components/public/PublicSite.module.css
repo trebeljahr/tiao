@@ -99,12 +99,12 @@
   .site *, .site *::before, .site *::after { transition: none !important; scroll-behavior: auto !important; }
 }
 
-/* The public page uses the same artwork as the installed game. */
+/* Keep the board prominent alongside the introduction. */
 .hero { max-width: 1440px; margin: auto; min-height: 660px; gap: 8%; padding: 64px 6vw 80px; }
 .heroCopy { width: 50%; max-width: 560px; }
 .wordmark { font-size: clamp(90px, 10vw, 144px); margin-bottom: 32px; }
-.heroArt { width: 42%; max-width: 470px; animation: rise-in 850ms ease-out both; }
-.heroArt img { display: block; width: 100%; height: auto; }
+.heroArt { width: 48%; max-width: 570px; animation: rise-in 850ms ease-out both; }
+.heroArt svg { display: block; width: 100%; height: auto; transform: rotate(-7deg); filter: drop-shadow(0 18px 20px #46352026); }
 .explanation, .playSection { display: grid; grid-template-columns: 1fr 1fr; gap: 10%; padding: 76px max(6vw, calc((100vw - 1268px) / 2)); border-top: 1px solid #302d2526; }
 .explanation h2, .playSection h2, .captureCopy h2 { font-size: clamp(28px, 3vw, 43px); max-width: 540px; }
 .ruleCopy { color: #615c50; }
@@ -121,7 +121,7 @@
   .hero { min-height: 0; padding: 36px 6vw 48px; display: flex; flex-direction: column; align-items: stretch; gap: 36px; }
   .heroCopy { width: 100%; max-width: none; }
   .wordmark { font-size: 86px; margin-bottom: 24px; }
-  .heroArt { width: 70%; max-width: 320px; align-self: center; }
+  .heroArt { width: 100%; max-width: 420px; align-self: center; }
   .explanation, .playSection, .captureSection { grid-template-columns: 1fr; gap: 28px; padding: 48px 6vw; }
   .explanation h2, .playSection h2, .captureCopy h2 { font-size: 30px; }
   .ruleCopy { font-size: 15px; }
