@@ -1398,7 +1398,22 @@
     "captureScore": "Captures {white}–{black}",
     "nextMove": "Next move",
     "resumeReplay": "Resume",
-    "pauseReplay": "Pause"
+    "pauseReplay": "Pause",
+    "howTurn": "Take turns placing a stone on a legal empty intersection, or jump over an enemy stone to the empty point beyond.",
+    "howWin": "In a standard game, the first player to capture ten stones wins.",
+    "featuresEyebrow": "On playtiao.com",
+    "featuresTitle": "Find your next opponent. Keep the game going.",
+    "featuresIntro": "Play a friend, enter a tournament, or watch a match before you take your seat.",
+    "matchAlt": "A real Tiao match with black and white stones and an arrow showing the last jump.",
+    "matchCaption": "A match in progress. The arrow marks the last move.",
+    "playersAlt": "Match controls showing the Add friend button, a spectator link, and capture scores of six and five.",
+    "playersCaption": "Cropped from the game UI. Scores show captures out of ten.",
+    "friendsTitle": "Play your friends again",
+    "friendsBody": "Add an opponent as a friend, see who is online, and send a game invitation. Online games and friends require an account.",
+    "tournamentsTitle": "Enter a tournament",
+    "tournamentsBody": "Browse public tournaments or create your own. Follow the pairings and standings as the games unfold.",
+    "spectatingTitle": "Watch a game unfold",
+    "spectatingBody": "Enter a game ID in the lobby to spectate. Follow the moves and capture scores without taking a seat."
   },
   "rules": {
     "metaTitle": "Tiao rules — How to play",

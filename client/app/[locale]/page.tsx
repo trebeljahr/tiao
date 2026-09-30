@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BoardIllustration } from "@/components/public/BoardIllustration";
+import { CaptureDemo } from "@/components/public/CaptureDemo";
 import { EntryRedirect } from "@/components/public/EntryRedirect";
 import { PlatformDownloads } from "@/components/public/PlatformDownloads";
 import { PublicFooter, PublicHeader } from "@/components/public/PublicSite";
@@ -53,13 +55,74 @@ export default async function Page({ params }: Props) {
             <Link className={styles.primary} href="/play">
               {t("play")} <span aria-hidden="true">→</span>
             </Link>
-            <Link className={styles.textLink} href="/tutorial">
+            <Link className={styles.textLink} href="/rules">
               {t("tutorial")}
             </Link>
           </div>
         </div>
         <div className={styles.heroArt}>
           <BoardIllustration title={t("boardAlt")} />
+        </div>
+      </section>
+      <section className={styles.captureSection} aria-labelledby="capture-title">
+        <div className={styles.captureCopy}>
+          <p className={styles.eyebrow}>{t("captureEyebrow")}</p>
+          <h2 id="capture-title">{t("captureTitle")}</h2>
+          <p>{t("howTurn")}</p>
+          <p>{t("captureDetail")}</p>
+          <p className={styles.muted}>{t("howWin")}</p>
+          <Link className={styles.textLink} href="/rules">
+            {t("learn")}
+          </Link>
+        </div>
+        <CaptureDemo />
+      </section>
+      <section className={styles.features} aria-labelledby="features-title">
+        <header className={styles.featuresHeading}>
+          <p className={styles.eyebrow}>{t("featuresEyebrow")}</p>
+          <h2 id="features-title">{t("featuresTitle")}</h2>
+          <p className={styles.sectionIntro}>{t("featuresIntro")}</p>
+        </header>
+        <div className={styles.featureLayout}>
+          <figure className={styles.matchPreview}>
+            <Image
+              src="/screenshots/match-board.webp"
+              alt={t("matchAlt")}
+              width={950}
+              height={950}
+              sizes="(max-width: 700px) 88vw, 52vw"
+            />
+            <figcaption>{t("matchCaption")}</figcaption>
+          </figure>
+          <div className={styles.featureDetails}>
+            <figure className={styles.playerPreview}>
+              <Image
+                src="/screenshots/match-players.webp"
+                alt={t("playersAlt")}
+                width={454}
+                height={380}
+                sizes="(max-width: 700px) 88vw, 36vw"
+              />
+              <figcaption>{t("playersCaption")}</figcaption>
+            </figure>
+            <div className={styles.featureLinks}>
+              {(
+                [
+                  ["friends", "/friends"],
+                  ["tournaments", "/tournaments"],
+                  ["spectating", "/play"],
+                ] as const
+              ).map(([feature, href]) => (
+                <Link key={feature} href={href}>
+                  <div>
+                    <h3>{t(`${feature}Title`)}</h3>
+                    <p>{t(`${feature}Body`)}</p>
+                  </div>
+                  <span aria-hidden="true">↗</span>
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
       <section className={styles.playSection} aria-labelledby="ways-title">

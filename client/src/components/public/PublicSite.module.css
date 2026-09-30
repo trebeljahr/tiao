@@ -165,3 +165,27 @@
 .heroReplay:hover .replayToggle, .replayToggle:focus-visible { opacity: 1; }
 @media (hover: none) { .replayToggle { opacity: 0.7; } }
 @media (min-width: 701px) and (max-width: 1000px) { .wordmark { font-size: 85px; } }
+
+/* Real match details sit alongside the ways to play, without extra UI chrome. */
+.features { padding: 76px max(6vw, calc((100vw - 1268px) / 2)); border-top: 1px solid #302d2526; }
+.featuresHeading { max-width: 680px; margin-bottom: 42px; }
+.featuresHeading h2 { font-size: clamp(30px, 3.8vw, 48px); }
+.featuresHeading .sectionIntro { max-width: 560px; }
+.featureLayout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 6%; align-items: start; }
+.matchPreview { position: sticky; top: 28px; margin: 0; }
+.matchPreview img, .playerPreview img { display: block; width: 100%; height: auto; border-radius: 12px; }
+.matchPreview figcaption, .playerPreview figcaption { margin-top: 14px; font-size: 12px; color: #615c50; }
+.playerPreview { margin: 0 0 24px; }
+.featureLinks a { display: flex; justify-content: space-between; gap: 24px; padding: 24px 0; border-top: 1px solid #302d2526; }
+.featureLinks h3 { font-size: 25px; line-height: 1.25; transition: color 180ms; }
+.featureLinks p { margin-top: 10px; font-size: 14px; color: #615c50; }
+.featureLinks a > span { transition: transform 180ms; }
+.featureLinks a:hover h3 { color: var(--accent); }
+.featureLinks a:hover > span { transform: translate(3px, -3px); }
+@media (max-width: 700px) {
+  .features { padding: 48px 6vw; }
+  .featuresHeading { margin-bottom: 28px; }
+  .featureLayout { grid-template-columns: 1fr; gap: 32px; }
+  .matchPreview { position: static; }
+  .playerPreview { max-width: 454px; }
+}
