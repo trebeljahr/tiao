@@ -7,7 +7,13 @@ import {
   generateCode,
   getExchangeCodeStore,
 } from "../auth/desktopExchangeStore";
-import { createSessionToken, verifySessionToken } from "../auth/desktopSessionManager";
+import {
+  createSessionToken,
+  refreshSessionToken,
+  revokeSessionToken,
+  verifySessionToken,
+} from "../auth/desktopSessionManager";
+import { desktopSessionStore } from "../auth/desktopSessionStore";
 
 /**
  * OAuth bridge for desktop Electron clients.
@@ -27,7 +33,7 @@ import { createSessionToken, verifySessionToken } from "../auth/desktopSessionMa
  *      redirects the browser to tiao://auth/complete?state=&code=.
  *   4. Electron's tiao:// protocol handler receives the URL and POSTs
  *      {state, code} to /exchange over HTTPS.  /exchange atomically
- *      consumes the entry and returns a self-contained bearer token
+ *      consumes the entry and returns a revocable bearer token
  *      minted via desktopSessionManager.
  *
  * /refresh lets long-running desktop sessions renew their token
@@ -42,7 +48,6 @@ import { createSessionToken, verifySessionToken } from "../auth/desktopSessionMa
  */
 
 const ALLOWED_PROVIDERS = new Set(["google", "github", "discord"]);
-const SESSION_TOKEN_TTL_DAYS = 30;
 
 export function isValidDesktopProvider(provider: unknown): provider is string {
   return typeof provider === "string" && ALLOWED_PROVIDERS.has(provider);
@@ -150,8 +155,17 @@ router.get("/callback", async (req: Request, res: Response) => {
       return res.redirect(`tiao://auth/error?state=${encodeURIComponent(state)}&reason=no_session`);
     }
 
+    const sourceSessionId = session.session.id;
+    const securityState = await desktopSessionStore.securityState(userId, sourceSessionId);
+    if (!securityState)
+      return res.redirect(`tiao://auth/error?state=${encodeURIComponent(state)}&reason=no_session`);
     const code = generateCode();
-    await getExchangeCodeStore().put(state, code, userId, DEFAULT_EXCHANGE_TTL_SEC);
+    await getExchangeCodeStore().put(
+      state,
+      code,
+      JSON.stringify({ userId, sourceSessionId, securityState }),
+      DEFAULT_EXCHANGE_TTL_SEC,
+    );
 
     return res.redirect(
       `tiao://auth/complete?state=${encodeURIComponent(state)}&code=${encodeURIComponent(code)}`,
@@ -179,19 +193,30 @@ router.post("/exchange", async (req: Request, res: Response) => {
       });
     }
 
-    const userId = await getExchangeCodeStore().consume(state, code);
-    if (!userId) {
+    const identity = await getExchangeCodeStore().consume(state, code);
+    if (!identity) {
       return res.status(401).json({
         code: "EXCHANGE_FAILED",
         message: "That exchange code is invalid or has expired.",
       });
     }
 
-    const sessionToken = createSessionToken(userId, SESSION_TOKEN_TTL_DAYS);
-    // Payload's expiresAt is the authoritative source, but clients
-    // find it convenient to have it separately so they can schedule
-    // refreshes without parsing the opaque token.
-    const expiresAt = Date.now() + SESSION_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000;
+    const { userId, sourceSessionId, securityState } = JSON.parse(identity) as {
+      userId: string;
+      sourceSessionId: string;
+      securityState: string;
+    };
+    if (
+      typeof userId !== "string" ||
+      typeof sourceSessionId !== "string" ||
+      typeof securityState !== "string"
+    ) {
+      return res.status(401).json({ code: "EXCHANGE_FAILED" });
+    }
+    const sessionToken = await createSessionToken(userId, sourceSessionId, securityState);
+    const payload = await verifySessionToken(sessionToken);
+    if (!payload) return res.status(401).json({ code: "EXCHANGE_FAILED" });
+    const expiresAt = payload.expiresAt;
 
     return res.json({ sessionToken, userId, expiresAt });
   } catch (err) {
@@ -210,7 +235,8 @@ router.post("/exchange", async (req: Request, res: Response) => {
 // Swaps a valid-but-soon-to-expire bearer token for a fresh one.
 // Useful for long-running desktop sessions approaching the 30-day
 // lifetime — avoids forcing the user through the full OAuth flow
-// again.  Rejects expired / tampered tokens.
+// again, within the absolute lifetime and originating web session. Rejects
+// expired, revoked, rotated, or tampered tokens.
 // -----------------------------------------------------------------------------
 router.post("/refresh", async (req: Request, res: Response) => {
   try {
@@ -222,7 +248,8 @@ router.post("/refresh", async (req: Request, res: Response) => {
       });
     }
 
-    const payload = verifySessionToken(sessionToken);
+    const newToken = await refreshSessionToken(sessionToken);
+    const payload = newToken ? await verifySessionToken(newToken) : null;
     if (!payload) {
       return res.status(401).json({
         code: "INVALID_TOKEN",
@@ -230,8 +257,7 @@ router.post("/refresh", async (req: Request, res: Response) => {
       });
     }
 
-    const newToken = createSessionToken(payload.userId, SESSION_TOKEN_TTL_DAYS);
-    const expiresAt = Date.now() + SESSION_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000;
+    const expiresAt = payload.expiresAt;
     return res.json({ sessionToken: newToken, userId: payload.userId, expiresAt });
   } catch (err) {
     console.error("[desktop-auth] /refresh failed:", err);
@@ -239,6 +265,17 @@ router.post("/refresh", async (req: Request, res: Response) => {
       code: "REFRESH_FAILED",
       message: "Could not refresh the session token.",
     });
+  }
+});
+
+router.post("/logout", async (req: Request, res: Response) => {
+  const token = req.body?.sessionToken;
+  if (typeof token !== "string") return res.status(400).json({ code: "BAD_REQUEST" });
+  try {
+    await revokeSessionToken(token);
+    return res.json({ ok: true });
+  } catch {
+    return res.status(503).json({ code: "REVOCATION_UNAVAILABLE" });
   }
 });
 

@@ -277,7 +277,11 @@ export class GameService {
     return !!sockets && sockets.size > 0;
   }
 
-  async connectLobby(player: PlayerIdentity, socket: WebSocket): Promise<void> {
+  async connectLobby(
+    player: PlayerIdentity,
+    socket: WebSocket,
+    validateSession?: () => Promise<boolean>,
+  ): Promise<void> {
     let userSockets = this.lobbyConnections.get(player.playerId);
     const isFirst = !userSockets;
     if (!userSockets) {
@@ -288,7 +292,14 @@ export class GameService {
     if (isFirst) this.broadcaster.subscribeLobby(player.playerId);
 
     socket.on("message", (raw) => {
-      void this.handleLobbyMessage(player, socket, raw);
+      void (async () => {
+        if (validateSession && !(await validateSession())) {
+          socket.close(1008, "session expired");
+          return;
+        }
+        if (socket.readyState !== WebSocket.OPEN) return;
+        await this.handleLobbyMessage(player, socket, raw);
+      })().catch(() => socket.close(1008, "session validation failed"));
     });
 
     socket.on("close", () => {

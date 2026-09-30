@@ -16,6 +16,10 @@ import {
   resetExchangeCodeStoreForTests,
 } from "../auth/desktopExchangeStore";
 import { verifySessionToken } from "../auth/desktopSessionManager";
+import { installFakeDesktopSessions } from "./fakeDesktopSessions";
+
+installFakeDesktopSessions();
+
 import desktopAuthRoutes from "../routes/desktop-auth.routes";
 
 /**
@@ -96,7 +100,16 @@ describe("POST /api/auth/desktop/exchange", () => {
   test("happy path: consumes the code and returns a valid bearer token", async () => {
     const state = "state-happy";
     const code = generateCode();
-    await getExchangeCodeStore().put(state, code, "user-happy", DEFAULT_EXCHANGE_TTL_SEC);
+    await getExchangeCodeStore().put(
+      state,
+      code,
+      JSON.stringify({
+        userId: "user-happy",
+        sourceSessionId: "fake-browser-session",
+        securityState: "fake-security-state",
+      }),
+      DEFAULT_EXCHANGE_TTL_SEC,
+    );
 
     const res = await post(ctx.url, "/api/auth/desktop/exchange", { state, code });
     assert.equal(res.status, 200);
@@ -105,7 +118,7 @@ describe("POST /api/auth/desktop/exchange", () => {
     assert.ok(typeof res.body.expiresAt === "number");
 
     // The returned token should verify to the same userId.
-    const payload = verifySessionToken(res.body.sessionToken as string);
+    const payload = await verifySessionToken(res.body.sessionToken as string);
     assert.ok(payload);
     assert.equal(payload.userId, "user-happy");
 
@@ -120,7 +133,16 @@ describe("POST /api/auth/desktop/exchange", () => {
   test("wrong code for a valid state still fails and invalidates the entry", async () => {
     const state = "state-mismatch";
     const code = generateCode();
-    await getExchangeCodeStore().put(state, code, "user-mismatch", DEFAULT_EXCHANGE_TTL_SEC);
+    await getExchangeCodeStore().put(
+      state,
+      code,
+      JSON.stringify({
+        userId: "user-mismatch",
+        sourceSessionId: "fake-browser-session",
+        securityState: "fake-security-state",
+      }),
+      DEFAULT_EXCHANGE_TTL_SEC,
+    );
 
     const bad = await post(ctx.url, "/api/auth/desktop/exchange", {
       state,
@@ -164,7 +186,16 @@ describe("POST /api/auth/desktop/refresh", () => {
     // Mint a valid starting token via /exchange
     const state = "state-refresh";
     const code = generateCode();
-    await getExchangeCodeStore().put(state, code, "user-refresh", DEFAULT_EXCHANGE_TTL_SEC);
+    await getExchangeCodeStore().put(
+      state,
+      code,
+      JSON.stringify({
+        userId: "user-refresh",
+        sourceSessionId: "fake-browser-session",
+        securityState: "fake-security-state",
+      }),
+      DEFAULT_EXCHANGE_TTL_SEC,
+    );
     const exchange = await post(ctx.url, "/api/auth/desktop/exchange", { state, code });
     const originalToken = exchange.body.sessionToken as string;
     assert.ok(originalToken);
@@ -179,7 +210,7 @@ describe("POST /api/auth/desktop/refresh", () => {
     assert.notEqual(refresh.body.sessionToken, originalToken, "new token should differ (nonce)");
 
     // The new token verifies to the same user.
-    const payload = verifySessionToken(refresh.body.sessionToken as string);
+    const payload = await verifySessionToken(refresh.body.sessionToken as string);
     assert.ok(payload);
     assert.equal(payload.userId, "user-refresh");
 
@@ -242,4 +273,45 @@ describe("GET /api/auth/desktop/callback validation", () => {
     assert.match(body, /state/i);
     await ctx.close();
   });
+});
+
+test("logout revokes refreshed credentials and rejects subsequent refresh", async () => {
+  installFakeDesktopSessions();
+  const ctx = await makeTestServer();
+  try {
+    const state = "logout-state",
+      code = generateCode();
+    await getExchangeCodeStore().put(
+      state,
+      code,
+      JSON.stringify({
+        userId: "logout-user",
+        sourceSessionId: "fake-browser-session",
+        securityState: "fake-security-state",
+      }),
+      DEFAULT_EXCHANGE_TTL_SEC,
+    );
+    const exchange = await post(ctx.url, "/api/auth/desktop/exchange", { state, code });
+    const original = exchange.body.sessionToken;
+    const refresh = await post(ctx.url, "/api/auth/desktop/refresh", { sessionToken: original });
+    assert.equal(refresh.status, 200);
+    assert.equal(
+      (await post(ctx.url, "/api/auth/desktop/refresh", { sessionToken: original })).status,
+      401,
+    );
+    assert.equal(
+      (await post(ctx.url, "/api/auth/desktop/logout", { sessionToken: original })).status,
+      200,
+    );
+    assert.equal(
+      (
+        await post(ctx.url, "/api/auth/desktop/refresh", {
+          sessionToken: refresh.body.sessionToken,
+        })
+      ).status,
+      401,
+    );
+  } finally {
+    await ctx.close();
+  }
 });

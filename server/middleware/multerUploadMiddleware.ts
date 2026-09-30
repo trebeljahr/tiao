@@ -5,7 +5,7 @@ const storage = multer.memoryStorage();
 
 export const MAX_FILE_SIZE = 512 * 1024; // 512KB
 
-const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/gif"]);
 
 const fileFilter = (
   _: Express.Request,
@@ -21,7 +21,7 @@ const fileFilter = (
 
 const upload = multer({
   storage,
-  limits: { fileSize: MAX_FILE_SIZE },
+  limits: { fileSize: MAX_FILE_SIZE, files: 1, fields: 0, parts: 1 },
   fileFilter,
 });
 
@@ -45,7 +45,8 @@ export function profilePictureUpload(fieldName: string) {
         if (err.code === "LIMIT_UNEXPECTED_FILE") {
           return res.status(415).json({
             code: "UNSUPPORTED_FILE_TYPE",
-            message: "Unsupported file type. Only JPEG, PNG, WebP, and GIF images are allowed.",
+            message:
+              "Unsupported file type. Only JPEG, non-interlaced PNG, and single-frame GIF images are allowed.",
           });
         }
 

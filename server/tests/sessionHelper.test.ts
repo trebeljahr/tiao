@@ -50,6 +50,10 @@ import GameAccount from "../models/GameAccount";
 (GameAccount as unknown as Record<string, unknown>).findById = (...args: unknown[]) =>
   stubFindById(...args);
 
+import { installFakeDesktopSessions } from "./fakeDesktopSessions";
+
+installFakeDesktopSessions();
+
 import { createSessionToken } from "../auth/desktopSessionManager";
 // ---------------------------------------------------------------------------
 // Now import the module under test — it will see our patched exports.
@@ -262,7 +266,7 @@ describe("getPlayerFromRequest bearer token fallback", () => {
   test("returns null when bearer token is valid but user lookup returns null", async () => {
     stubGetSession.mock.mockImplementation(() => Promise.resolve(null));
     stubLookupBetterAuthUser.mock.mockImplementation(() => Promise.resolve(null));
-    const token = createSessionToken("deleted-user");
+    const token = await createSessionToken("deleted-user", "fake-browser-session");
     const result = await getPlayerFromRequest(fakeRequest({ authorization: `Bearer ${token}` }));
     assert.equal(result, null);
     assert.equal(stubLookupBetterAuthUser.mock.callCount(), 1);
@@ -286,7 +290,7 @@ describe("getPlayerFromRequest bearer token fallback", () => {
       Promise.resolve(makeGameAccount({ _id: "user-bearer", displayName: "desktopuser" })),
     );
 
-    const token = createSessionToken("user-bearer");
+    const token = await createSessionToken("user-bearer", "fake-browser-session");
     const result = await getPlayerFromRequest(fakeRequest({ authorization: `Bearer ${token}` }));
 
     assert.ok(result);
@@ -316,7 +320,7 @@ describe("getPlayerFromRequest bearer token fallback", () => {
       }),
     );
 
-    const token = createSessionToken("user-bearer");
+    const token = await createSessionToken("user-bearer", "fake-browser-session");
     const result = await getPlayerFromRequest(fakeRequest({ authorization: `Bearer ${token}` }));
 
     assert.ok(result);

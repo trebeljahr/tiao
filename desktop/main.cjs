@@ -18,11 +18,12 @@
  * electron-updater all land in commits 9+.
  */
 
-const { app, BrowserWindow, Menu, shell, protocol, ipcMain } = require("electron");
+const { app, BrowserWindow, Menu, protocol, ipcMain } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
 
 const { registerAppProtocol, DESKTOP_PROTOCOL_SCHEME } = require("./src/protocol.cjs");
+const { handleTrustedIpc } = require("./src/trust.cjs");
 const { createMainWindow } = require("./src/window.cjs");
 const { buildMenu } = require("./src/menu.cjs");
 const { registerAuthIpc, loadPersistedToken, handleAuthDeepLink } = require("./src/authBridge.cjs");
@@ -300,26 +301,6 @@ function bootstrap() {
 
   const win = mainWindow;
 
-  // Open any external links (target=_blank, shared game URLs, etc.)
-  // in the user's default browser instead of navigating the app
-  // BrowserWindow away from its bundled client shell.
-  win.webContents.setWindowOpenHandler(({ url }) => {
-    if (!url.startsWith(`${DESKTOP_PROTOCOL_SCHEME}://`)) {
-      void shell.openExternal(url);
-      // Record the host only — not the full URL — to avoid leaking
-      // game IDs or usernames into analytics.
-      let host = "unknown";
-      try {
-        host = new URL(url).host;
-      } catch {
-        /* keep fallback */
-      }
-      track("desktop:external_link_opened", { host });
-      return { action: "deny" };
-    }
-    return { action: "allow" };
-  });
-
   // A `did-fail-load` with a bundled client shell indicates a
   // corrupted install (missing index.html, wrong protocol handler
   // path, etc.).  Offline is not a failure here — the bundle lives
@@ -357,7 +338,7 @@ function bootstrap() {
  * the next cold start honors it.
  */
 function registerAnalyticsIpc() {
-  ipcMain.handle("analytics:setEnabled", async (_event, enabled) => {
+  handleTrustedIpc(ipcMain, "analytics:setEnabled", async (_event, enabled) => {
     setAnalyticsEnabled(!!enabled);
     return { ok: true };
   });
@@ -373,42 +354,46 @@ function registerAnalyticsIpc() {
  * showing a "Steam required" error.
  */
 function registerSteamIpc() {
-  ipcMain.handle("steam:isActive", async () => {
+  handleTrustedIpc(ipcMain, "steam:isActive", async () => {
     return isSteamActive();
   });
-  ipcMain.handle("steam:getUser", async () => {
+  handleTrustedIpc(ipcMain, "steam:getUser", async () => {
     return getSteamUser();
   });
-  ipcMain.handle("steam:unlockAchievement", async (_event, apiName) => {
+  handleTrustedIpc(ipcMain, "steam:unlockAchievement", async (_event, apiName) => {
     if (typeof apiName !== "string" || !apiName) {
       return { ok: false, reason: "invalid_api_name" };
     }
     unlockSteamAchievement(apiName);
     return { ok: true };
   });
-  ipcMain.handle("steam:indicateAchievementProgress", async (_event, apiName, current, max) => {
-    if (typeof apiName !== "string" || !apiName) {
-      return { ok: false, reason: "invalid_api_name" };
-    }
-    if (typeof current !== "number" || typeof max !== "number") {
-      return { ok: false, reason: "invalid_progress" };
-    }
-    indicateSteamAchievementProgress(apiName, current, max);
-    return { ok: true };
-  });
+  handleTrustedIpc(
+    ipcMain,
+    "steam:indicateAchievementProgress",
+    async (_event, apiName, current, max) => {
+      if (typeof apiName !== "string" || !apiName) {
+        return { ok: false, reason: "invalid_api_name" };
+      }
+      if (typeof current !== "number" || typeof max !== "number") {
+        return { ok: false, reason: "invalid_progress" };
+      }
+      indicateSteamAchievementProgress(apiName, current, max);
+      return { ok: true };
+    },
+  );
   // Batched read of every achievement state the renderer cares about.
   // Used on cold start to reconcile the local "unlocked" cache against
   // Steam's authoritative state (covers Steam Cloud + manual unlocks
   // via the Steam client UI). Returns {} when Steam isn't active so
   // the renderer doesn't need a separate isActive() guard.
-  ipcMain.handle("steam:getAchievementStates", async (_event, apiNames) => {
+  handleTrustedIpc(ipcMain, "steam:getAchievementStates", async (_event, apiNames) => {
     if (!Array.isArray(apiNames)) return {};
     return getSteamAchievementStates(apiNames);
   });
   // Write the progress-bar stats. Takes a whole record rather than one
   // stat per call: Steam only flushes on store(), and store() is
   // rate-limited, so batching is both faster and better behaved.
-  ipcMain.handle("steam:setStats", async (_event, stats) => {
+  handleTrustedIpc(ipcMain, "steam:setStats", async (_event, stats) => {
     if (!stats || typeof stats !== "object" || Array.isArray(stats)) {
       return { ok: false, written: 0, stored: false };
     }
@@ -417,14 +402,14 @@ function registerSteamIpc() {
   // Open one of Steam's named overlay panels.  Returns true if the
   // overlay was activated, false if Steam is inactive or refused the
   // call so the renderer can fall back to an in-app dialog.
-  ipcMain.handle("steam:openOverlay", async (_event, dialog) => {
+  handleTrustedIpc(ipcMain, "steam:openOverlay", async (_event, dialog) => {
     if (typeof dialog !== "string" || !dialog) return false;
     return openSteamOverlay(dialog);
   });
   // Open the Steam overlay's web browser at the given URL. Only
   // http(s) URLs are honored — file:// or about: would route through
   // the Steam browser unexpectedly.
-  ipcMain.handle("steam:openOverlayUrl", async (_event, url) => {
+  handleTrustedIpc(ipcMain, "steam:openOverlayUrl", async (_event, url) => {
     if (typeof url !== "string" || !url) return false;
     return openSteamOverlayUrl(url);
   });

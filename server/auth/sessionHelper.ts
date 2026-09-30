@@ -122,7 +122,7 @@ export async function getPlayerFromRequest(req: Request): Promise<PlayerIdentity
   //    cookie set by better-auth on the frontend origin).
   const authHeader = req.headers.authorization;
   if (!authHeader) return null;
-  const userId = extractBearerUserId(authHeader);
+  const userId = await extractBearerUserId(authHeader);
   if (!userId) return null;
 
   // Look up the better-auth user record to get name/email/image so the
@@ -151,7 +151,7 @@ export async function getPlayerFromUpgradeRequest(
   //    WebSocket upgrade requests from browser APIs cannot set custom
   //    headers, so the desktop renderer puts the bearer token in a
   //    `?token=` query param.  The caller in server/index.ts validates
-  //    the token synchronously (HMAC check, no DB hit) via
+  //    the token against the revocable session store via
   //    desktopSessionManager.verifySessionToken, and passes the
   //    extracted userId here via `options.bearerUserId` so we don't
   //    re-parse the URL.

@@ -22,13 +22,16 @@
  * Electron main process.
  */
 
-const { BrowserWindow, app } = require("electron");
+const { BrowserWindow, app, shell } = require("electron");
 const path = require("node:path");
 const {
   PROD_CONTENT_SECURITY_POLICY,
   DEV_CONTENT_SECURITY_POLICY,
   selectCspPolicy,
 } = require("./csp.cjs");
+
+const { installWindowTrust } = require("./trust.cjs");
+const { track } = require("./analytics.cjs");
 
 let cspApplied = false;
 
@@ -117,6 +120,15 @@ function createMainWindow({ startUrl, devTools, runtimeConfig }) {
       // string match on `--tiao-api-url=` and exposes them on
       // `window.electron.config`.  See desktop/preload.cjs.
       additionalArguments: buildAdditionalArguments(runtimeConfig),
+    },
+  });
+
+  installWindowTrust(win, {
+    startUrl,
+    isPackaged: app.isPackaged,
+    openExternal: async (url) => {
+      await shell.openExternal(url);
+      track("desktop:external_link_opened", { host: new URL(url).host });
     },
   });
 

@@ -36,6 +36,8 @@ const { track } = require("./analytics.cjs");
 const { captureException: captureGlitchtipException } = require("./glitchtip.cjs");
 const { resolveApiUrl } = require("./config.cjs");
 
+const { handleTrustedIpc, isTrustedContents, isSafeExternalUrl } = require("./trust.cjs");
+
 const TOKEN_FILE = "tiao-desktop-auth.enc";
 const STATE_TTL_MS = 5 * 60 * 1000;
 
@@ -48,6 +50,7 @@ const STATE_TTL_MS = 5 * 60 * 1000;
  */
 const pendingAuth = new Map();
 
+let authGeneration = 0;
 /** In-memory cache of the current session token (or null). */
 let cachedToken = /** @type {string | null} */ (null);
 
@@ -168,6 +171,7 @@ async function startOAuth(provider) {
   const url = `${resolveApiUrl()}/api/auth/desktop/start?provider=${encodeURIComponent(
     provider,
   )}&state=${encodeURIComponent(state)}`;
+  if (!isSafeExternalUrl(url)) throw new Error("Unsafe OAuth URL");
   await shell.openExternal(url);
 }
 
@@ -182,6 +186,7 @@ async function startOAuth(provider) {
 function broadcastToRenderer(channel, payload) {
   const windows = BrowserWindow.getAllWindows();
   for (const win of windows) {
+    if (!isTrustedContents(win.webContents)) continue;
     try {
       win.webContents.send(channel, payload);
     } catch (err) {
@@ -199,7 +204,15 @@ function broadcastToRenderer(channel, payload) {
  * @param {URL} parsedUrl
  */
 async function handleAuthDeepLink(parsedUrl) {
-  const kind = parsedUrl.pathname.replace(/^\/+/, ""); // "auth/complete" or "auth/error"
+  if (parsedUrl.protocol !== "tiao:" || parsedUrl.username || parsedUrl.password || parsedUrl.port)
+    return;
+  const kind =
+    parsedUrl.host === "auth"
+      ? `auth${parsedUrl.pathname}`
+      : parsedUrl.host === ""
+        ? parsedUrl.pathname.replace(/^\/+/, "")
+        : "";
+  if (kind !== "auth/complete" && kind !== "auth/error") return;
   const state = parsedUrl.searchParams.get("state") || "";
   const code = parsedUrl.searchParams.get("code") || "";
   const reason = parsedUrl.searchParams.get("reason") || "unknown";
@@ -213,6 +226,7 @@ async function handleAuthDeepLink(parsedUrl) {
     return;
   }
   pendingAuth.delete(state);
+  const generation = authGeneration;
 
   if (kind === "auth/error") {
     track("desktop:auth_flow_failed", { reason, provider: pending.provider });
@@ -231,6 +245,8 @@ async function handleAuthDeepLink(parsedUrl) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ state, code }),
+      signal: AbortSignal.timeout(10000),
+      redirect: "error",
     });
     if (!res.ok) {
       console.warn(`[authBridge] /exchange returned ${res.status}`);
@@ -245,6 +261,10 @@ async function handleAuthDeepLink(parsedUrl) {
     const payload = /** @type {{ sessionToken: string; userId: string; expiresAt: number }} */ (
       await res.json()
     );
+    if (generation !== authGeneration) {
+      await revokeToken(payload.sessionToken);
+      return;
+    }
     persistToken(payload.sessionToken);
     track("desktop:auth_flow_complete", { provider: pending.provider });
     broadcastToRenderer("auth:complete", payload);
@@ -259,14 +279,27 @@ async function handleAuthDeepLink(parsedUrl) {
   }
 }
 
+/** @param {string} token */
+async function revokeToken(token) {
+  const res = await fetch(`${resolveApiUrl()}/api/auth/desktop/logout`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sessionToken: token }),
+    signal: AbortSignal.timeout(10000),
+    redirect: "error",
+  });
+  if (!res.ok) throw new Error("Could not revoke desktop session; retry logout when connected.");
+}
+
 /**
  * Register all auth-related `ipcMain.handle` endpoints.  Must run
  * before the first renderer loads so handlers are ready when
  * AuthContext calls `window.electron.auth.getToken()` on bootstrap.
  */
 function registerAuthIpc() {
-  ipcMain.handle("auth:startOAuth", async (_event, provider) => {
-    if (typeof provider !== "string") return { ok: false, reason: "bad_provider" };
+  handleTrustedIpc(ipcMain, "auth:startOAuth", async (_event, provider) => {
+    if (!["google", "github", "discord"].includes(provider))
+      return { ok: false, reason: "bad_provider" };
     try {
       await startOAuth(provider);
       return { ok: true };
@@ -276,11 +309,16 @@ function registerAuthIpc() {
     }
   });
 
-  ipcMain.handle("auth:getToken", async () => {
+  handleTrustedIpc(ipcMain, "auth:getToken", async () => {
     return cachedToken;
   });
 
-  ipcMain.handle("auth:logout", async () => {
+  handleTrustedIpc(ipcMain, "auth:logout", async () => {
+    authGeneration++;
+    pendingAuth.clear();
+    const token = cachedToken;
+    // Keep the credential on failure so the user can retry server revocation.
+    if (token) await revokeToken(token);
     clearPersistedToken();
     return { ok: true };
   });
@@ -289,7 +327,7 @@ function registerAuthIpc() {
   // one-time toast on Linux machines without libsecret, where the
   // user will be signed out on every restart.  No "warning" event
   // — the renderer pulls when it's ready.
-  ipcMain.handle("auth:getPersistenceStatus", async () => {
+  handleTrustedIpc(ipcMain, "auth:getPersistenceStatus", async () => {
     return { available: isPersistenceAvailable() };
   });
 }

@@ -128,16 +128,25 @@ websocketServer.on("connection", (socket, request) => {
 
   // Desktop clients authenticate via ?token=<bearer> in the URL
   // because browser WebSocket APIs can't set custom headers.  Validate
-  // the token synchronously here (HMAC check only, no DB hit) so we
+  // the token against the revocable session store here so we
   // know whether to accept the app:// origin AND so the downstream
   // getPlayerFromUpgradeRequest can skip re-parsing the query string.
   const tokenQueryParam = url.searchParams.get("token");
-  const bearerPayload = tokenQueryParam ? verifySessionToken(tokenQueryParam) : null;
-  const bearerUserId = bearerPayload?.userId ?? null;
 
   log.info("incoming connection", { path: url.pathname, gameId: gameId ?? null });
 
+  let checkingDesktopSession = false;
   const pingInterval = setInterval(() => {
+    if (tokenQueryParam && !checkingDesktopSession) {
+      checkingDesktopSession = true;
+      void verifySessionToken(tokenQueryParam)
+        .then((payload) => {
+          if (!payload) socket.close(1008, "session expired");
+        })
+        .finally(() => {
+          checkingDesktopSession = false;
+        });
+    }
     if (!isAlive) {
       log.warn("client failed to respond to ping, terminating", {
         gameId: gameId ?? "unknown",
@@ -172,6 +181,9 @@ websocketServer.on("connection", (socket, request) => {
   });
 
   void (async () => {
+    const bearerPayload = tokenQueryParam ? await verifySessionToken(tokenQueryParam) : null;
+    const bearerUserId = bearerPayload?.userId ?? null;
+    if (socket.readyState !== WebSocket.OPEN) return;
     if (!isAllowedOrigin(request.headers.origin, { hasValidDesktopToken: bearerUserId !== null })) {
       console.warn(`[ws] rejected connection from disallowed origin: ${request.headers.origin}`);
       socket.close();
@@ -195,7 +207,11 @@ websocketServer.on("connection", (socket, request) => {
       // Guests are allowed on the lobby socket so that matchmaking can use
       // socket lifetime for queue cleanup. They receive game-updates for their
       // own games and no-op social updates.
-      await gameService.connectLobby(player, socket);
+      await gameService.connectLobby(
+        player,
+        socket,
+        tokenQueryParam ? async () => !!(await verifySessionToken(tokenQueryParam)) : undefined,
+      );
       return;
     }
 
@@ -243,6 +259,10 @@ websocketServer.on("connection", (socket, request) => {
     socket.on("message", (rawMessage) => {
       void (async () => {
         try {
+          if (tokenQueryParam && !(await verifySessionToken(tokenQueryParam))) {
+            socket.close(1008, "session expired");
+            return;
+          }
           const message = JSON.parse(rawMessage.toString()) as ClientToServerMessage;
           await gameService.applyAction(gameId, player, message);
         } catch (error) {

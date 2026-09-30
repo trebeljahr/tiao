@@ -1,135 +1,142 @@
 import crypto from "node:crypto";
 import { TOKEN_SECRET } from "../config/envVars";
+import { type DesktopSessionStore, desktopSessionStore } from "./desktopSessionStore";
 
-/**
- * Opaque bearer tokens for desktop Electron sessions.
- *
- * Web clients use better-auth cookies — they're set on the playtiao.com
- * origin by better-auth and read from Cookie headers.  Desktop Electron
- * loads the app from the `app://tiao/` origin, which has no domain
- * relationship to playtiao.com, so cookies don't transfer.  Instead, the
- * desktop app authenticates once via the OAuth bridge (see
- * `/api/auth/desktop/*`), receives a self-contained signed token, and
- * sends it as `Authorization: Bearer <token>` on every request.
- *
- * Tokens are verified purely from the signature — no database lookup is
- * required to check validity.  The embedded expiry bounds the lifetime,
- * and revocation works by rotating TOKEN_SECRET (which also invalidates
- * web sessions, so it's a nuclear option).  Fine-grained per-user
- * revocation can be added later via a Redis deny-list keyed by nonce.
- *
- * Format:  `v1.<base64url(payloadJson)>.<base64url(hmacSig)>`
- * Payload: `{ userId: string, expiresAt: number (unix ms), nonce: string }`
- */
-
-const TOKEN_VERSION = "v1";
-const DEFAULT_TTL_DAYS = 30;
-
+const DAY = 24 * 60 * 60 * 1000;
+const TOKEN_TTL = 30 * DAY;
+const ABSOLUTE_TTL = 90 * DAY;
 export type DesktopSessionPayload = {
   userId: string;
+  sessionId: string;
   expiresAt: number;
   nonce: string;
 };
 
-/**
- * Mint a new bearer token for the given userId.  Default TTL matches
- * the 30-day web session lifetime in better-auth config so desktop and
- * web users experience the same sign-in cadence.
- */
-export function createSessionToken(userId: string, ttlDays: number = DEFAULT_TTL_DAYS): string {
-  if (!userId || typeof userId !== "string") {
-    throw new Error("createSessionToken: userId is required");
-  }
-  if (!Number.isFinite(ttlDays) || ttlDays <= 0) {
-    throw new Error("createSessionToken: ttlDays must be a positive number");
-  }
-
-  const payload: DesktopSessionPayload = {
-    userId,
-    expiresAt: Date.now() + ttlDays * 24 * 60 * 60 * 1000,
-    // Random nonce makes every minted token unique even if the same
-    // userId is signed twice in the same millisecond.  Useful when
-    // desktop clients request a token refresh from the server.
-    nonce: crypto.randomBytes(16).toString("base64url"),
+/** v1 tokens are deliberately not migrated: fresh OAuth is required. */
+export function desktopSessionManager(store: DesktopSessionStore, secret: string, now = Date.now) {
+  const sign = (payload: string) =>
+    crypto.createHmac("sha256", secret).update(`v2.${payload}`).digest("base64url");
+  const encode = (payload: DesktopSessionPayload) => {
+    const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
+    return `v2.${body}.${sign(body)}`;
   };
-
-  const payloadB64 = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
-  const sigB64 = signPayload(payloadB64);
-  return `${TOKEN_VERSION}.${payloadB64}.${sigB64}`;
-}
-
-/**
- * Verify a bearer token and return the payload if valid, `null` otherwise.
- *
- * Rejects:
- * - falsy or non-string input
- * - wrong format (not three dot-delimited parts)
- * - wrong version (`v2`, etc. — future-proofing for rotation)
- * - signature mismatch (uses timingSafeEqual)
- * - unparseable JSON payload
- * - payload missing required fields
- * - expired payload (`expiresAt < Date.now()`)
- */
-export function verifySessionToken(token: string | undefined | null): DesktopSessionPayload | null {
-  if (!token || typeof token !== "string") return null;
-
-  const parts = token.split(".");
-  if (parts.length !== 3) return null;
-
-  const [version, payloadB64, sigB64] = parts;
-  if (version !== TOKEN_VERSION) return null;
-  if (!payloadB64 || !sigB64) return null;
-
-  const expectedSigB64 = signPayload(payloadB64);
-
-  // Constant-time comparison to prevent signature-oracle side-channel
-  // attacks.  Buffers must be the same length — bail out early if not.
-  const actual = Buffer.from(sigB64);
-  const expected = Buffer.from(expectedSigB64);
-  if (actual.length !== expected.length) return null;
-  if (!crypto.timingSafeEqual(actual, expected)) return null;
-
-  let payload: DesktopSessionPayload;
-  try {
-    const json = Buffer.from(payloadB64, "base64url").toString("utf8");
-    payload = JSON.parse(json) as DesktopSessionPayload;
-  } catch {
-    return null;
+  function decode(token: string | undefined | null): DesktopSessionPayload | null {
+    if (typeof token !== "string" || token.length > 2048) return null;
+    const [version, body, signature, extra] = token.split(".");
+    if (version !== "v2" || !body || !signature || extra !== undefined) return null;
+    const expected = Buffer.from(sign(body));
+    const actual = Buffer.from(signature);
+    if (expected.length !== actual.length || !crypto.timingSafeEqual(expected, actual)) return null;
+    try {
+      const p = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
+      if (
+        !p ||
+        typeof p.userId !== "string" ||
+        !p.userId ||
+        typeof p.sessionId !== "string" ||
+        !p.sessionId ||
+        typeof p.nonce !== "string" ||
+        !p.nonce ||
+        !Number.isSafeInteger(p.expiresAt)
+      )
+        return null;
+      return p;
+    } catch {
+      return null;
+    }
   }
-
-  if (
-    !payload ||
-    typeof payload.userId !== "string" ||
-    payload.userId.length === 0 ||
-    typeof payload.expiresAt !== "number" ||
-    !Number.isFinite(payload.expiresAt) ||
-    typeof payload.nonce !== "string"
-  ) {
-    return null;
+  async function verifySessionToken(
+    token: string | undefined | null,
+  ): Promise<DesktopSessionPayload | null> {
+    const payload = decode(token);
+    if (!payload || payload.expiresAt <= now()) return null;
+    try {
+      const row = await store.read(payload.sessionId);
+      if (
+        !row ||
+        row.userId !== payload.userId ||
+        row.nonce !== payload.nonce ||
+        row.expiresAt !== payload.expiresAt ||
+        row.absoluteExpiresAt <= now()
+      )
+        return null;
+      if ((await store.securityState(row.userId, row.sourceSessionId)) !== row.securityState) {
+        await store.delete(row._id);
+        return null;
+      }
+      return payload;
+    } catch {
+      return null;
+    } // Storage failures never permit authentication.
   }
-
-  if (payload.expiresAt < Date.now()) return null;
-
-  return payload;
+  async function createSessionToken(
+    userId: string,
+    sourceSessionId: string,
+    expectedSecurityState?: string,
+  ): Promise<string> {
+    if (!userId || !sourceSessionId) throw new Error("A user and originating session are required");
+    const securityState = await store.securityState(userId, sourceSessionId);
+    if (
+      !securityState ||
+      (expectedSecurityState !== undefined && securityState !== expectedSecurityState)
+    )
+      throw new Error("Originating session is no longer valid");
+    const payload = {
+      userId,
+      sessionId: crypto.randomUUID(),
+      nonce: crypto.randomUUID(),
+      expiresAt: now() + TOKEN_TTL,
+    };
+    await store.insert({
+      ...payload,
+      _id: payload.sessionId,
+      sourceSessionId,
+      securityState,
+      absoluteExpiresAt: now() + ABSOLUTE_TTL,
+    });
+    return encode(payload);
+  }
+  async function refreshSessionToken(token: string): Promise<string | null> {
+    const payload = await verifySessionToken(token);
+    if (!payload) return null;
+    const row = await store.read(payload.sessionId);
+    if (!row) return null;
+    const next = {
+      ...payload,
+      nonce: crypto.randomUUID(),
+      expiresAt: Math.min(now() + TOKEN_TTL, row.absoluteExpiresAt),
+    };
+    if (
+      next.expiresAt <= now() ||
+      !(await store.rotate(row._id, payload.nonce, next.nonce, next.expiresAt))
+    )
+      return null;
+    return encode(next);
+  }
+  async function revokeSessionToken(token: string): Promise<void> {
+    const payload = decode(token);
+    // Older rotated tokens can still revoke their family (including refresh/logout races).
+    if (payload) await store.delete(payload.sessionId);
+  }
+  async function extractBearerUserId(
+    header: string | string[] | undefined,
+  ): Promise<string | null> {
+    if (typeof header !== "string" || !header.startsWith("Bearer ")) return null;
+    return (await verifySessionToken(header.slice(7).trim()))?.userId ?? null;
+  }
+  return {
+    createSessionToken,
+    verifySessionToken,
+    refreshSessionToken,
+    revokeSessionToken,
+    extractBearerUserId,
+  };
 }
 
-/**
- * Extract and verify a bearer token from an `Authorization` header.
- * Returns the userId if the header contains a valid token, `null`
- * otherwise.  Accepts headers like `Bearer <token>` (case-sensitive —
- * matches the IETF RFC 6750 spec).
- */
-export function extractBearerUserId(authHeader: string | string[] | undefined): string | null {
-  if (!authHeader) return null;
-  // Express normalizes to string but ws / http.IncomingMessage can
-  // deliver string[] if the header is sent twice.  Take the first.
-  const header = Array.isArray(authHeader) ? authHeader[0] : authHeader;
-  if (typeof header !== "string" || !header.startsWith("Bearer ")) return null;
-  const token = header.slice("Bearer ".length).trim();
-  const payload = verifySessionToken(token);
-  return payload?.userId ?? null;
-}
-
-function signPayload(payloadB64: string): string {
-  return crypto.createHmac("sha256", TOKEN_SECRET).update(payloadB64).digest("base64url");
-}
+export const {
+  createSessionToken,
+  verifySessionToken,
+  refreshSessionToken,
+  revokeSessionToken,
+  extractBearerUserId,
+} = desktopSessionManager(desktopSessionStore, TOKEN_SECRET);

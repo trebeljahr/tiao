@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import express, { type Request, type Response } from "express";
-import { Jimp } from "jimp";
 import { ObjectId } from "mongodb";
 import mongoose from "mongoose";
 import { isValidUsername } from "../../shared/src";
@@ -18,6 +17,7 @@ import { onTutorialCompleted } from "../game/achievementService";
 import { grantBadge, revokeBadge } from "../game/badgeService";
 import { DELETED_PLAYER_NAME, gameService } from "../game/gameService";
 import { sanitizeDisplayName } from "../game/playerTokens";
+import { ProfileImageError, processProfileImage } from "../images/profileImage";
 import { profilePictureUpload } from "../middleware/multerUploadMiddleware";
 import { authRateLimiter } from "../middleware/rateLimiter";
 import GameAccount from "../models/GameAccount";
@@ -1097,10 +1097,17 @@ router.get("/confirm-email-change", async (req: Request, res: Response) => {
 
 router.post(
   "/profile-picture",
-  profilePictureUpload("profilePicture"),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response, next) => {
     const account = await requireAccount(req, res);
     if (!account) return;
+    res.locals.uploadAccount = account;
+    next();
+  },
+  profilePictureUpload("profilePicture"),
+  async (req: Request, res: Response) => {
+    const account = res.locals.uploadAccount as NonNullable<
+      Awaited<ReturnType<typeof requireAccount>>
+    >;
 
     if (!req.file) {
       return res.status(400).json({
@@ -1111,10 +1118,7 @@ router.post(
 
     try {
       const fileName = `game-account-${account.id}-${randomUUID()}.jpeg`;
-      const image = await Jimp.read(req.file.buffer);
-      image.resize({ w: 320 });
-
-      const processedImageBuffer = await image.getBuffer("image/jpeg");
+      const processedImageBuffer = await processProfileImage(req.file.buffer);
 
       const uploadCommand = new PutObjectCommand({
         Bucket: BUCKET_NAME,
@@ -1160,6 +1164,8 @@ router.post(
         profile: serializeAccountProfile(account, email, providers),
       });
     } catch (error) {
+      if (error instanceof ProfileImageError)
+        return res.status(error.status).json({ code: "INVALID_IMAGE", message: error.message });
       console.error("Error uploading game account profile picture:", error);
       return res.status(500).json({
         code: "UPLOAD_FAILED",

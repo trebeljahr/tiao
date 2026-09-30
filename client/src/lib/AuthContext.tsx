@@ -553,7 +553,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         await electron.auth.logout();
       } catch {
-        /* best-effort */
+        toastError(
+          "Could not revoke your desktop session. Check your connection and retry logout.",
+        );
+        return;
       }
     }
     setElectronTokenCache(null);

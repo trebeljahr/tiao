@@ -183,7 +183,7 @@ export function SetUsernamePage() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/gif"
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
