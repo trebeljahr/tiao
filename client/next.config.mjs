@@ -151,6 +151,8 @@ const nextConfig = {
     ? { distDir: `.next-${process.env.PORT}` }
     : {}),
   experimental: {
+    // The locale segment owns the root layout; unmatched routes need their own document.
+    globalNotFound: true,
     lockDistDir: process.env.DEV_PARALLEL !== "1",
     // Tell Turbopack/webpack these packages are side-effect-free so
     // named imports can be rewritten as per-module paths and the rest
