@@ -3,7 +3,7 @@ import type React from "react";
 import { ConnectionDot, PlayerOverviewAvatar } from "@/components/game/GameShared";
 import { type BadgeId, UserBadge } from "@/components/UserBadge";
 import { Link } from "@/i18n/navigation";
-import { isDevFeatureEnabled, resolvePlayerBadges } from "@/lib/featureGate";
+import { canSeeShop, resolvePlayerBadges } from "@/lib/featureGate";
 import { cn } from "@/lib/utils";
 
 export const DELETED_PLAYER_NAME = "Deleted Player";
@@ -161,7 +161,7 @@ export function PlayerIdentityRow({
             {online != null && <ConnectionDot online={online} />}
           </div>
           {badgesToShow.length > 0 &&
-            (isDevFeatureEnabled() ? (
+            (canSeeShop(null) ? (
               <div className="flex min-w-0 flex-wrap items-center gap-1 overflow-hidden">
                 {badgesToShow.map((id) => (
                   <Link

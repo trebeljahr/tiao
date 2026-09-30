@@ -9,19 +9,17 @@ import GameAccount, { type ISubscription } from "../models/GameAccount";
 
 const router = express.Router();
 
-/**
- * In production the shop is admin-only — used to playtest the Stripe flow
- * with a small allowlist of accounts (flagged isAdmin in the DB) before
- * opening purchases to all players. In development everyone can see it.
- */
-function shopAccessAllowed(player: { kind: string; isAdmin?: boolean } | null): boolean {
-  if (process.env.NODE_ENV !== "production") return true;
-  return !!player && player.kind === "account" && player.isAdmin === true;
-}
-
 function getStripe(): any {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) return null;
+  // Public production checkout must never charge in a sandbox or run
+  // without the webhook secret needed to fulfill purchases.
+  if (
+    process.env.NODE_ENV === "production" &&
+    (!/^(sk|rk)_live_/.test(key) || !process.env.STRIPE_WEBHOOK_SECRET)
+  ) {
+    return null;
+  }
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const Stripe = require("stripe");
   return new Stripe(key);
@@ -50,12 +48,6 @@ function subscriptionPeriodEnd(subscription: any): Date {
 router.get("/catalog", async (req: Request, res: Response) => {
   try {
     const player = await getPlayerFromRequest(req);
-    if (!shopAccessAllowed(player)) {
-      return res.status(403).json({
-        code: "SHOP_DISABLED",
-        message: "The shop is not currently available.",
-      });
-    }
     let ownedBadges: string[] = [];
     let ownedThemes: string[] = [];
 
@@ -89,12 +81,6 @@ router.post("/checkout", async (req: Request, res: Response) => {
       return res.status(401).json({
         code: "ACCOUNT_REQUIRED",
         message: "You must be signed in to make a purchase.",
-      });
-    }
-    if (!shopAccessAllowed(player)) {
-      return res.status(403).json({
-        code: "SHOP_DISABLED",
-        message: "The shop is not currently available.",
       });
     }
 

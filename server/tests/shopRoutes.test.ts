@@ -195,19 +195,22 @@ describe("Shop routes", () => {
 
     // Delete Stripe env so getStripe() returns null by default
     delete process.env.STRIPE_SECRET_KEY;
+    delete process.env.STRIPE_WEBHOOK_SECRET;
 
     const mod = await import("../routes/shop.routes");
     router = asTestRouter(mod.default);
   });
 
   afterEach(() => {
+    process.env.NODE_ENV = "test";
     resetTestSessions();
   });
 
   // ── GET /catalog ──
 
   describe("GET /catalog", () => {
-    test("returns catalog without auth (guest browsing)", async () => {
+    test("returns catalog without auth in production", async () => {
+      process.env.NODE_ENV = "production";
       const result = await invokeRoute(router, "GET", "/catalog");
       assert.equal(result.status, 200);
       assert.ok(Array.isArray((result.body as { catalog: unknown[] }).catalog));
@@ -218,7 +221,8 @@ describe("Shop routes", () => {
       assert.ok(catalog.every((item) => item.owned === false));
     });
 
-    test("returns catalog with owned items for account user", async () => {
+    test("returns catalog with owned items for a regular production account", async () => {
+      process.env.NODE_ENV = "production";
       const account = createTestAccount("shopuser", "shop@test.com");
       createMockAccount(account.player.playerId, "shopuser", ["supporter"], ["night"]);
 
@@ -239,7 +243,8 @@ describe("Shop routes", () => {
       assert.ok(!contributorBadge?.owned, "contributor badge should not be owned");
     });
 
-    test("returns catalog for guest user (browsing)", async () => {
+    test("returns catalog for a guest in production", async () => {
+      process.env.NODE_ENV = "production";
       const guest = createTestGuest("Guest");
       const result = await invokeRoute(router, "GET", "/catalog", {
         cookie: guest.cookie,
@@ -269,7 +274,8 @@ describe("Shop routes", () => {
       assert.equal(result.status, 401);
     });
 
-    test("returns 503 when Stripe is not configured", async () => {
+    test("allows a regular production account through to payment configuration", async () => {
+      process.env.NODE_ENV = "production";
       const account = createTestAccount("buyer", "buyer@test.com");
       createMockAccount(account.player.playerId, "buyer");
 
@@ -279,6 +285,43 @@ describe("Shop routes", () => {
       });
       assert.equal(result.status, 503);
       assert.equal((result.body as { code: string }).code, "STRIPE_NOT_CONFIGURED");
+    });
+
+    test("rejects sandbox credentials in production", async () => {
+      process.env.NODE_ENV = "production";
+      process.env.STRIPE_SECRET_KEY = "sk_test_fake";
+      process.env.STRIPE_WEBHOOK_SECRET = "whsec_fake";
+      const account = createTestAccount("buyer", "buyer@test.com");
+      const result = await invokeRoute(router, "POST", "/checkout", {
+        cookie: account.cookie,
+        body: { itemType: "badge", itemId: "supporter" },
+      });
+      assert.equal(result.status, 503);
+      assert.equal((result.body as { code: string }).code, "STRIPE_NOT_CONFIGURED");
+    });
+
+    test("requires fulfillment configuration before live checkout", async () => {
+      process.env.NODE_ENV = "production";
+      process.env.STRIPE_SECRET_KEY = "rk_live_fake";
+      const account = createTestAccount("buyer", "buyer@test.com");
+      const result = await invokeRoute(router, "POST", "/checkout", {
+        cookie: account.cookie,
+        body: { itemType: "badge", itemId: "supporter" },
+      });
+      assert.equal(result.status, 503);
+    });
+
+    test("accepts live credentials for ordinary production accounts", async () => {
+      process.env.NODE_ENV = "production";
+      process.env.STRIPE_SECRET_KEY = "rk_live_fake";
+      process.env.STRIPE_WEBHOOK_SECRET = "whsec_fake";
+      const account = createTestAccount("buyer", "buyer@test.com");
+      const result = await invokeRoute(router, "POST", "/checkout", {
+        cookie: account.cookie,
+        body: {},
+      });
+      assert.equal(result.status, 400);
+      assert.equal((result.body as { code: string }).code, "MISSING_ITEM");
     });
 
     test("returns 400 for missing itemType/itemId", async () => {

@@ -177,6 +177,33 @@ Recommended values for a single-domain Coolify path-routing deploy:
 - backend `PORT=3000` or omit it
 - no extra public backend hostname is required
 
+## Live shop payments
+
+The shop catalog is public in production. Purchases require an account. Steam
+builds keep external checkout and shop links hidden.
+
+Before enabling payments on the production backend:
+
+1. Complete business verification for the `playtiao.com` Stripe account.
+2. Configure a live Stripe key in `STRIPE_SECRET_KEY`. Prefer a restricted key
+   with permissions for Customers, Checkout Sessions, and Subscriptions, plus
+   the product/price creation permissions required by inline `price_data`.
+3. Register a live webhook at `https://playtiao.com/api/shop/webhook` for
+   `checkout.session.completed`, `customer.subscription.updated`,
+   `customer.subscription.deleted`, and `invoice.payment_failed`.
+4. Store that endpoint's signing secret in `STRIPE_WEBHOOK_SECRET` and set
+   `FRONTEND_URL=https://playtiao.com` on the backend.
+5. Redeploy the backend and verify webhook delivery and fulfillment.
+
+Production rejects sandbox keys and missing webhook secrets with
+`STRIPE_NOT_CONFIGURED`. Catalog browsing remains available. Local development
+can continue using test keys. No pre-created Stripe product IDs are required:
+checkout uses the server catalog to supply inline prices.
+
+Sandbox customer and subscription IDs cannot be used in live mode. If production
+accounts contain sandbox purchase records from admin testing, reconcile those
+records before enabling live purchases; do not blindly clear real entitlements.
+
 ## Step-By-Step First Deploy
 
 1. Push the Tiao repo to GitHub.

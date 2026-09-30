@@ -1,5 +1,5 @@
 import type { AuthResponse } from "@shared";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { canSeeShop, hasPreviewAccess, isAdmin, resolvePlayerBadges } from "./featureGate";
 
 function makeAuth(overrides: Partial<AuthResponse["player"]> = {}): AuthResponse {
@@ -95,6 +95,7 @@ describe("resolvePlayerBadges", () => {
 
 describe("canSeeShop", () => {
   afterEach(() => {
+    vi.unstubAllEnvs();
     // Delete rather than set undefined: the non-desktop case is an
     // absent `electron` global, and `isSteamBuild()` reads through it
     // with optional chaining either way — but leaving a stub behind
@@ -105,6 +106,13 @@ describe("canSeeShop", () => {
   function setSteamBuild(isSteamBuild: boolean) {
     (window as unknown as { electron?: unknown }).electron = { config: { isSteamBuild } };
   }
+
+  it("is public in production for visitors, guests, and regular accounts", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    expect(canSeeShop(null)).toBe(true);
+    expect(canSeeShop(makeAuth({ kind: "guest" }))).toBe(true);
+    expect(canSeeShop(makeAuth())).toBe(true);
+  });
 
   it("is visible to an admin outside a Steam build", () => {
     expect(canSeeShop(makeAuth({ isAdmin: true }))).toBe(true);

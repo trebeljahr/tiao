@@ -20,7 +20,7 @@ vi.mock("@/components/UserBadge", () => ({
 // Mock featureGate
 vi.mock("@/lib/featureGate", () => ({
   resolvePlayerBadges: (player: { activeBadges?: string[] }) => player?.activeBadges ?? [],
-  isDevFeatureEnabled: () => false,
+  canSeeShop: () => true,
 }));
 
 describe("PlayerIdentityRow (#94)", () => {
@@ -81,7 +81,7 @@ describe("PlayerIdentityRow (#94)", () => {
     );
 
     const dot = screen.getByTestId("connection-dot");
-    const link = screen.getByRole("link");
+    const link = screen.getByRole("link", { name: "alice" });
     // The dot must share an immediate parent with the name link (the name row),
     // not sit at the outer row alongside the badges container.
     expect(dot.parentElement).toBe(link.parentElement);
@@ -95,7 +95,11 @@ describe("PlayerIdentityRow (#94)", () => {
       />,
     );
 
-    const link = screen.getByRole("link");
+    const link = screen.getByRole("link", { name: "alice" });
+    expect(screen.getByRole("link", { name: "early-adopter" })).toHaveAttribute(
+      "href",
+      "/shop#badge-early-adopter",
+    );
     const badge = screen.getByTestId("user-badge");
 
     // Badge is rendered outside the profile link (in its own container)

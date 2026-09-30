@@ -25,7 +25,7 @@ export function isAdmin(auth: AuthResponse | null): boolean {
 }
 
 /**
- * Returns true if dev-only features (shop, achievements) should be visible.
+ * Returns true if development previews should be visible.
  * Hidden in production builds, shown in development.
  */
 export function isDevFeatureEnabled(): boolean {
@@ -33,20 +33,11 @@ export function isDevFeatureEnabled(): boolean {
 }
 
 /**
- * Returns true if the shop should be visible to the current user.
- * Visible in development for everyone; in production only to admins
- * (used to playtest shop/Stripe flows without exposing them publicly).
- *
- * Never visible in a Steam build, and that check comes first — Valve
- * requires in-game purchases to go through Steam's own payment system,
- * so routing a player to an external Stripe Checkout is a store-policy
- * violation. The admin and dev escapes must not reopen it: an admin
- * playtesting inside the Steam client would be doing exactly the thing
- * the rule forbids.
+ * The shop is public in every environment. Steam builds keep external
+ * checkout hidden because purchases there use Steam's payment system.
  */
-export function canSeeShop(auth: AuthResponse | null): boolean {
-  if (isSteamBuild()) return false;
-  return isDevFeatureEnabled() || isAdmin(auth);
+export function canSeeShop(_auth: AuthResponse | null): boolean {
+  return !isSteamBuild();
 }
 
 /**
