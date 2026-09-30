@@ -42,7 +42,10 @@ export default async function Page({ params }: Props) {
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}>{t("eyebrow")}</p>
           <h1 id="tiao-title" className={styles.wordmark}>
-            Tiao<span lang="zh-Hans">跳</span>
+            <span className={styles.wordmarkText}>Tiao</span>
+            <span className={styles.wordmarkBadge} lang="zh-Hans">
+              跳
+            </span>
           </h1>
           <h2>{t("headline")}</h2>
           <p className={styles.intro}>{t("intro")}</p>
