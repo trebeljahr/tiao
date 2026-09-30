@@ -137,7 +137,7 @@ export function PublicProfilePage() {
         <PaperCard className="w-full">
           <CardContent className="flex flex-col items-center gap-4 py-16">
             <p className="text-sm text-[#8d7760]">{t("playerNotFound")}</p>
-            <Button variant="secondary" onClick={() => router.push("/")}>
+            <Button variant="secondary" onClick={() => router.push("/play")}>
               {tCommon("backToLobby")}
             </Button>
           </CardContent>

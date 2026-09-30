@@ -117,8 +117,8 @@ test("game review shows status title and allows returning to lobby", async ({ br
   await expect(alicePage.getByRole("heading", { name: /wins/ })).toBeVisible({ timeout: 5000 });
 
   // Navigate to lobby by going to the home page
-  await alicePage.goto("/");
-  await expect(alicePage).toHaveURL("/");
+  await alicePage.goto("/play");
+  await expect(alicePage).toHaveURL("/play");
 
   await aliceContext.close();
   await bobContext.close();

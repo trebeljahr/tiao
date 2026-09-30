@@ -14,9 +14,8 @@
  * 2. The lobby-scoped provider chain (LobbySocketProvider + Social +
  *    Tournament notifications) is extracted into its own module at
  *    `./LobbyProviders.tsx` so it's a clean module boundary for
- *    Turbopack. Still mounted unconditionally here today, but the
- *    split sets up a future route-group refactor that can drop
- *    lobby providers from non-lobby routes entirely.
+ *    Turbopack. Public landing and rules pages skip this chain so a visitor
+ *    can read about the game without opening a lobby connection.
  *
  * 3. `@/lib/dump` (console interception for Rico's remote-dump bug
  *    report feature) used to be a module-top side-effect import. It
@@ -41,6 +40,7 @@ import { AuthProvider, useAuth } from "@/lib/AuthContext";
 import { toastError } from "@/lib/errors";
 import { isEmbedPath } from "@/lib/frameHeaders";
 import { getOAuthErrorMessage } from "@/lib/oauthErrors";
+import { isPublicInfoPath } from "@/lib/publicRoutes";
 import { LobbyProviders } from "./LobbyProviders";
 
 // ─── Dynamic imports ─────────────────────────────────────────────────
@@ -59,9 +59,7 @@ import { LobbyProviders } from "./LobbyProviders";
 // We tried dynamic-importing LobbyProviders too (ssr: true) and it
 // was ~2× SLOWER on cold compile — `ssr: true` dynamic imports add
 // chunk-split overhead that only pays off if a meaningful fraction
-// of routes can skip loading the chunk. Every route via AppShell
-// still renders LobbyProviders, so there's no skipping benefit —
-// just pure split overhead. Keep it statically imported.
+// of routes can skip loading the chunk. Keep the import static; public pages skip mounting the providers.
 
 const AuthDialog = dynamic(() => import("./AuthDialog").then((m) => m.AuthDialog), {
   ssr: false,
@@ -82,11 +80,12 @@ const ConsentBanner = dynamic(
  * Prevents navigation away from /onboarding while needsUsername is true.
  */
 function UsernameOnboardingGuard({ children }: { children: React.ReactNode }) {
-  const { auth } = useAuth();
+  const { auth, authBootstrapped } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
-  const needsUsername = auth?.player?.kind === "account" && auth.player.needsUsername === true;
+  const needsUsername =
+    authBootstrapped && auth?.player?.kind === "account" && auth.player.needsUsername === true;
   const isOnboardingPage = pathname?.endsWith("/onboarding") ?? false;
 
   useEffect(() => {
@@ -196,52 +195,54 @@ function DumpInstaller() {
   return null;
 }
 
-function AppShell({ children }: { children: React.ReactNode }) {
-  return (
-    <LobbyProviders>
-      <div className="min-h-screen bg-background text-foreground">
-        <UsernameOnboardingGuard>
-          <main className="min-h-screen">{children}</main>
-        </UsernameOnboardingGuard>
-        <AuthDialog />
-        <OAuthErrorHandler />
-        <ConsentBanner />
-        <PwaInstallBanner />
-        <DumpInstaller />
-        {/* Sonner hardcodes z-index:999999999 on [data-sonner-toaster].
+function AppShell({ children, publicPage }: { children: React.ReactNode; publicPage: boolean }) {
+  const content = (
+    <div className="min-h-screen bg-background text-foreground">
+      <UsernameOnboardingGuard>
+        <main className="min-h-screen">{children}</main>
+      </UsernameOnboardingGuard>
+      <AuthDialog />
+      <OAuthErrorHandler />
+      <ConsentBanner />
+      {!publicPage && <PwaInstallBanner />}
+      {!publicPage && <DumpInstaller />}
+      {/* Sonner hardcodes z-index:999999999 on [data-sonner-toaster].
             Override it above dialogs (z-300) but below the mobile nav
             drawer backdrop (z-200 on the drawer, but toasts should still
             show over modals). Using z-400 keeps toasts visible over
             everything except the nav drawer overlay. */}
-        <style>{`[data-sonner-toaster] { z-index: 400 !important; }`}</style>
-        <Toaster
-          richColors
-          position="top-right"
-          closeButton
-          toastOptions={{
-            style: {
-              background: "#f5e6d0",
-              color: "#4a3728",
-              border: "1px solid #dbc6a2",
-              boxShadow: "0 4px 16px rgba(74, 55, 40, 0.15)",
-            },
-            cancelButtonStyle: {
-              background: "rgba(74, 55, 40, 0.1)",
-              color: "#6e5b48",
-              flexShrink: 0,
-            },
-            actionButtonStyle: {
-              flexShrink: 0,
-            },
-          }}
-        />
-      </div>
-    </LobbyProviders>
+      <style>{`[data-sonner-toaster] { z-index: 400 !important; }`}</style>
+      <Toaster
+        richColors
+        position="top-right"
+        closeButton
+        toastOptions={{
+          style: {
+            background: "#f5e6d0",
+            color: "#4a3728",
+            border: "1px solid #dbc6a2",
+            boxShadow: "0 4px 16px rgba(74, 55, 40, 0.15)",
+          },
+          cancelButtonStyle: {
+            background: "rgba(74, 55, 40, 0.1)",
+            color: "#6e5b48",
+            flexShrink: 0,
+          },
+          actionButtonStyle: {
+            flexShrink: 0,
+          },
+        }}
+      />
+    </div>
   );
+  return publicPage ? content : <LobbyProviders>{content}</LobbyProviders>;
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const installed =
+    process.env.NEXT_PUBLIC_PLATFORM === "desktop" || process.env.NEXT_PUBLIC_PLATFORM === "mobile";
+  const publicPage = !installed && isPublicInfoPath(pathname ?? "");
 
   // `/embed/*` renders inside third-party iframes. It gets none of the
   // app shell: no auth bootstrap (would mint a guest session per host
@@ -254,8 +255,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ErrorBoundary>
       <AnalyticsConsentProvider>
-        <AuthProvider>
-          <AppShell>{children}</AppShell>
+        <AuthProvider createGuestSession={!publicPage}>
+          <AppShell publicPage={publicPage}>{children}</AppShell>
         </AuthProvider>
       </AnalyticsConsentProvider>
     </ErrorBoundary>

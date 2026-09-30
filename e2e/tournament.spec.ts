@@ -383,7 +383,7 @@ test.describe("Tournament navigation", () => {
     const username = uniqueName("tourney");
     await signUpViaAPI(page, username, "password123");
 
-    await page.goto("/");
+    await page.goto("/play");
 
     // Open the nav drawer
     await page.click('[aria-label="Open navigation"]');

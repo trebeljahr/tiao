@@ -5,7 +5,7 @@ async function signUpViaApi(page: import("@playwright/test").Page) {
   const username = `upload_${slug}`;
   const email = `upload_${slug}@test.local`;
 
-  await page.goto("/");
+  await page.goto("/play");
 
   const result = await page.evaluate(
     async ({ name, mail }) => {
@@ -110,7 +110,7 @@ test.describe("Profile picture upload", () => {
   });
 
   test("rejects upload from guest (non-account) player", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/play");
 
     // The app auto-creates a guest session on load, so we just need to wait
     // for the page to be ready, then try to upload.

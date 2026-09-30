@@ -356,7 +356,7 @@ export function ShopPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!canSeeShop(auth)) {
-      router.replace("/");
+      router.replace("/play");
     }
   }, [authLoading, auth, router]);
 

@@ -876,7 +876,7 @@ export function ProfilePage() {
                   await deleteAccount(deleteConfirmName);
                   setDeleteModalOpen(false);
                   await onLogout();
-                  router.push("/");
+                  router.push("/play");
                 } catch (error) {
                   toastError(readableError(error));
                 } finally {

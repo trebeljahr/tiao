@@ -210,7 +210,7 @@ function TutorialPageInner() {
 
   function handleGoToLobby() {
     completeTutorial();
-    router.push("/");
+    router.push("/play");
   }
 
   function handleReturnToGame() {
@@ -233,7 +233,7 @@ function TutorialPageInner() {
       router.push(nextUrl ?? "/matchmaking");
       return;
     }
-    router.push("/");
+    router.push("/play");
   }
 
   // Keyboard navigation

@@ -165,7 +165,7 @@ export function LocalGamePage() {
                 <Button variant="secondary" onClick={handleNewGame}>
                   {t("newGame")}
                 </Button>
-                <Button variant="ghost" onClick={() => router.push("/")}>
+                <Button variant="ghost" onClick={() => router.push("/play")}>
                   {tCommon("backToLobby")}
                 </Button>
               </>
@@ -214,7 +214,7 @@ export function LocalGamePage() {
           >
             {t("rematchSameSettings")}
           </Button>
-          <Button variant="ghost" onClick={() => router.push("/")}>
+          <Button variant="ghost" onClick={() => router.push("/play")}>
             {tCommon("backToLobby")}
           </Button>
         </div>

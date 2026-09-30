@@ -96,7 +96,7 @@ describe("SetUsernamePage", () => {
       });
     });
 
-    expect(mockReplace).toHaveBeenCalledWith("/");
+    expect(mockReplace).toHaveBeenCalledWith("/play");
   });
 
   it("shows error when API rejects", async () => {

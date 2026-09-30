@@ -234,7 +234,7 @@ export function ComputerGamePage() {
                 <Button variant="secondary" onClick={handleChangeDifficulty}>
                   {t("changeDifficulty")}
                 </Button>
-                <Button variant="ghost" onClick={() => router.push("/")}>
+                <Button variant="ghost" onClick={() => router.push("/play")}>
                   {tCommon("backToLobby")}
                 </Button>
               </>
@@ -277,7 +277,7 @@ export function ComputerGamePage() {
           >
             {t("changeDifficulty")}
           </Button>
-          <Button variant="ghost" onClick={() => router.push("/")}>
+          <Button variant="ghost" onClick={() => router.push("/play")}>
             {tCommon("backToLobby")}
           </Button>
         </div>

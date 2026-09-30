@@ -66,6 +66,6 @@ test.describe("Computer game end dialog", () => {
     await dialog.locator('button:has-text("Back to lobby")').click();
 
     // Should navigate to home
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL("/play");
   });
 });

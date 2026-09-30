@@ -103,7 +103,7 @@ export function MultiplayerGamePage() {
         );
       } else {
         toast.error(message);
-        router.replace("/");
+        router.replace("/play");
       }
     },
   });
@@ -278,7 +278,7 @@ export function MultiplayerGamePage() {
       } catch {
         if (!cancelled) {
           toast.error(tCommon("failedToLoadGame"));
-          router.push("/");
+          router.push("/play");
         }
       } finally {
         if (!cancelled) setMultiplayerBusy(false);
@@ -546,7 +546,7 @@ export function MultiplayerGamePage() {
   const tournamentBackPath =
     isTournamentGame && multiplayerSnapshot?.tournamentId
       ? `/tournament/${multiplayerSnapshot.tournamentId}`
-      : "/";
+      : "/play";
   const backLabel = isTournamentGame ? tCommon("backToTournament") : tCommon("backToLobby");
 
   // Server-driven "what do I do next?" decision. Only query while we're
@@ -1685,7 +1685,7 @@ export function MultiplayerGamePage() {
                                     {tCommon("decline")}
                                   </Button>
                                 ) : (
-                                  <Button variant="outline" onClick={() => router.push("/")}>
+                                  <Button variant="outline" onClick={() => router.push("/play")}>
                                     {tCommon("lobby")}
                                   </Button>
                                 )}

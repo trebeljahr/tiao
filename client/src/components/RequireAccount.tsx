@@ -22,7 +22,7 @@ export function RequireAccount({
 
   useEffect(() => {
     if (!authLoading && !isAccount) {
-      router.replace("/");
+      router.replace("/play");
     }
   }, [authLoading, isAccount, router]);
 

@@ -112,7 +112,13 @@ function setCachedAuth(auth: AuthResponse | null) {
   }
 }
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({
+  children,
+  createGuestSession = true,
+}: {
+  children: React.ReactNode;
+  createGuestSession?: boolean;
+}) {
   const t = useTranslations("common");
   const [auth, setAuth] = useState<AuthResponse | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -215,6 +221,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!cacheHydrated) return;
     let cancelled = false;
+    setAuthBootstrapped(false);
 
     async function bootstrap() {
       // Only show loading spinner if we had no cached auth
@@ -249,6 +256,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
+        // Public pages only check existing sessions; browsing should not mint accounts.
+        setAuth(null);
+        setCachedAuth(null);
+        if (!createGuestSession) return;
+
         // No session — create anonymous guest
         const { data: anonData, error: anonError } = await authClient.signIn.anonymous();
         if (cancelled) return;
@@ -278,6 +290,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (error) {
         if (cancelled) return;
+        // Public content remains usable when the game server is unavailable.
+        // Never redirect based on an optimistic cached identity that failed verification.
+        if (!createGuestSession) {
+          setAuth(null);
+          return;
+        }
 
         if (isNetworkError(error)) {
           toastError(error);
@@ -297,7 +315,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [cacheHydrated]);
+  }, [cacheHydrated, createGuestSession]);
 
   // Desktop Electron: subscribe to the preload bridge's auth-complete
   // event so we can refresh the cached token and player identity
@@ -595,7 +613,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       /* best-effort */
     }
 
-    // Navigate to the lobby via a full page load — rebuilds the React
+    // Navigate to the public home via a full page load — rebuilds the React
     // tree from scratch so protected pages never render in a half-
     // logged-out state.
     if (typeof window !== "undefined") {

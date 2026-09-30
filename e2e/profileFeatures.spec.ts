@@ -124,7 +124,7 @@ test.describe("Delete account (#91)", () => {
     await confirmDeleteBtn.click();
 
     // Should be redirected to the lobby
-    await expect(page).toHaveURL("/", { timeout: 10000 });
+    await expect(page).toHaveURL("/play", { timeout: 10000 });
 
     await context.close();
   });

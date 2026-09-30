@@ -105,7 +105,7 @@ export function SetUsernamePage() {
     try {
       const result = await setUsername(sanitized);
       applyAuth(result.auth);
-      router.replace("/");
+      router.replace("/play");
     } catch (err: unknown) {
       const message = readableError(err);
       setError(message);

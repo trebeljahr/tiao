@@ -3,7 +3,7 @@ import { signUpViaAPI } from "./helpers";
 
 test.describe("Lobby", () => {
   test("lobby shows create game and find match buttons", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/play");
     await expect(page.locator('button:has-text("Create a game")')).toBeVisible();
     await expect(page.locator('button:has-text("Unlimited time game")')).toBeVisible();
   });
@@ -32,7 +32,7 @@ test.describe("Lobby", () => {
     const gameId = page.url().split("/").pop()!;
 
     // Go back to lobby
-    await page.goto("/");
+    await page.goto("/play");
 
     // The game should appear in the active games section
     await expect(page.locator(`text=${gameId}`)).toBeVisible({ timeout: 5000 });

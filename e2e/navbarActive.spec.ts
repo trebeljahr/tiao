@@ -9,8 +9,8 @@ import { waitForAppReady } from "./helpers";
  * in the drawer.
  */
 test.describe("Navbar active link attributes", () => {
-  test('active nav link on / has aria-current="page"', async ({ page }) => {
-    await page.goto("/");
+  test('active nav link on /play has aria-current="page"', async ({ page }) => {
+    await page.goto("/play");
     await waitForAppReady(page);
     await page.click('[aria-label="Open navigation"]');
 
@@ -20,7 +20,7 @@ test.describe("Navbar active link attributes", () => {
   });
 
   test("non-active nav links do not have aria-current", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/play");
     await waitForAppReady(page);
     await page.click('[aria-label="Open navigation"]');
 
@@ -44,14 +44,14 @@ test.describe("Navbar active link attributes", () => {
     await expect(activeLink).toHaveAttribute("aria-current", "page");
   });
 
-  test("navigating from /tutorial back to / swaps the active link", async ({ page }) => {
+  test("navigating from /tutorial back to /play swaps the active link", async ({ page }) => {
     await page.goto("/tutorial");
     await waitForAppReady(page);
     await page.click('[aria-label="Open navigation"]');
     const tutorialActive = page.locator('aside a[aria-current="page"]');
     await expect(tutorialActive).toHaveText(/Tutorial/);
 
-    await page.goto("/");
+    await page.goto("/play");
     await waitForAppReady(page);
     await page.click('[aria-label="Open navigation"]');
     const lobbyActive = page.locator('aside a[aria-current="page"]');

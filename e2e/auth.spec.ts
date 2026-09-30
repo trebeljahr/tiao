@@ -17,12 +17,11 @@ test.describe("Authentication flows", () => {
 
     // Logout — the auth context does a full page reload via
     // window.location.assign("/") after signing out. Wait for that
-    // navigation to land (the "Sign up" button only re-appears in the
-    // drawer once the guest session is active) before logging back in.
+    // navigation to reach the public landing page before logging back in.
     await page.click('[aria-label="Open navigation"]');
     await page.click('button:has-text("Logout")');
     await page.waitForLoadState("load");
-    await expect(page.locator('button:has-text("Create a game")')).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Tiao", exact: true })).toBeVisible();
 
     // Login again
     await signInViaUI(page, username, "testpass123");
@@ -31,7 +30,7 @@ test.describe("Authentication flows", () => {
   });
 
   test("guest player can play without account", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/play");
     // Should load without requiring login
     // Guest should be able to access game features
     await expect(page.locator('button:has-text("Create a game")')).toBeVisible();

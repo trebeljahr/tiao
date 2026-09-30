@@ -116,7 +116,7 @@ export function MatchmakingPage() {
                   <HourglassSpinner className="h-16 w-16 text-[#a6824d] opacity-30" />
                   <p className="text-lg font-semibold text-[#5d4732]">{t("preemptedTitle")}</p>
                   <p className="max-w-sm text-sm text-[#7a6656]">{t("preemptedBody")}</p>
-                  <Button variant="outline" onClick={() => router.push("/")}>
+                  <Button variant="outline" onClick={() => router.push("/play")}>
                     {t("backToLobby")}
                   </Button>
                 </div>
@@ -144,7 +144,7 @@ export function MatchmakingPage() {
                     onClick={async () => {
                       cancelledRef.current = true;
                       await handleCancelMatchmaking();
-                      router.push("/");
+                      router.push("/play");
                     }}
                     disabled={matchmakingBusy}
                   >

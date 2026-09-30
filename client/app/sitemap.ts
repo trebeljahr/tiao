@@ -7,6 +7,8 @@ export const revalidate = 300;
 
 const staticRoutes = [
   { pathname: "/", changeFrequency: "daily", priority: 1 },
+  { pathname: "/play", changeFrequency: "daily", priority: 0.9 },
+  { pathname: "/rules", changeFrequency: "monthly", priority: 0.9 },
   { pathname: "/games", changeFrequency: "weekly", priority: 0.9 },
   { pathname: "/tutorial", changeFrequency: "monthly", priority: 0.9 },
   { pathname: "/computer", changeFrequency: "monthly", priority: 0.8 },

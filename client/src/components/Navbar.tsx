@@ -206,7 +206,7 @@ function Brand({
   const tNav = useTranslations("nav");
   return (
     <Link
-      href="/"
+      href="/play"
       onClick={onClick}
       className={cn(
         "flex items-center text-left transition-opacity hover:opacity-90",
@@ -285,10 +285,10 @@ export function Navbar({
   const navItems: NavItem[] = [
     {
       label: t("lobby"),
-      href: "/",
-      active: pathname === "/",
+      href: "/play",
+      active: pathname === "/play",
       badge: unacknowledgedInvitationCount + unacknowledgedRematchCount,
-      badgeTarget: "/#invitations",
+      badgeTarget: "/play#invitations",
       icon: (
         <svg aria-hidden="true" {...iconProps}>
           <path {...pathProps} d="M3 12l9-8 9 8" />

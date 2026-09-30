@@ -122,7 +122,7 @@ test("spectating own game shows error toast and stays on lobby", async ({ browse
   expect(gameId).toBeTruthy();
 
   // Go back to lobby
-  await page.goto("/");
+  await page.goto("/play");
   await page.waitForLoadState("networkidle");
 
   // Try to spectate own game via the Watch a Game form
@@ -132,7 +132,7 @@ test("spectating own game shows error toast and stays on lobby", async ({ browse
 
   // Should show error toast and stay on lobby
   await expect(page.locator("text=your own game")).toBeVisible({ timeout: 3000 });
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/play");
 
   await context.close();
 });

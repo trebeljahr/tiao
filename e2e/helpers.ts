@@ -79,7 +79,7 @@ export async function signUpViaAPI(page: Page, username: string, password: strin
   // disabled stub. Waiting for the enabled button (or the disappearance
   // of the "Log in or create an account" CTA text) is the reliable
   // "account session is live" signal.
-  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.goto("/play", { waitUntil: "domcontentloaded" });
   await waitForAppReady(page);
   await expect(
     page.getByText("Log in or create an account to create and join custom games."),
@@ -144,7 +144,7 @@ async function openAuthDialog(page: Page, mode: "login" | "signup") {
 export async function signUpViaUI(page: Page, username: string, password: string, email?: string) {
   const testEmail = email || `${username}@test.tiao.local`;
 
-  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.goto("/play", { waitUntil: "domcontentloaded" });
   await waitForAppReady(page);
   await openAuthDialog(page, "signup");
   await page.fill("#signup-display-name", username);
@@ -165,7 +165,7 @@ export async function signUpViaUI(page: Page, username: string, password: string
  * helper is resilient to transport/redirect details.
  */
 export async function signInViaUI(page: Page, usernameOrEmail: string, password: string) {
-  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.goto("/play", { waitUntil: "domcontentloaded" });
   await waitForAppReady(page);
   await openAuthDialog(page, "login");
   await page.fill("#login-email", usernameOrEmail);

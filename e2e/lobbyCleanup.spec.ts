@@ -30,7 +30,7 @@ test.describe("Lobby cleanup — no Refresh buttons", () => {
     await signUpViaAPI(page, username, "password123");
 
     // Go to lobby
-    await page.goto("/");
+    await page.goto("/play");
 
     // Verify no Refresh button exists on the lobby page
     await expect(page.locator('button:has-text("Refresh")')).not.toBeVisible({ timeout: 2000 });

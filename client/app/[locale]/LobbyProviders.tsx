@@ -10,13 +10,8 @@
  *   - SocialNotificationsProvider — friend requests, profile updates
  *   - TournamentNotificationsProvider — tournament invites/updates
  *
- * Extracted from providers.tsx so it can live in its own module and
- * (in a future refactor) be scoped to only the routes that actually
- * need it. Today it's still mounted universally from providers.tsx
- * via AppShell, but isolating the module boundary makes it easier to
- * reason about the compile graph and lays the groundwork for a route-
- * group split if we want to strip these providers from non-lobby
- * routes entirely.
+ * Mounted by AppShell on application routes. Public landing and rules
+ * pages omit this chain to avoid opening a lobby connection.
  */
 
 import { useAuth } from "@/lib/AuthContext";
