@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import styles from "./PublicSite.module.css";
@@ -8,7 +9,7 @@ export async function PublicHeader({ pathname = "/" }: { pathname?: string }) {
   return (
     <header className={styles.header}>
       <Link href="/" className={styles.brand} aria-label="Tiao">
-        <span aria-hidden="true">跳</span> Tiao
+        <Image src="/tiao-icon.svg" alt="" width={36} height={36} /> Tiao
       </Link>
       <nav aria-label={t("navRules")}>
         <Link href="/rules" aria-current={pathname === "/rules" ? "page" : undefined}>

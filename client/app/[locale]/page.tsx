@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { BoardIllustration } from "@/components/public/BoardIllustration";
 import { CaptureDemo } from "@/components/public/CaptureDemo";
 import { EntryRedirect } from "@/components/public/EntryRedirect";
 import { PublicFooter, PublicHeader } from "@/components/public/PublicSite";
@@ -42,62 +42,72 @@ export default async function Page({ params }: Props) {
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}>{t("eyebrow")}</p>
           <h1 id="tiao-title" className={styles.wordmark}>
-            Tiao<span aria-hidden="true">跳</span>
+            Tiao
           </h1>
           <h2>{t("headline")}</h2>
           <p className={styles.intro}>{t("intro")}</p>
           <div className={styles.actions}>
             <Link className={styles.primary} href="/play">
-              {t("play")} <span aria-hidden="true">↗</span>
+              {t("play")} <span aria-hidden="true">→</span>
             </Link>
-            <Link className={styles.textLink} href="/rules">
-              {t("learn")}
+            <Link className={styles.textLink} href="/tutorial">
+              {t("tutorial")}
             </Link>
           </div>
           <p className={styles.note}>{t("note")}</p>
         </div>
-        <figure className={styles.heroBoard}>
-          <BoardIllustration title={t("boardAlt")} />
-          <figcaption>{t("boardCaption")}</figcaption>
-        </figure>
+        <div className={styles.heroArt}>
+          <Image src="/tiao-icon.svg" alt="" width={512} height={512} fetchPriority="high" />
+        </div>
       </section>
-      <section className={styles.captureSection} aria-labelledby="capture-title">
+      <section className={styles.explanation} aria-labelledby="rules-title">
+        <div>
+          <p className={styles.eyebrow}>{t("navRules")}</p>
+          <h2 id="rules-title">{t("rulesTitle")}</h2>
+        </div>
+        <div className={styles.ruleCopy}>
+          <p>{t("rulesBody")}</p>
+          <p>{t("captureBody")}</p>
+          <Link className={styles.textLink} href="/rules">
+            {t("learn")} <span aria-hidden="true">→</span>
+          </Link>
+        </div>
+      </section>
+      <section className={styles.captureSection} aria-label={t("captureEyebrow")}>
         <div className={styles.captureCopy}>
           <p className={styles.eyebrow}>{t("captureEyebrow")}</p>
-          <h2 id="capture-title">{t("captureTitle")}</h2>
-          <p>{t("captureBody")}</p>
-          <p className={styles.muted}>{t("captureDetail")}</p>
-          <Link className={styles.textLink} href="/rules">
-            {t("learn")} <span aria-hidden="true">↗</span>
-          </Link>
+          <h2>{t("captureTitle")}</h2>
         </div>
         <CaptureDemo />
       </section>
-      <section className={styles.rulesTeaser} aria-labelledby="rules-title">
-        <span className={styles.ten} aria-hidden="true">
-          10
-        </span>
+      <section className={styles.playSection} aria-labelledby="ways-title">
         <div>
-          <h2 id="rules-title">{t("rulesTitle")}</h2>
-          <p>{t("rulesBody")}</p>
-          <Link className={styles.textLink} href="/tutorial">
-            {t("tutorial")} <span aria-hidden="true">↗</span>
+          <p className={styles.eyebrow}>{t("waysEyebrow")}</p>
+          <h2 id="ways-title">{t("waysTitle")}</h2>
+        </div>
+        <div className={styles.playOptions}>
+          <Link href="/computer">
+            <span>
+              <strong>{t("computer")}</strong>
+              <small>{t("computerDetail")}</small>
+            </span>
+            <span aria-hidden="true">→</span>
+          </Link>
+          <Link href="/local">
+            <span>
+              <strong>{t("local")}</strong>
+              <small>{t("localDetail")}</small>
+            </span>
+            <span aria-hidden="true">→</span>
+          </Link>
+          <Link href="/play">
+            <span>
+              <strong>{t("online")}</strong>
+              <small>{t("onlineDetail")}</small>
+            </span>
+            <span aria-hidden="true">→</span>
           </Link>
         </div>
-      </section>
-      <section className={styles.ways} aria-labelledby="ways-title">
-        <p className={styles.eyebrow}>{t("waysEyebrow")}</p>
-        <h2 id="ways-title">{t("waysTitle")}</h2>
-        <p>{t("waysBody")}</p>
-        <div className={styles.actions}>
-          <Link className={styles.primary} href="/computer">
-            {t("computer")} <span aria-hidden="true">↗</span>
-          </Link>
-          <Link className={styles.textLink} href="/local">
-            {t("local")}
-          </Link>
-        </div>
-        <p className={styles.closing}>{t("footerLine")}</p>
       </section>
       <PublicFooter />
     </div>

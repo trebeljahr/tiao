@@ -47,9 +47,6 @@
 .textLink { display: inline-block; font-size: 14px; border-bottom: 1px solid currentColor; padding: 8px 0; text-underline-offset: 6px; transition: color 180ms; }
 .textLink:hover { color: var(--accent); }
 .note { font-size: 12px; line-height: 1.6; margin-top: 20px; max-width: 350px; color: #6c6659; }
-.heroBoard { position: absolute; width: 58%; right: -5%; top: 50%; transform: translateY(-50%) rotate(-8deg); z-index: 0; animation: board-in 1000ms ease-out both; }
-.heroBoard svg { width: 100%; height: auto; filter: drop-shadow(0 25px 26px #46352030); }
-.heroBoard figcaption { font-size: 11px; color: #746551; letter-spacing: 0.05em; margin: 20px 0 0 10%; }
 .captureSection { display: grid; grid-template-columns: 1fr 1fr; gap: 10%; padding: 110px max(5vw, calc((100vw - 1200px) / 2)); border-top: 1px solid #302d2526; align-items: start; background: #eae4d2; }
 .captureCopy { position: sticky; top: 70px; padding-top: 24px; }
 .captureCopy > p:not(.eyebrow) { margin-top: 24px; max-width: 440px; }
@@ -65,15 +62,6 @@
 .demo figcaption { min-height: 76px; padding-top: 16px; font-size: 13px; color: #625b4d; }
 .movingStone { transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1); }
 .captured { transition: opacity 350ms; }
-.rulesTeaser { display: flex; gap: 8vw; align-items: center; padding: 90px max(5vw, calc((100vw - 1100px) / 2)); background: #343b31; color: #f1ecd9; }
-.ten { font-family: var(--font-zen-old-mincho), Georgia, serif; font-size: clamp(100px, 18vw, 260px); line-height: 1; letter-spacing: -0.08em; color: #d5c8a6; }
-.rulesTeaser > div { max-width: 590px; }
-.rulesTeaser p { margin: 24px 0 16px; color: #d4d5c5; }
-.rulesTeaser .textLink:hover { color: #fff; }
-.ways { max-width: 890px; padding: 110px 5vw 70px; margin: auto; text-align: center; }
-.ways > p:not(.eyebrow):not(.closing) { max-width: 550px; margin: 26px auto; color: #615c50; }
-.ways .actions { justify-content: center; }
-.closing { font-size: 12px; color: #756d5c; margin-top: 75px; }
 .footer { display: flex; justify-content: space-between; gap: 24px; margin: 0 5vw; padding: 26px 0; border-top: 1px solid #302d2526; font-size: 11px; color: #6c6659; }
 .footer > div { display: flex; gap: 20px; }
 .rulebook { max-width: 850px; margin: 0 auto; padding: 80px 32px; }
@@ -85,9 +73,7 @@
 .rulebook h3 { margin-top: 28px; font-size: 23px; }
 .rulebook .demo { margin: 32px auto 0; }
 @keyframes rise-in { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes board-in { from { opacity: 0; transform: translate(30px, -48%) rotate(-5deg); } to { opacity: 1; transform: translate(0, -50%) rotate(-8deg); } }
-@media (min-width: 1600px) { .hero { padding-left: max(5vw, calc((100vw - 1440px) / 2)); } .heroBoard { width: 900px; right: max(-70px, calc((100vw - 1750px) / 2)); } }
-@media (max-width: 900px) { .header { gap: 22px; } .header nav:not(.languages) { gap: 18px; } .hero { min-height: 660px; padding-top: 36px; padding-bottom: 46px; } .heroCopy { width: 51%; } .heroBoard { right: -15%; width: 65%; } .captureSection { gap: 6%; padding: 70px 5vw; } }
+@media (max-width: 900px) { .header { gap: 22px; } .header nav:not(.languages) { gap: 18px; } .hero { min-height: 660px; padding-top: 36px; padding-bottom: 46px; } .heroCopy { width: 51%; } .captureSection { gap: 6%; padding: 70px 5vw; } }
 @media (max-width: 600px) {
   .header { min-height: 72px; flex-wrap: wrap; gap: 8px 14px; padding: 12px 6vw; }
   .brand { font-size: 21px; gap: 8px; } .brand span { font-size: 26px; }
@@ -102,34 +88,42 @@
   .actions { margin-top: 22px; gap: 16px 24px; }
   .primary { font-size: 13px; padding: 12px 18px; }
   .note { font-size: 11px; max-width: 300px; margin-top: 14px; }
-  .heroBoard { position: relative; top: auto; width: 108%; right: auto; margin: 34px -4% 0; transform: rotate(-8deg); animation: none; }
-  .heroBoard figcaption { transform: rotate(8deg); text-align: center; margin: 18px 0 28px; }
   .captureSection { grid-template-columns: 1fr; gap: 30px; padding: 55px 6vw 35px; }
   .captureCopy { position: static; padding-top: 0; }
   .captureCopy > p:not(.eyebrow) { margin-top: 20px; font-size: 15px; }
-  .rulesTeaser { gap: 25px; padding: 50px 6vw; align-items: flex-start; }
-  .ten { font-size: 80px; } .rulesTeaser h2 { font-size: 27px; }
-  .rulesTeaser p { font-size: 14px; margin: 18px 0; }
-  .ways { padding: 65px 6vw 35px; } .ways h2 { font-size: 34px; } .ways > p { font-size: 15px; }
-  .closing { margin-top: 50px; }
   .footer { flex-direction: column; gap: 16px; margin: 0 6vw; }
   .rulebook { padding: 45px 6vw; } .rulebook p { font-size: 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .heroCopy, .heroBoard { animation: none; }
+  .heroCopy { animation: none; }
   .site *, .site *::before, .site *::after { transition: none !important; scroll-behavior: auto !important; }
 }
-/* On phones, show the capture position before the explanation and play links. */
-@media (max-width: 600px) {
-  .hero { display: grid; grid-template-columns: minmax(0, 1fr); padding-top: 22px; }
-  .heroCopy { display: contents; }
-  .heroCopy > .eyebrow { grid-row: 1; }
-  .wordmark { grid-row: 2; font-size: 86px; margin-bottom: 16px; }
-  .heroBoard { grid-row: 3; position: relative; width: 114%; height: 195px; right: auto; margin: 0 -7% 22px; transform: none; overflow: hidden; }
-  .heroBoard svg { transform: translateY(-25%) rotate(-8deg); }
-  .heroBoard figcaption { display: none; }
-  .heroCopy h2 { grid-row: 4; font-size: 25px; }
-  .heroCopy > .intro { grid-row: 5; }
-  .heroCopy > .actions { grid-row: 6; }
-  .heroCopy > .note { grid-row: 7; }
+
+/* The public page uses the same artwork as the installed game. */
+.hero { max-width: 1440px; margin: auto; min-height: 660px; gap: 8%; padding: 64px 6vw 80px; }
+.heroCopy { width: 50%; max-width: 560px; }
+.wordmark { font-size: clamp(90px, 10vw, 144px); margin-bottom: 32px; }
+.heroArt { width: 42%; max-width: 470px; animation: rise-in 850ms ease-out both; }
+.heroArt img { display: block; width: 100%; height: auto; }
+.explanation, .playSection { display: grid; grid-template-columns: 1fr 1fr; gap: 10%; padding: 76px max(6vw, calc((100vw - 1268px) / 2)); border-top: 1px solid #302d2526; }
+.explanation h2, .playSection h2, .captureCopy h2 { font-size: clamp(28px, 3vw, 43px); max-width: 540px; }
+.ruleCopy { color: #615c50; }
+.ruleCopy p + p { margin-top: 20px; }
+.ruleCopy .textLink { margin-top: 18px; }
+.captureSection { padding: 64px max(6vw, calc((100vw - 1268px) / 2)); }
+.captureCopy { position: static; }
+.playOptions a { display: flex; align-items: center; justify-content: space-between; gap: 24px; border-bottom: 1px solid #302d2526; padding: 22px 0; transition: color 180ms; }
+.playOptions a:first-child { padding-top: 0; }
+.playOptions a:hover { color: var(--accent); }
+.playOptions strong { display: block; font-size: 18px; font-weight: 500; }
+.playOptions small { display: block; margin-top: 4px; color: #615c50; font-size: 14px; }
+@media (max-width: 700px) {
+  .hero { min-height: 0; padding: 36px 6vw 48px; display: flex; flex-direction: column; align-items: stretch; gap: 36px; }
+  .heroCopy { width: 100%; max-width: none; }
+  .wordmark { font-size: 86px; margin-bottom: 24px; }
+  .heroArt { width: 70%; max-width: 320px; align-self: center; }
+  .explanation, .playSection, .captureSection { grid-template-columns: 1fr; gap: 28px; padding: 48px 6vw; }
+  .explanation h2, .playSection h2, .captureCopy h2 { font-size: 30px; }
+  .ruleCopy { font-size: 15px; }
 }
+@media (prefers-reduced-motion: reduce) { .heroArt { animation: none; } }
