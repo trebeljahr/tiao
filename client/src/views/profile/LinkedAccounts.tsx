@@ -12,6 +12,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { setAccountPassword } from "@/lib/api";
 import { getAuthClient } from "@/lib/auth-client";
 import { readableError, toastError } from "@/lib/errors";
+import { unlinkProviderAccount } from "@/lib/unlinkProviderAccount";
 
 export const SOCIAL_PROVIDERS = [
   { id: "github" as const, label: "GitHub", icon: FaGithub },
@@ -86,12 +87,8 @@ export function LinkedAccounts({
     setBusy(providerId);
     try {
       const authClient = await getAuthClient();
-      const { error } = await authClient.unlinkAccount({ providerId });
-      if (error) {
-        toastError(readableError(error));
-      } else {
-        onProvidersChange();
-      }
+      await unlinkProviderAccount(authClient, providerId);
+      onProvidersChange();
     } catch (error) {
       toastError(readableError(error));
     } finally {

@@ -64,7 +64,7 @@ describe("profilePictureUpload middleware", () => {
   test("accepts a small JPEG image", async () => {
     const app = buildApp();
     const server = createServer(app);
-    server.listen(0);
+    server.listen(0, "127.0.0.1");
     await once(server, "listening");
     const port = (server.address() as { port: number }).port;
 
@@ -87,7 +87,7 @@ describe("profilePictureUpload middleware", () => {
   test("accepts PNG images", async () => {
     const app = buildApp();
     const server = createServer(app);
-    server.listen(0);
+    server.listen(0, "127.0.0.1");
     await once(server, "listening");
     const port = (server.address() as { port: number }).port;
 
@@ -109,7 +109,7 @@ describe("profilePictureUpload middleware", () => {
   test("rejects files exceeding size limit with 413", async () => {
     const app = buildApp();
     const server = createServer(app);
-    server.listen(0);
+    server.listen(0, "127.0.0.1");
     await once(server, "listening");
     const port = (server.address() as { port: number }).port;
 
@@ -133,7 +133,7 @@ describe("profilePictureUpload middleware", () => {
   test("rejects SVG files with 415", async () => {
     const app = buildApp();
     const server = createServer(app);
-    server.listen(0);
+    server.listen(0, "127.0.0.1");
     await once(server, "listening");
     const port = (server.address() as { port: number }).port;
 
@@ -158,7 +158,7 @@ describe("profilePictureUpload middleware", () => {
   test("rejects non-image files with 415", async () => {
     const app = buildApp();
     const server = createServer(app);
-    server.listen(0);
+    server.listen(0, "127.0.0.1");
     await once(server, "listening");
     const port = (server.address() as { port: number }).port;
 
@@ -173,7 +173,7 @@ describe("profilePictureUpload middleware", () => {
       );
       assert.equal(result.status, 415);
       assert.match(result.body.message, /unsupported file type/i);
-      assert.match(result.body.message, /JPEG.*PNG.*WebP.*GIF/i);
+      assert.match(result.body.message, /JPEG.*PNG.*GIF/i);
     } finally {
       server.close();
     }
@@ -182,7 +182,7 @@ describe("profilePictureUpload middleware", () => {
   test("rejects application/pdf with 415", async () => {
     const app = buildApp();
     const server = createServer(app);
-    server.listen(0);
+    server.listen(0, "127.0.0.1");
     await once(server, "listening");
     const port = (server.address() as { port: number }).port;
 

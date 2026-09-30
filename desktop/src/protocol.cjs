@@ -29,7 +29,7 @@
  *      access via URL manipulation.
  */
 
-const { _app, net, protocol } = require("electron");
+const { net, protocol } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
 const { pathToFileURL } = require("node:url");

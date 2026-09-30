@@ -36,7 +36,10 @@ const {
   OVERLAY_DIALOG_CODES,
 } = require("./steam.cjs");
 
-const pkg = require("../package.json");
+const pkg =
+  /** @type {typeof import("../package.json") & { steamBuild?: boolean | string; steamAppId?: number | string }} */ (
+    require("../package.json")
+  );
 
 describe("steam module gating", () => {
   test("STEAM_ENABLED honors the env flag OR baked package metadata", () => {

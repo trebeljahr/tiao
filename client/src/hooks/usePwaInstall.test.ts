@@ -23,9 +23,10 @@ function makeBeforeInstallPromptEvent(outcome: "accepted" | "dismissed"): Before
 }
 
 describe("usePwaInstall", () => {
-  const matchMediaSpy = vi.spyOn(window, "matchMedia");
+  const matchMediaSpy = vi.fn<typeof window.matchMedia>();
 
   beforeEach(() => {
+    vi.stubGlobal("matchMedia", matchMediaSpy);
     window.localStorage.clear();
     matchMediaSpy.mockImplementation(
       (query: string) =>
@@ -43,6 +44,7 @@ describe("usePwaInstall", () => {
   });
 
   afterEach(() => {
+    vi.unstubAllGlobals();
     vi.clearAllMocks();
   });
 

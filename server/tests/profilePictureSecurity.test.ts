@@ -61,4 +61,3 @@ test("multiple file parts are rejected", async () => {
   const first = file(Buffer.from("image")).toString().replace("--test-boundary--\r\n", "");
   assert.equal(await upload(Buffer.concat([Buffer.from(first), file(Buffer.from("image"))])), 400);
 });
-

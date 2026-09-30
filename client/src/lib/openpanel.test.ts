@@ -19,16 +19,18 @@ const openPanelClear = vi.fn();
 const openPanelSetGlobalProperties = vi.fn();
 
 vi.mock("@openpanel/web", () => ({
-  OpenPanel: vi.fn().mockImplementation((opts: Record<string, unknown>) => {
-    constructorSpy(opts);
-    return {
-      track: openPanelTrack,
-      identify: openPanelIdentify,
-      clear: openPanelClear,
-      setGlobalProperties: openPanelSetGlobalProperties,
-      options: { disabled: false },
-    };
-  }),
+  OpenPanel: vi.fn(
+    class {
+      constructor(opts: Record<string, unknown>) {
+        constructorSpy(opts);
+      }
+      track = openPanelTrack;
+      identify = openPanelIdentify;
+      clear = openPanelClear;
+      setGlobalProperties = openPanelSetGlobalProperties;
+      options = { disabled: false };
+    },
+  ),
 }));
 
 beforeEach(() => {

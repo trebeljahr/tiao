@@ -101,7 +101,10 @@
 let bakedMeta = {};
 try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  bakedMeta = require("../package.json");
+  bakedMeta =
+    /** @type {typeof import("../package.json") & { steamBuild?: boolean | string; steamAppId?: number | string }} */ (
+      require("../package.json")
+    );
 } catch {
   /* no package.json reachable — treat as standalone */
 }

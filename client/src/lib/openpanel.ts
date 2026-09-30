@@ -66,7 +66,7 @@
  */
 type OpenPanelLike = {
   track: (name: string, properties?: Record<string, unknown>) => void;
-  identify: (props: Record<string, unknown>) => void;
+  identify: (props: { profileId: string } & Record<string, unknown>) => void;
   clear: () => void;
   setGlobalProperties: (props: Record<string, unknown>) => void;
   screenView?: (name: string, properties?: Record<string, unknown>) => void;

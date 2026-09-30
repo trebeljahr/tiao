@@ -55,7 +55,8 @@ export function profilePictureUpload(fieldName: string) {
         if (err.code === "LIMIT_UNEXPECTED_FILE") {
           return res.status(415).json({
             code: "UNSUPPORTED_FILE_TYPE",
-            message: "Unsupported file type. Only JPEG, non-interlaced PNG, and single-frame GIF images are allowed.",
+            message:
+              "Unsupported file type. Only JPEG, non-interlaced PNG, and single-frame GIF images are allowed.",
           });
         }
 

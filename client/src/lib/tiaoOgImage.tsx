@@ -27,6 +27,7 @@ function BoardPreview() {
   return (
     <div
       style={{
+        display: "flex",
         position: "relative",
         width: 384,
         height: 384,
