@@ -142,3 +142,17 @@
 .platformStatus { margin-left: auto; font-size: 10px; color: #e6dbc3; max-width: 70px; text-align: right; }
 @media (max-width: 1000px) { .downloadButtons { grid-template-columns: 1fr; } }
 @media (max-width: 700px) { .downloads { padding: 48px 6vw; } }
+
+.rulebook { max-width: 1268px; }
+.rulebook > section:not(.rulesExplorer), .rulesIntro { max-width: 790px; }
+.rulebook > .rulesExplorer { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 48px; padding: 40px 0 56px; align-items: start; }
+.rulesBoardSurface { min-width: 0; padding: 22px; background: #eae4d2; border-radius: 12px; }
+.rulePicker { display: block; font-size: 12px; margin-top: 28px; }
+.rulePicker select { display: block; width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #302d2550; border-radius: 4px; background: #fffaf0; font: inherit; font-size: 15px; color: var(--ink); }
+.rulePicker select:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.ruleDescription { font-size: 15px; margin-top: 20px; }
+.rulebook .boardStatus { font-size: 13px; min-height: 44px; }
+@media (max-width: 800px) { .rulebook > .rulesExplorer { grid-template-columns: 1fr; gap: 20px; } .rulesBoardSurface { padding: 12px; } }
+
+.rulebook { padding-top: 42px; }
+.rulesIntro h1 { font-size: clamp(38px, 4.5vw, 60px); }

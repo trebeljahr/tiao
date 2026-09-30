@@ -1397,7 +1397,7 @@
     "metaTitle": "Tiao-Regeln — So wird gespielt",
     "metaDescription": "Lerne die Regeln von Tiao: Steine setzen, Schlagsprünge, Sprungketten, Gruppen- und Randregel und das Spielziel. Mit einem bebilderten Beispiel.",
     "eyebrow": "So spielst du Tiao",
-    "title": "Ein leeres Brett. Zehn Steine bis zum Sieg.",
+    "title": "So spielst du Tiao",
     "intro": "Dies sind die Standardregeln für ein Brett mit 19 × 19 Punkten und zehn Schlägen als Ziel. Eigene Spiele erlauben andere Größen und Ziele.",
     "setupTitle": "Beginnt auf einem leeren Brett",
     "setupBody": "Ein Spieler nimmt Weiß, der andere Schwarz. Weiß beginnt. Setzt die Steine auf die Schnittpunkte, nicht in die Felder.",
@@ -1417,6 +1417,13 @@
     "winBody": "Bestätigte Schläge zählen zu deinem Punktestand. Wer das Schlagziel zuerst erreicht, gewinnt. Im Standardspiel sind es zehn Steine.",
     "nextTitle": "Probiere ein paar Züge.",
     "nextBody": "Die interaktive Einführung zeigt dir das Setzen und Springen direkt auf dem Brett.",
-    "home": "Tiao entdecken"
+    "home": "Tiao entdecken",
+    "boardEyebrow": "Regeln ausprobieren",
+    "boardTitle": "Spiele jedes Beispiel auf dem Brett.",
+    "chooseRule": "Regel wählen",
+    "resetBoard": "Brett zurücksetzen",
+    "nextExample": "Nächstes Beispiel",
+    "exampleComplete": "Geschafft. Wiederhole das Beispiel oder wähle eine andere Regel.",
+    "boardHint": "Klicke auf das Brett, um die Regel auszuprobieren."
   }
 }

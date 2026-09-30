@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { CaptureDemo } from "@/components/public/CaptureDemo";
 import { PublicFooter, PublicHeader } from "@/components/public/PublicSite";
 import styles from "@/components/public/PublicSite.module.css";
+import { RulesBoard } from "@/components/public/RulesBoard";
 import { Link } from "@/i18n/navigation";
 import { localizedAlternates, OG_IMAGES } from "@/lib/metadata";
 
@@ -32,6 +32,7 @@ export default async function RulesPage({ params }: Props) {
           <h1>{t("title")}</h1>
           <p>{t("intro")}</p>
         </header>
+        <RulesBoard />
         <section>
           <h2>{t("setupTitle")}</h2>
           <p>{t("setupBody")}</p>
@@ -43,7 +44,6 @@ export default async function RulesPage({ params }: Props) {
         <section>
           <h2>{t("jumpTitle")}</h2>
           <p>{t("jumpBody")}</p>
-          <CaptureDemo />
         </section>
         <section>
           <h2>{t("chainTitle")}</h2>

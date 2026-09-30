@@ -8,9 +8,9 @@ import styles from "./PublicSite.module.css";
 export function PlatformDownloads() {
   const t = useTranslations("landing");
   const platforms = [
-    { name: "Steam", detail: "Windows · macOS · Linux", Icon: FaSteam },
-    { name: "iOS", detail: "iPhone · iPad", Icon: FaApple },
-    { name: "Android", detail: "Google Play", Icon: FaAndroid },
+    { name: "Steam", detail: "Windows · macOS · Linux", Icon: FaSteam, color: "#66c0f4" },
+    { name: "iOS", detail: "iPhone · iPad", Icon: FaApple, color: "#ffffff" },
+    { name: "Android", detail: "Google Play", Icon: FaAndroid, color: "#3ddc84" },
   ];
 
   return (
@@ -19,7 +19,7 @@ export function PlatformDownloads() {
       <h2 id="downloads-title">{t("downloadsTitle")}</h2>
       <p className={styles.downloadsIntro}>{t("downloadsIntro")}</p>
       <div className={styles.downloadButtons}>
-        {platforms.map(({ name, detail, Icon }) => (
+        {platforms.map(({ name, detail, Icon, color }) => (
           <button
             type="button"
             key={name}
@@ -27,7 +27,7 @@ export function PlatformDownloads() {
               toast(t("platformComingSoon", { platform: name }), { id: "platform-coming-soon" })
             }
           >
-            <Icon aria-hidden="true" />
+            <Icon aria-hidden="true" style={{ color }} />
             <span className={styles.platformName}>
               <strong>{name}</strong>
               <small>{detail}</small>
