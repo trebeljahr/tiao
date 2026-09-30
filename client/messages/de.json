@@ -1387,7 +1387,11 @@
     "sourceLink": "Quellcode auf GitHub (AGPL)",
     "steamSoon": "Steam — bald verfügbar",
     "mobileSoon": "iOS & Android — bald verfügbar",
-    "platformsLabel": "Apps"
+    "platformsLabel": "Apps",
+    "downloadsTitle": "Tiao für Desktop und Handy.",
+    "downloadsIntro": "Spiele jetzt im Browser. Die Apps folgen bald.",
+    "comingSoon": "Bald verfügbar",
+    "platformComingSoon": "Tiao für {platform} ist bald verfügbar."
   },
   "rules": {
     "metaTitle": "Tiao-Regeln — So wird gespielt",

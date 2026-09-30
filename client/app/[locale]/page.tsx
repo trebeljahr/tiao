@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BoardIllustration } from "@/components/public/BoardIllustration";
 import { CaptureDemo } from "@/components/public/CaptureDemo";
 import { EntryRedirect } from "@/components/public/EntryRedirect";
+import { PlatformDownloads } from "@/components/public/PlatformDownloads";
 import { PublicFooter, PublicHeader } from "@/components/public/PublicSite";
 import styles from "@/components/public/PublicSite.module.css";
 import { Link } from "@/i18n/navigation";
@@ -55,10 +56,6 @@ export default async function Page({ params }: Props) {
             </Link>
           </div>
           <p className={styles.note}>{t("note")}</p>
-          <ul className={styles.platforms} aria-label={t("platformsLabel")}>
-            <li>{t("steamSoon")}</li>
-            <li>{t("mobileSoon")}</li>
-          </ul>
         </div>
         <div className={styles.heroArt}>
           <BoardIllustration title={t("boardAlt")} />
@@ -105,6 +102,7 @@ export default async function Page({ params }: Props) {
           </Link>
         </div>
       </section>
+      <PlatformDownloads />
       <section className={styles.explanation} aria-labelledby="story-title">
         <div>
           <p className={styles.eyebrow}>{t("storyEyebrow")}</p>

@@ -130,4 +130,15 @@
 
 .sectionIntro { margin-top: 24px; max-width: 440px; color: #615c50; font-size: 16px; }
 
-.platforms { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-top: 22px; padding-top: 16px; border-top: 1px solid #302d2526; list-style: none; font-size: 12px; color: #615c50; }
+.downloads { padding: 72px max(6vw, calc((100vw - 1268px) / 2)); background: #eae4d2; border-top: 1px solid #302d2526; }
+.downloads h2 { font-size: clamp(30px, 3vw, 43px); }
+.downloadsIntro { color: #615c50; margin-top: 18px; font-size: 16px; }
+.downloadButtons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 32px; }
+.downloadButtons button { display: flex; align-items: center; gap: 16px; padding: 22px; background: #302d25; color: #fffaf0; border-radius: 8px; text-align: left; cursor: pointer; transition: background 180ms, transform 180ms; }
+.downloadButtons button:hover { background: #4b4538; transform: translateY(-2px); }
+.downloadButtons button > svg { width: 32px; height: 32px; flex-shrink: 0; }
+.platformName strong { display: block; font-size: 19px; font-weight: 600; }
+.platformName small { display: block; margin-top: 3px; font-size: 11px; color: #d6cfbf; }
+.platformStatus { margin-left: auto; font-size: 10px; color: #e6dbc3; max-width: 70px; text-align: right; }
+@media (max-width: 1000px) { .downloadButtons { grid-template-columns: 1fr; } }
+@media (max-width: 700px) { .downloads { padding: 48px 6vw; } }
