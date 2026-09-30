@@ -17,12 +17,17 @@ import {
   posEq,
 } from "./tutorialEngine";
 
-function fireLightConfetti(colors: string[]) {
+function fireLightConfetti(colors: string[], board: HTMLDivElement | null) {
+  if (!board) return;
+  const bounds = board.getBoundingClientRect();
   confetti({
     particleCount: 60,
     startVelocity: 35,
     spread: 360,
-    origin: { x: 0.5, y: 0.45 },
+    origin: {
+      x: (bounds.left + bounds.width / 2) / window.innerWidth,
+      y: (bounds.top + bounds.height / 2) / window.innerHeight,
+    },
     colors,
     scalar: 0.9,
     gravity: 0.8,
@@ -84,6 +89,7 @@ function getJumpTrailMetrics(from: Pos, to: Pos, size: number, startInset = 0.7,
 
 export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }: Props) {
   const theme = useBoardTheme();
+  const boardRef = useRef<HTMLDivElement>(null);
   const {
     size,
     initialBoard,
@@ -143,7 +149,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
     if (completedRef.current) return;
     completedRef.current = true;
     setCompleted(true);
-    fireLightConfetti(theme.victoryColors);
+    fireLightConfetti(theme.victoryColors, boardRef.current);
     setTimeout(() => onComplete(), 400);
   }, [onComplete, theme.victoryColors]);
 
@@ -326,7 +332,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
     });
     setPendingJumps([]);
     setSelected(null);
-    fireLightConfetti(theme.victoryColors);
+    fireLightConfetti(theme.victoryColors, boardRef.current);
     setTimeout(() => onComplete(), 400);
   }
 
@@ -459,6 +465,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
       <div className={cn("relative w-full", size <= 5 ? "max-w-[340px]" : "max-w-[420px]")}>
         {/* Board container — matches TiaoBoard styling */}
         <div
+          ref={boardRef}
           className="relative w-full overflow-hidden rounded-[1.2rem] border p-2 shadow-[0_32px_70px_-28px_rgba(66,39,11,0.75)]"
           style={{
             background: theme.boardBg,

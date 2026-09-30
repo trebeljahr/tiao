@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import confetti from "canvas-confetti";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { InteractiveMiniBoard } from "./InteractiveMiniBoard";
 import type { Cell, Pos } from "./tutorialEngine";
 import type { StepBoardConfig } from "./tutorialSteps";
@@ -175,5 +176,49 @@ describe("InteractiveMiniBoard – chain-jump requires full chain", () => {
     act(() => vi.advanceTimersByTime(1000));
 
     expect(onComplete).toHaveBeenCalled();
+  });
+});
+
+describe("InteractiveMiniBoard confetti origin", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+  });
+
+  it.each(["placement", "capture"])("centers %s confetti on the current board bounds", (mode) => {
+    vi.useFakeTimers();
+    vi.mocked(confetti).mockClear();
+    const bounds = vi.spyOn(HTMLElement.prototype, "getBoundingClientRect");
+    bounds.mockReturnValue({ left: 100, top: 50, width: 200, height: 200 } as DOMRect);
+    const config: StepBoardConfig =
+      mode === "placement"
+        ? {
+            size: 5,
+            initialBoard: board(5, []),
+            interaction: { type: "free-place" },
+          }
+        : chainJumpConfig;
+    renderBoard(config);
+    // Use the latest viewport position after scrolling, not the mount position.
+    bounds.mockReturnValue({ left: 500, top: 180, width: 300, height: 300 } as DOMRect);
+    if (mode === "placement") {
+      clickPos({ x: 2, y: 2 }, 5);
+    } else {
+      for (const pos of [
+        { x: 1, y: 5 },
+        { x: 1, y: 3 },
+        { x: 3, y: 1 },
+        { x: 5, y: 1 },
+        { x: 5, y: 1 },
+      ]) {
+        clickPos(pos, 7);
+      }
+    }
+    expect(confetti).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        origin: { x: 650 / window.innerWidth, y: 330 / window.innerHeight },
+      }),
+    );
+    act(() => vi.runOnlyPendingTimers());
   });
 });
