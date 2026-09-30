@@ -1,6 +1,7 @@
 # Windows signing verification
 
-`.github/workflows/windows-signing.yml` is a manual, main-only, artifact-only build.
+`.github/workflows/windows-signing.yml` is an artifact-only build for main and the exact
+`codex/windows-signing-verify` verification branch.
 It does not create releases, push tags, or upload to stores. Existing desktop and
 Steam release workflows do not use this signing configuration yet.
 
@@ -22,7 +23,9 @@ Azure configuration:
 - Required publisher: `Ricos Labs LLC`
 
 These IDs are public configuration, not secrets. This identity has no password or
-certificate credential. It cannot authenticate from pull requests or other branches.
+certificate credential. A second federated subject permits only
+`repo:trebeljahr/tiao:ref:refs/heads/codex/windows-signing-verify`.
+It cannot authenticate from pull requests or other branches.
 
 After the workflow is available on remote main, dispatch `windows-signing` there.
 A successful run uploads NSIS and portable executables plus

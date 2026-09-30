@@ -3,6 +3,8 @@ name: windows-signing
 # Artifact-only verification. No tags, releases, stores, or deployment writes.
 on:
   workflow_dispatch:
+  push:
+    branches: [codex/windows-signing-verify]
 
 permissions:
   contents: read
@@ -13,7 +15,7 @@ concurrency:
 
 jobs:
   signed-build:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/codex/windows-signing-verify'
     runs-on: windows-latest
     timeout-minutes: 45
     permissions:
@@ -21,22 +23,22 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: pnpm
+          cache: npm
           cache-dependency-path: |
-            client/pnpm-lock.yaml
-            desktop/pnpm-lock.yaml
+            client/package-lock.json
+            desktop/package-lock.json
 
       - name: Install build dependencies
         run: |
-          pnpm --dir client install --frozen-lockfile
-          pnpm --dir desktop install --frozen-lockfile
+          npm --prefix client ci
+          npm --prefix desktop ci
 
       - name: Build desktop client
-        run: pnpm --dir client exec next build --webpack
+        working-directory: client
+        run: npx --no-install next build --webpack
         env:
           NEXT_PUBLIC_PLATFORM: desktop
           NEXT_PUBLIC_DESKTOP_API_URL: https://api.playtiao.com
@@ -57,7 +59,8 @@ jobs:
           subscription-id: 4aaef5a5-286b-46a0-b9e4-84622e8fdc4f
 
       - name: Package and sign Windows binaries
-        run: pnpm --dir desktop exec electron-builder --win --x64 --config electron-builder.windows-signing.cjs --publish never
+        working-directory: desktop
+        run: npx --no-install electron-builder --win --x64 --config electron-builder.windows-signing.cjs --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
           TIAO_DESKTOP_VERSION: ${{ github.sha }}
