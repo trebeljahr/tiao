@@ -129,3 +129,5 @@
 @media (prefers-reduced-motion: reduce) { .heroArt { animation: none; } }
 
 .sectionIntro { margin-top: 24px; max-width: 440px; color: #615c50; font-size: 16px; }
+
+.platforms { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-top: 22px; padding-top: 16px; border-top: 1px solid #302d2526; list-style: none; font-size: 12px; color: #615c50; }

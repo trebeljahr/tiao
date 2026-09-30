@@ -55,22 +55,13 @@ export default async function Page({ params }: Props) {
             </Link>
           </div>
           <p className={styles.note}>{t("note")}</p>
+          <ul className={styles.platforms} aria-label={t("platformsLabel")}>
+            <li>{t("steamSoon")}</li>
+            <li>{t("mobileSoon")}</li>
+          </ul>
         </div>
         <div className={styles.heroArt}>
           <BoardIllustration title={t("boardAlt")} />
-        </div>
-      </section>
-      <section className={styles.explanation} aria-labelledby="rules-title">
-        <div>
-          <p className={styles.eyebrow}>{t("navRules")}</p>
-          <h2 id="rules-title">{t("rulesTitle")}</h2>
-        </div>
-        <div className={styles.ruleCopy}>
-          <p>{t("rulesBody")}</p>
-          <p>{t("captureBody")}</p>
-          <Link className={styles.textLink} href="/rules">
-            {t("learn")} <span aria-hidden="true">→</span>
-          </Link>
         </div>
       </section>
       <section className={styles.captureSection} aria-label={t("captureEyebrow")}>
@@ -79,6 +70,9 @@ export default async function Page({ params }: Props) {
           <h2>{t("captureTitle")}</h2>
           <p>{t("captureIntro")}</p>
           <p>{t("captureOutro")}</p>
+          <Link className={styles.textLink} href="/rules">
+            {t("learn")} →
+          </Link>
         </div>
         <CaptureDemo />
       </section>
@@ -86,7 +80,6 @@ export default async function Page({ params }: Props) {
         <div>
           <p className={styles.eyebrow}>{t("waysEyebrow")}</p>
           <h2 id="ways-title">{t("waysTitle")}</h2>
-          <p className={styles.sectionIntro}>{t("waysIntro")}</p>
         </div>
         <div className={styles.playOptions}>
           <Link href="/computer">
@@ -119,14 +112,12 @@ export default async function Page({ params }: Props) {
         </div>
         <div className={styles.ruleCopy}>
           <p>{t("storyBody")}</p>
-          <p>{t("storyOrigin")}</p>
-          <p>{t("storyOpen")}</p>
           <div className={styles.actions}>
             <Link className={styles.textLink} href="/about">
               {t("storyLink")}
             </Link>
-            <a className={styles.textLink} href="https://news.ycombinator.com/item?id=47914369">
-              {t("discussionLink")}
+            <a className={styles.textLink} href="https://github.com/trebeljahr/tiao">
+              {t("sourceLink")}
             </a>
           </div>
         </div>
