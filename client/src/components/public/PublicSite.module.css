@@ -148,6 +148,10 @@
 .rulebook > section:not(.rulesExplorer), .rulesIntro { max-width: 790px; }
 .rulebook > .rulesExplorer { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 48px; padding: 40px 0 56px; align-items: start; }
 .rulesBoardSurface { min-width: 0; padding: 22px; background: #eae4d2; border-radius: 12px; }
+.ruleRepeatActions { display: flex; justify-content: flex-end; min-height: 44px; margin-top: 8px; }
+.ruleRepeat { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 1px solid #302d2526; border-radius: 50%; color: #615c50; background: transparent; cursor: pointer; }
+.ruleRepeat:hover { color: #302d25; background: #302d250d; }
+.ruleRepeat:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .ruleDescription { font-size: 15px; margin-top: 20px; }
 @media (max-width: 800px) { .rulebook > .rulesExplorer { grid-template-columns: 1fr; gap: 20px; } .rulesBoardSurface { padding: 12px; } }
 
