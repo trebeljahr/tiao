@@ -31,32 +31,39 @@ export default async function RulesPage({ params }: Props) {
           <p className={styles.eyebrow}>{t("eyebrow")}</p>
           <h1>{t("title")}</h1>
           <p>{t("intro")}</p>
+          <div className={styles.actions}>
+            <Link className={styles.primary} href="/tutorial">
+              {t("tutorialCta")} <span aria-hidden="true">→</span>
+            </Link>
+          </div>
         </header>
-        <RulesBoard />
         <section>
           <h2>{t("setupTitle")}</h2>
           <p>{t("setupBody")}</p>
         </section>
-        <section>
-          <h2>{t("turnTitle")}</h2>
+        <RulesBoard stepId="place" title={t("turnTitle")}>
           <p>{t("turnBody")}</p>
-        </section>
-        <section>
-          <h2>{t("jumpTitle")}</h2>
+        </RulesBoard>
+        <RulesBoard stepId="jump" title={t("jumpTitle")}>
           <p>{t("jumpBody")}</p>
-        </section>
-        <section>
-          <h2>{t("chainTitle")}</h2>
+        </RulesBoard>
+        <RulesBoard stepId="chain" title={t("chainTitle")}>
           <p>{t("chainBody")}</p>
+        </RulesBoard>
+        <RulesBoard stepId="confirm-undo">
           <p>{t("confirmBody")}</p>
-        </section>
-        <section>
-          <h2>{t("placementTitle")}</h2>
-          <h3>{t("clusterTitle")}</h3>
-          <p>{t("clusterBody")}</p>
-          <h3>{t("borderTitle")}</h3>
+        </RulesBoard>
+        <RulesBoard stepId="border-basic" title={t("borderTitle")}>
           <p>{t("borderBody")}</p>
-        </section>
+        </RulesBoard>
+        <RulesBoard stepId="border-chain" />
+        <RulesBoard stepId="cluster-basic" title={t("clusterTitle")}>
+          <p>{t("clusterBody")}</p>
+        </RulesBoard>
+        <RulesBoard stepId="cluster-diagonal" />
+        <RulesBoard stepId="cluster-merge" />
+        <RulesBoard stepId="cluster-enemy" />
+        <RulesBoard stepId="cluster-jump" />
         <section>
           <h2>{t("winTitle")}</h2>
           <p>{t("winBody")}</p>

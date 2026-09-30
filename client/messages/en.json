@@ -1398,6 +1398,7 @@
     "metaDescription": "Learn the rules of Tiao: stone placement, capture jumps, chains, the cluster and border rules, and how to win. Includes an illustrated capture example.",
     "eyebrow": "How to play Tiao",
     "title": "How to play Tiao",
+    "tutorialCta": "Learn the rules with the quick interactive tutorial",
     "intro": "These are the standard rules for a 19 × 19 board and a target of ten captures. Custom games can use other sizes and targets.",
     "setupTitle": "Start with an empty board",
     "setupBody": "One player takes white, the other black. White moves first. Put stones on the intersections, not inside the squares.",
@@ -1423,7 +1424,7 @@
     "chooseRule": "Choose a rule",
     "resetBoard": "Reset board",
     "nextExample": "Next example",
-    "exampleComplete": "Done. Replay this example or choose another rule.",
+    "exampleComplete": "Done. Reset the board to play this example again.",
     "boardHint": "Click the board to try the rule."
   }
 }

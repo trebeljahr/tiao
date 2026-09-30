@@ -1,52 +1,47 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { InteractiveMiniBoard } from "@/components/tutorial/InteractiveMiniBoard";
 import { getTutorialSteps } from "@/components/tutorial/tutorialSteps";
 import styles from "./PublicSite.module.css";
 
-export function RulesBoard() {
+export function RulesBoard({
+  stepId,
+  title,
+  children,
+}: {
+  stepId: string;
+  title?: string;
+  children?: ReactNode;
+}) {
   const tutorial = useTranslations("tutorial");
   const t = useTranslations("rules");
-  const steps = getTutorialSteps(tutorial).filter((step) => step.board);
-  const [index, setIndex] = useState(0);
+  // Keep the initial board stable when completion or reset state changes.
+  const step = useMemo(
+    () => getTutorialSteps(tutorial).find((item) => item.id === stepId),
+    [tutorial, stepId],
+  );
   const [resetKey, setResetKey] = useState(0);
   const [complete, setComplete] = useState(false);
-  const step = steps[index];
-
-  function selectStep(next: number) {
-    setIndex(next);
-    setResetKey((key) => key + 1);
-    setComplete(false);
-  }
+  if (!step?.board) return null;
 
   return (
-    <section className={styles.rulesExplorer} aria-labelledby="rules-board-title">
+    <section className={styles.rulesExplorer} aria-labelledby={`rule-${stepId}`}>
       <div className={styles.rulesBoardCopy}>
-        <p className={styles.eyebrow}>{t("boardEyebrow")}</p>
-        <h2 id="rules-board-title">{t("boardTitle")}</h2>
-        <label className={styles.rulePicker}>
-          {t("chooseRule")}
-          <select value={index} onChange={(event) => selectStep(Number(event.target.value))}>
-            {steps.map((item, i) => (
-              <option key={item.id} value={i}>
-                {i + 1}. {item.title}
-              </option>
-            ))}
-          </select>
-        </label>
+        <h2 id={`rule-${stepId}`}>{title ?? step.title}</h2>
+        {children}
         <div className={styles.ruleDescription}>{step.description}</div>
         <div className={styles.actions}>
-          <button type="button" className={styles.textLink} onClick={() => selectStep(index)}>
-            {t("resetBoard")}
-          </button>
           <button
             type="button"
-            className={styles.primary}
-            onClick={() => selectStep((index + 1) % steps.length)}
+            className={styles.textLink}
+            onClick={() => {
+              setResetKey((key) => key + 1);
+              setComplete(false);
+            }}
           >
-            {t("nextExample")} →
+            {t("resetBoard")}
           </button>
         </div>
         <p className={styles.boardStatus} role="status">
@@ -54,16 +49,13 @@ export function RulesBoard() {
         </p>
       </div>
       <div className={styles.rulesBoardSurface}>
-        {step.board && (
-          <InteractiveMiniBoard
-            key={step.id}
-            config={{ ...step.board, overlayHint: undefined }}
-            active
-            resetKey={resetKey}
-            onComplete={() => setComplete(true)}
-            t={tutorial}
-          />
-        )}
+        <InteractiveMiniBoard
+          config={{ ...step.board, overlayHint: undefined }}
+          active
+          resetKey={resetKey}
+          onComplete={() => setComplete(true)}
+          t={tutorial}
+        />
       </div>
     </section>
   );

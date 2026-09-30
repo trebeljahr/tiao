@@ -1398,6 +1398,7 @@
     "metaDescription": "Aprende las reglas de Tiao: colocación, saltos, cadenas de capturas, límites de grupos y bordes, y cómo ganar. Con un ejemplo ilustrado.",
     "eyebrow": "Cómo jugar a Tiao",
     "title": "Cómo jugar a Tiao",
+    "tutorialCta": "Aprende las reglas con el tutorial interactivo rápido",
     "intro": "Estas son las reglas estándar para un tablero de 19 × 19 y un objetivo de diez capturas. Las partidas personalizadas permiten otros tamaños y objetivos.",
     "setupTitle": "Empieza con un tablero vacío",
     "setupBody": "Un jugador usa blancas y el otro negras. Las blancas empiezan. Coloca las piedras en las intersecciones, no dentro de las casillas.",
@@ -1423,7 +1424,7 @@
     "chooseRule": "Elige una regla",
     "resetBoard": "Reiniciar tablero",
     "nextExample": "Siguiente ejemplo",
-    "exampleComplete": "Hecho. Repite el ejemplo o elige otra regla.",
+    "exampleComplete": "Listo. Reinicia el tablero para volver a jugar este ejemplo.",
     "boardHint": "Pulsa el tablero para probar la regla."
   }
 }
