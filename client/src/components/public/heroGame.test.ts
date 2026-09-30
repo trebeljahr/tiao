@@ -1,6 +1,14 @@
+import {
+  confirmPendingJump,
+  createInitialGameState,
+  getSelectableJumpOrigins,
+  jumpPiece,
+  placePiece,
+} from "@shared";
 import { describe, expect, it } from "vitest";
 import { canPlacePiece, getJumpTargets, makeBoard } from "@/components/tutorial/tutorialEngine";
 import { HERO_FRAMES } from "./heroGame";
+import recording from "./heroGameRecording.json";
 
 describe("hero game replay", () => {
   it("uses legal alternating placements, legal chains and confirmed capture scores", () => {
@@ -39,6 +47,38 @@ describe("hero game replay", () => {
         expect(after.score[scorer]).toBe(before.score[scorer] + taken.length);
       }
     }
-    expect(HERO_FRAMES.at(-1)?.score).toEqual([2, 1]);
+    expect(HERO_FRAMES.at(-1)!.score.reduce((a, b) => a + b, 0)).toBeGreaterThan(2);
   });
+});
+
+it("replays the recording through the game rules and ends with five captures", () => {
+  let state = createInitialGameState({ boardSize: 19, scoreToWin: 10 });
+  for (const [index, move] of recording.moves.entries()) {
+    if (index < recording.openingPlies) {
+      expect(getSelectableJumpOrigins(state, "white")).toHaveLength(0);
+      expect(getSelectableJumpOrigins(state, "black")).toHaveLength(0);
+    }
+    if (move.type === "place" && move.position) {
+      const result = placePiece(state, move.position);
+      expect(result.ok).toBe(true);
+      if (!result.ok) throw new Error("Invalid recorded placement");
+      state = result.value;
+    } else if (move.from && move.path) {
+      let from = move.from;
+      for (const to of move.path) {
+        const result = jumpPiece(state, from, to);
+        expect(result.ok).toBe(true);
+        if (!result.ok) throw new Error("Invalid recorded jump");
+        state = result.value;
+        from = to;
+      }
+      const result = confirmPendingJump(state);
+      expect(result.ok).toBe(true);
+      if (!result.ok) throw new Error("Invalid recorded confirmation");
+      state = result.value;
+    }
+  }
+  expect(recording.moves.at(-1)?.path).toHaveLength(5);
+  expect(state.score).toEqual(recording.score);
+  expect(Math.max(...HERO_FRAMES.map((frame) => frame.stones.length))).toBeGreaterThanOrEqual(69);
 });

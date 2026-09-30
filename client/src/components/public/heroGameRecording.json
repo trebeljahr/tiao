@@ -1,0 +1,538 @@
+{
+  "description": "Deterministic legal opening (seed 8173), with no captures available to either side, followed by the real Intermediate engine. The replay ends on its five-capture chain.",
+  "level": 2,
+  "openingPlies": 69,
+  "moves": [
+    {
+      "type": "place",
+      "position": {
+        "x": 9,
+        "y": 9
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 10,
+        "y": 7
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 8,
+        "y": 6
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 11,
+        "y": 9
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 9,
+        "y": 11
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 11,
+        "y": 10
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 6,
+        "y": 10
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 14,
+        "y": 8
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 9,
+        "y": 10
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 11,
+        "y": 6
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 8,
+        "y": 8
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 11,
+        "y": 8
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 7,
+        "y": 8
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 6,
+        "y": 6
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 8,
+        "y": 12
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 12,
+        "y": 7
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 6,
+        "y": 9
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 9,
+        "y": 4
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 8,
+        "y": 9
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 12,
+        "y": 12
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 8,
+        "y": 11
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 13,
+        "y": 8
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 7,
+        "y": 9
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 11,
+        "y": 7
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 10,
+        "y": 12
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 10,
+        "y": 5
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 4,
+        "y": 8
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 13,
+        "y": 6
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 14,
+        "y": 13
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 10,
+        "y": 9
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 4,
+        "y": 12
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 12,
+        "y": 11
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 10,
+        "y": 13
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 13,
+        "y": 9
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 14,
+        "y": 11
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 6,
+        "y": 13
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 9,
+        "y": 14
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 12,
+        "y": 8
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 4,
+        "y": 11
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 6,
+        "y": 5
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 5,
+        "y": 8
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 6,
+        "y": 12
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 10,
+        "y": 14
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 6,
+        "y": 4
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 13,
+        "y": 14
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 10,
+        "y": 4
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 13,
+        "y": 4
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 6,
+        "y": 11
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 4,
+        "y": 7
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 14,
+        "y": 6
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 4,
+        "y": 9
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 7,
+        "y": 14
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 12,
+        "y": 14
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 5,
+        "y": 5
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 14,
+        "y": 12
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 6,
+        "y": 14
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 4,
+        "y": 13
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 11,
+        "y": 4
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 9,
+        "y": 13
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 8,
+        "y": 4
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 4,
+        "y": 10
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 7,
+        "y": 13
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 14,
+        "y": 14
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 4,
+        "y": 5
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 12,
+        "y": 4
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 4,
+        "y": 4
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 11,
+        "y": 14
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 7,
+        "y": 4
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 14,
+        "y": 4
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 11,
+        "y": 12
+      }
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 5,
+        "y": 12
+      }
+    },
+    {
+      "type": "jump",
+      "from": {
+        "x": 11,
+        "y": 12
+      },
+      "path": [
+        {
+          "x": 9,
+          "y": 12
+        },
+        {
+          "x": 7,
+          "y": 10
+        },
+        {
+          "x": 5,
+          "y": 10
+        },
+        {
+          "x": 3,
+          "y": 12
+        },
+        {
+          "x": 5,
+          "y": 14
+        }
+      ]
+    }
+  ],
+  "score": {
+    "black": 5,
+    "white": 0
+  },
+  "openingSeed": 8173
+}

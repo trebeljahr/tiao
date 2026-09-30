@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { HERO_FRAMES } from "./heroGame";
 import styles from "./PublicSite.module.css";
 
-/** A looping example game, with manual stepping for reduced motion. */
+/** A looping example game, paused for reduced motion. */
 export function BoardIllustration({ title }: { title: string }) {
   const t = useTranslations("landing");
   const [index, setIndex] = useState(8);
@@ -98,24 +98,16 @@ export function BoardIllustration({ title }: { title: string }) {
           </g>
         ))}
       </svg>
-      <figcaption className={styles.replayCaption}>
-        <span>
-          {t("replayLabel")} · {t(frame.turn === "white" ? "whiteTurn" : "blackTurn")}
-        </span>
-        <span>{t("captureScore", { white: frame.score[0], black: frame.score[1] })}</span>
-        {reducedMotion ? (
-          <button
-            type="button"
-            onClick={() => setIndex((current) => (current + 1) % HERO_FRAMES.length)}
-          >
-            {t("nextMove")}
-          </button>
-        ) : (
-          <button type="button" aria-pressed={paused} onClick={() => setPaused(!paused)}>
-            {t(paused ? "resumeReplay" : "pauseReplay")}
-          </button>
-        )}
-      </figcaption>
+      <button
+        className={styles.replayToggle}
+        type="button"
+        aria-label={t(paused ? "resumeReplay" : "pauseReplay")}
+        aria-pressed={paused}
+        onClick={() => setPaused(!paused)}
+        hidden={reducedMotion}
+      >
+        {paused ? "▶" : "Ⅱ"}
+      </button>
     </figure>
   );
 }

@@ -1,3 +1,5 @@
+import recording from "./heroGameRecording.json";
+
 export type HeroStone = {
   id: number;
   x: number;
@@ -13,50 +15,42 @@ export type HeroFrame = {
   hold: number;
 };
 
-/** Alternating legal placements, a white double capture, then Black's reply. */
+/** Expand the recorded game into placements, individual hops and confirmations. No AI runs in the browser. */
 function buildFrames(): HeroFrame[] {
-  const frames: HeroFrame[] = [];
   let stones: HeroStone[] = [];
-  const placements = [
-    [7, 11],
-    [8, 10],
-    [6, 8],
-    [10, 8],
-    [7, 7],
-    [5, 9],
-    [12, 10],
-    [12, 6],
-  ];
-  frames.push({ stones: [], turn: "white", score: [0, 0], hold: 1000 });
-  placements.forEach(([x, y], id) => {
-    const color = id % 2 === 0 ? "white" : "black";
-    stones = [...stones, { id, x, y, color }];
-    frames.push({ stones, turn: color === "white" ? "black" : "white", score: [0, 0], hold: 1400 });
-  });
-  function jump(
-    id: number,
-    victim: number,
-    to: [number, number],
-    turn: HeroFrame["turn"],
-    score: [number, number],
-  ) {
-    const origin = stones.find((stone) => stone.id === id)!;
-    stones = stones.map((stone) =>
-      stone.id === id
-        ? { ...stone, x: to[0], y: to[1] }
-        : stone.id === victim
-          ? { ...stone, captured: true }
-          : stone,
-    );
-    frames.push({ stones, turn, score, move: { from: [origin.x, origin.y], to }, hold: 1600 });
+  let turn: HeroStone["color"] = "white";
+  let score: [number, number] = [0, 0];
+  let nextId = 0;
+  const frames: HeroFrame[] = [{ stones, turn, score, hold: 350 }];
+  for (const [index, move] of recording.moves.entries()) {
+    if (move.type === "place" && move.position) {
+      stones = [...stones, { id: nextId++, ...move.position, color: turn }];
+    } else if (move.from && move.path) {
+      let from: [number, number] = [move.from.x, move.from.y];
+      const moving = stones.find((s) => s.x === from[0] && s.y === from[1])!;
+      for (const target of move.path) {
+        const to: [number, number] = [target.x, target.y];
+        const victim = stones.find(
+          (s) => s.x === (from[0] + to[0]) / 2 && s.y === (from[1] + to[1]) / 2,
+        )!;
+        stones = stones.map((s) =>
+          s.id === moving.id
+            ? { ...s, x: to[0], y: to[1] }
+            : s.id === victim.id
+              ? { ...s, captured: true }
+              : s,
+        );
+        frames.push({ stones, turn, score, move: { from, to }, hold: 550 });
+        from = to;
+      }
+      stones = stones.filter((s) => !s.captured);
+      score = [...score];
+      score[turn === "white" ? 0 : 1] += move.path.length;
+    }
+    turn = turn === "white" ? "black" : "white";
+    frames.push({ stones, turn, score, hold: index < recording.openingPlies ? 400 : 700 });
   }
-  jump(0, 1, [9, 9], "white", [0, 0]);
-  jump(0, 3, [11, 7], "white", [0, 0]);
-  stones = stones.filter((stone) => !stone.captured);
-  frames.push({ stones, turn: "black", score: [2, 0], hold: 1800 });
-  jump(7, 0, [10, 8], "black", [2, 0]);
-  stones = stones.filter((stone) => !stone.captured);
-  frames.push({ stones, turn: "white", score: [2, 1], hold: 4500 });
+  frames.at(-1)!.hold = 4200;
   return frames;
 }
 export const HERO_FRAMES = buildFrames();
