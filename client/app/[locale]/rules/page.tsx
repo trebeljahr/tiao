@@ -60,7 +60,7 @@ export default async function RulesPage({ params }: Props) {
         <RuleSection stepId="cluster-basic" title={t("clusterTitle")}>
           <p>{t("clusterBody")}</p>
         </RuleSection>
-        <RuleSection stepId="cluster-diagonal" />
+        <RuleSection stepId="cluster-diagonal" title={t("clusterDiagonalTitle")} />
         <RuleSection stepId="cluster-merge" />
         <RuleSection stepId="cluster-enemy" />
         <RuleSection stepId="cluster-jump" />

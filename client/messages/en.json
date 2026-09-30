@@ -1447,7 +1447,8 @@
     "resetBoard": "Reset board",
     "nextExample": "Next example",
     "border-chainBody": "You can place on the border even when the enemy needs several jumps to reach it. Here, Black can block the corner shown by the arrows.",
-    "cluster-diagonalBody": "You can place diagonally beside a group of ten because diagonal neighbours do not connect.",
+    "cluster-diagonalBody": "Diagonals don’t count. You can place diagonally beside a group of ten because diagonal neighbours do not connect.",
+    "clusterDiagonalTitle": "Cluster Rule Special Case: Diagonals",
     "cluster-mergeBody": "You can join two groups of fewer than ten stones, even if the merged group exceeds ten.",
     "cluster-enemyBody": "You can place beside an enemy group regardless of its size, as long as the placement meets the other rules.",
     "cluster-jumpBody": "You can land beside a group of ten when you jump. The group limit applies only to placement."
