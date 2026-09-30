@@ -1447,6 +1447,7 @@
     "resetBoard": "Reset board",
     "nextExample": "Next example",
     "border-chainBody": "You can place on the border even when the enemy needs several jumps to reach it. Here, Black can block the corner shown by the arrows.",
+    "borderChainTitle": "Border Rule Special Case: Chain Jump Defense",
     "cluster-diagonalBody": "Diagonals don’t count. You can place diagonally beside a group of ten because diagonal neighbours do not connect.",
     "clusterDiagonalTitle": "Cluster Rule Special Case: Diagonals",
     "cluster-mergeBody": "You can join two groups of fewer than ten stones, even if the merged group exceeds ten.",

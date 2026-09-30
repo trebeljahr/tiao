@@ -1447,6 +1447,7 @@
     "resetBoard": "Brett zurücksetzen",
     "nextExample": "Nächstes Beispiel",
     "border-chainBody": "Du kannst auch am Rand setzen, wenn der Gegner mehrere Sprünge dorthin braucht. Hier kann Schwarz die Ecke am Ende der Pfeile blockieren.",
+    "borderChainTitle": "Sonderfall der Randregel: Kettensprung-Verteidigung",
     "cluster-diagonalBody": "Du kannst diagonal neben eine Zehnergruppe setzen, weil diagonale Nachbarn nicht verbunden sind.",
     "clusterDiagonalTitle": "Sonderfall der Gruppenregel: Diagonalen",
     "cluster-mergeBody": "Du kannst zwei Gruppen mit jeweils weniger als zehn Steinen verbinden, auch wenn die neue Gruppe mehr als zehn hat.",

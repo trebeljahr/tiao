@@ -56,7 +56,7 @@ export default async function RulesPage({ params }: Props) {
         <RuleSection stepId="border-basic" title={t("borderTitle")}>
           <p>{t("borderBody")}</p>
         </RuleSection>
-        <RuleSection stepId="border-chain" />
+        <RuleSection stepId="border-chain" title={t("borderChainTitle")} />
         <RuleSection stepId="cluster-basic" title={t("clusterTitle")}>
           <p>{t("clusterBody")}</p>
         </RuleSection>

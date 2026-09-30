@@ -1447,6 +1447,7 @@
     "resetBoard": "Reiniciar tablero",
     "nextExample": "Siguiente ejemplo",
     "border-chainBody": "Puedes colocar en el borde aunque el rival necesite varios saltos para llegar. Aquí, Negras pueden bloquear la esquina que señalan las flechas.",
+    "borderChainTitle": "Caso especial de la regla del borde: defensa de salto en cadena",
     "cluster-diagonalBody": "Puedes colocar en diagonal junto a un grupo de diez porque las vecinas diagonales no conectan.",
     "clusterDiagonalTitle": "Caso especial de la regla del grupo: diagonales",
     "cluster-mergeBody": "Puedes unir dos grupos de menos de diez piedras, aunque el grupo resultante supere diez.",
