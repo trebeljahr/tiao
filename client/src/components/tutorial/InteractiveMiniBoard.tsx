@@ -85,6 +85,8 @@ function getJumpTrailMetrics(from: Pos, to: Pos, size: number, startInset = 0.7,
   };
 }
 
+const ERROR_MESSAGE_DURATION_MS = 5000;
+
 // --- Component ---
 
 export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }: Props) {
@@ -170,7 +172,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
           setShakePos(null);
           setErrorMsg(null);
           setTriedIllegal(true);
-        }, 1200);
+        }, ERROR_MESSAGE_DURATION_MS);
         return;
       }
       // Ignore other clicks until they try the illegal one
@@ -256,7 +258,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
               setTimeout(() => {
                 setShakePos(null);
                 setErrorMsg(null);
-              }, 1200);
+              }, ERROR_MESSAGE_DURATION_MS);
             } else if (interaction.requiredPos && !posEq(pos, interaction.requiredPos)) {
               // Placed validly but not at required position — show hint, revert
               setShakePos(pos);
@@ -265,7 +267,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
               setTimeout(() => {
                 setShakePos(null);
                 setErrorMsg(null);
-              }, 1200);
+              }, ERROR_MESSAGE_DURATION_MS);
             } else {
               complete();
             }
