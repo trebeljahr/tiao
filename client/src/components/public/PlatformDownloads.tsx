@@ -1,16 +1,16 @@
 "use client";
 
+import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { FaAndroid, FaApple, FaSteam } from "react-icons/fa";
 import { toast } from "sonner";
 import styles from "./PublicSite.module.css";
 
 export function PlatformDownloads() {
   const t = useTranslations("landing");
   const platforms = [
-    { name: "Steam", detail: "Windows · macOS · Linux", Icon: FaSteam, color: "#66c0f4" },
-    { name: "iOS", detail: "iPhone · iPad", Icon: FaApple, color: "#ffffff" },
-    { name: "Android", detail: "Google Play", Icon: FaAndroid, color: "#3ddc84" },
+    { name: "Steam", detail: "Windows · macOS · Linux", logo: "steam.svg" },
+    { name: "iOS", detail: "iPhone · iPad", logo: "app-store.png" },
+    { name: "Android", detail: "Google Play", logo: "google-play.svg" },
   ];
 
   return (
@@ -19,7 +19,7 @@ export function PlatformDownloads() {
       <h2 id="downloads-title">{t("downloadsTitle")}</h2>
       <p className={styles.downloadsIntro}>{t("downloadsIntro")}</p>
       <div className={styles.downloadButtons}>
-        {platforms.map(({ name, detail, Icon, color }) => (
+        {platforms.map(({ name, detail, logo }) => (
           <button
             type="button"
             key={name}
@@ -27,7 +27,14 @@ export function PlatformDownloads() {
               toast(t("platformComingSoon", { platform: name }), { id: "platform-coming-soon" })
             }
           >
-            <Icon aria-hidden="true" style={{ color }} />
+            <Image
+              className={styles.platformLogo}
+              src={`/platforms/${logo}`}
+              alt=""
+              width={128}
+              height={48}
+              unoptimized
+            />
             <span className={styles.platformName}>
               <strong>{name}</strong>
               <small>{detail}</small>

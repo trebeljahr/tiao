@@ -1,0 +1,15 @@
+Original platform artwork, preserved without recoloring.
+
+steam.svg
+https://cdn.fastly.steamstatic.com/store//about/logo_steam.svg
+From https://store.steampowered.com/about/
+Steam and the Steam logo are trademarks of Valve Corporation.
+
+app-store.png
+https://www.apple.com/v/app-store/c/images/overview/icon_appstore__ev0z770zyxoy_large_2x.png
+From https://www.apple.com/app-store/
+App Store is a trademark of Apple Inc.
+
+google-play.svg
+Original inline SVG from https://play.google.com/store/games
+Google Play and the Google Play logo are trademarks of Google LLC.
