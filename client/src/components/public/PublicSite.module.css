@@ -37,6 +37,7 @@
 .eyebrow { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.19em; margin-bottom: 24px; }
 .wordmark { font-size: clamp(100px, 12.4vw, 190px); line-height: 0.95; letter-spacing: -0.08em; margin: 0 0 30px -0.06em; }
 .wordmark span { color: #25170d; font-size: 0.42em; display: inline-flex; align-items: center; justify-content: center; width: 1.6em; height: 1.6em; vertical-align: middle; margin: -0.18em 0 0 0.45em; border: 2px solid #f6e8cf8c; border-radius: 0.67em; background: linear-gradient(180deg, #faefd8, #ecd4a6); box-shadow: 0 32px 64px -24px #25170dd9; line-height: 1; letter-spacing: 0; }
+.wordmark span { position: relative; top: -5px; }
 .heroCopy h2 { font-size: clamp(25px, 2.5vw, 38px); max-width: 480px; line-height: 1.25; }
 .intro { max-width: 460px; margin-top: 22px; font-size: 16px; color: #615c50; }
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 20px 28px; margin-top: 30px; }
