@@ -51,7 +51,20 @@ export async function PublicFooter() {
   const t = await getTranslations("landing");
   return (
     <footer className={styles.footer}>
-      <p>{t("credit")}</p>
+      <p>
+        {t.rich("credit", {
+          andreas: (chunks) => (
+            <Link href="/creators/andreas" className={styles.creatorLink}>
+              {chunks}
+            </Link>
+          ),
+          rico: (chunks) => (
+            <Link href="/creators/rico" className={styles.creatorLink}>
+              {chunks}
+            </Link>
+          ),
+        })}
+      </p>
       <div>
         <Link href="/about">{t("navAbout")}</Link>
         <Link href="/privacy">{t("privacy")}</Link>

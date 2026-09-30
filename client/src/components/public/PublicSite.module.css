@@ -195,3 +195,5 @@
 .openSourceLink:hover { color: var(--accent); }
 .contribute { display: inline-flex; align-items: center; gap: 12px; padding: 14px 22px; background: var(--ink); color: var(--paper); font-size: 14px; font-weight: 600; }
 .contribute:hover { background: #4b4538; }
+
+.creatorLink { text-decoration: underline; text-underline-offset: 3px; }

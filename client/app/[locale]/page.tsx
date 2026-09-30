@@ -134,7 +134,20 @@ export default async function Page({ params }: Props) {
           <h2 id="story-title">{t("storyTitle")}</h2>
         </div>
         <div className={styles.ruleCopy}>
-          <p>{t("storyBody")}</p>
+          <p>
+            {t.rich("storyBody", {
+              andreas: (chunks) => (
+                <Link href="/creators/andreas" className={styles.creatorLink}>
+                  {chunks}
+                </Link>
+              ),
+              rico: (chunks) => (
+                <Link href="/creators/rico" className={styles.creatorLink}>
+                  {chunks}
+                </Link>
+              ),
+            })}
+          </p>
           <div className={styles.actions}>
             <Link className={styles.textLink} href="/about">
               {t("storyLink")}

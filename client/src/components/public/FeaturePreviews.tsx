@@ -20,13 +20,11 @@ sampleGame.currentTurn = frame.turn;
 sampleGame.score = { white: frame.score[0], black: frame.score[1] };
 
 export function MatchPreview() {
-  const t = useTranslations("landing");
   return (
     <figure className={styles.matchPreview}>
       <div inert>
         <TiaoBoard state={sampleGame} selectedPiece={null} jumpTargets={[]} disabled />
       </div>
-      <figcaption>{t("sampleMatch")}</figcaption>
     </figure>
   );
 }
@@ -68,7 +66,6 @@ export function CommunityPreview() {
         </div>
         <TournamentCard item={tournament} onClick={() => {}} />
       </div>
-      <figcaption>{t("sampleCommunity")}</figcaption>
     </figure>
   );
 }

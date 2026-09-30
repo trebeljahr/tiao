@@ -1366,7 +1366,7 @@
     "rulesTitle": "Der verlockende Schlag könnte eine Falle sein.",
     "rulesBody": "Ein erreichbarer Stein kann deinen Gegner zum Schlagen verleiten. Sein Landepunkt kann dir danach eine längere Sprungkette ermöglichen.",
     "tutorial": "Spielen lernen",
-    "credit": "Ein Spiel von Andreas Edmeier. Digitale Ausgabe von Rico Trebeljahr.",
+    "credit": "Ein Spiel von <andreas>Andreas Edmeier</andreas>. Digitale Ausgabe von <rico>Rico Trebeljahr</rico>.",
     "privacy": "Datenschutz",
     "impressum": "Impressum",
     "footerLine": "Zwei Spieler. Ein leeres Brett. Dein Zug.",
@@ -1379,7 +1379,7 @@
     "waysIntro": "Das interaktive Tutorial führt dich durch das Setzen und Schlagen. Probiere danach den Computer aus oder lerne gemeinsam mit einem Freund.",
     "storyEyebrow": "Über Tiao",
     "storyTitle": "跳 bedeutet „springen“.",
-    "storyBody": "Tiao (tiào) bedeutet auf Chinesisch „springen“. Andreas Edmeier entwarf das Spiel und verfeinerte die Regeln über Jahre beim Testspielen. Rico Trebeljahr baute diese Website und betreibt sie.",
+    "storyBody": "Tiao (tiào) bedeutet auf Chinesisch „springen“. <andreas>Andreas Edmeier</andreas> entwarf das Spiel und verfeinerte die Regeln über Jahre beim Testspielen. <rico>Rico Trebeljahr</rico> baute diese Website und betreibt sie.",
     "storyOrigin": "Andreas Edmeier entwickelte Tiao und verfeinerte die Regeln über Jahre beim Testspielen. Sein Freund Rico Trebeljahr baute diese digitale Ausgabe, damit mehr Menschen gemeinsam spielen können.",
     "storyOpen": "Der Quellcode der Website ist öffentlich. Du kannst ihn lesen, Verbesserungen beitragen oder eine eigene Version betreiben.",
     "storyLink": "Mehr über Tiao",
@@ -1413,9 +1413,7 @@
     "tournamentsBody": "Entdecke öffentliche Turniere oder erstelle dein eigenes. Verfolge die Paarungen und die Tabelle während der Spiele.",
     "spectatingTitle": "Schau bei einer Partie zu",
     "spectatingBody": "Gib in der Lobby eine Spiel-ID ein, um zuzuschauen. Verfolge die Züge und Punktestände, ohne selbst mitzuspielen.",
-    "sampleMatch": "Beispiel einer Spielstellung.",
-    "sampleTournament": "Wochenendturnier",
-    "sampleCommunity": "Beispielspieler und Beispielturnier."
+    "sampleTournament": "Wochenendturnier"
   },
   "rules": {
     "metaTitle": "Tiao-Regeln — So wird gespielt",

@@ -1366,7 +1366,7 @@
     "rulesTitle": "That tempting capture might be a trap.",
     "rulesBody": "A stone left within reach can tempt your opponent into a capture. Their landing point may give you a longer jump chain in return.",
     "tutorial": "Learn to play",
-    "credit": "A game by Andreas Edmeier. Digital edition by Rico Trebeljahr.",
+    "credit": "A game by <andreas>Andreas Edmeier</andreas>. Digital edition by <rico>Rico Trebeljahr</rico>.",
     "privacy": "Privacy",
     "impressum": "Legal notice",
     "footerLine": "Easy to learn. Hard to master. One more game?",
@@ -1379,7 +1379,7 @@
     "waysIntro": "The interactive tutorial walks you through placement and captures. Try the computer next, or bring a friend and learn together.",
     "storyEyebrow": "About Tiao",
     "storyTitle": "跳 means “jump”.",
-    "storyBody": "Tiao (tiào) means “jump” in Chinese. Andreas Edmeier designed the game and refined its rules over years of playtesting. Rico Trebeljahr built this website and runs it.",
+    "storyBody": "Tiao (tiào) means “jump” in Chinese. <andreas>Andreas Edmeier</andreas> designed the game and refined its rules over years of playtesting. <rico>Rico Trebeljahr</rico> built this website and runs it.",
     "storyOrigin": "Andreas Edmeier created Tiao and refined the rules through years of playtesting. His friend Rico Trebeljahr built this digital edition so more people could play it together.",
     "storyOpen": "The website’s source code is public. You can read it, contribute improvements, or run your own copy.",
     "storyLink": "More about Tiao",
@@ -1413,9 +1413,7 @@
     "tournamentsBody": "Browse public tournaments or create your own. Follow the pairings and standings as the games unfold.",
     "spectatingTitle": "Watch a game unfold",
     "spectatingBody": "Enter a game ID in the lobby to spectate. Follow the moves and capture scores without taking a seat.",
-    "sampleMatch": "Example game position.",
-    "sampleTournament": "Weekend tournament",
-    "sampleCommunity": "Example players and tournament."
+    "sampleTournament": "Weekend tournament"
   },
   "rules": {
     "metaTitle": "Tiao rules — How to play",
@@ -1449,7 +1447,8 @@
     "resetBoard": "Reset board",
     "nextExample": "Next example",
     "border-chainBody": "You can place on the border even when the enemy needs several jumps to reach it. Here, Black can block the corner shown by the arrows.",
-    "cluster-diagonalBody": "You can place diagonally beside a group of ten because diagonal neighbours do not connect.",
+    "cluster-diagonalBody": "Diagonals don’t count. You can place diagonally beside a group of ten because diagonal neighbours do not connect.",
+    "clusterDiagonalTitle": "Cluster Rule Special Case: Diagonals",
     "cluster-mergeBody": "You can join two groups of fewer than ten stones, even if the merged group exceeds ten.",
     "cluster-enemyBody": "You can place beside an enemy group regardless of its size, as long as the placement meets the other rules.",
     "cluster-jumpBody": "You can land beside a group of ten when you jump. The group limit applies only to placement."

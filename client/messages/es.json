@@ -1366,7 +1366,7 @@
     "rulesTitle": "Esa captura tentadora podría ser una trampa.",
     "rulesBody": "Una piedra al alcance puede tentar a tu rival a capturarla. El punto donde aterrice puede darte una cadena de saltos más larga.",
     "tutorial": "Aprende a jugar",
-    "credit": "Un juego de Andreas Edmeier. Edición digital de Rico Trebeljahr.",
+    "credit": "Un juego de <andreas>Andreas Edmeier</andreas>. Edición digital de <rico>Rico Trebeljahr</rico>.",
     "privacy": "Privacidad",
     "impressum": "Aviso legal",
     "footerLine": "Dos jugadores. Un tablero vacío. Tu turno.",
@@ -1379,7 +1379,7 @@
     "waysIntro": "El tutorial interactivo te enseña a colocar piedras y capturar. Después, prueba contra el ordenador o aprende con un amigo.",
     "storyEyebrow": "Acerca de Tiao",
     "storyTitle": "跳 significa «saltar».",
-    "storyBody": "Tiao (tiào) significa «saltar» en chino. Andreas Edmeier diseñó el juego y afinó sus reglas durante años de pruebas. Rico Trebeljahr construyó esta web y la mantiene.",
+    "storyBody": "Tiao (tiào) significa «saltar» en chino. <andreas>Andreas Edmeier</andreas> diseñó el juego y afinó sus reglas durante años de pruebas. <rico>Rico Trebeljahr</rico> construyó esta web y la mantiene.",
     "storyOrigin": "Andreas Edmeier creó Tiao y afinó sus reglas durante años de partidas de prueba. Su amigo Rico Trebeljahr creó esta versión digital para que más personas pudieran jugar juntas.",
     "storyOpen": "El código de la web es público. Puedes leerlo, aportar mejoras o alojar tu propia copia.",
     "storyLink": "Más sobre Tiao",
@@ -1413,9 +1413,7 @@
     "tournamentsBody": "Busca torneos públicos o crea el tuyo. Sigue los emparejamientos y la clasificación durante las partidas.",
     "spectatingTitle": "Mira una partida en directo",
     "spectatingBody": "Introduce un ID de partida en la sala para observar. Sigue los movimientos y las capturas sin ocupar un asiento.",
-    "sampleMatch": "Posición de ejemplo.",
-    "sampleTournament": "Torneo de fin de semana",
-    "sampleCommunity": "Jugadores y torneo de ejemplo."
+    "sampleTournament": "Torneo de fin de semana"
   },
   "rules": {
     "metaTitle": "Reglas de Tiao — Cómo jugar",
