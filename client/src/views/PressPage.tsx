@@ -5,7 +5,7 @@
  * creator credits, contact, image-kit download and technical facts for
  * journalists and reviewers.
  *
- * The copy mirrors the press kit in the ricos.site vault
+ * The copy mirrors the press kit in the ai-work-notes vault
  * (projects/tiao/tiao-press-kit.md). Keep both in sync — the vault file is
  * the source, this page is the published surface.
  */
@@ -13,9 +13,10 @@
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { PageLayout } from "@/components/PageLayout";
-import { PaperCard } from "@/components/ui/paper-card";
+import { BoardIllustration } from "@/components/public/BoardIllustration";
 import { Link } from "@/i18n/navigation";
 import { PRESS_EMAIL, PRESS_KIT_ZIP_PATH } from "@/lib/pressKit";
+import styles from "./PressPage.module.css";
 
 const SITE_URL = "https://playtiao.com";
 const SOURCE_URL = "https://github.com/trebeljahr/tiao";
@@ -65,7 +66,7 @@ const KIT_ASSETS = [
 
 function Section({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
   return (
-    <section className="space-y-3">
+    <section className={styles.section}>
       <div className="space-y-0.5">
         <h2 className="text-xl font-semibold text-[#3a2b1b]">{title}</h2>
         {hint ? <p className="text-sm text-[#8d7760]">{hint}</p> : null}
@@ -108,6 +109,7 @@ function Paragraphs({ text }: { text: string }) {
 
 export function PressPage({ downloadAvailable }: { downloadAvailable: boolean }) {
   const t = useTranslations("press");
+  const landing = useTranslations("landing");
 
   const factValues: Record<(typeof FACT_ROWS)[number], ReactNode> = {
     Name: t("factNameValue"),
@@ -131,12 +133,23 @@ export function PressPage({ downloadAvailable }: { downloadAvailable: boolean })
   };
 
   return (
-    <PageLayout maxWidth="max-w-3xl">
-      <PaperCard className="p-6 sm:p-8">
-        <div className="space-y-8">
-          <header className="space-y-2">
-            <h1 className="text-3xl font-semibold text-[#2a1d13]">{t("title")}</h1>
-            <p className="text-sm leading-relaxed text-[#4a3728]">{t("intro")}</p>
+    <PageLayout maxWidth="max-w-6xl">
+      <article className={styles.press}>
+        <div>
+          <header className={styles.hero}>
+            <div className={styles.heroCopy}>
+              <span className={styles.mark} aria-hidden="true">
+                跳
+              </span>
+              <h1>{t("title")}</h1>
+              <p>{t("intro")}</p>
+              <a className={styles.contactLink} href="#press-contact">
+                {t("contactTitle")} <span aria-hidden="true">↗</span>
+              </a>
+            </div>
+            <div className={styles.board}>
+              <BoardIllustration title={landing("boardAlt")} />
+            </div>
           </header>
 
           <Section title={t("factsTitle")}>
@@ -209,16 +222,18 @@ export function PressPage({ downloadAvailable }: { downloadAvailable: boolean })
             />
           </Section>
 
-          <Section title={t("contactTitle")}>
-            <p>
-              <span className="font-semibold text-[#3a2b1b]">{t("contactEmailLabel")}:</span>{" "}
-              <a href={`mailto:${PRESS_EMAIL}`} className={linkClass}>
-                {PRESS_EMAIL}
-              </a>
-            </p>
-            <p>{t("contactResponse")}</p>
-            <p>{t("contactDesign")}</p>
-          </Section>
+          <div id="press-contact" className={styles.contact}>
+            <Section title={t("contactTitle")}>
+              <p>
+                <span className="font-semibold text-[#3a2b1b]">{t("contactEmailLabel")}:</span>{" "}
+                <a href={`mailto:${PRESS_EMAIL}`} className={linkClass}>
+                  {PRESS_EMAIL}
+                </a>
+              </p>
+              <p>{t("contactResponse")}</p>
+              <p>{t("contactDesign")}</p>
+            </Section>
+          </div>
 
           <Section title={t("downloadTitle")} hint={t("downloadHint")}>
             {downloadAvailable ? (
@@ -296,7 +311,7 @@ export function PressPage({ downloadAvailable }: { downloadAvailable: boolean })
             </ul>
           </Section>
         </div>
-      </PaperCard>
+      </article>
     </PageLayout>
   );
 }

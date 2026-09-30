@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PRESS_EMAIL, PRESS_KIT_ZIP_PATH } from "@/lib/pressKit";
 import { PressPage } from "./PressPage";
 
@@ -12,6 +12,19 @@ vi.mock("@/lib/AuthContext", () => ({
 }));
 
 describe("PressPage", () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn(() => ({
+        matches: true,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      })),
+    );
+  });
+
+  afterEach(() => vi.unstubAllGlobals());
+
   it("renders the fact sheet, creator credits and press contact", () => {
     render(<PressPage downloadAvailable />);
 

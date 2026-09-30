@@ -1,0 +1,43 @@
+.press {
+  --accent: #8f3c2d;
+  padding: 24px 0 64px;
+  color: #302d25;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 64px;
+  padding: 24px 0 64px;
+}
+
+.heroCopy { animation: arrive 600ms ease-out both; }
+.mark { display: block; color: var(--accent); font-family: var(--font-zen-old-mincho), Georgia, serif; font-size: 40px; margin-bottom: 20px; }
+.hero h1 { font-family: var(--font-zen-old-mincho), Georgia, serif; font-size: clamp(38px, 5vw, 64px); font-weight: 500; letter-spacing: -0.045em; line-height: 1.12; }
+.hero p { max-width: 440px; margin-top: 24px; color: #615c50; font-size: 16px; line-height: 1.75; }
+.contactLink { display: inline-flex; align-items: center; gap: 32px; margin-top: 24px; border-bottom: 1px solid #8f3c2d66; padding: 8px 0; font-size: 14px; color: var(--accent); }
+.contactLink span { transition: transform 180ms; }
+.contactLink:hover span { transform: translate(3px, -3px); }
+.press a:focus-visible, .press button:focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; }
+.board { max-width: 380px; width: 100%; justify-self: center; padding: 18px; animation: arrive 850ms ease-out both; }
+.board svg { display: block; width: 100%; height: auto; transform: rotate(-7deg); filter: drop-shadow(0 16px 16px #46352026); }
+.section { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.8fr); gap: 48px; padding: 32px 0; border-top: 1px solid #302d2526; }
+.section h2 { font-family: var(--font-zen-old-mincho), Georgia, serif; font-size: 24px; font-weight: 500; line-height: 1.3; }
+.section > div { min-width: 0; }
+.section > div:first-child > p { margin-top: 10px; }
+.contact { scroll-margin-top: 100px; }
+.contact a { font-size: 18px; }
+@keyframes arrive { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 700px) {
+  .press { padding-top: 8px; }
+  .hero { grid-template-columns: 1fr; gap: 24px; padding: 16px 0 36px; }
+  .mark { margin-bottom: 12px; }
+  .hero p { margin-top: 18px; }
+  .board { max-width: 280px; }
+  .section { grid-template-columns: 1fr; gap: 18px; padding: 28px 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .heroCopy, .board { animation: none; }
+  .press *, .press *::before, .press *::after { transition: none !important; }
+}
