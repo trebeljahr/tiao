@@ -5,6 +5,7 @@ import { IS_TOUCH_DEVICE } from "@/lib/isTouchDevice";
 import { useBoardTheme } from "@/lib/useBoardTheme";
 import { playMoveSoundIfEnabled } from "@/lib/useStonePlacementSound";
 import { cn } from "@/lib/utils";
+import type { StepBoardConfig } from "./ruleExamples";
 import {
   type Cell,
   canPlacePiece,
@@ -15,7 +16,6 @@ import {
   type Pos,
   posEq,
 } from "./tutorialEngine";
-import type { StepBoardConfig } from "./tutorialSteps";
 
 function fireLightConfetti(colors: string[]) {
   confetti({

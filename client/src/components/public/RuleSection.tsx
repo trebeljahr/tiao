@@ -2,29 +2,25 @@
 
 import { useTranslations } from "next-intl";
 import { type ReactNode, useMemo, useState } from "react";
-import { InteractiveMiniBoard } from "@/components/tutorial/InteractiveMiniBoard";
-import { getTutorialSteps } from "@/components/tutorial/tutorialSteps";
+import { RuleExample } from "@/components/tutorial/RuleExample";
+import { getRuleExample, type RuleExampleId } from "@/components/tutorial/ruleExamples";
 import styles from "./PublicSite.module.css";
 
-export function RulesBoard({
+export function RuleSection({
   stepId,
   title,
   children,
 }: {
-  stepId: string;
+  stepId: RuleExampleId;
   title?: string;
   children?: ReactNode;
 }) {
   const tutorial = useTranslations("tutorial");
   const t = useTranslations("rules");
   // Keep the initial board stable when completion or reset state changes.
-  const step = useMemo(
-    () => getTutorialSteps(tutorial).find((item) => item.id === stepId),
-    [tutorial, stepId],
-  );
+  const step = useMemo(() => getRuleExample(stepId, tutorial), [tutorial, stepId]);
   const [resetKey, setResetKey] = useState(0);
   const [complete, setComplete] = useState(false);
-  if (!step?.board) return null;
 
   return (
     <section className={styles.rulesExplorer} aria-labelledby={`rule-${stepId}`}>
@@ -49,9 +45,8 @@ export function RulesBoard({
         </p>
       </div>
       <div className={styles.rulesBoardSurface}>
-        <InteractiveMiniBoard
-          config={{ ...step.board, overlayHint: undefined }}
-          active
+        <RuleExample
+          config={step.board}
           resetKey={resetKey}
           onComplete={() => setComplete(true)}
           t={tutorial}

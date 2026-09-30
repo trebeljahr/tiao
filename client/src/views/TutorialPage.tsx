@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Navbar } from "@/components/Navbar";
-import { InteractiveMiniBoard } from "@/components/tutorial/InteractiveMiniBoard";
+import { RuleExample } from "@/components/tutorial/RuleExample";
 import { getTutorialSteps } from "@/components/tutorial/tutorialSteps";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/AuthContext";
@@ -315,10 +315,10 @@ function TutorialPageInner() {
                 {/* Interactive board */}
                 {step.board && (
                   <div className="mt-4">
-                    <InteractiveMiniBoard
+                    <RuleExample
                       config={step.board}
                       onComplete={handleStepComplete}
-                      active={true}
+                      presentation="guided"
                       resetKey={resetKeys[currentStep]}
                       t={t}
                     />

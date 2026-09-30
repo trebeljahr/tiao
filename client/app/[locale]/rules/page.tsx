@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PublicFooter, PublicHeader } from "@/components/public/PublicSite";
 import styles from "@/components/public/PublicSite.module.css";
-import { RulesBoard } from "@/components/public/RulesBoard";
+import { RuleSection } from "@/components/public/RuleSection";
 import { Link } from "@/i18n/navigation";
 import { localizedAlternates, OG_IMAGES } from "@/lib/metadata";
 
@@ -41,29 +41,29 @@ export default async function RulesPage({ params }: Props) {
           <h2>{t("setupTitle")}</h2>
           <p>{t("setupBody")}</p>
         </section>
-        <RulesBoard stepId="place" title={t("turnTitle")}>
+        <RuleSection stepId="place" title={t("turnTitle")}>
           <p>{t("turnBody")}</p>
-        </RulesBoard>
-        <RulesBoard stepId="jump" title={t("jumpTitle")}>
+        </RuleSection>
+        <RuleSection stepId="jump" title={t("jumpTitle")}>
           <p>{t("jumpBody")}</p>
-        </RulesBoard>
-        <RulesBoard stepId="chain" title={t("chainTitle")}>
+        </RuleSection>
+        <RuleSection stepId="chain" title={t("chainTitle")}>
           <p>{t("chainBody")}</p>
-        </RulesBoard>
-        <RulesBoard stepId="confirm-undo">
+        </RuleSection>
+        <RuleSection stepId="confirm-undo">
           <p>{t("confirmBody")}</p>
-        </RulesBoard>
-        <RulesBoard stepId="border-basic" title={t("borderTitle")}>
+        </RuleSection>
+        <RuleSection stepId="border-basic" title={t("borderTitle")}>
           <p>{t("borderBody")}</p>
-        </RulesBoard>
-        <RulesBoard stepId="border-chain" />
-        <RulesBoard stepId="cluster-basic" title={t("clusterTitle")}>
+        </RuleSection>
+        <RuleSection stepId="border-chain" />
+        <RuleSection stepId="cluster-basic" title={t("clusterTitle")}>
           <p>{t("clusterBody")}</p>
-        </RulesBoard>
-        <RulesBoard stepId="cluster-diagonal" />
-        <RulesBoard stepId="cluster-merge" />
-        <RulesBoard stepId="cluster-enemy" />
-        <RulesBoard stepId="cluster-jump" />
+        </RuleSection>
+        <RuleSection stepId="cluster-diagonal" />
+        <RuleSection stepId="cluster-merge" />
+        <RuleSection stepId="cluster-enemy" />
+        <RuleSection stepId="cluster-jump" />
         <section>
           <h2>{t("winTitle")}</h2>
           <p>{t("winBody")}</p>
