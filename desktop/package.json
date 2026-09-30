@@ -28,16 +28,16 @@
     "itch:push:linux": "butler push --userversion $npm_package_version dist/*.AppImage $ITCH_USER/$ITCH_GAME:linux"
   },
   "dependencies": {
-    "@sentry/node": "^10.48.0",
-    "electron-updater": "^6.3.0",
+    "@sentry/node": "^10.75.3",
+    "electron-updater": "^6.8.9",
     "steamworks.js": "^0.4.0"
   },
   "devDependencies": {
     "@electron/notarize": "^2.5.0",
-    "@types/node": "^22.15.0",
-    "electron": "^36.0.0",
-    "electron-builder": "^25.0.0",
-    "typescript": "^5.8.3"
+    "@types/node": "^22.20.4",
+    "electron": "^36.9.5",
+    "electron-builder": "^25.1.8",
+    "typescript": "^5.9.3"
   },
   "build": {
     "appId": "com.ricoslabs.tiao",

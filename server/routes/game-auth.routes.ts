@@ -1103,6 +1103,7 @@ router.post(
     res.locals.uploadAccount = account;
     next();
   },
+  authRateLimiter,
   profilePictureUpload("profilePicture"),
   async (req: Request, res: Response) => {
     const account = res.locals.uploadAccount as NonNullable<

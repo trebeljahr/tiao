@@ -21,7 +21,17 @@ const fileFilter = (
 
 const upload = multer({
   storage,
-  limits: { fileSize: MAX_FILE_SIZE, files: 1, fields: 0, parts: 1 },
+  limits: {
+    fileSize: MAX_FILE_SIZE,
+    files: 1,
+    fields: 0,
+    parts: 1,
+    fieldNameSize: 64,
+    fieldSize: 0,
+    headerPairs: 32,
+    fieldNestingDepth: 0,
+    fieldArrayIndexLimit: 0,
+  },
   fileFilter,
 });
 
@@ -45,8 +55,7 @@ export function profilePictureUpload(fieldName: string) {
         if (err.code === "LIMIT_UNEXPECTED_FILE") {
           return res.status(415).json({
             code: "UNSUPPORTED_FILE_TYPE",
-            message:
-              "Unsupported file type. Only JPEG, non-interlaced PNG, and single-frame GIF images are allowed.",
+            message: "Unsupported file type. Only JPEG, non-interlaced PNG, and single-frame GIF images are allowed.",
           });
         }
 
@@ -56,7 +65,11 @@ export function profilePictureUpload(fieldName: string) {
         });
       }
 
-      next(err);
+      // Malformed multipart bodies are client errors, including truncated streams.
+      return res.status(400).json({
+        code: "UPLOAD_ERROR",
+        message: "There was a problem with the uploaded file.",
+      });
     });
   };
 }

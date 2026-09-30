@@ -407,3 +407,33 @@ test("POST /admin/badges/revoke returns 403 for non-admin account", async () => 
   assert.equal(response.status, 403);
   assert.equal(response.body.code, "ADMIN_REQUIRED");
 });
+
+test("profile picture authentication rejects anonymous requests before parsing", async () => {
+  const route = gameAuthRoutes.stack.find(
+    (entry) => entry.route?.path === "/profile-picture" && entry.route.methods.post,
+  )?.route;
+  assert.ok(route);
+  let continued = false;
+  const req = { headers: {}, body: {} };
+  const res = createMockResponse();
+  await route.stack[0].handle(req, res, () => {
+    continued = true;
+  });
+  assert.equal(res.statusCode, 401);
+  assert.equal(continued, false);
+});
+
+test("profile picture authentication rejects guests before parsing", async () => {
+  const guest = createTestGuest("Upload Guest");
+  const route = gameAuthRoutes.stack.find(
+    (entry) => entry.route?.path === "/profile-picture" && entry.route.methods.post,
+  )?.route;
+  assert.ok(route);
+  let continued = false;
+  const res = createMockResponse();
+  await route.stack[0].handle({ headers: { cookie: guest.cookie } }, res, () => {
+    continued = true;
+  });
+  assert.equal(res.statusCode, 403);
+  assert.equal(continued, false);
+});
