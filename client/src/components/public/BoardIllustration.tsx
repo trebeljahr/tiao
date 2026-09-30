@@ -1,24 +1,20 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { HERO_FRAMES } from "./heroGame";
+import { HERO_FRAMES, HERO_PRE_JUMP_FRAME } from "./heroGame";
 import styles from "./PublicSite.module.css";
 
-/** A looping example game, paused for reduced motion. */
+/** A looping example game, with a static pre-jump position for reduced motion. */
 export function BoardIllustration({ title }: { title: string }) {
-  const t = useTranslations("landing");
-  const [index, setIndex] = useState(8);
-  const [paused, setPaused] = useState(false);
+  const [index, setIndex] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(true);
   const [visible, setVisible] = useState(true);
-  const frame = HERO_FRAMES[index];
+  const frame = reducedMotion ? HERO_PRE_JUMP_FRAME : HERO_FRAMES[index];
   useEffect(() => {
     const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
     const update = () => setReducedMotion(preference.matches);
     const visibility = () => setVisible(!document.hidden);
     update();
-    if (!preference.matches) setIndex(0);
     visibility();
     preference.addEventListener("change", update);
     document.addEventListener("visibilitychange", visibility);
@@ -28,10 +24,10 @@ export function BoardIllustration({ title }: { title: string }) {
     };
   }, []);
   useEffect(() => {
-    if (paused || reducedMotion || !visible) return;
+    if (reducedMotion || !visible) return;
     const timer = window.setTimeout(() => setIndex((index + 1) % HERO_FRAMES.length), frame.hold);
     return () => window.clearTimeout(timer);
-  }, [paused, reducedMotion, visible, frame.hold, index]);
+  }, [reducedMotion, visible, frame.hold, index]);
   return (
     <figure className={styles.heroReplay}>
       <svg viewBox="0 0 660 660" role="img" aria-label={title}>
@@ -98,16 +94,6 @@ export function BoardIllustration({ title }: { title: string }) {
           </g>
         ))}
       </svg>
-      <button
-        className={styles.replayToggle}
-        type="button"
-        aria-label={t(paused ? "resumeReplay" : "pauseReplay")}
-        aria-pressed={paused}
-        onClick={() => setPaused(!paused)}
-        hidden={reducedMotion}
-      >
-        {paused ? "▶" : "Ⅱ"}
-      </button>
     </figure>
   );
 }

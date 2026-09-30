@@ -161,9 +161,6 @@
 .replayStone { transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1), opacity 350ms; }
 
 .heroReplay { position: relative; }
-.replayToggle { position: absolute; bottom: 0; right: 0; width: 32px; height: 32px; border-radius: 50%; background: #f4efdfdd; color: #302d25; cursor: pointer; opacity: 0; transition: opacity 180ms; }
-.heroReplay:hover .replayToggle, .replayToggle:focus-visible { opacity: 1; }
-@media (hover: none) { .replayToggle { opacity: 0.7; } }
 @media (min-width: 701px) and (max-width: 1000px) { .wordmark { font-size: 85px; } }
 
 /* Real match details sit alongside the ways to play, without extra UI chrome. */
@@ -190,3 +187,8 @@
   .matchPreview { position: static; }
   .playerPreview { max-width: 454px; }
 }
+
+.openSourceLink { display: inline-flex; align-items: center; gap: 10px; margin-top: 24px; font-size: 13px; color: #615c50; }
+.openSourceLink:hover { color: var(--accent); }
+.contribute { display: inline-flex; align-items: center; gap: 12px; padding: 14px 22px; background: var(--ink); color: var(--paper); font-size: 14px; font-weight: 600; }
+.contribute:hover { background: #4b4538; }

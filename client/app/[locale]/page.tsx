@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { FaGithub } from "react-icons/fa";
 import { BoardIllustration } from "@/components/public/BoardIllustration";
 import { EntryRedirect } from "@/components/public/EntryRedirect";
 import { CommunityPreview, MatchPreview } from "@/components/public/FeaturePreviews";
@@ -58,6 +59,10 @@ export default async function Page({ params }: Props) {
               {t("tutorial")}
             </Link>
           </div>
+          <a className={styles.openSourceLink} href="https://github.com/trebeljahr/tiao">
+            <FaGithub size={20} aria-hidden="true" />
+            {t("openSourceNote")}
+          </a>
         </div>
         <div className={styles.heroArt}>
           <BoardIllustration title={t("boardAlt")} />
@@ -136,6 +141,21 @@ export default async function Page({ params }: Props) {
             </Link>
             <a className={styles.textLink} href="https://github.com/trebeljahr/tiao">
               {t("sourceLink")}
+            </a>
+          </div>
+        </div>
+      </section>
+      <section className={styles.explanation} aria-labelledby="source-title">
+        <div>
+          <p className={styles.eyebrow}>{t("openSourceEyebrow")}</p>
+          <h2 id="source-title">{t("openSourceTitle")}</h2>
+        </div>
+        <div className={styles.ruleCopy}>
+          <p>{t("openSourceBody")}</p>
+          <div className={styles.actions}>
+            <a className={styles.contribute} href="https://github.com/trebeljahr/tiao">
+              <FaGithub size={24} aria-hidden="true" />
+              {t("contribute")}
             </a>
           </div>
         </div>

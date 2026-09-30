@@ -54,3 +54,10 @@ function buildFrames(): HeroFrame[] {
   return frames;
 }
 export const HERO_FRAMES = buildFrames();
+
+// The last settled position before the replay’s final capture chain.
+const reversedFrames = [...HERO_FRAMES].reverse();
+const finalJumpIndex = reversedFrames.findIndex((frame) => frame.move);
+export const HERO_PRE_JUMP_FRAME = reversedFrames
+  .slice(finalJumpIndex)
+  .find((frame) => !frame.move)!;
