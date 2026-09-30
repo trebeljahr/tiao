@@ -42,7 +42,7 @@ export default async function Page({ params }: Props) {
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}>{t("eyebrow")}</p>
           <h1 id="tiao-title" className={styles.wordmark}>
-            Tiao
+            Tiao<span lang="zh-Hans">跳</span>
           </h1>
           <h2>{t("headline")}</h2>
           <p className={styles.intro}>{t("intro")}</p>
@@ -77,6 +77,8 @@ export default async function Page({ params }: Props) {
         <div className={styles.captureCopy}>
           <p className={styles.eyebrow}>{t("captureEyebrow")}</p>
           <h2>{t("captureTitle")}</h2>
+          <p>{t("captureIntro")}</p>
+          <p>{t("captureOutro")}</p>
         </div>
         <CaptureDemo />
       </section>
@@ -84,6 +86,7 @@ export default async function Page({ params }: Props) {
         <div>
           <p className={styles.eyebrow}>{t("waysEyebrow")}</p>
           <h2 id="ways-title">{t("waysTitle")}</h2>
+          <p className={styles.sectionIntro}>{t("waysIntro")}</p>
         </div>
         <div className={styles.playOptions}>
           <Link href="/computer">
@@ -107,6 +110,25 @@ export default async function Page({ params }: Props) {
             </span>
             <span aria-hidden="true">→</span>
           </Link>
+        </div>
+      </section>
+      <section className={styles.explanation} aria-labelledby="story-title">
+        <div>
+          <p className={styles.eyebrow}>{t("storyEyebrow")}</p>
+          <h2 id="story-title">{t("storyTitle")}</h2>
+        </div>
+        <div className={styles.ruleCopy}>
+          <p>{t("storyBody")}</p>
+          <p>{t("storyOrigin")}</p>
+          <p>{t("storyOpen")}</p>
+          <div className={styles.actions}>
+            <Link className={styles.textLink} href="/about">
+              {t("storyLink")}
+            </Link>
+            <a className={styles.textLink} href="https://news.ycombinator.com/item?id=47914369">
+              {t("discussionLink")}
+            </a>
+          </div>
         </div>
       </section>
       <PublicFooter />
