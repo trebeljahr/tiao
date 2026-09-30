@@ -8,7 +8,7 @@
     "generate:source-links": "node scripts/generate-source-links.mjs",
     "validate:source-links": "node scripts/validate-source-links.mjs",
     "sync:architecture": "node scripts/sync-architecture.mjs",
-    "build": "npm run sync:architecture && npm run generate:source-links && docusaurus build && npm run validate:source-links",
+    "build": "npm run test:postman && npm run sync:architecture && npm run generate:source-links && docusaurus build && npm run validate:source-links",
     "generate:api-docs": "docusaurus gen-api-docs tiao",
     "clean:api-docs": "docusaurus clean-api-docs tiao",
     "swizzle": "docusaurus swizzle",
@@ -17,7 +17,8 @@
     "serve": "docusaurus serve",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "test:postman": "node --test scripts/test-postman-generators.mjs"
   },
   "dependencies": {
     "@docusaurus/core": "3.10.2",
@@ -62,7 +63,11 @@
       "immutable@5.1.5": "5.1.8",
       "colord@2.9.3": "2.9.4",
       "serialize-javascript@6.0.2": "7.0.7",
-      "uuid@8.3.2": "11.1.1"
+      "uuid@8.3.2": "11.1.1",
+      "@faker-js/faker@5.5.3": "10.6.0"
+    },
+    "patchedDependencies": {
+      "postman-collection@5.3.1": "patches/postman-collection@5.3.1.patch"
     }
   }
 }
