@@ -1,0 +1,5110 @@
+{
+  "combo": {
+    "seed": 4,
+    "moves": [
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 15,
+          "y": 7
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 5,
+          "y": 4
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 6,
+          "y": 9
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 4,
+          "y": 15
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 11,
+          "y": 11
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 12,
+          "y": 7
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 12,
+          "y": 14
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 9,
+          "y": 12
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 8,
+          "y": 9
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 12,
+          "y": 15
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 9,
+          "y": 7
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 6,
+          "y": 12
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 7,
+          "y": 8
+        }
+      },
+      {
+        "type": "jump",
+        "color": "black",
+        "steps": [
+          {
+            "from": {
+              "x": 12,
+              "y": 15
+            },
+            "to": {
+              "x": 12,
+              "y": 13
+            }
+          }
+        ]
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 10,
+          "y": 12
+        }
+      },
+      {
+        "type": "jump",
+        "color": "black",
+        "steps": [
+          {
+            "from": {
+              "x": 9,
+              "y": 12
+            },
+            "to": {
+              "x": 11,
+              "y": 12
+            }
+          },
+          {
+            "from": {
+              "x": 11,
+              "y": 12
+            },
+            "to": {
+              "x": 11,
+              "y": 10
+            }
+          }
+        ]
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 7,
+          "y": 10
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 3,
+          "y": 11
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 6,
+          "y": 10
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 14,
+          "y": 14
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 7,
+          "y": 5
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 11,
+          "y": 9
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 3,
+          "y": 12
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 3,
+          "y": 9
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 15,
+          "y": 6
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 7,
+          "y": 9
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 3,
+          "y": 6
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 13,
+          "y": 14
+        }
+      },
+      {
+        "type": "jump",
+        "color": "white",
+        "steps": [
+          {
+            "from": {
+              "x": 3,
+              "y": 12
+            },
+            "to": {
+              "x": 3,
+              "y": 10
+            }
+          },
+          {
+            "from": {
+              "x": 3,
+              "y": 10
+            },
+            "to": {
+              "x": 3,
+              "y": 8
+            }
+          }
+        ]
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 15,
+          "y": 10
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 7,
+          "y": 15
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 5,
+          "y": 15
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 15,
+          "y": 15
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 4,
+          "y": 4
+        }
+      },
+      {
+        "type": "jump",
+        "color": "white",
+        "steps": [
+          {
+            "from": {
+              "x": 15,
+              "y": 15
+            },
+            "to": {
+              "x": 13,
+              "y": 13
+            }
+          },
+          {
+            "from": {
+              "x": 13,
+              "y": 13
+            },
+            "to": {
+              "x": 11,
+              "y": 13
+            }
+          }
+        ]
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 4,
+          "y": 14
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 11,
+          "y": 7
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 11,
+          "y": 14
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 11,
+          "y": 12
+        }
+      }
+    ],
+    "before": {
+      "boardSize": 19,
+      "scoreToWin": 10,
+      "positions": [
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          "black",
+          "black",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "white",
+          null,
+          "white",
+          "black",
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "white",
+          "black",
+          "white",
+          null,
+          null,
+          "black",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "white",
+          "white",
+          null,
+          null,
+          null,
+          "black",
+          null,
+          null,
+          null,
+          "black",
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "black",
+          null,
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          "black",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "black",
+          null,
+          "black",
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          "black",
+          "black",
+          null,
+          "white",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "currentTurn": "black",
+      "pendingJump": [],
+      "pendingCaptures": [],
+      "score": {
+        "black": 3,
+        "white": 4
+      },
+      "history": [
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 15,
+            "y": 7
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 5,
+            "y": 4
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 6,
+            "y": 9
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 4,
+            "y": 15
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 11,
+            "y": 11
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 12,
+            "y": 7
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 12,
+            "y": 14
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 9,
+            "y": 12
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 8,
+            "y": 9
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 12,
+            "y": 15
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 9,
+            "y": 7
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 6,
+            "y": 12
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 7,
+            "y": 8
+          }
+        },
+        {
+          "type": "jump",
+          "color": "black",
+          "jumps": [
+            {
+              "from": {
+                "x": 12,
+                "y": 15
+              },
+              "over": {
+                "x": 12,
+                "y": 14
+              },
+              "to": {
+                "x": 12,
+                "y": 13
+              },
+              "color": "black"
+            }
+          ]
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 10,
+            "y": 12
+          }
+        },
+        {
+          "type": "jump",
+          "color": "black",
+          "jumps": [
+            {
+              "from": {
+                "x": 9,
+                "y": 12
+              },
+              "over": {
+                "x": 10,
+                "y": 12
+              },
+              "to": {
+                "x": 11,
+                "y": 12
+              },
+              "color": "black"
+            },
+            {
+              "from": {
+                "x": 11,
+                "y": 12
+              },
+              "over": {
+                "x": 11,
+                "y": 11
+              },
+              "to": {
+                "x": 11,
+                "y": 10
+              },
+              "color": "black"
+            }
+          ]
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 7,
+            "y": 10
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 3,
+            "y": 11
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 6,
+            "y": 10
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 14,
+            "y": 14
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 7,
+            "y": 5
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 11,
+            "y": 9
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 3,
+            "y": 12
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 3,
+            "y": 9
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 15,
+            "y": 6
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 7,
+            "y": 9
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 3,
+            "y": 6
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 13,
+            "y": 14
+          }
+        },
+        {
+          "type": "jump",
+          "color": "white",
+          "jumps": [
+            {
+              "from": {
+                "x": 3,
+                "y": 12
+              },
+              "over": {
+                "x": 3,
+                "y": 11
+              },
+              "to": {
+                "x": 3,
+                "y": 10
+              },
+              "color": "white"
+            },
+            {
+              "from": {
+                "x": 3,
+                "y": 10
+              },
+              "over": {
+                "x": 3,
+                "y": 9
+              },
+              "to": {
+                "x": 3,
+                "y": 8
+              },
+              "color": "white"
+            }
+          ]
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 15,
+            "y": 10
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 7,
+            "y": 15
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 5,
+            "y": 15
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 15,
+            "y": 15
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 4,
+            "y": 4
+          }
+        },
+        {
+          "type": "jump",
+          "color": "white",
+          "jumps": [
+            {
+              "from": {
+                "x": 15,
+                "y": 15
+              },
+              "over": {
+                "x": 14,
+                "y": 14
+              },
+              "to": {
+                "x": 13,
+                "y": 13
+              },
+              "color": "white"
+            },
+            {
+              "from": {
+                "x": 13,
+                "y": 13
+              },
+              "over": {
+                "x": 12,
+                "y": 13
+              },
+              "to": {
+                "x": 11,
+                "y": 13
+              },
+              "color": "white"
+            }
+          ]
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 4,
+            "y": 14
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 11,
+            "y": 7
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 11,
+            "y": 14
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 11,
+            "y": 12
+          }
+        }
+      ]
+    },
+    "steps": [
+      {
+        "from": {
+          "x": 7,
+          "y": 9
+        },
+        "to": {
+          "x": 5,
+          "y": 9
+        }
+      },
+      {
+        "from": {
+          "x": 5,
+          "y": 9
+        },
+        "to": {
+          "x": 7,
+          "y": 11
+        }
+      },
+      {
+        "from": {
+          "x": 7,
+          "y": 11
+        },
+        "to": {
+          "x": 7,
+          "y": 9
+        }
+      },
+      {
+        "from": {
+          "x": 7,
+          "y": 9
+        },
+        "to": {
+          "x": 9,
+          "y": 9
+        }
+      }
+    ],
+    "pending": {
+      "boardSize": 19,
+      "scoreToWin": 10,
+      "positions": [
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          "black",
+          "black",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "white",
+          null,
+          "white",
+          "black",
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "white",
+          null,
+          "white",
+          "black",
+          null,
+          "black",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "white",
+          "white",
+          null,
+          null,
+          null,
+          "black",
+          null,
+          null,
+          null,
+          "black",
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "black",
+          null,
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          "black",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "black",
+          null,
+          "black",
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          "black",
+          "black",
+          null,
+          "white",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "currentTurn": "black",
+      "pendingJump": [
+        {
+          "from": {
+            "x": 7,
+            "y": 9
+          },
+          "over": {
+            "x": 6,
+            "y": 9
+          },
+          "to": {
+            "x": 5,
+            "y": 9
+          },
+          "color": "black"
+        },
+        {
+          "from": {
+            "x": 5,
+            "y": 9
+          },
+          "over": {
+            "x": 6,
+            "y": 10
+          },
+          "to": {
+            "x": 7,
+            "y": 11
+          },
+          "color": "black"
+        },
+        {
+          "from": {
+            "x": 7,
+            "y": 11
+          },
+          "over": {
+            "x": 7,
+            "y": 10
+          },
+          "to": {
+            "x": 7,
+            "y": 9
+          },
+          "color": "black"
+        },
+        {
+          "from": {
+            "x": 7,
+            "y": 9
+          },
+          "to": {
+            "x": 9,
+            "y": 9
+          },
+          "over": {
+            "x": 8,
+            "y": 9
+          },
+          "color": "black"
+        }
+      ],
+      "pendingCaptures": [
+        {
+          "x": 6,
+          "y": 9
+        },
+        {
+          "x": 6,
+          "y": 10
+        },
+        {
+          "x": 7,
+          "y": 10
+        },
+        {
+          "x": 8,
+          "y": 9
+        }
+      ],
+      "score": {
+        "black": 3,
+        "white": 4
+      },
+      "history": [
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 15,
+            "y": 7
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 5,
+            "y": 4
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 6,
+            "y": 9
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 4,
+            "y": 15
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 11,
+            "y": 11
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 12,
+            "y": 7
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 12,
+            "y": 14
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 9,
+            "y": 12
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 8,
+            "y": 9
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 12,
+            "y": 15
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 9,
+            "y": 7
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 6,
+            "y": 12
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 7,
+            "y": 8
+          }
+        },
+        {
+          "type": "jump",
+          "color": "black",
+          "jumps": [
+            {
+              "from": {
+                "x": 12,
+                "y": 15
+              },
+              "over": {
+                "x": 12,
+                "y": 14
+              },
+              "to": {
+                "x": 12,
+                "y": 13
+              },
+              "color": "black"
+            }
+          ]
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 10,
+            "y": 12
+          }
+        },
+        {
+          "type": "jump",
+          "color": "black",
+          "jumps": [
+            {
+              "from": {
+                "x": 9,
+                "y": 12
+              },
+              "over": {
+                "x": 10,
+                "y": 12
+              },
+              "to": {
+                "x": 11,
+                "y": 12
+              },
+              "color": "black"
+            },
+            {
+              "from": {
+                "x": 11,
+                "y": 12
+              },
+              "over": {
+                "x": 11,
+                "y": 11
+              },
+              "to": {
+                "x": 11,
+                "y": 10
+              },
+              "color": "black"
+            }
+          ]
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 7,
+            "y": 10
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 3,
+            "y": 11
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 6,
+            "y": 10
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 14,
+            "y": 14
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 7,
+            "y": 5
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 11,
+            "y": 9
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 3,
+            "y": 12
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 3,
+            "y": 9
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 15,
+            "y": 6
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 7,
+            "y": 9
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 3,
+            "y": 6
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 13,
+            "y": 14
+          }
+        },
+        {
+          "type": "jump",
+          "color": "white",
+          "jumps": [
+            {
+              "from": {
+                "x": 3,
+                "y": 12
+              },
+              "over": {
+                "x": 3,
+                "y": 11
+              },
+              "to": {
+                "x": 3,
+                "y": 10
+              },
+              "color": "white"
+            },
+            {
+              "from": {
+                "x": 3,
+                "y": 10
+              },
+              "over": {
+                "x": 3,
+                "y": 9
+              },
+              "to": {
+                "x": 3,
+                "y": 8
+              },
+              "color": "white"
+            }
+          ]
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 15,
+            "y": 10
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 7,
+            "y": 15
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 5,
+            "y": 15
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 15,
+            "y": 15
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 4,
+            "y": 4
+          }
+        },
+        {
+          "type": "jump",
+          "color": "white",
+          "jumps": [
+            {
+              "from": {
+                "x": 15,
+                "y": 15
+              },
+              "over": {
+                "x": 14,
+                "y": 14
+              },
+              "to": {
+                "x": 13,
+                "y": 13
+              },
+              "color": "white"
+            },
+            {
+              "from": {
+                "x": 13,
+                "y": 13
+              },
+              "over": {
+                "x": 12,
+                "y": 13
+              },
+              "to": {
+                "x": 11,
+                "y": 13
+              },
+              "color": "white"
+            }
+          ]
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 4,
+            "y": 14
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 11,
+            "y": 7
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 11,
+            "y": 14
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 11,
+            "y": 12
+          }
+        }
+      ]
+    }
+  },
+  "victory": {
+    "seed": 1,
+    "moves": [
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 11,
+          "y": 3
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 9,
+          "y": 15
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 15,
+          "y": 6
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 10,
+          "y": 12
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 8,
+          "y": 15
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 9,
+          "y": 4
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 6,
+          "y": 5
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 3,
+          "y": 8
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 10,
+          "y": 13
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 5,
+          "y": 11
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 12,
+          "y": 5
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 8,
+          "y": 13
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 6,
+          "y": 12
+        }
+      },
+      {
+        "type": "jump",
+        "color": "black",
+        "steps": [
+          {
+            "from": {
+              "x": 5,
+              "y": 11
+            },
+            "to": {
+              "x": 7,
+              "y": 13
+            }
+          }
+        ]
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 6,
+          "y": 4
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 10,
+          "y": 4
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 3,
+          "y": 11
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 6,
+          "y": 15
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 8,
+          "y": 6
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 15,
+          "y": 15
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 14,
+          "y": 13
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 4,
+          "y": 3
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 6,
+          "y": 14
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 15,
+          "y": 12
+        }
+      },
+      {
+        "type": "jump",
+        "color": "white",
+        "steps": [
+          {
+            "from": {
+              "x": 6,
+              "y": 14
+            },
+            "to": {
+              "x": 8,
+              "y": 12
+            }
+          },
+          {
+            "from": {
+              "x": 8,
+              "y": 12
+            },
+            "to": {
+              "x": 8,
+              "y": 14
+            }
+          },
+          {
+            "from": {
+              "x": 8,
+              "y": 14
+            },
+            "to": {
+              "x": 10,
+              "y": 16
+            }
+          }
+        ]
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 4,
+          "y": 15
+        }
+      },
+      {
+        "type": "jump",
+        "color": "white",
+        "steps": [
+          {
+            "from": {
+              "x": 11,
+              "y": 3
+            },
+            "to": {
+              "x": 9,
+              "y": 5
+            }
+          },
+          {
+            "from": {
+              "x": 9,
+              "y": 5
+            },
+            "to": {
+              "x": 9,
+              "y": 3
+            }
+          }
+        ]
+      },
+      {
+        "type": "jump",
+        "color": "black",
+        "steps": [
+          {
+            "from": {
+              "x": 10,
+              "y": 12
+            },
+            "to": {
+              "x": 10,
+              "y": 14
+            }
+          }
+        ]
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 11,
+          "y": 9
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 3,
+          "y": 13
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 6,
+          "y": 14
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 4,
+          "y": 11
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 7,
+          "y": 4
+        }
+      },
+      {
+        "type": "jump",
+        "color": "black",
+        "steps": [
+          {
+            "from": {
+              "x": 4,
+              "y": 11
+            },
+            "to": {
+              "x": 2,
+              "y": 11
+            }
+          }
+        ]
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 11,
+          "y": 11
+        }
+      },
+      {
+        "type": "jump",
+        "color": "black",
+        "steps": [
+          {
+            "from": {
+              "x": 15,
+              "y": 12
+            },
+            "to": {
+              "x": 13,
+              "y": 14
+            }
+          }
+        ]
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 5,
+          "y": 13
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 14,
+          "y": 3
+        }
+      },
+      {
+        "type": "jump",
+        "color": "white",
+        "steps": [
+          {
+            "from": {
+              "x": 6,
+              "y": 14
+            },
+            "to": {
+              "x": 6,
+              "y": 16
+            }
+          }
+        ]
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 15,
+          "y": 7
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 14,
+          "y": 4
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 14,
+          "y": 13
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 5,
+          "y": 4
+        }
+      },
+      {
+        "type": "jump",
+        "color": "black",
+        "steps": [
+          {
+            "from": {
+              "x": 14,
+              "y": 3
+            },
+            "to": {
+              "x": 14,
+              "y": 5
+            }
+          },
+          {
+            "from": {
+              "x": 14,
+              "y": 5
+            },
+            "to": {
+              "x": 16,
+              "y": 7
+            }
+          }
+        ]
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 6,
+          "y": 14
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 7,
+          "y": 14
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 6,
+          "y": 7
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 5,
+          "y": 6
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 15,
+          "y": 5
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 3,
+          "y": 3
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 4,
+          "y": 13
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 14,
+          "y": 9
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 11,
+          "y": 7
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 9,
+          "y": 12
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 3,
+          "y": 5
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 11,
+          "y": 3
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 8,
+          "y": 14
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 7,
+          "y": 7
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 3,
+          "y": 15
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 10,
+          "y": 11
+        }
+      },
+      {
+        "type": "jump",
+        "color": "white",
+        "steps": [
+          {
+            "from": {
+              "x": 11,
+              "y": 11
+            },
+            "to": {
+              "x": 9,
+              "y": 11
+            }
+          },
+          {
+            "from": {
+              "x": 9,
+              "y": 11
+            },
+            "to": {
+              "x": 9,
+              "y": 13
+            }
+          },
+          {
+            "from": {
+              "x": 9,
+              "y": 13
+            },
+            "to": {
+              "x": 11,
+              "y": 15
+            }
+          }
+        ]
+      }
+    ],
+    "before": {
+      "boardSize": 19,
+      "scoreToWin": 10,
+      "positions": [
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "black",
+          "black",
+          null,
+          null,
+          null,
+          null,
+          "white",
+          null,
+          "black",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          "white",
+          "white",
+          "white",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          "black",
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "white",
+          "black",
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          "black",
+          "black",
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "black",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          "black",
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          "black",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "black",
+          "white",
+          "white",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "black",
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "white",
+          "black",
+          "white",
+          null,
+          null,
+          null,
+          null,
+          "black",
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "white",
+          "black",
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          "black",
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "currentTurn": "black",
+      "pendingJump": [],
+      "pendingCaptures": [],
+      "score": {
+        "black": 6,
+        "white": 9
+      },
+      "history": [
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 11,
+            "y": 3
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 9,
+            "y": 15
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 15,
+            "y": 6
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 10,
+            "y": 12
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 8,
+            "y": 15
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 9,
+            "y": 4
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 6,
+            "y": 5
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 3,
+            "y": 8
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 10,
+            "y": 13
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 5,
+            "y": 11
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 12,
+            "y": 5
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 8,
+            "y": 13
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 6,
+            "y": 12
+          }
+        },
+        {
+          "type": "jump",
+          "color": "black",
+          "jumps": [
+            {
+              "from": {
+                "x": 5,
+                "y": 11
+              },
+              "over": {
+                "x": 6,
+                "y": 12
+              },
+              "to": {
+                "x": 7,
+                "y": 13
+              },
+              "color": "black"
+            }
+          ]
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 6,
+            "y": 4
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 10,
+            "y": 4
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 3,
+            "y": 11
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 6,
+            "y": 15
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 8,
+            "y": 6
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 15,
+            "y": 15
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 14,
+            "y": 13
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 4,
+            "y": 3
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 6,
+            "y": 14
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 15,
+            "y": 12
+          }
+        },
+        {
+          "type": "jump",
+          "color": "white",
+          "jumps": [
+            {
+              "from": {
+                "x": 6,
+                "y": 14
+              },
+              "over": {
+                "x": 7,
+                "y": 13
+              },
+              "to": {
+                "x": 8,
+                "y": 12
+              },
+              "color": "white"
+            },
+            {
+              "from": {
+                "x": 8,
+                "y": 12
+              },
+              "over": {
+                "x": 8,
+                "y": 13
+              },
+              "to": {
+                "x": 8,
+                "y": 14
+              },
+              "color": "white"
+            },
+            {
+              "from": {
+                "x": 8,
+                "y": 14
+              },
+              "over": {
+                "x": 9,
+                "y": 15
+              },
+              "to": {
+                "x": 10,
+                "y": 16
+              },
+              "color": "white"
+            }
+          ]
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 4,
+            "y": 15
+          }
+        },
+        {
+          "type": "jump",
+          "color": "white",
+          "jumps": [
+            {
+              "from": {
+                "x": 11,
+                "y": 3
+              },
+              "over": {
+                "x": 10,
+                "y": 4
+              },
+              "to": {
+                "x": 9,
+                "y": 5
+              },
+              "color": "white"
+            },
+            {
+              "from": {
+                "x": 9,
+                "y": 5
+              },
+              "over": {
+                "x": 9,
+                "y": 4
+              },
+              "to": {
+                "x": 9,
+                "y": 3
+              },
+              "color": "white"
+            }
+          ]
+        },
+        {
+          "type": "jump",
+          "color": "black",
+          "jumps": [
+            {
+              "from": {
+                "x": 10,
+                "y": 12
+              },
+              "over": {
+                "x": 10,
+                "y": 13
+              },
+              "to": {
+                "x": 10,
+                "y": 14
+              },
+              "color": "black"
+            }
+          ]
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 11,
+            "y": 9
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 3,
+            "y": 13
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 6,
+            "y": 14
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 4,
+            "y": 11
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 7,
+            "y": 4
+          }
+        },
+        {
+          "type": "jump",
+          "color": "black",
+          "jumps": [
+            {
+              "from": {
+                "x": 4,
+                "y": 11
+              },
+              "over": {
+                "x": 3,
+                "y": 11
+              },
+              "to": {
+                "x": 2,
+                "y": 11
+              },
+              "color": "black"
+            }
+          ]
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 11,
+            "y": 11
+          }
+        },
+        {
+          "type": "jump",
+          "color": "black",
+          "jumps": [
+            {
+              "from": {
+                "x": 15,
+                "y": 12
+              },
+              "over": {
+                "x": 14,
+                "y": 13
+              },
+              "to": {
+                "x": 13,
+                "y": 14
+              },
+              "color": "black"
+            }
+          ]
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 5,
+            "y": 13
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 14,
+            "y": 3
+          }
+        },
+        {
+          "type": "jump",
+          "color": "white",
+          "jumps": [
+            {
+              "from": {
+                "x": 6,
+                "y": 14
+              },
+              "over": {
+                "x": 6,
+                "y": 15
+              },
+              "to": {
+                "x": 6,
+                "y": 16
+              },
+              "color": "white"
+            }
+          ]
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 15,
+            "y": 7
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 14,
+            "y": 4
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 14,
+            "y": 13
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 5,
+            "y": 4
+          }
+        },
+        {
+          "type": "jump",
+          "color": "black",
+          "jumps": [
+            {
+              "from": {
+                "x": 14,
+                "y": 3
+              },
+              "over": {
+                "x": 14,
+                "y": 4
+              },
+              "to": {
+                "x": 14,
+                "y": 5
+              },
+              "color": "black"
+            },
+            {
+              "from": {
+                "x": 14,
+                "y": 5
+              },
+              "over": {
+                "x": 15,
+                "y": 6
+              },
+              "to": {
+                "x": 16,
+                "y": 7
+              },
+              "color": "black"
+            }
+          ]
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 6,
+            "y": 14
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 7,
+            "y": 14
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 6,
+            "y": 7
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 5,
+            "y": 6
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 15,
+            "y": 5
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 3,
+            "y": 3
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 4,
+            "y": 13
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 14,
+            "y": 9
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 11,
+            "y": 7
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 9,
+            "y": 12
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 3,
+            "y": 5
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 11,
+            "y": 3
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 8,
+            "y": 14
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 7,
+            "y": 7
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 3,
+            "y": 15
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 10,
+            "y": 11
+          }
+        },
+        {
+          "type": "jump",
+          "color": "white",
+          "jumps": [
+            {
+              "from": {
+                "x": 11,
+                "y": 11
+              },
+              "over": {
+                "x": 10,
+                "y": 11
+              },
+              "to": {
+                "x": 9,
+                "y": 11
+              },
+              "color": "white"
+            },
+            {
+              "from": {
+                "x": 9,
+                "y": 11
+              },
+              "over": {
+                "x": 9,
+                "y": 12
+              },
+              "to": {
+                "x": 9,
+                "y": 13
+              },
+              "color": "white"
+            },
+            {
+              "from": {
+                "x": 9,
+                "y": 13
+              },
+              "over": {
+                "x": 10,
+                "y": 14
+              },
+              "to": {
+                "x": 11,
+                "y": 15
+              },
+              "color": "white"
+            }
+          ]
+        }
+      ]
+    },
+    "steps": [
+      {
+        "from": {
+          "x": 7,
+          "y": 14
+        },
+        "to": {
+          "x": 5,
+          "y": 14
+        }
+      },
+      {
+        "from": {
+          "x": 5,
+          "y": 14
+        },
+        "to": {
+          "x": 5,
+          "y": 12
+        }
+      },
+      {
+        "from": {
+          "x": 5,
+          "y": 12
+        },
+        "to": {
+          "x": 3,
+          "y": 14
+        }
+      },
+      {
+        "from": {
+          "x": 3,
+          "y": 14
+        },
+        "to": {
+          "x": 3,
+          "y": 16
+        }
+      }
+    ],
+    "pending": {
+      "boardSize": 19,
+      "scoreToWin": 10,
+      "positions": [
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "black",
+          "black",
+          null,
+          null,
+          null,
+          null,
+          "white",
+          null,
+          "black",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          "white",
+          "white",
+          "white",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          "black",
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "white",
+          "black",
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          "black",
+          "black",
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "black",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          "black",
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          "black",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "black",
+          "white",
+          "white",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "black",
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "white",
+          null,
+          "white",
+          null,
+          null,
+          null,
+          null,
+          "black",
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "white",
+          "black",
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          "black",
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "black",
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          "white",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "currentTurn": "black",
+      "pendingJump": [
+        {
+          "from": {
+            "x": 7,
+            "y": 14
+          },
+          "over": {
+            "x": 6,
+            "y": 14
+          },
+          "to": {
+            "x": 5,
+            "y": 14
+          },
+          "color": "black"
+        },
+        {
+          "from": {
+            "x": 5,
+            "y": 14
+          },
+          "over": {
+            "x": 5,
+            "y": 13
+          },
+          "to": {
+            "x": 5,
+            "y": 12
+          },
+          "color": "black"
+        },
+        {
+          "from": {
+            "x": 5,
+            "y": 12
+          },
+          "over": {
+            "x": 4,
+            "y": 13
+          },
+          "to": {
+            "x": 3,
+            "y": 14
+          },
+          "color": "black"
+        },
+        {
+          "from": {
+            "x": 3,
+            "y": 14
+          },
+          "to": {
+            "x": 3,
+            "y": 16
+          },
+          "over": {
+            "x": 3,
+            "y": 15
+          },
+          "color": "black"
+        }
+      ],
+      "pendingCaptures": [
+        {
+          "x": 6,
+          "y": 14
+        },
+        {
+          "x": 5,
+          "y": 13
+        },
+        {
+          "x": 4,
+          "y": 13
+        },
+        {
+          "x": 3,
+          "y": 15
+        }
+      ],
+      "score": {
+        "black": 6,
+        "white": 9
+      },
+      "history": [
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 11,
+            "y": 3
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 9,
+            "y": 15
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 15,
+            "y": 6
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 10,
+            "y": 12
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 8,
+            "y": 15
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 9,
+            "y": 4
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 6,
+            "y": 5
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 3,
+            "y": 8
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 10,
+            "y": 13
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 5,
+            "y": 11
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 12,
+            "y": 5
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 8,
+            "y": 13
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 6,
+            "y": 12
+          }
+        },
+        {
+          "type": "jump",
+          "color": "black",
+          "jumps": [
+            {
+              "from": {
+                "x": 5,
+                "y": 11
+              },
+              "over": {
+                "x": 6,
+                "y": 12
+              },
+              "to": {
+                "x": 7,
+                "y": 13
+              },
+              "color": "black"
+            }
+          ]
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 6,
+            "y": 4
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 10,
+            "y": 4
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 3,
+            "y": 11
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 6,
+            "y": 15
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 8,
+            "y": 6
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 15,
+            "y": 15
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 14,
+            "y": 13
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 4,
+            "y": 3
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 6,
+            "y": 14
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 15,
+            "y": 12
+          }
+        },
+        {
+          "type": "jump",
+          "color": "white",
+          "jumps": [
+            {
+              "from": {
+                "x": 6,
+                "y": 14
+              },
+              "over": {
+                "x": 7,
+                "y": 13
+              },
+              "to": {
+                "x": 8,
+                "y": 12
+              },
+              "color": "white"
+            },
+            {
+              "from": {
+                "x": 8,
+                "y": 12
+              },
+              "over": {
+                "x": 8,
+                "y": 13
+              },
+              "to": {
+                "x": 8,
+                "y": 14
+              },
+              "color": "white"
+            },
+            {
+              "from": {
+                "x": 8,
+                "y": 14
+              },
+              "over": {
+                "x": 9,
+                "y": 15
+              },
+              "to": {
+                "x": 10,
+                "y": 16
+              },
+              "color": "white"
+            }
+          ]
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 4,
+            "y": 15
+          }
+        },
+        {
+          "type": "jump",
+          "color": "white",
+          "jumps": [
+            {
+              "from": {
+                "x": 11,
+                "y": 3
+              },
+              "over": {
+                "x": 10,
+                "y": 4
+              },
+              "to": {
+                "x": 9,
+                "y": 5
+              },
+              "color": "white"
+            },
+            {
+              "from": {
+                "x": 9,
+                "y": 5
+              },
+              "over": {
+                "x": 9,
+                "y": 4
+              },
+              "to": {
+                "x": 9,
+                "y": 3
+              },
+              "color": "white"
+            }
+          ]
+        },
+        {
+          "type": "jump",
+          "color": "black",
+          "jumps": [
+            {
+              "from": {
+                "x": 10,
+                "y": 12
+              },
+              "over": {
+                "x": 10,
+                "y": 13
+              },
+              "to": {
+                "x": 10,
+                "y": 14
+              },
+              "color": "black"
+            }
+          ]
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 11,
+            "y": 9
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 3,
+            "y": 13
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 6,
+            "y": 14
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 4,
+            "y": 11
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 7,
+            "y": 4
+          }
+        },
+        {
+          "type": "jump",
+          "color": "black",
+          "jumps": [
+            {
+              "from": {
+                "x": 4,
+                "y": 11
+              },
+              "over": {
+                "x": 3,
+                "y": 11
+              },
+              "to": {
+                "x": 2,
+                "y": 11
+              },
+              "color": "black"
+            }
+          ]
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 11,
+            "y": 11
+          }
+        },
+        {
+          "type": "jump",
+          "color": "black",
+          "jumps": [
+            {
+              "from": {
+                "x": 15,
+                "y": 12
+              },
+              "over": {
+                "x": 14,
+                "y": 13
+              },
+              "to": {
+                "x": 13,
+                "y": 14
+              },
+              "color": "black"
+            }
+          ]
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 5,
+            "y": 13
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 14,
+            "y": 3
+          }
+        },
+        {
+          "type": "jump",
+          "color": "white",
+          "jumps": [
+            {
+              "from": {
+                "x": 6,
+                "y": 14
+              },
+              "over": {
+                "x": 6,
+                "y": 15
+              },
+              "to": {
+                "x": 6,
+                "y": 16
+              },
+              "color": "white"
+            }
+          ]
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 15,
+            "y": 7
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 14,
+            "y": 4
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 14,
+            "y": 13
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 5,
+            "y": 4
+          }
+        },
+        {
+          "type": "jump",
+          "color": "black",
+          "jumps": [
+            {
+              "from": {
+                "x": 14,
+                "y": 3
+              },
+              "over": {
+                "x": 14,
+                "y": 4
+              },
+              "to": {
+                "x": 14,
+                "y": 5
+              },
+              "color": "black"
+            },
+            {
+              "from": {
+                "x": 14,
+                "y": 5
+              },
+              "over": {
+                "x": 15,
+                "y": 6
+              },
+              "to": {
+                "x": 16,
+                "y": 7
+              },
+              "color": "black"
+            }
+          ]
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 6,
+            "y": 14
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 7,
+            "y": 14
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 6,
+            "y": 7
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 5,
+            "y": 6
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 15,
+            "y": 5
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 3,
+            "y": 3
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 4,
+            "y": 13
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 14,
+            "y": 9
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 11,
+            "y": 7
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 9,
+            "y": 12
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 3,
+            "y": 5
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 11,
+            "y": 3
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 8,
+            "y": 14
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 7,
+            "y": 7
+          }
+        },
+        {
+          "type": "put",
+          "color": "white",
+          "position": {
+            "x": 3,
+            "y": 15
+          }
+        },
+        {
+          "type": "put",
+          "color": "black",
+          "position": {
+            "x": 10,
+            "y": 11
+          }
+        },
+        {
+          "type": "jump",
+          "color": "white",
+          "jumps": [
+            {
+              "from": {
+                "x": 11,
+                "y": 11
+              },
+              "over": {
+                "x": 10,
+                "y": 11
+              },
+              "to": {
+                "x": 9,
+                "y": 11
+              },
+              "color": "white"
+            },
+            {
+              "from": {
+                "x": 9,
+                "y": 11
+              },
+              "over": {
+                "x": 9,
+                "y": 12
+              },
+              "to": {
+                "x": 9,
+                "y": 13
+              },
+              "color": "white"
+            },
+            {
+              "from": {
+                "x": 9,
+                "y": 13
+              },
+              "over": {
+                "x": 10,
+                "y": 14
+              },
+              "to": {
+                "x": 11,
+                "y": 15
+              },
+              "color": "white"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
