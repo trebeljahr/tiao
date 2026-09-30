@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BoardIllustration } from "@/components/public/BoardIllustration";
-import { CaptureDemo } from "@/components/public/CaptureDemo";
 import { EntryRedirect } from "@/components/public/EntryRedirect";
 import { PlatformDownloads } from "@/components/public/PlatformDownloads";
 import { PublicFooter, PublicHeader } from "@/components/public/PublicSite";
@@ -59,18 +58,6 @@ export default async function Page({ params }: Props) {
         <div className={styles.heroArt}>
           <BoardIllustration title={t("boardAlt")} />
         </div>
-      </section>
-      <section className={styles.captureSection} aria-label={t("captureEyebrow")}>
-        <div className={styles.captureCopy}>
-          <p className={styles.eyebrow}>{t("captureEyebrow")}</p>
-          <h2>{t("captureTitle")}</h2>
-          <p>{t("captureIntro")}</p>
-          <p>{t("captureOutro")}</p>
-          <Link className={styles.textLink} href="/rules">
-            {t("learn")} →
-          </Link>
-        </div>
-        <CaptureDemo />
       </section>
       <section className={styles.playSection} aria-labelledby="ways-title">
         <div>
