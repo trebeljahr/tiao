@@ -16,6 +16,7 @@ export interface EmailTransportEnv {
   LISTMONK_API_TOKEN?: string;
   LISTMONK_TX_TEMPLATE_ID?: string;
   LISTMONK_FROM?: string;
+  LISTMONK_REPLY_TO?: string;
   RESEND_API_KEY?: string;
   EMAIL_FROM?: string;
 }
@@ -76,9 +77,11 @@ export function selectEmailTransport(source: EmailTransportEnv): EmailTransportK
  */
 export function listmonkTxBody(
   message: EmailMessage,
-  source: Pick<EmailTransportEnv, "LISTMONK_TX_TEMPLATE_ID" | "LISTMONK_FROM">,
+  source: Pick<EmailTransportEnv, "LISTMONK_TX_TEMPLATE_ID" | "LISTMONK_FROM" | "LISTMONK_REPLY_TO">,
 ) {
+  if (/[\r\n]/.test(source.LISTMONK_REPLY_TO ?? "")) throw new Error("Invalid LISTMONK_REPLY_TO");
   return {
+    ...(source.LISTMONK_REPLY_TO?.trim() ? { headers: [{ "Reply-To": source.LISTMONK_REPLY_TO.trim() }] } : {}),
     subscriber_email: message.to,
     subscriber_mode: "external",
     template_id: Number(source.LISTMONK_TX_TEMPLATE_ID),
