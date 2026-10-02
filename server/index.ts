@@ -19,6 +19,7 @@ import { connectToDB, disconnectFromDB } from "./db";
 import { type DailyJobScheduler, startDiscordLeaderboardJob } from "./discord/leaderboardJob";
 import { GameServiceError, gameService } from "./game/gameService";
 import { createLogger } from "./lib/logger";
+import { beginDrain } from "./lib/readiness";
 import { isAllowedOrigin } from "./lib/wsOrigin";
 
 const log = createLogger("ws");
@@ -340,7 +341,12 @@ async function shutdown(signal: NodeJS.Signals): Promise<void> {
   }
 
   isShuttingDown = true;
-  console.info(`${signal} received. Closing multiplayer server.`);
+  beginDrain();
+  console.info(`${signal} received. Draining multiplayer server for 20 seconds.`);
+
+  // Let Coolify's health check remove this instance from Traefik before
+  // closing sockets. Clients then reconnect to the replacement instance.
+  await new Promise((resolve) => setTimeout(resolve, 20_000));
 
   clearInterval(pruneHandle);
 

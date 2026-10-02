@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import express from "express";
 import { getRedisClient } from "../config/redisClient";
 import { isDatabaseReady } from "../db";
+import { isDraining } from "../lib/readiness";
 
 const router = express.Router();
 
@@ -40,12 +41,10 @@ router.get("/health", async (_: Request, res: Response) => {
   const databaseReady = isDatabaseReady();
   const redisState = await checkRedis();
 
-  // Healthy means: Mongo is connected AND Redis is either not-configured
-  // (in-memory mode) or actually responding. "down" means Redis was
-  // configured but is unreachable — that's a real outage for the
-  // Redis-backed matchmaking/timers/broadcast paths.
-  const redisHealthy = redisState !== "down";
-  const healthy = databaseReady && redisHealthy;
+  // Production requires Mongo and Redis. Development may use the
+  // in-memory fallback when Redis is not configured.
+  const redisHealthy = redisState === "ok" || (process.env.NODE_ENV !== "production" && redisState === "not-configured");
+  const healthy = !isDraining() && databaseReady && redisHealthy;
 
   res.status(healthy ? 200 : 503).json({
     status: healthy ? "ok" : "starting",

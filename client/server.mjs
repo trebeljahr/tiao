@@ -329,6 +329,12 @@ if (glitchtipProxyTarget) console.log(`> Error tunnel: /_e → ${glitchtipProxyT
 const httpServer = createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
 
+  if (url.pathname === "/health") {
+    res.writeHead(draining ? 503 : 200, { "Content-Type": "text/plain", "Cache-Control": "no-store" });
+    res.end(draining ? "draining" : "ok");
+    return;
+  }
+
   if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/ws/")) {
     proxyRequest(req, res);
     return;
@@ -401,3 +407,17 @@ httpServer.on("upgrade", (req, socket, head) => {
 httpServer.listen(port, () => {
   console.log(`> Next.js ready on http://localhost:${port} (${dev ? "dev" : "production"})`);
 });
+
+let draining = false;
+function shutdown(signal) {
+  if (draining) return;
+  draining = true;
+  console.log(`${signal} received. Draining frontend for 20 seconds.`);
+  setTimeout(() => {
+    httpServer.close(() => process.exit(0));
+    httpServer.closeAllConnections();
+    setTimeout(() => process.exit(1), 10_000).unref();
+  }, 20_000);
+}
+process.once("SIGTERM", () => shutdown("SIGTERM"));
+process.once("SIGINT", () => shutdown("SIGINT"));
