@@ -47,7 +47,10 @@
     "lint": "biome lint .",
     "scan:secrets": "gitleaks detect --no-banner --no-git --config .gitleaks.toml",
     "check": "biome check --write .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "backup:status": "hatchkit backup status --project tiao",
+    "backup:list": "hatchkit backup snapshots --project tiao",
+    "backup:restore": "hatchkit backup restore --project tiao"
   },
   "lint-staged": {
     "*.{js,jsx,mjs,cjs,ts,tsx,json,jsonc,css}": [
