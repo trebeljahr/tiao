@@ -1,0 +1,239 @@
+name: Build desktop binaries
+
+# Builds every desktop storefront from one commit. Nothing here uploads to a
+# store: publish-desktop.yml takes a successful signed run of this workflow by
+# run ID, verifies its provenance and hashes, and uploads exactly those bytes.
+# Tags never trigger a build or a publish. See docs/RELEASING-desktop.md.
+#
+# Legs (desktop/scripts/release/lib.mjs, desktopTargets):
+#   macos    universal  direct DMG+ZIP, itch ZIP, Steam app depot (Developer ID, notarized)
+#   windows  x64        direct NSIS+portable, itch ZIP, Steam depot (Azure Artifact Signing)
+#   linux    x64        direct AppImage, itch AppImage, Steam depot (GitHub provenance)
+#   mas      universal  Mac App Store pkg (Apple Distribution + Mac Installer Distribution)
+#   msstore  x64        Microsoft Store AppX (unsigned; Partner Center signs it)
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Build legs
+        type: choice
+        options: [all, desktop, stores, macos, windows, linux, mas, msstore]
+        default: all
+      mode:
+        description: Signed release artifacts or unsigned smoke check
+        type: choice
+        options: [signed, smoke]
+        default: signed
+  pull_request:
+    paths:
+      - "desktop/**"
+      - ".github/workflows/build-desktop.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tiao-desktop-build-${{ github.ref }}-${{ inputs.platform || 'all' }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      mode: ${{ steps.plan.outputs.mode }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+      - id: plan
+        working-directory: desktop
+        env:
+          RELEASE_PLATFORM: ${{ inputs.platform || 'all' }}
+          RELEASE_MODE: ${{ inputs.mode || 'smoke' }}
+        run: node scripts/release/plan.mjs desktop
+      - name: Check one product version
+        working-directory: desktop
+        run: node scripts/release/version.mjs --check
+      - name: Release tool tests
+        working-directory: desktop
+        run: node --test 'scripts/release/*.test.mjs'
+      - name: Validate Steam achievement API names
+        # Steam silently discards unlocks for names it does not know.
+        run: node scripts/steam-achievements.mjs --check
+
+  build:
+    needs: plan
+    name: ${{ matrix.platform }}-${{ matrix.arch }} (${{ needs.plan.outputs.mode }})
+    runs-on: ${{ matrix.runner }}
+    # No `environment:` on this job: Azure's federated credential trusts the
+    # exact subject repo:trebeljahr/tiao:ref:refs/heads/main.
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    env:
+      SIGNED: ${{ needs.plan.outputs.mode == 'signed' }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: |
+            client/pnpm-lock.yaml
+            desktop/pnpm-lock.yaml
+
+      - name: Check signing configuration
+        if: env.SIGNED == 'true'
+        working-directory: desktop
+        env:
+          MAC_CSC_LINK: ${{ matrix.platform == 'macos' && secrets.MAC_CSC_LINK || '' }}
+          MAC_CSC_KEY_PASSWORD: ${{ matrix.platform == 'macos' && secrets.MAC_CSC_KEY_PASSWORD || '' }}
+          APPLE_API_KEY_BASE64: ${{ matrix.platform == 'macos' && secrets.APPLE_API_KEY_BASE64 || '' }}
+          APPLE_API_KEY_ID: ${{ matrix.platform == 'macos' && secrets.APPLE_API_KEY_ID || '' }}
+          APPLE_API_ISSUER_ID: ${{ matrix.platform == 'macos' && secrets.APPLE_API_ISSUER_ID || '' }}
+          MAS_CSC_LINK: ${{ matrix.platform == 'mas' && secrets.MAS_CSC_LINK || '' }}
+          MAS_CSC_KEY_PASSWORD: ${{ matrix.platform == 'mas' && secrets.MAS_CSC_KEY_PASSWORD || '' }}
+          MAS_PROVISIONING_PROFILE_BASE64: ${{ matrix.platform == 'mas' && secrets.MAS_PROVISIONING_PROFILE_BASE64 || '' }}
+          WINDOWS_STORE_IDENTITY_NAME: ${{ vars.WINDOWS_STORE_IDENTITY_NAME }}
+          WINDOWS_STORE_PUBLISHER: ${{ vars.WINDOWS_STORE_PUBLISHER }}
+          WINDOWS_STORE_PUBLISHER_DISPLAY_NAME: ${{ vars.WINDOWS_STORE_PUBLISHER_DISPLAY_NAME }}
+        run: node scripts/release/plan.mjs credentials ${{ matrix.platform }}
+
+      - name: Install client and desktop dependencies
+        run: |
+          pnpm --dir client install --frozen-lockfile
+          pnpm --dir desktop install --frozen-lockfile
+
+      - name: Build the desktop static export
+        run: pnpm --dir client exec next build --webpack
+        env:
+          NEXT_PUBLIC_PLATFORM: desktop
+          NEXT_PUBLIC_DESKTOP_API_URL: https://api.playtiao.com
+
+      - name: Stage client bundle
+        run: >-
+          node -e "require('node:fs').cpSync('client/.next-desktop', 'desktop/client-bundle', { recursive: true })"
+
+      - name: Install pinned Azure signing module
+        if: matrix.platform == 'windows' && env.SIGNED == 'true'
+        shell: pwsh
+        run: Install-Module ArtifactSigning -RequiredVersion 0.1.20 -Repository PSGallery -Scope CurrentUser -Force
+
+      - name: Azure login with repository OIDC
+        if: matrix.platform == 'windows' && env.SIGNED == 'true'
+        uses: azure/login@8216e11d8cd9b42fe925c852af8e76311ff067ac # v2
+        with:
+          client-id: 3b02aa37-f2ac-45aa-a6c2-112f54f2c189
+          tenant-id: ce0c906e-8a84-4877-afd9-cdf103ddaacb
+          subscription-id: 4aaef5a5-286b-46a0-b9e4-84622e8fdc4f
+
+      - name: Stage notarization key
+        if: matrix.platform == 'macos' && env.SIGNED == 'true'
+        env:
+          APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
+        run: |
+          umask 077
+          printf '%s' "$APPLE_API_KEY_BASE64" | base64 --decode > "$RUNNER_TEMP/notarization.p8"
+          echo "APPLE_API_KEY=$RUNNER_TEMP/notarization.p8" >> "$GITHUB_ENV"
+
+      - name: Stage Mac App Store provisioning profile
+        if: matrix.platform == 'mas' && env.SIGNED == 'true'
+        env:
+          MAS_PROVISIONING_PROFILE_BASE64: ${{ secrets.MAS_PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          umask 077
+          printf '%s' "$MAS_PROVISIONING_PROFILE_BASE64" | base64 --decode > "$RUNNER_TEMP/tiao.provisionprofile"
+          echo "MAS_PROVISIONING_PROFILE=$RUNNER_TEMP/tiao.provisionprofile" >> "$GITHUB_ENV"
+
+      - name: Package every channel of this leg
+        working-directory: desktop
+        env:
+          # electron-builder imports CSC_LINK into a throwaway keychain. Auto
+          # discovery must stay on for signed Apple legs or nothing is signed.
+          CSC_IDENTITY_AUTO_DISCOVERY: ${{ (env.SIGNED == 'true' && (matrix.platform == 'macos' || matrix.platform == 'mas')) && 'true' || 'false' }}
+          CSC_LINK: ${{ env.SIGNED == 'true' && (matrix.platform == 'macos' && secrets.MAC_CSC_LINK || matrix.platform == 'mas' && secrets.MAS_CSC_LINK) || '' }}
+          CSC_KEY_PASSWORD: ${{ env.SIGNED == 'true' && (matrix.platform == 'macos' && secrets.MAC_CSC_KEY_PASSWORD || matrix.platform == 'mas' && secrets.MAS_CSC_KEY_PASSWORD) || '' }}
+          APPLE_API_KEY_ID: ${{ env.SIGNED == 'true' && matrix.platform == 'macos' && secrets.APPLE_API_KEY_ID || '' }}
+          APPLE_API_ISSUER: ${{ env.SIGNED == 'true' && matrix.platform == 'macos' && secrets.APPLE_API_ISSUER_ID || '' }}
+          WINDOWS_STORE_IDENTITY_NAME: ${{ matrix.platform == 'msstore' && vars.WINDOWS_STORE_IDENTITY_NAME || '' }}
+          WINDOWS_STORE_PUBLISHER: ${{ matrix.platform == 'msstore' && vars.WINDOWS_STORE_PUBLISHER || '' }}
+          WINDOWS_STORE_PUBLISHER_DISPLAY_NAME: ${{ matrix.platform == 'msstore' && vars.WINDOWS_STORE_PUBLISHER_DISPLAY_NAME || '' }}
+        run: node scripts/release/package.mjs ${{ matrix.platform }} ${{ needs.plan.outputs.mode }}
+
+      - name: Verify Developer ID signatures, notarization and staples
+        if: matrix.platform == 'macos' && env.SIGNED == 'true'
+        working-directory: desktop
+        run: bash scripts/release/verify-macos.sh
+
+      - name: Verify the Mac App Store app and pkg
+        if: matrix.platform == 'mas' && env.SIGNED == 'true'
+        working-directory: desktop
+        run: bash scripts/release/verify-mas.sh
+
+      - name: Verify Windows publisher and timestamps
+        if: matrix.platform == 'windows' && env.SIGNED == 'true'
+        working-directory: desktop
+        shell: pwsh
+        run: ./scripts/verify-windows-signatures.ps1 -DistPath dist
+
+      - name: Verify the AppX identity
+        if: matrix.platform == 'msstore'
+        working-directory: desktop
+        shell: pwsh
+        env:
+          EXPECTED_IDENTITY: ${{ vars.WINDOWS_STORE_IDENTITY_NAME }}
+          EXPECTED_PUBLISHER: ${{ vars.WINDOWS_STORE_PUBLISHER }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $appx = @(Get-ChildItem dist/msstore -Filter *.appx -File)
+          if ($appx.Count -ne 1) { throw 'Expected exactly one AppX' }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $zip = [IO.Compression.ZipFile]::OpenRead($appx[0].FullName)
+          try {
+            $entry = $zip.GetEntry('AppxManifest.xml')
+            $reader = [IO.StreamReader]::new($entry.Open())
+            [xml]$manifest = $reader.ReadToEnd()
+            $reader.Dispose()
+            if ($zip.Entries | Where-Object FullName -match 'steam') { throw 'The AppX contains Steam files' }
+          } finally { $zip.Dispose() }
+          $identity = $manifest.Package.Identity
+          "Identity $($identity.Name) / $($identity.Publisher) / $($identity.Version)"
+          if ($env:SIGNED -eq 'true' -and ($identity.Name -cne $env:EXPECTED_IDENTITY -or $identity.Publisher -cne $env:EXPECTED_PUBLISHER)) {
+            throw 'The AppX identity does not match the Partner Center reservation'
+          }
+
+      - name: Collect packages, Steam depots and checksums
+        working-directory: desktop
+        run: node scripts/release/collect.mjs ${{ matrix.platform }} ${{ matrix.arch }} ${{ needs.plan.outputs.mode }}
+
+      - name: Sign build provenance
+        if: env.SIGNED == 'true'
+        uses: actions/attest@v4
+        with:
+          subject-path: desktop/dist/upload/*
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.SIGNED == 'true' && 'release' || 'smoke' }}-${{ matrix.platform }}-${{ matrix.arch }}
+          path: desktop/dist/upload/*
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+
+      - name: Remove signing material
+        if: always() && runner.os == 'macOS'
+        run: rm -f "$RUNNER_TEMP/notarization.p8" "$RUNNER_TEMP/tiao.provisionprofile"

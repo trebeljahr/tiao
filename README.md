@@ -104,8 +104,7 @@ npm run dev:desktop:prod
 # Package installers for the host platform (unsigned, for alpha testing):
 cd desktop && npm run package
 
-# Steam variant (requires a running Steam client; uses Valve's public
-# Spacewar test app 480 until a real Tiao appid is provisioned):
+# Steam variant (appid 5035580; needs a running Steam client to init):
 cd desktop && npm run package:steam
 ```
 
@@ -125,7 +124,8 @@ Four env vars flip on specific subsystems. All are unset by default so standard 
 - `desktop/README.md` — build / package / signing walkthrough
 - `desktop/src/steam.cjs` — Steamworks integration points (Phase 3b scaffold)
 - `desktop/src/glitchtip.cjs` — main-process crash reporting wrapper
-- `.github/workflows/desktop-release.yml` — CI matrix for unsigned Win/macOS/Linux builds
+- `docs/RELEASING-desktop.md` — signed builds and publishing for direct downloads, itch.io, Steam, Mac App Store and Microsoft Store
+- `.github/workflows/build-desktop.yml` / `publish-desktop.yml` — build once, publish the tested run
 
 ## Documentation
 
