@@ -481,3 +481,41 @@ test("same search id resumes after its socket was lost and refuses a changed tim
     await fixture.close();
   }
 });
+
+test("a delayed ownership notice cannot preempt a newer owner", async () => {
+  const fixture = replicas();
+  const [a, b] = fixture.services;
+  const alice = player("alice");
+  const first = new Socket(),
+    second = new Socket();
+  // Capture the notice from the first claim and redeliver it late to replica B.
+  const notices: string[] = [];
+  const bus = (b as unknown as { broadcaster: { deliver(id: string, m: string): void } })
+    .broadcaster;
+  const originalPublish = (a as unknown as { broadcaster: Bus }).broadcaster.publishLobby.bind(
+    (a as unknown as { broadcaster: Bus }).broadcaster,
+  );
+  (a as unknown as { broadcaster: Bus }).broadcaster.publishLobby = (id, message) => {
+    if (JSON.parse(message).type === "matchmaking:owner") notices.push(message);
+    originalPublish(id, message);
+  };
+  try {
+    await a.connectLobby(alice, first.ws);
+    await b.connectLobby(alice, second.ws);
+    await a.enterMatchmakingViaSocket(alice, null, first.ws, randomUUID());
+    await b.enterMatchmakingViaSocket(alice, null, second.ws, randomUUID());
+    assert.ok(first.sent.some((m) => m.type === "matchmaking:preempted"));
+    assert.equal(notices.length, 1);
+    bus.deliver(alice.playerId, notices[0]);
+    assert.equal(
+      second.sent.some((m) => m.type === "matchmaking:preempted"),
+      false,
+      "stale first-claim notice must not preempt the newer owner",
+    );
+    assert.equal((await b.getMatchmakingState(alice)).status, "searching");
+  } finally {
+    first.close();
+    second.close();
+    await fixture.close();
+  }
+});

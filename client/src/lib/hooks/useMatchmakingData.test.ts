@@ -556,3 +556,74 @@ describe("reload-safe matchmaking intent", () => {
     expect(window.sessionStorage.getItem("tiao:matchmaking-search:v1")).toBeNull();
   });
 });
+
+describe("lobby greeting and cancel races", () => {
+  beforeEach(() => {
+    sendMessageMock.mockReset();
+    lobbyHandler = null;
+    window.sessionStorage.clear();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("an untagged idle greeting on reconnect does not cancel a live search", async () => {
+    const { result } = renderHook(() => useMatchmakingData(mockAuth, vi.fn()));
+    await act(async () => {
+      await result.current.handleEnterMatchmaking();
+    });
+    const { attemptId } = sendMessageMock.mock.calls[0][0] as { attemptId: string };
+    act(() =>
+      pushMessage({
+        type: "matchmaking:state",
+        state: { status: "searching", queuedAt: new Date().toISOString() },
+        attemptId,
+      }),
+    );
+    act(() => pushMessage({ type: "lobby:open" }));
+    act(() => pushMessage({ type: "matchmaking:state", state: { status: "idle" } }));
+    expect(result.current.matchmaking.status).toBe("searching");
+    expect(sendMessageMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("an untagged idle greeting does not undo a match that is being opened", async () => {
+    const onMatched = vi.fn();
+    const { result } = renderHook(() => useMatchmakingData(mockAuth, onMatched));
+    await act(async () => {
+      await result.current.handleEnterMatchmaking();
+    });
+    act(() => pushMessage({ type: "matchmaking:matched", snapshot: mockSnapshot }));
+    act(() => pushMessage({ type: "matchmaking:state", state: { status: "idle" } }));
+    expect(result.current.matchmaking.status).toBe("matched");
+  });
+
+  it("joins a match that committed while the cancel was in flight", async () => {
+    const onMatched = vi.fn();
+    const { result } = renderHook(() => useMatchmakingData(mockAuth, onMatched));
+    await act(async () => {
+      await result.current.handleEnterMatchmaking();
+    });
+    const { attemptId } = sendMessageMock.mock.calls[0][0] as { attemptId: string };
+    await act(async () => {
+      await result.current.handleCancelMatchmaking();
+    });
+    act(() => pushMessage({ type: "matchmaking:matched", snapshot: mockSnapshot, attemptId }));
+    expect(onMatched).toHaveBeenCalledWith(mockSnapshot);
+  });
+
+  it("ignores a cancelled search's match after the race window", async () => {
+    vi.useFakeTimers();
+    const onMatched = vi.fn();
+    const { result } = renderHook(() => useMatchmakingData(mockAuth, onMatched));
+    await act(async () => {
+      await result.current.handleEnterMatchmaking();
+    });
+    const { attemptId } = sendMessageMock.mock.calls[0][0] as { attemptId: string };
+    await act(async () => {
+      await result.current.handleCancelMatchmaking();
+    });
+    vi.setSystemTime(Date.now() + 16_000);
+    act(() => pushMessage({ type: "matchmaking:matched", snapshot: mockSnapshot, attemptId }));
+    expect(onMatched).not.toHaveBeenCalled();
+  });
+});

@@ -134,6 +134,8 @@ export class GameService {
    * without a match.
    */
   private readonly preemptedMatchmakingSockets = new Map<string, Set<WebSocket>>();
+  /** Latest ownership claim order seen per player on this replica. */
+  private readonly ownerSeqs = new Map<string, number>();
   private readonly socketRooms = new Map<WebSocket, string>();
   private readonly presenceIds = new Map<WebSocket, string>();
   /** In-memory spectator identities: roomId -> (playerId -> PlayerIdentity) */
@@ -207,8 +209,15 @@ export class GameService {
           type?: string;
           ownerId?: string | null;
           attemptId?: string;
+          seq?: number;
         };
         if (control.type === "matchmaking:owner") {
+          // Pub/Sub is not ordered with the lock-protected claim path. Ignore a
+          // notice older than a claim or release this replica already knows.
+          if (typeof control.seq === "number") {
+            if (control.seq < (this.ownerSeqs.get(target) ?? 0)) return;
+            this.ownerSeqs.set(target, control.seq);
+          }
           const owner = this.matchmakingSocketByPlayer.get(target);
           if (owner && this.presenceIds.get(owner) !== control.ownerId) {
             this.matchmakingSocketByPlayer.delete(target);
@@ -419,6 +428,7 @@ export class GameService {
 
       if (userSockets?.size === 0) {
         this.lobbyConnections.delete(player.playerId);
+        this.ownerSeqs.delete(player.playerId);
         this.broadcaster.unsubscribeLobby(player.playerId);
       }
     });
@@ -1382,7 +1392,7 @@ export class GameService {
       attemptId: string;
       durable?: boolean;
       assertOpen?: () => void;
-      onClaim?: () => void;
+      onClaim?: (ownerSeq: number) => void;
     },
   ): Promise<MatchmakingState> {
     return this.withLock(this.matchmakingLockKey(), async () => {
@@ -1432,7 +1442,7 @@ export class GameService {
           (existingEntry.ownerId === ownership.ownerId &&
             existingEntry.attemptId === ownership.attemptId))
       ) {
-        ownership?.onClaim?.();
+        if (ownership) ownership.onClaim?.(await this.matchmaking.nextOwnerSeq(player.playerId));
         return {
           status: "searching",
           queuedAt: new Date(existingEntry.queuedAt).toISOString(),
@@ -1442,12 +1452,15 @@ export class GameService {
 
       if (existingEntry) await this.matchmaking.removeFromQueue(player.playerId);
       const attemptId = ownership?.attemptId ?? `${player.playerId}:server-${randomUUID()}`;
-      ownership?.onClaim?.();
-      if (ownership)
+      if (ownership) {
+        const seq = await this.matchmaking.nextOwnerSeq(player.playerId);
+        ownership.onClaim?.(seq);
         this.broadcastLobby(player.playerId, {
           type: "matchmaking:owner",
           ownerId: ownership.ownerId,
+          seq,
         });
+      }
       const playerRating = player.rating ?? DEFAULT_RATING;
       const opponentEntry = await this.matchmaking.findOpponent(
         player.playerId,
@@ -1591,7 +1604,11 @@ export class GameService {
         if (socket.readyState !== WebSocket.OPEN)
           throw new GameServiceError(409, "SEARCH_DISCONNECTED", "Reconnect before searching.");
       },
-      onClaim: () => {
+      onClaim: (ownerSeq) => {
+        this.ownerSeqs.set(
+          player.playerId,
+          Math.max(ownerSeq, this.ownerSeqs.get(player.playerId) ?? 0),
+        );
         if (socket.readyState !== WebSocket.OPEN)
           throw new GameServiceError(409, "SEARCH_DISCONNECTED", "Reconnect before searching.");
         const existingSocket = this.matchmakingSocketByPlayer.get(player.playerId);
@@ -1637,7 +1654,7 @@ export class GameService {
       // followed a committed match whose reply never reached the browser.
       if (!removed) return;
       if (explicit) {
-        this.broadcastLobby(player.playerId, { type: "matchmaking:owner", ownerId: null });
+        await this.releaseOwnership(player.playerId);
         return;
       }
       // Transport loss (reload, rolling restart) gives the owner its reconnect
@@ -1646,15 +1663,18 @@ export class GameService {
         this.lobbyDisconnectTimers.delete(timer);
         void this.matchmaking
           .findEntry(player.playerId)
-          .then((entry) => {
-            if (!entry)
-              this.broadcastLobby(player.playerId, { type: "matchmaking:owner", ownerId: null });
-          })
+          .then((entry) => (entry ? undefined : this.releaseOwnership(player.playerId)))
           .catch(() => undefined);
       }, this.preemptedWakeDelayMs);
       timer.unref();
       this.lobbyDisconnectTimers.add(timer);
     });
+  }
+
+  /** Announce that no socket owns the search; ordered after every earlier claim. */
+  private async releaseOwnership(playerId: string): Promise<void> {
+    const seq = await this.matchmaking.nextOwnerSeq(playerId);
+    this.broadcastLobby(playerId, { type: "matchmaking:owner", ownerId: null, seq });
   }
 
   private assertSearchInput(previous: TimeControl, current: TimeControl): void {

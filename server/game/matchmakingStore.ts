@@ -31,6 +31,8 @@ export interface MatchmakingStore {
   getMatch(playerId: string): Promise<string | null>;
   deleteMatch(playerId: string): Promise<void>;
   getAllEntries(): Promise<MatchmakingQueueEntry[]>;
+  /** Per-account order of ownership claims, shared by every replica. */
+  nextOwnerSeq(playerId: string): Promise<number>;
 }
 
 function timeControlsMatch(a: TimeControl, b: TimeControl): boolean {
@@ -141,11 +143,19 @@ export class InMemoryMatchmakingStore implements MatchmakingStore {
   async getAllEntries(): Promise<MatchmakingQueueEntry[]> {
     return [...this.queue];
   }
+
+  private ownerSeqs = new Map<string, number>();
+  async nextOwnerSeq(playerId: string): Promise<number> {
+    const seq = (this.ownerSeqs.get(playerId) ?? 0) + 1;
+    this.ownerSeqs.set(playerId, seq);
+    return seq;
+  }
 }
 
 const QUEUE_KEY = "tiao:matchmaking:queue";
 const MATCH_PREFIX = "tiao:matchmaking:match:";
 const MATCH_TTL_SECONDS = 300;
+const OWNER_SEQ_PREFIX = "tiao:matchmaking:owner-seq:";
 
 /**
  * Redis-backed matchmaking for multi-instance deployments.
@@ -293,5 +303,14 @@ export class RedisMatchmakingStore implements MatchmakingStore {
   async getAllEntries(): Promise<MatchmakingQueueEntry[]> {
     const members = await this.redis.zrange(QUEUE_KEY, 0, -1);
     return members.map((raw) => JSON.parse(raw) as MatchmakingQueueEntry);
+  }
+
+  async nextOwnerSeq(playerId: string): Promise<number> {
+    const key = OWNER_SEQ_PREFIX + playerId;
+    const [[, seq]] = (await this.redis.multi().incr(key).expire(key, 86_400).exec()) as [
+      [Error | null, number],
+      [Error | null, number],
+    ];
+    return seq;
   }
 }

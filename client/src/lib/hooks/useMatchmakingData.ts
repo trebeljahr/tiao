@@ -31,6 +31,8 @@ type SavedSearch = {
 // a forgotten tab can revive an old search.
 const SAVED_SEARCH_KEY = "tiao:matchmaking-search:v1";
 const SAVED_SEARCH_TTL_MS = 15 * 60_000;
+// A match can commit while a cancel is in flight; honour it only this long.
+const CANCEL_RACE_MS = 15_000;
 
 function sameTimeControl(a: TimeControl, b: TimeControl): boolean {
   return a === null || b === null
@@ -116,6 +118,7 @@ export function useMatchmakingData(
 
   // Refs so the unmount effect can read the latest state without re-running.
   const errorStreakRef = useRef(0);
+  const cancelledSearchRef = useRef<{ attemptId: string; at: number } | null>(null);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(retryTimerRef.current), []);
   const statusRef = useRef(matchmaking.status);
@@ -145,6 +148,31 @@ export function useMatchmakingData(
       return;
     }
     const msg = payload as LobbyServerMessage;
+    const cancelled = cancelledSearchRef.current;
+    if (
+      msg.type === "matchmaking:matched" &&
+      msg.attemptId &&
+      !searchRef.current &&
+      cancelled?.attemptId === msg.attemptId &&
+      Date.now() - cancelled.at < CANCEL_RACE_MS
+    ) {
+      // The match committed before the cancel reached the server. The room
+      // exists and the opponent is waiting, so join it rather than strand them.
+      cancelledSearchRef.current = null;
+      setMatchmaking({ status: "matched", snapshot: msg.snapshot });
+      setMatchmakingBusy(false);
+      onMatchedRef.current(msg.snapshot);
+      return;
+    }
+    // Servers greet every new lobby connection with an untagged idle state for
+    // older clients. It must not cancel a live search or a match being opened.
+    if (
+      msg.type === "matchmaking:state" &&
+      msg.state.status === "idle" &&
+      !msg.attemptId &&
+      (searchRef.current || statusRef.current === "matched")
+    )
+      return;
     if (
       (msg.type === "matchmaking:matched" ||
         msg.type === "matchmaking:state" ||
@@ -222,6 +250,7 @@ export function useMatchmakingData(
       if (!auth || searchOwnerRef.current !== auth.player.playerId) return;
       setMatchmakingBusy(true);
       if (!searchRef.current) {
+        cancelledSearchRef.current = null;
         const requested = timeControl ?? null;
         const saved = loadSavedSearch(auth.player.playerId);
         searchRef.current =
@@ -237,6 +266,8 @@ export function useMatchmakingData(
   );
 
   const handleCancelMatchmaking = useCallback(async () => {
+    if (searchRef.current)
+      cancelledSearchRef.current = { attemptId: searchRef.current.attemptId, at: Date.now() };
     searchRef.current = null;
     clearSavedSearch();
     setMatchmakingBusy(true);
