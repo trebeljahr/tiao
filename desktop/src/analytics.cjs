@@ -49,7 +49,12 @@ const PREFS_FILE = "tiao-analytics.json";
 const OPENPANEL_CLIENT_ID = process.env.TIAO_OPENPANEL_CLIENT_ID || "";
 const OPENPANEL_API_URL =
   process.env.TIAO_OPENPANEL_API_URL || "https://analytics-api.trebeljahr.com";
-const APP_VERSION = process.env.TIAO_DESKTOP_VERSION || "dev";
+// The packaged package.json version is the release version (env vars do
+// not survive packaging); TIAO_DESKTOP_VERSION remains a dev override.
+// Read lazily: track() only runs after app.whenReady().
+function appVersion() {
+  return process.env.TIAO_DESKTOP_VERSION || (app.isPackaged ? app.getVersion() : "dev");
+}
 
 /**
  * @typedef {{ enabled: boolean; deviceId: string }} AnalyticsPrefs
@@ -135,7 +140,7 @@ function track(name, properties = {}) {
         ...properties,
         platform: "desktop",
         os: process.platform,
-        app_version: APP_VERSION,
+        app_version: appVersion(),
       },
       deviceId: prefs.deviceId,
     },
@@ -156,7 +161,7 @@ function track(name, properties = {}) {
     headers: {
       "Content-Type": "application/json",
       "openpanel-client-id": OPENPANEL_CLIENT_ID,
-      "user-agent": `TiaoDesktop/${APP_VERSION} (${process.platform})`,
+      "user-agent": `TiaoDesktop/${appVersion()} (${process.platform})`,
     },
     body: JSON.stringify(payload),
     signal: AbortSignal.timeout(5000),

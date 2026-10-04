@@ -96,7 +96,7 @@ function initGlitchtip() {
   Sentry.init({
     dsn,
     environment: "production",
-    release: process.env.TIAO_DESKTOP_VERSION || "dev",
+    release: process.env.TIAO_DESKTOP_VERSION || app.getVersion(),
     // Tag every event as coming from the main process so the
     // dashboard can separate these from renderer / server errors
     // if they ever land in the same project by accident.

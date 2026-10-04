@@ -12,8 +12,8 @@
  *   - Steam init fails (Steam client not running, wrong appid, etc.).
  *
  * The "active" paths can't be unit-tested without a live Steam
- * client; they're verified manually against the Spacewar appid (480)
- * during release prep.
+ * client; they're verified manually through a Steam beta branch of
+ * appid 5035580 during release prep.
  */
 
 const { test, describe } = require("node:test");
@@ -53,14 +53,18 @@ describe("steam module gating", () => {
     assert.equal(STEAM_ENABLED, fromEnv || fromMeta);
   });
 
-  test("STEAM_APPID falls back to Valve's Spacewar test app", () => {
-    // 480 is the placeholder until a real appid is provisioned via the
-    // Partner Portal. If this assertion starts failing because a real
-    // appid was baked in, that's the good outcome — update it.
+  test("STEAM_APPID falls back to Tiao's own appid", () => {
     const explicit =
       Number.parseInt(process.env.TIAO_STEAM_APPID ?? "", 10) ||
       Number.parseInt(String(pkg.steamAppId ?? ""), 10);
-    assert.equal(STEAM_APPID, explicit || 480);
+    assert.equal(STEAM_APPID, explicit || 5035580);
+  });
+
+  test("steam_appid.txt keeps dev pointed at Tiao, not Spacewar", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const text = fs.readFileSync(path.join(__dirname, "..", "steam_appid.txt"), "utf8").trim();
+    assert.equal(text, "5035580");
   });
 
   test("initSteam returns false and isSteamActive stays false when gate off", () => {

@@ -12,8 +12,8 @@
  *      `npm run dev` with the var set exercises the Steam code path
  *      against a locally running Steam client.
  *   2. `steamBuild: true` in the app's own package.json — the
- *      *packaged* path.  `npm run package:steam` injects this via
- *      electron-builder's `--config.extraMetadata`, so the flag
+ *      *packaged* path.  The steam channel of electron-builder.config.cjs
+ *      injects this via `extraMetadata`, so the flag
  *      travels inside the artifact.
  *
  * (2) exists because env vars do NOT survive packaging.  Steam
@@ -64,11 +64,10 @@
  *
  * ## Current state
  *
- * The default appid is Valve's public Spacewar test app (480),
- * which anyone with a Steam account can init against — useful for
- * verifying the SDK loads at all.  A real Tiao appid must be
- * provisioned via the Steam Partner Portal before release and
- * passed as `TIAO_STEAM_APPID` at package time.
+ * The default appid is Tiao's own (5035580, Ricos Labs LLC).  The
+ * Steam build bakes it into package.json as `steamAppId`;
+ * `TIAO_STEAM_APPID` overrides it in dev (e.g. Valve's public
+ * Spacewar test app for an account that does not own Tiao).
  *
  * ## Exposed surface
  *
@@ -93,7 +92,7 @@
 
 /**
  * Build metadata baked into the packaged app's package.json by
- * `package:steam` (electron-builder `--config.extraMetadata.*`).
+ * the steam channel (electron-builder `extraMetadata`).
  * Absent in dev and in standalone builds, hence the try/catch.
  *
  * @type {{ steamBuild?: boolean | string; steamAppId?: number | string }}
@@ -120,17 +119,12 @@ const STEAM_ENABLED =
   bakedMeta.steamBuild === true ||
   bakedMeta.steamBuild === "true";
 
-/**
- * App ID used when nothing else specifies one.  480 is Valve's
- * public Spacewar test app — achievements, stats, and callbacks
- * all work against it for anyone with a Steam account, which makes
- * it useful as a scaffolding placeholder.
- */
-const SPACEWAR_APPID = 480;
+/** Tiao's Steam appid, used when nothing else specifies one. */
+const TIAO_STEAM_APPID = 5035580;
 const STEAM_APPID =
   Number.parseInt(process.env.TIAO_STEAM_APPID ?? "", 10) ||
   Number.parseInt(String(bakedMeta.steamAppId ?? ""), 10) ||
-  SPACEWAR_APPID;
+  TIAO_STEAM_APPID;
 
 /**
  * `steamworks.js` client instance once initialized.  Kept module-local

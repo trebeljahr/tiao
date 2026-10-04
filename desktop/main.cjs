@@ -40,6 +40,7 @@ const {
   flush: flushGlitchtip,
 } = require("./src/glitchtip.cjs");
 const { resolveApiUrl } = require("./src/config.cjs");
+const { DISTRIBUTION_CHANNEL } = require("./src/distribution.cjs");
 const {
   STEAM_ENABLED,
   maybeRestartForSteam,
@@ -151,7 +152,11 @@ if (process.defaultApp) {
       path.resolve(process.argv[1]),
     ]);
   }
-} else {
+} else if (!(/** @type {NodeJS.Process & { mas?: boolean }} */ (process).mas)) {
+  // Mac App Store builds register tiao:// through CFBundleURLTypes in
+  // Info.plist (electron-builder's `protocols`); LaunchServices picks
+  // that up on install, and the sandbox has no business rewriting the
+  // system's default handler table.
   app.setAsDefaultProtocolClient(DEEP_LINK_SCHEME);
 }
 
@@ -261,6 +266,7 @@ function bootstrap() {
   track("desktop:app_start", {
     packaged: app.isPackaged,
     steam: STEAM_ENABLED ? (steamOk ? "active" : "init_failed") : "off",
+    channel: DISTRIBUTION_CHANNEL,
   });
 
   // Check whether the bundled static export is reachable BEFORE we
@@ -288,6 +294,9 @@ function bootstrap() {
       // closed is still a Steam build and still bound by Valve's
       // rules about external payment.
       isSteamBuild: STEAM_ENABLED,
+      // Which storefront shipped this binary (direct | itch | steam |
+      // mas | msstore). Baked at package time; see src/distribution.cjs.
+      distributionChannel: DISTRIBUTION_CHANNEL,
     },
   });
   track("desktop:window_created", HMR_RENDERER_URL ? { hmr: true } : undefined);

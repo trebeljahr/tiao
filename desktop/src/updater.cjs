@@ -22,9 +22,10 @@
  *     can enable updates with zero code changes — the maintainer
  *     just sets `TIAO_ENABLE_UPDATER=1` in the release env.
  *
- * Independently of that gate, the updater is hard-disabled on Steam
- * builds: Steam owns the installed files and ships updates through
- * SteamPipe.  See the comment in `maybeInitUpdater`.
+ * Independently of that gate, the updater is hard-disabled on every
+ * store channel (Steam, itch, Mac App Store, Microsoft Store): each
+ * store owns the installed files and ships updates itself.  Only the
+ * `direct` channel may self-update — see src/distribution.cjs.
  *
  * The update UX on first release is intentionally minimal:
  * `autoDownload = false` so we can surface a "Download update?"
@@ -35,7 +36,7 @@
 
 const { app, dialog, autoUpdater: _electronNativeUpdater } = require("electron");
 
-const { STEAM_ENABLED } = require("./steam.cjs");
+const { DISTRIBUTION_CHANNEL, channelAllowsSelfUpdate } = require("./distribution.cjs");
 
 // Lazy-load electron-updater so the dependency can be absent in dev
 // without crashing — the module is only required when we know
@@ -61,20 +62,17 @@ function maybeInitUpdater() {
     console.info("[updater] skipped (dev mode)");
     return;
   }
-  // Steam builds must never self-update. Steam owns the installed
-  // files: it verifies them against the depot manifest, and content
-  // it did not write is reverted on the next validation — so an
-  // electron-updater `quitAndInstall()` either gets undone or leaves
-  // the install in a state Steam considers corrupt. Valve requires
-  // updates to ship through SteamPipe.
+  // Store builds must never self-update. Steam verifies installed files
+  // against its depot manifest and reverts what it did not write; itch
+  // patches through butler; the Mac App Store sandbox and MSIX installs
+  // cannot write their own bundle at all. Valve, Apple and Microsoft all
+  // require updates to ship through the store.
   //
-  // This check sits ABOVE the TIAO_ENABLE_UPDATER gate deliberately.
-  // That gate is documented as temporary ("flip the default to
-  // always-on in a one-line follow-up commit"), and when it flips,
-  // this is the only thing standing between a Steam build and a
-  // self-inflicted update loop.
-  if (STEAM_ENABLED) {
-    console.info("[updater] skipped (Steam build — updates ship via SteamPipe)");
+  // This check sits ABOVE the TIAO_ENABLE_UPDATER gate deliberately: when
+  // that gate flips to always-on, this is the only thing standing between
+  // a store build and a self-inflicted update loop.
+  if (!channelAllowsSelfUpdate(DISTRIBUTION_CHANNEL)) {
+    console.info(`[updater] skipped (${DISTRIBUTION_CHANNEL} build — the store ships updates)`);
     return;
   }
   if (process.env.TIAO_ENABLE_UPDATER !== "1") {
