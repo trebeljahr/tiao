@@ -16,11 +16,12 @@
  * Turbopack pull it in as a separate chunk via `next/dynamic`.
  */
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 // Barrel import is fine — Next.js's `optimizePackageImports` includes
 // `react-icons/*` by default and rewrites this into per-icon imports
 // at compile time. No manual sub-path imports needed.
-import { FaDiscord, FaGithub, FaGoogle } from "react-icons/fa";
+import { FaApple, FaDiscord, FaGithub, FaGoogle } from "react-icons/fa";
 import { toast } from "sonner";
 import type { AuthDialogMode } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -28,15 +29,37 @@ import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { useAuth } from "@/lib/AuthContext";
+import { useAppleSignInEnabled } from "@/lib/authProviders";
+
+/**
+ * Sign in with Apple, styled per Apple's HIG: black fill, white Apple
+ * logo, Apple's own button title, at least as prominent as the other
+ * provider buttons (it gets its own full-width row above them).
+ */
+export function AppleSignInButton({ onClick }: { onClick: () => void }) {
+  const t = useTranslations("common");
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-black px-4 text-[15px] font-medium text-white transition-colors hover:bg-black/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40 focus-visible:ring-offset-2"
+    >
+      <FaApple aria-hidden="true" className="h-[18px] w-[18px]" />
+      {t("continueWithApple")}
+    </button>
+  );
+}
 
 function OAuthButtons() {
   const { handleOAuthSignIn } = useAuth();
+  const appleEnabled = useAppleSignInEnabled();
 
   return (
     <div className="space-y-2">
       <p className="text-center text-xs font-semibold uppercase tracking-wider text-[#7b6550]">
         Or continue with
       </p>
+      {appleEnabled && <AppleSignInButton onClick={() => void handleOAuthSignIn("apple")} />}
       <div className="flex gap-2">
         <Button
           type="button"

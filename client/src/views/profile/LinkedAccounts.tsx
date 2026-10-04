@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { FaDiscord, FaGithub, FaGoogle } from "react-icons/fa";
+import { FaApple, FaDiscord, FaGithub, FaGoogle } from "react-icons/fa";
 import { toast } from "sonner";
 import { AnimatedCard } from "@/components/ui/animated-card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { PaperCard } from "@/components/ui/paper-card";
 import { PasswordInput } from "@/components/ui/password-input";
 import { setAccountPassword } from "@/lib/api";
 import { getAuthClient } from "@/lib/auth-client";
+import { type SocialProvider, useAppleSignInEnabled } from "@/lib/authProviders";
 import { readableError, toastError } from "@/lib/errors";
 import { unlinkProviderAccount } from "@/lib/unlinkProviderAccount";
 
@@ -18,6 +19,7 @@ export const SOCIAL_PROVIDERS = [
   { id: "github" as const, label: "GitHub", icon: FaGithub },
   { id: "google" as const, label: "Google", icon: FaGoogle },
   { id: "discord" as const, label: "Discord", icon: FaDiscord },
+  { id: "apple" as const, label: "Apple", icon: FaApple },
 ];
 
 type LinkedAccountsProps = {
@@ -44,11 +46,15 @@ export function LinkedAccounts({
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [savingPassword, setSavingPassword] = useState(false);
 
+  const appleEnabled = useAppleSignInEnabled();
+  const linkableProviders = SOCIAL_PROVIDERS.filter(
+    (p) => !providers.includes(p.id) && (p.id !== "apple" || appleEnabled),
+  );
   const linkedProviders = providers.filter((p) => p !== "credential");
   const unlinkableProviders = providers.length > 1;
   const hasCredential = providers.includes("credential");
 
-  async function handleLink(provider: "github" | "google" | "discord") {
+  async function handleLink(provider: SocialProvider) {
     setBusy(provider);
     try {
       const settingsURL = window.location.origin + "/settings";
@@ -200,7 +206,7 @@ export function LinkedAccounts({
             )}
 
             {/* Link new providers */}
-            {(SOCIAL_PROVIDERS.some((p) => !providers.includes(p.id)) || !hasCredential) && (
+            {(linkableProviders.length > 0 || !hasCredential) && (
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wider text-[#7b6550]">
                   {t("linkNewAccount")}
@@ -224,22 +230,20 @@ export function LinkedAccounts({
                       {t("addPasswordLogin")}
                     </Button>
                   )}
-                  {SOCIAL_PROVIDERS.filter((p) => !providers.includes(p.id)).map(
-                    ({ id, label, icon: Icon }) => (
-                      <Button
-                        key={id}
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={busy === id}
-                        onClick={() => void handleLink(id)}
-                        className="gap-2"
-                      >
-                        <Icon className="h-4 w-4" />
-                        {busy === id ? t("linking") : label}
-                      </Button>
-                    ),
-                  )}
+                  {linkableProviders.map(({ id, label, icon: Icon }) => (
+                    <Button
+                      key={id}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={busy === id}
+                      onClick={() => void handleLink(id)}
+                      className="gap-2"
+                    >
+                      <Icon className="h-4 w-4" />
+                      {busy === id ? t("linking") : label}
+                    </Button>
+                  ))}
                 </div>
               </div>
             )}

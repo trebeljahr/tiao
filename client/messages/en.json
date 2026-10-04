@@ -66,6 +66,7 @@
     "oauthErrorUserExists": "An account with that email already exists. Try logging in instead.",
     "oauthErrorCreateFailed": "Could not create your account. Please try again.",
     "oauthErrorAccessDenied": "Access was denied. Please try again and authorize the app.",
+    "continueWithApple": "Continue with Apple",
     "desktopPersistenceWarning": "Sign-in won't be saved between sessions — secure storage is unavailable on this device.",
     "copiedEmbedCode": "Copied embed code"
   },

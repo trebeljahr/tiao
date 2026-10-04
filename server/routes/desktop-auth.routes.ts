@@ -47,7 +47,7 @@ import { desktopSessionStore } from "../auth/desktopSessionStore";
  * callable from the Electron main process.
  */
 
-const ALLOWED_PROVIDERS = new Set(["google", "github", "discord"]);
+const ALLOWED_PROVIDERS = new Set(["google", "github", "discord", "apple"]);
 
 export function isValidDesktopProvider(provider: unknown): provider is string {
   return typeof provider === "string" && ALLOWED_PROVIDERS.has(provider);
@@ -68,7 +68,7 @@ router.get("/start", async (req: Request, res: Response) => {
     if (!isValidDesktopProvider(provider)) {
       return res.status(400).json({
         code: "INVALID_PROVIDER",
-        message: "provider must be one of: google, github, discord",
+        message: "provider must be one of: google, github, discord, apple",
       });
     }
     if (typeof state !== "string" || state.length === 0 || state.length > 256) {
@@ -86,7 +86,7 @@ router.get("/start", async (req: Request, res: Response) => {
 
     const baResponse = await auth.api.signInSocial({
       body: {
-        provider: provider as "google" | "github" | "discord",
+        provider: provider as "google" | "github" | "discord" | "apple",
         callbackURL,
       },
       asResponse: true,

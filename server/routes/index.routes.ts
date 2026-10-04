@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import express from "express";
+import { getEnabledSocialProviders } from "../auth/socialProviders";
 import { getRedisClient } from "../config/redisClient";
 import { isDatabaseReady } from "../db";
 import { gameService } from "../game/gameService";
@@ -9,6 +10,15 @@ const router = express.Router();
 
 router.get("/", (_: Request, res: Response, _next: NextFunction) => {
   res.json("All good in here");
+});
+
+// Which social sign-in buttons the client may show. Env is fixed for the
+// life of the process, so compute once.
+const enabledSocialProviders = getEnabledSocialProviders();
+
+router.get("/auth-providers", (_: Request, res: Response) => {
+  res.set("Cache-Control", "public, max-age=300");
+  res.json({ providers: enabledSocialProviders });
 });
 
 const REDIS_PING_TIMEOUT_MS = 500;

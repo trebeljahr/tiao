@@ -66,6 +66,7 @@
     "oauthErrorUserExists": "Ya existe una cuenta con ese correo electrónico. Intenta iniciar sesión.",
     "oauthErrorCreateFailed": "No se pudo crear tu cuenta. Por favor, inténtalo de nuevo.",
     "oauthErrorAccessDenied": "Acceso denegado. Inténtalo de nuevo y autoriza la aplicación.",
+    "continueWithApple": "Continuar con Apple",
     "desktopPersistenceWarning": "El inicio de sesión no se guardará entre sesiones — el almacenamiento seguro no está disponible en este dispositivo.",
     "copiedEmbedCode": "Código de inserción copiado"
   },

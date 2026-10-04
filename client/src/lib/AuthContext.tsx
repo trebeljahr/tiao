@@ -20,6 +20,7 @@ import {
   setElectronTokenCache,
 } from "@/lib/api";
 import { getAuthClient } from "@/lib/auth-client";
+import type { SocialProvider } from "@/lib/authProviders";
 import { isNetworkError, readableError, toastError } from "@/lib/errors";
 import { setUser as setGlitchtipUser } from "@/lib/glitchtip";
 import { op, setAuthReady } from "@/lib/openpanel";
@@ -67,7 +68,7 @@ export interface AuthContextValue {
   handleLoginSubmit: () => Promise<void>;
   handleSignupSubmit: () => Promise<void>;
   handleForgotPassword: (email: string) => Promise<boolean>;
-  handleOAuthSignIn: (provider: "github" | "google" | "discord") => Promise<void>;
+  handleOAuthSignIn: (provider: SocialProvider) => Promise<void>;
   onLogout: () => Promise<void>;
 }
 
@@ -508,7 +509,7 @@ export function AuthProvider({
     }
   }, []);
 
-  const handleOAuthSignIn = useCallback(async (provider: "github" | "google" | "discord") => {
+  const handleOAuthSignIn = useCallback(async (provider: SocialProvider) => {
     try {
       // Desktop Electron: route through the IPC bridge which opens the
       // system browser, completes OAuth at api.playtiao.com, receives

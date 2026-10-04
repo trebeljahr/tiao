@@ -93,7 +93,7 @@ contextBridge.exposeInMainWorld("electron", {
 
   auth: {
     /**
-     * @param {"github"|"google"|"discord"} provider
+     * @param {"github"|"google"|"discord"|"apple"} provider
      * @returns {Promise<{ ok: true } | { ok: false; reason: string }>}
      */
     startOAuth: (provider) => ipcRenderer.invoke("auth:startOAuth", provider),

@@ -8,6 +8,7 @@ import { identify, track } from "../analytics/openpanel";
 import { FRONTEND_URL, MONGODB_URI, PORT, TOKEN_SECRET } from "../config/envVars";
 import { generateFunAnonymousName } from "../game/playerTokens";
 import GameAccount from "../models/GameAccount";
+import { APPLE_ORIGIN, buildAppleProviderOptions, readAppleConfig } from "./appleSignIn";
 import { sendPasswordResetEmail, sendVerificationEmail } from "./email";
 
 // Bcrypt is deliberately slow; 10 rounds is ~100ms which is fine in
@@ -22,6 +23,10 @@ const SALT_ROUNDS = process.env.NODE_ENV === "test" ? 4 : 10;
 // Use a standalone MongoClient for better-auth — Mongoose's connection isn't
 // ready at module load time, but better-auth needs a client immediately.
 const mongoClient = new MongoClient(MONGODB_URI);
+
+// Sign in with Apple (App Store guideline 4.8). Off unless every
+// APPLE_* env var is set; see auth/appleSignIn.ts.
+const appleConfig = readAppleConfig();
 
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL || FRONTEND_URL || `http://localhost:${PORT}`,
@@ -73,6 +78,7 @@ export const auth = betterAuth({
       clientSecret: process.env.DISCORD_CLIENT_SECRET || "",
       enabled: !!process.env.DISCORD_CLIENT_ID,
     },
+    apple: buildAppleProviderOptions(appleConfig),
   },
 
   account: {
@@ -119,6 +125,8 @@ export const auth = betterAuth({
   trustedOrigins: (request) => {
     const origins: string[] = [];
     if (FRONTEND_URL) origins.push(FRONTEND_URL);
+    // Apple returns with a cross-site form_post to /api/auth/callback/apple.
+    if (appleConfig) origins.push(APPLE_ORIGIN);
     // In dev, allow localhost and LAN IPs
     if (process.env.NODE_ENV !== "production") {
       const origin = request?.headers.get("origin");

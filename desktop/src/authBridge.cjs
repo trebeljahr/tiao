@@ -298,7 +298,7 @@ async function revokeToken(token) {
  */
 function registerAuthIpc() {
   handleTrustedIpc(ipcMain, "auth:startOAuth", async (_event, provider) => {
-    if (!["google", "github", "discord"].includes(provider))
+    if (!["google", "github", "discord", "apple"].includes(provider))
       return { ok: false, reason: "bad_provider" };
     try {
       await startOAuth(provider);
