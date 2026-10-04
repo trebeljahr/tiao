@@ -11,6 +11,7 @@ import { assertCurrentLocks, currentLockToken } from "./lockContext";
 export type StoredTournament = {
   authorityToken?: string | null;
   revision?: number;
+  registrationAbsences?: { playerId: string; since: number }[];
   completionEffectsPending?: boolean;
   cleanupPending?: boolean;
   deletedAt?: Date | null;
@@ -60,6 +61,7 @@ function toStoredTournament(
   return {
     authorityToken: obj.authorityToken ?? null,
     revision: obj.revision ?? 0,
+    registrationAbsences: obj.registrationAbsences ?? [],
     completionEffectsPending: obj.completionEffectsPending ?? false,
     cleanupPending: obj.cleanupPending ?? false,
     deletedAt: obj.deletedAt ? new Date(obj.deletedAt) : null,
@@ -136,6 +138,7 @@ export class MongoTournamentStore implements TournamentStore {
       {
         $inc: { revision: 1 },
         $set: {
+          registrationAbsences: tournament.registrationAbsences ?? [],
           completionEffectsPending: tournament.completionEffectsPending ?? false,
           cleanupPending: tournament.cleanupPending ?? false,
           name: tournament.name,
@@ -216,6 +219,7 @@ export class MongoTournamentStore implements TournamentStore {
         status: "cancelled",
         name: "Deleted tournament",
         creatorId: "deleted",
+        registrationAbsences: [],
         participants: [],
         rounds: [],
         groups: [],
@@ -234,6 +238,7 @@ export class MongoTournamentStore implements TournamentStore {
     const docs = await Tournament.find({
       ...(after ? { tournamentId: { $gt: after } } : {}),
       $or: [
+        { status: "registration", deletedAt: null },
         { status: "active" },
         { status: "finished", completionEffectsPending: true },
         { status: "cancelled" },
@@ -418,6 +423,7 @@ export class InMemoryTournamentStore implements TournamentStore {
       creatorId: "deleted",
       description: undefined,
       settings: { ...current.settings, inviteCode: undefined },
+      registrationAbsences: [],
       participants: [],
       rounds: [],
       groups: [],
@@ -434,7 +440,8 @@ export class InMemoryTournamentStore implements TournamentStore {
       .filter(
         (t) =>
           (!after || t.tournamentId > after) &&
-          (t.status === "active" ||
+          (t.status === "registration" ||
+            t.status === "active" ||
             (t.status === "finished" && t.completionEffectsPending) ||
             t.status === "cancelled"),
       )

@@ -322,6 +322,73 @@ try {
   assert.equal(drawEnd.rounds[0].matches[0].winner, null);
   assert.equal(drawEnd.rounds[0].matches[0].finishReason, "board_full");
   checks.push("draw results persist in Mongo and recover without inventing winners");
+
+  // Registration absence is persisted in Mongo and lobby presence is shared in
+  // Redis, so a survivor finishes a grace period that a retired worker started.
+  const { RedisRoomPresence } = load("game/presence");
+  let now = Date.now();
+  const clock = () => now;
+  const presenceA = new RedisRoomPresence(redisClients[0]),
+    presenceB = new RedisRoomPresence(redisClients[1]);
+  const presenceService = (presence, locks) => {
+    const game = new gameModule.GameService(
+      roomStore,
+      () => 0,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      presence,
+    );
+    games.push(game);
+    const service = new TournamentService(new MongoTournamentStore(), game, locks, clock);
+    services.push(service);
+    return service;
+  };
+  const retiring = presenceService(presenceA, lockA),
+    survivor = presenceService(presenceB, lockB);
+  const registration = await retiring.createTournament(players[0], settings, "Synthetic presence");
+  const regId = registration.tournamentId;
+  const [absent, present] = [players[2], players[3]];
+  for (const player of [absent, present]) await retiring.registerPlayer(regId, player, "synthetic");
+  await presenceA.join("synthetic-absent", `lobby:${absent.playerId}`, absent);
+  await presenceB.join("synthetic-present", `lobby:${present.playerId}`, present);
+  const registered = async () =>
+    (await storeB.getTournament(regId)).participants.map((p) => p.playerId).sort();
+  await survivor.recoverPending();
+  assert.deepEqual((await storeB.getTournament(regId)).registrationAbsences, []);
+  // The absent player's socket closes; its replica retires before the local
+  // 15-second disconnect timer could unregister them.
+  await presenceA.leave("synthetic-absent");
+  await retiring.close();
+  await survivor.recoverPending();
+  assert.deepEqual(
+    (await storeB.getTournament(regId)).registrationAbsences.map((row) => row.playerId),
+    [absent.playerId],
+  );
+  now += 29_000;
+  await survivor.recoverPending();
+  assert.deepEqual(await registered(), [absent.playerId, present.playerId].sort());
+  now += 1_500;
+  await survivor.recoverPending();
+  assert.deepEqual(await registered(), [present.playerId]);
+  assert.deepEqual((await storeB.getTournament(regId)).registrationAbsences, []);
+  // A reconnect through another replica clears an observed absence.
+  await presenceB.leave("synthetic-present");
+  await survivor.recoverPending();
+  assert.equal((await storeB.getTournament(regId)).registrationAbsences.length, 1);
+  const reconnected = new RedisRoomPresence(redisClients[0]);
+  await reconnected.join("synthetic-present-again", `lobby:${present.playerId}`, present);
+  now += 40_000;
+  await survivor.recoverPending();
+  assert.deepEqual(await registered(), [present.playerId]);
+  assert.deepEqual((await storeB.getTournament(regId)).registrationAbsences, []);
+  await reconnected.close();
+  checks.push(
+    "registration absence survives worker retirement in Mongo and honours shared Redis presence",
+  );
   console.log(JSON.stringify({ ok: true, checks }));
 } finally {
   await Promise.allSettled(services.map((s) => s.close()));

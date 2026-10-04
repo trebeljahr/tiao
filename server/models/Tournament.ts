@@ -10,6 +10,7 @@ import type {
 export interface ITournament extends Document {
   authorityToken: string | null;
   revision: number;
+  registrationAbsences: { playerId: string; since: number }[];
   completionEffectsPending: boolean;
   cleanupPending: boolean;
   deletedAt: Date | null;
@@ -160,6 +161,15 @@ const TournamentParticipantSchema = new Schema(
 
 const TournamentSchema = new Schema<ITournament>(
   {
+    registrationAbsences: {
+      type: [
+        new Schema(
+          { playerId: { type: String, required: true }, since: { type: Number, required: true } },
+          { _id: false },
+        ),
+      ],
+      default: [],
+    },
     authorityToken: { type: String, default: null },
     revision: { type: Number, default: 0 },
     completionEffectsPending: { type: Boolean, default: false },

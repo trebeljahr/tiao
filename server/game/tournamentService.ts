@@ -260,9 +260,17 @@ function generateGroups(
 
 // ── Service ──
 
+/**
+ * Registered players absent from every lobby this long are unregistered. It
+ * exceeds the browser's reconnect backoff so a restart or slow reconnect keeps
+ * registrations; the disconnect callback path has already waited its own grace.
+ */
+const REGISTRATION_ABSENCE_GRACE_MS = 30_000;
+
 export class TournamentService implements TournamentGameCallback {
   private recoveryTimer?: ReturnType<typeof setInterval>;
   private recoveryRun?: Promise<void>;
+  private readonly observingSince: number;
   private recoveryCursor?: string;
   private closing = false;
   private readonly operations = new Set<Promise<unknown>>();
@@ -271,7 +279,9 @@ export class TournamentService implements TournamentGameCallback {
     private readonly store: TournamentStore,
     private readonly gameService: GameService,
     private readonly lockProvider: LockProvider = new InMemoryLockProvider(),
+    private readonly clock: () => number = Date.now,
   ) {
+    this.observingSince = clock();
     // Wire up the callback so GameService notifies us on game completion
     this.gameService.setTournamentService(this);
 
@@ -287,9 +297,21 @@ export class TournamentService implements TournamentGameCallback {
     const tournaments = await this.store.findRegistrationTournamentsByParticipant(playerId);
     for (const t of tournaments) {
       try {
-        await this.unregisterPlayer(t.tournamentId, playerId);
+        await this.withLock(t.tournamentId, async () => {
+          const current = await this.store.getTournament(t.tournamentId);
+          if (
+            !current ||
+            current.status !== "registration" ||
+            !current.participants.some((p) => p.playerId === playerId)
+          )
+            return;
+          // The lobby callback already waited its reconnect grace. Reconcile
+          // under this lease and recheck shared presence: the player may have
+          // reconnected while the callback was queued or another lock was held.
+          await this.recoverRegistration(current, playerId);
+        });
       } catch {
-        // Best-effort: player may have already been unregistered
+        // Durable recovery retries if this callback or its replica disappears.
       }
     }
   }
@@ -334,6 +356,7 @@ export class TournamentService implements TournamentGameCallback {
         creatorId: creator.playerId,
         status: "registration",
         settings,
+        registrationAbsences: [],
         participants: [],
         rounds: [],
         groups: [],
@@ -383,6 +406,9 @@ export class TournamentService implements TournamentGameCallback {
         throw new GameServiceError(403, "INVALID_INVITE_CODE", "Invalid invite code.");
       }
 
+      tournament.registrationAbsences = (tournament.registrationAbsences ?? []).filter(
+        (p) => p.playerId !== player.playerId,
+      );
       tournament.participants.push({
         playerId: player.playerId,
         seed: tournament.participants.length + 1,
@@ -413,6 +439,9 @@ export class TournamentService implements TournamentGameCallback {
       }
 
       tournament.participants.splice(idx, 1);
+      tournament.registrationAbsences = (tournament.registrationAbsences ?? []).filter(
+        (p) => p.playerId !== playerId,
+      );
 
       // Re-number seeds
       tournament.participants.forEach((p, i) => {
@@ -454,6 +483,7 @@ export class TournamentService implements TournamentGameCallback {
         );
       }
 
+      tournament.registrationAbsences = [];
       // Mark all participants as active
       for (const p of tournament.participants) {
         p.status = "active";
@@ -1575,7 +1605,63 @@ export class TournamentService implements TournamentGameCallback {
     }
   }
 
+  /** `graceElapsed` is a player whose local disconnect grace already ran out. */
+  private async recoverRegistration(
+    tournament: StoredTournament,
+    graceElapsed?: string,
+  ): Promise<void> {
+    // Disconnect callbacks are an optimization only: a retiring/crashed replica
+    // may never deliver one. Persist the grace period so another owner resumes it.
+    const presence = await Promise.all(
+      tournament.participants.map(async (participant) => ({
+        playerId: participant.playerId,
+        connected: await this.gameService.isPlayerConnectedToLobby(participant.playerId),
+      })),
+    );
+    const now = this.clock();
+    const before = tournament.registrationAbsences ?? [];
+    const after: { playerId: string; since: number }[] = [];
+    const removed: string[] = [];
+    for (const { playerId, connected } of presence) {
+      if (connected) continue;
+      const prior = before.find((p) => p.playerId === playerId);
+      // Never count time before this worker could observe reconnects: after a
+      // full restart every lobby lease is gone until clients reconnect.
+      const since =
+        prior && Number.isFinite(prior.since) && prior.since <= now
+          ? Math.max(prior.since, this.observingSince)
+          : now;
+      if (playerId === graceElapsed || now - since >= REGISTRATION_ABSENCE_GRACE_MS)
+        removed.push(playerId);
+      else after.push({ playerId, since });
+    }
+    if (!removed.length && JSON.stringify(before) === JSON.stringify(after)) return;
+    tournament.registrationAbsences = after;
+    if (removed.length) {
+      tournament.participants = tournament.participants.filter(
+        (p) => !removed.includes(p.playerId),
+      );
+      tournament.participants.forEach((p, i) => {
+        p.seed = i + 1;
+      });
+    }
+    await this.persist(tournament);
+    if (removed.length) {
+      this.broadcastTournamentUpdate(tournament);
+      for (const playerId of removed)
+        this.gameService.broadcastLobby(playerId, {
+          type: "tournament-update",
+          tournamentId: tournament.tournamentId,
+        });
+      this.broadcastTournamentListUpdate();
+    }
+  }
+
   private async recoverTournament(tournament: StoredTournament): Promise<void> {
+    if (tournament.status === "registration") {
+      await this.recoverRegistration(tournament);
+      return;
+    }
     if (tournament.status !== "active") {
       await this.settlePendingEffects(tournament);
       return;
