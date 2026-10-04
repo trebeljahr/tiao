@@ -8,6 +8,11 @@ import type {
 } from "../../shared/src";
 
 export interface ITournament extends Document {
+  authorityToken: string | null;
+  revision: number;
+  completionEffectsPending: boolean;
+  cleanupPending: boolean;
+  deletedAt: Date | null;
   tournamentId: string;
   name: string;
   description?: string;
@@ -49,7 +54,11 @@ const TournamentMatchSchema = new Schema(
       enum: ["pending", "active", "finished", "forfeit", "bye"],
       default: "pending",
     },
-    finishReason: { type: String, enum: ["captured", "forfeit", "timeout"], default: null },
+    finishReason: {
+      type: String,
+      enum: ["captured", "forfeit", "timeout", "board_full"],
+      default: null,
+    },
     historyLength: { type: Number },
     playerColors: { type: [String], default: undefined },
     scheduledAt: { type: String },
@@ -151,6 +160,11 @@ const TournamentParticipantSchema = new Schema(
 
 const TournamentSchema = new Schema<ITournament>(
   {
+    authorityToken: { type: String, default: null },
+    revision: { type: Number, default: 0 },
+    completionEffectsPending: { type: Boolean, default: false },
+    cleanupPending: { type: Boolean, default: false },
+    deletedAt: { type: Date, default: null },
     tournamentId: {
       type: String,
       required: true,
@@ -220,6 +234,7 @@ TournamentSchema.index({ status: 1, "settings.visibility": 1, createdAt: -1 });
 TournamentSchema.index({ "participants.playerId": 1 });
 TournamentSchema.index({ invitedUserIds: 1 });
 TournamentSchema.index({ status: 1, creatorId: 1 });
+TournamentSchema.index({ status: 1, tournamentId: 1 });
 
 const Tournament = models.Tournament || model<ITournament>("Tournament", TournamentSchema);
 

@@ -444,7 +444,11 @@ export async function onSpectateStarted(playerId: string): Promise<void> {
 // ---------------------------------------------------------------------------
 
 export async function onTournamentWon(playerId: string): Promise<void> {
-  void grant(playerId, "tournament-champion");
+  await grant(playerId, "tournament-champion");
+  // A crash can leave the achievement inserted before its companion badge.
+  // $addToSet repairs that partial outcome even when grant sees a duplicate.
+  const badge = ACHIEVEMENT_BADGE_MAP["tournament-champion"];
+  if (badge) await grantBadge(playerId, badge);
 }
 
 // ---------------------------------------------------------------------------

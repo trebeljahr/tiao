@@ -13,3 +13,7 @@ export async function assertCurrentLocks(): Promise<void> {
 
 export const currentLockToken = (key: string): string | undefined =>
   leases.getStore()?.find((lease) => lease.key === key)?.token;
+
+/** A committed room callback starts independent work, not a child room mutation. */
+export const withoutLockLeases = <T>(operation: () => Promise<T>): Promise<T> =>
+  leases.run([], operation);

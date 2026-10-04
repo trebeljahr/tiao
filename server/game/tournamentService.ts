@@ -14,8 +14,11 @@ import type {
   TournamentStatus,
 } from "../../shared/src";
 import { type GameService, GameServiceError, type TournamentGameCallback } from "./gameService";
+import { assertCurrentLocks, withoutLockLeases } from "./lockContext";
 import { InMemoryLockProvider, type LockProvider } from "./lockProvider";
 import {
+  claimTournamentAuthority,
+  InMemoryTournamentStore,
   MongoTournamentStore,
   type StoredTournament,
   type TournamentStore,
@@ -258,6 +261,12 @@ function generateGroups(
 // ── Service ──
 
 export class TournamentService implements TournamentGameCallback {
+  private recoveryTimer?: ReturnType<typeof setInterval>;
+  private recoveryRun?: Promise<void>;
+  private recoveryCursor?: string;
+  private closing = false;
+  private readonly operations = new Set<Promise<unknown>>();
+  private readonly completedRounds = new WeakMap<StoredTournament, number[]>();
   constructor(
     private readonly store: TournamentStore,
     private readonly gameService: GameService,
@@ -268,7 +277,9 @@ export class TournamentService implements TournamentGameCallback {
 
     // Auto-drop players from registration-phase tournaments when they disconnect
     this.gameService.onLobbyDisconnect((playerId) => {
-      void this.handleLobbyDisconnect(playerId);
+      void this.handleLobbyDisconnect(playerId).catch(() => {
+        console.error("[tournament] Lobby disconnect cleanup deferred");
+      });
     });
   }
 
@@ -299,39 +310,41 @@ export class TournamentService implements TournamentGameCallback {
       );
     }
 
-    const ongoingCount = await this.store.countOngoingTournamentsByCreator(creator.playerId);
-    if (ongoingCount >= MAX_ONGOING_TOURNAMENTS_PER_CREATOR) {
-      throw new GameServiceError(
-        409,
-        "TOURNAMENT_LIMIT_REACHED",
-        `You can only have ${MAX_ONGOING_TOURNAMENTS_PER_CREATOR} ongoing tournaments at a time. Finish, cancel, or delete one before creating another.`,
-      );
-    }
+    return this.runLocked(`tournament-creator:${creator.playerId}`, async () => {
+      const ongoingCount = await this.store.countOngoingTournamentsByCreator(creator.playerId);
+      if (ongoingCount >= MAX_ONGOING_TOURNAMENTS_PER_CREATOR) {
+        throw new GameServiceError(
+          409,
+          "TOURNAMENT_LIMIT_REACHED",
+          `You can only have ${MAX_ONGOING_TOURNAMENTS_PER_CREATOR} ongoing tournaments at a time. Finish, cancel, or delete one before creating another.`,
+        );
+      }
 
-    // Auto-generate invite code for private tournaments if not provided
-    if (settings.visibility === "private" && !settings.inviteCode) {
-      // biome-ignore lint/style/noParameterAssign: enrich settings with generated invite code
-      settings = { ...settings, inviteCode: generateInviteCode() };
-    }
+      // Auto-generate invite code for private tournaments if not provided
+      if (settings.visibility === "private" && !settings.inviteCode) {
+        // biome-ignore lint/style/noParameterAssign: enrich settings with generated invite code
+        settings = { ...settings, inviteCode: generateInviteCode() };
+      }
 
-    const tournamentId = generateTournamentId();
-    const created = await this.store.createTournament({
-      tournamentId,
-      name,
-      description,
-      creatorId: creator.playerId,
-      status: "registration",
-      settings,
-      participants: [],
-      rounds: [],
-      groups: [],
-      knockoutRounds: [],
-      featuredMatchId: null,
-      isFeatured: false,
-      invitedUserIds: [],
+      const tournamentId = generateTournamentId();
+      const created = await this.store.createTournament({
+        tournamentId,
+        name,
+        description,
+        creatorId: creator.playerId,
+        status: "registration",
+        settings,
+        participants: [],
+        rounds: [],
+        groups: [],
+        knockoutRounds: [],
+        featuredMatchId: null,
+        isFeatured: false,
+        invitedUserIds: [],
+      });
+      this.broadcastTournamentListUpdate();
+      return created;
     });
-    this.broadcastTournamentListUpdate();
-    return created;
   }
 
   async registerPlayer(
@@ -376,7 +389,7 @@ export class TournamentService implements TournamentGameCallback {
         status: "registered",
       });
 
-      const saved = await this.store.saveTournament(tournament);
+      const saved = await this.persist(tournament);
       this.broadcastTournamentUpdate(saved);
       return saved;
     });
@@ -406,7 +419,7 @@ export class TournamentService implements TournamentGameCallback {
         p.seed = i + 1;
       });
 
-      const saved = await this.store.saveTournament(tournament);
+      const saved = await this.persist(tournament);
       this.broadcastTournamentUpdate(saved);
       return saved;
     });
@@ -418,6 +431,11 @@ export class TournamentService implements TournamentGameCallback {
 
       if (tournament.creatorId !== adminId) {
         throw new GameServiceError(403, "NOT_ADMIN", "Only the tournament creator can start it.");
+      }
+
+      if (tournament.status === "active") {
+        await this.recoverTournament(tournament);
+        return tournament;
       }
 
       if (tournament.status !== "registration") {
@@ -467,7 +485,7 @@ export class TournamentService implements TournamentGameCallback {
       }
 
       tournament.status = "active";
-      const saved = await this.store.saveTournament(tournament);
+      const saved = await this.persist(tournament);
 
       // Create GameRooms for the first round
       await this.createRoomsForActiveRound(saved);
@@ -495,8 +513,9 @@ export class TournamentService implements TournamentGameCallback {
       }
 
       tournament.status = "cancelled";
-      await this.gameService.unlinkTournamentGames(tournamentId);
-      const saved = await this.store.saveTournament(tournament);
+      tournament.cleanupPending = true;
+      const saved = await this.persist(tournament);
+      await this.settlePendingEffects(saved);
       this.broadcastTournamentUpdate(saved);
       this.broadcastTournamentListUpdate();
       return saved;
@@ -524,6 +543,9 @@ export class TournamentService implements TournamentGameCallback {
   ): Promise<StoredTournament> {
     return this.withLock(tournamentId, async () => {
       const tournament = await this.getTournament(tournamentId);
+      if (tournament.status !== "active") {
+        throw new GameServiceError(409, "INVALID_STATUS", "Tournament is not active.");
+      }
       const match = this.findMatch(tournament, matchId);
       if (!match) {
         throw new GameServiceError(404, "MATCH_NOT_FOUND", "Match not found.");
@@ -569,7 +591,7 @@ export class TournamentService implements TournamentGameCallback {
       }
 
       this.checkRoundAdvancement(tournament);
-      const saved = await this.store.saveTournament(tournament);
+      const saved = await this.persist(tournament);
       await this.createRoomsForActiveRound(saved);
       this.broadcastTournamentUpdate(saved);
       return saved;
@@ -582,7 +604,7 @@ export class TournamentService implements TournamentGameCallback {
     return this.withLock(tournamentId, async () => {
       const tournament = await this.getTournament(tournamentId);
       tournament.isFeatured = featured;
-      const saved = await this.store.saveTournament(tournament);
+      const saved = await this.persist(tournament);
       this.broadcastTournamentListUpdate();
       return saved;
     });
@@ -604,7 +626,8 @@ export class TournamentService implements TournamentGameCallback {
         );
       }
 
-      await this.store.deleteTournament(tournamentId);
+      await this.settlePendingEffects(tournament);
+      await this.store.deleteTournament(tournamentId, tournament);
     });
   }
 
@@ -632,7 +655,7 @@ export class TournamentService implements TournamentGameCallback {
         if (p) p.seed = entry.seed;
       }
 
-      const saved = await this.store.saveTournament(tournament);
+      const saved = await this.persist(tournament);
       this.broadcastTournamentUpdate(saved);
       return saved;
     });
@@ -661,7 +684,7 @@ export class TournamentService implements TournamentGameCallback {
         p.seed = i + 1;
       });
 
-      const saved = await this.store.saveTournament(tournament);
+      const saved = await this.persist(tournament);
       this.broadcastTournamentUpdate(saved);
       return saved;
     });
@@ -679,7 +702,7 @@ export class TournamentService implements TournamentGameCallback {
       this.ensureAdmin(tournament, adminId);
 
       tournament.featuredMatchId = matchId;
-      const saved = await this.store.saveTournament(tournament);
+      const saved = await this.persist(tournament);
       this.broadcastTournamentUpdate(saved);
       return saved;
     });
@@ -697,6 +720,9 @@ export class TournamentService implements TournamentGameCallback {
       const tournament = await this.getTournament(tournamentId);
       this.ensureAdmin(tournament, adminId);
 
+      if (tournament.status !== "active") {
+        throw new GameServiceError(409, "INVALID_STATUS", "Tournament is not active.");
+      }
       const match = this.findMatch(tournament, matchId);
       if (!match) {
         throw new GameServiceError(404, "MATCH_NOT_FOUND", "Match not found.");
@@ -717,7 +743,7 @@ export class TournamentService implements TournamentGameCallback {
       }
 
       this.checkRoundAdvancement(tournament);
-      const saved = await this.store.saveTournament(tournament);
+      const saved = await this.persist(tournament);
       await this.createRoomsForActiveRound(saved);
       this.broadcastTournamentUpdate(saved);
       return saved;
@@ -727,55 +753,15 @@ export class TournamentService implements TournamentGameCallback {
   // ── Game Completion Callback ──
 
   async onGameCompleted(roomId: string): Promise<void> {
-    const tournament = await this.store.findTournamentByMatchRoomId(roomId);
-    if (!tournament) return;
-
-    await this.withLock(tournament.tournamentId, async () => {
-      // Re-fetch inside lock
-      const t = await this.getTournament(tournament.tournamentId);
-
-      const match = this.findMatchByRoomId(t, roomId);
-      if (!match || match.status === "finished" || match.status === "forfeit") return;
-
-      // Get room to determine winner
-      const room = await this.gameService.getSnapshot(roomId);
-      if (room.status !== "finished") return;
-
-      const winner = getWinner(room.state);
-      if (!winner) return;
-
-      // Map color-based winner to playerId
-      const winnerSeat = room.seats[winner];
-      if (!winnerSeat) return;
-
-      match.winner = winnerSeat.player.playerId;
-      match.status = "finished";
-
-      // Update score aligned to player slots (not color slots)
-      const p0Color = match.playerColors?.[0] ?? "white";
-      const p1Color = match.playerColors?.[1] ?? "black";
-      match.score = [room.state.score[p0Color], room.state.score[p1Color]];
-      match.finishReason = getFinishReason(room.state);
-      match.historyLength = room.state.history.length;
-
-      // Update group standings if applicable
-      if (match.groupId) {
-        this.updateGroupStandings(t, match);
-      }
-
-      // Mark loser as eliminated in single-elimination
-      if (t.settings.format === "single-elimination") {
-        const loserId = match.players.find((p) => p && p.playerId !== match.winner)?.playerId;
-        if (loserId) {
-          const loser = t.participants.find((p) => p.playerId === loserId);
-          if (loser) loser.status = "eliminated";
-        }
-      }
-
-      this.checkRoundAdvancement(t);
-      const saved = await this.store.saveTournament(t);
-      await this.createRoomsForActiveRound(saved);
-      this.broadcastTournamentUpdate(saved);
+    // The game is already committed. Its caller may release the room lease
+    // before this fire-and-forget notification acquires tournament authority.
+    return withoutLockLeases(async () => {
+      const tournament = await this.store.findTournamentByMatchRoomId(roomId);
+      if (!tournament) return;
+      await this.withLock(tournament.tournamentId, async () => {
+        const current = await this.store.getTournament(tournament.tournamentId, true);
+        if (current) await this.recoverTournament(current);
+      });
     });
   }
 
@@ -786,23 +772,25 @@ export class TournamentService implements TournamentGameCallback {
     playerId: string,
     inviteCode: string,
   ): Promise<StoredTournament> {
-    const tournament = await this.getTournament(tournamentId);
+    return this.withLock(tournamentId, async () => {
+      const tournament = await this.getTournament(tournamentId);
 
-    if (tournament.settings.visibility !== "private") {
-      throw new GameServiceError(400, "NOT_PRIVATE", "This tournament is not private.");
-    }
+      if (tournament.settings.visibility !== "private") {
+        throw new GameServiceError(400, "NOT_PRIVATE", "This tournament is not private.");
+      }
 
-    if (tournament.settings.inviteCode && inviteCode !== tournament.settings.inviteCode) {
-      throw new GameServiceError(403, "INVALID_INVITE_CODE", "Invalid invite code.");
-    }
+      if (tournament.settings.inviteCode && inviteCode !== tournament.settings.inviteCode) {
+        throw new GameServiceError(403, "INVALID_INVITE_CODE", "Invalid invite code.");
+      }
 
-    // Add user to invitedUserIds if not already present
-    if (!tournament.invitedUserIds.includes(playerId)) {
-      tournament.invitedUserIds.push(playerId);
-      return this.store.saveTournament(tournament);
-    }
+      // Add user to invitedUserIds if not already present
+      if (!tournament.invitedUserIds.includes(playerId)) {
+        tournament.invitedUserIds.push(playerId);
+        return this.persist(tournament);
+      }
 
-    return tournament;
+      return tournament;
+    });
   }
 
   // ── Queries ──
@@ -1054,21 +1042,9 @@ export class TournamentService implements TournamentGameCallback {
     return null;
   }
 
-  private findMatchByRoomId(tournament: StoredTournament, roomId: string): TournamentMatch | null {
-    for (const round of [...tournament.rounds, ...tournament.knockoutRounds]) {
-      const match = round.matches.find((m) => m.roomId === roomId);
-      if (match) return match;
-    }
-    for (const group of tournament.groups) {
-      for (const round of group.rounds) {
-        const match = round.matches.find((m) => m.roomId === roomId);
-        if (match) return match;
-      }
-    }
-    return null;
-  }
-
   private checkRoundAdvancement(tournament: StoredTournament): void {
+    if (tournament.status !== "active") return;
+    const before = new Set(this.allRounds(tournament).filter((r) => r.status === "finished"));
     switch (tournament.settings.format) {
       case "round-robin":
         this.advanceRoundRobin(tournament);
@@ -1080,6 +1056,12 @@ export class TournamentService implements TournamentGameCallback {
         this.advanceGroupsKnockout(tournament);
         break;
     }
+    this.completedRounds.set(
+      tournament,
+      this.allRounds(tournament)
+        .filter((r) => r.status === "finished" && !before.has(r))
+        .map((r) => r.roundIndex),
+    );
   }
 
   private advanceRoundRobin(tournament: StoredTournament): void {
@@ -1093,7 +1075,6 @@ export class TournamentService implements TournamentGameCallback {
         );
       if (allDone && round.status === "active") {
         round.status = "finished";
-        this.broadcastRoundComplete(tournament, round.roundIndex);
       }
     }
 
@@ -1175,7 +1156,6 @@ export class TournamentService implements TournamentGameCallback {
       if (!allDone) continue;
 
       round.status = "finished";
-      this.broadcastRoundComplete(tournament, r);
 
       // Populate next round
       const nextRound = tournament.rounds[r + 1];
@@ -1222,7 +1202,7 @@ export class TournamentService implements TournamentGameCallback {
 
       // Activate next pending round in group
       const nextPending = group.rounds.find((r) => r.status === "pending");
-      if (nextPending) {
+      if (nextPending && !group.rounds.some((r) => r.status === "active")) {
         nextPending.status = "active";
         allGroupsDone = false;
       } else if (group.rounds.some((r) => r.status === "active")) {
@@ -1428,33 +1408,14 @@ export class TournamentService implements TournamentGameCallback {
       }
     }
 
-    // Achievement: tournament champion
-    const tournamentWinner = tournament.participants.find((p) => p.status === "winner");
-    if (tournamentWinner) {
-      void onTournamentWon(tournamentWinner.playerId).catch((err) => {
-        console.error("[tournament] Tournament achievement check failed:", err);
-      });
-    }
-
-    // Analytics: one tournament_finished event per participant so the
-    // dashboard can segment by result (winner vs eliminated). Participant
-    // count is included so the same event can power "average tournament
-    // size" charts without a second query.
-    for (const p of tournament.participants) {
-      track("tournament_finished", {
-        profileId: p.playerId,
-        tournament_id: tournament.tournamentId,
-        format: tournament.settings.format,
-        participants: tournament.participants.length,
-        result: p.status === "winner" ? "won" : "eliminated",
-      });
-    }
-
-    // Tournament just ended — refresh every lobby viewer's tournament list.
-    this.broadcastTournamentListUpdate();
+    tournament.completionEffectsPending = true;
   }
 
   private async createRoomsForActiveRound(tournament: StoredTournament): Promise<void> {
+    if (tournament.status !== "active") {
+      await this.settlePendingEffects(tournament);
+      return;
+    }
     const allRounds = [...tournament.rounds, ...tournament.knockoutRounds];
 
     // Also include group rounds
@@ -1472,7 +1433,16 @@ export class TournamentService implements TournamentGameCallback {
         if (match.players[1]) playerIds.add(match.players[1].playerId);
       }
     }
+    if (playerIds.size === 0) return;
     const profiles = await getPlayerProfiles([...playerIds]);
+    const busy = new Set(
+      allRounds
+        .flatMap((r) => r.matches)
+        .filter((m) => m.status === "active")
+        .flatMap((m) => m.players)
+        .filter((p) => p !== null)
+        .map((p) => p.playerId),
+    );
 
     for (const round of allRounds) {
       if (round.status !== "active") continue;
@@ -1484,66 +1454,212 @@ export class TournamentService implements TournamentGameCallback {
 
         const p0 = match.players[0];
         const p1 = match.players[1];
+        if (
+          tournament.settings.format === "round-robin" &&
+          (busy.has(p0.playerId) || busy.has(p1.playerId))
+        )
+          continue;
         const prof1 = profiles.get(p0.playerId);
         const prof2 = profiles.get(p1.playerId);
 
-        try {
-          const identity1: PlayerIdentity = {
-            playerId: p0.playerId,
-            displayName: prof1?.displayName ?? p0.displayName ?? "Player",
-            kind: "account",
-            profilePicture: prof1?.profilePicture,
-          };
-          const identity2: PlayerIdentity = {
-            playerId: p1.playerId,
-            displayName: prof2?.displayName ?? p1.displayName ?? "Player",
-            kind: "account",
-            profilePicture: prof2?.profilePicture,
-          };
+        await assertCurrentLocks();
+        const identity1: PlayerIdentity = {
+          playerId: p0.playerId,
+          displayName: prof1?.displayName ?? p0.displayName ?? "Player",
+          kind: "account",
+          profilePicture: prof1?.profilePicture,
+        };
+        const identity2: PlayerIdentity = {
+          playerId: p1.playerId,
+          displayName: prof2?.displayName ?? p1.displayName ?? "Player",
+          kind: "account",
+          profilePicture: prof2?.profilePicture,
+        };
 
-          const room = await this.gameService.createTournamentGame(
-            identity1,
-            identity2,
-            tournament.settings.timeControl,
-            tournament.tournamentId,
-            match.matchId,
-            {
-              boardSize: tournament.settings.boardSize,
-              scoreToWin: tournament.settings.scoreToWin,
-            },
-          );
+        const room = await this.gameService.createTournamentGame(
+          identity1,
+          identity2,
+          tournament.settings.timeControl,
+          tournament.tournamentId,
+          match.matchId,
+          {
+            boardSize: tournament.settings.boardSize,
+            scoreToWin: tournament.settings.scoreToWin,
+          },
+        );
 
-          match.roomId = room.id;
-          match.status = "active";
+        match.roomId = room.id;
+        match.status = "active";
+        busy.add(p0.playerId);
+        busy.add(p1.playerId);
 
-          // Record which color each player was assigned
-          const p0Id = match.players[0].playerId;
-          match.playerColors = [
-            room.seats.white?.playerId === p0Id ? "white" : "black",
-            room.seats.white?.playerId === p0Id ? "black" : "white",
-          ];
+        // Record which color each player was assigned
+        const p0Id = match.players[0].playerId;
+        match.playerColors = [
+          room.seats.white?.playerId === p0Id ? "white" : "black",
+          room.seats.white?.playerId === p0Id ? "black" : "white",
+        ];
 
-          // Notify players that their match is ready
-          this.gameService.broadcastLobby(match.players[0].playerId, {
-            type: "tournament-match-ready",
-            tournamentId: tournament.tournamentId,
-            matchId: match.matchId,
-            roomId: room.id,
-          });
-          this.gameService.broadcastLobby(match.players[1].playerId, {
-            type: "tournament-match-ready",
-            tournamentId: tournament.tournamentId,
-            matchId: match.matchId,
-            roomId: room.id,
-          });
-        } catch (err) {
-          console.error(`[tournament] Failed to create game room for match ${match.matchId}:`, err);
-        }
+        // A crash between room creation and this CAS is repaired using the
+        // stable (tournamentId, matchId) room identity. Publish only committed links.
+        await this.persist(tournament);
+
+        // Notify players that their match is ready
+        this.gameService.broadcastLobby(match.players[0].playerId, {
+          type: "tournament-match-ready",
+          tournamentId: tournament.tournamentId,
+          matchId: match.matchId,
+          roomId: room.id,
+        });
+        this.gameService.broadcastLobby(match.players[1].playerId, {
+          type: "tournament-match-ready",
+          tournamentId: tournament.tournamentId,
+          matchId: match.matchId,
+          roomId: room.id,
+        });
       }
     }
+  }
 
-    // Save updated match roomIds and statuses
-    await this.store.saveTournament(tournament);
+  private allRounds(tournament: StoredTournament): TournamentRound[] {
+    return [
+      ...tournament.rounds,
+      ...tournament.knockoutRounds,
+      ...tournament.groups.flatMap((g) => g.rounds),
+    ];
+  }
+
+  private async persist(tournament: StoredTournament): Promise<StoredTournament> {
+    const saved = await this.store.saveTournament(tournament);
+    // Keep nested references used by the current locked operation, but advance
+    // the CAS identity before another save in that operation.
+    tournament.revision = saved.revision;
+    tournament.authorityToken = saved.authorityToken;
+    tournament.updatedAt = saved.updatedAt;
+    for (const index of this.completedRounds.get(tournament) ?? []) {
+      this.broadcastRoundComplete(tournament, index);
+    }
+    this.completedRounds.delete(tournament);
+    return tournament;
+  }
+
+  private async settlePendingEffects(tournament: StoredTournament): Promise<void> {
+    if (tournament.status === "cancelled") {
+      // Reconcile tombstones too: an old in-flight room insert may arrive
+      // after the first cleanup commit, even when its tournament CAS fails.
+      await assertCurrentLocks();
+      await this.gameService.unlinkTournamentGames(tournament.tournamentId);
+      if (tournament.cleanupPending) {
+        tournament.cleanupPending = false;
+        await this.persist(tournament);
+      }
+    }
+    if (tournament.status === "finished" && tournament.completionEffectsPending) {
+      await assertCurrentLocks();
+      const winner = tournament.participants.find((p) => p.status === "winner");
+      // Achievement's unique key makes a replay safe. External analytics and
+      // notifications remain best effort; they are not exactly-once deliveries.
+      if (winner) await onTournamentWon(winner.playerId);
+      for (const p of tournament.participants) {
+        track("tournament_finished", {
+          profileId: p.playerId,
+          tournament_id: tournament.tournamentId,
+          format: tournament.settings.format,
+          participants: tournament.participants.length,
+          result: p.status === "winner" ? "won" : "eliminated",
+        });
+      }
+      tournament.completionEffectsPending = false;
+      await this.persist(tournament);
+      this.broadcastTournamentListUpdate();
+    }
+  }
+
+  private async recoverTournament(tournament: StoredTournament): Promise<void> {
+    if (tournament.status !== "active") {
+      await this.settlePendingEffects(tournament);
+      return;
+    }
+    // Room commits are the durable completion journal. Polling repairs a lost
+    // callback after a worker dies, without applying any match result twice.
+    let changed = false;
+    for (const round of this.allRounds(tournament)) {
+      for (const match of round.matches) {
+        if (!match.roomId || match.status !== "active") continue;
+        const room = await this.gameService.getSnapshot(match.roomId);
+        if (room.status !== "finished") continue;
+        const winner = getWinner(room.state);
+        const seat = winner && room.seats[winner];
+        // Group and round-robin draws are completed results. An elimination
+        // draw needs the existing admin forfeit decision; never invent a winner
+        // or advance a bye while both players remain eligible.
+        if (!seat && !match.groupId && tournament.settings.format !== "round-robin") continue;
+        if (winner && !seat) continue;
+        match.winner = seat ? seat.player.playerId : null;
+        match.status = "finished";
+        const p0 = match.playerColors?.[0] ?? "white";
+        const p1 = match.playerColors?.[1] ?? "black";
+        match.score = [room.state.score[p0], room.state.score[p1]];
+        match.finishReason = getFinishReason(room.state);
+        match.historyLength = room.state.history.length;
+        if (match.groupId) this.updateGroupStandings(tournament, match);
+        if (tournament.settings.format === "single-elimination") {
+          const loserId = match.players.find((p) => p && p.playerId !== match.winner)?.playerId;
+          const loser = tournament.participants.find((p) => p.playerId === loserId);
+          if (loser) loser.status = "eliminated";
+        }
+        changed = true;
+      }
+    }
+    if (changed) {
+      this.checkRoundAdvancement(tournament);
+      await this.persist(tournament);
+    }
+    await this.createRoomsForActiveRound(tournament);
+    if (changed) this.broadcastTournamentUpdate(tournament);
+  }
+
+  /** Bounded pages prevent a large tournament history from monopolizing a worker. */
+  async recoverPending(): Promise<void> {
+    if (this.closing) return;
+    if (this.recoveryRun) return this.recoveryRun;
+    const run = async () => {
+      const tournaments = await this.store.listRecoveryTournaments(this.recoveryCursor, 25);
+      this.recoveryCursor = tournaments.length === 25 ? tournaments[24].tournamentId : undefined;
+      for (const tournament of tournaments) {
+        if (this.closing) break;
+        try {
+          await this.withLock(tournament.tournamentId, async () => {
+            const current = await this.store.getTournament(tournament.tournamentId, true);
+            if (current) await this.recoverTournament(current);
+          });
+        } catch {
+          console.error("[tournament] Recovery deferred; durable state retained");
+        }
+      }
+    };
+    this.recoveryRun = run().finally(() => {
+      this.recoveryRun = undefined;
+    });
+    return this.recoveryRun;
+  }
+
+  async startRecovery(): Promise<void> {
+    if (this.closing || this.recoveryTimer) return;
+    await this.recoverPending();
+    if (this.closing) return;
+    this.recoveryTimer = setInterval(() => {
+      void this.recoverPending().catch(() => {
+        console.error("[tournament] Recovery scan deferred");
+      });
+    }, 5_000);
+    this.recoveryTimer.unref();
+  }
+
+  async close(): Promise<void> {
+    this.closing = true;
+    clearInterval(this.recoveryTimer);
+    await Promise.allSettled([this.recoveryRun, ...this.operations]);
   }
 
   // ── Broadcasting ──
@@ -1757,7 +1873,16 @@ export class TournamentService implements TournamentGameCallback {
   // ── Locking ──
 
   private withLock<T>(tournamentId: string, operation: () => Promise<T>): Promise<T> {
-    return this.lockProvider.withLock(`tournament:${tournamentId}`, operation);
+    return this.runLocked(`tournament:${tournamentId}`, operation);
+  }
+
+  private runLocked<T>(key: string, operation: () => Promise<T>): Promise<T> {
+    if (this.closing)
+      return Promise.reject(new GameServiceError(503, "DRAINING", "Server is draining."));
+    const result = this.lockProvider.withLock(key, operation);
+    this.operations.add(result);
+    void result.finally(() => this.operations.delete(result)).catch(() => undefined);
+    return result;
   }
 }
 
@@ -1768,8 +1893,12 @@ import { gameService } from "./gameService";
 import { RedisLockProvider } from "./lockProvider";
 
 function createTournamentService(): TournamentService {
+  if (process.env.NODE_ENV === "test") {
+    return new TournamentService(new InMemoryTournamentStore(), gameService);
+  }
   const redis = getRedisClient();
-  const lockProvider = redis ? new RedisLockProvider(redis) : new InMemoryLockProvider();
+  if (!redis) throw new Error("[tournament] REDIS_URL is required for tournament authority.");
+  const lockProvider = new RedisLockProvider(redis, { claim: claimTournamentAuthority });
   return new TournamentService(new MongoTournamentStore(), gameService, lockProvider);
 }
 
