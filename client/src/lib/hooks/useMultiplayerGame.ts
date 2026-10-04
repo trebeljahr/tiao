@@ -51,6 +51,20 @@ export function useMultiplayerGame(
   onGameAbortedRef.current = options.onGameAborted;
 
   const socketRef = useRef<WebSocket | null>(null);
+  const mountedRef = useRef(true);
+  // Room ids are case-insensitive on the server; compare the normalized form.
+  const scopedGameId = gameId?.trim().toUpperCase();
+  const scopeRef = useRef({ playerId: auth?.player.playerId, gameId: scopedGameId, generation: 0 });
+  if (
+    scopeRef.current.playerId !== auth?.player.playerId ||
+    scopeRef.current.gameId !== scopedGameId
+  ) {
+    scopeRef.current = {
+      playerId: auth?.player.playerId,
+      gameId: scopedGameId,
+      generation: scopeRef.current.generation + 1,
+    };
+  }
   const latestAuthRef = useRef<AuthResponse | null>(auth);
   const latestMultiplayerSnapshotRef = useRef<MultiplayerSnapshot | null>(multiplayerSnapshot);
   const confirmedMultiplayerSnapshotRef = useRef<MultiplayerSnapshot | null>(null);
@@ -215,6 +229,12 @@ export function useMultiplayerGame(
         preserveView?: boolean;
       } = {},
     ) => {
+      if (
+        !mountedRef.current ||
+        !scopeRef.current.playerId ||
+        scopeRef.current.gameId !== snapshot.gameId.toUpperCase()
+      )
+        return;
       if (options.preserveView) {
         reconnectRef.current.clear();
         const existingSocket = socketRef.current;
@@ -224,7 +244,7 @@ export function useMultiplayerGame(
 
       const socket = new WebSocket(buildWebSocketUrl(snapshot.gameId));
       logWebSocketDebug("connect", {
-        url: buildWebSocketUrl(snapshot.gameId),
+        path: new URL(buildWebSocketUrl(snapshot.gameId)).pathname,
         preserveView: options.preserveView ?? false,
         gameId: snapshot.gameId,
       });
@@ -241,7 +261,7 @@ export function useMultiplayerGame(
         reconnectRef.current.reset();
         setConnectionState("connected");
         logWebSocketDebug("open", {
-          url: socket.url,
+          path: new URL(socket.url).pathname,
           gameId: snapshot.gameId,
         });
       });
@@ -335,7 +355,7 @@ export function useMultiplayerGame(
       socket.addEventListener("error", () => {
         logWebSocketDebug("error", {
           readyState: socket.readyState,
-          url: socket.url,
+          path: new URL(socket.url).pathname,
         });
       });
     },
@@ -350,9 +370,15 @@ export function useMultiplayerGame(
 
   const reconnectToCurrentRoom = useCallback(async () => {
     const snapshot = latestMultiplayerSnapshotRef.current;
-    if (!snapshot) {
+    const scope = scopeRef.current;
+    if (
+      !mountedRef.current ||
+      !snapshot ||
+      !scope.playerId ||
+      scope.gameId !== snapshot.gameId.toUpperCase()
+    )
       return;
-    }
+    const generation = scope.generation;
 
     setConnectionState("connecting");
     logWebSocketDebug("reconnect-start", {
@@ -363,6 +389,7 @@ export function useMultiplayerGame(
     try {
       const fetchGame = options.spectateOnly ? getMultiplayerGame : accessMultiplayerGame;
       const response = await fetchGame(snapshot.gameId);
+      if (scopeRef.current.generation !== generation) return;
       const wasReconnect = reconnectRef.current.getAttempt() > 0;
       connectToRoom(response.snapshot, {
         preserveView: true,
@@ -371,6 +398,7 @@ export function useMultiplayerGame(
         toast.success("Reconnected!");
       }
     } catch (error) {
+      if (scopeRef.current.generation !== generation) return;
       if (isRetryableError(error)) {
         setConnectionState("disconnected");
         reconnectRef.current.schedule();
@@ -393,7 +421,7 @@ export function useMultiplayerGame(
       }
       setMultiplayerError(readableError(error));
     }
-  }, [logWebSocketDebug, connectToRoom]);
+  }, [logWebSocketDebug, connectToRoom, options.spectateOnly]);
 
   reconnectToCurrentRoomRef.current = reconnectToCurrentRoom;
 
@@ -427,19 +455,21 @@ export function useMultiplayerGame(
     const prevPlayerId = prevPlayerIdRef.current;
     prevPlayerIdRef.current = nextPlayerId;
 
-    if (!prevPlayerId || !nextPlayerId || prevPlayerId === nextPlayerId) return;
-    // Only act if we have an active room connection to re-point.
-    if (!latestMultiplayerSnapshotRef.current) return;
-
+    if (prevPlayerId === nextPlayerId) return;
     reconnectRef.current.clear();
     const socket = socketRef.current;
     socketRef.current = null;
     socket?.close();
-    void reconnectToCurrentRoomRef.current();
+    if (nextPlayerId && latestMultiplayerSnapshotRef.current)
+      void reconnectToCurrentRoomRef.current();
+    else setConnectionState("idle");
   }, [auth?.player.playerId]);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
+      scopeRef.current.generation++;
       reconnectRef.current.clear();
       const socket = socketRef.current;
       socketRef.current = null;

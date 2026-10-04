@@ -72,7 +72,36 @@ describe("LobbySocketProvider", () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.unstubAllGlobals();
+  });
+
+  it("late retired socket events cannot reconnect or reach the next account", () => {
+    vi.useFakeTimers();
+    let currentAuth = mockAccountAuth;
+    const handler = vi.fn();
+    const { rerender, unmount } = renderHook(() => useLobbyMessage(handler), {
+      wrapper: ({ children }) => (
+        <LobbySocketProvider auth={currentAuth}>{children}</LobbySocketProvider>
+      ),
+    });
+    const old = MockWebSocket.instances[0];
+    currentAuth = mockGuestAuth;
+    rerender();
+    const current = MockWebSocket.instances[1];
+    handler.mockClear();
+    act(() => {
+      old.simulateOpen();
+      old.simulateMessage({ type: "matchmaking:preempted" });
+      old.close();
+      vi.advanceTimersByTime(20_000);
+    });
+    expect(handler).not.toHaveBeenCalled();
+    expect(MockWebSocket.instances).toHaveLength(2);
+    expect(current.readyState).toBe(MockWebSocket.OPEN);
+    unmount();
+    act(() => vi.advanceTimersByTime(20_000));
+    expect(MockWebSocket.instances).toHaveLength(2);
   });
 
   it("connects when auth is an account player", () => {

@@ -82,6 +82,7 @@ export function LobbySocketProvider({
     // Lobby socket now supports both accounts and guests: matchmaking relies on
     // socket lifetime for queue cleanup, so guests need a channel too.
     if (!auth) return;
+    let disposed = false;
 
     const reconnect = createReconnectScheduler(connect, {
       baseDelayMs: 1500,
@@ -89,6 +90,7 @@ export function LobbySocketProvider({
     });
 
     function connect() {
+      if (disposed) return;
       const url = new URL(buildWebSocketUrl("lobby"));
       url.pathname = "/api/ws/lobby";
       url.searchParams.delete("gameId");
@@ -97,6 +99,10 @@ export function LobbySocketProvider({
       socketRef.current = socket;
 
       socket.onopen = () => {
+        if (disposed || socketRef.current !== socket) {
+          socket.close();
+          return;
+        }
         reconnect.reset();
         // Flush any messages that were enqueued while the socket was down.
         // Same try/catch wrapping as sendMessage — one bad message in the
@@ -133,6 +139,7 @@ export function LobbySocketProvider({
       };
 
       socket.onmessage = (event) => {
+        if (disposed || socketRef.current !== socket) return;
         let payload: Record<string, unknown>;
         try {
           payload = JSON.parse(event.data);
@@ -155,7 +162,8 @@ export function LobbySocketProvider({
       };
 
       socket.onclose = () => {
-        if (socketRef.current === socket) socketRef.current = null;
+        if (disposed || socketRef.current !== socket) return;
+        socketRef.current = null;
         reconnect.schedule();
       };
 
@@ -167,6 +175,7 @@ export function LobbySocketProvider({
     connect();
 
     return () => {
+      disposed = true;
       reconnect.clear();
       socketRef.current?.close();
       socketRef.current = null;

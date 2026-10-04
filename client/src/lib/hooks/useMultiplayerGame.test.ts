@@ -2,6 +2,7 @@ import type { AuthResponse, MultiplayerSnapshot } from "@shared";
 import { createInitialGameState } from "@shared";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { accessMultiplayerGame } from "../api";
 import { useMultiplayerGame } from "./useMultiplayerGame";
 
 // Mock WebSocket
@@ -139,7 +140,48 @@ describe("useMultiplayerGame", () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.unstubAllGlobals();
+  });
+
+  it.each([
+    "logout",
+    "new room",
+    "unmount",
+  ])("ignores an old reconnect response after %s", async (change) => {
+    vi.useFakeTimers();
+    let resolve!: (value: Awaited<ReturnType<typeof accessMultiplayerGame>>) => void;
+    vi.mocked(accessMultiplayerGame).mockImplementationOnce(
+      () =>
+        new Promise((done) => {
+          resolve = done;
+        }),
+    );
+    const { result, rerender, unmount } = renderHook(
+      ({ auth, gameId }: { auth: AuthResponse | null; gameId: string }) =>
+        useMultiplayerGame(auth, gameId),
+      {
+        initialProps: { auth: mockAuth as AuthResponse | null, gameId: "ABC123" },
+      },
+    );
+    act(() => {
+      result.current.connectToRoom(createMockSnapshot());
+    });
+    act(() => {
+      result.current.handleUnexpectedMultiplayerDisconnect();
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3000);
+    });
+    expect(resolve).toBeTypeOf("function");
+    if (change === "logout") rerender({ auth: null, gameId: "ABC123" });
+    else if (change === "new room") rerender({ auth: mockAuth, gameId: "XYZ234" });
+    else unmount();
+    await act(async () => {
+      resolve({ snapshot: createMockSnapshot() });
+      await Promise.resolve();
+    });
+    expect(MockWebSocket.instances).toHaveLength(1);
   });
 
   it("initializes with idle connection state", () => {
