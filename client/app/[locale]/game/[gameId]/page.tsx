@@ -15,7 +15,9 @@ type Props = { params: Promise<{ locale: string; gameId: string }> };
 // two cross-build conditionals below so the same source file produces
 // a full SSR-ready route for web AND a single placeholder HTML for
 // the desktop static export.
-const IS_DESKTOP_BUILD = process.env.NEXT_PUBLIC_PLATFORM === "desktop";
+// Desktop (Electron) and mobile (Capacitor) both ship a static export.
+const IS_STATIC_EXPORT =
+  process.env.NEXT_PUBLIC_PLATFORM === "desktop" || process.env.NEXT_PUBLIC_PLATFORM === "mobile";
 
 /**
  * Desktop builds pre-render a single placeholder HTML file for this
@@ -25,7 +27,7 @@ const IS_DESKTOP_BUILD = process.env.NEXT_PUBLIC_PLATFORM === "desktop";
  * (see `resolveDynamicParam`).
  */
 export function generateStaticParams() {
-  if (IS_DESKTOP_BUILD) return [{ gameId: DESKTOP_SPA_PARAM_VALUE }];
+  if (IS_STATIC_EXPORT) return [{ gameId: DESKTOP_SPA_PARAM_VALUE }];
   return [];
 }
 
@@ -40,7 +42,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // serves one placeholder HTML for every /game/* URL, so per-game
   // metadata is both impossible (no unique file to attach it to) and
   // pointless (desktop app users don't share from the preview).
-  if (IS_DESKTOP_BUILD) {
+  if (IS_STATIC_EXPORT) {
     const title = t("gameTitle", { gameId: "" }).trim() || "Tiao";
     const description = t("siteDescription");
     return {

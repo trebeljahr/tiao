@@ -6,7 +6,9 @@ import { EmbedGamePage } from "@/views/EmbedGamePage";
 
 type Props = { params: Promise<{ locale: string; gameId: string }> };
 
-const IS_DESKTOP_BUILD = process.env.NEXT_PUBLIC_PLATFORM === "desktop";
+// Desktop (Electron) and mobile (Capacitor) both ship a static export.
+const IS_STATIC_EXPORT =
+  process.env.NEXT_PUBLIC_PLATFORM === "desktop" || process.env.NEXT_PUBLIC_PLATFORM === "mobile";
 
 /**
  * Embeddable finished-game replay: board + move-step controls, no app
@@ -19,7 +21,7 @@ const IS_DESKTOP_BUILD = process.env.NEXT_PUBLIC_PLATFORM === "desktop";
  * Electron, but the build must still succeed.
  */
 export function generateStaticParams() {
-  if (IS_DESKTOP_BUILD) return [{ gameId: DESKTOP_SPA_PARAM_VALUE }];
+  if (IS_STATIC_EXPORT) return [{ gameId: DESKTOP_SPA_PARAM_VALUE }];
   return [];
 }
 

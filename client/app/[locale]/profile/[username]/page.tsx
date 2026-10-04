@@ -13,11 +13,13 @@ type Props = { params: Promise<{ locale: string; username: string }> };
 
 // See the matching constant in /app/[locale]/game/[gameId]/page.tsx —
 // controls the web/desktop split for the shareable dynamic routes.
-const IS_DESKTOP_BUILD = process.env.NEXT_PUBLIC_PLATFORM === "desktop";
+// Desktop (Electron) and mobile (Capacitor) both ship a static export.
+const IS_STATIC_EXPORT =
+  process.env.NEXT_PUBLIC_PLATFORM === "desktop" || process.env.NEXT_PUBLIC_PLATFORM === "mobile";
 
 /** See the twin function in /app/[locale]/game/[gameId]/page.tsx. */
 export function generateStaticParams() {
-  if (IS_DESKTOP_BUILD) return [{ username: DESKTOP_SPA_PARAM_VALUE }];
+  if (IS_STATIC_EXPORT) return [{ username: DESKTOP_SPA_PARAM_VALUE }];
   return [];
 }
 
@@ -30,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   // Desktop static export: static fallback metadata only. See the
   // matching /game/[gameId]/page.tsx branch for the reasoning.
-  if (IS_DESKTOP_BUILD) {
+  if (IS_STATIC_EXPORT) {
     const title = t("publicProfileTitle", { name: "" }).trim() || "Tiao";
     const description = t("siteDescription");
     return {

@@ -76,6 +76,15 @@ const nextConfig = {
   allowedDevOrigins: ["192.168.0.*", "192.168.1.*", "localhost", "127.0.0.1"],
   outputFileTracingRoot: path.resolve(__dirname, ".."),
 
+  // `*.web.ts(x)` files under app/ are web-only routes: OG/Twitter
+  // images, robots.txt and the sitemap. They render per request on the
+  // web server, which a static export cannot do, and the desktop and
+  // mobile apps have no use for them. Static exports drop the `web.*`
+  // extensions so those files are not routes there.
+  pageExtensions: IS_STATIC_EXPORT
+    ? ["tsx", "ts", "jsx", "js"]
+    : ["web.tsx", "web.ts", "tsx", "ts", "jsx", "js"],
+
   // Emit browser-side source maps when EMIT_SOURCE_MAPS=1 is set at build
   // time. The root `test:e2e` script flips this on so that when a playwright
   // test surfaces a runtime error, the stack trace points at real source
