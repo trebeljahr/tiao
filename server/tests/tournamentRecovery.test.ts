@@ -223,3 +223,19 @@ test("room insertion before failed bracket-link commit is reused on restart", as
   assert.equal((await f.rooms.listRoomsForPlayer("alice")).length, 1);
   assert.equal(ready, 2);
 });
+
+test("elimination draw stays available for explicit admin resolution", async () => {
+  const f = fixture();
+  const t = await active(f);
+  const match = t.rounds[0].matches[0];
+  const room = (await f.rooms.getRoom(match.roomId!))!;
+  room.state.history.push({ type: "draw" });
+  room.status = "finished";
+  await f.rooms.saveRoom(room);
+  await f.b.recoverPending();
+  assert.equal((await f.store.getTournament(t.tournamentId))!.status, "active");
+  await f.b.forfeitMatch(t.tournamentId, match.matchId, "bob", "alice");
+  const resolved = (await f.store.getTournament(t.tournamentId))!;
+  assert.equal(resolved.status, "finished");
+  assert.equal(resolved.rounds[0].matches[0].winner, "alice");
+});

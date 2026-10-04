@@ -120,7 +120,7 @@ try {
   const { MongoTournamentStore, claimTournamentAuthority } = load("game/tournamentStore");
   const { MongoGameRoomStore } = load("game/gameStore");
   const { RedisLockProvider } = load("game/lockProvider");
-  const { withLockLease } = load("game/lockContext");
+  const { withLockLease, withoutLockLeases } = load("game/lockContext");
   const { TournamentService } = load("game/tournamentService");
   const gameModule = load("game/gameService");
   games.push(gameModule.gameService);
@@ -256,11 +256,13 @@ try {
     lockA.withLock(`tournament:${id}`, async () => {
       stolen = await storeA.getTournament(id);
       await redisClients[1].del(`tiao:lock:tournament:${id}`);
-      await lockB.withLock(`tournament:${id}`, async () => {
-        const fresh = await storeB.getTournament(id);
-        fresh.name = "New owner";
-        await storeB.saveTournament(fresh);
-      });
+      await withoutLockLeases(() =>
+        lockB.withLock(`tournament:${id}`, async () => {
+          const fresh = await storeB.getTournament(id);
+          fresh.name = "New owner";
+          await storeB.saveTournament(fresh);
+        }),
+      );
       await storeA.saveTournament(stolen);
     }),
     /lease/,
@@ -302,6 +304,24 @@ try {
   checks.push(
     "cancellation survives cleanup interruption and stale room writes cannot restore links",
   );
+  const drawn = await b.createTournament(
+    players[0],
+    { ...settings, format: "round-robin" },
+    "Synthetic draw",
+  );
+  await b.registerPlayer(drawn.tournamentId, players[0], "synthetic");
+  await b.registerPlayer(drawn.tournamentId, players[1], "synthetic");
+  const drawStart = await b.startTournament(drawn.tournamentId, players[0].playerId);
+  const drawRoom = await roomStore.getRoom(drawStart.rounds[0].matches[0].roomId);
+  drawRoom.state.history.push({ type: "draw" });
+  drawRoom.status = "finished";
+  await roomStore.saveRoom(drawRoom);
+  await b.recoverPending();
+  const drawEnd = await storeB.getTournament(drawn.tournamentId);
+  assert.equal(drawEnd.status, "finished");
+  assert.equal(drawEnd.rounds[0].matches[0].winner, null);
+  assert.equal(drawEnd.rounds[0].matches[0].finishReason, "board_full");
+  checks.push("draw results persist in Mongo and recover without inventing winners");
   console.log(JSON.stringify({ ok: true, checks }));
 } finally {
   await Promise.allSettled(services.map((s) => s.close()));

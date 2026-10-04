@@ -403,6 +403,7 @@ export class InMemoryTournamentStore implements TournamentStore {
     const current = this.tournaments.get(tournamentId);
     if (
       !expected ||
+      expected.tournamentId !== tournamentId ||
       !current ||
       current.revision !== expected.revision ||
       current.authorityToken !== expected.authorityToken
