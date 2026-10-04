@@ -84,6 +84,7 @@ COPY --from=build /app/client/public ./public
 COPY --from=build /app/client/package*.json ./
 COPY --from=build /app/client/next.config.mjs ./
 COPY --from=build /app/client/server.mjs ./
+COPY --from=build /app/client/runtime-proxy.mjs ./
 COPY --from=build /app/client/tunnel-envelope.mjs ./
 COPY --from=build /app/client/node_modules ./node_modules
 COPY --from=build /app/client/src/i18n ./src/i18n

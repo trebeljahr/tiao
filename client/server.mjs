@@ -24,6 +24,7 @@ import { createServer, request as httpRequest } from "node:http";
 import { request as httpsRequest } from "node:https";
 import { extname, join, resolve } from "node:path";
 import next from "next";
+import { createApiProxy } from "./runtime-proxy.mjs";
 import { buildGlitchtipEnvelopeTarget } from "./tunnel-envelope.mjs";
 
 const MIME_TYPES = {
@@ -146,9 +147,7 @@ export function servePublicFile(_req, res, pathname) {
 const dev = process.env.NODE_ENV !== "production";
 const port = Number.parseInt(process.env.PORT || "3000", 10);
 const apiTarget = process.env.API_URL || `http://127.0.0.1:${process.env.API_PORT || "5005"}`;
-const apiUrl = new URL(apiTarget);
-const isHttps = apiUrl.protocol === "https:";
-const makeRequest = isHttps ? httpsRequest : httpRequest;
+const apiProxy = createApiProxy(apiTarget);
 
 // --- OpenPanel analytics proxy -----------------------------------------------
 // When set, /collect/* requests are forwarded to the OpenPanel API so that
@@ -194,7 +193,7 @@ function proxyToTarget(req, res, target, targetPath) {
   );
 
   proxyReq.on("error", (err) => {
-    console.error(`Failed to proxy ${req.url} → ${target.origin}${targetPath}`, err);
+    console.error("Monitoring proxy unavailable", { code: err.code ?? "UPSTREAM_ERROR" });
     if (!res.headersSent) {
       res.writeHead(502, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ error: "Bad Gateway" }));
@@ -202,97 +201,6 @@ function proxyToTarget(req, res, target, targetPath) {
   });
 
   req.pipe(proxyReq, { end: true });
-}
-
-function proxyRequest(req, res) {
-  const proxyReq = makeRequest(
-    {
-      hostname: apiUrl.hostname,
-      port: apiUrl.port || (isHttps ? 443 : 80),
-      path: req.url,
-      method: req.method,
-      headers: { ...req.headers, host: apiUrl.host },
-    },
-    (proxyRes) => {
-      // Follow redirects that point to the API domain back through the proxy
-      if (proxyRes.statusCode >= 300 && proxyRes.statusCode < 400 && proxyRes.headers.location) {
-        const loc = proxyRes.headers.location;
-        // Rewrite redirects from the API back to the client origin
-        if (loc.startsWith(apiTarget)) {
-          proxyRes.headers.location = loc.replace(apiTarget, "");
-        }
-      }
-      res.writeHead(proxyRes.statusCode, proxyRes.headers);
-      proxyRes.pipe(res, { end: true });
-    },
-  );
-
-  proxyReq.on("error", (err) => {
-    console.error(`Failed to proxy ${req.url}`, err);
-    if (!res.headersSent) {
-      res.writeHead(502, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: "Bad Gateway" }));
-    }
-  });
-
-  req.pipe(proxyReq, { end: true });
-}
-
-function proxyWebSocketUpgrade(req, socket, head) {
-  const proxyReq = makeRequest({
-    hostname: apiUrl.hostname,
-    port: apiUrl.port || (isHttps ? 443 : 80),
-    path: req.url,
-    method: req.method,
-    headers: { ...req.headers, host: apiUrl.host },
-  });
-
-  proxyReq.on("upgrade", (proxyRes, proxySocket, proxyHead) => {
-    // Forward the 101 Switching Protocols response to the client
-    const responseLines = [`HTTP/1.1 101 ${proxyRes.statusMessage || "Switching Protocols"}`];
-    for (const [key, value] of Object.entries(proxyRes.headers)) {
-      if (Array.isArray(value)) {
-        for (const v of value) responseLines.push(`${key}: ${v}`);
-      } else if (value != null) {
-        responseLines.push(`${key}: ${value}`);
-      }
-    }
-    socket.write(responseLines.join("\r\n") + "\r\n\r\n");
-
-    // Forward any buffered data from the upgrade handshake
-    if (proxyHead.length) socket.write(proxyHead);
-    if (head.length) proxySocket.write(head);
-
-    // Bidirectional pipe between client and backend sockets
-    proxySocket.pipe(socket);
-    socket.pipe(proxySocket);
-
-    proxySocket.on("error", () => socket.destroy());
-    socket.on("error", () => proxySocket.destroy());
-    proxySocket.on("end", () => socket.end());
-    socket.on("end", () => proxySocket.end());
-  });
-
-  // Backend rejected the upgrade with a normal HTTP response
-  proxyReq.on("response", (proxyRes) => {
-    const responseLines = [`HTTP/1.1 ${proxyRes.statusCode} ${proxyRes.statusMessage}`];
-    for (const [key, value] of Object.entries(proxyRes.headers)) {
-      if (Array.isArray(value)) {
-        for (const v of value) responseLines.push(`${key}: ${v}`);
-      } else if (value != null) {
-        responseLines.push(`${key}: ${value}`);
-      }
-    }
-    socket.write(responseLines.join("\r\n") + "\r\n\r\n");
-    proxyRes.pipe(socket);
-  });
-
-  proxyReq.on("error", (err) => {
-    console.error(`Failed to proxy WebSocket upgrade ${req.url}`, err);
-    socket.destroy();
-  });
-
-  proxyReq.end();
 }
 
 // Bundler selection.
@@ -322,21 +230,40 @@ const handle = app.getRequestHandler();
 
 await app.prepare();
 
-console.log(`> API proxy target: ${apiTarget}`);
-if (openpanelProxyTarget) console.log(`> Analytics proxy: /collect → ${openpanelProxyTarget}`);
-if (glitchtipProxyTarget) console.log(`> Error tunnel: /_e → ${glitchtipProxyTarget}`);
+console.log(`> API proxy target: ${new URL(apiTarget).origin}`);
+if (openpanelUrl) console.log(`> Analytics proxy: /collect → ${openpanelUrl.origin}`);
+if (glitchtipUrl) console.log(`> Error tunnel: /_e → ${glitchtipUrl.origin}`);
 
 const httpServer = createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
 
-  if (url.pathname === "/health") {
-    res.writeHead(draining ? 503 : 200, { "Content-Type": "text/plain", "Cache-Control": "no-store" });
-    res.end(draining ? "draining" : "ok");
+  // /health is liveness: static pages keep serving while the API drains or
+  // restarts. /ready additionally requires a healthy API, for deploy gating.
+  if (url.pathname === "/health" || url.pathname === "/ready") {
+    void (async () => {
+      const apiReady = dev || (await apiProxy.ready());
+      const healthy = !draining && (url.pathname === "/health" || apiReady);
+      res.writeHead(healthy ? 200 : 503, {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+      });
+      res.end(
+        JSON.stringify({
+          status: draining ? "draining" : healthy ? "ok" : "starting",
+          api: apiReady ? "ready" : "unavailable",
+          rollingProtocol: 2,
+        }),
+      );
+    })();
     return;
   }
 
-  if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/ws/")) {
-    proxyRequest(req, res);
+  if (
+    url.pathname.startsWith("/api/") ||
+    url.pathname === "/ws" ||
+    url.pathname.startsWith("/ws/")
+  ) {
+    apiProxy.http(req, res);
     return;
   }
 
@@ -373,8 +300,8 @@ const httpServer = createServer((req, res) => {
           glitchtipUrl,
           targetPath,
         );
-      } catch (err) {
-        console.error("[/_e tunnel] Failed to parse envelope header:", err);
+      } catch {
+        console.error("Error-report envelope rejected");
         if (!res.headersSent) {
           res.writeHead(400, { "Content-Type": "application/json" });
           res.end(JSON.stringify({ error: "Bad envelope" }));
@@ -396,8 +323,12 @@ const httpServer = createServer((req, res) => {
 httpServer.on("upgrade", (req, socket, head) => {
   const { pathname } = new URL(req.url, `http://${req.headers.host}`);
 
-  if (pathname.startsWith("/api/") || pathname.startsWith("/ws/")) {
-    proxyWebSocketUpgrade(req, socket, head);
+  if (pathname.startsWith("/api/") || pathname === "/ws" || pathname.startsWith("/ws/")) {
+    if (draining) {
+      socket.end("HTTP/1.1 503 Service Unavailable\r\nConnection: close\r\n\r\n");
+      return;
+    }
+    apiProxy.upgrade(req, socket, head);
     return;
   }
 
@@ -413,10 +344,24 @@ function shutdown(signal) {
   if (draining) return;
   draining = true;
   console.log(`${signal} received. Draining frontend for 20 seconds.`);
-  setTimeout(() => {
-    httpServer.close(() => process.exit(0));
-    httpServer.closeAllConnections();
-    setTimeout(() => process.exit(1), 10_000).unref();
+  setTimeout(async () => {
+    const force = setTimeout(() => {
+      httpServer.closeAllConnections();
+      process.exit(1);
+    }, 10_000);
+    force.unref();
+    try {
+      const closed = new Promise((resolve, reject) =>
+        httpServer.close((error) => (error ? reject(error) : resolve())),
+      );
+      await apiProxy.close();
+      await closed;
+      await app.close();
+      clearTimeout(force);
+      process.exit(0);
+    } catch {
+      process.exit(1);
+    }
   }, 20_000);
 }
 process.once("SIGTERM", () => shutdown("SIGTERM"));
