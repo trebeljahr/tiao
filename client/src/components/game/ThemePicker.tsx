@@ -1,5 +1,5 @@
 import { Link } from "@/i18n/navigation";
-import { isDevFeatureEnabled } from "@/lib/featureGate";
+import { canSeeShop, isDevFeatureEnabled } from "@/lib/featureGate";
 import { useSetBoardTheme } from "@/lib/useBoardTheme";
 import { cn } from "@/lib/utils";
 import { type BoardTheme, DEFAULT_THEME_ID, THEMES } from "./boardThemes";
@@ -85,8 +85,11 @@ export function ThemePicker({
   const ownsTheme = (themeId: string): boolean =>
     themeId === DEFAULT_THEME_ID || (unlockedThemeIds?.includes(themeId) ?? false);
 
-  // In production, only show owned themes. In dev, show all with locked ones greyed out.
-  const themesToShow = isDev ? THEMES : THEMES.filter((t) => ownsTheme(t.id));
+  // In production, only show owned themes. In dev, show all with locked ones
+  // greyed out — except on app-store builds, where the shop link they
+  // carry is hidden.
+  const showLocked = isDev && canSeeShop(null);
+  const themesToShow = showLocked ? THEMES : THEMES.filter((t) => ownsTheme(t.id));
 
   return (
     <div className="flex flex-col gap-3">

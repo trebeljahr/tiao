@@ -30,6 +30,7 @@ import {
   isSteamBuild,
   waitForSteamMicroTxnAuthorization,
 } from "./SteamBridge";
+import { isAppStoreChannel } from "./distributionChannel";
 
 export type StorePurchaseChannel = "stripe" | "steam" | "none" | "loading";
 
@@ -80,6 +81,9 @@ export function getStorePurchaseChannel(): StorePurchaseChannel {
     if (!config) return settled ? "none" : "loading";
     return config.steam.enabled ? "steam" : "none";
   }
+  // Other storefronts (Mac App Store, Microsoft Store, iOS, Android)
+  // forbid Stripe and have no native purchase flow yet.
+  if (isAppStoreChannel()) return "none";
   return "stripe";
 }
 

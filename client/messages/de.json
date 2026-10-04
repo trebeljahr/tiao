@@ -1132,6 +1132,7 @@
     "openSourceContribute": "Die Lizenz gilt für den Code. Die Spielregeln sind das Werk von Andreas Edmeier. Beiträge sind willkommen: Pull Requests im <repo>GitHub-Repository</repo> werden unter der AGPL und der Steamworks-Ausnahme angenommen.",
     "supportTitle": "So kannst du Tiao unterstützen",
     "supportIntro": "Tiao hat keine Werbung und keine bezahlten Funktionen, die das Spiel beeinflussen. Server und Entwicklungszeit kosten Geld. Wenn du helfen möchtest, geht das so:",
+    "supportIntroStore": "Tiao hat keine Werbung und keine bezahlten Funktionen, die das Spiel beeinflussen. Wenn du helfen möchtest, geht das so:",
     "supportKofi": "Ko-fi",
     "supportKofiDesc": "eine einmalige Spende.",
     "supportSponsors": "GitHub Sponsors",

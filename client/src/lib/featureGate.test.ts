@@ -103,6 +103,35 @@ describe("canSeeShop", () => {
     // would quietly make every later test a desktop test.
     delete (window as unknown as { electron?: unknown }).electron;
     _resetStorePurchaseConfigForTests(null);
+    delete (window as unknown as { Capacitor?: unknown }).Capacitor;
+  });
+
+  function setDesktopChannel(distributionChannel: string) {
+    (window as unknown as { electron?: unknown }).electron = {
+      config: { isSteamBuild: false, distributionChannel },
+    };
+  }
+
+  function setNativeMobile(platform: "ios" | "android") {
+    (window as unknown as { Capacitor?: unknown }).Capacitor = {
+      isNativePlatform: () => true,
+      getPlatform: () => platform,
+    };
+  }
+
+  it.each(["mas", "msstore"])("is hidden in the %s desktop store build", (channel) => {
+    setDesktopChannel(channel);
+    expect(canSeeShop(makeAuth({ isAdmin: true }))).toBe(false);
+  });
+
+  it.each(["direct", "itch"])("stays visible in the %s desktop build", (channel) => {
+    setDesktopChannel(channel);
+    expect(canSeeShop(makeAuth())).toBe(true);
+  });
+
+  it.each(["ios", "android"] as const)("is hidden in the native %s app", (platform) => {
+    setNativeMobile(platform);
+    expect(canSeeShop(makeAuth({ isAdmin: true }))).toBe(false);
   });
 
   function setSteamBuild(isSteamBuild: boolean, withPurchaseBridge = false) {

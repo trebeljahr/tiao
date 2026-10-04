@@ -14,6 +14,7 @@ import { useTranslations } from "next-intl";
 import { PageLayout } from "@/components/PageLayout";
 import { PaperCard } from "@/components/ui/paper-card";
 import { Link } from "@/i18n/navigation";
+import { useIsAppStoreChannel } from "@/lib/distributionChannel";
 
 export const GITHUB_REPO_URL = "https://github.com/trebeljahr/tiao";
 export const GITHUB_SPONSORS_URL = "https://github.com/sponsors/trebeljahr";
@@ -54,6 +55,8 @@ function Section({
 
 export function AboutPage() {
   const t = useTranslations("about");
+  // App-store builds must not link to external donation pages.
+  const showDonations = !useIsAppStoreChannel();
 
   return (
     <PageLayout maxWidth="max-w-3xl">
@@ -87,20 +90,22 @@ export function AboutPage() {
           </Section>
 
           <Section id="support" title={t("supportTitle")}>
-            <p>{t("supportIntro")}</p>
+            <p>{showDonations ? t("supportIntro") : t("supportIntroStore")}</p>
             <ul className="list-disc space-y-1 pl-5">
-              {KOFI_URL && (
+              {showDonations && KOFI_URL && (
                 <li>
                   <ExternalLink href={KOFI_URL}>{t("supportKofi")}</ExternalLink>
                   {" — "}
                   {t("supportKofiDesc")}
                 </li>
               )}
-              <li>
-                <ExternalLink href={GITHUB_SPONSORS_URL}>{t("supportSponsors")}</ExternalLink>
-                {" — "}
-                {t("supportSponsorsDesc")}
-              </li>
+              {showDonations && (
+                <li>
+                  <ExternalLink href={GITHUB_SPONSORS_URL}>{t("supportSponsors")}</ExternalLink>
+                  {" — "}
+                  {t("supportSponsorsDesc")}
+                </li>
+              )}
               <li>
                 <ExternalLink href={GITHUB_REPO_URL}>{t("supportCode")}</ExternalLink>
                 {" — "}
