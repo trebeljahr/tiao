@@ -1,0 +1,121 @@
+name: Upload tested mobile build
+
+# Uploads the store file from one successful signed "Build mobile apps" run
+# on main. The run's provenance attestation and SHA-256 manifest are checked
+# before anything reaches a store. See docs/releasing-mobile.md.
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Successful signed Build mobile apps run
+        type: string
+        required: true
+      destination:
+        description: Store destination
+        type: choice
+        options: [play, testflight]
+        default: play
+      play_track:
+        description: Play track (ignored for TestFlight)
+        type: choice
+        options: [internal, alpha, beta, production]
+        default: internal
+      play_status:
+        description: Draft for first store setup; completed for testers; production always stays draft
+        type: choice
+        options: [draft, completed]
+        default: draft
+
+permissions:
+  contents: read
+  actions: read
+  attestations: read
+
+concurrency:
+  group: mobile-publish-${{ inputs.destination }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    working-directory: mobile
+
+jobs:
+  play:
+    if: inputs.destination == 'play' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: release-play
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+      - name: Check Play credentials and rollout
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          TRACK: ${{ inputs.play_track }}
+          STATUS: ${{ inputs.play_status }}
+        run: |
+          node scripts/release/plan.mjs credentials play
+          if [ "$TRACK" = production ] && [ "$STATUS" != draft ]; then
+            echo "::error::Production uploads must be drafts. Review and roll out from Play Console."
+            exit 1
+          fi
+      - name: Verify Android source artifacts
+        id: source
+        env:
+          SOURCE_RUN: ${{ inputs.run_id }}
+        run: node scripts/release/prepare-publish.mjs android "$SOURCE_RUN"
+      - name: Upload signed AAB
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.ricoslabs.tiao
+          releaseFiles: ${{ steps.source.outputs.file }}
+          mappingFile: ${{ steps.source.outputs.mapping }}
+          tracks: ${{ inputs.play_track }}
+          status: ${{ inputs.play_status }}
+          # Play rejects this flag on internal tracks, even for draft releases.
+          changesNotSentForReview: ${{ inputs.play_track != 'internal' }}
+
+  testflight:
+    if: inputs.destination == 'testflight' && github.ref == 'refs/heads/main'
+    runs-on: macos-15
+    timeout-minutes: 30
+    environment: release-testflight
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+      - name: Verify iOS source artifacts
+        id: source
+        env:
+          SOURCE_RUN: ${{ inputs.run_id }}
+        run: node scripts/release/prepare-publish.mjs ios "$SOURCE_RUN"
+      - name: Upload to TestFlight
+        env:
+          APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+          IPA: ${{ steps.source.outputs.file }}
+        run: |
+          node scripts/release/plan.mjs credentials testflight
+          umask 077
+          key_dir="$HOME/.appstoreconnect/private_keys"
+          mkdir -p "$key_dir"
+          key="$key_dir/AuthKey_$APPLE_API_KEY_ID.p8"
+          trap 'rm -f "$key"' EXIT
+          printf '%s' "$APPLE_API_KEY_BASE64" | base64 --decode > "$key"
+          [ -s "$key" ] || { echo "::error::Decoded App Store Connect key is empty."; exit 1; }
+          xcrun altool --upload-app --file "$IPA" --type ios --apiKey "$APPLE_API_KEY_ID" --apiIssuer "$APPLE_API_ISSUER_ID"

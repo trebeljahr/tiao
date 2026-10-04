@@ -1,168 +1,84 @@
 # Tiao mobile (Capacitor)
 
-Capacitor wrapper that ships the Tiao Next.js client as native Android
-and iOS apps. Sibling to `desktop/` (Electron) — together they're the
-non-web distribution targets.
+Capacitor wrapper that ships the Tiao Next.js client as native Android and
+iOS apps. Sibling to `desktop/` (Electron).
 
-The flow:
+How it fits together:
 
-1. The Next.js client at `../client` builds a static export under
-   `client/.next-mobile/` (set via `NEXT_PUBLIC_PLATFORM=mobile`).
+1. `pnpm run build:client` builds a static export of `../client` into
+   `client/.next-mobile/` (`NEXT_PUBLIC_PLATFORM=mobile`) and writes a root
+   `index.html` that redirects to the device locale.
 2. `capacitor.config.ts` points `webDir` at that directory.
-3. `cap sync` copies the export into the native projects under
-   `mobile/android/` and `mobile/ios/`.
-4. The native projects build APKs/AABs/IPAs the usual way.
+3. `cap sync` copies the export into the committed native projects in
+   `android/` and `ios/`.
+4. Gradle and Xcode build the apps. Store builds run in GitHub Actions.
 
-## First-time bootstrap (mac)
+Releases, secrets and store setup: [docs/releasing-mobile.md](../docs/releasing-mobile.md).
 
-The native projects (`android/`, `ios/`) are NOT in this commit — they
-need a one-time generation on a machine with Android Studio and Xcode
-installed. Follow these steps in order:
-
-1. **Add icon + splash masters**: drop a 1024×1024 `icon.png` and a
-   2732×2732 `splash.png` into `mobile/resources/`
-   (see `resources/README.md` for export instructions from the Tiao
-   SVG sources).
-2. **Install deps**: `pnpm install`
-3. **Build the renderer**: `pnpm run build:client`
-   (produces `../client/.next-mobile/`, the static export Capacitor
-   bundles into the WebView).
-4. **Add native projects** (one time only):
-   - `pnpm exec cap add android` — requires Android Studio + SDK
-   - `pnpm exec cap add ios` — requires Xcode (mac only)
-5. **Generate platform icons + splashes**: `pnpm run mobile:assets`
-   (expands the two masters into every Android density + iOS appiconset
-   slot inside the freshly-generated native trees).
-6. **Generate Android keystore** (one time, keep it safe — losing it
-   means you can never push an update to an already-published listing):
-   ```bash
-   keytool -genkey -v -keystore release.keystore \
-     -alias tiao -keyalg RSA -keysize 2048 -validity 10000
-   ```
-7. **Set signing env** in your shell rc:
-   - `TIAO_KEYSTORE_PATH` — absolute path to `release.keystore`
-   - `TIAO_KEYSTORE_PASSWORD`
-   - `TIAO_KEY_ALIAS` (defaults to `tiao` if unset)
-   - `TIAO_KEY_PASSWORD`
-8. **Append signing config**: copy the contents of
-   `android-signing.gradle.template` into `android/app/build.gradle`
-   (merge the `android { signingConfigs { … } buildTypes { … } }`
-   blocks with whatever Capacitor scaffolded).
-9. **Sync + build**:
-   `pnpm exec cap sync android && pnpm run build:android:release`
-
-After that, commit the freshly-generated `android/` and `ios/`
-directories — Gradle plugins, AndroidManifest tweaks, signing config,
-Info.plist customizations all live inside those trees and need to be
-under version control. The `.gitignore` already excludes build outputs
-and secrets, so a plain `git add android/ ios/` is safe.
-
-## iOS
-
-1. Open `ios/App/App.xcworkspace` in Xcode.
-2. Select your team in **Signing & Capabilities** (uses your Apple
-   Developer account).
-3. **Product → Archive → Distribute App → App Store Connect**.
-
-## Dev loop (HMR)
+## Setup
 
 ```bash
-# Android — emulator or attached phone
-pnpm run dev:android
-
-# iOS — simulator only (physical devices need Apple Dev signing)
-pnpm run dev:ios
+pnpm --dir ../client install
+pnpm install
+pnpm run build:client
+pnpm exec cap sync
 ```
 
-Both scripts:
+Toolchains: Xcode 26 for iOS (Swift Package Manager, no CocoaPods), and
+Android Studio or a JDK 21 plus the Android SDK (platform 36) for Android.
+`scripts/android-env.sh` points Gradle at Android Studio's bundled JDK and
+the default SDK path when `JAVA_HOME` / `ANDROID_HOME` are unset.
 
-1. Start the Next.js dev server (`pnpm --dir ../client dev`) bound to
-   `0.0.0.0:3100` so the WebView on a different network namespace can
-   reach it.
-2. Set `CAP_DEV_URL` so `capacitor.config.ts` flips on `server.url`
-   and the native WebView loads from the dev server instead of the
-   bundled `.next-mobile/` folder.
-3. `cap sync` and `cap run` the relevant platform.
+## Dev loop (live reload)
 
-Edits to `client/src/...` then hot-reload on the device in ~500ms with
-no APK / IPA rebuild between changes.
+```bash
+pnpm run dev:android   # emulator or attached phone
+pnpm run dev:ios       # simulator
+```
 
-### Env overrides
+Both scripts start the Next.js dev server on `0.0.0.0:3100`, set
+`CAP_DEV_URL` so the WebView loads from it, then `cap sync` and `cap run`.
+They stop only the processes they started.
 
 | Var | Default | Purpose |
 | --- | --- | --- |
-| `AVD` | `Medium_Phone_API_35` | Android Studio AVD name to boot |
-| `SIM` | `iPhone SE (3rd generation)` | iOS Simulator device name |
-| `NEXT_PORT` | `3100` | Next dev server port (matches the worktree's `autoPort` base) |
-| `LAN_IP` | `10.0.2.2` on Android, `localhost` on iOS | Host the WebView connects to. Use your Mac's LAN IP for tests on a real phone over Wi-Fi |
-| `NEXT_PUBLIC_MOBILE_API_URL` | `http://<DEV_HOST>:5005` | API base URL baked into the dev bundle (production default is `https://api.playtiao.com`, set in `client/next.config.mjs`) |
+| `AVD` | `Medium_Phone_API_35` | Android Studio AVD to boot |
+| `SIM` | `iPhone SE (3rd generation)` | iOS Simulator device |
+| `NEXT_PORT` | `3100` | Next dev server port |
+| `LAN_IP` | `10.0.2.2` on Android, `localhost` on iOS | Host the WebView connects to; use the Mac's LAN IP for a real phone |
+| `NEXT_PUBLIC_MOBILE_API_URL` | `http://<DEV_HOST>:5005` | API URL baked into the dev bundle (production default `https://api.playtiao.com`) |
 
-Workflow rule reminder: these dev scripts only SIGTERM the PIDs they
-spawned themselves. They never `lsof | xargs kill` a port — the user's
-main worktree dev server on `:3000` stays untouched.
+## Scripts
 
-## Release builds
+| Script | What it does |
+| --- | --- |
+| `build:client` | Static export of the client plus the locale redirect |
+| `cap:sync` | `mobile:version`, `build:client`, `cap sync` |
+| `mobile:version` | Writes `package.json` `version` (and `RELEASE_BUILD_NUMBER` if set) into the Xcode project. Android reads them in Gradle. |
+| `build:android:release` | Signed AAB + APK, verified against the upload key. Needs `RELEASE_BUILD_NUMBER` and signing config. |
+| `mobile:resources` | Regenerates the icon and splash masters in `resources/` from `../desktop/build/icon.png` (ImageMagick) |
+| `mobile:assets` | Expands the masters into every Android density and the iOS asset catalog |
+| `test:release` | Release tooling tests (Node and Python) |
 
-### Android (Google Play / itch.io)
+## Native settings worth knowing
 
-```bash
-pnpm run build:android:release   # produces android/app/build/outputs/bundle/release/app-release.aab
-pnpm run build:android:apk       # produces android/app/build/outputs/apk/release/app-release.apk
-pnpm run itch:push:android       # pushes the APK to itch.io (needs $ITCH_USER, $ITCH_GAME, butler logged in)
-```
+- Bundle ID / package `com.ricoslabs.tiao`, display name **Tiao**, team
+  `4BHY8H2J25`.
+- Version: `package.json` `version`. Build number: the CI `build_number`
+  input (Android `versionCode`, iOS `CFBundleVersion`).
+- Android: compile/target SDK 36, min SDK 24, R8 on release, no `AD_ID`,
+  backup and device transfer off. Local release signing uses
+  `android/keystore.properties` (copy the `.example`, git-ignored) or the
+  `ANDROID_KEYSTORE_*` environment variables.
+- iOS: `ITSAppUsesNonExemptEncryption = false` and `PrivacyInfo.xcprivacy`;
+  both are checked by the release verifier.
+- Deep link `tiao://auth/complete` is registered on both platforms for the
+  OAuth return.
+- Splash hides itself after 1 s. Background colour `#2a1d13` everywhere.
+- The mobile build hides the Stripe shop (store payment rules).
 
-Both reuse the env from `scripts/android-env.sh`, so you don't have to
-launch Android Studio for a release build.
-
-Signing config is configured directly inside `android/app/build.gradle`
-once the native project is generated (`signingConfigs.release`). The
-keystore itself stays out of git — `~/.gradle/gradle.properties` is the
-canonical home for the storePassword / keyAlias / keyPassword secrets
-(see `android/build.gradle`'s comments after bootstrap).
-
-### iOS (App Store / TestFlight)
-
-```bash
-pnpm run build:ios:release   # opens Xcode pointing at the synced project
-```
-
-iOS release builds require:
-
-1. An Apple Developer Program membership.
-2. A Team ID configured in Xcode (Signing & Capabilities tab of the
-   App target). The bundle id is `com.ricoslabs.tiao` (from
-   `capacitor.config.ts`, shared with the desktop build), registered
-   under the Ricos Labs LLC team `4BHY8H2J25`.
-3. A distribution certificate + provisioning profile in your keychain.
-
-Once those are in place, use Xcode's **Product → Archive** to produce
-an `.ipa` and upload via the Organizer window. There's no headless
-flow short of `xcodebuild archive` invoked from a CI runner with the
-secrets pre-installed in its keychain — that's a future addition.
-
-## App icons + splash
-
-```bash
-pnpm run mobile:assets
-```
-
-Generates the full icon + splash matrix from `resources/icon.png` and
-`resources/splash.png` (1024×1024 source images). Drop those two files
-into `mobile/resources/` before the first run.
-
-## Background colour
-
-`#2a1d13` — matches the existing tiao client shell brown. Defined in
-`capacitor.config.ts` (`backgroundColor` + splash plugin) so the
-launch transition from splash → app doesn't flash a different hue.
-
-## API URL
-
-Capacitor has no preload bridge equivalent to Electron's
-`window.electron.config.apiUrl`. The API URL is therefore baked in at
-build time via `NEXT_PUBLIC_MOBILE_API_URL` (see
-`client/next.config.mjs`, default `https://api.playtiao.com`). Override
-for dev/staging by exporting the var before `pnpm run build:client`.
+`scripts/release/native-config.test.mjs` fails if a `cap` regeneration drops
+any of the settings above.
 
 ## Social sign-in (system browser + deep link)
 
@@ -240,11 +156,7 @@ plugin is a possible hardening step.
 
 ## Why `mobile/` is a sibling of `desktop/`
 
-Same reason: the Capacitor CLI expects `cap sync` to run from the
-directory that contains `capacitor.config.ts` and its
-`node_modules/@capacitor/*` plugin set. Putting it under `client/` or
-`server/` would force every install of those packages to pull
-Capacitor too, even for `dev:web` flows that don't touch mobile.
-
-`SKIP_MOBILE=1 pnpm install` in the repo root skips the mobile install
-for contributors who only care about web/desktop.
+The Capacitor CLI runs `cap sync` from the directory that holds
+`capacitor.config.ts` and its `node_modules/@capacitor/*` plugins. Keeping
+it out of `client/` stops every client install from pulling Capacitor.
+`SKIP_MOBILE=1 pnpm install` at the repo root skips the mobile install.
