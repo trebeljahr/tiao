@@ -1,41 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Maintainer release wrapper for the Tiao desktop app.
+# Local build wrapper for the Tiao desktop app (host platform, direct channel).
 #
-# Sources credentials from `desktop/.env.release` (git-ignored) and
-# runs electron-builder to produce installers for the host platform.
+# Release builds come from CI: .github/workflows/build-desktop.yml signs,
+# notarizes and verifies every channel, and publish-desktop.yml uploads a
+# tested run. See docs/RELEASING-desktop.md. This script is for local
+# packaging only and never publishes.
 #
-# .env.release should define:
-#
-#   TIAO_DESKTOP_VERSION    — version string baked into TiaoDesktop/X UA
-#   TIAO_API_URL            — API base URL (defaults to production)
-#   TIAO_OPENPANEL_CLIENT_ID      — OpenPanel public client id for the
-#                                   main-process analytics wrapper
-#   TIAO_OPENPANEL_API_URL        — OpenPanel ingest URL
-#
-# For signed macOS builds, set (see desktop/README.md "Signing"):
-#   CSC_LINK                      — base64 of Developer ID .p12 or file:// path
-#   CSC_KEY_PASSWORD              — .p12 keystore password
-#   APPLE_ID                      — developer Apple ID email
-#   APPLE_APP_SPECIFIC_PASSWORD   — app-specific password (appleid.apple.com)
-#   APPLE_TEAM_ID                 — Developer Team ID
-#
-# For signed Windows builds, set:
-#   CSC_LINK                      — base64 of .pfx or file:// path
-#   CSC_KEY_PASSWORD              — .pfx keystore password
-#
-# All of the above are optional — leaving them unset produces an
-# unsigned build.  hardenedRuntime is already enabled in package.json
-# so signed builds will pass Apple's notary requirements; unsigned
-# builds still install (Gatekeeper quarantines them on first launch).
+# Sources optional overrides from `desktop/.env.release` (git-ignored), e.g.
+#   TIAO_DISTRIBUTION_CHANNEL   direct | itch | steam | mas | msstore
+#   TIAO_SIGNED=1               sign with identities from your keychain
+#   APPLE_KEYCHAIN_PROFILE      notarytool profile for a signed local Mac build
 #
 # Usage:
 #   ./scripts/release.sh                 # host platform only
-#   ./scripts/release.sh --all           # macOS + Windows + Linux (needs the host to be macOS for mac builds)
-#
-# Does NOT publish to GitHub Releases — that's a separate explicit
-# step.  Artifacts land in `desktop/dist/`.
+#   ./scripts/release.sh --all           # macOS + Windows + Linux (needs a Mac host)
 
 cd "$(dirname "$0")/.."
 
@@ -44,14 +24,14 @@ if [ -f .env.release ]; then
   # shellcheck disable=SC1091
   source .env.release
   set +a
-else
-  echo "[release] .env.release not found — using built-in defaults."
-  echo "[release] Copy .env.release.example if one is added in a follow-up."
 fi
 
-export TIAO_DESKTOP_VERSION="${TIAO_DESKTOP_VERSION:-$(node -p "require('./package.json').version")}"
+if [ "${TIAO_SIGNED:-0}" != "1" ]; then
+  # Unsigned: keep electron-builder away from any identity in the keychain.
+  export CSC_IDENTITY_AUTO_DISCOVERY=false
+fi
 
-echo "[release] building tiao-desktop v${TIAO_DESKTOP_VERSION}"
+echo "[release] building tiao-desktop v$(node -p "require('./package.json').version") (${TIAO_DISTRIBUTION_CHANNEL:-direct})"
 
 # Ensure the client static export is fresh.
 npm run dev:build-client
@@ -62,5 +42,4 @@ else
   npm run package
 fi
 
-echo "[release] done — artifacts in desktop/dist/"
-ls -1 dist/ 2>/dev/null || true
+echo "[release] done — artifacts in desktop/dist/${TIAO_DISTRIBUTION_CHANNEL:-direct}/"

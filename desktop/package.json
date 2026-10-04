@@ -2,7 +2,7 @@
   "name": "tiao-desktop",
   "version": "0.1.0",
   "private": true,
-  "description": "Electron wrapper for the Tiao desktop app — Phase 3a standalone build.",
+  "description": "Electron wrapper for the Tiao desktop app.",
   "main": "main.cjs",
   "engines": {
     "node": ">=24"
@@ -16,16 +16,18 @@
     "dev:build-client": "npm --prefix ../client run build:desktop && rm -rf client-bundle && cp -R ../client/.next-desktop/. client-bundle",
     "dev:rebuild-client": "npm run dev:build-client",
     "typecheck": "tsc --noEmit",
-    "test": "node --test 'src/**/*.test.cjs'",
-    "package": "electron-builder -p never",
-    "package:all": "electron-builder -mwl -p never",
-    "package:steam": "electron-builder -p never --config.extraMetadata.steamBuild=true --config.extraMetadata.steamAppId=${TIAO_STEAM_APPID:-480}",
+    "test": "node --test 'src/**/*.test.cjs' 'scripts/release/*.test.mjs'",
+    "package": "electron-builder --config electron-builder.config.cjs --publish never",
+    "package:all": "electron-builder --config electron-builder.config.cjs -mwl --publish never",
+    "package:steam": "TIAO_DISTRIBUTION_CHANNEL=steam electron-builder --config electron-builder.config.cjs --publish never",
     "release": "./scripts/release.sh",
     "release:tag": "bash scripts/release-tag.sh",
     "release:tag:push": "bash scripts/release-tag.sh --push",
-    "itch:push:mac": "butler push --userversion $npm_package_version dist/mac-universal/Tiao.app $ITCH_USER/$ITCH_GAME:osx",
-    "itch:push:win": "butler push --userversion $npm_package_version dist/win-unpacked $ITCH_USER/$ITCH_GAME:windows",
-    "itch:push:linux": "butler push --userversion $npm_package_version dist/*.AppImage $ITCH_USER/$ITCH_GAME:linux"
+    "package:mas": "TIAO_DISTRIBUTION_CHANNEL=mas electron-builder --config electron-builder.config.cjs --mac --universal --publish never",
+    "package:msstore": "TIAO_DISTRIBUTION_CHANNEL=msstore electron-builder --config electron-builder.config.cjs --win --x64 --publish never",
+    "version:check": "node scripts/release/version.mjs --check",
+    "version:set": "node scripts/release/version.mjs",
+    "release:check": "node --test 'scripts/release/*.test.mjs'"
   },
   "dependencies": {
     "@sentry/node": "^10.75.3",
@@ -42,19 +44,21 @@
   "build": {
     "appId": "com.ricoslabs.tiao",
     "productName": "Tiao",
-    "copyright": "Copyright © 2026 Tiao contributors",
+    "copyright": "Copyright © 2026 Ricos Labs LLC",
     "asar": true,
-    "afterSign": "scripts/notarize.cjs",
     "directories": {
       "output": "dist",
-      "buildResources": "assets"
+      "buildResources": "build"
+    },
+    "extraMetadata": {
+      "distributionChannel": "direct"
     },
     "files": [
       "main.cjs",
       "preload.cjs",
       "src/**/*.cjs",
+      "!src/**/*.test.cjs",
       "package.json",
-      "steam_appid.txt",
       "!node_modules/.cache/**",
       "!**/*.map"
     ],
@@ -77,14 +81,35 @@
           "arch": [
             "universal"
           ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "universal"
+          ]
         }
       ],
       "category": "public.app-category.board-games",
-      "icon": "assets/icon.png",
+      "icon": "build/icon.icns",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "build/entitlements.mac.plist",
-      "entitlementsInherit": "build/entitlements.mac.plist"
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "artifactName": "Tiao-${version}-macos-${arch}.${ext}",
+      "extendInfo": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "ElectronTeamID": "4BHY8H2J25"
+      }
+    },
+    "dmg": {
+      "artifactName": "Tiao-${version}-macos-${arch}.${ext}"
+    },
+    "mas": {
+      "type": "distribution",
+      "hardenedRuntime": false,
+      "entitlements": "build/entitlements.mas.plist",
+      "entitlementsInherit": "build/entitlements.mas.inherit.plist",
+      "artifactName": "Tiao-${version}-mas-${arch}.${ext}"
     },
     "win": {
       "target": [
@@ -101,10 +126,29 @@
           ]
         }
       ],
-      "icon": "assets/icon.png",
-      "signingHashAlgorithms": [
-        "sha256"
-      ]
+      "icon": "build/icon.ico",
+      "signtoolOptions": {
+        "signingHashAlgorithms": [
+          "sha256"
+        ]
+      }
+    },
+    "nsis": {
+      "artifactName": "Tiao-${version}-windows-${arch}-setup.${ext}"
+    },
+    "portable": {
+      "artifactName": "Tiao-${version}-windows-${arch}-portable.${ext}"
+    },
+    "appx": {
+      "applicationId": "Tiao",
+      "displayName": "Tiao",
+      "backgroundColor": "#1a0f06",
+      "languages": [
+        "en-US",
+        "de-DE",
+        "es-ES"
+      ],
+      "artifactName": "Tiao-${version}-msstore-${arch}.${ext}"
     },
     "linux": {
       "target": [
@@ -116,9 +160,11 @@
         }
       ],
       "category": "Game",
-      "icon": "assets/icon.png",
+      "icon": "build/icon.png",
       "synopsis": "A beautiful abstract strategy board game.",
-      "description": "Play Tiao online or offline — local 2-player, AI opponent, tutorial, and multiplayer when connected."
+      "description": "Play Tiao online or offline — local 2-player, AI opponent, tutorial, and multiplayer when connected.",
+      "executableName": "tiao",
+      "artifactName": "Tiao-${version}-linux-${arch}.${ext}"
     },
     "protocols": [
       {

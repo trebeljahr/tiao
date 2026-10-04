@@ -1,6 +1,8 @@
 # Electron build artifacts
 dist/
 out/
+# publish-desktop.yml staging
+artifacts/
 
 # Copied Next.js static export (built from ../client/.next-desktop/)
 client-bundle/

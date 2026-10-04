@@ -14,6 +14,9 @@ win → `icon.ico`, linux → `icon.png`).
 | `icon.ico`                | Windows app icon, multi-resolution container (16, 32, 48, 64, 128, 256).|
 | `icon.iconset/`           | Intermediate folder used by `iconutil` to produce `icon.icns`.          |
 | `entitlements.mac.plist`  | macOS hardened-runtime entitlements (JIT, library validation, network). |
+| `entitlements.mas.plist`  | Mac App Store main-app entitlements (sandbox, app group, network client, file picker). |
+| `entitlements.mas.inherit.plist` | Mac App Store helper entitlements (inherit the sandbox).       |
+| `appx/`                   | Microsoft Store tiles, generated from `icon.png` (see below).           |
 
 ## Regenerating the icons
 
@@ -58,14 +61,34 @@ cp "$SRC" "$DST/icon.png"
 > The 512×512 PNGs under `client/public/` and `docs-site/static/img/` are
 > already downscales of the same SVG; upscaling them again degrades quality.
 
+## Microsoft Store tiles
+
+electron-builder's `appx` target reads `appx/*.png`. Regenerate from the master
+after an icon change (the wide tile and splash pad the icon with `#1A0F06`):
+
+```bash
+cd desktop/build
+for spec in StoreLogo:50 Square44x44Logo:44 Square150x150Logo:150 SmallTile:71 LargeTile:310; do
+  sips -z "${spec#*:}" "${spec#*:}" icon.png --out "appx/${spec%%:*}.png"
+done
+sips -z 150 150 icon.png --out appx/Wide310x150Logo.png && sips -p 150 310 --padColor 1A0F06 appx/Wide310x150Logo.png
+sips -z 300 300 icon.png --out appx/SplashScreen.png && sips -p 300 620 --padColor 1A0F06 appx/SplashScreen.png
+```
+
 ## Entitlements
 
 `entitlements.mac.plist` enables the hardened-runtime relaxations Electron
 needs (V8 JIT, unsigned executable memory) plus the
 `disable-library-validation` flag that lets `steamworks.js` load its
-unsigned native dylibs. Network client/server entitlements are required
-because the renderer makes HTTPS requests to `api.playtiao.com` and the
-auth bridge listens on a loopback port during the OAuth handshake.
+unsigned native dylibs. The network client entitlement covers HTTPS and WebSocket traffic to
+`api.playtiao.com`. OAuth returns through the `tiao://` URL scheme, not a
+loopback server.
+
+The Mac App Store build signs with `entitlements.mas.plist` instead: App
+Sandbox, the `4BHY8H2J25.com.ricoslabs.tiao` application group Electron needs
+for its sandboxed IPC, network client, and read-only access to files the user
+picks (profile picture upload). It ships without `steamworks.js`, so it needs
+no library-validation exception and no hardened runtime.
 
 Apple's notary service will reject builds whose entitlements don't cover
 the actual runtime behavior — keep this file in sync if a new native

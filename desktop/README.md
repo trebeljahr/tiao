@@ -237,179 +237,81 @@ await window.electron.auth.getPersistenceStatus();
 await window.electron.auth.logout();
 ```
 
-## Building a real installer
+## Building and releasing
 
-### Local unsigned build (macOS)
+Releases are built and published by CI, one storefront per channel. The full
+runbook (secrets, variables, environments, Steam session, store setup) is
+[docs/RELEASING-desktop.md](../docs/RELEASING-desktop.md). This section covers
+local builds.
+
+### Distribution channels
+
+Every package is built for exactly one channel, baked into the packaged
+`package.json` as `distributionChannel` and exposed to the renderer as
+`window.electron.config.distributionChannel`:
+
+| Channel   | Outputs                                    | Updates                    |
+| --------- | ------------------------------------------ | -------------------------- |
+| `direct`  | DMG + ZIP, NSIS + portable EXE, AppImage   | electron-updater (opt-in)  |
+| `itch`    | ZIP (mac, win), AppImage (linux)           | butler / itch app          |
+| `steam`   | unpacked app directories (SteamPipe depots)| Steam                      |
+| `mas`     | Mac App Store `.pkg` (universal, sandboxed)| Mac App Store              |
+| `msstore` | `.appx` for Partner Center (unsigned)      | Microsoft Store            |
+
+`src/updater.cjs` only starts electron-updater for `direct`, and only when
+`TIAO_ENABLE_UPDATER=1`. Store and Steam builds never self-update.
+`electron-builder.config.cjs` turns the shared `build` block in
+`package.json` into the per-channel config (`scripts/release/builder-config.cjs`).
+
+### Local unsigned build
 
 ```bash
 cd desktop
-npm run dev:build-client     # ensure client-bundle/ is fresh
-npm run package              # → desktop/dist/Tiao-0.1.0.dmg (universal binary)
-open dist/Tiao-0.1.0.dmg
-# Finder mounts it. Drag Tiao.app → Applications. Eject.
+npm run dev:build-client                        # fresh client-bundle/
+CSC_IDENTITY_AUTO_DISCOVERY=false npm run package          # direct → dist/direct/
+CSC_IDENTITY_AUTO_DISCOVERY=false npm run package:steam    # steam  → dist/steam/
+CSC_IDENTITY_AUTO_DISCOVERY=false npm run package:mas      # MAS config check → dist/mas/mas-universal/Tiao.app (no pkg)
+node scripts/release/package.mjs macos smoke    # every channel of one CI leg
 ```
 
-First launch triggers **"Tiao is damaged and can't be opened"** from Gatekeeper
-because the build is unsigned. Three workarounds for local testing:
+Unsigned builds skip signing completely (`mac.identity: null`, no hardened
+runtime). `CSC_IDENTITY_AUTO_DISCOVERY=false` keeps electron-builder away from
+any Developer ID identity in your keychain. Gatekeeper quarantines an unsigned
+app on first launch; right-click → Open, or run
+`dist/direct/mac-universal/Tiao.app` directly.
+
+macOS and MAS builds need a Mac. The AppX target needs Windows. Linux and the
+Windows NSIS/portable/dir targets can be cross-built from a Mac.
+
+### Version
+
+`desktop/package.json` `version` is the release version: artifact names,
+`app.getVersion()`, butler `--userversion`, the Steam build description and the
+`desktop-vX.Y.Z` tag all read it. The repository root `package.json` mirrors it.
 
 ```bash
-# 1. Right-click the .app in Finder → Open. macOS asks once, then remembers.
-
-# 2. Strip the quarantine xattr (silent, good for distributing to testers)
-xattr -d com.apple.quarantine /Applications/Tiao.app
-
-# 3. Run directly from the dist/ folder, bypassing "install" entirely
-open desktop/dist/mac-universal/Tiao.app
+npm run version:set -- 0.2.0   # writes both files
+npm run version:check          # CI runs this; fails on drift or a non X.Y.Z version
 ```
 
-`build.mac.hardenedRuntime` is `true` in `package.json` (required for Apple
-notarization), but unsigned local builds still install — Gatekeeper just
-quarantines them on first launch. See the [Signing](#signing) section for
-the env vars that flip on real signing/notarization, and
-`scripts/release.sh` / `.github/workflows/desktop-release.yml` for where
-the CI secrets get wired.
+### Steam
 
-**Auto-discovery gotcha.** If your dev Mac happens to have *any* Developer
-ID Application certificate in the keychain (e.g. from another project),
-electron-builder will auto-discover it and attempt to sign the build with
-hardened runtime — which may fail or produce a signed-but-not-notarized
-app and surprise you. To force a clean unsigned local build regardless of
-keychain state:
+`steam_appid.txt` holds Tiao's appid `5035580`. It is only for `npm run dev`
+(the Steamworks SDK reads it from the process CWD). It is not packaged, and the
+depot build script excludes it. A packaged Steam build gets its appid from the
+baked `steamAppId`; `src/steam.cjs` passes it to `init()` explicitly.
+
+Env vars do not survive packaging, so the Steam build bakes
+`steamBuild: true` and `steamAppId: 5035580` into its `package.json`.
+`STEAM_BUILD=true` / `TIAO_STEAM_APPID` still work as dev overrides. Check an
+artifact:
 
 ```bash
-CSC_IDENTITY_AUTO_DISCOVERY=false npm run package
+node -e "import('./scripts/release/lib.mjs').then(l => console.log(l.readAsarFile('dist/steam/mac-universal/Tiao.app/Contents/Resources/app.asar', 'package.json').toString()))"
 ```
 
-### All platforms
-
-```bash
-npm run package:all          # mac dmg + win nsis + win portable + linux AppImage
-```
-
-macOS builds **must be produced on a Mac**. Linux and Windows can be cross-built
-from any host. The CI workflow (`.github/workflows/desktop-release.yml`) runs
-each platform on its native runner on `workflow_dispatch` or `push: desktop-v*`
-tag.
-
-### Release env vars
-
-`scripts/release.sh` sources `desktop/.env.release` (git-ignored). Fields:
-
-| Variable                      | Purpose                                                                                                               |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `TIAO_DESKTOP_VERSION`        | Baked into `TiaoDesktop/X (darwin)` UA for analytics                                                                  |
-| `TIAO_API_URL`                | API base URL (read at **runtime**; default: `https://api.playtiao.com` for packaged, `http://localhost:5005` for dev) |
-| `TIAO_OPENPANEL_CLIENT_ID`    | OpenPanel public client id for main-process events                                                                    |
-| `TIAO_OPENPANEL_API_URL`      | OpenPanel ingest URL                                                                                                  |
-| `TIAO_STEAM_APPID`            | Steam appid baked into the build (see "Steam appid swap" below)                                                       |
-
-## Signing
-
-The signing/notarization scaffolding is wired into `package.json` and
-`scripts/notarize.cjs` (the electron-builder `afterSign` hook). **All
-secrets are opt-in** — if you leave the env vars unset, the build still
-succeeds and produces an unsigned binary. Set the vars below to flip on
-signing without touching any code.
-
-### macOS — Developer ID code signing
-
-Set these to sign the `.app` bundle and `.dmg` with a Developer ID
-Application certificate:
-
-| Variable           | Purpose                                                                                            |
-| ------------------ | -------------------------------------------------------------------------------------------------- |
-| `CSC_LINK`         | Base64-encoded `.p12` (or `file://` path to a `.p12`) of your Developer ID Application certificate |
-| `CSC_KEY_PASSWORD` | Password for the `.p12` keystore                                                                   |
-
-electron-builder reads `CSC_LINK` / `CSC_KEY_PASSWORD` automatically — no
-config change required. If both are unset, the build proceeds unsigned.
-
-### macOS — Apple notarization
-
-Set these to send the signed `.app` to Apple's notary service via
-`@electron/notarize` (invoked from `scripts/notarize.cjs`):
-
-| Variable                      | Purpose                                                              |
-| ----------------------------- | -------------------------------------------------------------------- |
-| `APPLE_ID`                    | Developer Apple ID email                                             |
-| `APPLE_APP_SPECIFIC_PASSWORD` | App-specific password generated at appleid.apple.com (NOT real pwd)  |
-| `APPLE_TEAM_ID`               | Developer Team ID (10-character string from developer.apple.com)     |
-
-The notarize hook short-circuits if any of the three are missing —
-unsigned/un-notarized local builds still complete normally. Notarization
-requires the build to also be signed (`CSC_LINK` set), and it requires
-`mac.hardenedRuntime: true` (already enabled in `package.json`).
-
-### Windows — code signing
-
-electron-builder auto-reads the same `CSC_LINK` / `CSC_KEY_PASSWORD` env
-vars on Windows when packaging the NSIS installer and portable build.
-For Azure Trusted Signing or an EV hardware token, additional config is
-needed in `build.win.signtoolOptions` — out of scope for this scaffolding.
-
-| Variable           | Purpose                                                                                                                  |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| `CSC_LINK`         | Base64-encoded `.pfx` (or `file://` path) of your Windows code-signing certificate                                       |
-| `CSC_KEY_PASSWORD` | Password for the `.pfx` keystore                                                                                         |
-
-Without these, Windows builds succeed but SmartScreen will warn end
-users on first run until enough installs build reputation.
-
-### Steam appid swap
-
-`desktop/steam_appid.txt` currently holds `480` (Valve's Spacewar test
-appid). That file only matters for **dev**, where the process CWD is
-`desktop/` and `steamworks.init()` can find it. Packaged builds do not
-rely on it: `src/steam.cjs` passes the appid to `init()` explicitly, and
-steamworks-rs sets `SteamAppId`/`SteamGameId` from that argument. This
-matters because a packaged app's CWD is wherever the user launched from
-— often `/` — so a CWD-relative lookup would fail, and the file itself
-lives inside `app.asar` where the native SDK cannot read it anyway.
-
-Before a Steam release:
-
-1. Replace the contents of `desktop/steam_appid.txt` with the real Tiao
-   appid (keeps `npm run dev` pointed at the right app).
-2. Build with `TIAO_STEAM_APPID=<id> npm run package:steam`.
-
-### How a build becomes a Steam build
-
-`package:steam` does **not** work by setting an env var. Env vars do not
-survive packaging: Steam launches the installed binary with the Steam
-client's own environment, which will never contain `STEAM_BUILD`. An
-env-only gate would therefore be off in precisely the build that needs
-it on.
-
-Instead the script injects two keys into the packaged `package.json` via
-electron-builder's `--config.extraMetadata`:
-
-```
-steamBuild: true
-steamAppId: <TIAO_STEAM_APPID, default 480>
-```
-
-`src/steam.cjs` reads those at startup, with `STEAM_BUILD=true` /
-`TIAO_STEAM_APPID` in the environment still honored as a dev override.
-Check a built artifact with:
-
-```bash
-npx asar extract-file dist/mac-universal/Tiao.app/Contents/Resources/app.asar package.json /dev/stdout | grep steam
-```
-
-### Steam depot contents
-
-SteamPipe wants an unpacked game directory, not an installer.
-electron-builder produces one as an intermediate for every target, so
-there is nothing extra to configure — point the depot at:
-
-| Platform | Depot root                        |
-| -------- | --------------------------------- |
-| macOS    | `dist/mac-universal/Tiao.app`     |
-| Windows  | `dist/win-unpacked/`              |
-| Linux    | `dist/linux-unpacked/`            |
-
-Do **not** ship the `.dmg` / NSIS `.exe` / `.AppImage` through Steam —
-those are for the itch.io and direct-download channels.
+Steam depots are the unpacked directories (`dist/steam/mac-universal/`,
+`win-unpacked/`, `linux-unpacked/`), never the DMG, NSIS installer or AppImage.
 
 ## Security posture
 
@@ -463,21 +365,14 @@ release, and before adding any new native dependency.
 
 ### macOS code signing & notarization
 
-The scaffolding is in place — see the [Signing](#signing) section above
-for the env vars that flip it on. Without `CSC_LINK` / `APPLE_ID` set,
-builds still succeed and produce unsigned dmgs (Gatekeeper quarantine
-applies; auto-updater cannot apply updates; Mac App Store distribution
-blocked). Once the env vars are populated:
-
-- `mac.hardenedRuntime` is already `true` in `package.json`
-- `build/entitlements.mac.plist` covers JIT, unsigned executable memory,
-  library validation disable (for `steamworks.js`), and network client/server
-- `scripts/notarize.cjs` is wired as `afterSign` and skips cleanly when
-  notarization creds are missing
-
-Budget at least **a full day** for the first signed build — the first
-notarization round-trip almost always fails on something, and the error
-messages are famously unhelpful.
+Signed CI builds use a Developer ID Application identity (`MAC_CSC_LINK`)
+with hardened runtime and `build/entitlements.mac.plist` (JIT, unsigned
+executable memory, library validation off for `steamworks.js`, network).
+electron-builder notarizes with the App Store Connect API key
+(`APPLE_API_KEY`, `APPLE_API_KEY_ID`, `APPLE_API_ISSUER`) and staples the app.
+`scripts/release/verify-macos.sh` checks team, Gatekeeper, staple and
+universal slices on every deliverable. The Mac App Store build uses
+`build/entitlements.mas*.plist` instead and no hardened runtime.
 
 ### Auto-updater requires signed builds
 

@@ -1,22 +1,18 @@
 #!/usr/bin/env bash
 # release-tag.sh — stamp the current commit with the desktop package's
-# version, optionally push the tag, and print a butler-compatible
-# --userversion string.
+# version as `desktop-vX.Y.Z`, optionally pushing the tag.
 #
-# Why this exists: `git tag vX.Y.Z` alone never reaches itch.io. Butler
-# picks up version info from the --userversion flag passed at push time
-# (see the `itch:push:*` scripts in desktop/package.json). So an itch
-# release needs all three:
+# Tags never build or publish anything. The release flow is:
 #
-#   1. Bump desktop/package.json's "version" locally.
-#   2. Run this script to stamp a git tag at the release commit.
-#   3. Let the `itch:push:*` scripts forward $npm_package_version to
-#      butler so itch.io renders the right "Version" column.
+#   1. `npm run version:set -- X.Y.Z`, commit, integrate into main.
+#   2. Dispatch build-desktop.yml (signed) on main and test its artifacts.
+#   3. Tag that exact commit with this script and push the tag.
+#   4. Dispatch publish-desktop.yml with the build run ID. The
+#      downloads-draft destination refuses a tag at any other commit;
+#      itch, Steam, the Mac App Store and the Microsoft Store read the
+#      version from the verified build manifests.
 #
-# Steam does NOT go through this path. Steam builds are a separate
-# artifact (Steam gate baked in, auto-updater disabled) pushed via
-# SteamPipe — see desktop/scripts/steam-upload.sh and the
-# `steam-release` workflow, which triggers on `steam-v*` tags.
+# See docs/RELEASING-desktop.md.
 #
 # Tag format: `desktop-vX.Y.Z`. The `desktop-` prefix keeps the tag
 # namespace separate from any future tags on the client / server /
@@ -77,8 +73,4 @@ if [[ "${1:-}" == "--push" ]]; then
 fi
 
 echo ""
-echo "Next: run one of"
-echo "  npm run itch:push:mac"
-echo "  npm run itch:push:win"
-echo "  npm run itch:push:linux"
-echo "Each invocation reads $TAG's version ($VERSION) automatically."
+echo "Next: dispatch publish-desktop.yml with the signed build run of this commit."
