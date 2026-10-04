@@ -16,13 +16,13 @@
 # If Android Studio was installed somewhere non-standard, override
 # via your shell profile before running npm.
 
-if [ -z "$JAVA_HOME" ]; then
+if [ -z "${JAVA_HOME:-}" ]; then
   export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 fi
-if [ -z "$ANDROID_HOME" ]; then
+if [ -z "${ANDROID_HOME:-}" ]; then
   export ANDROID_HOME="$HOME/Library/Android/sdk"
 fi
-if [ -z "$ANDROID_SDK_ROOT" ]; then
+if [ -z "${ANDROID_SDK_ROOT:-}" ]; then
   export ANDROID_SDK_ROOT="$ANDROID_HOME"
 fi
 

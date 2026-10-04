@@ -68,18 +68,24 @@ const config: CapacitorConfig = {
 
   plugins: {
     SplashScreen: {
-      // Hold the splash long enough for the client's auth bootstrap
-      // (token cache → /me round-trip) to settle. The Next.js shell
-      // calls SplashScreen.hide() once the lobby is mounted; until
-      // then this prevents the player seeing the unauthenticated
-      // landing page flicker through.
-      launchShowDuration: 2500,
-      launchAutoHide: false,
+      // The client does not call SplashScreen.hide() yet, so the native
+      // splash must hide itself or the app would stay on it forever.
+      // The redirect page and the app shell use the splash's brown, so
+      // the hand-over does not flash.
+      launchShowDuration: 1000,
+      launchAutoHide: true,
+      launchFadeOutDuration: 200,
       backgroundColor: "#2a1d13",
       androidScaleType: "CENTER_CROP",
       showSpinner: false,
       splashFullScreen: true,
       splashImmersive: true,
+    },
+    SystemBars: {
+      // Light status-bar icons on the dark brown background. The client
+      // does not set viewport-fit=cover, so on Android 15+ Capacitor pads
+      // the WebView out of the system bars instead of drawing under them.
+      style: "DARK",
     },
   },
 };

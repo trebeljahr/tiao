@@ -18,6 +18,8 @@
       "!**/*.min.css",
       "!**/_next",
       "!**/desktop/client-bundle",
+      "!**/mobile/android",
+      "!**/mobile/ios",
       "!**/docs-site/docs/api-reference",
       "!**/docs-site/static/openapi.json",
       "!**/*.css"

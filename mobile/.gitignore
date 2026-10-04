@@ -23,6 +23,10 @@ ios/App/App/public/
 # Generated assets cache from `capacitor-assets generate`
 resources/.cache/
 
+# Release staging (scripts/release/collect.mjs, prepare-publish.mjs)
+/release/
+/artifacts/
+
 # Signing secrets — never commit
 *.keystore
 *.jks

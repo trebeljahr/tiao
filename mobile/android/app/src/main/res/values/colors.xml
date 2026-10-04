@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Same brown as capacitor.config.ts backgroundColor and the splash. -->
+    <color name="tiao_background">#2a1d13</color>
+</resources>
