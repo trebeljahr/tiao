@@ -303,6 +303,7 @@ test("a second matchmaking tab evicts the first", async () => {
   await service.connectLobby(alice, socketA as any);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await service.connectLobby(alice, socketB as any);
+  socketA.sent = []; // Exclude the initial reconnect-state message.
 
   socketA.simulateMessage({ type: "matchmaking:enter", timeControl: null });
   await flushAsync();
@@ -466,9 +467,11 @@ test("pre-empted socket gets matchmaking:resumable when active tab cancels", asy
   assert.equal((await service.getMatchmakingState(alice)).status, "idle");
 });
 
-test("pre-empted socket gets matchmaking:resumable when active tab disconnects", async () => {
+test("pre-empted socket gets matchmaking:resumable after the closed active tab's reconnect grace", async () => {
   const store = new InMemoryGameRoomStore();
   const service = new GameService(store, () => 0);
+  // A reload must not hand the search to the background tab immediately.
+  Object.assign(service, { preemptedWakeDelayMs: 20 });
   const alice = createPlayer("alice");
 
   const socketA = new MockSocket();
@@ -486,6 +489,13 @@ test("pre-empted socket gets matchmaking:resumable when active tab disconnects",
   socketA.sent = [];
 
   socketB.simulateClose();
+  await flushAsync();
+  assert.equal(
+    socketA.received().some((m) => m.type === "matchmaking:resumable"),
+    false,
+    "transport loss alone must not wake the pre-empted tab",
+  );
+  await new Promise((resolve) => setTimeout(resolve, 40));
   await flushAsync();
 
   const resumable = socketA.received().find((m) => m.type === "matchmaking:resumable");

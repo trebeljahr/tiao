@@ -18,9 +18,13 @@ import { getRedisClient } from "./config/redisClient";
 import { connectToDB, disconnectFromDB } from "./db";
 import { type DailyJobScheduler, startDiscordLeaderboardJob } from "./discord/leaderboardJob";
 import { GameServiceError, gameService } from "./game/gameService";
+import { tournamentService } from "./game/tournamentService";
 import { createLogger } from "./lib/logger";
 import { beginDrain, isDraining } from "./lib/readiness";
 import { isAllowedOrigin } from "./lib/wsOrigin";
+import GameRoom from "./models/GameRoom";
+import { MatchmakingSearch } from "./models/MatchmakingSearch";
+import Tournament from "./models/Tournament";
 
 const log = createLogger("ws");
 const serverLog = createLogger("http");
@@ -137,6 +141,19 @@ websocketServer.on("connection", (socket, request) => {
   // know whether to accept the app:// origin AND so the downstream
   // getPlayerFromUpgradeRequest can skip re-parsing the query string.
   const tokenQueryParam = url.searchParams.get("token");
+  // Browsers can send on `open` before async authentication installs the lobby
+  // handler. Bound the buffer and replay only after authentication succeeds.
+  const earlyLobbyMessages: WebSocket.RawData[] = [];
+  let earlyLobbyBytes = 0;
+  const bufferLobbyMessage = (raw: WebSocket.RawData): void => {
+    earlyLobbyBytes += Buffer.byteLength(raw.toString());
+    if (earlyLobbyMessages.length >= 16 || earlyLobbyBytes > 65_536) {
+      socket.close(1009, "Too many messages before authentication");
+      return;
+    }
+    earlyLobbyMessages.push(raw);
+  };
+  if (url.pathname === "/api/ws/lobby") socket.on("message", bufferLobbyMessage);
 
   log.info("incoming connection", { path: url.pathname, gameId: gameId ?? null });
 
@@ -217,6 +234,10 @@ websocketServer.on("connection", (socket, request) => {
         socket,
         tokenQueryParam ? async () => !!(await verifySessionToken(tokenQueryParam)) : undefined,
       );
+      socket.off("message", bufferLobbyMessage);
+      if (socket.readyState === WebSocket.OPEN)
+        for (const raw of earlyLobbyMessages) socket.emit("message", raw);
+      earlyLobbyMessages.length = 0;
       return;
     }
 
@@ -268,6 +289,7 @@ websocketServer.on("connection", (socket, request) => {
             socket.close(1008, "session expired");
             return;
           }
+          if (socket.readyState !== WebSocket.OPEN) return;
           const message = JSON.parse(rawMessage.toString()) as ClientToServerMessage;
           await gameService.applyAction(gameId, player, message);
         } catch (error) {
@@ -374,8 +396,9 @@ async function shutdown(signal: NodeJS.Signals): Promise<void> {
   try {
     await closeHttpServer();
     await discordLeaderboardJob?.close();
-    await gameService.close();
     await closeWebSocketServer();
+    await tournamentService.close();
+    await gameService.close();
     getRedisClient()?.disconnect();
     await disconnectFromDB();
     const { flush: flushGlitchtip } = await import("./lib/glitchtip");
@@ -401,6 +424,11 @@ process.once("SIGINT", () => {
 async function start(): Promise<void> {
   try {
     await connectToDB();
+    // Matching is idempotent only once the unique attempt index exists.
+    await GameRoom.init();
+    await MatchmakingSearch.init();
+    await Tournament.init();
+    await tournamentService.startRecovery();
 
     // Restore in-memory clock timers for active timed games (lost on restart)
     await gameService.restoreClockTimers();

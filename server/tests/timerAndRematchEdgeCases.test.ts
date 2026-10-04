@@ -612,7 +612,7 @@ test("rematch is revoked end-to-end when sender fully disconnects and reconnects
   );
 });
 
-test("rematch is revoked when the receiver disconnects (not just the sender)", async () => {
+test("rematch is revoked after the receiver reconnect grace expires", async (t) => {
   // Symmetrical to the test above: alice sends, BOB leaves. The previous
   // implementation only cleared the rematch on sender-disconnect, leaving the
   // receiver's pending request in the DB — which then resurrected as a toast
@@ -644,9 +644,19 @@ test("rematch is revoked when the receiver disconnects (not just the sender)", a
   let snapshot = await service.getSnapshot(created.gameId);
   assert.ok(snapshot.rematch?.requestedBy.length, "rematch should be pending after request");
 
+  // A rolling reconnect has 15 seconds before transport loss revokes the offer.
+  t.mock.timers.enable({ apis: ["setTimeout"] });
   // Bob closes the browser entirely — only his lobby socket exists, so close it
   (bobLobbySocket as unknown as FakeSocket).readyState = WebSocket.CLOSED;
   (bobLobbySocket as unknown as FakeSocket).emit("close");
+  await new Promise((r) => setImmediate(r));
+  assert.ok(
+    (await service.getSnapshot(created.gameId)).rematch,
+    "offer survives the reconnect grace",
+  );
+  t.mock.timers.tick(15_001);
+  await new Promise((r) => setImmediate(r));
+  t.mock.timers.reset();
   await new Promise((r) => setTimeout(r, 50));
 
   // The rematch must be cleared even though bob never requested it

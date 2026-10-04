@@ -51,6 +51,15 @@ import { InMemoryRoomPresence, RedisRoomPresence, type RoomPresence } from "./pr
 /** Discord game-result posts are capped to one per this window; extras are dropped. */
 const GAME_RESULT_WEBHOOK_MIN_INTERVAL_MS = 30_000;
 
+/**
+ * Search id echoed to the browser with a match. Server-initiated requeues have
+ * no browser id, so their match is delivered unfiltered to the player's sockets.
+ */
+function clientSearchId(playerId: string, stored: string | undefined): string | undefined {
+  const id = stored?.slice(playerId.length + 1);
+  return id && !id.startsWith("server-") ? id : undefined;
+}
+
 export class GameServiceError extends Error {
   status: number;
   code: string;
@@ -66,6 +75,7 @@ import mongoose, { isValidObjectId } from "mongoose";
 import { track } from "../analytics/openpanel";
 import { DISCORD_WEBHOOK_GAME_RESULTS } from "../config/envVars";
 import { postWebhook } from "../discord/webhooks";
+import { isDraining } from "../lib/readiness";
 import GameAccount from "../models/GameAccount";
 import {
   onEloUpdated as checkEloAchievements,
@@ -115,6 +125,7 @@ export class GameService {
    * removes the queue entry even if the player has other lobby tabs open.
    */
   private readonly matchmakingSocketByPlayer = new Map<string, WebSocket>();
+  private readonly socketSearchIds = new Map<WebSocket, string>();
   /**
    * Sockets that were pre-empted by another tab/browser of the same account
    * and are waiting for the active session to end so they can resume their
@@ -133,6 +144,10 @@ export class GameService {
   private readonly timerScheduler: TimerScheduler;
   private readonly sweepScheduler: MatchmakingSweepScheduler;
   private tournamentCallback: TournamentGameCallback | null = null;
+  private readonly lobbyDisconnectTimers = new Set<ReturnType<typeof setTimeout>>();
+  private readonly operations = new Set<Promise<unknown>>();
+  /** Reconnect grace before a closed search owner's preempted siblings are woken. */
+  protected preemptedWakeDelayMs = 15_000;
   private readonly lobbyDisconnectCallbacks: Array<(playerId: string) => void> = [];
 
   constructor(
@@ -145,6 +160,7 @@ export class GameService {
     timerSchedulerFactory?: (handlers: TimerHandlers) => TimerScheduler,
     sweepSchedulerFactory?: (sweepFn: () => Promise<void>) => MatchmakingSweepScheduler,
     private readonly presence: RoomPresence = new InMemoryRoomPresence(),
+    private readonly requireConnectedSearches = false,
   ) {
     this.matchmaking = matchmaking ?? new InMemoryMatchmakingStore();
     this.lockProvider = lockProvider ?? new InMemoryLockProvider();
@@ -163,6 +179,7 @@ export class GameService {
       ? sweepSchedulerFactory(() => this.sweepMatchmakingQueue())
       : new InMemoryMatchmakingSweepScheduler(() => this.sweepMatchmakingQueue());
 
+    this.presence.onRecovery?.(() => this.reconnectClients());
     this.broadcaster.onRecovery?.(() => {
       this.reconnectClients();
       if (this.broadcaster.isReady?.() && mongoose.connection.readyState === 1)
@@ -174,18 +191,44 @@ export class GameService {
       if (channel === "room" && target) {
         const connections = this.connections.get(target);
         if (!connections) return;
-        for (const [socket] of connections.entries()) {
-          if (socket.readyState === WebSocket.OPEN) {
+        const payload = JSON.parse(message) as { recipientPlayerId?: string };
+        for (const [socket, playerId] of connections.entries()) {
+          if (
+            socket.readyState === WebSocket.OPEN &&
+            (!payload.recipientPlayerId || payload.recipientPlayerId === playerId)
+          ) {
             socket.send(message);
           }
         }
       } else if (channel === "lobby" && target) {
         const sockets = this.lobbyConnections.get(target);
         if (!sockets) return;
-        for (const socket of sockets) {
-          if (socket.readyState === WebSocket.OPEN) {
-            socket.send(message);
+        const control = JSON.parse(message) as {
+          type?: string;
+          ownerId?: string | null;
+          attemptId?: string;
+        };
+        if (control.type === "matchmaking:owner") {
+          const owner = this.matchmakingSocketByPlayer.get(target);
+          if (owner && this.presenceIds.get(owner) !== control.ownerId) {
+            this.matchmakingSocketByPlayer.delete(target);
+            this.socketSearchIds.delete(owner);
+            this.sendLobbyMessage(owner, { type: "matchmaking:preempted" });
+            const waiting = this.preemptedMatchmakingSockets.get(target) ?? new Set<WebSocket>();
+            waiting.add(owner);
+            this.preemptedMatchmakingSockets.set(target, waiting);
           }
+          if (control.ownerId === null) this.releasePreemptedMatchmakingSockets(target);
+          return;
+        }
+        for (const socket of sockets) {
+          if (
+            control.type === "matchmaking:matched" &&
+            control.attemptId &&
+            this.socketSearchIds.get(socket) !== `${target}:${control.attemptId}`
+          )
+            continue;
+          if (socket.readyState === WebSocket.OPEN) socket.send(message);
         }
       } else if (channel === "lobby-all") {
         for (const sockets of this.lobbyConnections.values()) {
@@ -287,9 +330,8 @@ export class GameService {
     );
   }
 
-  isPlayerConnectedToLobby(playerId: string): boolean {
-    const sockets = this.lobbyConnections.get(playerId);
-    return !!sockets && sockets.size > 0;
+  async isPlayerConnectedToLobby(playerId: string): Promise<boolean> {
+    return (await this.presence.players(`lobby:${playerId}`)).has(playerId);
   }
 
   async connectLobby(
@@ -297,6 +339,14 @@ export class GameService {
     socket: WebSocket,
     validateSession?: () => Promise<boolean>,
   ): Promise<void> {
+    const connectionId = randomUUID();
+    await this.presence.join(connectionId, `lobby:${player.playerId}`, player);
+    this.presenceIds.set(socket, connectionId);
+    if (socket.readyState !== WebSocket.OPEN) {
+      this.presenceIds.delete(socket);
+      await this.presence.leave(connectionId);
+      return;
+    }
     let userSockets = this.lobbyConnections.get(player.playerId);
     const isFirst = !userSockets;
     if (!userSockets) {
@@ -306,34 +356,58 @@ export class GameService {
     userSockets.add(socket);
     if (isFirst) this.broadcaster.subscribeLobby(player.playerId);
 
+    let pendingMessages = Promise.resolve();
+    let queuedMessages = 0;
     socket.on("message", (raw) => {
-      void (async () => {
-        if (validateSession && !(await validateSession())) {
-          socket.close(1008, "session expired");
-          return;
-        }
-        if (socket.readyState !== WebSocket.OPEN) return;
-        await this.handleLobbyMessage(player, socket, raw);
-      })().catch(() => socket.close(1008, "session validation failed"));
+      if (++queuedMessages > 32) {
+        socket.close(1009, "Too many pending lobby messages");
+        return;
+      }
+      // Redis lock acquisition retries need not be FIFO. Preserve each
+      // connection's enter/leave order before it reaches the distributed lock.
+      pendingMessages = pendingMessages
+        .then(async () => {
+          if (socket.readyState !== WebSocket.OPEN) return;
+          if (validateSession && !(await validateSession())) {
+            socket.close(1008, "session expired");
+            return;
+          }
+          await this.handleLobbyMessage(player, socket, raw);
+        })
+        .catch(() => socket.close(1008, "session validation failed"))
+        .finally(() => {
+          queuedMessages--;
+        });
     });
 
     socket.on("close", () => {
       userSockets?.delete(socket);
 
-      // If this socket owned the player's matchmaking session, clear the queue
-      // entry regardless of whether other lobby tabs remain open. This is the
-      // core fix for "ghost" matches: closing the matchmaking tab (or any
-      // disconnect event on that specific socket) removes the player from the
-      // queue before the sweep can pair them with a real opponent.
-      if (this.matchmakingSocketByPlayer.get(player.playerId) === socket) {
-        this.matchmakingSocketByPlayer.delete(player.playerId);
-        void this.leaveMatchmaking(player).catch((err) => {
-          console.error("[lobby] failed to clear matchmaking on disconnect", err);
-        });
-        // Wake any pre-empted sibling tabs so they can resume searching now
-        // that the active owner has disconnected without matching.
-        this.releasePreemptedMatchmakingSockets(player.playerId);
-      }
+      // Cancellation is conditional on the persisted connection owner. A
+      // retiring replica cannot remove the queue entry of a successor socket.
+      // Only a socket that owns a search contends for the global queue lock.
+      if (
+        this.socketSearchIds.has(socket) ||
+        this.matchmakingSocketByPlayer.get(player.playerId) === socket
+      )
+        void this.trackOperation(this.leaveMatchmakingViaSocket(player, socket)).catch(
+          () => undefined,
+        );
+      this.presenceIds.delete(socket);
+      this.socketSearchIds.delete(socket);
+      void this.trackOperation(this.presence.leave(connectionId)).catch(() => undefined);
+      // Give the browser's bounded reconnect backoff time to reach a healthy
+      // replica before interpreting transport loss as leaving a tournament.
+      const timer = setTimeout(() => {
+        this.lobbyDisconnectTimers.delete(timer);
+        void (async () => {
+          if (await this.isPlayerConnectedToLobby(player.playerId)) return;
+          await this.revokeRematchesOnDisconnect(player.playerId);
+          for (const cb of this.lobbyDisconnectCallbacks) cb(player.playerId);
+        })().catch(() => undefined);
+      }, 15_000);
+      timer.unref();
+      this.lobbyDisconnectTimers.add(timer);
 
       // Also clean up this socket from any pre-empted set so a closed socket
       // doesn't sit in the map forever (and doesn't get an unreachable
@@ -346,17 +420,12 @@ export class GameService {
       if (userSockets?.size === 0) {
         this.lobbyConnections.delete(player.playerId);
         this.broadcaster.unsubscribeLobby(player.playerId);
-        void this.revokeRematchesOnDisconnect(player.playerId);
-        for (const cb of this.lobbyDisconnectCallbacks) {
-          try {
-            cb(player.playerId);
-          } catch {
-            /* best-effort */
-          }
-        }
       }
     });
 
+    // Older installed clients do not handle lobby:open. Reset their searching
+    // view so its existing enter effect resumes after a rolling reconnect.
+    this.sendLobbyMessage(socket, { type: "matchmaking:state", state: { status: "idle" } });
     // Push pending incoming rematch requests so the player sees a toast on login
     void this.pushPendingRematches(player.playerId, socket);
   }
@@ -377,22 +446,44 @@ export class GameService {
       return;
     }
 
-    if (parsed.type === "matchmaking:enter") {
+    if (parsed.type === "matchmaking:enter" || parsed.type === "matchmaking:enter-v2") {
       try {
-        const state = await this.enterMatchmakingViaSocket(player, parsed.timeControl, socket);
-        this.sendLobbyMessage(socket, { type: "matchmaking:state", state });
+        if (
+          (parsed.type === "matchmaking:enter-v2" || parsed.attemptId !== undefined) &&
+          (typeof parsed.attemptId !== "string" ||
+            !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+              parsed.attemptId,
+            ))
+        )
+          throw new GameServiceError(400, "INVALID_SEARCH", "Invalid matchmaking search id.");
+        const state = await this.enterMatchmakingViaSocket(
+          player,
+          parsed.timeControl,
+          socket,
+          parsed.attemptId,
+        );
+        this.sendLobbyMessage(socket, {
+          type: "matchmaking:state",
+          state,
+          attemptId: parsed.attemptId,
+        });
       } catch (error) {
         const code = error instanceof GameServiceError ? error.code : "MATCHMAKING_ERROR";
         const message =
           error instanceof Error ? error.message : "Unable to enter matchmaking right now.";
-        this.sendLobbyMessage(socket, { type: "matchmaking:error", code, message });
+        this.sendLobbyMessage(socket, {
+          type: "matchmaking:error",
+          code,
+          message,
+          attemptId: parsed.attemptId,
+        });
       }
       return;
     }
 
     if (parsed.type === "matchmaking:leave") {
       try {
-        await this.leaveMatchmakingViaSocket(player, socket);
+        await this.leaveMatchmakingViaSocket(player, socket, undefined, true);
       } catch (error) {
         console.error("[lobby] matchmaking:leave failed", error);
       }
@@ -832,17 +923,24 @@ export class GameService {
 
   async connect(gameId: string, player: PlayerIdentity, socket: WebSocket): Promise<void> {
     const room = await this.getRoom(gameId);
+    if (socket.readyState !== WebSocket.OPEN) return;
 
     this.clearAbandonTimer(room.id, player.playerId);
 
     const connectionId = randomUUID();
     await this.presence.join(connectionId, room.id, player);
+    if (socket.readyState !== WebSocket.OPEN) {
+      await this.presence.leave(connectionId);
+      return;
+    }
     this.presenceIds.set(socket, connectionId);
     const connections = this.getConnections(room.id);
     const wasEmpty = connections.size === 0;
     connections.set(socket, player.playerId);
     this.socketRooms.set(socket, room.id);
     if (wasEmpty) this.broadcaster.subscribeRoom(room.id);
+    if (this.isPlayerInRoom(room, player.playerId))
+      await this.store.acknowledgeMatch(room.id, player.playerId);
 
     // Track spectator identity (non-players connecting to a room)
     if (!this.isPlayerInRoom(room, player.playerId)) {
@@ -895,7 +993,11 @@ export class GameService {
     await this.broadcastSnapshot(room);
   }
 
-  async disconnect(socket: WebSocket): Promise<void> {
+  disconnect(socket: WebSocket): Promise<void> {
+    return this.trackOperation(this.disconnectSocket(socket));
+  }
+
+  private async disconnectSocket(socket: WebSocket): Promise<void> {
     const roomId = this.socketRooms.get(socket);
     this.socketRooms.delete(socket);
 
@@ -912,12 +1014,12 @@ export class GameService {
     connections.delete(socket);
     const connectionId = this.presenceIds.get(socket);
     this.presenceIds.delete(socket);
-    if (connectionId) await this.presence.leave(connectionId);
-
     if (connections.size === 0) {
       this.connections.delete(roomId);
+      this.spectatorIdentities.delete(roomId);
       this.broadcaster.unsubscribeRoom(roomId);
     }
+    if (connectionId) await this.presence.leave(connectionId);
 
     // Remove spectator identity when all their sockets disconnect
     if (disconnectedPlayerId && !(await this.isPlayerOnline(roomId, disconnectedPlayerId))) {
@@ -949,6 +1051,7 @@ export class GameService {
       disconnectedPlayerId &&
       derivedRoom.status === "finished" &&
       derivedRoom.rematch?.requestedBy.length &&
+      !isDraining() &&
       !(await this.isPlayerOnline(roomId, disconnectedPlayerId))
     ) {
       derivedRoom = await this.withLock(this.roomLockKey(roomId), async () => {
@@ -1274,14 +1377,62 @@ export class GameService {
   async enterMatchmaking(
     player: PlayerIdentity,
     timeControl: TimeControl = null,
+    ownership?: {
+      ownerId: string;
+      attemptId: string;
+      durable?: boolean;
+      assertOpen?: () => void;
+      onClaim?: () => void;
+    },
   ): Promise<MatchmakingState> {
     return this.withLock(this.matchmakingLockKey(), async () => {
+      if (
+        ownership &&
+        !(await this.presence.hasConnection(`lobby:${player.playerId}`, ownership.ownerId))
+      )
+        throw new GameServiceError(409, "SEARCH_DISCONNECTED", "Reconnect before searching.");
+      if (ownership) {
+        const recovered = await this.store.findRoomByMatchmakingAttempt(ownership.attemptId);
+        if (recovered) {
+          this.assertSearchInput(recovered.timeControl, timeControl);
+          return { status: "matched", snapshot: await this.toSnapshot(recovered) };
+        }
+      }
+      // Fail before superseding another tab's search or touching the queue.
+      ownership?.assertOpen?.();
+      // Pub/Sub preemption notices can be lost. The durable receipt stops an
+      // old tab from reclaiming the queue with a search that a newer one replaced.
+      if (ownership?.durable) {
+        const intent = await this.store.claimSearchIntent({
+          attemptId: ownership.attemptId,
+          playerId: player.playerId,
+          timeControl,
+        });
+        if (intent.status === "superseded")
+          throw new GameServiceError(
+            409,
+            "SEARCH_SUPERSEDED",
+            "Another tab or device started a newer search.",
+          );
+        this.assertSearchInput(intent.timeControl, timeControl);
+      } else {
+        await this.store.supersedeSearchIntents(player.playerId, ownership?.attemptId ?? null);
+      }
+      await this.pruneDisconnectedSearches();
       // Clear any previous match so the player re-enters the queue
       // instead of being reconnected to the same game.
       await this.matchmaking.deleteMatch(player.playerId);
 
       const existingEntry = await this.matchmaking.findEntry(player.playerId);
-      if (existingEntry) {
+      if (ownership && existingEntry?.attemptId === ownership.attemptId)
+        this.assertSearchInput(existingEntry.timeControl, timeControl);
+      if (
+        existingEntry &&
+        (!ownership ||
+          (existingEntry.ownerId === ownership.ownerId &&
+            existingEntry.attemptId === ownership.attemptId))
+      ) {
+        ownership?.onClaim?.();
         return {
           status: "searching",
           queuedAt: new Date(existingEntry.queuedAt).toISOString(),
@@ -1289,8 +1440,16 @@ export class GameService {
         };
       }
 
+      if (existingEntry) await this.matchmaking.removeFromQueue(player.playerId);
+      const attemptId = ownership?.attemptId ?? `${player.playerId}:server-${randomUUID()}`;
+      ownership?.onClaim?.();
+      if (ownership)
+        this.broadcastLobby(player.playerId, {
+          type: "matchmaking:owner",
+          ownerId: ownership.ownerId,
+        });
       const playerRating = player.rating ?? DEFAULT_RATING;
-      const opponentEntry = await this.matchmaking.findAndRemoveOpponent(
+      const opponentEntry = await this.matchmaking.findOpponent(
         player.playerId,
         timeControl,
         playerRating,
@@ -1315,10 +1474,15 @@ export class GameService {
               assignSeats: true,
               seats: this.assignSeats(slimOpponent, slimPlayer),
               timeControl,
+              matchmakingAttemptIds: [
+                attemptId,
+                ...(opponentEntry.attemptId ? [opponentEntry.attemptId] : []),
+              ],
             });
 
             await this.matchmaking.setMatch(opponentEntry.player.playerId, room.id);
             await this.matchmaking.setMatch(player.playerId, room.id);
+            await this.matchmaking.removeFromQueue(opponentEntry.player.playerId);
 
             return this.toSnapshot(room);
           },
@@ -1334,6 +1498,7 @@ export class GameService {
         this.broadcastLobby(opponentEntry.player.playerId, {
           type: "matchmaking:matched",
           snapshot,
+          attemptId: clientSearchId(opponentEntry.player.playerId, opponentEntry.attemptId),
         });
 
         return {
@@ -1348,6 +1513,8 @@ export class GameService {
         queuedAt,
         timeControl,
         rating: playerRating,
+        ownerId: ownership?.ownerId,
+        attemptId,
       });
 
       return {
@@ -1401,63 +1568,167 @@ export class GameService {
     player: PlayerIdentity,
     timeControl: TimeControl,
     socket: WebSocket,
+    attemptId?: string,
   ): Promise<MatchmakingState> {
-    const existingSocket = this.matchmakingSocketByPlayer.get(player.playerId);
-    if (existingSocket && existingSocket !== socket) {
-      this.matchmakingSocketByPlayer.delete(player.playerId);
-      await this.leaveMatchmaking(player);
-      // Tell the old socket it was pre-empted (NOT a plain idle state) so the
-      // client can distinguish "user cancelled" from "another tab took over"
-      // and skip its auto-re-enter effect — otherwise the two tabs ping-pong
-      // the queue ownership indefinitely.
-      this.sendLobbyMessage(existingSocket, { type: "matchmaking:preempted" });
-      // Remember the pre-empted socket so we can unblock it with a
-      // `matchmaking:resumable` push when the active owner eventually
-      // cancels / disconnects without matching.
-      let set = this.preemptedMatchmakingSockets.get(player.playerId);
-      if (!set) {
-        set = new Set();
-        this.preemptedMatchmakingSockets.set(player.playerId, set);
-      }
-      set.add(existingSocket);
+    if (attemptId === undefined) {
+      // Legacy clients have no logical search id. Recover the recent matched
+      // receipt instead of interpreting a lost reply as a brand-new search.
+      const state = await this.getMatchmakingState(player);
+      if (state.status === "matched" && state.snapshot.status === "active") return state;
+      const previous = (await this.store.listActiveRoomsForPlayer(player.playerId)).find(
+        (room) => room.roomType === "matchmaking",
+      );
+      if (previous) return { status: "matched", snapshot: await this.toSnapshot(previous) };
     }
-
-    // If the NEW owner was itself previously pre-empted, drop it from the
-    // waiting set — it's actively searching again, it doesn't need a
-    // `matchmaking:resumable` nudge.
-    const preemptedSet = this.preemptedMatchmakingSockets.get(player.playerId);
-    if (preemptedSet?.delete(socket) && preemptedSet.size === 0) {
-      this.preemptedMatchmakingSockets.delete(player.playerId);
+    const ownerId = this.presenceIds.get(socket);
+    if (!ownerId)
+      throw new GameServiceError(409, "SEARCH_DISCONNECTED", "Reconnect before searching.");
+    const state = await this.enterMatchmaking(player, timeControl, {
+      ownerId,
+      attemptId: `${player.playerId}:${attemptId ?? ownerId}`,
+      durable: attemptId !== undefined,
+      assertOpen: () => {
+        if (socket.readyState !== WebSocket.OPEN)
+          throw new GameServiceError(409, "SEARCH_DISCONNECTED", "Reconnect before searching.");
+      },
+      onClaim: () => {
+        if (socket.readyState !== WebSocket.OPEN)
+          throw new GameServiceError(409, "SEARCH_DISCONNECTED", "Reconnect before searching.");
+        const existingSocket = this.matchmakingSocketByPlayer.get(player.playerId);
+        if (existingSocket && existingSocket !== socket) {
+          this.socketSearchIds.delete(existingSocket);
+          this.sendLobbyMessage(existingSocket, { type: "matchmaking:preempted" });
+          const waiting =
+            this.preemptedMatchmakingSockets.get(player.playerId) ?? new Set<WebSocket>();
+          waiting.add(existingSocket);
+          this.preemptedMatchmakingSockets.set(player.playerId, waiting);
+        }
+        this.preemptedMatchmakingSockets.get(player.playerId)?.delete(socket);
+        this.matchmakingSocketByPlayer.set(player.playerId, socket);
+        this.socketSearchIds.set(socket, `${player.playerId}:${attemptId ?? ownerId}`);
+      },
+    });
+    if (state.status === "matched") {
+      if (this.matchmakingSocketByPlayer.get(player.playerId) === socket)
+        this.matchmakingSocketByPlayer.delete(player.playerId);
+      this.preemptedMatchmakingSockets.get(player.playerId)?.delete(socket);
     }
-
-    const state = await this.enterMatchmaking(player, timeControl);
-
-    if (state.status === "searching") {
-      this.matchmakingSocketByPlayer.set(player.playerId, socket);
-    } else if (state.status === "matched") {
-      // `enterMatchmaking` already pushed `matchmaking:matched` to the
-      // waiting opponent. The initiator (this socket) receives the result
-      // via the caller's `matchmaking:state` reply in `handleLobbyMessage`.
-      this.matchmakingSocketByPlayer.delete(player.playerId);
-      // Matched players are off to a game; any other pre-empted tabs for
-      // the same account should stay put rather than auto-resuming into a
-      // queue they no longer need to be in.
-      this.preemptedMatchmakingSockets.delete(player.playerId);
-    }
-
+    // A close can race the awaited store operations. Do not leave its entry
+    // behind merely because the close handler ran before insertion finished.
+    if (socket.readyState !== WebSocket.OPEN)
+      await this.leaveMatchmakingViaSocket(player, socket, ownerId);
     return state;
   }
 
-  async leaveMatchmakingViaSocket(player: PlayerIdentity, socket: WebSocket): Promise<void> {
-    // Only act if this is the socket that owns the session. A stray leave from
-    // a socket that isn't the session owner is silently ignored to avoid
-    // clobbering a queue entry owned by a different tab.
-    if (this.matchmakingSocketByPlayer.get(player.playerId) !== socket) return;
-    this.matchmakingSocketByPlayer.delete(player.playerId);
-    await this.leaveMatchmaking(player);
-    // Active session ended cleanly — wake any sibling tabs that were
-    // pre-empted by this session so they can resume searching.
-    this.releasePreemptedMatchmakingSockets(player.playerId);
+  async leaveMatchmakingViaSocket(
+    player: PlayerIdentity,
+    socket: WebSocket,
+    capturedOwner?: string,
+    explicit = false,
+  ): Promise<void> {
+    const ownerId = capturedOwner ?? this.presenceIds.get(socket);
+    if (!ownerId) return;
+    if (this.matchmakingSocketByPlayer.get(player.playerId) === socket)
+      this.matchmakingSocketByPlayer.delete(player.playerId);
+    this.socketSearchIds.delete(socket);
+    await this.withLock(this.matchmakingLockKey(), async () => {
+      const removed = await this.matchmaking.removeFromQueue(player.playerId, ownerId);
+      // A matched receipt is deliberately retained. Disconnect may have
+      // followed a committed match whose reply never reached the browser.
+      if (!removed) return;
+      if (explicit) {
+        this.broadcastLobby(player.playerId, { type: "matchmaking:owner", ownerId: null });
+        return;
+      }
+      // Transport loss (reload, rolling restart) gives the owner its reconnect
+      // grace before a preempted sibling tab may take the search over.
+      const timer = setTimeout(() => {
+        this.lobbyDisconnectTimers.delete(timer);
+        void this.matchmaking
+          .findEntry(player.playerId)
+          .then((entry) => {
+            if (!entry)
+              this.broadcastLobby(player.playerId, { type: "matchmaking:owner", ownerId: null });
+          })
+          .catch(() => undefined);
+      }, this.preemptedWakeDelayMs);
+      timer.unref();
+      this.lobbyDisconnectTimers.add(timer);
+    });
+  }
+
+  private assertSearchInput(previous: TimeControl, current: TimeControl): void {
+    if (
+      (previous === null) !== (current === null) ||
+      previous?.initialMs !== current?.initialMs ||
+      previous?.incrementMs !== current?.incrementMs
+    )
+      throw new GameServiceError(
+        409,
+        "SEARCH_ID_REUSED",
+        "A matchmaking search id cannot change its time control.",
+      );
+  }
+
+  private async pruneDisconnectedSearches(): Promise<void> {
+    for (const entry of await this.matchmaking.getAllEntries()) {
+      if (this.requireConnectedSearches && !entry.attemptId) {
+        // Pre-adoption queue rows have no recoverable intent or connection
+        // owner. Clients explicitly re-enter after the controlled transition.
+        await this.matchmaking.removeFromQueue(entry.player.playerId);
+        continue;
+      }
+      if (
+        this.requireConnectedSearches &&
+        !entry.ownerId &&
+        !(await this.isPlayerConnectedToLobby(entry.player.playerId))
+      ) {
+        await this.matchmaking.removeFromQueue(entry.player.playerId);
+        continue;
+      }
+      if (
+        entry.ownerId &&
+        !(await this.presence.hasConnection(`lobby:${entry.player.playerId}`, entry.ownerId))
+      ) {
+        await this.matchmaking.removeFromQueue(entry.player.playerId, entry.ownerId);
+        continue;
+      }
+      if (entry.attemptId) {
+        const room = await this.store.findRoomByMatchmakingAttempt(entry.attemptId);
+        if (room) {
+          await this.matchmaking.removeFromQueue(entry.player.playerId, entry.ownerId);
+          await this.matchmaking.setMatch(entry.player.playerId, room.id);
+          this.broadcastLobby(entry.player.playerId, {
+            type: "matchmaking:matched",
+            snapshot: await this.toSnapshot(room),
+            attemptId: clientSearchId(entry.player.playerId, entry.attemptId),
+          });
+        }
+      }
+    }
+  }
+
+  private async replayPendingMatches(): Promise<void> {
+    for (const room of await this.store.findPendingMatchNotifications()) {
+      for (const playerId of room.matchmakingPendingPlayerIds ?? []) {
+        const attemptId = room.matchmakingAttemptIds?.find((id) => id.startsWith(`${playerId}:`));
+        const queued = await this.matchmaking.findEntry(playerId);
+        const matched = await this.matchmaking.getMatch(playerId);
+        if (
+          (queued?.attemptId && queued.attemptId !== attemptId) ||
+          (matched && matched !== room.id)
+        ) {
+          await this.store.acknowledgeMatch(room.id, playerId);
+          continue;
+        }
+        if (!(await this.isPlayerConnectedToLobby(playerId))) continue;
+        this.broadcastLobby(playerId, {
+          type: "matchmaking:matched",
+          attemptId: clientSearchId(playerId, attemptId),
+          snapshot: await this.toSnapshot(room),
+        });
+      }
+    }
   }
 
   /**
@@ -1490,6 +1761,8 @@ export class GameService {
     const matchedPairs: Array<{ room: StoredMultiplayerRoom; playerIds: [string, string] }> = [];
 
     await this.withLock(this.matchmakingLockKey(), async () => {
+      await this.pruneDisconnectedSearches();
+      await this.replayPendingMatches();
       const entries = await this.matchmaking.getAllEntries();
       if (entries.length < 2) return;
 
@@ -1498,16 +1771,15 @@ export class GameService {
         const still = await this.matchmaking.findEntry(entry.player.playerId);
         if (!still) continue;
 
-        const opponent = await this.matchmaking.findAndRemoveOpponent(
+        const opponent = await this.matchmaking.findOpponent(
           entry.player.playerId,
           entry.timeControl,
           entry.rating,
         );
         if (!opponent) continue;
 
-        // Remove the current entry from queue too
-        await this.matchmaking.removeFromQueue(entry.player.playerId);
-
+        // Keep both queue entries until the room and match pointers commit.
+        // A failed worker leaves enough data for another sweep to recover.
         // Create game
         const room = await this.withLocks(
           [this.playerLockKey(entry.player.playerId), this.playerLockKey(opponent.player.playerId)],
@@ -1527,10 +1799,15 @@ export class GameService {
               assignSeats: true,
               seats: this.assignSeats(slim1, slim2),
               timeControl: entry.timeControl,
+              matchmakingAttemptIds: [entry.attemptId, opponent.attemptId].filter(
+                (id): id is string => !!id,
+              ),
             });
 
             await this.matchmaking.setMatch(entry.player.playerId, createdRoom.id);
             await this.matchmaking.setMatch(opponent.player.playerId, createdRoom.id);
+            await this.matchmaking.removeFromQueue(entry.player.playerId);
+            await this.matchmaking.removeFromQueue(opponent.player.playerId);
 
             return createdRoom;
           },
@@ -1549,8 +1826,17 @@ export class GameService {
     for (const { room, playerIds } of matchedPairs) {
       const snapshot = await this.toSnapshot(room);
       for (const playerId of playerIds) {
-        this.matchmakingSocketByPlayer.delete(playerId);
-        this.broadcastLobby(playerId, { type: "matchmaking:matched", snapshot });
+        const owner = this.matchmakingSocketByPlayer.get(playerId);
+        if (owner && room.matchmakingAttemptIds?.includes(this.socketSearchIds.get(owner) ?? ""))
+          this.matchmakingSocketByPlayer.delete(playerId);
+        this.broadcastLobby(playerId, {
+          type: "matchmaking:matched",
+          snapshot,
+          attemptId: clientSearchId(
+            playerId,
+            room.matchmakingAttemptIds?.find((id) => id.startsWith(`${playerId}:`)),
+          ),
+        });
       }
     }
   }
@@ -1577,6 +1863,7 @@ export class GameService {
     seats?: StoredSeatAssignments;
     timeControl?: TimeControl;
     gameSettings?: Partial<GameSettings>;
+    matchmakingAttemptIds?: string[];
   }): Promise<StoredMultiplayerRoom> {
     const tc = options.timeControl ?? null;
     const clockMs = tc ? { white: tc.initialMs, black: tc.initialMs } : null;
@@ -1612,6 +1899,7 @@ export class GameService {
       try {
         const createdRoom = await this.store.createRoom({
           id: room.id,
+          matchmakingAttemptIds: options.matchmakingAttemptIds,
           roomType: room.roomType,
           status: room.status,
           state: room.state,
@@ -1632,6 +1920,15 @@ export class GameService {
         return createdRoom;
       } catch (error) {
         if (this.isDuplicateRoomError(error)) {
+          for (const attemptId of options.matchmakingAttemptIds ?? []) {
+            const existing = await this.store.findRoomByMatchmakingAttempt(attemptId);
+            if (existing)
+              throw new GameServiceError(
+                409,
+                "SEARCH_ALREADY_MATCHED",
+                "Reconnect to recover the committed match.",
+              );
+          }
           continue;
         }
 
@@ -2993,35 +3290,38 @@ export class GameService {
       const isTournament = derived.roomType === "tournament";
       const timeoutSeconds = isTournament ? 60 : 30;
 
-      // Send game-aborted message to all connections
-      const connections = this.connections.get(roomId);
-      if (connections) {
-        for (const [socket, playerId] of connections.entries()) {
-          if (socket.readyState !== WebSocket.OPEN) continue;
-
-          const playerColor = getPlayerColorForRoom(derived, playerId);
-          const isAbsentPlayer = playerColor === absentColor;
-
-          socket.send(
-            JSON.stringify({
-              type: "game-aborted",
-              reason: isAbsentPlayer
-                ? `You did not make a move within ${timeoutSeconds} seconds. The game has been cancelled.`
-                : isTournament
-                  ? "Your opponent did not make a move in time. The match has been forfeited."
-                  : "Your opponent did not make a move in time. Finding you a new match...",
-              requeuedForMatchmaking: isTournament ? false : !isAbsentPlayer,
-              timeControl: derived.timeControl,
-            }),
-          );
-        }
+      // The worker may run on a replica with neither player's TCP socket.
+      // Route each player's outcome through shared room Pub/Sub.
+      for (const color of ["white", "black"] as const) {
+        const recipient = derived.seats[color];
+        if (!recipient) continue;
+        const isAbsentPlayer = color === absentColor;
+        this.broadcaster.publishRoom(
+          roomId,
+          JSON.stringify({
+            type: "game-aborted",
+            recipientPlayerId: recipient.playerId,
+            reason: isAbsentPlayer
+              ? `You did not make a move within ${timeoutSeconds} seconds. The game has been cancelled.`
+              : isTournament
+                ? "Your opponent did not make a move in time. The match has been forfeited."
+                : "Your opponent did not make a move in time. Finding you a new match...",
+            requeuedForMatchmaking: isTournament ? false : !isAbsentPlayer,
+            timeControl: derived.timeControl,
+          }),
+        );
       }
 
       // Broadcast updated snapshot so game shows as finished
       this.broadcastSnapshotSafe(savedRoom);
 
       // Re-enter the opponent into matchmaking (skip for tournament games)
-      if (!isTournament && opponentPlayer) {
+      if (
+        !isTournament &&
+        opponentPlayer &&
+        (!this.requireConnectedSearches ||
+          (await this.isPlayerConnectedToLobby(opponentPlayer.playerId)))
+      ) {
         try {
           await this.enterMatchmaking(opponentPlayer, derived.timeControl);
         } catch {
@@ -3082,15 +3382,25 @@ export class GameService {
   }
 
   async close(): Promise<void> {
+    for (const timer of this.lobbyDisconnectTimers) clearTimeout(timer);
+    this.lobbyDisconnectTimers.clear();
     this.stopMatchmakingSweep();
-    await this.presence.close();
     await this.timerScheduler.close();
     await this.sweepScheduler.close();
+    // Retiring sockets can still be releasing queue/room leases. Keep stores
+    // connected until every accepted operation has completed its finally block.
+    while (this.operations.size) await Promise.allSettled([...this.operations]);
+    await this.presence.close();
     await this.broadcaster.close();
   }
 
+  private trackOperation<T>(operation: Promise<T>): Promise<T> {
+    this.operations.add(operation);
+    return operation.finally(() => this.operations.delete(operation));
+  }
+
   private withLock<T>(key: string, operation: () => Promise<T>): Promise<T> {
-    return this.lockProvider.withLock(key, operation);
+    return this.trackOperation(this.lockProvider.withLock(key, operation));
   }
 }
 
@@ -3140,12 +3450,13 @@ function createGameService(): GameService {
     new MongoGameRoomStore(),
     Math.random,
     GUEST_ABANDON_TIMEOUT_MS,
-    new RedisMatchmakingStore(redis),
+    new RedisMatchmakingStore(redis, true),
     new RedisLockProvider(redis, { claim: claimRoomAuthority }),
     new RedisBroadcaster(redis),
     (handlers) => new BullMQTimerScheduler(redis, handlers),
     (sweepFn) => new BullMQMatchmakingSweepScheduler(redis, sweepFn),
     new RedisRoomPresence(redis),
+    true,
   );
 }
 

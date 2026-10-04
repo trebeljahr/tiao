@@ -332,13 +332,14 @@ export type AuthResponse = {
  * "ghost" matches against players who already left.
  */
 export type LobbyClientMessage =
-  | { type: "matchmaking:enter"; timeControl: TimeControl }
+  | { type: "matchmaking:enter-v2"; timeControl: TimeControl; attemptId: string }
+  | { type: "matchmaking:enter"; timeControl: TimeControl; attemptId?: string }
   | { type: "matchmaking:leave" };
 
 export type LobbyServerMessage =
-  | { type: "matchmaking:state"; state: MatchmakingState }
-  | { type: "matchmaking:matched"; snapshot: MultiplayerSnapshot }
-  | { type: "matchmaking:error"; code: string; message: string }
+  | { type: "matchmaking:state"; state: MatchmakingState; attemptId?: string }
+  | { type: "matchmaking:matched"; snapshot: MultiplayerSnapshot; attemptId?: string }
+  | { type: "matchmaking:error"; code: string; message: string; attemptId?: string }
   /**
    * Sent to the OLD socket when a second tab/browser of the same account
    * sends `matchmaking:enter` — the old session is evicted and the old socket

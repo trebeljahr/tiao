@@ -1,13 +1,16 @@
 import { randomUUID } from "node:crypto";
+import { performance } from "node:perf_hooks";
 import type Redis from "ioredis";
 import type { PlayerIdentity } from "../../shared/src";
 
 export interface RoomPresence {
   join(connection: string, room: string, player: PlayerIdentity): Promise<void>;
   leave(connection: string): Promise<void>;
+  hasConnection(room: string, connection: string): Promise<boolean>;
   players(room: string): Promise<Map<string, PlayerIdentity>>;
   close(): Promise<void>;
   isReady(): boolean;
+  onRecovery?(handler: () => void): void;
 }
 
 export class InMemoryRoomPresence implements RoomPresence {
@@ -17,6 +20,9 @@ export class InMemoryRoomPresence implements RoomPresence {
   }
   async leave(connection: string): Promise<void> {
     this.connections.delete(connection);
+  }
+  async hasConnection(room: string, connection: string): Promise<boolean> {
+    return this.connections.get(connection)?.room === room;
   }
   async players(room: string): Promise<Map<string, PlayerIdentity>> {
     return new Map(
@@ -38,6 +44,10 @@ export class RedisRoomPresence extends InMemoryRoomPresence {
   private readonly instance = randomUUID();
   private readonly timer: ReturnType<typeof setInterval>;
   private renewing = false;
+  private closed = false;
+  private renewal: Promise<void> | undefined;
+  private lastHeartbeat = performance.now();
+  private recovery: (() => void) | undefined;
   private readonly members = new Map<string, string>();
   private static readonly TOUCH = `
     local t = redis.call('TIME')
@@ -60,9 +70,14 @@ export class RedisRoomPresence extends InMemoryRoomPresence {
     super();
     this.timer = setInterval(
       () => {
-        if (this.renewing || !this.isReady()) return;
+        if (this.closed || this.renewing || this.redis.status !== "ready") return;
         this.renewing = true;
-        void this.renew()
+        if (performance.now() - this.lastHeartbeat >= this.ttlMs) this.recovery?.();
+        this.renewal = this.renew()
+          .then(() => {
+            if (performance.now() - this.lastHeartbeat >= this.ttlMs) this.recovery?.();
+            this.lastHeartbeat = performance.now();
+          })
           .catch(() => undefined)
           .finally(() => {
             this.renewing = false;
@@ -81,14 +96,24 @@ export class RedisRoomPresence extends InMemoryRoomPresence {
   private async renew(): Promise<void> {
     for (const [id, row] of this.connections) {
       const member = this.members.get(id);
-      if (member)
+      if (member) {
         await this.redis.eval(RedisRoomPresence.TOUCH, 1, this.key(row.room), member, this.ttlMs);
+        if (this.members.get(id) !== member) await this.redis.zrem(this.key(row.room), member);
+      }
     }
   }
   override async join(connection: string, room: string, player: PlayerIdentity): Promise<void> {
     this.assertReady();
-    const member = JSON.stringify({ connection: `${this.instance}:${connection}`, player });
+    const member = JSON.stringify({
+      connection: `${this.instance}:${connection}`,
+      connectionId: connection,
+      player,
+    });
     await this.redis.eval(RedisRoomPresence.TOUCH, 1, this.key(room), member, this.ttlMs);
+    if (this.closed) {
+      await this.redis.zrem(this.key(room), member);
+      throw new Error("Shared room presence closed during connection");
+    }
     this.members.set(connection, member);
     await super.join(connection, room, player);
   }
@@ -98,9 +123,16 @@ export class RedisRoomPresence extends InMemoryRoomPresence {
     this.members.delete(connection);
     await super.leave(connection);
     if (row && member) {
-      this.assertReady();
+      if (this.redis.status !== "ready") throw new Error("Shared room presence is unavailable");
       await this.redis.zrem(this.key(row.room), member);
     }
+  }
+  override async hasConnection(room: string, connection: string): Promise<boolean> {
+    this.assertReady();
+    const rows = (await this.redis.eval(RedisRoomPresence.READ, 1, this.key(room))) as string[];
+    return rows.some(
+      (raw) => (JSON.parse(raw) as { connectionId: string }).connectionId === connection,
+    );
   }
   override async players(room: string): Promise<Map<string, PlayerIdentity>> {
     this.assertReady();
@@ -112,11 +144,22 @@ export class RedisRoomPresence extends InMemoryRoomPresence {
     }
     return players;
   }
+  onRecovery(handler: () => void): void {
+    this.recovery = handler;
+  }
   override isReady(): boolean {
-    return this.redis.status === "ready";
+    return (
+      !this.closed &&
+      this.redis.status === "ready" &&
+      performance.now() - this.lastHeartbeat < this.ttlMs
+    );
   }
   override async close(): Promise<void> {
+    this.closed = true;
     clearInterval(this.timer);
+    // Complete outstanding TOUCH calls before removing leases, otherwise a
+    // delayed renewal can resurrect a connection after shutdown.
+    await this.renewal;
     await Promise.allSettled([...this.connections.keys()].map((id) => this.leave(id)));
   }
 }

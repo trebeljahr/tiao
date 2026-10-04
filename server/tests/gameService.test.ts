@@ -195,6 +195,8 @@ test("broadcastLobbyToAll fans a payload out to every connected lobby socket", a
   await service.connectLobby(bob, bobSocket as unknown as WebSocket);
   await service.connectLobby(carol, carolSocket as unknown as WebSocket);
   await service.connectLobby(carol, carolSocket2 as unknown as WebSocket);
+  for (const socket of [aliceSocket, bobSocket, carolSocket, carolSocket2])
+    socket.messages.length = 0;
 
   service.broadcastLobbyToAll({
     type: "player-identity-update",

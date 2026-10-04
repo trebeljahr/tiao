@@ -16,6 +16,7 @@ import {
 } from "../../shared/src";
 import type { RatingStatus } from "../models/GameRoom";
 import GameRoom from "../models/GameRoom";
+import { MatchmakingSearch, type PersistedMatchmakingSearch } from "../models/MatchmakingSearch";
 import { assertCurrentLocks, currentLockToken } from "./lockContext";
 
 /**
@@ -34,6 +35,8 @@ export type StoredSeatAssignments = Record<PlayerColor, StoredPlayerIdentity | n
 export type StoredMultiplayerRoom = {
   authorityToken?: string | null;
   revision?: number;
+  matchmakingAttemptIds?: string[];
+  matchmakingPendingPlayerIds?: string[];
   id: string;
   roomType: MultiplayerRoomType;
   status: MultiplayerStatus;
@@ -56,6 +59,8 @@ export type StoredMultiplayerRoom = {
 };
 
 export type CreateStoredMultiplayerRoomInput = {
+  matchmakingAttemptIds?: string[];
+  matchmakingPendingPlayerIds?: string[];
   id: string;
   roomType: MultiplayerRoomType;
   status: MultiplayerStatus;
@@ -74,8 +79,21 @@ export type CreateStoredMultiplayerRoomInput = {
   tournamentMatchId?: string | null;
 };
 
+export type SearchIntent = { status: "active" | "superseded"; timeControl: TimeControl };
+
 export interface GameRoomStore {
+  /** Record or resume a durable search id; claiming supersedes older searches of the account. */
+  claimSearchIntent(input: {
+    attemptId: string;
+    playerId: string;
+    timeControl: TimeControl;
+  }): Promise<SearchIntent>;
+  /** A search without a durable id (legacy client, server requeue) replaces all others. */
+  supersedeSearchIntents(playerId: string, supersededBy: string | null): Promise<void>;
   createRoom(room: CreateStoredMultiplayerRoomInput): Promise<StoredMultiplayerRoom>;
+  findPendingMatchNotifications(): Promise<StoredMultiplayerRoom[]>;
+  acknowledgeMatch(roomId: string, playerId: string): Promise<void>;
+  findRoomByMatchmakingAttempt(attemptId: string): Promise<StoredMultiplayerRoom | null>;
   getRoom(roomId: string): Promise<StoredMultiplayerRoom | null>;
   saveRoom(room: StoredMultiplayerRoom): Promise<StoredMultiplayerRoom>;
   listRoomsForPlayer(playerId: string): Promise<StoredMultiplayerRoom[]>;
@@ -185,6 +203,10 @@ export function cloneStoredRoom(room: StoredMultiplayerRoom): StoredMultiplayerR
     id: room.id,
     authorityToken: room.authorityToken ?? null,
     revision: room.revision ?? 0,
+    matchmakingPendingPlayerIds: room.matchmakingPendingPlayerIds
+      ? [...room.matchmakingPendingPlayerIds]
+      : undefined,
+    matchmakingAttemptIds: room.matchmakingAttemptIds ? [...room.matchmakingAttemptIds] : undefined,
     roomType: room.roomType,
     status: room.status,
     state: cloneGameState(room.state),
@@ -208,6 +230,8 @@ export function cloneStoredRoom(room: StoredMultiplayerRoom): StoredMultiplayerR
 type PersistedGameRoom = {
   authorityToken?: string | null;
   revision?: number;
+  matchmakingAttemptIds?: string[];
+  matchmakingPendingPlayerIds?: string[];
   roomId: string;
   roomType?: MultiplayerRoomType;
   status: MultiplayerStatus;
@@ -237,6 +261,10 @@ function toStoredRoom(room: PersistedGameRoom): StoredMultiplayerRoom {
     id: room.roomId,
     authorityToken: room.authorityToken ?? null,
     revision: room.revision ?? 0,
+    matchmakingPendingPlayerIds: room.matchmakingPendingPlayerIds
+      ? [...room.matchmakingPendingPlayerIds]
+      : undefined,
+    matchmakingAttemptIds: room.matchmakingAttemptIds ? [...room.matchmakingAttemptIds] : undefined,
     roomType: room.roomType ?? "direct",
     status: room.status,
     state,
@@ -279,11 +307,104 @@ export async function claimRoomAuthority(key: string, token: string): Promise<vo
   ).exec();
 }
 
+const PENDING_MATCH_REPLAY_MS = 10 * 60_000;
+
 export class MongoGameRoomStore implements GameRoomStore {
+  private notificationCursor: string | null = null;
+  async claimSearchIntent(input: {
+    attemptId: string;
+    playerId: string;
+    timeControl: TimeControl;
+  }): Promise<SearchIntent> {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      await assertCurrentLocks();
+      let receipt = await MatchmakingSearch.findById(input.attemptId)
+        .lean<PersistedMatchmakingSearch>()
+        .exec();
+      if (!receipt) {
+        const latest = await MatchmakingSearch.findOne({ playerId: input.playerId })
+          .sort({ seq: -1 })
+          .select({ seq: 1 })
+          .lean<Pick<PersistedMatchmakingSearch, "seq">>()
+          .exec();
+        try {
+          receipt = (
+            await MatchmakingSearch.create({
+              _id: input.attemptId,
+              playerId: input.playerId,
+              seq: (latest?.seq ?? 0) + 1,
+              timeControl: input.timeControl,
+            })
+          ).toObject() as PersistedMatchmakingSearch;
+        } catch (error) {
+          // Same id or same claim order raced in from another writer: re-read.
+          if ((error as { code?: number }).code === 11000) continue;
+          throw error;
+        }
+      }
+      if (receipt.status === "active") {
+        await assertCurrentLocks();
+        // Only lower claim orders: a delayed stale writer cannot retire a newer search.
+        await MatchmakingSearch.updateMany(
+          { playerId: input.playerId, status: "active", seq: { $lt: receipt.seq } },
+          { $set: { status: "superseded", supersededBy: input.attemptId } },
+        ).exec();
+      }
+      return { status: receipt.status, timeControl: receipt.timeControl ?? null };
+    }
+    throw new Error("Unable to record matchmaking search");
+  }
+  async supersedeSearchIntents(playerId: string, supersededBy: string | null): Promise<void> {
+    await assertCurrentLocks();
+    await MatchmakingSearch.updateMany(
+      { playerId, status: "active" },
+      { $set: { status: "superseded", supersededBy } },
+    ).exec();
+  }
+  async findPendingMatchNotifications(): Promise<StoredMultiplayerRoom[]> {
+    const rooms = await GameRoom.find({
+      "matchmakingPendingPlayerIds.0": { $exists: true },
+      // A player who never reached the room within this window has been
+      // handled by the first-move timeout; replaying it would be noise.
+      createdAt: { $gte: new Date(Date.now() - PENDING_MATCH_REPLAY_MS) },
+      ...(this.notificationCursor ? { _id: { $gt: this.notificationCursor } } : {}),
+    })
+      .sort({ _id: 1 })
+      .limit(200)
+      .lean<(PersistedGameRoom & { _id: { toString(): string } })[]>()
+      .exec();
+    if (!rooms.length && this.notificationCursor) {
+      this.notificationCursor = null;
+      return this.findPendingMatchNotifications();
+    }
+    this.notificationCursor = rooms.at(-1)?._id.toString() ?? null;
+    return rooms.map(toStoredRoom);
+  }
+  async acknowledgeMatch(roomId: string, playerId: string): Promise<void> {
+    await GameRoom.updateOne(
+      { roomId: normalizeRoomId(roomId) },
+      { $pull: { matchmakingPendingPlayerIds: playerId } },
+      { timestamps: false },
+    ).exec();
+  }
+  async findRoomByMatchmakingAttempt(attemptId: string): Promise<StoredMultiplayerRoom | null> {
+    const room = await GameRoom.findOne({ matchmakingAttemptIds: attemptId })
+      .lean<PersistedGameRoom>()
+      .exec();
+    return room ? toStoredRoom(room) : null;
+  }
   async createRoom(room: CreateStoredMultiplayerRoomInput): Promise<StoredMultiplayerRoom> {
     await assertCurrentLocks();
     const createdRoom = await GameRoom.create({
       roomId: normalizeRoomId(room.id),
+      matchmakingAttemptIds: room.matchmakingAttemptIds?.length
+        ? room.matchmakingAttemptIds
+        : undefined,
+      matchmakingPendingPlayerIds: room.matchmakingAttemptIds?.length
+        ? [room.seats.white?.playerId, room.seats.black?.playerId].filter(
+            (id): id is string => !!id,
+          )
+        : undefined,
       roomType: room.roomType,
       status: room.status,
       state: dehydrateGameState(room.state),
@@ -307,6 +428,8 @@ export class MongoGameRoomStore implements GameRoomStore {
       roomId: createdRoom.roomId,
       authorityToken: createdRoom.authorityToken,
       revision: createdRoom.revision,
+      matchmakingAttemptIds: createdRoom.matchmakingAttemptIds,
+      matchmakingPendingPlayerIds: createdRoom.matchmakingPendingPlayerIds,
       tournamentId: createdRoom.tournamentId,
       tournamentMatchId: createdRoom.tournamentMatchId,
       roomType: createdRoom.roomType,
@@ -553,10 +676,65 @@ export class MongoGameRoomStore implements GameRoomStore {
 
 export class InMemoryGameRoomStore implements GameRoomStore {
   private rooms = new Map<string, StoredMultiplayerRoom>();
+  private searches = new Map<
+    string,
+    { playerId: string; seq: number; timeControl: TimeControl; status: SearchIntent["status"] }
+  >();
+  async claimSearchIntent(input: {
+    attemptId: string;
+    playerId: string;
+    timeControl: TimeControl;
+  }): Promise<SearchIntent> {
+    let receipt = this.searches.get(input.attemptId);
+    if (!receipt) {
+      const seq =
+        Math.max(
+          0,
+          ...[...this.searches.values()]
+            .filter((row) => row.playerId === input.playerId)
+            .map((row) => row.seq),
+        ) + 1;
+      receipt = { playerId: input.playerId, seq, timeControl: input.timeControl, status: "active" };
+      this.searches.set(input.attemptId, receipt);
+    }
+    if (receipt.status === "active")
+      for (const row of this.searches.values())
+        if (row.playerId === input.playerId && row.status === "active" && row.seq < receipt.seq)
+          row.status = "superseded";
+    return { status: receipt.status, timeControl: receipt.timeControl };
+  }
+  async supersedeSearchIntents(playerId: string): Promise<void> {
+    for (const row of this.searches.values())
+      if (row.playerId === playerId && row.status === "active") row.status = "superseded";
+  }
+  async findPendingMatchNotifications(): Promise<StoredMultiplayerRoom[]> {
+    return [...this.rooms.values()]
+      .filter((room) => room.matchmakingPendingPlayerIds?.length)
+      .map(cloneStoredRoom);
+  }
+  async acknowledgeMatch(roomId: string, playerId: string): Promise<void> {
+    const room = this.rooms.get(normalizeRoomId(roomId));
+    if (room)
+      room.matchmakingPendingPlayerIds = room.matchmakingPendingPlayerIds?.filter(
+        (id) => id !== playerId,
+      );
+  }
+
+  async findRoomByMatchmakingAttempt(attemptId: string): Promise<StoredMultiplayerRoom | null> {
+    const room = [...this.rooms.values()].find((row) =>
+      row.matchmakingAttemptIds?.includes(attemptId),
+    );
+    return room ? cloneStoredRoom(room) : null;
+  }
 
   async createRoom(room: CreateStoredMultiplayerRoomInput): Promise<StoredMultiplayerRoom> {
     const normalizedId = normalizeRoomId(room.id);
-    if (this.rooms.has(normalizedId)) {
+    if (
+      this.rooms.has(normalizedId) ||
+      [...this.rooms.values()].some((existing) =>
+        room.matchmakingAttemptIds?.some((id) => existing.matchmakingAttemptIds?.includes(id)),
+      )
+    ) {
       const duplicateError = new Error("Duplicate room id.");
       (duplicateError as Error & { code?: number }).code = 11000;
       throw duplicateError;
@@ -565,6 +743,14 @@ export class InMemoryGameRoomStore implements GameRoomStore {
     const now = new Date();
     const storedRoom: StoredMultiplayerRoom = {
       id: normalizedId,
+      matchmakingPendingPlayerIds: room.matchmakingAttemptIds?.length
+        ? [room.seats.white?.playerId, room.seats.black?.playerId].filter(
+            (id): id is string => !!id,
+          )
+        : undefined,
+      matchmakingAttemptIds: room.matchmakingAttemptIds
+        ? [...room.matchmakingAttemptIds]
+        : undefined,
       roomType: room.roomType,
       status: room.status,
       state: cloneGameState(room.state),
@@ -606,6 +792,10 @@ export class InMemoryGameRoomStore implements GameRoomStore {
 
     const updatedRoom: StoredMultiplayerRoom = {
       id: normalizedId,
+      matchmakingPendingPlayerIds: existingRoom.matchmakingPendingPlayerIds,
+      matchmakingAttemptIds: room.matchmakingAttemptIds
+        ? [...room.matchmakingAttemptIds]
+        : undefined,
       roomType: room.roomType,
       status: room.status,
       state: cloneGameState(room.state),

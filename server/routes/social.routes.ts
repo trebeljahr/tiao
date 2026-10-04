@@ -143,10 +143,15 @@ async function loadFriendsWithOnlineStatus(
   accountIds: ReadonlyArray<{ toString(): string }>,
 ): Promise<SocialPlayerSummary[]> {
   const friends = await loadAccountsById(accountIds);
-  return friends.map((friend) => ({
-    ...friend,
-    online: gameService.isPlayerConnectedToLobby(friend.playerId),
-  }));
+  return Promise.all(
+    friends.map(async (friend) => ({
+      ...friend,
+      // Presence is unknown during a Redis gap; show offline instead of failing.
+      online: await Promise.resolve()
+        .then(() => gameService.isPlayerConnectedToLobby(friend.playerId))
+        .catch(() => false),
+    })),
+  );
 }
 
 async function loadInvitationSummaries(

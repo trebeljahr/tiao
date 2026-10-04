@@ -41,6 +41,8 @@ export type RatingStatus = "pending" | "completed" | "skipped" | null;
 export interface IGameRoom extends Document {
   authorityToken: string | null;
   revision: number;
+  matchmakingAttemptIds?: string[];
+  matchmakingPendingPlayerIds?: string[];
   roomId: string;
   roomType: MultiplayerRoomType;
   status: MultiplayerStatus;
@@ -67,6 +69,8 @@ const GameRoomSchema = new Schema<IGameRoom>(
   {
     authorityToken: { type: String, default: null },
     revision: { type: Number, default: 0 },
+    matchmakingAttemptIds: { type: [String], default: undefined },
+    matchmakingPendingPlayerIds: { type: [String], default: undefined },
     roomId: {
       type: String,
       required: true,
@@ -209,6 +213,15 @@ const GameRoomSchema = new Schema<IGameRoom>(
   {
     timestamps: true,
   },
+);
+
+// Each logical search can belong to at most one room, including after a lost reply.
+GameRoomSchema.index({ matchmakingAttemptIds: 1 }, { unique: true, sparse: true });
+// Only recent rooms still awaiting a matched notification; keeps the sweep's
+// replay query from scanning every historical room.
+GameRoomSchema.index(
+  { createdAt: 1 },
+  { partialFilterExpression: { "matchmakingPendingPlayerIds.0": { $exists: true } } },
 );
 
 // Player-centric queries via seats (replaces old players.playerId index)
