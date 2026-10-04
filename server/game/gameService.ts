@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import WebSocket from "ws";
 import {
   type ClientToServerMessage,
@@ -215,6 +215,8 @@ export class GameService {
     matchId: string,
     gameSettings?: { boardSize?: number; scoreToWin?: number },
   ): Promise<StoredMultiplayerRoom> {
+    const existing = await this.store.findRoomByTournamentMatch(tournamentId, matchId);
+    if (existing) return existing;
     const tc = timeControl ?? null;
     const clockMs = tc ? { white: tc.initialMs, black: tc.initialMs } : null;
 
@@ -229,7 +231,7 @@ export class GameService {
 
     for (let attempt = 0; attempt < 12; attempt += 1) {
       const room = this.deriveRoomStatus({
-        id: this.generateRoomId(),
+        id: this.tournamentRoomId(tournamentId, matchId, attempt),
         roomType: "tournament",
         status: "waiting",
         state: createInitialGameState(gameSettings),
@@ -270,6 +272,8 @@ export class GameService {
         return createdRoom;
       } catch (error) {
         if (this.isDuplicateRoomError(error)) {
+          const recovered = await this.store.findRoomByTournamentMatch(tournamentId, matchId);
+          if (recovered) return recovered;
           continue;
         }
         throw error;
@@ -2762,6 +2766,14 @@ export class GameService {
     }
 
     return connections;
+  }
+
+  private tournamentRoomId(tournamentId: string, matchId: string, attempt: number): string {
+    const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const hash = createHash("sha256")
+      .update(JSON.stringify([tournamentId, matchId, attempt]))
+      .digest();
+    return [...hash.subarray(0, 6)].map((byte) => alphabet[byte % alphabet.length]).join("");
   }
 
   private generateRoomId(): string {

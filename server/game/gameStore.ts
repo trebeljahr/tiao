@@ -305,6 +305,10 @@ export class MongoGameRoomStore implements GameRoomStore {
 
     return toStoredRoom({
       roomId: createdRoom.roomId,
+      authorityToken: createdRoom.authorityToken,
+      revision: createdRoom.revision,
+      tournamentId: createdRoom.tournamentId,
+      tournamentMatchId: createdRoom.tournamentMatchId,
       roomType: createdRoom.roomType,
       status: createdRoom.status,
       state: createdRoom.state,
@@ -522,6 +526,7 @@ export class MongoGameRoomStore implements GameRoomStore {
     const waitingResult = await GameRoom.updateMany(
       { tournamentId, status: "waiting" },
       {
+        $inc: { revision: 1 },
         $set: {
           tournamentId: null,
           tournamentMatchId: null,
@@ -534,6 +539,7 @@ export class MongoGameRoomStore implements GameRoomStore {
     const activeResult = await GameRoom.updateMany(
       { tournamentId, status: "active" },
       {
+        $inc: { revision: 1 },
         $set: {
           tournamentId: null,
           tournamentMatchId: null,
