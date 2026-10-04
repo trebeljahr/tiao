@@ -10,6 +10,8 @@ function duplicateForBullMQ(redis: Redis): Redis {
   return redis.duplicate({
     maxRetriesPerRequest: null,
     enableReadyCheck: false,
+    enableOfflineQueue: true,
+    commandTimeout: undefined,
   });
 }
 
@@ -362,7 +364,8 @@ export class BullMQMatchmakingSweepScheduler implements MatchmakingSweepSchedule
   }
 
   stop(): void {
-    void this.queue.removeRepeatable("sweep", { every: 5_000 });
+    // The repeat schedule is shared. Retiring one replica must not delete it.
+    void this.worker.pause(true).catch(() => undefined);
   }
 
   async close(): Promise<void> {

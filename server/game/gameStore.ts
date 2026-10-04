@@ -16,6 +16,7 @@ import {
 } from "../../shared/src";
 import type { RatingStatus } from "../models/GameRoom";
 import GameRoom from "../models/GameRoom";
+import { assertCurrentLocks, currentLockToken } from "./lockContext";
 
 /**
  * Slim stored identity — only what we persist in the DB.
@@ -31,6 +32,8 @@ export type StoredPlayerIdentity = {
 export type StoredSeatAssignments = Record<PlayerColor, StoredPlayerIdentity | null>;
 
 export type StoredMultiplayerRoom = {
+  authorityToken?: string | null;
+  revision?: number;
   id: string;
   roomType: MultiplayerRoomType;
   status: MultiplayerStatus;
@@ -180,6 +183,8 @@ function hydrateGameState(
 export function cloneStoredRoom(room: StoredMultiplayerRoom): StoredMultiplayerRoom {
   return {
     id: room.id,
+    authorityToken: room.authorityToken ?? null,
+    revision: room.revision ?? 0,
     roomType: room.roomType,
     status: room.status,
     state: cloneGameState(room.state),
@@ -201,6 +206,8 @@ export function cloneStoredRoom(room: StoredMultiplayerRoom): StoredMultiplayerR
 }
 
 type PersistedGameRoom = {
+  authorityToken?: string | null;
+  revision?: number;
   roomId: string;
   roomType?: MultiplayerRoomType;
   status: MultiplayerStatus;
@@ -228,6 +235,8 @@ function toStoredRoom(room: PersistedGameRoom): StoredMultiplayerRoom {
   );
   return {
     id: room.roomId,
+    authorityToken: room.authorityToken ?? null,
+    revision: room.revision ?? 0,
     roomType: room.roomType ?? "direct",
     status: room.status,
     state,
@@ -260,8 +269,19 @@ function isSeated(room: StoredMultiplayerRoom, playerId: string): boolean {
   return room.seats.white?.playerId === playerId || room.seats.black?.playerId === playerId;
 }
 
+/** The Mongo token fences a delayed writer independently of Redis TTL. */
+export async function claimRoomAuthority(key: string, token: string): Promise<void> {
+  if (!key.startsWith("room:")) return;
+  await GameRoom.updateOne(
+    { roomId: normalizeRoomId(key.slice(5)) },
+    { $set: { authorityToken: token } },
+    { timestamps: false },
+  ).exec();
+}
+
 export class MongoGameRoomStore implements GameRoomStore {
   async createRoom(room: CreateStoredMultiplayerRoomInput): Promise<StoredMultiplayerRoom> {
+    await assertCurrentLocks();
     const createdRoom = await GameRoom.create({
       roomId: normalizeRoomId(room.id),
       roomType: room.roomType,
@@ -312,14 +332,21 @@ export class MongoGameRoomStore implements GameRoomStore {
   }
 
   async deleteRoom(roomId: string): Promise<void> {
-    await GameRoom.deleteOne({ roomId: normalizeRoomId(roomId) });
+    await assertCurrentLocks();
+    const token = currentLockToken(`room:${normalizeRoomId(roomId)}`);
+    await GameRoom.deleteOne({
+      roomId: normalizeRoomId(roomId),
+      ...(token ? { authorityToken: token } : {}),
+    });
   }
 
   async findActiveTimedRooms(): Promise<StoredMultiplayerRoom[]> {
     const rooms = await GameRoom.find({
       status: "active",
-      clockMs: { $ne: null },
-      lastMoveAt: { $ne: null },
+      $or: [
+        { clockMs: { $ne: null }, lastMoveAt: { $ne: null } },
+        { firstMoveDeadline: { $ne: null } },
+      ],
     })
       .lean<PersistedGameRoom[]>()
       .exec();
@@ -328,9 +355,21 @@ export class MongoGameRoomStore implements GameRoomStore {
   }
 
   async saveRoom(room: StoredMultiplayerRoom): Promise<StoredMultiplayerRoom> {
+    await assertCurrentLocks();
+    const token = currentLockToken(`room:${normalizeRoomId(room.id)}`);
+    if (token && token !== room.authorityToken)
+      throw new Error("Game authority changed; reload the room");
+    const revision = room.revision ?? 0;
     const updatedRoom = await GameRoom.findOneAndUpdate(
-      { roomId: normalizeRoomId(room.id) },
       {
+        roomId: normalizeRoomId(room.id),
+        authorityToken: room.authorityToken ?? null,
+        ...(revision === 0
+          ? { $or: [{ revision: 0 }, { revision: { $exists: false } }] }
+          : { revision }),
+      },
+      {
+        $inc: { revision: 1 },
         $set: {
           roomType: room.roomType,
           status: room.status,
@@ -357,7 +396,7 @@ export class MongoGameRoomStore implements GameRoomStore {
       .exec();
 
     if (!updatedRoom) {
-      throw new Error("Unable to save room because it does not exist.");
+      throw new Error("Game state or authority changed; reload the room before retrying");
     }
 
     return toStoredRoom(updatedRoom);

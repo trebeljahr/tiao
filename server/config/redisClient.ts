@@ -10,6 +10,7 @@ if (REDIS_URL && process.env.NODE_ENV !== "test") {
   redisClient = new Redis(REDIS_URL, {
     maxRetriesPerRequest: 3,
     lazyConnect: false,
+    commandTimeout: 2_000,
   });
 
   // Full connection-state instrumentation. When production Redis flaps

@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import express from "express";
 import { getRedisClient } from "../config/redisClient";
 import { isDatabaseReady } from "../db";
+import { gameService } from "../game/gameService";
 import { isDraining } from "../lib/readiness";
 
 const router = express.Router();
@@ -43,13 +44,18 @@ router.get("/health", async (_: Request, res: Response) => {
 
   // Production requires Mongo and Redis. Development may use the
   // in-memory fallback when Redis is not configured.
-  const redisHealthy = redisState === "ok" || (process.env.NODE_ENV !== "production" && redisState === "not-configured");
-  const healthy = !isDraining() && databaseReady && redisHealthy;
+  const redisHealthy =
+    redisState === "ok" ||
+    (process.env.NODE_ENV !== "production" && redisState === "not-configured");
+  const realtimeReady = gameService.isReady();
+  const healthy = !isDraining() && databaseReady && redisHealthy && realtimeReady;
 
   res.status(healthy ? 200 : 503).json({
     status: healthy ? "ok" : "starting",
     database: databaseReady ? "connected" : "disconnected",
     redis: redisState,
+    realtime: realtimeReady ? "ready" : "recovering",
+    rollingProtocol: 2,
   });
 });
 

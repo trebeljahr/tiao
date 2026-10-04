@@ -39,6 +39,8 @@ const PlayerIdentitySchema = new Schema(
 export type RatingStatus = "pending" | "completed" | "skipped" | null;
 
 export interface IGameRoom extends Document {
+  authorityToken: string | null;
+  revision: number;
   roomId: string;
   roomType: MultiplayerRoomType;
   status: MultiplayerStatus;
@@ -63,6 +65,8 @@ export interface IGameRoom extends Document {
 
 const GameRoomSchema = new Schema<IGameRoom>(
   {
+    authorityToken: { type: String, default: null },
+    revision: { type: Number, default: 0 },
     roomId: {
       type: String,
       required: true,

@@ -19,7 +19,7 @@ import { connectToDB, disconnectFromDB } from "./db";
 import { type DailyJobScheduler, startDiscordLeaderboardJob } from "./discord/leaderboardJob";
 import { GameServiceError, gameService } from "./game/gameService";
 import { createLogger } from "./lib/logger";
-import { beginDrain } from "./lib/readiness";
+import { beginDrain, isDraining } from "./lib/readiness";
 import { isAllowedOrigin } from "./lib/wsOrigin";
 
 const log = createLogger("ws");
@@ -104,6 +104,10 @@ function sendJson(socket: WebSocket, payload: unknown): void {
 }
 
 websocketServer.on("connection", (socket, request) => {
+  if (isDraining() || !gameService.isReady()) {
+    socket.close(1013, "Server temporarily unavailable; reconnect");
+    return;
+  }
   let isAlive = true;
   const baseUrl = `http://${request.headers.host || "localhost"}`;
   const url = new URL(request.url || "/ws", baseUrl);
@@ -172,13 +176,13 @@ websocketServer.on("connection", (socket, request) => {
       code,
       reason: reason.toString() || "none",
     });
-    void gameService.disconnect(socket);
+    void gameService.disconnect(socket).catch(() => undefined);
   });
 
   socket.on("error", (error) => {
     clearInterval(pingInterval);
     log.error("socket error", error, { gameId: gameId ?? "unknown" });
-    void gameService.disconnect(socket);
+    void gameService.disconnect(socket).catch(() => undefined);
   });
 
   void (async () => {
@@ -349,6 +353,7 @@ async function shutdown(signal: NodeJS.Signals): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, 20_000));
 
   clearInterval(pruneHandle);
+  clearInterval(wsRateWindowTimer);
 
   for (const client of websocketServer.clients) {
     if (client.readyState === WebSocket.OPEN) {
@@ -356,23 +361,31 @@ async function shutdown(signal: NodeJS.Signals): Promise<void> {
     }
   }
 
+  const terminateSockets = setTimeout(() => {
+    for (const client of websocketServer.clients) client.terminate();
+  }, 2_000);
+  terminateSockets.unref();
+
   const forceExitTimer = setTimeout(() => {
     process.exit(1);
   }, 1000 * 10);
   forceExitTimer.unref();
 
   try {
+    await closeHttpServer();
     await discordLeaderboardJob?.close();
     await gameService.close();
     await closeWebSocketServer();
-    await closeHttpServer();
+    getRedisClient()?.disconnect();
     await disconnectFromDB();
     const { flush: flushGlitchtip } = await import("./lib/glitchtip");
     await flushGlitchtip();
+    clearTimeout(terminateSockets);
     clearTimeout(forceExitTimer);
     process.exit(0);
   } catch (error) {
     console.error("Error while shutting down cleanly:", error);
+    clearTimeout(terminateSockets);
     clearTimeout(forceExitTimer);
     process.exit(1);
   }

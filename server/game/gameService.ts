@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import WebSocket from "ws";
 import {
   type ClientToServerMessage,
@@ -37,6 +38,7 @@ import {
   invalidatePlayerProfile,
 } from "../cache/playerIdentityCache";
 import {
+  claimRoomAuthority,
   type GameRoomStore,
   getPlayerColorForRoom,
   MongoGameRoomStore,
@@ -44,6 +46,7 @@ import {
   type StoredPlayerIdentity,
   type StoredSeatAssignments,
 } from "./gameStore";
+import { InMemoryRoomPresence, RedisRoomPresence, type RoomPresence } from "./presence";
 
 /** Discord game-result posts are capped to one per this window; extras are dropped. */
 const GAME_RESULT_WEBHOOK_MIN_INTERVAL_MS = 30_000;
@@ -121,6 +124,7 @@ export class GameService {
    */
   private readonly preemptedMatchmakingSockets = new Map<string, Set<WebSocket>>();
   private readonly socketRooms = new Map<WebSocket, string>();
+  private readonly presenceIds = new Map<WebSocket, string>();
   /** In-memory spectator identities: roomId -> (playerId -> PlayerIdentity) */
   private readonly spectatorIdentities = new Map<string, Map<string, PlayerIdentity>>();
   private readonly matchmaking: MatchmakingStore;
@@ -140,6 +144,7 @@ export class GameService {
     broadcaster?: Broadcaster,
     timerSchedulerFactory?: (handlers: TimerHandlers) => TimerScheduler,
     sweepSchedulerFactory?: (sweepFn: () => Promise<void>) => MatchmakingSweepScheduler,
+    private readonly presence: RoomPresence = new InMemoryRoomPresence(),
   ) {
     this.matchmaking = matchmaking ?? new InMemoryMatchmakingStore();
     this.lockProvider = lockProvider ?? new InMemoryLockProvider();
@@ -157,6 +162,12 @@ export class GameService {
     this.sweepScheduler = sweepSchedulerFactory
       ? sweepSchedulerFactory(() => this.sweepMatchmakingQueue())
       : new InMemoryMatchmakingSweepScheduler(() => this.sweepMatchmakingQueue());
+
+    this.broadcaster.onRecovery?.(() => {
+      this.reconnectClients();
+      if (this.broadcaster.isReady?.() && mongoose.connection.readyState === 1)
+        void this.restoreClockTimers().catch(() => undefined);
+    });
 
     // Wire up broadcaster to deliver received messages to local sockets
     this.broadcaster.onMessage((channel, target, message) => {
@@ -757,37 +768,40 @@ export class GameService {
     }
     const profiles = await getPlayerProfiles([...allPlayerIds]);
 
-    return rooms.map((room) => {
-      const derived = this.deriveRoomStatus(room);
+    return Promise.all(
+      rooms.map(async (room) => {
+        const connected = await this.presence.players(room.id);
+        const derived = this.deriveRoomStatus(room);
 
-      const enrichSeat = (color: PlayerColor): PlayerSlot | null => {
-        const seat = derived.seats[color];
-        if (!seat) return null;
-        return this.toPlayerSlot(derived.id, this.resolveIdentity(seat, profiles));
-      };
+        const enrichSeat = (color: PlayerColor): PlayerSlot | null => {
+          const seat = derived.seats[color];
+          if (!seat) return null;
+          return this.toPlayerSlot(this.resolveIdentity(seat, profiles), connected);
+        };
 
-      return {
-        gameId: derived.id,
-        roomType: derived.roomType,
-        status: derived.status,
-        createdAt: derived.createdAt.toISOString(),
-        updatedAt: derived.updatedAt.toISOString(),
-        currentTurn: derived.state.currentTurn,
-        score: {
-          black: derived.state.score.black,
-          white: derived.state.score.white,
-        },
-        boardSize: derived.state.boardSize,
-        scoreToWin: derived.state.scoreToWin,
-        timeControl: derived.timeControl,
-        clockMs: derived.clockMs ?? null,
-        seats: {
-          white: enrichSeat("white"),
-          black: enrichSeat("black"),
-        },
-        ratingBefore: derived.ratingBefore ?? null,
-      };
-    });
+        return {
+          gameId: derived.id,
+          roomType: derived.roomType,
+          status: derived.status,
+          createdAt: derived.createdAt.toISOString(),
+          updatedAt: derived.updatedAt.toISOString(),
+          currentTurn: derived.state.currentTurn,
+          score: {
+            black: derived.state.score.black,
+            white: derived.state.score.white,
+          },
+          boardSize: derived.state.boardSize,
+          scoreToWin: derived.state.scoreToWin,
+          timeControl: derived.timeControl,
+          clockMs: derived.clockMs ?? null,
+          seats: {
+            white: enrichSeat("white"),
+            black: enrichSeat("black"),
+          },
+          ratingBefore: derived.ratingBefore ?? null,
+        };
+      }),
+    );
   }
 
   /** Invalidate a player's cached identity and re-broadcast snapshots for their active rooms. */
@@ -817,6 +831,9 @@ export class GameService {
 
     this.clearAbandonTimer(room.id, player.playerId);
 
+    const connectionId = randomUUID();
+    await this.presence.join(connectionId, room.id, player);
+    this.presenceIds.set(socket, connectionId);
     const connections = this.getConnections(room.id);
     const wasEmpty = connections.size === 0;
     connections.set(socket, player.playerId);
@@ -847,7 +864,7 @@ export class GameService {
       room.status === "active" &&
       !room.lastMoveAt &&
       !room.firstMoveDeadline &&
-      this.areBothPlayersConnected(room)
+      (await this.areBothPlayersConnected(room))
     ) {
       await this.withLock(this.roomLockKey(room.id), async () => {
         // Re-fetch inside lock to avoid race
@@ -889,6 +906,9 @@ export class GameService {
 
     const disconnectedPlayerId = connections.get(socket);
     connections.delete(socket);
+    const connectionId = this.presenceIds.get(socket);
+    this.presenceIds.delete(socket);
+    if (connectionId) await this.presence.leave(connectionId);
 
     if (connections.size === 0) {
       this.connections.delete(roomId);
@@ -896,7 +916,7 @@ export class GameService {
     }
 
     // Remove spectator identity when all their sockets disconnect
-    if (disconnectedPlayerId && !this.isPlayerOnline(roomId, disconnectedPlayerId)) {
+    if (disconnectedPlayerId && !(await this.isPlayerOnline(roomId, disconnectedPlayerId))) {
       const roomSpectators = this.spectatorIdentities.get(roomId);
       if (roomSpectators) {
         roomSpectators.delete(disconnectedPlayerId);
@@ -925,7 +945,7 @@ export class GameService {
       disconnectedPlayerId &&
       derivedRoom.status === "finished" &&
       derivedRoom.rematch?.requestedBy.length &&
-      !this.isPlayerOnline(roomId, disconnectedPlayerId)
+      !(await this.isPlayerOnline(roomId, disconnectedPlayerId))
     ) {
       derivedRoom = await this.withLock(this.roomLockKey(roomId), async () => {
         const freshRoom = this.deriveRoomStatus(await this.getRoom(roomId));
@@ -942,7 +962,7 @@ export class GameService {
     if (
       disconnectedPlayerId &&
       derivedRoom.status === "active" &&
-      !this.isPlayerOnline(roomId, disconnectedPlayerId)
+      !(await this.isPlayerOnline(roomId, disconnectedPlayerId))
     ) {
       const disconnectedSeat =
         derivedRoom.seats.white?.playerId === disconnectedPlayerId
@@ -1998,24 +2018,22 @@ export class GameService {
     return "waiting";
   }
 
-  private isPlayerOnline(roomId: string, playerId: string): boolean {
-    return Array.from(this.getConnections(roomId).values()).includes(playerId);
+  private toPlayerSlot(
+    player: PlayerIdentity,
+    connected: ReadonlyMap<string, PlayerIdentity>,
+  ): PlayerSlot {
+    return { player, online: connected.has(player.playerId) };
   }
 
-  private areBothPlayersConnected(room: StoredMultiplayerRoom): boolean {
-    const conns = this.connections.get(room.id);
-    if (!conns) return false;
-    const connected = new Set(conns.values());
+  private async isPlayerOnline(roomId: string, playerId: string): Promise<boolean> {
+    return (await this.presence.players(roomId)).has(playerId);
+  }
+
+  private async areBothPlayersConnected(room: StoredMultiplayerRoom): Promise<boolean> {
+    const connected = await this.presence.players(room.id);
     const whiteId = room.seats.white?.playerId;
     const blackId = room.seats.black?.playerId;
     return !!(whiteId && blackId && connected.has(whiteId) && connected.has(blackId));
-  }
-
-  private toPlayerSlot(roomId: string, player: PlayerIdentity): PlayerSlot {
-    return {
-      player,
-      online: this.isPlayerOnline(roomId, player.playerId),
-    };
   }
 
   /** Resolve a stored slim seat identity into a full PlayerIdentity using cached profile data. */
@@ -2039,25 +2057,22 @@ export class GameService {
   private async toSnapshot(room: StoredMultiplayerRoom): Promise<MultiplayerSnapshot> {
     const profiles = await this.resolveRoomProfiles(room);
 
-    const roomSpectators = this.spectatorIdentities.get(room.id);
-    const spectators: PlayerSlot[] = roomSpectators
-      ? Array.from(roomSpectators.values()).map((identity) => this.toPlayerSlot(room.id, identity))
-      : [];
-
-    // Build players list from seats (replaces old room.players)
+    const connected = await this.presence.players(room.id);
+    const toSlot = (player: PlayerIdentity): PlayerSlot => ({
+      player,
+      online: connected.has(player.playerId),
+    });
+    const spectators = [...connected.values()]
+      .filter((player) => !this.isPlayerInRoom(room, player.playerId))
+      .map(toSlot);
     const players: PlayerSlot[] = [];
     for (const color of ["white", "black"] as const) {
       const seat = room.seats[color];
-      if (seat) {
-        const identity = this.resolveIdentity(seat, profiles);
-        players.push(this.toPlayerSlot(room.id, identity));
-      }
+      if (seat) players.push(toSlot(this.resolveIdentity(seat, profiles)));
     }
-
     const enrichSeat = (color: PlayerColor): PlayerSlot | null => {
       const seat = room.seats[color];
-      if (!seat) return null;
-      return this.toPlayerSlot(room.id, this.resolveIdentity(seat, profiles));
+      return seat ? toSlot(this.resolveIdentity(seat, profiles)) : null;
     };
 
     return {
@@ -2161,6 +2176,7 @@ export class GameService {
     playerId: string,
     profiles?: Map<string, CachedPlayerProfile>,
   ): Promise<MultiplayerGameSummary> {
+    const connected = await this.presence.players(room.id);
     const profs = profiles ?? (await this.resolveRoomProfiles(room));
 
     const players: PlayerSlot[] = [];
@@ -2168,14 +2184,14 @@ export class GameService {
       const seat = room.seats[color];
       if (seat) {
         const identity = this.resolveIdentity(seat, profs);
-        players.push(this.toPlayerSlot(room.id, identity));
+        players.push(this.toPlayerSlot(identity, connected));
       }
     }
 
     const enrichSeat = (color: PlayerColor): PlayerSlot | null => {
       const seat = room.seats[color];
       if (!seat) return null;
-      return this.toPlayerSlot(room.id, this.resolveIdentity(seat, profs));
+      return this.toPlayerSlot(this.resolveIdentity(seat, profs), connected);
     };
 
     return {
@@ -2287,7 +2303,7 @@ export class GameService {
         const originalRequester = room.rematch?.requestedBy[0];
         if (originalRequester) {
           const originalPlayerId = room.seats[originalRequester]?.playerId;
-          if (originalPlayerId && !this.isPlayerOnline(room.id, originalPlayerId)) {
+          if (originalPlayerId && !(await this.isPlayerOnline(room.id, originalPlayerId))) {
             // The original requester disconnected — revoke the stale rematch
             await this.saveRoom({ ...room, rematch: null });
             throw new GameServiceError(
@@ -2799,7 +2815,7 @@ export class GameService {
         if (derived.status !== "active") return;
 
         // Only abandon if the guest is still offline
-        if (this.isPlayerOnline(roomId, playerId)) return;
+        if (await this.isPlayerOnline(roomId, playerId)) return;
 
         const playerColor = getPlayerColorForRoom(derived, playerId);
         if (!playerColor) return;
@@ -2818,8 +2834,6 @@ export class GameService {
   // ─── Clock Timers ────────────────────────────────────────────────────
 
   private scheduleClockTimer(room: StoredMultiplayerRoom): void {
-    this.runTimerOp(this.timerScheduler.cancelClockTimer(room.id), "cancelClockTimer", room.id);
-
     if (
       !room.clockMs ||
       !room.timeControl ||
@@ -2827,13 +2841,15 @@ export class GameService {
       !room.lastMoveAt ||
       isGameOver(room.state)
     ) {
+      this.runTimerOp(this.timerScheduler.cancelClockTimer(room.id), "cancelClockTimer", room.id);
       return;
     }
 
     const currentPlayer = room.state.currentTurn;
-    const remainingMs = room.clockMs[currentPlayer];
-
-    if (remainingMs <= 0) return;
+    const remainingMs = Math.max(
+      0,
+      room.clockMs[currentPlayer] - (Date.now() - room.lastMoveAt.getTime()),
+    );
 
     // Small buffer (+100ms) to avoid race conditions
     this.runTimerOp(
@@ -2884,15 +2900,18 @@ export class GameService {
    * Also handles games where time already expired while the server was down.
    */
   async restoreClockTimers(): Promise<void> {
-    // BullMQ persists jobs in Redis — no restoration needed after restart
-    if (this.timerScheduler.isPersistent()) return;
-
+    // Reconcile persisted deadlines too: Redis may have recovered without a
+    // queued timer, and every callback rechecks authoritative Mongo state.
     const rooms = await this.store.findActiveTimedRooms();
     let scheduled = 0;
 
     for (const room of rooms) {
-      this.scheduleClockTimer(this.deriveRoomStatus(room));
-      scheduled++;
+      await this.withLock(this.roomLockKey(room.id), async () => {
+        const fresh = await this.getRoom(room.id);
+        this.scheduleClockTimer(fresh);
+        this.scheduleFirstMoveTimer(fresh);
+        scheduled++;
+      });
     }
 
     if (scheduled > 0) {
@@ -2903,18 +2922,16 @@ export class GameService {
   // ─── First-Move Timers ──────────────────────────────────────────────
 
   private scheduleFirstMoveTimer(room: StoredMultiplayerRoom): void {
-    this.runTimerOp(
-      this.timerScheduler.cancelFirstMoveTimer(room.id),
-      "cancelFirstMoveTimer",
-      room.id,
-    );
-
     if (!room.firstMoveDeadline || !room.timeControl || room.status !== "active") {
+      this.runTimerOp(
+        this.timerScheduler.cancelFirstMoveTimer(room.id),
+        "cancelFirstMoveTimer",
+        room.id,
+      );
       return;
     }
 
-    const remainingMs = room.firstMoveDeadline.getTime() - Date.now();
-    if (remainingMs <= 0) return;
+    const remainingMs = Math.max(0, room.firstMoveDeadline.getTime() - Date.now());
 
     this.runTimerOp(
       this.timerScheduler.scheduleFirstMoveTimer(room.id, remainingMs + 100),
@@ -3038,8 +3055,23 @@ export class GameService {
     return run(0);
   }
 
+  isReady(): boolean {
+    return this.presence.isReady() && (this.broadcaster.isReady?.() ?? true);
+  }
+
+  reconnectClients(): void {
+    const sockets = new Set([
+      ...this.socketRooms.keys(),
+      ...[...this.lobbyConnections.values()].flatMap((connections) => [...connections]),
+    ]);
+    for (const socket of sockets)
+      if (socket.readyState === WebSocket.OPEN)
+        socket.close(1012, "Shared state recovery; reconnect for a fresh snapshot");
+  }
+
   async close(): Promise<void> {
     this.stopMatchmakingSweep();
+    await this.presence.close();
     await this.timerScheduler.close();
     await this.sweepScheduler.close();
     await this.broadcaster.close();
@@ -3097,10 +3129,11 @@ function createGameService(): GameService {
     Math.random,
     GUEST_ABANDON_TIMEOUT_MS,
     new RedisMatchmakingStore(redis),
-    new RedisLockProvider(redis),
+    new RedisLockProvider(redis, { claim: claimRoomAuthority }),
     new RedisBroadcaster(redis),
     (handlers) => new BullMQTimerScheduler(redis, handlers),
     (sweepFn) => new BullMQMatchmakingSweepScheduler(redis, sweepFn),
+    new RedisRoomPresence(redis),
   );
 }
 
