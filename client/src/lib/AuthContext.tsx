@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import type { AuthDialogMode } from "@/components/Navbar";
 import {
+  getCachedElectronToken,
   getPlayerIdentity,
   login as loginWithUsername,
   refreshElectronTokenFromBridge,
@@ -27,7 +28,9 @@ import {
   isNativeMobileApp,
   loadPersistedMobileToken,
   logoutMobile,
+  MOBILE_LINK_COMPLETE_EVENT,
   startMobileOAuth,
+  subscribeAppResume,
   subscribeMobileAuth,
 } from "@/lib/mobileAuth";
 import { getOAuthErrorMessage } from "@/lib/oauthErrors";
@@ -380,6 +383,11 @@ export function AuthProvider({
         toastError(getOAuthErrorMessage(result.reason, t));
         return;
       }
+      if (result.purpose === "link") {
+        // The settings page refreshes its provider list on this event.
+        window.dispatchEvent(new CustomEvent(MOBILE_LINK_COMPLETE_EVENT, { detail: result }));
+        return;
+      }
       try {
         const { player } = await getPlayerIdentity();
         if (player) {
@@ -393,6 +401,24 @@ export function AuthProvider({
       }
     });
   }, [t]);
+
+  // Native mobile: email confirmation, email change and password reset
+  // links open in the system browser and finish there. When the user comes
+  // back to the app, reload the identity so the change shows up.
+  useEffect(() => {
+    return subscribeAppResume(async () => {
+      if (!getCachedElectronToken()) return;
+      try {
+        const { player } = await getPlayerIdentity();
+        if (player) {
+          setCachedAuth({ player });
+          setAuth({ player });
+        }
+      } catch {
+        /* offline or signed out elsewhere: the next request will tell */
+      }
+    });
+  }, []);
 
   // Desktop Electron: on first mount, ask the main process whether OS
   // credential encryption is available.  If not (almost always Linux

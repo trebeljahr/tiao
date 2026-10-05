@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaApple, FaDiscord, FaGithub, FaGoogle } from "react-icons/fa";
 import { toast } from "sonner";
 import { AnimatedCard } from "@/components/ui/animated-card";
@@ -13,6 +13,11 @@ import { setAccountPassword } from "@/lib/api";
 import { getAuthClient } from "@/lib/auth-client";
 import { type SocialProvider, useAppleSignInEnabled } from "@/lib/authProviders";
 import { readableError, toastError } from "@/lib/errors";
+import {
+  isNativeMobileApp,
+  MOBILE_LINK_COMPLETE_EVENT,
+  startMobileLinkSocial,
+} from "@/lib/mobileAuth";
 import { unlinkProviderAccount } from "@/lib/unlinkProviderAccount";
 
 export const SOCIAL_PROVIDERS = [
@@ -54,8 +59,34 @@ export function LinkedAccounts({
   const unlinkableProviders = providers.length > 1;
   const hasCredential = providers.includes("credential");
 
+  // Native mobile: the link finishes in the system browser and comes back
+  // through a deep link; AuthContext re-broadcasts it as this event.
+  useEffect(() => {
+    if (!isNativeMobileApp()) return;
+    const onLinked = () => {
+      setBusy(null);
+      onProvidersChange();
+    };
+    window.addEventListener(MOBILE_LINK_COMPLETE_EVENT, onLinked);
+    return () => window.removeEventListener(MOBILE_LINK_COMPLETE_EVENT, onLinked);
+  }, [onProvidersChange]);
+
   async function handleLink(provider: SocialProvider) {
     setBusy(provider);
+    if (isNativeMobileApp()) {
+      // Google refuses OAuth in embedded WebViews, and the WebView has no
+      // session cookie for better-auth's linkSocial to use.
+      try {
+        await startMobileLinkSocial(provider);
+      } catch (error) {
+        toastError(readableError(error));
+      } finally {
+        // The browser sheet is modal; clear the spinner so a cancelled
+        // sheet does not leave the button stuck.
+        setBusy(null);
+      }
+      return;
+    }
     try {
       const settingsURL = window.location.origin + "/settings";
       // Stash the origin path so the global OAuthErrorHandler can bounce the

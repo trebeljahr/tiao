@@ -18,6 +18,8 @@ vi.mock("@/lib/api", () => ({
   login: vi.fn(),
   refreshElectronTokenFromBridge: async () => {},
   setElectronTokenCache: vi.fn(),
+  getCachedElectronToken: () => null,
+  onAuthTokenIssued: vi.fn(),
 }));
 vi.mock("@/lib/openpanel", () => ({
   op: { identify: vi.fn(), clear: vi.fn() },
