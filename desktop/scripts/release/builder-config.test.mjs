@@ -58,6 +58,17 @@ test("store builds drop steamworks.js; desktop channels keep it unpacked", () =>
   assert.ok(config("steam").asarUnpack.some((p) => p.includes("steamworks")));
 });
 
+test("only the Microsoft Store build ships the Windows.Services.Store addon, unpacked", () => {
+  const addon = "native/msstore/build/Release/tiao_msstore.node";
+  const store = config("msstore");
+  assert.ok(store.files.includes(addon));
+  assert.ok(store.asarUnpack.includes(addon));
+  assert.ok(store.files.includes("!node_modules/steamworks.js/**"));
+  for (const channel of ["direct", "itch", "steam", "mas"]) {
+    assert.equal(config(channel).files.includes(addon), false, channel);
+  }
+});
+
 test("signed desktop builds force signing; unsigned Mac builds skip identity and hardened runtime", () => {
   const signed = config("direct", true);
   assert.equal(signed.forceCodeSigning, true);

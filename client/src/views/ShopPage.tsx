@@ -39,14 +39,17 @@ import {
 import { toastError } from "@/lib/errors";
 import { isAdmin } from "@/lib/featureGate";
 import { getGooglePlayPrices, openGooglePlaySubscriptions } from "@/lib/GooglePlayBridge";
+import { getMsStoreAddOns } from "@/lib/MsStoreBridge";
 import {
   canPurchaseIn,
   canSubscribeIn,
   purchaseWithGooglePlay,
+  purchaseWithMsStore,
   purchaseWithSteam,
   restoreFromGooglePlay,
   StorePurchaseCancelled,
   StoreUnavailableError,
+  syncMsStore,
   useStorePurchaseChannel,
 } from "@/lib/storePurchases";
 import { cn } from "@/lib/utils";
@@ -418,6 +421,8 @@ export function ShopPage() {
   function displayPrice(item: ShopCatalogItem): string {
     const playPrice = item.googlePlay && playPrices[item.googlePlay.productId];
     if (channel === "google_play" && playPrice) return playPrice;
+    const storePrice = item.msStoreOfferToken ? storePrices[item.msStoreOfferToken] : undefined;
+    if (channel === "msstore" && storePrice) return storePrice;
     return formatPrice(item.price, item.currency);
   }
 
@@ -432,13 +437,37 @@ export function ShopPage() {
       .catch(() => {});
   }, [channel, isAccount, fetchCatalog]);
 
+  // Microsoft Store: restore add-ons bought earlier (or on another PC) and
+  // show the Store's localized prices instead of the USD list price.
+  const [storePrices, setStorePrices] = useState<Record<string, string>>({});
+  useEffect(() => {
+    if (channel !== "msstore") return;
+    void getMsStoreAddOns().then((addOns) => {
+      setStorePrices(
+        Object.fromEntries(
+          addOns
+            .filter((a) => a.inAppOfferToken && a.formattedPrice)
+            .map((a) => [a.inAppOfferToken, a.formattedPrice]),
+        ),
+      );
+    });
+    if (!isAccount) return;
+    syncMsStore()
+      .then((res) => {
+        if (res && res.granted.length + res.restored.length > 0) void fetchCatalog(true);
+      })
+      .catch(() => {});
+  }, [channel, isAccount, fetchCatalog]);
+
   async function handleStorePurchase(item: ShopCatalogItem) {
     const key = `${item.type}-${item.id}`;
     try {
       const result =
         channel === "google_play"
           ? await purchaseWithGooglePlay(item)
-          : await purchaseWithSteam(item, locale);
+          : channel === "msstore"
+            ? await purchaseWithMsStore(item)
+            : await purchaseWithSteam(item, locale);
       if (result.status === "granted") {
         await fetchCatalog(true);
         if (item.recurring) {
@@ -453,18 +482,22 @@ export function ShopPage() {
         setPurchasedItem(key);
       } else if (result.status === "pending") {
         toast(t("purchasePending"));
+      } else if (result.reason === "claimed_elsewhere") {
+        toast.error(t("purchaseClaimedElsewhere"));
       } else {
         toast.error(t("purchaseFailed"));
       }
     } catch (error) {
       if (error instanceof StorePurchaseCancelled) toast(t("purchaseCancelled"));
-      else if (error instanceof StoreUnavailableError)
+      else if (error instanceof StoreUnavailableError) {
         toast.error(
           error.reason === "google_play_unavailable"
             ? t("googlePlayUnavailable")
-            : t("steamNotRunning"),
+            : error.reason === "steam_not_running"
+              ? t("steamNotRunning")
+              : t("storeUnavailable"),
         );
-      else toastError(error);
+      } else toastError(error);
     }
   }
 
@@ -475,7 +508,7 @@ export function ShopPage() {
     }
 
     setBuyingItem(`${item.type}-${item.id}`);
-    if (channel === "steam" || channel === "google_play") {
+    if (channel === "steam" || channel === "google_play" || channel === "msstore") {
       await handleStorePurchase(item);
       setBuyingItem(null);
       return;

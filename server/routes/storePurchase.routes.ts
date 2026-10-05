@@ -4,6 +4,7 @@ import type { ShopItem } from "../config/shopCatalog";
 import { handleRouteError } from "../error-handling/routeError";
 import GameAccount from "../models/GameAccount";
 import { isGooglePlayStorefrontEnabled } from "../payments/googlePlayApi";
+import { msStoreCollectionsFromEnv } from "../payments/msStoreCollections";
 import { steamMicroTxnFromEnv } from "../payments/steamMicroTxn";
 import {
   createStorePurchaseService,
@@ -20,6 +21,8 @@ import {
  *   POST /steam/init        { itemType, itemId, ticket, language } → { orderId }
  *   POST /steam/finalize    { orderId } → { status, itemType, itemId }
  *   POST /steam/reconcile   settle this player's pending Steam orders
+ *   POST /msstore/ticket    → { serviceTicket, publisherUserId } for GetCustomerCollectionsIdAsync
+ *   POST /msstore/sync      { storeIdKey } → { granted, restored, claimedElsewhere }
  *
  * Google Play Billing is mounted beside it at /shop/iap/google-play.
  *
@@ -39,13 +42,17 @@ async function isOwned(playerId: string, item: ShopItem): Promise<boolean> {
 let service: StorePurchaseService | null = null;
 let steamEnabled = false;
 let steamSandbox = false;
+let msStoreEnabled = false;
 
 function getService(): StorePurchaseService {
   if (!service) {
     const steam = steamMicroTxnFromEnv();
     steamEnabled = steam !== null;
     steamSandbox = steam?.sandbox ?? false;
+    const msStore = msStoreCollectionsFromEnv();
+    msStoreEnabled = msStore !== null;
     service = createStorePurchaseService({
+      msStore,
       ledger: mongoStorePurchaseLedger,
       grant: defaultGranter,
       isOwned,
@@ -58,9 +65,10 @@ function getService(): StorePurchaseService {
 /** Test seam: swap in a service built with fakes. Pass null to reset. */
 export function setStorePurchaseServiceForTests(
   next: StorePurchaseService | null,
-  flags: { steam?: boolean; steamSandbox?: boolean } = {},
+  flags: { steam?: boolean; steamSandbox?: boolean; msStore?: boolean } = {},
 ): void {
   service = next;
+  msStoreEnabled = flags.msStore ?? false;
   steamEnabled = flags.steam ?? false;
   steamSandbox = flags.steamSandbox ?? false;
 }
@@ -90,6 +98,7 @@ router.get("/config", (_req: Request, res: Response) => {
     steam: { enabled: steamEnabled, sandbox: steamSandbox },
     // Play billing itself lives in googlePlay.routes.ts (/shop/iap/google-play).
     googlePlay: { enabled: isGooglePlayStorefrontEnabled() },
+    msstore: { enabled: msStoreEnabled },
   });
 });
 
@@ -130,6 +139,30 @@ router.post("/steam/reconcile", async (req: Request, res: Response) => {
     return res.json({ results });
   } catch (error) {
     return sendError(req, res, error, "Unable to reconcile Steam purchases.");
+  }
+});
+
+router.post("/msstore/ticket", async (req: Request, res: Response) => {
+  try {
+    const playerId = await requireAccount(req, res);
+    if (!playerId) return;
+    return res.json(await getService().issueMsStoreTicket(playerId));
+  } catch (error) {
+    return sendError(req, res, error, "Unable to start Microsoft Store verification.");
+  }
+});
+
+router.post("/msstore/sync", async (req: Request, res: Response) => {
+  try {
+    const playerId = await requireAccount(req, res);
+    if (!playerId) return;
+    const out = await getService().syncMsStorePurchases({
+      playerId,
+      storeIdKey: req.body?.storeIdKey,
+    });
+    return res.json(out);
+  } catch (error) {
+    return sendError(req, res, error, "Unable to verify Microsoft Store purchases.");
   }
 });
 

@@ -128,6 +128,16 @@ jobs:
         run: >-
           node -e "require('node:fs').cpSync('client/.next-desktop', 'desktop/client-bundle', { recursive: true })"
 
+      - name: Build the Microsoft Store purchase addon
+        if: matrix.platform == 'msstore'
+        working-directory: desktop/native/msstore
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $electron = node -p "require('../../node_modules/electron/package.json').version"
+          npx --yes node-gyp@11 rebuild --target=$electron --arch=x64 --dist-url=https://electronjs.org/headers
+          if (-not (Test-Path build/Release/tiao_msstore.node)) { throw 'tiao_msstore.node was not built' }
+
       - name: Install pinned Azure signing module
         if: matrix.platform == 'windows' && env.SIGNED == 'true'
         shell: pwsh
@@ -209,6 +219,7 @@ jobs:
             [xml]$manifest = $reader.ReadToEnd()
             $reader.Dispose()
             if ($zip.Entries | Where-Object FullName -match 'steam') { throw 'The AppX contains Steam files' }
+            if (-not ($zip.Entries | Where-Object FullName -match 'tiao_msstore\.node$')) { throw 'The AppX lacks the Store purchase addon' }
           } finally { $zip.Dispose() }
           $identity = $manifest.Package.Identity
           "Identity $($identity.Name) / $($identity.Publisher) / $($identity.Version)"

@@ -1,0 +1,8 @@
+{
+  "name": "tiao-msstore",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Windows.Services.Store bridge for the Microsoft Store (MSIX/AppX) build of Tiao. Windows-only N-API addon; built in CI against Electron's headers, see README.md.",
+  "gypfile": true,
+  "main": "build/Release/tiao_msstore.node"
+}

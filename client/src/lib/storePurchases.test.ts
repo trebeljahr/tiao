@@ -4,6 +4,8 @@ vi.mock("./api", () => ({
   getStorePurchaseConfig: vi.fn(),
   startSteamPurchase: vi.fn(),
   finalizeSteamPurchase: vi.fn(),
+  getMsStoreTicket: vi.fn(),
+  syncMsStorePurchases: vi.fn(),
 }));
 
 import * as api from "./api";
@@ -12,6 +14,7 @@ import {
   _resetStorePurchaseConfigForTests,
   getStorePurchaseChannel,
   loadStorePurchaseConfig,
+  purchaseWithMsStore,
   purchaseWithSteam,
   StorePurchaseCancelled,
   StoreUnavailableError,
@@ -125,5 +128,103 @@ describe("purchaseWithSteam", () => {
       StoreUnavailableError,
     );
     expect(api.startSteamPurchase).not.toHaveBeenCalled();
+  });
+});
+
+function installMsStore(purchaseStatus = "succeeded", collectionsId: string | null = "store-key") {
+  const calls: string[] = [];
+  (window as unknown as { electron: unknown }).electron = {
+    config: { distributionChannel: "msstore", isSteamBuild: false },
+    msstore: {
+      isAvailable: async () => true,
+      getAddOns: async () => [],
+      purchase: async (token: string) => {
+        calls.push(`purchase:${token}`);
+        return { status: purchaseStatus };
+      },
+      getCollectionsId: async (ticket: string, userId: string) => {
+        calls.push(`collections:${ticket}:${userId}`);
+        return collectionsId;
+      },
+    },
+  };
+  return calls;
+}
+
+describe("Microsoft Store channel", () => {
+  afterEach(() => {
+    delete (window as unknown as { electron?: unknown }).electron;
+    _resetStorePurchaseConfigForTests(null);
+    vi.clearAllMocks();
+  });
+
+  it("sells only once the server reports Microsoft Store purchases configured", () => {
+    installMsStore();
+    expect(getStorePurchaseChannel()).toBe("loading");
+    _resetStorePurchaseConfigForTests({
+      steam: { enabled: false, sandbox: false },
+      msstore: { enabled: false },
+    });
+    expect(getStorePurchaseChannel()).toBe("none");
+    _resetStorePurchaseConfigForTests({
+      steam: { enabled: false, sandbox: false },
+      msstore: { enabled: true },
+    });
+    expect(getStorePurchaseChannel()).toBe("msstore");
+  });
+
+  it("never offers Stripe in the Mac App Store build", () => {
+    (window as unknown as { electron: unknown }).electron = {
+      config: { distributionChannel: "mas" },
+    };
+    expect(getStorePurchaseChannel()).toBe("none");
+  });
+
+  it("purchases by offer token, then lets the server decide ownership", async () => {
+    const calls = installMsStore();
+    vi.mocked(api.getMsStoreTicket).mockResolvedValue({
+      serviceTicket: "aad",
+      publisherUserId: "player-1",
+    });
+    vi.mocked(api.syncMsStorePurchases).mockResolvedValue({
+      granted: [{ itemType: "badge", itemId: "supporter" }],
+      restored: [],
+      claimedElsewhere: [],
+    });
+    const res = await purchaseWithMsStore({
+      type: "badge",
+      id: "supporter",
+      msStoreOfferToken: "tiao.badge.supporter",
+    });
+    expect(res.status).toBe("granted");
+    expect(calls).toEqual(["purchase:tiao.badge.supporter", "collections:aad:player-1"]);
+    expect(api.syncMsStorePurchases).toHaveBeenCalledWith("store-key");
+  });
+
+  it("does not grant on the dialog result alone", async () => {
+    installMsStore();
+    vi.mocked(api.getMsStoreTicket).mockResolvedValue({
+      serviceTicket: "aad",
+      publisherUserId: "p",
+    });
+    vi.mocked(api.syncMsStorePurchases).mockResolvedValue({
+      granted: [],
+      restored: [],
+      claimedElsewhere: [],
+    });
+    const res = await purchaseWithMsStore({
+      type: "theme",
+      id: "night",
+      msStoreOfferToken: "tiao.theme.night",
+    });
+    expect(res.status).toBe("pending");
+  });
+
+  it("maps a closed dialog to cancelled and skips the server", async () => {
+    installMsStore("notPurchased");
+    await expect(
+      purchaseWithMsStore({ type: "theme", id: "night", msStoreOfferToken: "tiao.theme.night" }),
+    ).rejects.toBeInstanceOf(StorePurchaseCancelled);
+    expect(api.getMsStoreTicket).not.toHaveBeenCalled();
   });
 });

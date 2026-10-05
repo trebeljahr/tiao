@@ -999,6 +999,8 @@
     "restoreComplete": "Deine Google-Play-Käufe sind wiederhergestellt.",
     "restoreNothing": "Keine Google-Play-Käufe zum Wiederherstellen.",
     "manageInGooglePlay": "In Google Play verwalten",
+    "storeUnavailable": "Der Store ist gerade nicht verfügbar. Versuche es später erneut.",
+    "purchaseClaimedElsewhere": "Dieser Gegenstand ist über dasselbe Microsoft-Store-Konto bereits mit einem anderen Tiao-Konto verknüpft.",
     "purchaseFailed": "Dein Kauf konnte nicht zugestellt werden. Falls dir Geld abgebucht wurde, wurde das Team benachrichtigt — bitte kontaktiere den Support.",
     "viewAchievement": "So freischalten",
     "adminPanel": "Admin-Panel",

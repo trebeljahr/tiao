@@ -176,6 +176,42 @@ contextBridge.exposeInMainWorld("electron", {
    * list should live in `shared/src/achievements.ts` once Tiao's
    * Partner Portal entry is live.
    */
+  /**
+   * Microsoft Store add-on purchases — functional only in the msstore
+   * (AppX) build; every call degrades to "unavailable" elsewhere.
+   */
+  msstore: {
+    /** @returns {Promise<boolean>} */
+    isAvailable: () => ipcRenderer.invoke("msstore:isAvailable"),
+
+    /**
+     * The Store's listing of our Durable add-ons, with localized prices.
+     *
+     * @returns {Promise<Array<{ storeId: string; inAppOfferToken: string; title: string; formattedPrice: string; isInUserCollection: boolean }>>}
+     */
+    getAddOns: () => ipcRenderer.invoke("msstore:getAddOns"),
+
+    /**
+     * Show the Store purchase dialog for an add-on, by its Partner Center
+     * Product ID (InAppOfferToken).
+     *
+     * @param {string} offerToken
+     * @returns {Promise<{ status: string; extendedError?: string }>}
+     */
+    purchase: (offerToken) => ipcRenderer.invoke("msstore:purchase", offerToken),
+
+    /**
+     * Microsoft Store ID key for the signed-in Store user, for the API
+     * server's Collections API call. null when unavailable.
+     *
+     * @param {string} serviceTicket
+     * @param {string} publisherUserId
+     * @returns {Promise<string | null>}
+     */
+    getCollectionsId: (serviceTicket, publisherUserId) =>
+      ipcRenderer.invoke("msstore:getCollectionsId", serviceTicket, publisherUserId),
+  },
+
   steam: {
     /** @returns {Promise<boolean>} */
     isActive: () => ipcRenderer.invoke("steam:isActive"),

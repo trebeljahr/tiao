@@ -18,6 +18,7 @@
 const STEAM_APP_ID = 5035580;
 const TEAM_ID = "4BHY8H2J25";
 const CHANNELS = ["direct", "itch", "steam", "mas", "msstore"];
+const MSSTORE_ADDON = "native/msstore/build/Release/tiao_msstore.node";
 const STORE_IDENTITY_VARS = [
   "WINDOWS_STORE_IDENTITY_NAME",
   "WINDOWS_STORE_PUBLISHER",
@@ -77,6 +78,14 @@ function createBuilderConfig({ base, channel, signed, env = {} }) {
     config.asarUnpack = (base.asarUnpack ?? []).filter(
       (/** @type {string} */ pattern) => !pattern.includes("steamworks.js"),
     );
+  }
+
+  if (channel === "msstore") {
+    // Windows.Services.Store bridge (native/msstore), built against
+    // Electron's headers by the msstore CI leg before packaging. Unpacked
+    // because Windows cannot load a DLL from inside an asar archive.
+    config.files = [...(config.files ?? base.files), MSSTORE_ADDON];
+    config.asarUnpack = [...(config.asarUnpack ?? base.asarUnpack ?? []), MSSTORE_ADDON];
   }
 
   // Targets per channel. The CLI picks the platform (--mac/--win/--linux).

@@ -5,6 +5,7 @@
  *   - `stripe` — web and direct/itch desktop builds: Stripe Checkout.
  *   - `steam`  — Steam build: Steam Microtransactions through the overlay.
  *   - `google_play` — Android app: Google Play Billing (GooglePlayBridge).
+ *   - `msstore` — Microsoft Store (AppX) build: Store add-on purchases.
  *   - `none`   — a store build that cannot sell yet (server not
  *                configured, or an old desktop without the bridge). The
  *                shop stays hidden, as store rules forbid an external
@@ -22,11 +23,14 @@ import {
   finalizeSteamPurchase,
   type GooglePlayVerifyResult,
   getGooglePlayConfig,
+  getMsStoreTicket,
   getStorePurchaseConfig,
+  type MsStoreSyncResult,
   restoreGooglePlayPurchases,
   type StorePurchaseConfig,
   type StorePurchaseResult,
   startSteamPurchase,
+  syncMsStorePurchases,
   verifyGooglePlayPurchase,
 } from "./api";
 import { isAppStoreChannel } from "./distributionChannel";
@@ -38,13 +42,25 @@ import {
   listGooglePlayPurchases,
 } from "./GooglePlayBridge";
 import {
+  getMsStoreCollectionsId,
+  hasMsStorePurchaseBridge,
+  isMsStoreBuild,
+  requestMsStorePurchase,
+} from "./MsStoreBridge";
+import {
   getSteamWebApiTicket,
   hasSteamPurchaseBridge,
   isSteamBuild,
   waitForSteamMicroTxnAuthorization,
 } from "./SteamBridge";
 
-export type StorePurchaseChannel = "stripe" | "steam" | "google_play" | "none" | "loading";
+export type StorePurchaseChannel =
+  | "stripe"
+  | "steam"
+  | "google_play"
+  | "msstore"
+  | "none"
+  | "loading";
 
 let config: StorePurchaseConfig | null = null;
 let loading: Promise<void> | null = null;
@@ -84,7 +100,7 @@ export function _resetStorePurchaseConfigForTests(next: StorePurchaseConfig | nu
 }
 
 function isStoreBuild(): boolean {
-  return isSteamBuild() || isAndroidApp();
+  return isSteamBuild() || isAndroidApp() || isMsStoreBuild();
 }
 
 export function getStorePurchaseChannel(): StorePurchaseChannel {
@@ -92,6 +108,11 @@ export function getStorePurchaseChannel(): StorePurchaseChannel {
     if (!hasSteamPurchaseBridge()) return "none";
     if (!config) return settled ? "none" : "loading";
     return config.steam.enabled ? "steam" : "none";
+  }
+  if (isMsStoreBuild()) {
+    if (!hasMsStorePurchaseBridge()) return "none";
+    if (!config) return settled ? "none" : "loading";
+    return config.msstore?.enabled ? "msstore" : "none";
   }
   if (isAndroidApp()) {
     // Google Play payments policy: the Android app sells digital items
@@ -101,7 +122,7 @@ export function getStorePurchaseChannel(): StorePurchaseChannel {
     if (!config) return settled ? "none" : "loading";
     return config.googlePlay?.enabled ? "google_play" : "none";
   }
-  // Other storefronts (Mac App Store, Microsoft Store, iOS)
+  // Other storefronts (Mac App Store, iOS)
   // forbid Stripe and have no native purchase flow yet.
   if (isAppStoreChannel()) return "none";
   return "stripe";
@@ -109,7 +130,12 @@ export function getStorePurchaseChannel(): StorePurchaseChannel {
 
 /** Channels where the shop can take a purchase right now. */
 export function canPurchaseIn(channel: StorePurchaseChannel): boolean {
-  return channel === "stripe" || channel === "steam" || channel === "google_play";
+  return (
+    channel === "stripe" ||
+    channel === "steam" ||
+    channel === "google_play" ||
+    channel === "msstore"
+  );
 }
 
 /** Channels that can sell subscriptions (Steam MicroTxn sells one-time items only). */
@@ -147,7 +173,9 @@ export class StorePurchaseCancelled extends Error {
 }
 
 export class StoreUnavailableError extends Error {
-  constructor(readonly reason: "steam_not_running" | "google_play_unavailable") {
+  constructor(
+    readonly reason: "steam_not_running" | "google_play_unavailable" | "msstore_unavailable",
+  ) {
     super(reason);
     this.name = "StoreUnavailableError";
   }
@@ -283,4 +311,52 @@ export async function purchaseWithGooglePlay(item: {
   }
 
   return toStoreResult(item, await verifyWithRetry(product.productId, purchaseToken));
+}
+
+/**
+ * Ask the API server what the signed-in Microsoft Store user owns and
+ * grant it to this account. Used after a purchase and as "restore
+ * purchases" when the shop opens. Returns null when the Store key could
+ * not be minted (no Store account signed in, offline).
+ */
+export async function syncMsStore(): Promise<MsStoreSyncResult | null> {
+  const { serviceTicket, publisherUserId } = await getMsStoreTicket();
+  const key = await getMsStoreCollectionsId(serviceTicket, publisherUserId);
+  if (!key) return null;
+  return syncMsStorePurchases(key);
+}
+
+/**
+ * Full Microsoft Store purchase: Store dialog for the add-on, then a
+ * server-side ownership check that grants the item. The server, not the
+ * dialog result, decides whether the item is granted.
+ */
+export async function purchaseWithMsStore(item: {
+  type: string;
+  id: string;
+  msStoreOfferToken?: string;
+}): Promise<StorePurchaseResult> {
+  const base = { itemType: item.type as "badge" | "theme", itemId: item.id };
+  if (!item.msStoreOfferToken) throw new StoreUnavailableError("msstore_unavailable");
+
+  const status = await requestMsStorePurchase(item.msStoreOfferToken);
+  if (status === "notPurchased") throw new StorePurchaseCancelled();
+  if (status === "unavailable" || status === "unknownProduct") {
+    throw new StoreUnavailableError("msstore_unavailable");
+  }
+  if (status !== "succeeded" && status !== "alreadyPurchased") {
+    return { status: "failed", reason: status, ...base };
+  }
+
+  const sync = await syncMsStore();
+  if (!sync) return { status: "pending", ...base };
+  const mine = [...sync.granted, ...sync.restored].some(
+    (g) => g.itemType === item.type && g.itemId === item.id,
+  );
+  if (mine) return { status: "granted", ...base };
+  if (sync.claimedElsewhere.some((g) => g.itemType === item.type && g.itemId === item.id)) {
+    return { status: "failed", reason: "claimed_elsewhere", ...base };
+  }
+  // Microsoft's collections can lag the purchase by a few seconds.
+  return { status: "pending", ...base };
 }

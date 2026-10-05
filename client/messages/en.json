@@ -999,6 +999,8 @@
     "restoreComplete": "Your Google Play purchases are restored.",
     "restoreNothing": "No Google Play purchases to restore.",
     "manageInGooglePlay": "Manage in Google Play",
+    "storeUnavailable": "The store is not available right now. Try again later.",
+    "purchaseClaimedElsewhere": "This item is already linked to a different Tiao account through the same Microsoft Store account.",
     "purchaseFailed": "We couldn't deliver your purchase. If you were charged, the team has been notified — please contact support.",
     "viewAchievement": "How to unlock",
     "adminPanel": "Admin Panel",

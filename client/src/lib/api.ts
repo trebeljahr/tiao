@@ -625,6 +625,13 @@ export type StorePurchaseConfig = {
   steam: { enabled: boolean; sandbox: boolean };
   /** Absent on servers that predate Google Play billing. */
   googlePlay?: { enabled: boolean };
+  msstore?: { enabled: boolean };
+};
+
+export type MsStoreSyncResult = {
+  granted: Array<{ itemType: "badge" | "theme"; itemId: string }>;
+  restored: Array<{ itemType: "badge" | "theme"; itemId: string }>;
+  claimedElsewhere: Array<{ itemType: "badge" | "theme"; itemId: string }>;
 };
 
 export type StorePurchaseResult = {
@@ -657,6 +664,20 @@ export function finalizeSteamPurchase(orderId: string) {
 export function reconcileSteamPurchases() {
   return request<{ results: StorePurchaseResult[] }>("/api/shop/iap/steam/reconcile", {
     method: "POST",
+  });
+}
+
+export function getMsStoreTicket() {
+  return request<{ serviceTicket: string; publisherUserId: string }>(
+    "/api/shop/iap/msstore/ticket",
+    { method: "POST" },
+  );
+}
+
+export function syncMsStorePurchases(storeIdKey: string) {
+  return request<MsStoreSyncResult>("/api/shop/iap/msstore/sync", {
+    method: "POST",
+    body: { storeIdKey },
   });
 }
 

@@ -999,6 +999,8 @@
     "restoreComplete": "Tus compras de Google Play se han restaurado.",
     "restoreNothing": "No hay compras de Google Play para restaurar.",
     "manageInGooglePlay": "Gestionar en Google Play",
+    "storeUnavailable": "La tienda no está disponible ahora. Inténtalo más tarde.",
+    "purchaseClaimedElsewhere": "Este artículo ya está vinculado a otra cuenta de Tiao a través de la misma cuenta de Microsoft Store.",
     "purchaseFailed": "No pudimos entregar tu compra. Si se te cobró, el equipo ha sido notificado — contacta con soporte.",
     "viewAchievement": "Cómo desbloquear",
     "adminPanel": "Panel de admin",

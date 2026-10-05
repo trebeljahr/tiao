@@ -41,6 +41,11 @@ const {
 } = require("./src/glitchtip.cjs");
 const { resolveApiUrl } = require("./src/config.cjs");
 const { DISTRIBUTION_CHANNEL } = require("./src/distribution.cjs");
+const { createMsStoreBridge } = require("./src/msstore.cjs");
+
+// Microsoft Store add-on purchases. Inert (never loads the native addon)
+// outside the msstore channel on Windows.
+const msStore = createMsStoreBridge({ channel: DISTRIBUTION_CHANNEL, platform: process.platform });
 const {
   STEAM_ENABLED,
   maybeRestartForSteam,
@@ -265,6 +270,7 @@ function bootstrap() {
   // the app keeps working as if we were a standalone build.
   const steamOk = initSteam();
   registerSteamIpc();
+  registerMsStoreIpc();
   track("desktop:app_start", {
     packaged: app.isPackaged,
     steam: STEAM_ENABLED ? (steamOk ? "active" : "init_failed") : "off",
@@ -364,6 +370,45 @@ function registerAnalyticsIpc() {
  * false. Either way, callers should gracefully degrade instead of
  * showing a "Steam required" error.
  */
+/**
+ * IPC surface for Microsoft Store add-on purchases (msstore build only).
+ * The purchase dialog is parented to the window that asked, via its
+ * native HWND — Win32 apps have no CoreWindow for the Store to attach to.
+ * Ownership is never decided here: the renderer hands the collections key
+ * to the API server, which asks Microsoft.
+ */
+function registerMsStoreIpc() {
+  handleTrustedIpc(ipcMain, "msstore:isAvailable", async () => msStore.isAvailable());
+  handleTrustedIpc(ipcMain, "msstore:getAddOns", async () => {
+    try {
+      return await msStore.getAddOns();
+    } catch (err) {
+      console.warn("[msstore] getAddOns failed:", err);
+      return [];
+    }
+  });
+  handleTrustedIpc(ipcMain, "msstore:purchase", async (event, offerToken) => {
+    if (typeof offerToken !== "string" || !offerToken) return { status: "unknownProduct" };
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win) return { status: "unavailable" };
+    try {
+      return await msStore.purchase(offerToken, win.getNativeWindowHandle());
+    } catch (err) {
+      console.warn("[msstore] purchase failed:", err);
+      return { status: "serverError" };
+    }
+  });
+  handleTrustedIpc(ipcMain, "msstore:getCollectionsId", async (_event, ticket, userId) => {
+    if (typeof ticket !== "string" || !ticket || typeof userId !== "string") return null;
+    try {
+      return await msStore.getCollectionsId(ticket, userId);
+    } catch (err) {
+      console.warn("[msstore] getCustomerCollectionsId failed:", err);
+      return null;
+    }
+  });
+}
+
 /** Guards the MicroTxn forwarder against a second bootstrap() on macOS `activate`. */
 let microTxnForwarding = false;
 

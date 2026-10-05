@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { trackRevenue } from "../analytics/openpanel";
 import {
   findShopItem,
+  findShopItemByMsStoreOfferToken,
   findShopItemBySteamItemId,
   type ShopItem,
   type ShopItemType,
@@ -11,6 +12,12 @@ import StorePurchase, {
   type StoreProvider,
   type StorePurchaseStatus,
 } from "../models/StorePurchase";
+import {
+  checkStoreIdKey,
+  type MsCollectionItem,
+  MsStoreApiError,
+  type MsStoreCollectionsClient,
+} from "./msStoreCollections";
 import {
   STEAM_ERR_ALREADY_COMMITTED,
   SteamApiError,
@@ -116,6 +123,8 @@ export type StorePurchaseDeps = {
   grant: EntitlementGranter;
   isOwned: OwnedLookup;
   steam: SteamMicroTxnClient | null;
+  msStore?: MsStoreCollectionsClient | null;
+  now?: () => number;
   /** Revenue hook; defaults to OpenPanel. Amount is list price in USD cents. */
   onRevenue?: (playerId: string, item: ShopItem, provider: StoreProvider) => void;
   newOrderId?: () => string;
@@ -151,6 +160,15 @@ export type SteamFinalizeResult =
   | { status: "granted"; itemType: ShopItemType; itemId: string }
   | { status: "pending"; itemType: ShopItemType; itemId: string }
   | { status: "failed"; itemType: ShopItemType; itemId: string; reason: string };
+
+export type MsStoreSyncResult = {
+  /** Newly fulfilled by this call. */
+  granted: Array<{ itemType: ShopItemType; itemId: string }>;
+  /** Already fulfilled earlier; re-applied (idempotent) as a restore. */
+  restored: Array<{ itemType: ShopItemType; itemId: string }>;
+  /** Owned by this Store user but already bound to another Tiao account. */
+  claimedElsewhere: Array<{ itemType: ShopItemType; itemId: string }>;
+};
 
 export function createStorePurchaseService(deps: StorePurchaseDeps) {
   const onRevenue = deps.onRevenue ?? defaultRevenue;
@@ -384,7 +402,115 @@ export function createStorePurchaseService(deps: StorePurchaseDeps) {
     return results;
   }
 
+  function requireMsStore(): MsStoreCollectionsClient {
+    if (!deps.msStore) {
+      throw new StorePurchaseError(
+        503,
+        "MSSTORE_PURCHASES_NOT_CONFIGURED",
+        "Microsoft Store purchases are not configured on this server.",
+      );
+    }
+    return deps.msStore;
+  }
+
+  /**
+   * Service ticket for the AppX to mint a Store ID key with. The player id
+   * goes along as publisherUserId so the key names the account it was
+   * minted for.
+   */
+  async function issueMsStoreTicket(
+    playerId: string,
+  ): Promise<{ serviceTicket: string; publisherUserId: string }> {
+    const ms = requireMsStore();
+    return { serviceTicket: await ms.getCollectionsServiceTicket(), publisherUserId: playerId };
+  }
+
+  /**
+   * Grant every catalog add-on the Store user owns. Runs after a purchase
+   * and as "restore purchases" when the shop opens. Each Microsoft
+   * collection item binds to the first Tiao account that presents it, so
+   * one Store purchase cannot unlock the item on several accounts.
+   */
+  async function syncMsStorePurchases(input: {
+    playerId: string;
+    storeIdKey: unknown;
+  }): Promise<MsStoreSyncResult> {
+    const ms = requireMsStore();
+    if (typeof input.storeIdKey !== "string" || input.storeIdKey.length > 16_384) {
+      throw new StorePurchaseError(
+        400,
+        "INVALID_STORE_KEY",
+        "A Microsoft Store ID key is required.",
+      );
+    }
+    const problem = checkStoreIdKey(input.storeIdKey, (deps.now ?? Date.now)());
+    if (problem) {
+      throw new StorePurchaseError(
+        400,
+        "INVALID_STORE_KEY",
+        `Microsoft Store ID key is ${problem.replace("_", " ")}.`,
+      );
+    }
+
+    let owned: MsCollectionItem[];
+    try {
+      owned = await ms.queryOwnedDurables(input.storeIdKey, input.playerId);
+    } catch (err) {
+      if (err instanceof MsStoreApiError && (err.httpStatus === 400 || err.httpStatus === 403)) {
+        throw new StorePurchaseError(
+          400,
+          "INVALID_STORE_KEY",
+          "Microsoft rejected this Store ID key.",
+        );
+      }
+      throw err;
+    }
+
+    const result: MsStoreSyncResult = { granted: [], restored: [], claimedElsewhere: [] };
+    for (const entry of owned) {
+      if (entry.status !== "Active" || entry.productType !== "Durable" || !entry.itemId) continue;
+      if (entry.localTicketReference && entry.localTicketReference !== input.playerId) continue;
+      const item = entry.inAppOfferToken
+        ? findShopItemByMsStoreOfferToken(entry.inAppOfferToken)
+        : undefined;
+      if (!item || item.recurring) continue;
+      const ref = { itemType: item.type, itemId: item.id };
+
+      const inserted = await deps.ledger.insert({
+        provider: "msstore",
+        externalId: entry.itemId,
+        playerId: input.playerId,
+        itemType: item.type,
+        itemId: item.id,
+        status: "pending",
+        transactionId: entry.transactionId,
+      });
+      if (!inserted) {
+        const existing = await deps.ledger.find("msstore", entry.itemId);
+        if (!existing || existing.playerId !== input.playerId) {
+          result.claimedElsewhere.push(ref);
+          continue;
+        }
+      }
+
+      await deps.grant(input.playerId, item);
+      await deps.ledger.update("msstore", entry.itemId, {
+        status: "granted",
+        transactionId: entry.transactionId,
+      });
+      if (inserted) {
+        result.granted.push(ref);
+        onRevenue(input.playerId, item, "msstore");
+      } else {
+        result.restored.push(ref);
+      }
+    }
+    return result;
+  }
+
   return {
+    issueMsStoreTicket,
+    syncMsStorePurchases,
     startSteamPurchase,
     finalizeSteamPurchase,
     reconcileSteamPurchases,
