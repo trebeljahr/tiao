@@ -2,7 +2,7 @@ import express, { type Request, type Response } from "express";
 import { track, trackRevenue } from "../analytics/openpanel";
 import { getPlayerFromRequest } from "../auth/sessionHelper";
 import { FRONTEND_URL } from "../config/envVars";
-import { findShopItem, SHOP_ITEMS } from "../config/shopCatalog";
+import { appStoreProductId, findShopItem, SHOP_ITEMS } from "../config/shopCatalog";
 import { handleRouteError } from "../error-handling/routeError";
 import { grantBadge, grantTheme, revokeBadge } from "../game/badgeService";
 import GameAccount, { type ISubscription } from "../models/GameAccount";
@@ -61,6 +61,7 @@ router.get("/catalog", async (req: Request, res: Response) => {
 
     const catalog = SHOP_ITEMS.map((item) => ({
       ...item,
+      appStoreProductId: appStoreProductId(item),
       owned: item.type === "badge" ? ownedBadges.includes(item.id) : ownedThemes.includes(item.id),
     }));
 
@@ -235,10 +236,10 @@ router.get("/subscriptions", async (req: Request, res: Response) => {
     const account = await GameAccount.findById(player.playerId);
     const subscriptions = (account?.activeSubscriptions ?? []).map((s: ISubscription) => ({
       subscriptionId: s.subscriptionId,
+      provider: s.provider ?? "stripe",
       badgeId: s.badgeId,
       status: s.status,
       currentPeriodEnd: s.currentPeriodEnd,
-      provider: s.provider ?? "stripe",
     }));
 
     return res.json({ subscriptions });
@@ -258,6 +259,18 @@ router.post("/cancel-subscription", async (req: Request, res: Response) => {
       return res.status(401).json({
         code: "ACCOUNT_REQUIRED",
         message: "You must be signed in.",
+      });
+    }
+
+    // App Store subscriptions can only be cancelled by the player in
+    // their Apple account settings; Apple then notifies us.
+    if (
+      typeof req.body?.subscriptionId === "string" &&
+      req.body.subscriptionId.startsWith("apple:")
+    ) {
+      return res.status(409).json({
+        code: "MANAGED_BY_APP_STORE",
+        message: "Manage this subscription in your Apple account settings.",
       });
     }
 

@@ -1,4 +1,5 @@
 import express, { type Request, type Response } from "express";
+import { getAppStoreGateway } from "../appStore/appStoreGateway";
 import { getPlayerFromRequest } from "../auth/sessionHelper";
 import type { ShopItem } from "../config/shopCatalog";
 import { handleRouteError } from "../error-handling/routeError";
@@ -24,7 +25,8 @@ import {
  *   POST /msstore/ticket    → { serviceTicket, publisherUserId } for GetCustomerCollectionsIdAsync
  *   POST /msstore/sync      { storeIdKey } → { granted, restored, claimedElsewhere }
  *
- * Google Play Billing is mounted beside it at /shop/iap/google-play.
+ * Google Play Billing is mounted beside it at /shop/iap/google-play, the
+ * App Store (iOS + Mac App Store) at /shop/iap/app-store.
  *
  * Kept apart from shop.routes.ts (Stripe) so the Steam and Microsoft Store
  * builds never touch the Stripe code path, which their store rules forbid.
@@ -99,6 +101,8 @@ router.get("/config", (_req: Request, res: Response) => {
     // Play billing itself lives in googlePlay.routes.ts (/shop/iap/google-play).
     googlePlay: { enabled: isGooglePlayStorefrontEnabled() },
     msstore: { enabled: msStoreEnabled },
+    // App Store (iOS + Mac App Store) lives in appStore.routes.ts (/shop/iap/app-store).
+    appStore: { enabled: getAppStoreGateway() !== null },
   });
 });
 

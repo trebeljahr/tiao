@@ -221,6 +221,16 @@ describe("Shop routes", () => {
       assert.ok(catalog.every((item) => item.owned === false));
     });
 
+    test("lists App Store product ids", async () => {
+      const result = await invokeRoute<{
+        catalog: { type: string; id: string; appStoreProductId: string }[];
+      }>(router, "GET", "/catalog");
+      const night = result.body.catalog.find((i) => i.type === "theme" && i.id === "night");
+      assert.equal(night?.appStoreProductId, "com.ricoslabs.tiao.theme.night");
+      const patron = result.body.catalog.find((i) => i.id === "patron");
+      assert.equal(patron?.appStoreProductId, "com.ricoslabs.tiao.sub.patron.monthly");
+    });
+
     test("returns catalog with owned items for a regular production account", async () => {
       process.env.NODE_ENV = "production";
       const account = createTestAccount("shopuser", "shop@test.com");
@@ -359,6 +369,21 @@ describe("Shop routes", () => {
       });
       assert.equal(result.status, 409);
       assert.equal((result.body as { code: string }).code, "ALREADY_OWNED");
+    });
+  });
+
+  // ── POST /cancel-subscription ──
+
+  describe("POST /cancel-subscription", () => {
+    test("refuses App Store subscriptions, which only Apple can cancel", async () => {
+      const account = createTestAccount("subber", "subber@test.com");
+      createMockAccount(account.player.playerId, "subber");
+      const result = await invokeRoute(router, "POST", "/cancel-subscription", {
+        cookie: account.cookie,
+        body: { subscriptionId: "apple:2000000123456789" },
+      });
+      assert.equal(result.status, 409);
+      assert.equal((result.body as { code: string }).code, "MANAGED_BY_APP_STORE");
     });
   });
 });

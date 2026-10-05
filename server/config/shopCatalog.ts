@@ -220,3 +220,48 @@ export function findShopItemBySteamItemId(steamItemId: number): ShopItem | undef
 export function findShopItemByMsStoreOfferToken(token: string): ShopItem | undefined {
   return SHOP_ITEMS.find((item) => item.msStoreOfferToken === token);
 }
+
+// ---------------------------------------------------------------------------
+// App Store (StoreKit) product mapping
+// ---------------------------------------------------------------------------
+
+/**
+ * Bundle id shared by the iOS app and the Mac App Store build. One App
+ * Store Connect record serves both, so one set of product ids does too
+ * (universal purchase).
+ */
+export const APP_STORE_BUNDLE_ID = "com.ricoslabs.tiao";
+
+export type AppStoreProductType = "non_consumable" | "auto_renewable_subscription";
+
+/**
+ * App Store product id for a shop item. Derived, never stored, so the
+ * Stripe and App Store catalogs cannot drift apart:
+ *
+ *   badge/supporter  -> com.ricoslabs.tiao.badge.supporter
+ *   theme/night      -> com.ricoslabs.tiao.theme.night
+ *   badge/patron     -> com.ricoslabs.tiao.sub.patron.monthly
+ *
+ * App Store Connect product ids are permanent once created — renaming a
+ * shop item id here orphans its App Store product.
+ */
+export function appStoreProductId(item: ShopItem): string {
+  if (item.recurring) {
+    const period = item.recurring.interval === "month" ? "monthly" : "yearly";
+    return `${APP_STORE_BUNDLE_ID}.sub.${item.id}.${period}`;
+  }
+  return `${APP_STORE_BUNDLE_ID}.${item.type}.${item.id}`;
+}
+
+/**
+ * Badges and themes are bought once and kept (non-consumable); recurring
+ * items are auto-renewable subscriptions. Nothing in the catalog is
+ * consumable.
+ */
+export function appStoreProductType(item: ShopItem): AppStoreProductType {
+  return item.recurring ? "auto_renewable_subscription" : "non_consumable";
+}
+
+export function findShopItemByAppStoreProductId(productId: string): ShopItem | undefined {
+  return SHOP_ITEMS.find((item) => appStoreProductId(item) === productId);
+}

@@ -9,6 +9,7 @@ import { MOBILE_ORIGINS } from "./lib/wsOrigin";
 import { nativeAuthCors } from "./middleware/nativeAuthCors";
 import achievementRoutes from "./routes/achievement.routes";
 import adminRoutes from "./routes/admin.routes";
+import appStoreRoutes from "./routes/appStore.routes";
 import desktopAuthRoutes from "./routes/desktop-auth.routes";
 import discordRoutes from "./routes/discord.routes";
 import gameRoutes from "./routes/game.routes";
@@ -94,6 +95,7 @@ mountRouteVariants("/player", reportRoutes);
 mountRouteVariants("/", tournamentRoutes);
 mountRouteVariants("/shop/iap", storePurchaseRoutes);
 mountRouteVariants("/shop/iap/google-play", googlePlayRoutes);
+mountRouteVariants("/shop/iap/app-store", appStoreRoutes);
 mountRouteVariants("/shop", shopRoutes);
 mountRouteVariants("/player", achievementRoutes);
 
