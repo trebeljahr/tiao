@@ -290,13 +290,25 @@ try {
     routes = { doc: "B", static: "B", rsc: "C" };
     const { context, page, errors, documents } = await tab();
     const before = seen.length;
-    await page.goto(`${origin}/rules`);
+    await page.goto(`${origin}/local?autostart=1&boardSize=9&scoreToWin=10`);
     await page.waitForLoadState("load");
     await sleep(1500);
     routes = { doc: "C", static: "C", rsc: "C" };
     documents.length = 0;
-    await page.locator('a[href="/play"]').first().click();
-    await page.waitForURL(/\/play/);
+    // Follow the first visible in-app link of the navigation drawer.
+    await page.getByRole("button", { name: /open navigation/i }).click();
+    const links = page.locator('a[href^="/"]:visible');
+    await links.first().waitFor();
+    let destination = "";
+    for (const href of await links.evaluateAll((all) => all.map((a) => a.getAttribute("href")))) {
+      if (href && href !== "/" && !href.startsWith("/local")) {
+        destination = href;
+        break;
+      }
+    }
+    assert.ok(destination, "no in-app link in the navigation drawer");
+    await page.locator(`a[href="${destination}"]:visible`).first().click();
+    await page.waitForURL((url) => url.pathname === destination);
     await page.waitForLoadState("load");
     await sleep(1500);
     await sleep(2000);
@@ -304,7 +316,7 @@ try {
     assert.ok(refused.length > 0, "no router request was refused");
     assert.ok(refused.every((row) => row.deployment === B));
     assert.equal(
-      documents.filter((url) => url.includes("/play")).length,
+      documents.filter((url) => new URL(url).pathname === destination).length,
       1,
       JSON.stringify(documents),
     );
@@ -326,9 +338,16 @@ try {
       if (documents.length >= 1 && seen.some((row) => row.via === "B" && row.status === 404))
         routes = { doc: "C", static: "C", rsc: "C" };
     }, 20);
+    const start = seen.length;
+    const consoleLines = [];
+    page.on("console", (message) => consoleLines.push(message.text()));
     await page.goto(`${origin}/local?autostart=1&boardSize=9&scoreToWin=10`);
     await page.getByTestId("cell-4-4").waitFor({ timeout: 20_000 });
     clearInterval(flip);
+    report.scenario3 = {
+      requests: seen.slice(start).map((row) => `${row.kind} ${row.via} ${row.status} ${row.url}`),
+      console: consoleLines.slice(0, 20),
+    };
     await sleep(1500);
     assert.equal(documents.length, 2, JSON.stringify(documents));
     report.checks.push(

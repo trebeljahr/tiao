@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   isStaleReleaseError,
   isStaleReleaseResource,
+  RELEASE_RECOVERY_INLINE_SCRIPT,
   recoverFromStaleRelease,
 } from "./releaseRecovery";
 
@@ -50,5 +51,20 @@ describe("release recovery", () => {
     expect(isStaleReleaseResource(script)).toBe(true);
     expect(isStaleReleaseResource(image)).toBe(false);
     expect(isStaleReleaseResource(null)).toBe(false);
+  });
+
+  it("inline guard reloads on load when a release stylesheet failed before it ran", () => {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "https://playtiao.com/_next/static/css/missing.css";
+    document.head.appendChild(link);
+    try {
+      // biome-ignore lint/security/noGlobalEval: executes the exact inline script under test
+      window.eval(RELEASE_RECOVERY_INLINE_SCRIPT);
+      window.dispatchEvent(new Event("load"));
+      expect(reload).toHaveBeenCalledTimes(1);
+    } finally {
+      link.remove();
+    }
   });
 });

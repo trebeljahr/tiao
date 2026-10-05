@@ -50,6 +50,9 @@ export function isStaleReleaseResource(target: EventTarget | null): boolean {
 /**
  * Runs before any chunk: when a document's own release chunks are missing (a
  * server that has not seen this release yet), React never starts, so the
- * component-based guard cannot help. Same loop guard as recoverFromStaleRelease.
+ * component-based guard cannot help. Resources that failed before this script
+ * was parsed (stylesheets after a long head) are found on window load, through
+ * unloaded stylesheets and Resource Timing status. Same loop guard as
+ * recoverFromStaleRelease.
  */
-export const RELEASE_RECOVERY_INLINE_SCRIPT = `(function(){addEventListener("error",function(e){var t=e.target,u=t&&(t.tagName==="SCRIPT"?t.src:t.tagName==="LINK"?t.href:"");if(!u||u.indexOf("/_next/static/")<0)return;try{var k=${JSON.stringify(GUARD_KEY)},l=+(sessionStorage.getItem(k)||0);if(Date.now()-l<${LOOP_GUARD_MS})return;sessionStorage.setItem(k,String(Date.now()))}catch(x){return}location.reload()},true)})();`;
+export const RELEASE_RECOVERY_INLINE_SCRIPT = `(function(){var S="/_next/static/";function r(){try{var k=${JSON.stringify(GUARD_KEY)},l=+(sessionStorage.getItem(k)||0);if(Date.now()-l<${LOOP_GUARD_MS})return;sessionStorage.setItem(k,String(Date.now()))}catch(x){return}location.reload()}addEventListener("error",function(e){var t=e.target,u=t&&(t.tagName==="SCRIPT"?t.src:t.tagName==="LINK"?t.href:"");if(u&&u.indexOf(S)>=0)r()},true);addEventListener("load",function(){var i,c=document.querySelectorAll('link[rel="stylesheet"]');for(i=0;i<c.length;i++)if(c[i].href.indexOf(S)>=0&&!c[i].sheet)return r();var p=performance.getEntriesByType("resource");for(i=0;i<p.length;i++)if(p[i].name.indexOf(S)>=0&&p[i].responseStatus>=400)return r()})})();`;
