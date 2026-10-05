@@ -1,12 +1,15 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { writeAsar } from "./fixtures.mjs";
 import {
   assertPackagedChannel,
+  compareVersions,
   desktopTargets,
+  lockedBuilderVersions,
+  minElectronBuilder,
   optionalCredentials,
   readAsarFile,
   releaseTag,
@@ -313,5 +316,23 @@ test("packaged channel metadata is read from app.asar and enforced", () => {
     );
   } finally {
     rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("the locked electron-builder is past the macOS 26 keychain bug", () => {
+  assert.ok(compareVersions("26.15.3", minElectronBuilder) < 0);
+  assert.ok(compareVersions("26.9.0", "26.16.1") < 0);
+  assert.equal(compareVersions("26.16.1", minElectronBuilder), 0);
+  assert.ok(compareVersions("27.0.0-alpha.9", minElectronBuilder) > 0);
+
+  const lockfile = readFileSync(new URL("../../pnpm-lock.yaml", import.meta.url), "utf8");
+  const { electronBuilder, appBuilderLib } = lockedBuilderVersions(lockfile);
+  assert.ok(electronBuilder.length > 0 && appBuilderLib.length > 0, "no builder in the lockfile");
+  for (const locked of [...electronBuilder, ...appBuilderLib]) {
+    assert.ok(
+      compareVersions(locked, minElectronBuilder) >= 0,
+      "locked " + locked + " is below " + minElectronBuilder + ": signed mac and mas builds " +
+        "fail in `security set-key-partition-list` on macOS 26. Raise electron-builder.",
+    );
   }
 });

@@ -12,6 +12,42 @@ export const steamAppId = "5035580";
 export const buildWorkflow = "build-desktop.yml";
 export const channels = ["direct", "itch", "steam", "mas", "msstore"];
 
+// The lowest electron-builder that may sign a macOS build. Through 26.16.0 its
+// throwaway keychain got a random password, but `security
+// set-key-partition-list -k` was handed the p12's password instead. macOS 14
+// and 15 ignore the mismatch; macOS 26 verifies it and fails with
+// "SecKeychainUnlock: The user name or passphrase you entered is not correct"
+// (electron-userland/electron-builder#10172, fixed in 26.16.1). npm's `latest`
+// dist-tag still points below the fix, so a routine update can walk back.
+export const minElectronBuilder = "26.16.1";
+
+/** Compare two x.y.z versions numerically, ignoring prerelease suffixes. */
+export function compareVersions(a, b) {
+  const parts = (v) =>
+    String(v)
+      .split("-")[0]
+      .split(".")
+      .map((n) => Number.parseInt(n, 10) || 0);
+  const [x, y] = [parts(a), parts(b)];
+  for (let i = 0; i < 3; i++) if ((x[i] ?? 0) !== (y[i] ?? 0)) return (x[i] ?? 0) - (y[i] ?? 0);
+  return 0;
+}
+
+/**
+ * The electron-builder and app-builder-lib versions a pnpm lockfile resolves.
+ * Read from the lockfile, not node_modules, so the check runs before install.
+ */
+export function lockedBuilderVersions(lockfileText) {
+  const found = (name) => [
+    ...new Set(
+      [...lockfileText.matchAll(new RegExp("^  " + name + "@([0-9][^(:\\s]*)", "gm"))].map(
+        (m) => m[1],
+      ),
+    ),
+  ];
+  return { electronBuilder: found("electron-builder"), appBuilderLib: found("app-builder-lib") };
+}
+
 // One build leg per target. macOS is universal: the Mac App Store takes one
 // binary per build, and a universal Steam depot needs no launcher script.
 export const desktopTargets = [
