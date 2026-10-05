@@ -140,10 +140,21 @@ describe("mobile OAuth flow", () => {
       fetchImpl as unknown as typeof fetch,
     );
 
-    expect(result).toEqual({ ok: true, sessionToken: "tok-1", userId: "u1", expiresAt: 123 });
+    expect(result).toEqual({
+      ok: true,
+      purpose: "sign-in",
+      sessionToken: "tok-1",
+      userId: "u1",
+      expiresAt: 123,
+    });
     const [url, init] = fetchImpl.mock.calls[0];
     expect(url).toMatch(/\/api\/auth\/desktop\/exchange$/);
-    expect(JSON.parse(init.body)).toEqual({ state, code: "abc", code_verifier: verifier });
+    expect(JSON.parse(init.body)).toEqual({
+      state,
+      code: "abc",
+      code_verifier: verifier,
+      token_type: "session",
+    });
     expect(init.credentials).toBe("omit");
     expect(getCachedElectronToken()).toBe("tok-1");
     expect(store.get("tiao.mobileAuth.sessionToken")).toBe("tok-1");
@@ -162,7 +173,7 @@ describe("mobile OAuth flow", () => {
       "tiao://auth/complete?state=forged&code=abc",
       fetchImpl as unknown as typeof fetch,
     );
-    expect(result).toEqual({ ok: false, reason: "state_mismatch" });
+    expect(result).toEqual({ ok: false, purpose: "sign-in", reason: "state_mismatch" });
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 
@@ -177,6 +188,7 @@ describe("mobile OAuth flow", () => {
     await completeMobileOAuth(link, fetchImpl as unknown as typeof fetch);
     expect(await completeMobileOAuth(link, fetchImpl as unknown as typeof fetch)).toEqual({
       ok: false,
+      purpose: "sign-in",
       reason: "state_mismatch",
     });
     expect(fetchImpl).toHaveBeenCalledOnce();
@@ -186,7 +198,7 @@ describe("mobile OAuth flow", () => {
     await startMobileOAuth("discord");
     let { state } = pendingFromStart();
     expect(await completeMobileOAuth(`tiao://auth/error?state=${state}&reason=no_session`)).toEqual(
-      { ok: false, reason: "no_session" },
+      { ok: false, purpose: "sign-in", reason: "no_session" },
     );
 
     await startMobileOAuth("discord");
@@ -197,7 +209,7 @@ describe("mobile OAuth flow", () => {
         `tiao://auth/complete?state=${state}&code=abc`,
         fetchImpl as unknown as typeof fetch,
       ),
-    ).toEqual({ ok: false, reason: "exchange_failed" });
+    ).toEqual({ ok: false, purpose: "sign-in", reason: "exchange_failed" });
     expect(getCachedElectronToken()).toBeNull();
   });
 
@@ -205,24 +217,54 @@ describe("mobile OAuth flow", () => {
     expect(await completeMobileOAuth("tiao://game/abc")).toBeNull();
   });
 
-  it("revokes the session on logout before forgetting the token", async () => {
-    store.set("tiao.mobileAuth.sessionToken", "tok-out");
-    setElectronTokenCache("tok-out");
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+  it("signs the better-auth session out with the bearer token before forgetting it", async () => {
+    store.set("tiao.mobileAuth.sessionToken", "tok-out.sig");
+    setElectronTokenCache("tok-out.sig");
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200 });
     vi.stubGlobal("fetch", fetchMock);
 
     await logoutMobile();
 
-    expect(fetchMock.mock.calls[0][0]).toMatch(/\/api\/auth\/desktop\/logout$/);
-    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ sessionToken: "tok-out" });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toMatch(/\/api\/auth\/sign-out$/);
+    expect(init.headers.Authorization).toBe("Bearer tok-out.sig");
+    expect(init.credentials).toBe("omit");
+    expect(init.body).not.toContain("tok-out");
     expect(store.has("tiao.mobileAuth.sessionToken")).toBe(false);
     expect(getCachedElectronToken()).toBeNull();
   });
 
+  it("treats an already-invalid session as signed out", async () => {
+    store.set("tiao.mobileAuth.sessionToken", "tok-gone.sig");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 401 }));
+    await logoutMobile();
+    expect(store.has("tiao.mobileAuth.sessionToken")).toBe(false);
+  });
+
   it("keeps the token when the server cannot revoke it", async () => {
     store.set("tiao.mobileAuth.sessionToken", "tok-keep");
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false }));
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 503 }));
     await expect(logoutMobile()).rejects.toThrow();
     expect(store.get("tiao.mobileAuth.sessionToken")).toBe("tok-keep");
+
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("offline")));
+    await expect(logoutMobile()).rejects.toThrow();
+    expect(store.get("tiao.mobileAuth.sessionToken")).toBe("tok-keep");
+  });
+
+  it("revokes a legacy desktop token through the desktop bridge", async () => {
+    store.set("tiao.mobileAuth.sessionToken", "v2.body.sig");
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    vi.stubGlobal("fetch", fetchMock);
+    await logoutMobile();
+    expect(fetchMock.mock.calls[0][0]).toMatch(/\/api\/auth\/desktop\/logout$/);
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ sessionToken: "v2.body.sig" });
+  });
+
+  it("drops a legacy desktop token on load instead of sending it to better-auth", async () => {
+    store.set("tiao.mobileAuth.sessionToken", "v2.body.sig");
+    expect(await loadPersistedMobileToken()).toBeNull();
+    expect(getCachedElectronToken()).toBeNull();
+    expect(store.has("tiao.mobileAuth.sessionToken")).toBe(false);
   });
 });

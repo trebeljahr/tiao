@@ -17,6 +17,7 @@ import type {
   TournamentSnapshot,
   TournamentStatus,
 } from "@shared";
+import { getNativeMobilePlatform } from "./distributionChannel";
 
 type JsonBody = Record<string, unknown> | undefined;
 
@@ -167,6 +168,37 @@ export async function refreshElectronTokenFromBridge(): Promise<string | null> {
 }
 
 /**
+ * Native mobile (Capacitor) authenticates with the bearer token only.
+ * WKWebView and Android WebView drop the API's cross-site cookie anyway;
+ * omitting credentials makes sure a stray cookie can never shadow the
+ * bearer session.
+ */
+export function authFetchCredentials(): RequestCredentials {
+  return getNativeMobilePlatform() ? "omit" : "include";
+}
+
+let issuedTokenListener: ((token: string) => void) | null = null;
+
+/** Called with every session token the server issues to the native app. */
+export function onAuthTokenIssued(listener: ((token: string) => void) | null): void {
+  issuedTokenListener = listener;
+}
+
+/**
+ * Native mobile: better-auth's bearer plugin returns the signed session
+ * token in `set-auth-token` whenever it starts or replaces a session
+ * (guest, sign-in, sign-up). Adopt it as the bearer token and hand it to
+ * the persistence listener (mobileAuth). No-op on the web and desktop.
+ */
+export function captureIssuedAuthToken(headers: Headers): void {
+  if (!getNativeMobilePlatform()) return;
+  const token = headers.get("set-auth-token");
+  if (!token) return;
+  cachedElectronToken = token;
+  issuedTokenListener?.(token);
+}
+
+/**
  * When running inside Electron we can't rely on `credentials: "include"`
  * (the `app://` origin doesn't share a cookie jar with the API).  The
  * bearer token supplied by the preload bridge replaces the cookie.
@@ -211,13 +243,14 @@ async function request<T>(
     });
     response = await fetch(`${API_BASE_URL}${path}`, {
       method: options.method ?? "GET",
-      credentials: "include",
+      credentials: authFetchCredentials(),
       headers,
       body: options.body ? JSON.stringify(options.body) : undefined,
     });
   } catch {
     throw new ApiError(0, "Could not reach the server. Please try again later.");
   }
+  if (response.ok) captureIssuedAuthToken(response.headers);
 
   const data = (await response.json().catch(() => ({}))) as {
     message?: string;
@@ -239,13 +272,14 @@ async function upload<T>(path: string, formData: FormData): Promise<T> {
     const headers = buildAuthHeaders();
     response = await fetch(`${API_BASE_URL}${path}`, {
       method: "POST",
-      credentials: "include",
+      credentials: authFetchCredentials(),
       headers,
       body: formData,
     });
   } catch {
     throw new ApiError(0, "Could not reach the server. Please try again later.");
   }
+  if (response.ok) captureIssuedAuthToken(response.headers);
 
   const data = (await response.json().catch(() => ({}))) as {
     message?: string;

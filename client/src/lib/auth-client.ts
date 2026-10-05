@@ -18,7 +18,28 @@
  * 3.4 MB graph, and the first auth operation pays the one-time lazy
  * load cost (~50–100 ms on a warm FS).
  */
-import { API_BASE_URL } from "./api";
+import { API_BASE_URL, captureIssuedAuthToken, getCachedElectronToken } from "./api";
+import { getNativeMobilePlatform } from "./distributionChannel";
+
+/**
+ * Native mobile (Capacitor): the WebView cannot keep the API's cross-site
+ * session cookie, so every better-auth call carries the stored session
+ * token as `Authorization: Bearer` (the server's bearer plugin), and any
+ * new token the server issues in `set-auth-token` replaces it. The web
+ * build keeps better-auth's default cookie behaviour.
+ */
+export function nativeBearerFetchOptions() {
+  return {
+    credentials: "omit" as const,
+    auth: {
+      type: "Bearer" as const,
+      token: () => getCachedElectronToken() ?? undefined,
+    },
+    onSuccess: (context: { response: Response }) => {
+      captureIssuedAuthToken(context.response.headers);
+    },
+  };
+}
 
 async function loadClient() {
   const [{ createAuthClient }, { anonymousClient }] = await Promise.all([
@@ -29,6 +50,7 @@ async function loadClient() {
     baseURL: API_BASE_URL,
     basePath: "/api/auth",
     plugins: [anonymousClient()],
+    ...(getNativeMobilePlatform() ? { fetchOptions: nativeBearerFetchOptions() } : {}),
   });
 }
 
