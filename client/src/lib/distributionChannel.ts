@@ -4,7 +4,7 @@
  *   - `ios` / `android`  — Capacitor native app (App Store / Google Play)
  *   - `direct` / `itch` / `steam` / `mas` / `msstore` — Electron desktop,
  *     read from `window.electron.config.distributionChannel` (baked into
- *     the packaged desktop package.json, see desktop/src/distributionChannel.cjs)
+ *     the packaged desktop package.json, see desktop/src/distribution.cjs)
  *   - `web` — everything else (playtiao.com in a browser)
  *
  * App-store channels must not show external payment or donation links
