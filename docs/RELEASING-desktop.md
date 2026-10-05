@@ -132,7 +132,7 @@ deployment branch rule and any reviewers you want. The scripts also check
 
 Build `.p12` files with `/usr/bin/openssl` (LibreSSL) and include the Apple WWDR
 intermediate. macOS cannot import an OpenSSL 3 `.p12` ("MAC verification
-failed"). Mac App Store signing on electron-builder 25 looks for
+failed"). Mac App Store signing on electron-builder 26 looks for
 "Apple Distribution" and "3rd Party Mac Developer Installer" identities; the
 Mac Installer Distribution certificate carries the latter name.
 
@@ -173,8 +173,9 @@ CLI session; electron-builder calls `desktop/scripts/sign-windows.cjs`, which
 runs the pinned `ArtifactSigning` 0.1.20 module with only the Azure CLI
 credential enabled. Every file, including the embedded NSIS uninstaller, is
 checked for a valid, timestamped Ricos Labs LLC signature as it is signed.
-electron-builder 25's native `azureSignOptions` does not accept the CLI OIDC
-session, which is why the hook exists.
+electron-builder's native `azureSignOptions` (still in 26.17) installs the old
+`TrustedSigning` module and expects `AZURE_*` environment credentials, not the
+CLI OIDC session, which is why the hook exists.
 
 The build job deliberately has **no** `environment:`. With an environment the
 OIDC subject becomes `repo:trebeljahr/tiao:environment:<name>` and Azure
@@ -283,11 +284,22 @@ hosted signed run plus installed-app testing establishes release readiness.
 
 ## Known constraints
 
-- electron-builder 25.1.8 on macOS 26 fails to import signing identities
-  (`SecKeychainUnlock … passphrase … not correct`; fixed in electron-builder
-  26.16.1). The Apple legs therefore run on `macos-15`. Upgrade electron-builder
-  before moving them to `macos-latest`.
-- electron-builder 25 drops a `mas.extendInfo` block, so the store keys live in
-  `mac.extendInfo` (harmless in the Developer ID build).
+- electron-builder must stay at or above 26.16.1. Older releases unlock their
+  throwaway signing keychain with the `.p12` password instead of the
+  keychain's own; macOS 26 checks that and fails with `SecKeychainUnlock …
+  passphrase … not correct` (electron-userland/electron-builder#10172).
+  `minElectronBuilder` in `scripts/release/lib.mjs` holds the floor, and the
+  release tool tests check it against `desktop/pnpm-lock.yaml`. npm's `latest`
+  tag for electron-builder still points below the fix, so update with an
+  explicit `^26.17.0`-or-newer range.
+- The Apple legs still run on `macos-15`. With 26.17 the keychain bug no longer
+  blocks `macos-latest` (macOS 26), and Track Your Time signs and notarizes on
+  it. Move only after one signed `macos` and `mas` run there passes
+  `verify-macos.sh` and `verify-mas.sh`.
+- electron-builder drops a `mas.extendInfo` block (still true in 26.17), so the
+  store keys live in `mac.extendInfo` (harmless in the Developer ID build).
+- A signed Apple leg must keep `CSC_IDENTITY_AUTO_DISCOVERY=true`. With `false`,
+  electron-builder skips signing and still produces a normally named,
+  ad-hoc-signed app; only the verify scripts catch it.
 - The direct updater stays off until `TIAO_ENABLE_UPDATER=1` is baked in
   deliberately; draft releases already carry `latest*.yml` and blockmaps.
