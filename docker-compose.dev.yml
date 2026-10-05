@@ -1,28 +1,28 @@
 services:
-  minio:
-    image: minio/minio:latest
-    command: server /data --console-address ":9001"
+  # RustFS: MinIO-compatible S3 server (MinIO no longer publishes images).
+  # Console: http://localhost:9001/rustfs/console/ (minioadmin / minioadmin).
+  s3:
+    image: rustfs/rustfs:1.0.1
     restart: unless-stopped
     ports:
       - "127.0.0.1:9000:9000"
       - "127.0.0.1:9001:9001"
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      RUSTFS_ACCESS_KEY: minioadmin
+      RUSTFS_SECRET_KEY: minioadmin
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
     volumes:
-      - minio-data:/data
+      - s3-data:/data
 
-  minio-init:
-    image: minio/mc:latest
+  s3-init:
+    image: amazon/aws-cli:2.37.9
     depends_on:
-      - minio
+      - s3
     restart: "no"
-    entrypoint: >
-      sh -c "
-        until mc alias set local http://minio:9000 minioadmin minioadmin; do sleep 1; done &&
-        mc mb --ignore-existing local/tiao-dev &&
-        mc anonymous set download local/tiao-dev
-      "
+    volumes:
+      - ./scripts/init-s3-bucket.sh:/init-s3-bucket.sh:ro
+    entrypoint: ["sh", "/init-s3-bucket.sh", "http://s3:9000", "tiao-dev"]
 
   mongo:
     image: mongo:7
@@ -44,5 +44,5 @@ services:
       retries: 5
 
 volumes:
-  minio-data:
+  s3-data:
   mongo-data:

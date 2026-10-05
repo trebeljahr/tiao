@@ -1,6 +1,6 @@
 import { execSync } from "node:child_process";
 
-const CONTAINERS = ["tiao-e2e-mongo", "tiao-e2e-redis", "tiao-e2e-minio"];
+const CONTAINERS = ["tiao-e2e-mongo", "tiao-e2e-redis", "tiao-e2e-s3"];
 
 async function globalTeardown(): Promise<void> {
   // In CI, services are managed externally (GitHub Actions service containers).

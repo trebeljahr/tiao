@@ -44,7 +44,7 @@ git clone https://github.com/YOUR_USERNAME/tiao.git
 cd tiao
 npm install
 
-# Start local infrastructure (MongoDB + MinIO for S3-compatible storage)
+# Start local infrastructure (MongoDB + RustFS for S3-compatible storage)
 npm run dev:infra
 
 # Start development servers
@@ -53,7 +53,7 @@ npm run dev
 
 No `.env` file needed — `server/.env.development` ships with defaults that point at the local Docker containers. If you need custom settings (e.g. real AWS credentials), create `server/.env` and it will take precedence.
 
-By default, the dev script picks random free ports (printed on startup) to avoid conflicts. Use `npm run dev:fixed` for fixed ports (client on `http://localhost:3000`, server on `http://localhost:5005`). The Next.js dev server proxies API and WebSocket requests to the Express backend automatically. Uploaded files go to local MinIO, browsable at `http://localhost:9001` (user: `minioadmin`, password: `minioadmin`).
+By default, the dev script picks random free ports (printed on startup) to avoid conflicts. Use `npm run dev:fixed` for fixed ports (client on `http://localhost:3000`, server on `http://localhost:5005`). The Next.js dev server proxies API and WebSocket requests to the Express backend automatically. Uploaded files go to local RustFS (S3-compatible), browsable at `http://localhost:9001/rustfs/console/` (user: `minioadmin`, password: `minioadmin`).
 
 ### Available Commands
 
@@ -61,7 +61,7 @@ By default, the dev script picks random free ports (printed on startup) to avoid
 npm run dev              # Start client + server with hot reload (random ports)
 npm run dev:fixed        # Same, with fixed ports (3000 + 5005)
 npm run dev:lan          # Same, accessible from local network
-npm run dev:infra        # Start local MongoDB + MinIO + Redis containers
+npm run dev:infra        # Start local MongoDB + RustFS + Redis containers
 npm run dev:infra:stop   # Stop containers (data preserved)
 npm run dev:infra:reset  # Stop containers and wipe all data (clean slate)
 npm run client           # Start only the Next.js frontend

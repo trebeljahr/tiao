@@ -2,7 +2,7 @@
 # Traefik routing quirks without running full Coolify locally.
 #
 # Layers on top of `docker-compose.dev.yml` — run both files together
-# so Mongo / Redis / MinIO come along with the client + server + Traefik
+# so Mongo / Redis / S3 (RustFS) come along with the client + server + Traefik
 # containers you actually want to exercise:
 #
 #   npm run dev:docker            # starts the whole stack
@@ -122,7 +122,7 @@ services:
     depends_on:
       - mongo
       - redis
-      - minio
+      - s3
     environment:
       NODE_ENV: production
       PORT: "80"
@@ -131,10 +131,10 @@ services:
       # by service name.
       MONGODB_URI: mongodb://mongo:27017/tiao
       REDIS_URL: redis://redis:6379
-      # MinIO for S3-compatible uploads.  These match the creds baked
+      # RustFS for S3-compatible uploads.  These match the creds baked
       # into docker-compose.dev.yml.
       S3_BUCKET_NAME: tiao-dev
-      S3_ENDPOINT: http://minio:9000
+      S3_ENDPOINT: http://s3:9000
       S3_FORCE_PATH_STYLE: "true"
       S3_PUBLIC_URL: http://playtiao.localhost/minio
       AWS_REGION: us-east-1
@@ -167,7 +167,7 @@ networks:
   # carries the infra containers from docker-compose.dev.yml.
   # `tiao-traefik` is a dedicated network that Traefik watches for
   # labels — isolating it from the default network prevents Traefik
-  # from accidentally exposing Mongo / Redis / MinIO to the outside
+  # from accidentally exposing Mongo / Redis / S3 to the outside
   # world through a stray label misconfiguration.
   tiao-traefik:
     driver: bridge

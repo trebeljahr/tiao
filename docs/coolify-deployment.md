@@ -2,7 +2,7 @@
 
 ## Local Development With Docker Compose
 
-For local development, a `docker-compose.dev.yml` provides MongoDB and MinIO (S3-compatible object storage) so you don't need external services or a custom `.env` file.
+For local development, a `docker-compose.dev.yml` provides MongoDB and RustFS (S3-compatible object storage) so you don't need external services or a custom `.env` file.
 
 ```bash
 # Start local infrastructure
@@ -12,13 +12,13 @@ npm run dev:infra
 npm run dev
 ```
 
-The MinIO console is at `http://localhost:9001` (user: `minioadmin`, password: `minioadmin`). Uploaded files are stored in the `tiao-dev` bucket.
+The RustFS console is at `http://localhost:9001/rustfs/console/` (user: `minioadmin`, password: `minioadmin`). Uploaded files are stored in the `tiao-dev` bucket.
 
 Convenience scripts:
 
 | Command                   | What it does                                               |
 | ------------------------- | ---------------------------------------------------------- |
-| `npm run dev:infra`       | Start MongoDB + MinIO containers (persists across reboots) |
+| `npm run dev:infra`       | Start MongoDB + RustFS containers (persists across reboots) |
 | `npm run dev:infra:stop`  | Stop containers, keep data                                 |
 | `npm run dev:infra:reset` | Stop containers and delete all data (clean slate)          |
 

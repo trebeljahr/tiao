@@ -3,11 +3,10 @@ set -euo pipefail
 
 MONGO_CONTAINER="tiao-e2e-mongo"
 REDIS_CONTAINER="tiao-e2e-redis"
-MINIO_CONTAINER="tiao-e2e-minio"
-MINIO_INIT_CONTAINER="tiao-e2e-minio-init"
+S3_CONTAINER="tiao-e2e-s3"
 MONGO_PORT="${E2E_MONGO_PORT:-27018}"
 REDIS_PORT="${E2E_REDIS_PORT:-6380}"
-MINIO_PORT="${E2E_MINIO_PORT:-9002}"
+S3_PORT="${E2E_MINIO_PORT:-9002}"
 
 # Skip container management in CI (GitHub Actions provides the services)
 if [ "${CI:-}" != "true" ]; then
@@ -29,30 +28,22 @@ if [ "${CI:-}" != "true" ]; then
     echo "[e2e] Redis container already running."
   fi
 
-  # --- MinIO ---
-  if ! docker inspect -f '{{.State.Running}}' "$MINIO_CONTAINER" 2>/dev/null | grep -q true; then
-    docker rm -f "$MINIO_CONTAINER" 2>/dev/null || true
-    echo "[e2e] Starting MinIO container on port $MINIO_PORT..."
-    docker run -d --name "$MINIO_CONTAINER" \
-      -p "$MINIO_PORT:9000" \
-      -e MINIO_ROOT_USER=minioadmin \
-      -e MINIO_ROOT_PASSWORD=minioadmin \
-      --tmpfs /data \
-      minio/minio:latest server /data
+  # --- S3 (RustFS, MinIO-compatible) ---
+  if ! docker inspect -f '{{.State.Running}}' "$S3_CONTAINER" 2>/dev/null | grep -q true; then
+    docker rm -f "$S3_CONTAINER" 2>/dev/null || true
+    echo "[e2e] Starting S3 container on port $S3_PORT..."
+    # RustFS runs as uid 10001, so the tmpfs must be world-writable.
+    docker run -d --name "$S3_CONTAINER" \
+      -p "$S3_PORT:9000" \
+      -e RUSTFS_ACCESS_KEY=minioadmin \
+      -e RUSTFS_SECRET_KEY=minioadmin \
+      --tmpfs /data:mode=1777 \
+      rustfs/rustfs:1.0.1
 
-    # Wait for MinIO to be ready, then create the bucket
-    echo "[e2e] Initializing MinIO bucket..."
-    docker rm -f "$MINIO_INIT_CONTAINER" 2>/dev/null || true
-    docker run --rm --name "$MINIO_INIT_CONTAINER" \
-      --network host \
-      --entrypoint sh \
-      minio/mc:latest -c "
-        until mc alias set local http://127.0.0.1:$MINIO_PORT minioadmin minioadmin; do sleep 1; done &&
-        mc mb --ignore-existing local/tiao-e2e &&
-        mc anonymous set download local/tiao-e2e
-      "
+    echo "[e2e] Initializing S3 bucket..."
+    sh "$(dirname "$0")/../scripts/init-s3-bucket.sh" "http://127.0.0.1:$S3_PORT" tiao-e2e
   else
-    echo "[e2e] MinIO container already running."
+    echo "[e2e] S3 container already running."
   fi
 
   # Wait for MongoDB to be ready
