@@ -1019,7 +1019,10 @@
     "cancelConfirm": "Are you sure you want to cancel your subscription? Your badge will remain active until the end of the current billing period.",
     "cancelKeep": "Keep subscription",
     "cancelConfirmAction": "Cancel subscription",
-    "subscriptionCancelled": "Subscription cancelled. Your badge remains active until {date}."
+    "subscriptionCancelled": "Subscription cancelled. Your badge remains active until {date}.",
+    "manageInAppStore": "Manage in App Store",
+    "appStoreSubscriptionNote": "Billed through the App Store. Cancel in your Apple account settings.",
+    "restoreNothingAppStore": "No App Store purchases to restore for this Apple ID."
   },
   "legalFooter": {
     "impressum": "Imprint",

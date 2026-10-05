@@ -1019,7 +1019,10 @@
     "cancelConfirm": "¿Seguro que quieres cancelar tu suscripción? Tu insignia permanecerá activa hasta el final del período de facturación actual.",
     "cancelKeep": "Mantener suscripción",
     "cancelConfirmAction": "Cancelar suscripción",
-    "subscriptionCancelled": "Suscripción cancelada. Tu insignia permanece activa hasta el {date}."
+    "subscriptionCancelled": "Suscripción cancelada. Tu insignia permanece activa hasta el {date}.",
+    "manageInAppStore": "Gestionar en el App Store",
+    "appStoreSubscriptionNote": "Facturado a través del App Store. Cancela en los ajustes de tu cuenta de Apple.",
+    "restoreNothingAppStore": "No hay compras del App Store que restaurar para este Apple ID."
   },
   "legalFooter": {
     "impressum": "Aviso legal",

@@ -1,3 +1,4 @@
+import type { ResponseBodyV2DecodedPayload } from "@apple/app-store-server-library";
 import express, { type Request, type Response } from "express";
 import {
   type AppStoreEntitlementResult,
@@ -128,7 +129,7 @@ export async function handleAppStoreNotification(
   if (typeof signedPayload !== "string" || !signedPayload) {
     return { status: 400, body: { message: "Missing signedPayload." } };
   }
-  let notification;
+  let notification: ResponseBodyV2DecodedPayload;
   try {
     notification = await gateway.verifyNotification(signedPayload);
   } catch (error) {

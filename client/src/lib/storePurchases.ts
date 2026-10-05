@@ -6,6 +6,8 @@
  *   - `steam`  — Steam build: Steam Microtransactions through the overlay.
  *   - `google_play` — Android app: Google Play Billing (GooglePlayBridge).
  *   - `msstore` — Microsoft Store (AppX) build: Store add-on purchases.
+ *   - `app_store` — iOS app and Mac App Store build: StoreKit In-App
+ *                Purchase (AppStoreBridge).
  *   - `none`   — a store build that cannot sell yet (server not
  *                configured, or an old desktop without the bridge). The
  *                shop stays hidden, as store rules forbid an external
@@ -20,17 +22,29 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 import {
+  getStoreKitAdapter,
+  getStoreKitRail,
+  hasAppStorePurchaseBridge,
+  StoreKitPendingError,
+  type StoreProof,
+} from "./AppStoreBridge";
+import {
+  ApiError,
+  type AppStorePurchaseResult,
   finalizeSteamPurchase,
   type GooglePlayVerifyResult,
   getGooglePlayConfig,
   getMsStoreTicket,
   getStorePurchaseConfig,
   type MsStoreSyncResult,
+  prepareAppStorePurchase,
+  restoreAppStorePurchases,
   restoreGooglePlayPurchases,
   type StorePurchaseConfig,
   type StorePurchaseResult,
   startSteamPurchase,
   syncMsStorePurchases,
+  verifyAppStorePurchase,
   verifyGooglePlayPurchase,
 } from "./api";
 import { isAppStoreChannel } from "./distributionChannel";
@@ -59,6 +73,7 @@ export type StorePurchaseChannel =
   | "steam"
   | "google_play"
   | "msstore"
+  | "app_store"
   | "none"
   | "loading";
 
@@ -100,7 +115,7 @@ export function _resetStorePurchaseConfigForTests(next: StorePurchaseConfig | nu
 }
 
 function isStoreBuild(): boolean {
-  return isSteamBuild() || isAndroidApp() || isMsStoreBuild();
+  return isSteamBuild() || isAndroidApp() || isMsStoreBuild() || getStoreKitRail() !== null;
 }
 
 export function getStorePurchaseChannel(): StorePurchaseChannel {
@@ -122,8 +137,15 @@ export function getStorePurchaseChannel(): StorePurchaseChannel {
     if (!config) return settled ? "none" : "loading";
     return config.googlePlay?.enabled ? "google_play" : "none";
   }
-  // Other storefronts (Mac App Store, iOS)
-  // forbid Stripe and have no native purchase flow yet.
+  if (getStoreKitRail() !== null) {
+    // Apple guideline 3.1.1: the iOS app and the Mac App Store build sell
+    // through In-App Purchase only. The shop appears once the build ships
+    // the StoreKit bridge and the server can verify App Store purchases.
+    if (!hasAppStorePurchaseBridge()) return "none";
+    if (!config) return settled ? "none" : "loading";
+    return config.appStore?.enabled ? "app_store" : "none";
+  }
+  // Any other store channel forbids Stripe and has no native flow.
   if (isAppStoreChannel()) return "none";
   return "stripe";
 }
@@ -134,13 +156,14 @@ export function canPurchaseIn(channel: StorePurchaseChannel): boolean {
     channel === "stripe" ||
     channel === "steam" ||
     channel === "google_play" ||
-    channel === "msstore"
+    channel === "msstore" ||
+    channel === "app_store"
   );
 }
 
 /** Channels that can sell subscriptions (Steam MicroTxn sells one-time items only). */
 export function canSubscribeIn(channel: StorePurchaseChannel): boolean {
-  return channel === "stripe" || channel === "google_play";
+  return channel === "stripe" || channel === "google_play" || channel === "app_store";
 }
 
 function subscribe(listener: () => void) {
@@ -174,7 +197,11 @@ export class StorePurchaseCancelled extends Error {
 
 export class StoreUnavailableError extends Error {
   constructor(
-    readonly reason: "steam_not_running" | "google_play_unavailable" | "msstore_unavailable",
+    readonly reason:
+      | "steam_not_running"
+      | "google_play_unavailable"
+      | "msstore_unavailable"
+      | "app_store_unavailable",
   ) {
     super(reason);
     this.name = "StoreUnavailableError";
@@ -359,4 +386,144 @@ export async function purchaseWithMsStore(item: {
   }
   // Microsoft's collections can lag the purchase by a few seconds.
   return { status: "pending", ...base };
+}
+
+// ---------------------------------------------------------------------------
+// App Store (iOS app + Mac App Store build)
+// ---------------------------------------------------------------------------
+
+function fromAppStoreResult(purchase: AppStorePurchaseResult): StorePurchaseResult {
+  return {
+    status: purchase.entitled ? "granted" : "failed",
+    itemType: purchase.itemType,
+    itemId: purchase.itemId,
+    ...(purchase.entitled ? {} : { reason: purchase.status }),
+  };
+}
+
+async function verifyAppStoreWithRetry(proof: StoreProof) {
+  // Paid already: retry server hiccups. If it still fails, the StoreKit
+  // transaction stays unfinished (Mac) or in currentEntitlements (iOS),
+  // and the next shop visit claims it.
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      return (await verifyAppStorePurchase(proof)).purchase;
+    } catch (error) {
+      lastError = error;
+      const status = (error as { status?: number })?.status;
+      if (status !== undefined && status < 500) throw error;
+      await sleep(1000 * (attempt + 1));
+    }
+  }
+  throw lastError;
+}
+
+/**
+ * Full App Store purchase: StoreKit payment sheet → server verifies the
+ * signed transaction (or looks up the Mac App Store transaction id) and
+ * grants → StoreKit transaction finished. Throws StorePurchaseCancelled
+ * when the player dismisses the sheet.
+ */
+export async function purchaseWithAppStore(item: {
+  type: string;
+  id: string;
+  appStoreProductId?: string;
+}): Promise<StorePurchaseResult> {
+  const base = { itemType: item.type as StorePurchaseResult["itemType"], itemId: item.id };
+  const adapter = await getStoreKitAdapter();
+  if (!adapter || !item.appStoreProductId) throw new StoreUnavailableError("app_store_unavailable");
+
+  const { appAccountToken } = await prepareAppStorePurchase();
+  let proof: StoreProof | null;
+  try {
+    proof = await adapter.purchase(item.appStoreProductId, appAccountToken);
+  } catch (error) {
+    // Ask to Buy: the approval arrives later through watchAppStorePurchases.
+    if (error instanceof StoreKitPendingError) return { status: "pending", ...base };
+    throw error;
+  }
+  if (!proof) throw new StorePurchaseCancelled();
+
+  let purchase: AppStorePurchaseResult;
+  try {
+    purchase = await verifyAppStoreWithRetry(proof);
+  } catch (error) {
+    if (error instanceof ApiError && error.code === "PURCHASE_CLAIMED_BY_OTHER_ACCOUNT") {
+      await adapter.finish(proof);
+      return { status: "failed", reason: "claimed_elsewhere", ...base };
+    }
+    throw error;
+  }
+  await adapter.finish(proof);
+  return fromAppStoreResult(purchase);
+}
+
+/**
+ * "Restore Purchases" (Apple requires the button for non-consumables):
+ * StoreKit lists what the Apple ID owns, the server verifies and grants
+ * each item to this account.
+ */
+export async function restoreFromAppStore(): Promise<{ granted: number }> {
+  const adapter = await getStoreKitAdapter();
+  if (!adapter) throw new StoreUnavailableError("app_store_unavailable");
+  const proofs = await adapter.restore();
+  if (proofs.length === 0) return { granted: 0 };
+  const { purchases } = await restoreAppStorePurchases(proofs);
+  await Promise.all(proofs.map((proof) => adapter.finish(proof).catch(() => {})));
+  return { granted: purchases.filter((p) => p.entitled).length };
+}
+
+/**
+ * Silent counterpart of restoreFromAppStore for shop visits: claims what
+ * StoreKit already has on the device (a purchase whose verify call never
+ * reached the server) without the Apple ID prompt a full restore causes.
+ */
+export async function claimAppStoreEntitlements(): Promise<{ granted: number }> {
+  const adapter = await getStoreKitAdapter();
+  if (!adapter) return { granted: 0 };
+  const proofs = await adapter.currentProofs();
+  if (proofs.length === 0) return { granted: 0 };
+  const { purchases } = await restoreAppStorePurchases(proofs);
+  await Promise.all(proofs.map((proof) => adapter.finish(proof).catch(() => {})));
+  return { granted: purchases.filter((p) => p.entitled).length };
+}
+
+/** Localized App Store prices keyed by product id. */
+export async function getAppStorePrices(productIds: string[]): Promise<Record<string, string>> {
+  const adapter = await getStoreKitAdapter();
+  if (!adapter || productIds.length === 0) return {};
+  try {
+    const products = await adapter.getProducts(productIds);
+    return Object.fromEntries(
+      products.flatMap((p) => (p.priceString ? [[p.productId, p.priceString]] : [])),
+    );
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Claim purchases that complete outside the buy button: renewals, Ask to
+ * Buy approvals, and Mac App Store transactions a crash left unfinished.
+ * Returns an unsubscribe function.
+ */
+export function watchAppStorePurchases(onGranted: () => void): () => void {
+  let unsubscribe: (() => void) | null = null;
+  let stopped = false;
+  void getStoreKitAdapter().then((adapter) => {
+    if (!adapter || stopped) return;
+    unsubscribe = adapter.onUnclaimedPurchase((proof) => {
+      verifyAppStorePurchase(proof)
+        .then(async ({ purchase }) => {
+          await adapter.finish(proof);
+          if (purchase.entitled) onGranted();
+        })
+        .catch(() => {});
+    });
+  });
+  return () => {
+    stopped = true;
+    unsubscribe?.();
+  };
 }

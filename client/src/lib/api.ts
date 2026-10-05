@@ -620,6 +620,8 @@ export type ShopCatalogItem = {
   steamItemId?: number;
   msStoreOfferToken?: string;
   googlePlay?: { productId: string; basePlanId?: string };
+  /** StoreKit product id (iOS app and Mac App Store build). */
+  appStoreProductId?: string;
 };
 
 export type Subscription = {
@@ -628,7 +630,7 @@ export type Subscription = {
   status: "active" | "past_due" | "canceled";
   currentPeriodEnd: string;
   /** Which store bills it. Older servers omit it (Stripe). */
-  provider?: "stripe" | "google_play";
+  provider?: "stripe" | "google_play" | "apple";
 };
 
 export function getShopCatalog() {
@@ -660,6 +662,8 @@ export type StorePurchaseConfig = {
   /** Absent on servers that predate Google Play billing. */
   googlePlay?: { enabled: boolean };
   msstore?: { enabled: boolean };
+  /** iOS app + Mac App Store build. Absent on servers without StoreKit. */
+  appStore?: { enabled: boolean };
 };
 
 export type MsStoreSyncResult = {
@@ -677,6 +681,52 @@ export type StorePurchaseResult = {
 
 export function getStorePurchaseConfig() {
   return request<StorePurchaseConfig>("/api/shop/iap/config");
+}
+
+// App Store (iOS app + Mac App Store build), server side in
+// server/routes/appStore.routes.ts.
+
+export type AppStorePurchaseResult = {
+  originalTransactionId: string;
+  productId: string;
+  itemType: "badge" | "theme";
+  itemId: string;
+  status: "active" | "past_due" | "canceled" | "expired" | "revoked";
+  /** True when the account holds the item after the call. */
+  entitled: boolean;
+  expiresAt?: string;
+};
+
+/** StoreKit 2 signed transaction (iOS) or StoreKit 1 transaction id (Mac App Store). */
+export type AppStoreProofBody = { signedTransaction: string } | { transactionId: string };
+
+export function prepareAppStorePurchase() {
+  return request<{ appAccountToken: string }>("/api/shop/iap/app-store/prepare", {
+    method: "POST",
+  });
+}
+
+export function verifyAppStorePurchase(proof: AppStoreProofBody) {
+  return request<{ purchase: AppStorePurchaseResult }>("/api/shop/iap/app-store/verify", {
+    method: "POST",
+    body: proof,
+  });
+}
+
+export function restoreAppStorePurchases(proofs: AppStoreProofBody[]) {
+  const signedTransactions: string[] = [];
+  const transactionIds: string[] = [];
+  for (const proof of proofs) {
+    if ("signedTransaction" in proof) signedTransactions.push(proof.signedTransaction);
+    else transactionIds.push(proof.transactionId);
+  }
+  return request<{
+    purchases: AppStorePurchaseResult[];
+    errors: { index: number; code: string }[];
+  }>("/api/shop/iap/app-store/restore", {
+    method: "POST",
+    body: { signedTransactions, transactionIds },
+  });
 }
 
 export function startSteamPurchase(body: {

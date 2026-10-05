@@ -212,6 +212,48 @@ contextBridge.exposeInMainWorld("electron", {
       ipcRenderer.invoke("msstore:getCollectionsId", serviceTicket, publisherUserId),
   },
 
+  /**
+   * Mac App Store In-App Purchase (StoreKit 1). `isAvailable()` is
+   * false outside a Mac App Store build. See desktop/src/inAppPurchase.cjs
+   * for the purchase → verify → finish flow.
+   */
+  iap: {
+    /**
+     * True in a Mac App Store build. Synchronous so the renderer can
+     * pick the payment path during render; the sandboxed preload's
+     * `process` exposes `mas`.
+     */
+    isMasBuild: process.mas === true,
+    /** @returns {Promise<boolean>} */
+    isAvailable: () => ipcRenderer.invoke("iap:isAvailable"),
+    /** @param {string[]} productIds */
+    getProducts: (productIds) => ipcRenderer.invoke("iap:getProducts", productIds),
+    /**
+     * Queues a payment. The outcome arrives through onTransactions.
+     * @param {string} productId
+     * @param {string} appAccountToken
+     */
+    purchase: (productId, appAccountToken) =>
+      ipcRenderer.invoke("iap:purchase", productId, appAccountToken),
+    /** Asks StoreKit to replay past purchases through onTransactions. */
+    restore: () => ipcRenderer.invoke("iap:restore"),
+    /** Purchased / restored transactions not yet finished. */
+    getPendingTransactions: () => ipcRenderer.invoke("iap:getPendingTransactions"),
+    /** @param {string} transactionId */
+    finishTransaction: (transactionId) =>
+      ipcRenderer.invoke("iap:finishTransaction", transactionId),
+    /**
+     * @param {(transactions: unknown[]) => void} cb
+     * @returns {() => void}
+     */
+    onTransactions: (cb) => {
+      const listener = (/** @type {unknown} */ _event, /** @type {unknown[]} */ transactions) =>
+        cb(transactions);
+      ipcRenderer.on("iap:transactions", listener);
+      return () => ipcRenderer.off("iap:transactions", listener);
+    },
+  },
+
   steam: {
     /** @returns {Promise<boolean>} */
     isActive: () => ipcRenderer.invoke("steam:isActive"),

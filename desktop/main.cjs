@@ -46,6 +46,7 @@ const { createMsStoreBridge } = require("./src/msstore.cjs");
 // Microsoft Store add-on purchases. Inert (never loads the native addon)
 // outside the msstore channel on Windows.
 const msStore = createMsStoreBridge({ channel: DISTRIBUTION_CHANNEL, platform: process.platform });
+const { createInAppPurchaseBridge } = require("./src/inAppPurchase.cjs");
 const {
   STEAM_ENABLED,
   maybeRestartForSteam,
@@ -271,6 +272,7 @@ function bootstrap() {
   const steamOk = initSteam();
   registerSteamIpc();
   registerMsStoreIpc();
+  registerInAppPurchaseIpc();
   track("desktop:app_start", {
     packaged: app.isPackaged,
     steam: STEAM_ENABLED ? (steamOk ? "active" : "init_failed") : "off",
@@ -486,6 +488,36 @@ function registerSteamIpc() {
       if (!win.isDestroyed()) win.webContents.send("steam:microTxnAuthorization", event);
     }
   });
+}
+
+/**
+ * Mac App Store In-App Purchase (see src/inAppPurchase.cjs). Handlers
+ * are registered in every build; outside a Mac App Store build
+ * `iap:isAvailable` answers false and the rest are no-ops.
+ */
+function registerInAppPurchaseIpc() {
+  const isMas = process.mas === true;
+  const iap = createInAppPurchaseBridge({
+    enabled: isMas,
+    storeKit: isMas ? require("electron").inAppPurchase : null,
+    emit: (transactions) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send("iap:transactions", transactions);
+      }
+    },
+  });
+  handleTrustedIpc(ipcMain, "iap:isAvailable", async () => iap.isAvailable());
+  handleTrustedIpc(ipcMain, "iap:getProducts", async (_event, productIds) =>
+    iap.getProducts(productIds),
+  );
+  handleTrustedIpc(ipcMain, "iap:purchase", async (_event, productId, appAccountToken) =>
+    iap.purchase(productId, appAccountToken),
+  );
+  handleTrustedIpc(ipcMain, "iap:restore", async () => iap.restore());
+  handleTrustedIpc(ipcMain, "iap:getPendingTransactions", async () => iap.getPendingTransactions());
+  handleTrustedIpc(ipcMain, "iap:finishTransaction", async (_event, transactionId) =>
+    iap.finishTransaction(transactionId),
+  );
 }
 
 app.whenReady().then(bootstrap);

@@ -43,14 +43,19 @@ import { getMsStoreAddOns } from "@/lib/MsStoreBridge";
 import {
   canPurchaseIn,
   canSubscribeIn,
+  claimAppStoreEntitlements,
+  getAppStorePrices,
+  purchaseWithAppStore,
   purchaseWithGooglePlay,
   purchaseWithMsStore,
   purchaseWithSteam,
+  restoreFromAppStore,
   restoreFromGooglePlay,
   StorePurchaseCancelled,
   StoreUnavailableError,
   syncMsStore,
   useStorePurchaseChannel,
+  watchAppStorePurchases,
 } from "@/lib/storePurchases";
 import { cn } from "@/lib/utils";
 
@@ -153,6 +158,22 @@ function ManageInGooglePlay({ label }: { label: string }) {
   return (
     <a
       href={PLAY_SUBSCRIPTIONS_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-xs font-medium text-[#6c543c] underline underline-offset-2"
+    >
+      {label}
+    </a>
+  );
+}
+
+const APPLE_SUBSCRIPTIONS_URL = "https://apps.apple.com/account/subscriptions";
+
+/** App Store subscriptions are cancelled in the player's Apple account settings. */
+function ManageInAppStore({ label }: { label: string }) {
+  return (
+    <a
+      href={APPLE_SUBSCRIPTIONS_URL}
       target="_blank"
       rel="noopener noreferrer"
       className="text-xs font-medium text-[#6c543c] underline underline-offset-2"
@@ -408,9 +429,11 @@ export function ShopPage() {
     }
     setRestoring(true);
     try {
-      const { granted } = await restoreFromGooglePlay();
+      const appStore = channel === "app_store";
+      const { granted } = appStore ? await restoreFromAppStore() : await restoreFromGooglePlay();
       await fetchCatalog(true);
-      toast.success(granted > 0 ? t("restoreComplete") : t("restoreNothing"));
+      if (granted > 0) toast.success(t("restoreComplete"));
+      else toast(appStore ? t("restoreNothingAppStore") : t("restoreNothing"));
     } catch (error) {
       toastError(error);
     } finally {
@@ -423,8 +446,38 @@ export function ShopPage() {
     if (channel === "google_play" && playPrice) return playPrice;
     const storePrice = item.msStoreOfferToken ? storePrices[item.msStoreOfferToken] : undefined;
     if (channel === "msstore" && storePrice) return storePrice;
+    const applePrice = item.appStoreProductId ? appStorePrices[item.appStoreProductId] : undefined;
+    if (channel === "app_store" && applePrice) return applePrice;
     return formatPrice(item.price, item.currency);
   }
+
+  // App Store (iOS + Mac App Store): StoreKit's localized prices (Apple
+  // requires the price it charges), a silent claim of purchases StoreKit
+  // holds but the server never recorded, and a listener for purchases
+  // that finish later (Ask to Buy approvals, renewals).
+  const [appStorePrices, setAppStorePrices] = useState<Record<string, string>>({});
+  useEffect(() => {
+    if (channel !== "app_store" || !catalog) return;
+    let cancelled = false;
+    void getAppStorePrices(
+      catalog.flatMap((i) => (i.appStoreProductId ? [i.appStoreProductId] : [])),
+    ).then((prices) => {
+      if (!cancelled) setAppStorePrices(prices);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [channel, catalog]);
+
+  useEffect(() => {
+    if (channel !== "app_store" || !isAccount) return;
+    claimAppStoreEntitlements()
+      .then(({ granted }) => {
+        if (granted > 0) void fetchCatalog(true);
+      })
+      .catch(() => {});
+    return watchAppStorePurchases(() => void fetchCatalog(true));
+  }, [channel, isAccount, fetchCatalog]);
 
   // Steam: settle orders the player approved while the game was closed
   // or offline before the finalize step ran.
@@ -467,7 +520,9 @@ export function ShopPage() {
           ? await purchaseWithGooglePlay(item)
           : channel === "msstore"
             ? await purchaseWithMsStore(item)
-            : await purchaseWithSteam(item, locale);
+            : channel === "app_store"
+              ? await purchaseWithAppStore(item)
+              : await purchaseWithSteam(item, locale);
       if (result.status === "granted") {
         await fetchCatalog(true);
         if (item.recurring) {
@@ -508,7 +563,12 @@ export function ShopPage() {
     }
 
     setBuyingItem(`${item.type}-${item.id}`);
-    if (channel === "steam" || channel === "google_play" || channel === "msstore") {
+    if (
+      channel === "steam" ||
+      channel === "google_play" ||
+      channel === "msstore" ||
+      channel === "app_store"
+    ) {
       await handleStorePurchase(item);
       setBuyingItem(null);
       return;
@@ -556,7 +616,8 @@ export function ShopPage() {
   }
 
   const oneTimeBadgeItems = catalog?.filter((i) => i.type === "badge" && !i.recurring) ?? [];
-  // Subscriptions bill through Stripe or Google Play; Steam sells one-time items only.
+  // Subscriptions bill through Stripe, Google Play or the App Store; Steam
+  // and the Microsoft Store sell one-time items only.
   const subscriptionBadgeItems = canSubscribeIn(channel)
     ? (catalog?.filter((i) => i.type === "badge" && i.recurring) ?? [])
     : [];
@@ -575,7 +636,7 @@ export function ShopPage() {
           <p className="mt-1 text-sm text-[#6e5b48]">{t("description")}</p>
         </div>
         <div className="flex items-center gap-2">
-          {channel === "google_play" && (
+          {(channel === "google_play" || channel === "app_store") && (
             <Button
               variant="outline"
               size="sm"
@@ -712,6 +773,8 @@ export function ShopPage() {
                             </span>
                             {sub.provider === "google_play" ? (
                               <ManageInGooglePlay label={t("manageInGooglePlay")} />
+                            ) : sub.provider === "apple" ? (
+                              <ManageInAppStore label={t("manageInAppStore")} />
                             ) : (
                               <Button
                                 variant="ghost"
@@ -734,6 +797,11 @@ export function ShopPage() {
                         )}
                         {sub?.status === "past_due" && (
                           <span className="text-xs text-red-600">{t("pastDueSubscription")}</span>
+                        )}
+                        {sub?.provider === "apple" && (
+                          <span className="text-xs text-[#6e5b48]">
+                            {t("appStoreSubscriptionNote")}
+                          </span>
                         )}
                       </div>
                     </div>

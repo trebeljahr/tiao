@@ -1019,7 +1019,10 @@
     "cancelConfirm": "Möchtest du dein Abonnement wirklich kündigen? Dein Abzeichen bleibt bis zum Ende des aktuellen Abrechnungszeitraums aktiv.",
     "cancelKeep": "Abonnement behalten",
     "cancelConfirmAction": "Abonnement kündigen",
-    "subscriptionCancelled": "Abonnement gekündigt. Dein Abzeichen bleibt bis zum {date} aktiv."
+    "subscriptionCancelled": "Abonnement gekündigt. Dein Abzeichen bleibt bis zum {date} aktiv.",
+    "manageInAppStore": "Im App Store verwalten",
+    "appStoreSubscriptionNote": "Abrechnung über den App Store. Kündigen kannst du in deinen Apple-Account-Einstellungen.",
+    "restoreNothingAppStore": "Für diese Apple-ID gibt es keine App-Store-Käufe zum Wiederherstellen."
   },
   "legalFooter": {
     "impressum": "Impressum",
