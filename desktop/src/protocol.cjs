@@ -4,56 +4,37 @@
  *
  * Serves files from `desktop/client-bundle/` — a copy of the Next.js
  * static export produced by `npm --prefix client run build:desktop`.
- * Every `app://tiao/<path>` URL maps to a file under that directory,
- * with three special behaviors:
+ * Which file a request path maps to is decided by `routes.cjs`, the
+ * same rules the mobile apps use (extension-less path -> that route's
+ * index.html, missing locale -> en, dynamic routes -> the `__spa__`
+ * placeholder page, unknown pages -> the root shell).
  *
- *   1. Locale-prefixed paths like `/en/local/` resolve to the
- *      generated `en/local/index.html`.  `trailingSlash: true` in the
- *      Next config guarantees every static page lives at a
- *      `.../index.html`.
+ * The desktop export has no root `index.html`, so the root shell is
+ * generated here: a tiny page that replaces the URL with a real home
+ * page (see `rootShellHtml`).
  *
- *   2. The three shareable dynamic routes — `/game/[gameId]`,
- *      `/profile/[username]`, `/tournament/[tournamentId]` — were
- *      baked as a single `__spa__` placeholder HTML file in the
- *      static export (see commits 4-5).  Requests for a real game ID
- *      like `/en/game/ABC123/` are rewritten to serve
- *      `en/game/__spa__/index.html`, and the runtime helper in
- *      `client/src/lib/desktopPathParam.ts` reads the real segment
- *      from `window.location.pathname` once React hydrates.
- *
- *   3. Path traversal attempts (`..`, absolute paths, backslashes
- *      on Windows) are rejected up front — if a resolved file path
- *      escapes the client bundle root, we return 404.  Protocol
- *      handlers in Electron are privileged, so this check is the
- *      first line of defense against a future XSS gaining filesystem
- *      access via URL manipulation.
+ * Path traversal (`..`, backslashes, NUL) is rejected by the router,
+ * and every resolved file is re-checked to sit inside the bundle
+ * root. Protocol handlers in Electron are privileged, so this is the
+ * first line of defense against a future XSS gaining filesystem
+ * access via URL manipulation.
  */
 
-const { net, protocol } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
 const { pathToFileURL } = require("node:url");
+const { resolveRoute, rootShellHtml, ROOT_SHELL } = require("./routes.cjs");
 
 const DESKTOP_PROTOCOL_SCHEME = "app";
 const DESKTOP_PROTOCOL_HOST = "tiao";
 
-// SPA route prefixes that get rewritten to the __spa__ placeholder
-// HTML at request time.  The order matters: we match the longest
-// prefix first so a URL like `/game/ABC/replay/2` still resolves.
-// Paired with `client/app/[locale]/<prefix>/[param]/page.tsx`.
-const SPA_ROUTES = /** @type {const} */ (["game", "profile", "tournament"]);
-const SPA_PLACEHOLDER_SEGMENT = "__spa__";
-
 /** Resolve the on-disk directory that holds the Next.js static export. */
 function getClientBundleRoot() {
-  // Development + first-time packaging: `desktop/client-bundle/`
-  // lives next to main.cjs.  When packaged by electron-builder in
-  // commit 11 the path will shift under `app.asar/...` but
-  // __dirname still resolves relative to this file at runtime.
+  // Development: `desktop/client-bundle/` lives next to main.cjs.
   const bundled = path.join(__dirname, "..", "client-bundle");
   if (fs.existsSync(bundled)) return bundled;
 
-  // Fallback: resources/ (electron-builder packaged layout).
+  // Packaged: electron-builder's extraResources puts it in resources/.
   const resources = path.join(process.resourcesPath || "", "client-bundle");
   if (fs.existsSync(resources)) return resources;
 
@@ -65,55 +46,42 @@ function getClientBundleRoot() {
 }
 
 /**
- * Rewrite SPA route URLs to their placeholder HTML.
+ * Map a root-relative web path (leading `/`) to an absolute path
+ * inside `root`, or null if it would escape the root.
  *
- * Input examples:
- *   /en/game/ABC123/          -> /en/game/__spa__/
- *   /de/profile/rico/         -> /de/profile/__spa__/
- *   /en/tournament/T42/foo    -> /en/tournament/__spa__/ (extra segs dropped)
- *   /en/local/                -> /en/local/            (unchanged)
- *
- * @param {string} urlPath
- * @returns {string}
+ * @param {string} root
+ * @param {string} webPath
+ * @returns {string | null}
  */
-function applySpaRewrite(urlPath) {
-  // Path format is always `/<locale>/<rest>`; the locale is the
-  // first non-empty segment.
-  const segments = urlPath.split("/").filter(Boolean);
-  if (segments.length < 2) return urlPath;
-  const [locale, prefix] = segments;
-  if (!SPA_ROUTES.includes(/** @type {typeof SPA_ROUTES[number]} */ (prefix))) {
-    return urlPath;
-  }
-  // Matches one of the SPA prefixes — rewrite to `/<locale>/<prefix>/__spa__/`.
-  // Preserve the trailing slash so the handler resolves to index.html.
-  return `/${locale}/${prefix}/${SPA_PLACEHOLDER_SEGMENT}/`;
+function toBundlePath(root, webPath) {
+  const normalized = path.normalize(webPath).replace(/^[\\/]+/, "");
+  const absolute = path.resolve(root, normalized);
+  const rootWithSep = root.endsWith(path.sep) ? root : root + path.sep;
+  if (absolute !== root && !absolute.startsWith(rootWithSep)) return null;
+  return absolute;
 }
 
 /**
- * Turn a request URL path into an absolute filesystem path inside
- * the client bundle root.  Returns null if the result escapes the
- * root (path-traversal guard) or if the input URL can't be decoded.
+ * Decide what to serve for a request URL path.
  *
  * Critical: `URL.pathname` returns the URL-ENCODED form of the path,
  * so `/_next/static/chunks/app/[locale]/page-*.js` comes in as
  * `/_next/static/chunks/app/%5Blocale%5D/page-*.js`.  We must
  * decodeURIComponent the path BEFORE touching the filesystem, or
  * Next.js's `[locale]` chunk directory (and any other bracketed
- * route segment) is never resolvable.  The path-traversal check
- * below runs on the resolved absolute path, so decoding here can't
- * bypass the guard via `%2E%2E%2F` → `../` — path.resolve eats the
- * `..` segments, path.startsWith(root) still rejects escapees.
+ * route segment) is never resolvable.  Decoding can't bypass the
+ * traversal guard: `%2E%2E` decodes to a `..` segment, which the
+ * router rejects, and `toBundlePath` re-checks the final path.
  *
  * @param {string} urlPath
- * @returns {string | null}
+ * @param {string} [root]
+ * @returns {{ file: string } | { html: string } | null}
+ *   `file`: absolute path to stream; `html`: generated root shell;
+ *   null: refuse (404).
  */
-function resolveBundleFile(urlPath) {
+function resolveRequest(urlPath, root = getClientBundleRoot()) {
   // Strip query + hash; the protocol handler doesn't care about them.
   const cleanPath = urlPath.split("?")[0].split("#")[0];
-
-  // Decode percent-escapes so `[locale]` (serialized as `%5Blocale%5D`
-  // by the browser) matches the literal directory name on disk.
   let decoded;
   try {
     decoded = decodeURIComponent(cleanPath);
@@ -122,24 +90,23 @@ function resolveBundleFile(urlPath) {
     return null;
   }
 
-  // Apply SPA rewrite BEFORE we resolve to disk so `/en/game/ABC`
-  // maps to `en/game/__spa__/index.html`.
-  const rewritten = applySpaRewrite(decoded);
+  /** @param {string} webPath */
+  const exists = (webPath) => {
+    const absolute = toBundlePath(root, webPath);
+    if (!absolute) return false;
+    try {
+      return fs.statSync(absolute).isFile();
+    } catch {
+      return false;
+    }
+  };
 
-  // Trailing-slash directories get an implicit `index.html`.
-  const withIndex = rewritten.endsWith("/") ? `${rewritten}index.html` : rewritten;
-
-  const root = getClientBundleRoot();
-  const normalized = path.normalize(withIndex).replace(/^[\\/]+/, "");
-  const absolute = path.resolve(root, normalized);
-
-  // Path traversal check: if the resolved path escaped the root,
-  // refuse to serve.
-  const rootWithSep = root.endsWith(path.sep) ? root : root + path.sep;
-  if (absolute !== root && !absolute.startsWith(rootWithSep)) {
-    return null;
+  const webPath = resolveRoute(decoded, exists);
+  if (webPath === ROOT_SHELL && !exists(ROOT_SHELL)) {
+    return { html: rootShellHtml(decoded) };
   }
-  return absolute;
+  const file = toBundlePath(root, webPath);
+  return file ? { file } : null;
 }
 
 /**
@@ -149,6 +116,8 @@ function resolveBundleFile(urlPath) {
  * main.cjs) exists but handler registration is unavailable.
  */
 function registerAppProtocol() {
+  // Required here, not at module load, so resolveRequest unit-tests in plain Node.
+  const { net, protocol } = require("electron");
   protocol.handle(DESKTOP_PROTOCOL_SCHEME, async (request) => {
     try {
       const url = new URL(request.url);
@@ -156,10 +125,17 @@ function registerAppProtocol() {
         return new Response("Not found", { status: 404 });
       }
 
-      const filePath = resolveBundleFile(url.pathname);
-      if (!filePath) {
+      const resolved = resolveRequest(url.pathname);
+      if (!resolved) {
         return new Response("Not found", { status: 404 });
       }
+      if ("html" in resolved) {
+        return new Response(resolved.html, {
+          status: 200,
+          headers: { "content-type": "text/html; charset=utf-8" },
+        });
+      }
+      const filePath = resolved.file;
 
       try {
         const stat = await fs.promises.stat(filePath);
@@ -185,7 +161,6 @@ module.exports = {
   registerAppProtocol,
   DESKTOP_PROTOCOL_SCHEME,
   DESKTOP_PROTOCOL_HOST,
-  // Exported for testing via the desktop typecheck.
-  applySpaRewrite,
-  resolveBundleFile,
+  // Exported for testing.
+  resolveRequest,
 };
