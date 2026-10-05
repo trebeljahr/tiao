@@ -29,12 +29,17 @@ export function useLocalClock(
   const lastTurnRef = useRef(currentTurn);
   const lastHistoryLenRef = useRef(history.length);
   const lastTickRef = useRef(Date.now());
+  const restoreOnResetRef = useRef(false);
 
   // Reset clock when timeControl changes (new game)
   useEffect(() => {
+    // A game restored after a reload resumes from its move timestamps.
+    const restored =
+      restoreOnResetRef.current && timeControl ? recalculateClocks(timeControl, history) : null;
+    restoreOnResetRef.current = false;
     setClock({
-      white: timeControl?.initialMs ?? 0,
-      black: timeControl?.initialMs ?? 0,
+      white: restored?.white ?? timeControl?.initialMs ?? 0,
+      black: restored?.black ?? timeControl?.initialMs ?? 0,
       running: false,
       timedOut: null,
     });
@@ -131,7 +136,27 @@ export function useLocalClock(
     lastTickRef.current = Date.now();
   }, [timeControl]);
 
-  return { clock, resetClock: reset };
+  /**
+   * Resume a game restored after a reload from its move timestamps. Call in the
+   * same update that restores the game and its time control.
+   */
+  const restoreClock = useCallback(
+    (restoredControl: TimeControl, restoredHistory: TurnRecord[], turn: PlayerColor) => {
+      restoreOnResetRef.current = true;
+      lastTurnRef.current = turn;
+      lastHistoryLenRef.current = restoredHistory.length;
+      lastTickRef.current = Date.now();
+      if (!restoredControl) return;
+      setClock({
+        ...recalculateClocks(restoredControl, restoredHistory),
+        running: false,
+        timedOut: null,
+      });
+    },
+    [],
+  );
+
+  return { clock, resetClock: reset, restoreClock };
 }
 
 /**

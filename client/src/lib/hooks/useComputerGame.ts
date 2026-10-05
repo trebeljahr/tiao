@@ -291,6 +291,25 @@ export function useComputerGame(
     [local.resetLocalGame],
   );
 
+  /** Resume a game saved before a reload, without starting a new one. */
+  const restoreComputerGame = useCallback(
+    (game: GameState, savedComputerColor: PlayerColor) => {
+      if (cancelRef.current) {
+        cancelRef.current();
+        cancelRef.current = null;
+      }
+      preAIStateRef.current = null;
+      searchedForRef.current = -1;
+      randomizedOnceRef.current = true;
+      setResetGeneration((g) => g + 1);
+      setComputerColor(savedComputerColor);
+      local.setLocalGame(game);
+      local.setLocalSelection(null);
+      local.setLocalError(null);
+    },
+    [local.setLocalGame, local.setLocalSelection, local.setLocalError],
+  );
+
   // Player can undo if they have at least one move in history
   const canUndo = local.localGame.history.some(
     (t) => (t.type === "put" || t.type === "jump") && t.color !== computerColor,
@@ -305,6 +324,7 @@ export function useComputerGame(
     handleLocalBoardClick: handleBoardClick,
     handleLocalUndoTurn: handleUndoForAI,
     resetLocalGame: resetComputerGame,
+    restoreComputerGame,
     controlsDisabled: computerThinking || local.localGame.currentTurn === computerColor,
   };
 }

@@ -1,8 +1,8 @@
 "use client";
-import { getWinner, isGameOver } from "@shared";
+import { type GameState, getWinner, isGameOver, type TimeControl } from "@shared";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { GameConfigDialog } from "@/components/game/GameConfigDialog";
 import { translatePlayerColor } from "@/components/game/GameShared";
 import { GameSidePanel } from "@/components/game/GameSidePanel";
@@ -15,6 +15,7 @@ import { useGameConfig } from "@/lib/hooks/useGameConfig";
 import { useGameOverDialog } from "@/lib/hooks/useGameOverDialog";
 import { useLocalClock } from "@/lib/hooks/useLocalClock";
 import { useLocalGame } from "@/lib/hooks/useLocalGame";
+import { isRecoverableGameState, useTabGameRecovery } from "@/lib/tabGameRecovery";
 import { useStonePlacementSound } from "@/lib/useStonePlacementSound";
 import { useWinConfetti } from "@/lib/useWinConfetti";
 
@@ -63,12 +64,37 @@ export function LocalGamePage() {
   const isDraw = gameOver && !winner;
 
   // Clock
-  const { clock, resetClock } = useLocalClock(
+  const { clock, resetClock, restoreClock } = useLocalClock(
     config.timeControl,
     local.localGame.currentTurn,
     gameOver,
     local.localGame.history,
   );
+
+  // A reload (release change, reconnect, manual) resumes this tab's game.
+  const recoverySnapshot = useMemo<SavedLocalGame | null>(
+    () =>
+      setupOpen
+        ? null
+        : {
+            game: local.localGame,
+            boardSize: config.boardSize,
+            scoreToWin: config.scoreToWin,
+            timeControl: config.timeControl,
+          },
+    [setupOpen, local.localGame, config.boardSize, config.scoreToWin, config.timeControl],
+  );
+  useTabGameRecovery("local", recoverySnapshot, isSavedLocalGame, (saved) => {
+    config.setValues({
+      boardSize: saved.boardSize,
+      scoreToWin: saved.scoreToWin,
+      timeControl: saved.timeControl,
+    });
+    local.setLocalGame(saved.game);
+    local.setLocalSelection(null);
+    restoreClock(saved.timeControl, saved.game.history, saved.game.currentTurn);
+    setSetupOpen(false);
+  });
 
   // Timeout triggers a win for the other side
   const timeoutWinner = clock.timedOut ? (clock.timedOut === "white" ? "black" : "white") : null;
@@ -220,5 +246,25 @@ export function LocalGamePage() {
         </div>
       </Dialog>
     </div>
+  );
+}
+
+type SavedLocalGame = {
+  game: GameState;
+  boardSize: number;
+  scoreToWin: number;
+  timeControl: TimeControl;
+};
+
+function isSavedLocalGame(data: unknown): data is SavedLocalGame {
+  const saved = data as Partial<SavedLocalGame> | null;
+  return (
+    !!saved &&
+    isRecoverableGameState(saved.game) &&
+    typeof saved.boardSize === "number" &&
+    typeof saved.scoreToWin === "number" &&
+    (saved.timeControl === null ||
+      (typeof saved.timeControl?.initialMs === "number" &&
+        typeof saved.timeControl?.incrementMs === "number"))
   );
 }

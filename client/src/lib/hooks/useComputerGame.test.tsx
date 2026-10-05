@@ -531,4 +531,20 @@ describe("useComputerGame – AI moves after board reset", () => {
     expect(resolveAI).not.toBeNull();
     expect(result.current.computerThinking).toBe(true);
   });
+
+  it("restores a saved game and colour without starting a new one", async () => {
+    const { result } = renderHook(() => useComputerGame());
+    const saved = createInitialGameState({ boardSize: 9 });
+    saved.positions[4][4] = "white";
+    saved.history.push({ type: "put", color: "white", position: { x: 4, y: 4 } } as never);
+    saved.currentTurn = "black";
+    await act(async () => {
+      result.current.restoreComputerGame(saved, "white");
+    });
+    // The human (black) is to move; the computer must not start thinking.
+    expect(result.current.computerColor).toBe("white");
+    expect(result.current.localGame.boardSize).toBe(9);
+    expect(result.current.localGame.history).toHaveLength(1);
+    expect(result.current.computerThinking).toBe(false);
+  });
 });

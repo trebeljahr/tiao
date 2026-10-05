@@ -1,10 +1,10 @@
 "use client";
 
-import type { PlayerColor } from "@shared";
+import type { GameState, PlayerColor } from "@shared";
 import { getWinner, isGameOver } from "@shared";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { GameConfigDialog } from "@/components/game/GameConfigDialog";
 import { HourglassSpinner, translatePlayerColor } from "@/components/game/GameShared";
 import { GameSidePanel } from "@/components/game/GameSidePanel";
@@ -18,6 +18,7 @@ import type { AIDifficulty } from "@/lib/computer-ai";
 import { useComputerGame } from "@/lib/hooks/useComputerGame";
 import { useGameConfig } from "@/lib/hooks/useGameConfig";
 import { useGameOverDialog } from "@/lib/hooks/useGameOverDialog";
+import { isRecoverableGameState, useTabGameRecovery } from "@/lib/tabGameRecovery";
 import { useStonePlacementSound } from "@/lib/useStonePlacementSound";
 import { useWinConfetti } from "@/lib/useWinConfetti";
 
@@ -138,6 +139,46 @@ export function ComputerGamePage() {
       void reportAIWin(difficultyCommitted);
     }
   }, [playerWon, difficultyCommitted, auth?.player.kind]);
+
+  // A reload (release change, reconnect, manual) resumes this tab's game.
+  // Positions mid computer move are not saved; the last settled one is.
+  const settled =
+    !computer.computerThinking &&
+    (computer.localGame.pendingJump.length === 0 ||
+      computer.localGame.currentTurn !== computer.computerColor);
+  const recoverySnapshot = useMemo<SavedComputerGame | null>(
+    () =>
+      setupOpen || !settled || !difficultyCommitted
+        ? null
+        : {
+            game: computer.localGame,
+            computerColor: computer.computerColor,
+            difficulty: difficultyCommitted,
+            boardSize: config.boardSize,
+            scoreToWin: config.scoreToWin,
+          },
+    [
+      setupOpen,
+      settled,
+      difficultyCommitted,
+      computer.localGame,
+      computer.computerColor,
+      config.boardSize,
+      config.scoreToWin,
+    ],
+  );
+  useTabGameRecovery("computer", recoverySnapshot, isSavedComputerGame, (saved) => {
+    config.setValues({
+      boardSize: saved.boardSize,
+      scoreToWin: saved.scoreToWin,
+      difficulty: saved.difficulty,
+    });
+    setDifficultyCommitted(saved.difficulty);
+    // A finished game was already reported before the reload.
+    reportedRef.current = isGameOver(saved.game);
+    computer.restoreComputerGame(saved.game, saved.computerColor);
+    setSetupOpen(false);
+  });
 
   const gameOverTitle = isDraw ? t("draw") : playerWon ? t("youWon") : t("youLost");
   const gameOverDescription = isDraw ? t("drawNoMoves") : playerWon ? t("wonDesc") : t("lostDesc");
@@ -283,5 +324,25 @@ export function ComputerGamePage() {
         </div>
       </Dialog>
     </div>
+  );
+}
+
+type SavedComputerGame = {
+  game: GameState;
+  computerColor: PlayerColor;
+  difficulty: AIDifficulty;
+  boardSize: number;
+  scoreToWin: number;
+};
+
+function isSavedComputerGame(data: unknown): data is SavedComputerGame {
+  const saved = data as Partial<SavedComputerGame> | null;
+  return (
+    !!saved &&
+    isRecoverableGameState(saved.game) &&
+    (saved.computerColor === "white" || saved.computerColor === "black") &&
+    typeof saved.difficulty === "number" &&
+    typeof saved.boardSize === "number" &&
+    typeof saved.scoreToWin === "number"
   );
 }
