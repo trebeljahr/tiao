@@ -83,6 +83,8 @@
  *   setStats(stats)            → write + persist integer stats
  *   openOverlay(dialog)        → activate Friends / Achievements / etc.
  *   openOverlayUrl(url)        → activate overlay to a web URL
+ *   getWebApiTicket()          → hex Web API auth ticket for IAP
+ *   onMicroTxnAuthorization(cb) → overlay purchase approve/deny events
  *
  * The renderer reaches these via the `steam` surface on the
  * preload contextBridge (see desktop/preload.cjs, added alongside
@@ -495,6 +497,83 @@ function openOverlayUrl(url) {
   }
 }
 
+/**
+ * Identity string bound into Web API auth tickets.  Must match
+ * STEAM_WEB_API_IDENTITY in server/payments/steamMicroTxn.ts — Steam
+ * rejects a ticket presented under a different identity, which stops a
+ * ticket minted for some other service being replayed against ours.
+ */
+const STEAM_WEB_API_IDENTITY = "tiao-iap";
+
+/**
+ * Mint a `GetAuthTicketForWebApi` ticket and return it hex-encoded, the
+ * format ISteamUserAuth/AuthenticateUserTicket expects.  The server
+ * resolves it to the buyer's SteamID before it starts a Microtransaction,
+ * so the renderer never gets to choose whose wallet is charged.
+ *
+ * @returns {Promise<string | null>} null when Steam isn't active or the ticket request fails
+ */
+async function getWebApiTicket() {
+  if (!client) return null;
+  try {
+    if (typeof client.auth?.getAuthTicketForWebApi !== "function") return null;
+    const ticket = await client.auth.getAuthTicketForWebApi(STEAM_WEB_API_IDENTITY);
+    return Buffer.from(ticket.getBytes()).toString("hex");
+  } catch (err) {
+    console.warn("[steam] getAuthTicketForWebApi failed:", err);
+    return null;
+  }
+}
+
+/** @type {Set<(event: { appId: number; orderId: string; authorized: boolean }) => void>} */
+const microTxnListeners = new Set();
+/** @type {any} */
+let microTxnHandle = null;
+
+/**
+ * Subscribe to `MicroTxnAuthorizationResponse_t` — Steam fires it when
+ * the player clicks Authorize or Cancel in the overlay purchase dialog
+ * that InitTxn opened.  The order id arrives as a u64 (number or bigint
+ * depending on size) and is normalised to a decimal string, the same
+ * form the server issued it in.
+ *
+ * The native callback is registered once, lazily, and fans out to every
+ * listener.  Returns an unsubscribe function.
+ *
+ * @param {(event: { appId: number; orderId: string; authorized: boolean }) => void} listener
+ * @returns {() => void}
+ */
+function onMicroTxnAuthorization(listener) {
+  microTxnListeners.add(listener);
+  if (!microTxnHandle && client) {
+    try {
+      const cb = client.callback;
+      const code = cb?.SteamCallback?.MicroTxnAuthorizationResponse ?? 9;
+      if (typeof cb?.register === "function") {
+        microTxnHandle = cb.register(code, (/** @type {any} */ value) => {
+          const event = {
+            appId: Number(value?.app_id),
+            orderId: String(value?.order_id),
+            authorized: value?.authorized === true,
+          };
+          for (const l of microTxnListeners) {
+            try {
+              l(event);
+            } catch (err) {
+              console.error("[steam] microtxn listener threw:", err);
+            }
+          }
+        });
+      }
+    } catch (err) {
+      console.warn("[steam] registering MicroTxnAuthorizationResponse failed:", err);
+    }
+  }
+  return () => {
+    microTxnListeners.delete(listener);
+  };
+}
+
 module.exports = {
   STEAM_ENABLED,
   STEAM_APPID,
@@ -511,4 +590,7 @@ module.exports = {
   setStats,
   openOverlay,
   openOverlayUrl,
+  STEAM_WEB_API_IDENTITY,
+  getWebApiTicket,
+  onMicroTxnAuthorization,
 };

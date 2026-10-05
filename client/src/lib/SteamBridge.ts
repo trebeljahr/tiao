@@ -39,6 +39,14 @@ type SteamBridge = {
   ) => Promise<{ ok: boolean; written: number; stored: boolean }>;
   openOverlay: (dialog: SteamOverlayDialog) => Promise<boolean>;
   openOverlayUrl: (url: string) => Promise<boolean>;
+  getWebApiTicket?: () => Promise<string | null>;
+  onMicroTxnAuthorization?: (cb: (event: SteamMicroTxnAuthorization) => void) => () => void;
+};
+
+export type SteamMicroTxnAuthorization = {
+  appId: number;
+  orderId: string;
+  authorized: boolean;
 };
 
 function getBridge(): SteamBridge | null {
@@ -195,4 +203,56 @@ export async function setSteamStats(stats: Record<string, number>): Promise<bool
   } catch {
     return false;
   }
+}
+
+/**
+ * True when the desktop preload exposes the Steam Microtransactions
+ * bridge (ticket + overlay callback). Synchronous so render paths can use
+ * it; an older desktop build without the bridge returns false and keeps
+ * the shop hidden.
+ */
+export function hasSteamPurchaseBridge(): boolean {
+  const bridge = getBridge();
+  return (
+    typeof bridge?.getWebApiTicket === "function" &&
+    typeof bridge?.onMicroTxnAuthorization === "function"
+  );
+}
+
+/** Hex Web API auth ticket for the API server, or null when unavailable. */
+export async function getSteamWebApiTicket(): Promise<string | null> {
+  const bridge = getBridge();
+  if (!bridge?.getWebApiTicket) return null;
+  if (!(await isSteamActive())) return null;
+  try {
+    return await bridge.getWebApiTicket();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Wait for the overlay decision on one order. Resolves false on Cancel,
+ * on timeout, or when the bridge is missing.
+ */
+export function waitForSteamMicroTxnAuthorization(
+  orderId: string,
+  timeoutMs = 10 * 60 * 1000,
+): Promise<boolean> {
+  const bridge = getBridge();
+  if (!bridge?.onMicroTxnAuthorization) return Promise.resolve(false);
+  const subscribe = bridge.onMicroTxnAuthorization;
+  return new Promise((resolve) => {
+    let off: () => void = () => {};
+    const timer = setTimeout(() => {
+      off();
+      resolve(false);
+    }, timeoutMs);
+    off = subscribe((event) => {
+      if (event.orderId !== orderId) return;
+      clearTimeout(timer);
+      off();
+      resolve(event.authorized);
+    });
+  });
 }

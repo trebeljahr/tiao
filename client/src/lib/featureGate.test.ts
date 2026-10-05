@@ -1,6 +1,7 @@
 import type { AuthResponse } from "@shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { canSeeShop, hasPreviewAccess, isAdmin, resolvePlayerBadges } from "./featureGate";
+import { _resetStorePurchaseConfigForTests } from "./storePurchases";
 
 function makeAuth(overrides: Partial<AuthResponse["player"]> = {}): AuthResponse {
   return {
@@ -101,10 +102,16 @@ describe("canSeeShop", () => {
     // with optional chaining either way — but leaving a stub behind
     // would quietly make every later test a desktop test.
     delete (window as unknown as { electron?: unknown }).electron;
+    _resetStorePurchaseConfigForTests(null);
   });
 
-  function setSteamBuild(isSteamBuild: boolean) {
-    (window as unknown as { electron?: unknown }).electron = { config: { isSteamBuild } };
+  function setSteamBuild(isSteamBuild: boolean, withPurchaseBridge = false) {
+    (window as unknown as { electron?: unknown }).electron = {
+      config: { isSteamBuild },
+      steam: withPurchaseBridge
+        ? { getWebApiTicket: async () => null, onMicroTxnAuthorization: () => () => {} }
+        : {},
+    };
   }
 
   it("is public in production for visitors, guests, and regular accounts", () => {
@@ -128,6 +135,25 @@ describe("canSeeShop", () => {
 
   it("is hidden in a Steam build for a signed-out visitor", () => {
     setSteamBuild(true);
+    expect(canSeeShop(null)).toBe(false);
+  });
+
+  it("appears in a Steam build once Steam Microtransactions are configured", () => {
+    setSteamBuild(true, true);
+    expect(canSeeShop(null)).toBe(false);
+    _resetStorePurchaseConfigForTests({ steam: { enabled: true, sandbox: false } });
+    expect(canSeeShop(null)).toBe(true);
+  });
+
+  it("stays hidden in a Steam build when the server cannot sell on Steam", () => {
+    setSteamBuild(true, true);
+    _resetStorePurchaseConfigForTests({ steam: { enabled: false, sandbox: false } });
+    expect(canSeeShop(null)).toBe(false);
+  });
+
+  it("stays hidden on an older Steam desktop without the purchase bridge", () => {
+    setSteamBuild(true, false);
+    _resetStorePurchaseConfigForTests({ steam: { enabled: true, sandbox: false } });
     expect(canSeeShop(null)).toBe(false);
   });
 

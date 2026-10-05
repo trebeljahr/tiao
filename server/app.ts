@@ -14,6 +14,7 @@ import indexRoutes from "./routes/index.routes";
 import reportRoutes from "./routes/report.routes";
 import shopRoutes from "./routes/shop.routes";
 import socialRoutes from "./routes/social.routes";
+import storePurchaseRoutes from "./routes/storePurchase.routes";
 import tournamentRoutes from "./routes/tournament.routes";
 
 const app = express();
@@ -65,6 +66,7 @@ mountRouteVariants("/", socialRoutes);
 mountRouteVariants("/player/admin", adminRoutes);
 mountRouteVariants("/player", reportRoutes);
 mountRouteVariants("/", tournamentRoutes);
+mountRouteVariants("/shop/iap", storePurchaseRoutes);
 mountRouteVariants("/shop", shopRoutes);
 mountRouteVariants("/player", achievementRoutes);
 

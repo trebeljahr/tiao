@@ -1,6 +1,6 @@
 import type { AuthResponse } from "@shared";
 import { BADGE_DEFINITIONS, type BadgeId } from "@/components/UserBadge";
-import { isSteamBuild } from "./SteamBridge";
+import { canPurchaseIn, getStorePurchaseChannel, useStorePurchaseChannel } from "./storePurchases";
 
 /**
  * Returns true if the current user has access to preview features (board themes, etc.).
@@ -33,11 +33,19 @@ export function isDevFeatureEnabled(): boolean {
 }
 
 /**
- * The shop is public in every environment. Steam builds keep external
- * checkout hidden because purchases there use Steam's payment system.
+ * The shop is public in every environment. Steam builds never show
+ * Stripe checkout — Valve requires its own payment system — so there the
+ * shop appears only once Steam Microtransactions can fulfill purchases
+ * (server configured and the desktop bridge present). Render paths that
+ * must update when that resolves use `useStorePurchaseChannel()`.
  */
 export function canSeeShop(_auth: AuthResponse | null): boolean {
-  return !isSteamBuild();
+  return canPurchaseIn(getStorePurchaseChannel());
+}
+
+/** `canSeeShop` for components that must re-render when store config loads. */
+export function useCanSeeShop(_auth: AuthResponse | null): boolean {
+  return canPurchaseIn(useStorePurchaseChannel());
 }
 
 /**

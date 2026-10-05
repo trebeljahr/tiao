@@ -991,6 +991,8 @@
     "purchaseSuccess": "Kauf abgeschlossen! Dein {item} wurde freigeschaltet.",
     "purchaseComplete": "Kauf abgeschlossen!",
     "purchaseCancelled": "Kauf abgebrochen.",
+    "purchasePending": "Dein Kauf wird noch verarbeitet. Er erscheint hier in wenigen Minuten.",
+    "steamNotRunning": "Für einen Kauf muss Steam laufen. Starte Steam und versuche es erneut.",
     "purchaseFailed": "Dein Kauf konnte nicht zugestellt werden. Falls dir Geld abgebucht wurde, wurde das Team benachrichtigt — bitte kontaktiere den Support.",
     "viewAchievement": "So freischalten",
     "adminPanel": "Admin-Panel",

@@ -2,7 +2,7 @@
 
 import confetti from "canvas-confetti";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { BackButton } from "@/components/BackButton";
@@ -32,11 +32,19 @@ import {
   getMyAchievements,
   getShopCatalog,
   getSubscriptions,
+  reconcileSteamPurchases,
   type ShopCatalogItem,
   type Subscription,
 } from "@/lib/api";
 import { toastError } from "@/lib/errors";
-import { canSeeShop, isAdmin } from "@/lib/featureGate";
+import { isAdmin } from "@/lib/featureGate";
+import {
+  canPurchaseIn,
+  purchaseWithSteam,
+  StorePurchaseCancelled,
+  StoreUnavailableError,
+  useStorePurchaseChannel,
+} from "@/lib/storePurchases";
 import { cn } from "@/lib/utils";
 
 // Achievement IDs that auto-grant a corresponding badge (must match server/config/badgeRewards.ts)
@@ -119,7 +127,9 @@ export function ShopPage() {
   const t = useTranslations("shop");
   const { auth, authLoading, applyAuth, onOpenAuth } = useAuth();
   const router = useRouter();
+  const locale = useLocale();
   const searchParams = useSearchParams();
+  const channel = useStorePurchaseChannel();
   const [catalog, setCatalog] = useState<ShopCatalogItem[] | null>(null);
   const [earnedBadgeIds, setEarnedBadgeIds] = useState<Set<string>>(new Set());
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
@@ -315,6 +325,41 @@ export function ShopPage() {
     return () => clearTimeout(timer);
   }, [loading]);
 
+  // Steam: settle orders the player approved while the game was closed
+  // or offline before the finalize step ran.
+  useEffect(() => {
+    if (channel !== "steam" || !isAccount) return;
+    reconcileSteamPurchases()
+      .then(({ results }) => {
+        if (results.some((r) => r.status === "granted")) void fetchCatalog(true);
+      })
+      .catch(() => {});
+  }, [channel, isAccount, fetchCatalog]);
+
+  async function handleStorePurchase(item: ShopCatalogItem) {
+    const key = `${item.type}-${item.id}`;
+    try {
+      const result = await purchaseWithSteam(item, locale);
+      if (result.status === "granted") {
+        await fetchCatalog(true);
+        if (item.type === "badge" && BADGE_DEFINITIONS[item.id as BadgeId]) {
+          toast.success(<BadgeToast badge={item.id as BadgeId} title={t("purchaseComplete")} />);
+        } else {
+          toast.success(t("purchaseComplete"));
+        }
+        setPurchasedItem(key);
+      } else if (result.status === "pending") {
+        toast(t("purchasePending"));
+      } else {
+        toast.error(t("purchaseFailed"));
+      }
+    } catch (error) {
+      if (error instanceof StorePurchaseCancelled) toast(t("purchaseCancelled"));
+      else if (error instanceof StoreUnavailableError) toast.error(t("steamNotRunning"));
+      else toastError(error);
+    }
+  }
+
   async function handleBuy(item: ShopCatalogItem) {
     if (!isAccount) {
       onOpenAuth("signup");
@@ -322,6 +367,11 @@ export function ShopPage() {
     }
 
     setBuyingItem(`${item.type}-${item.id}`);
+    if (channel === "steam") {
+      await handleStorePurchase(item);
+      setBuyingItem(null);
+      return;
+    }
     try {
       const { url } = await createCheckoutSession(item.type, item.id);
       if (url) {
@@ -351,21 +401,23 @@ export function ShopPage() {
     }
   }
 
-  // In production the shop is admin-only (used to playtest Stripe flows
-  // without exposing purchases to all players). Redirect anyone else home.
+  // Store builds that cannot take a purchase (server not configured,
+  // desktop without the store bridge) must not show the shop at all.
   useEffect(() => {
-    if (authLoading) return;
-    if (!canSeeShop(auth)) {
+    if (authLoading || channel === "loading") return;
+    if (!canPurchaseIn(channel)) {
       router.replace("/play");
     }
-  }, [authLoading, auth, router]);
+  }, [authLoading, channel, router]);
 
-  if (authLoading || !canSeeShop(auth)) {
+  if (authLoading || !canPurchaseIn(channel)) {
     return <SkeletonPage />;
   }
 
   const oneTimeBadgeItems = catalog?.filter((i) => i.type === "badge" && !i.recurring) ?? [];
-  const subscriptionBadgeItems = catalog?.filter((i) => i.type === "badge" && i.recurring) ?? [];
+  // Subscriptions bill through Stripe only; store builds sell one-time items.
+  const subscriptionBadgeItems =
+    channel === "stripe" ? (catalog?.filter((i) => i.type === "badge" && i.recurring) ?? []) : [];
   const themeItems = catalog?.filter((i) => i.type === "theme") ?? [];
 
   function getSubscriptionForBadge(badgeId: string): Subscription | undefined {

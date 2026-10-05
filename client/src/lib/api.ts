@@ -583,6 +583,8 @@ export type ShopCatalogItem = {
   currency: string;
   owned: boolean;
   recurring?: { interval: "month" | "year" };
+  steamItemId?: number;
+  msStoreOfferToken?: string;
 };
 
 export type Subscription = {
@@ -611,6 +613,45 @@ export function cancelSubscription(subscriptionId: string) {
   return request<{ message: string; currentPeriodEnd: string }>("/api/shop/cancel-subscription", {
     method: "POST",
     body: { subscriptionId },
+  });
+}
+
+// ── Store in-app purchases (Steam / Microsoft Store builds) ──
+
+export type StorePurchaseConfig = {
+  steam: { enabled: boolean; sandbox: boolean };
+};
+
+export type StorePurchaseResult = {
+  status: "granted" | "pending" | "failed";
+  itemType: "badge" | "theme";
+  itemId: string;
+  reason?: string;
+};
+
+export function getStorePurchaseConfig() {
+  return request<StorePurchaseConfig>("/api/shop/iap/config");
+}
+
+export function startSteamPurchase(body: {
+  itemType: string;
+  itemId: string;
+  ticket: string;
+  language: string;
+}) {
+  return request<{ orderId: string }>("/api/shop/iap/steam/init", { method: "POST", body });
+}
+
+export function finalizeSteamPurchase(orderId: string) {
+  return request<StorePurchaseResult>("/api/shop/iap/steam/finalize", {
+    method: "POST",
+    body: { orderId },
+  });
+}
+
+export function reconcileSteamPurchases() {
+  return request<{ results: StorePurchaseResult[] }>("/api/shop/iap/steam/reconcile", {
+    method: "POST",
   });
 }
 

@@ -236,5 +236,30 @@ contextBridge.exposeInMainWorld("electron", {
      * @returns {Promise<boolean>}
      */
     openOverlayUrl: (url) => ipcRenderer.invoke("steam:openOverlayUrl", url),
+
+    /**
+     * Hex-encoded Web API auth ticket for Steam Microtransactions. The
+     * API server resolves it to the buyer's SteamID; null when Steam
+     * isn't active.
+     *
+     * @returns {Promise<string | null>}
+     */
+    getWebApiTicket: () => ipcRenderer.invoke("steam:getWebApiTicket"),
+
+    /**
+     * Subscribe to the overlay's purchase decision for a pending order
+     * (MicroTxnAuthorizationResponse). Returns an unsubscribe function.
+     *
+     * @param {(event: { appId: number; orderId: string; authorized: boolean }) => void} cb
+     * @returns {() => void}
+     */
+    onMicroTxnAuthorization: (cb) => {
+      const listener = (
+        /** @type {unknown} */ _event,
+        /** @type {{ appId: number; orderId: string; authorized: boolean }} */ payload,
+      ) => cb(payload);
+      ipcRenderer.on("steam:microTxnAuthorization", listener);
+      return () => ipcRenderer.off("steam:microTxnAuthorization", listener);
+    },
   },
 });

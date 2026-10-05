@@ -991,6 +991,8 @@
     "purchaseSuccess": "Purchase complete! Your {item} has been unlocked.",
     "purchaseComplete": "Purchase complete!",
     "purchaseCancelled": "Purchase cancelled.",
+    "purchasePending": "Your purchase is still processing. It will appear here within a few minutes.",
+    "steamNotRunning": "Steam needs to be running to make a purchase. Start Steam and try again.",
     "purchaseFailed": "We couldn't deliver your purchase. If you were charged, the team has been notified — please contact support.",
     "viewAchievement": "How to unlock",
     "adminPanel": "Admin Panel",

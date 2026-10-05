@@ -34,6 +34,9 @@ const {
   openOverlay,
   openOverlayUrl,
   OVERLAY_DIALOG_CODES,
+  STEAM_WEB_API_IDENTITY,
+  getWebApiTicket,
+  onMicroTxnAuthorization,
 } = require("./steam.cjs");
 
 const pkg =
@@ -171,5 +174,30 @@ describe("overlay dialog code map", () => {
   test("codes are unique", () => {
     const codes = Object.values(OVERLAY_DIALOG_CODES);
     assert.equal(new Set(codes).size, codes.length);
+  });
+});
+
+describe("microtransaction bridge (degraded)", () => {
+  test("Web API identity matches the server constant", () => {
+    // server/payments/steamMicroTxn.ts authenticates tickets under the
+    // same identity; a mismatch makes every purchase fail at step 1.
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const serverSrc = fs.readFileSync(
+      path.join(__dirname, "../../server/payments/steamMicroTxn.ts"),
+      "utf8",
+    );
+    assert.match(serverSrc, new RegExp(`STEAM_WEB_API_IDENTITY = "${STEAM_WEB_API_IDENTITY}"`));
+  });
+
+  test("getWebApiTicket resolves null without a Steam client", async () => {
+    if (isSteamActive()) return;
+    assert.equal(await getWebApiTicket(), null);
+  });
+
+  test("onMicroTxnAuthorization returns an unsubscribe even when inactive", () => {
+    const off = onMicroTxnAuthorization(() => {});
+    assert.equal(typeof off, "function");
+    off();
   });
 });

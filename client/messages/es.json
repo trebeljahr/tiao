@@ -991,6 +991,8 @@
     "purchaseSuccess": "¡Compra completada! Tu {item} ha sido desbloqueado.",
     "purchaseComplete": "¡Compra completada!",
     "purchaseCancelled": "Compra cancelada.",
+    "purchasePending": "Tu compra se está procesando. Aparecerá aquí en unos minutos.",
+    "steamNotRunning": "Steam debe estar abierto para hacer una compra. Abre Steam e inténtalo de nuevo.",
     "purchaseFailed": "No pudimos entregar tu compra. Si se te cobró, el equipo ha sido notificado — contacta con soporte.",
     "viewAchievement": "Cómo desbloquear",
     "adminPanel": "Panel de admin",

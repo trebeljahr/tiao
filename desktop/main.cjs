@@ -55,6 +55,8 @@ const {
   setStats: setSteamStats,
   openOverlay: openSteamOverlay,
   openOverlayUrl: openSteamOverlayUrl,
+  getWebApiTicket: getSteamWebApiTicket,
+  onMicroTxnAuthorization,
 } = require("./src/steam.cjs");
 
 // HMR dev mode: if TIAO_DEV_RENDERER_URL is set and we're unpackaged,
@@ -362,6 +364,9 @@ function registerAnalyticsIpc() {
  * false. Either way, callers should gracefully degrade instead of
  * showing a "Steam required" error.
  */
+/** Guards the MicroTxn forwarder against a second bootstrap() on macOS `activate`. */
+let microTxnForwarding = false;
+
 function registerSteamIpc() {
   handleTrustedIpc(ipcMain, "steam:isActive", async () => {
     return isSteamActive();
@@ -421,6 +426,20 @@ function registerSteamIpc() {
   handleTrustedIpc(ipcMain, "steam:openOverlayUrl", async (_event, url) => {
     if (typeof url !== "string" || !url) return false;
     return openSteamOverlayUrl(url);
+  });
+  // Steam Microtransactions. The renderer sends the hex ticket to the
+  // API, which authenticates it and calls InitTxn; Steam then shows the
+  // approval dialog in the overlay and reports the decision through
+  // MicroTxnAuthorizationResponse, forwarded to every window below.
+  handleTrustedIpc(ipcMain, "steam:getWebApiTicket", async () => {
+    return getSteamWebApiTicket();
+  });
+  if (microTxnForwarding) return;
+  microTxnForwarding = true;
+  onMicroTxnAuthorization((event) => {
+    for (const win of BrowserWindow.getAllWindows()) {
+      if (!win.isDestroyed()) win.webContents.send("steam:microTxnAuthorization", event);
+    }
   });
 }
 

@@ -12,7 +12,7 @@ import {
   useRouter as useIntlRouter,
 } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
-import { canSeeShop } from "@/lib/featureGate";
+import { useCanSeeShop } from "@/lib/featureGate";
 import { useSocialNotifications } from "@/lib/SocialNotificationsContext";
 import { cn } from "@/lib/utils";
 
@@ -247,6 +247,7 @@ export function Navbar({
   const tLegal = useTranslations("legalFooter");
   const intlRouter = useIntlRouter();
   const pathname = useIntlPathname();
+  const showShop = useCanSeeShop(auth);
   const {
     unacknowledgedFriendRequestCount,
     unacknowledgedInvitationCount,
@@ -356,7 +357,7 @@ export function Navbar({
           },
         ]
       : []),
-    ...(canSeeShop(auth)
+    ...(showShop
       ? [
           {
             label: t("shop"),
