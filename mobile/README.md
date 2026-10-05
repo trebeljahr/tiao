@@ -72,8 +72,8 @@ They stop only the processes they started.
   `ANDROID_KEYSTORE_*` environment variables.
 - iOS: `ITSAppUsesNonExemptEncryption = false` and `PrivacyInfo.xcprivacy`;
   both are checked by the release verifier.
-- Deep link `tiao://auth/complete` is registered on both platforms for the
-  OAuth return.
+- Deep links `tiao://auth/…` (`complete`, `error`, `linked`) are registered
+  on both platforms for the OAuth and account-linking returns.
 - Splash hides itself after 1 s. Background colour `#2a1d13` everywhere.
 - The mobile build never shows the Stripe shop (store payment rules);
   Android sells through Google Play Billing, see below.
@@ -116,16 +116,53 @@ Apple / Google / GitHub / Discord calls `startMobileOAuth()` in
    with `@capacitor/browser` (SFSafariViewController / Chrome Custom Tab);
 3. receives `tiao://auth/complete?state=…&code=…` through
    `@capacitor/app`'s `appUrlOpen` event (or `getLaunchUrl()` after a cold
-   start), closes the browser, and POSTs `{state, code, code_verifier}` to
+   start), closes the browser, and POSTs
+   `{state, code, code_verifier, token_type: "session"}` to
    `/api/auth/desktop/exchange`;
-4. stores the returned revocable bearer token in Preferences and sends it
-   as `Authorization: Bearer` on every API call and as `?token=` on the
-   WebSocket, exactly like the desktop app.
+4. stores the returned better-auth session token in Preferences.
 
 The server side is the desktop bridge plus PKCE: any app can claim the
 `tiao://` scheme on a phone, so an intercepted deep link is useless
-without the verifier that never leaves this app. Logout calls
-`/api/auth/desktop/logout` before the token is forgotten.
+without the verifier that never leaves this app. Only PKCE flows may ask
+for `token_type: "session"`.
+
+## Auth in the app: one bearer token, no cookies
+
+WKWebView and Android WebView block third-party cookies, and the API
+(`api.playtiao.com`) is third-party to `capacitor://localhost` /
+`https://localhost`. So the app never relies on a cookie. It holds one
+better-auth session token and sends it:
+
+- as `Authorization: Bearer` on every REST call (`api.ts`) and every
+  better-auth client call (`auth-client.ts`, `credentials: "omit"`);
+- as `?token=` on the game and lobby WebSockets (the only place a token
+  is in a URL; WebSocket upgrades cannot carry headers).
+
+The server runs better-auth's `bearer` plugin with `requireSignature`, so
+every better-auth endpoint accepts that header as the session.
+`server/middleware/nativeAuthCors.ts` adds CORS on `/api/auth/*` for the
+two WebView origins only (no credentials, `set-auth-token` exposed); the
+web build is unchanged and keeps its same-origin cookie.
+
+| Flow | How it works in the app |
+| --- | --- |
+| Guest | `signIn.anonymous()`; the token arrives in `set-auth-token` and is stored |
+| Email / username sign-in | `POST /api/player/login` forwards `set-auth-token`; the guest's bearer goes along so guest games migrate |
+| Sign-up | `signUp.email()` with the guest bearer; new token from `set-auth-token` |
+| Social sign-in | System browser + `tiao://auth/complete` + PKCE exchange (above) |
+| Link a provider | Settings calls `POST /api/auth/mobile/link/start` with the bearer, opens the returned one-time ticket URL in the system browser, returns via `tiao://auth/linked` |
+| Unlink, list accounts | Plain better-auth calls with the bearer |
+| Sign-out | `POST /api/auth/sign-out` with the bearer, then a fresh guest |
+| Password reset, email verification, email change | The email link opens the website in the browser and finishes there; the app reloads the identity when it returns to the foreground |
+
+Builds before this change stored desktop `v2.` tokens; the app drops them
+on launch, so those users sign in once more.
+
+The token lives in Capacitor Preferences (UserDefaults /
+SharedPreferences): sandboxed per app, but not Keychain / Keystore
+encrypted like the desktop build's `safeStorage`. No maintained, freely
+available Capacitor 8 secure-storage plugin was confirmed (Capawesome's
+Secure Preferences is sponsor-only), so this stays a hardening follow-up.
 
 The native projects need the `tiao` URL scheme registered. `cap add`
 does not do this; add it once after generating `ios/` and `android/`.
@@ -171,11 +208,6 @@ Sign in with Apple uses the same web flow on iOS. That satisfies App
 Store guideline 4.8; a native `ASAuthorizationController` button would
 need an extra Capacitor plugin and the server already accepts ID tokens
 for the bundle ID `com.ricoslabs.tiao` if that is added later.
-
-The token lives in Capacitor Preferences (UserDefaults /
-SharedPreferences): sandboxed per app, but not Keychain-encrypted like
-the desktop build's `safeStorage`. Moving it to a Keychain / Keystore
-plugin is a possible hardening step.
 
 ## Why `mobile/` is a sibling of `desktop/`
 
