@@ -127,7 +127,9 @@ function createBuilderConfig({ base, channel, signed, env = {} }) {
   // session that azure/login establishes (scripts/sign-windows.*).
   // The Store AppX stays unsigned: Partner Center signs it.
   if (channel === "msstore") {
-    const identity = Object.fromEntries(STORE_IDENTITY_VARS.map((name) => [name, envValue(env, name)]));
+    const identity = Object.fromEntries(
+      STORE_IDENTITY_VARS.map((name) => [name, envValue(env, name)]),
+    );
     const missing = STORE_IDENTITY_VARS.filter((name) => !identity[name]);
     if (signed && missing.length) {
       throw new Error("Missing Microsoft Store identity: " + missing.join(", "));

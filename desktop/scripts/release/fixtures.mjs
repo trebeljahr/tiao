@@ -1,5 +1,5 @@
 // Test helper: a minimal app.asar in Electron's pickle format.
-import { writeFileSync } from 'node:fs';
+import { writeFileSync } from "node:fs";
 
 export function writeAsar(path, files, unpacked = []) {
   const header = { files: {} };
@@ -25,7 +25,7 @@ export function writeAsar(path, files, unpacked = []) {
 }
 
 function insert(header, name, entry) {
-  const parts = name.split('/');
+  const parts = name.split("/");
   let node = header;
   for (const part of parts.slice(0, -1)) {
     node.files[part] ??= { files: {} };

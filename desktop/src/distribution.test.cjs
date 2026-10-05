@@ -29,7 +29,10 @@ test("a Steam build is always the steam channel", () => {
 test("store runtimes are recognised when metadata is missing or invalid", () => {
   assert.equal(resolveDistributionChannel({ steamBuild: false, mas: true }), "mas");
   assert.equal(resolveDistributionChannel({ steamBuild: false, windowsStore: true }), "msstore");
-  assert.equal(resolveDistributionChannel({ bakedChannel: "nope", steamBuild: false, mas: true }), "mas");
+  assert.equal(
+    resolveDistributionChannel({ bakedChannel: "nope", steamBuild: false, mas: true }),
+    "mas",
+  );
 });
 
 test("only direct downloads may self-update", () => {
