@@ -10,7 +10,7 @@ import { MoveListNavButtons } from "@/components/game/MoveList";
 import { TiaoBoard } from "@/components/game/TiaoBoard";
 import { routing } from "@/i18n/routing";
 import { ApiError, getGameReplay } from "@/lib/api";
-import { resolveDynamicParam } from "@/lib/desktopPathParam";
+import { useDynamicParam } from "@/lib/useDynamicParam";
 import { cn } from "@/lib/utils";
 
 type LoadError = "not-found" | "not-finished" | "unavailable";
@@ -57,7 +57,7 @@ export function EmbedGamePage() {
   const tGame = useTranslations("game");
   const locale = useLocale();
   const params = useParams<{ gameId: string }>();
-  const gameId = resolveDynamicParam("game", params?.gameId);
+  const gameId = useDynamicParam("game", params?.gameId);
 
   const [replay, setReplay] = useState<PublicGameReplay | null>(null);
   const [error, setError] = useState<LoadError | null>(null);

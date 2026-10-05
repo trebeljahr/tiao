@@ -35,6 +35,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 import { Toaster } from "sonner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { NativeDeepLinkHandler } from "@/components/NativeDeepLinkHandler";
 import { AnalyticsConsentProvider } from "@/lib/AnalyticsConsent";
 import { AuthProvider, useAuth } from "@/lib/AuthContext";
 import { toastError } from "@/lib/errors";
@@ -203,6 +204,7 @@ function AppShell({ children, publicPage }: { children: React.ReactNode; publicP
       </UsernameOnboardingGuard>
       <AuthDialog />
       <OAuthErrorHandler />
+      {process.env.NEXT_PUBLIC_PLATFORM === "mobile" && <NativeDeepLinkHandler />}
       <ConsentBanner />
       {!publicPage && <PwaInstallBanner />}
       {!publicPage && <DumpInstaller />}

@@ -29,9 +29,9 @@ import {
   registerForTournament,
   unregisterFromTournament,
 } from "@/lib/api";
-import { resolveDynamicParam } from "@/lib/desktopPathParam";
 import { toastError } from "@/lib/errors";
 import { useTournament } from "@/lib/hooks/useTournament";
+import { useDynamicParam } from "@/lib/useDynamicParam";
 
 export function TournamentPage() {
   const t = useTranslations("tournament");
@@ -39,9 +39,9 @@ export function TournamentPage() {
   const { auth, onOpenAuth, onLogout } = useAuth();
   const params = useParams<{ tournamentId: string }>();
   const searchParams = useSearchParams();
-  // See `resolveDynamicParam` for why this fallback exists (desktop
-  // Electron serves a single `__spa__` shell HTML for /tournament/*).
-  const tournamentId = resolveDynamicParam("tournament", params?.tournamentId);
+  // See `useDynamicParam` for why this fallback exists (the
+  // desktop and mobile serve a single `__spa__` shell HTML for /tournament/*).
+  const tournamentId = useDynamicParam("tournament", params?.tournamentId);
   const inviteCodeFromUrl = searchParams?.get("code") ?? null;
   const router = useRouter();
   const playerId = auth?.player?.playerId;

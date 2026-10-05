@@ -50,7 +50,6 @@ import { PaperCard } from "@/components/ui/paper-card";
 import { routing } from "@/i18n/routing";
 import { useAuth } from "@/lib/AuthContext";
 import { accessMultiplayerGame, getMultiplayerGame } from "@/lib/api";
-import { resolveDynamicParam } from "@/lib/desktopPathParam";
 import { buildEmbedCode } from "@/lib/embed";
 import { useMultiplayerGame } from "@/lib/hooks/useMultiplayerGame";
 import { useSocialData } from "@/lib/hooks/useSocialData";
@@ -59,6 +58,7 @@ import { useLobbyMessage } from "@/lib/LobbySocketContext";
 import { op } from "@/lib/openpanel";
 import { useSocialNotifications } from "@/lib/SocialNotificationsContext";
 import { safeLocalStorage } from "@/lib/safeLocalStorage";
+import { useDynamicParam } from "@/lib/useDynamicParam";
 import { useStonePlacementSound } from "@/lib/useStonePlacementSound";
 import { cn } from "@/lib/utils";
 import { AnimatedEllipsis, AnimatedRatingChange } from "./multiplayer/AnimatedRatingChange";
@@ -71,12 +71,12 @@ export function MultiplayerGamePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const params = useParams<{ gameId: string }>();
-  // resolveDynamicParam is a no-op on the web (returns params.gameId
-  // unchanged). In the desktop Electron build the static export
-  // bakes a single __spa__ placeholder HTML file for this route and
-  // the protocol handler serves it for every /game/<X> path, so we
-  // must read the real gameId from the live URL at runtime.
-  const gameId = resolveDynamicParam("game", params?.gameId);
+  // useDynamicParam is a no-op on the web (returns params.gameId
+  // unchanged). The desktop and mobile static exports bake a single
+  // __spa__ placeholder page for this route and the native shell
+  // serves it for every /game/<X> path, so the real gameId comes from
+  // the router's pathname.
+  const gameId = useDynamicParam("game", params?.gameId);
   const [navOpen, setNavOpen] = useState(false);
 
   const websocketDebugEnabled = searchParams?.has("wsDebug") ?? false;

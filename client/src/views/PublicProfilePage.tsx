@@ -24,9 +24,9 @@ import {
   type PlayerAchievement,
   type PublicProfile,
 } from "@/lib/api";
-import { resolveDynamicParam } from "@/lib/desktopPathParam";
 import { useSocialData } from "@/lib/hooks/useSocialData";
 import { useLobbyMessage } from "@/lib/LobbySocketContext";
+import { useDynamicParam } from "@/lib/useDynamicParam";
 
 export function PublicProfilePage() {
   const t = useTranslations("publicProfile");
@@ -35,9 +35,9 @@ export function PublicProfilePage() {
   const { auth, authBootstrapped } = useAuth();
   const router = useRouter();
   const params = useParams<{ username: string }>();
-  // See `resolveDynamicParam` for why this fallback exists (desktop
-  // Electron serves a single `__spa__` shell HTML for /profile/*).
-  const username = resolveDynamicParam("profile", params?.username);
+  // See `useDynamicParam` for why this fallback exists (the
+  // desktop and mobile serve a single `__spa__` shell HTML for /profile/*).
+  const username = useDynamicParam("profile", params?.username);
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

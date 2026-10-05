@@ -1,73 +1,64 @@
 /**
- * Runtime resolver for dynamic route parameters in the desktop build.
+ * Runtime resolver for dynamic route parameters in the static exports.
  *
- * The desktop Electron app ships a static export of the Next.js client
- * (see client/next.config.desktop.mjs).  Static export can only
- * pre-render dynamic routes whose params are known at build time, so
- * the three shareable routes — /game/[gameId], /profile/[username],
- * /tournament/[tournamentId] — use a placeholder `__spa__` param in
- * the desktop build.  That produces ONE HTML file per route which the
- * Electron `app://` protocol handler serves for any real param value:
+ * The desktop (Electron) and mobile (Capacitor) apps ship a static
+ * export of the Next.js client. Static export can only pre-render
+ * dynamic routes whose params are known at build time, so the
+ * shareable routes — /game/[gameId], /profile/[username],
+ * /tournament/[tournamentId], /embed/game/[gameId] — bake ONE page
+ * with the placeholder param `__spa__`. The native shell serves that
+ * page for any real value:
  *
- *   app://tiao/en/game/ABC123  →  en/game/__spa__/index.html
+ *   app://tiao/en/game/ABC123/        →  en/game/__spa__/index.html  (desktop/src/protocol.cjs)
+ *   https://localhost/en/game/ABC123/ →  en/game/__spa__/index.html  (mobile TiaoRoutes, iOS + Android)
  *
- * Inside that HTML, React's useParams() returns the bake-time
- * placeholder (`{ gameId: "__spa__" }`) not the real value.  This
- * helper reads the true value from window.location.pathname at
- * runtime and falls back to the bake-time value on the web.
- *
- * Web builds are untouched: on the web, useParams() returns the real
- * value (Next.js SSR renders the route on-demand) and this function
- * passes it through unchanged.
+ * Inside that page, useParams() returns the bake-time placeholder
+ * (`{ gameId: "__spa__" }`), not the real value. `resolveDynamicParam` (and the `useDynamicParam` hook in
+ * `./useDynamicParam`) recover
+ * the real segment from the URL. On the web the bake-time value is the
+ * real one and passes through unchanged.
  */
 
-const DESKTOP_SPA_PLACEHOLDER = "__spa__";
-
-type ElectronWindow = {
-  electron?: { isElectron?: boolean };
-};
+const SPA_PLACEHOLDER = "__spa__";
 
 /**
- * Resolve a dynamic route segment by reading the current URL when
- * running inside Electron, or returning the bake-time value otherwise.
+ * Resolve a dynamic route segment.
  *
- * @param prefixSegment  The path segment immediately before the
- *                       dynamic value.  For `/en/game/ABC123` → `"game"`.
- * @param bakeTimeValue  The value `useParams()` returned at call time.
- *                       Used verbatim on the web and during SSR.
- * @returns              The resolved parameter value, or `undefined`
- *                       if it couldn't be recovered.
+ * @param prefixSegment  The path segment immediately before the dynamic
+ *                       value. For `/en/game/ABC123` → `"game"`.
+ * @param bakeTimeValue  The value `useParams()` returned.
+ * @param pathname       The current path. Pass the router's pathname
+ *                       (`usePathname()`) during render: during a
+ *                       client-side navigation `window.location` still
+ *                       shows the previous page. Defaults to
+ *                       `window.location.pathname`.
+ * @returns              The real value, or `undefined` if it cannot be
+ *                       recovered.
  */
 export function resolveDynamicParam(
   prefixSegment: string,
   bakeTimeValue: string | undefined,
+  pathname?: string | null,
 ): string | undefined {
-  // SSR / Node environment — trust the bake-time value.
-  if (typeof window === "undefined") return bakeTimeValue;
+  // Web, or any route that was not placeholder-baked: trust the value.
+  if (bakeTimeValue !== SPA_PLACEHOLDER) return bakeTimeValue;
 
-  const electron = (window as unknown as ElectronWindow).electron;
-  if (!electron?.isElectron) {
-    // Web runtime: useParams() already returned the real value.
-    return bakeTimeValue;
-  }
+  const path = pathname ?? (typeof window === "undefined" ? undefined : window.location.pathname);
+  if (!path) return undefined;
 
-  // Desktop runtime: the bake-time value is the placeholder.  Parse
-  // the URL to recover the true segment value.  Also fall through
-  // when the value is NOT the placeholder — this lets the helper be
-  // applied to routes that aren't placeholder-baked (defensive).
-  if (bakeTimeValue && bakeTimeValue !== DESKTOP_SPA_PLACEHOLDER) {
-    return bakeTimeValue;
-  }
-
-  const segments = window.location.pathname.split("/").filter(Boolean);
-  const prefixIdx = segments.indexOf(prefixSegment);
+  const segments = path.split("/").filter(Boolean);
+  const prefixIdx = segments.lastIndexOf(prefixSegment);
   if (prefixIdx < 0 || prefixIdx >= segments.length - 1) return undefined;
-  const candidate = segments[prefixIdx + 1];
-  // Guard against the placeholder leaking through if the URL somehow
-  // matches `/game/__spa__/...` directly (shouldn't happen in practice).
-  if (candidate === DESKTOP_SPA_PLACEHOLDER) return undefined;
+  let candidate: string;
+  try {
+    candidate = decodeURIComponent(segments[prefixIdx + 1]);
+  } catch {
+    return undefined;
+  }
+  // The placeholder page itself (`/game/__spa__/`) names no real value.
+  if (candidate === SPA_PLACEHOLDER) return undefined;
   return candidate;
 }
 
-/** Exported for the three route page files' generateStaticParams. */
-export const DESKTOP_SPA_PARAM_VALUE = DESKTOP_SPA_PLACEHOLDER;
+/** Exported for the route page files' generateStaticParams. */
+export const DESKTOP_SPA_PARAM_VALUE = SPA_PLACEHOLDER;
