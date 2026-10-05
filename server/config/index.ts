@@ -76,6 +76,8 @@ export const configureApp = (app: Express): void => {
     cors({
       origin: corsOriginPredicate,
       credentials: true,
+      // Native mobile reads the session token from POST /player/login.
+      exposedHeaders: ["set-auth-token"],
     }),
   );
 

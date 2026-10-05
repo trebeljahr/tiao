@@ -6,6 +6,7 @@ import { auth } from "./auth/auth";
 import { configureApp } from "./config";
 import addErrorHandlingToApp from "./error-handling";
 import { MOBILE_ORIGINS } from "./lib/wsOrigin";
+import { nativeAuthCors } from "./middleware/nativeAuthCors";
 import achievementRoutes from "./routes/achievement.routes";
 import adminRoutes from "./routes/admin.routes";
 import desktopAuthRoutes from "./routes/desktop-auth.routes";
@@ -47,6 +48,9 @@ app.use(
 // When DISCORD_BOT_TOKEN / DISCORD_PUBLIC_KEY are unset the route is a 404.
 app.use("/discord", discordRoutes);
 app.use("/api/discord", discordRoutes);
+
+// Native mobile apps call better-auth cross-origin with a bearer token.
+app.use("/api/auth", nativeAuthCors);
 
 // Mount better-auth BEFORE express.json() to avoid body consumption conflicts
 app.all("/api/auth/*splat", toNodeHandler(auth));

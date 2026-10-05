@@ -290,6 +290,12 @@ router.post("/login", authRateLimiter, async (req: Request, res: Response) => {
     if (setCookie) {
       res.setHeader("set-cookie", setCookie);
     }
+    // Native mobile apps cannot keep that cookie; better-auth's bearer
+    // plugin puts the signed session token in set-auth-token instead.
+    const authToken = baResponse.headers.get("set-auth-token");
+    if (authToken) {
+      res.setHeader("set-auth-token", authToken);
+    }
 
     const result = await baResponse.json();
 

@@ -11,7 +11,7 @@ import { createServer } from "node:http";
 import WebSocket, { WebSocketServer } from "ws";
 import type { ClientToServerMessage } from "../shared/src";
 import app from "./app";
-import { verifySessionToken } from "./auth/desktopSessionManager";
+import { verifyBearerToken } from "./auth/bearerSession";
 import { getPlayerFromUpgradeRequest } from "./auth/sessionHelper";
 import { PORT } from "./config/envVars";
 import { getRedisClient } from "./config/redisClient";
@@ -135,7 +135,7 @@ websocketServer.on("connection", (socket, request) => {
     return;
   }
 
-  // Desktop clients authenticate via ?token=<bearer> in the URL
+  // Desktop and native mobile clients authenticate via ?token=<bearer> in the URL
   // because browser WebSocket APIs can't set custom headers.  Validate
   // the token against the revocable session store here so we
   // know whether to accept the app:// origin AND so the downstream
@@ -161,7 +161,7 @@ websocketServer.on("connection", (socket, request) => {
   const pingInterval = setInterval(() => {
     if (tokenQueryParam && !checkingDesktopSession) {
       checkingDesktopSession = true;
-      void verifySessionToken(tokenQueryParam)
+      void verifyBearerToken(tokenQueryParam)
         .then((payload) => {
           if (!payload) socket.close(1008, "session expired");
         })
@@ -203,7 +203,7 @@ websocketServer.on("connection", (socket, request) => {
   });
 
   void (async () => {
-    const bearerPayload = tokenQueryParam ? await verifySessionToken(tokenQueryParam) : null;
+    const bearerPayload = tokenQueryParam ? await verifyBearerToken(tokenQueryParam) : null;
     const bearerUserId = bearerPayload?.userId ?? null;
     if (socket.readyState !== WebSocket.OPEN) return;
     if (!isAllowedOrigin(request.headers.origin, { hasValidDesktopToken: bearerUserId !== null })) {
@@ -232,7 +232,7 @@ websocketServer.on("connection", (socket, request) => {
       await gameService.connectLobby(
         player,
         socket,
-        tokenQueryParam ? async () => !!(await verifySessionToken(tokenQueryParam)) : undefined,
+        tokenQueryParam ? async () => !!(await verifyBearerToken(tokenQueryParam)) : undefined,
       );
       socket.off("message", bufferLobbyMessage);
       if (socket.readyState === WebSocket.OPEN)
@@ -285,7 +285,7 @@ websocketServer.on("connection", (socket, request) => {
     socket.on("message", (rawMessage) => {
       void (async () => {
         try {
-          if (tokenQueryParam && !(await verifySessionToken(tokenQueryParam))) {
+          if (tokenQueryParam && !(await verifyBearerToken(tokenQueryParam))) {
             socket.close(1008, "session expired");
             return;
           }
