@@ -128,6 +128,15 @@ jobs:
         run: >-
           node -e "require('node:fs').cpSync('client/.next-desktop', 'desktop/client-bundle', { recursive: true })"
 
+      # node-gyp's PowerShell Visual Studio discovery overflows its output
+      # buffer on windows-2025; a developer environment makes it take
+      # VCINSTALLDIR instead.
+      - name: Enter the MSVC developer environment
+        if: matrix.platform == 'msstore'
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+        with:
+          arch: x64
+
       - name: Build the Microsoft Store purchase addon
         if: matrix.platform == 'msstore'
         working-directory: desktop/native/msstore

@@ -75,6 +75,7 @@
       }
     ],
     "mac": {
+      "x64ArchFiles": "Contents/Resources/app.asar.unpacked/node_modules/steamworks.js/dist/osx/*.node",
       "target": [
         {
           "target": "dmg",
