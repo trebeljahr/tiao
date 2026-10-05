@@ -227,7 +227,8 @@ jobs:
             $reader = [IO.StreamReader]::new($entry.Open())
             [xml]$manifest = $reader.ReadToEnd()
             $reader.Dispose()
-            if ($zip.Entries | Where-Object FullName -match 'steam') { throw 'The AppX contains Steam files' }
+            $steam = @($zip.Entries | Where-Object FullName -match 'steam' | ForEach-Object FullName)
+            if ($steam.Count) { $steam | ForEach-Object { "Steam entry: $_" }; throw 'The AppX contains Steam files' }
             if (-not ($zip.Entries | Where-Object FullName -match 'tiao_msstore\.node$')) { throw 'The AppX lacks the Store purchase addon' }
           } finally { $zip.Dispose() }
           $identity = $manifest.Package.Identity
