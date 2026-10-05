@@ -2,11 +2,12 @@ import bcrypt from "bcrypt";
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { APIError } from "better-auth/api";
-import { anonymous } from "better-auth/plugins";
+import { anonymous, bearer } from "better-auth/plugins";
 import { MongoClient } from "mongodb";
 import { identify, track } from "../analytics/openpanel";
 import { FRONTEND_URL, MONGODB_URI, PORT, TOKEN_SECRET } from "../config/envVars";
 import { generateFunAnonymousName } from "../game/playerTokens";
+import { MOBILE_ORIGINS } from "../lib/wsOrigin";
 import GameAccount from "../models/GameAccount";
 import { APPLE_ORIGIN, buildAppleProviderOptions, readAppleConfig } from "./appleSignIn";
 import { sendPasswordResetEmail, sendVerificationEmail } from "./email";
@@ -127,6 +128,11 @@ export const auth = betterAuth({
     if (FRONTEND_URL) origins.push(FRONTEND_URL);
     // Apple returns with a cross-site form_post to /api/auth/callback/apple.
     if (appleConfig) origins.push(APPLE_ORIGIN);
+    // Native mobile WebViews call better-auth cross-origin with a bearer
+    // token (see auth/bearerSession.ts). Trust their origin only for
+    // requests that actually come from it.
+    const requestOrigin = request?.headers.get("origin");
+    if (requestOrigin && MOBILE_ORIGINS.includes(requestOrigin)) origins.push(requestOrigin);
     // In dev, allow localhost and LAN IPs
     if (process.env.NODE_ENV !== "production") {
       const origin = request?.headers.get("origin");
@@ -277,6 +283,11 @@ export const auth = betterAuth({
   },
 
   plugins: [
+    // Native mobile apps cannot keep the cross-site session cookie, so they
+    // send the signed session token as Authorization: Bearer. Unsigned raw
+    // tokens are refused. Web requests never carry the header and keep the
+    // cookie flow unchanged.
+    bearer({ requireSignature: true }),
     anonymous({
       generateName: () => {
         const name = generateFunAnonymousName();
