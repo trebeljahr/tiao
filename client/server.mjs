@@ -24,6 +24,7 @@ import { createServer, request as httpRequest } from "node:http";
 import { request as httpsRequest } from "node:https";
 import { extname, join, resolve } from "node:path";
 import next from "next";
+import { createReleaseAssets } from "./release-assets.mjs";
 import { createApiProxy } from "./runtime-proxy.mjs";
 import { buildGlitchtipEnvelopeTarget } from "./tunnel-envelope.mjs";
 
@@ -148,6 +149,13 @@ const dev = process.env.NODE_ENV !== "production";
 const port = Number.parseInt(process.env.PORT || "3000", 10);
 const apiTarget = process.env.API_URL || `http://127.0.0.1:${process.env.API_PORT || "5005"}`;
 const apiProxy = createApiProxy(apiTarget);
+// Full commit of this build (also Next's deploymentId); unset in development.
+const buildCommit = process.env.BUILD_COMMIT || undefined;
+const releaseAssets = createReleaseAssets({
+  ownStaticDir: resolve("./.next/static"),
+  carriedDir: resolve(process.env.RELEASE_STATIC_DIR || "./release-static"),
+  deploymentId: buildCommit,
+});
 
 // --- OpenPanel analytics proxy -----------------------------------------------
 // When set, /collect/* requests are forwarded to the OpenPanel API so that
@@ -232,6 +240,9 @@ await app.prepare();
 
 console.log(`> API proxy target: ${new URL(apiTarget).origin}`);
 if (openpanelUrl) console.log(`> Analytics proxy: /collect → ${openpanelUrl.origin}`);
+console.log(
+  `> Build ${buildCommit ?? "development"}; carried releases: ${releaseAssets.releases.join(", ") || "none"}`,
+);
 if (glitchtipUrl) console.log(`> Error tunnel: /_e → ${glitchtipUrl.origin}`);
 
 const httpServer = createServer((req, res) => {
@@ -252,6 +263,8 @@ const httpServer = createServer((req, res) => {
           status: draining ? "draining" : healthy ? "ok" : "starting",
           api: apiReady ? "ready" : "unavailable",
           rollingProtocol: 2,
+          build: buildCommit ?? null,
+          carriedReleases: releaseAssets.releases,
         }),
       );
     })();
@@ -316,6 +329,15 @@ const httpServer = createServer((req, res) => {
     return;
   }
 
+  // Tabs of the previous two releases keep loading their own chunks here.
+  if (releaseAssets.serve(req, res, url.pathname)) return;
+
+  // Never decode another release's flight data; Next reloads the document.
+  if (releaseAssets.isForeignFlight(req)) {
+    releaseAssets.refuseForeignFlight(res);
+    return;
+  }
+
   handle(req, res);
 });
 
@@ -345,15 +367,19 @@ function shutdown(signal) {
   draining = true;
   console.log(`${signal} received. Draining frontend for 20 seconds.`);
   setTimeout(async () => {
+    // Backstop: cut remaining connections and exit cleanly before the
+    // container runtime's 30-second stop timeout escalates to SIGKILL.
     const force = setTimeout(() => {
       httpServer.closeAllConnections();
-      process.exit(1);
-    }, 10_000);
+      process.exit(0);
+    }, 8_000);
     force.unref();
     try {
       const closed = new Promise((resolve, reject) =>
         httpServer.close((error) => (error ? reject(error) : resolve())),
       );
+      // Idle keep-alive sockets would otherwise hold close() until the backstop.
+      httpServer.closeIdleConnections();
       await apiProxy.close();
       await closed;
       await app.close();

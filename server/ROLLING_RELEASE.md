@@ -124,5 +124,40 @@ disconnect callback is only a shortcut: the recovery scan rechecks shared lobby
 presence every few seconds, records when a registered player was first seen
 absent, clears it on reconnect through any replica, and unregisters after 15
 seconds. A failed presence read neither records absence nor removes anyone.
-Client proxy retirement and mixed-build asset/RSC compatibility remain separate
-release gates.
+## Web client across releases
+
+A browser tab keeps running the JavaScript of the release that served its
+document. CI copies the previous `tiao-client:main` image's `/_next/static` and
+the releases that image carried into the new image (two releases in total,
+`client/scripts/carry-release-static.mjs`); the Docker build refuses a hashed
+path with different bytes. `client/release-assets.mjs` serves those files when
+the running build has no file at that path, so old tabs keep loading their lazy
+chunks after a deploy. Assets are about 3 MB per carried release.
+
+The full commit SHA is Next's `deploymentId` (`BUILD_COMMIT`). Router and action
+requests carrying another release's `x-deployment-id` get 409; the Next router
+then loads one complete document from the current release. The service worker
+never caches flight data, so an old payload cannot reach a newer page.
+
+A tab whose chunks are no longer anywhere (older than two releases, or a new
+document that reached the old container during overlap) reloads once. An inline
+script handles failed initial chunks; `ReleaseRecovery` and the error boundaries
+handle lazy ones. A 30-second guard stops loops. Hot-seat and computer games are
+saved in tab session storage and restored after any reload of the same URL;
+leaving the page inside the app discards them. Online state is server-owned and
+matchmaking keeps its saved search id.
+
+After draining, the frontend gives open connections 8 seconds, then exits 0,
+inside a 30-second container stop. `/health` reports `build` and the carried
+releases.
+
+`node scripts/test-client-releases.mjs` builds two real clients (B, and C with a
+changed lazily loaded module that carries B), runs both production servers
+behind a routing proxy and drives Chromium: B's document running entirely on
+chunks served by C, a refused foreign router request followed by exactly one
+full navigation, recovery from missing initial chunks, hot-seat restore after a
+reload, and a clean drain. Set `CHROMIUM_PATH` to use an installed Chromium.
+
+The first deploy of this code carries the live image's assets but that image has
+no recovery code; old tabs only gain carried chunks, not the 409 path. Client
+proxy retirement remains a separate release gate.

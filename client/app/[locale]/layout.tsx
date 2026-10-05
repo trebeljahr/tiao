@@ -5,8 +5,10 @@ import Script from "next/script";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { ReleaseRecovery } from "@/components/ReleaseRecovery";
 import { routing } from "@/i18n/routing";
 import { OG_IMAGES, TWITTER_IMAGES } from "@/lib/metadata";
+import { RELEASE_RECOVERY_INLINE_SCRIPT } from "@/lib/releaseRecovery";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -98,6 +100,11 @@ export default async function RootLayout({
       className={`${zenKaku.variable} ${zenOldMincho.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        {/* Must run before any chunk loads; see releaseRecovery.ts. */}
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: static, build-time constant */}
+        <script dangerouslySetInnerHTML={{ __html: RELEASE_RECOVERY_INLINE_SCRIPT }} />
+      </head>
       <body>
         <Script id="plausible-loader" strategy="afterInteractive">
           {`
@@ -117,6 +124,7 @@ export default async function RootLayout({
         </Script>
         <NextIntlClientProvider messages={messages}>
           <OfflineBanner />
+          <ReleaseRecovery />
           <Providers>{children}</Providers>
         </NextIntlClientProvider>
       </body>

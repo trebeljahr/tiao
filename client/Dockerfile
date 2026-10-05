@@ -20,6 +20,11 @@ WORKDIR /app
 ARG APP_VERSION
 ENV APP_VERSION=${APP_VERSION}
 
+# Full commit SHA: Next's deploymentId and the release identity server.mjs
+# reports and uses to refuse another release's router requests.
+ARG BUILD_COMMIT
+ENV BUILD_COMMIT=${BUILD_COMMIT}
+
 # OpenPanel — analytics client for the browser. Both CLIENT_ID and API_URL
 # must be set at build time for the consent banner + web SDK to activate.
 ARG NEXT_PUBLIC_OPENPANEL_CLIENT_ID
@@ -66,8 +71,15 @@ COPY client ./client
 
 RUN pnpm --dir client run build
 
+# Hashed asset names must never collide across carried releases.
+RUN node client/scripts/carry-release-static.mjs verify \
+  --own client/.next/static --carried client/release-carry
+
 FROM node:24.14.1-bookworm-slim AS runtime
 WORKDIR /app
+
+ARG BUILD_COMMIT
+ENV BUILD_COMMIT=${BUILD_COMMIT}
 
 # curl for Coolify's health check. Coolify probes the container by
 # running `curl … || wget … || exit 1` INSIDE it, in place of any
@@ -85,6 +97,9 @@ COPY --from=build /app/client/package*.json ./
 COPY --from=build /app/client/next.config.mjs ./
 COPY --from=build /app/client/server.mjs ./
 COPY --from=build /app/client/runtime-proxy.mjs ./
+COPY --from=build /app/client/release-assets.mjs ./
+# Previous releases' /_next/static, served to tabs still running them.
+COPY --from=build /app/client/release-carry ./release-static
 COPY --from=build /app/client/tunnel-envelope.mjs ./
 COPY --from=build /app/client/node_modules ./node_modules
 COPY --from=build /app/client/src/i18n ./src/i18n

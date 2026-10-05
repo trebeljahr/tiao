@@ -93,6 +93,13 @@ const nextConfig = {
   // don't want them shipped to end users.
   productionBrowserSourceMaps: process.env.EMIT_SOURCE_MAPS === "1",
 
+  // Release identity for the web image: Next sends it as x-deployment-id on
+  // router requests, and server.mjs refuses flight data across releases so
+  // an old tab loads one complete document instead (see release-assets.mjs).
+  ...(process.env.BUILD_COMMIT && !IS_STATIC_EXPORT
+    ? { deploymentId: process.env.BUILD_COMMIT }
+    : {}),
+
   // Static-export overrides for the Electron (desktop) and Capacitor
   // (mobile) bundles. Both targets serve files from disk with no Node
   // runtime, so they share output mode, image-optimizer disablement,

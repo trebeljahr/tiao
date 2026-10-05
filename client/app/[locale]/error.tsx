@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 import { PaperCard } from "@/components/ui/paper-card";
 import { captureException } from "@/lib/glitchtip";
+import { recoverFromStaleRelease } from "@/lib/releaseRecovery";
 
 export default function ErrorPage({
   error,
@@ -19,6 +20,8 @@ export default function ErrorPage({
   const t = useTranslations("serverError");
 
   useEffect(() => {
+    // A module this release no longer serves: reload once instead of failing.
+    if (recoverFromStaleRelease(error)) return;
     captureException(error, { digest: error.digest });
   }, [error]);
 

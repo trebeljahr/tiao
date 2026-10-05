@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { captureException } from "@/lib/glitchtip";
+import { recoverFromStaleRelease } from "@/lib/releaseRecovery";
 
 /**
  * Root-level error boundary. Catches errors in the root layout itself.
@@ -16,6 +17,8 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
+    // A module this release no longer serves: reload once instead of failing.
+    if (recoverFromStaleRelease(error)) return;
     captureException(error, { digest: error.digest });
   }, [error]);
 

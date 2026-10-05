@@ -1,0 +1,4 @@
+# Filled by CI from the previous client image (scripts/carry-release-static.mjs).
+*
+!.gitignore
+!README.md

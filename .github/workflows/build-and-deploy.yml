@@ -41,6 +41,32 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Open tabs keep requesting the chunks of the release they loaded. Carry
+      # the previous image's /_next/static and what it carried itself (two
+      # releases in total) so the new image can still serve them.
+      - name: Carry previous release assets
+        env:
+          PREVIOUS_IMAGE: ghcr.io/${{ github.repository_owner }}/tiao-client:main
+        run: |
+          set -euo pipefail
+          if ! docker pull --quiet "$PREVIOUS_IMAGE"; then
+            echo "No previous client image; nothing to carry."
+            exit 0
+          fi
+          previous_sha=$(docker image inspect "$PREVIOUS_IMAGE" \
+            --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')
+          if [ "$previous_sha" = "$GITHUB_SHA" ]; then
+            echo "Previous image is this commit; nothing to carry."
+            exit 0
+          fi
+          work=$(mktemp -d)
+          container=$(docker create "$PREVIOUS_IMAGE")
+          docker cp "$container:/app/.next/static" "$work/static"
+          docker cp "$container:/app/release-static" "$work/release-static" 2>/dev/null || true
+          docker rm "$container" >/dev/null
+          node client/scripts/carry-release-static.mjs compose \
+            --previous-dir "$work" --previous-sha "$previous_sha" --out client/release-carry
+
       - name: Extract image metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -67,6 +93,7 @@ jobs:
           # anyway, so there's nothing to protect as a secret.
           build-args: |
             APP_VERSION=${{ steps.version.outputs.app_version }}
+            BUILD_COMMIT=${{ github.sha }}
             NEXT_PUBLIC_OPENPANEL_CLIENT_ID=458ec9bb-b1f5-4326-be2c-b0462667b163
             NEXT_PUBLIC_OPENPANEL_API_URL=https://analytics-api.trebeljahr.com
             NEXT_PUBLIC_CREATOR_RICO_ID=69c80a6cb5edd849e485b970
