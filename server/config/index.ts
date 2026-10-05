@@ -3,6 +3,7 @@ import type { Express } from "express";
 import express from "express";
 import helmet from "helmet";
 import logger from "morgan";
+import { MOBILE_ORIGINS } from "../lib/wsOrigin";
 import { FRONTEND_URL } from "./envVars";
 
 /**
@@ -36,6 +37,15 @@ function corsOriginPredicate(
   }
 
   if (requestOrigin === DESKTOP_ORIGIN) {
+    callback(null, true);
+    return;
+  }
+
+  // Capacitor WebView (iOS capacitor://localhost, Android https://localhost).
+  // Same reasoning as the desktop origin: requests authenticate with the
+  // bearer token, and the SameSite=Lax session cookie never rides along
+  // from a localhost page, so allowing the origin grants nothing by itself.
+  if (MOBILE_ORIGINS.includes(requestOrigin)) {
     callback(null, true);
     return;
   }

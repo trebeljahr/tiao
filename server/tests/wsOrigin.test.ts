@@ -12,7 +12,7 @@ process.env.MONGODB_URI ??= "mongodb://127.0.0.1:27017/tiao-test";
 process.env.S3_BUCKET_NAME ??= "tiao-test-assets";
 process.env.S3_PUBLIC_URL ??= "https://assets.test.local";
 
-import { DESKTOP_ORIGIN, isAllowedOrigin } from "../lib/wsOrigin";
+import { DESKTOP_ORIGIN, isAllowedOrigin, MOBILE_ORIGINS } from "../lib/wsOrigin";
 
 describe("isAllowedOrigin — web origin rules (unchanged)", () => {
   test("matches the configured FRONTEND_URL origin", () => {
@@ -58,6 +58,14 @@ describe("isAllowedOrigin — desktop token exception", () => {
 
   test("rejects a random app:// scheme with a token", () => {
     assert.equal(isAllowedOrigin("app://other-app", { hasValidDesktopToken: true }), false);
+  });
+
+  test("accepts the Capacitor WebView origins only with a valid token", () => {
+    for (const origin of MOBILE_ORIGINS) {
+      assert.equal(isAllowedOrigin(origin, { hasValidDesktopToken: true }), true, origin);
+      assert.equal(isAllowedOrigin(origin), false, origin);
+    }
+    assert.equal(isAllowedOrigin("capacitor://evil", { hasValidDesktopToken: true }), false);
   });
 
   test("web origins still work when the desktop token flag is set", () => {

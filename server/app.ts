@@ -1,9 +1,11 @@
 import "dotenv/config";
 import { toNodeHandler } from "better-auth/node";
+import cors from "cors";
 import express, { type Router } from "express";
 import { auth } from "./auth/auth";
 import { configureApp } from "./config";
 import addErrorHandlingToApp from "./error-handling";
+import { MOBILE_ORIGINS } from "./lib/wsOrigin";
 import achievementRoutes from "./routes/achievement.routes";
 import adminRoutes from "./routes/admin.routes";
 import desktopAuthRoutes from "./routes/desktop-auth.routes";
@@ -26,7 +28,16 @@ const app = express();
 // irrelevant and would break the flow).  They bring their own
 // express.json body parser for POST endpoints so there's no
 // dependency on configureApp() ordering.
-app.use("/api/auth/desktop", express.json({ limit: "10kb" }), desktopAuthRoutes);
+//
+// The Capacitor app calls /exchange and /logout with fetch() from its
+// WebView origin, so those origins (and only those) get CORS here. No
+// credentials: the bridge never reads cookies on those endpoints.
+app.use(
+  "/api/auth/desktop",
+  cors({ origin: [...MOBILE_ORIGINS], credentials: false }),
+  express.json({ limit: "10kb" }),
+  desktopAuthRoutes,
+);
 
 // Discord interactions verify an Ed25519 signature over the raw request
 // bytes, so the router parses its own raw body and must sit in front of

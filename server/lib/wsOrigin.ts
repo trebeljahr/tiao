@@ -12,6 +12,13 @@ import { FRONTEND_URL } from "../config/envVars";
 export const DESKTOP_ORIGIN = "app://tiao";
 
 /**
+ * Origins of the Capacitor WebView: iOS serves the bundle from
+ * `capacitor://localhost`, Android from `https://localhost`. Like the
+ * desktop origin they are accepted only alongside a valid bearer token.
+ */
+export const MOBILE_ORIGINS: readonly string[] = ["capacitor://localhost", "https://localhost"];
+
+/**
  * Decide whether a WebSocket upgrade from `origin` is allowed.
  *
  * Web clients must originate from `FRONTEND_URL` (or a localhost
@@ -37,6 +44,7 @@ export function isAllowedOrigin(
   if (options.hasValidDesktopToken) {
     if (!origin) return true;
     if (origin === DESKTOP_ORIGIN) return true;
+    if (MOBILE_ORIGINS.includes(origin)) return true;
   }
 
   if (!origin) return false;

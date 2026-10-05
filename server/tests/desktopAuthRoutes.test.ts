@@ -20,7 +20,10 @@ import { installFakeDesktopSessions } from "./fakeDesktopSessions";
 
 installFakeDesktopSessions();
 
-import desktopAuthRoutes from "../routes/desktop-auth.routes";
+import desktopAuthRoutes, {
+  codeChallengeFromVerifier,
+  verifierMatchesChallenge,
+} from "../routes/desktop-auth.routes";
 
 /**
  * Spin up a minimal Express app with just the desktop auth router and
@@ -158,6 +161,87 @@ describe("POST /api/auth/desktop/exchange", () => {
   });
 });
 
+describe("PKCE on the mobile exchange", () => {
+  let ctx: Awaited<ReturnType<typeof makeTestServer>>;
+  const verifier = "a-verifier_with.unreserved~chars-0123456789";
+  const challenge = codeChallengeFromVerifier(verifier);
+
+  beforeEach(async () => {
+    resetExchangeCodeStoreForTests();
+    ctx = await makeTestServer();
+  });
+
+  async function putWithChallenge(state: string, code: string) {
+    await getExchangeCodeStore().put(
+      state,
+      code,
+      JSON.stringify({
+        userId: "user-pkce",
+        sourceSessionId: "fake-browser-session",
+        securityState: "fake-security-state",
+        codeChallenge: challenge,
+      }),
+      DEFAULT_EXCHANGE_TTL_SEC,
+    );
+  }
+
+  test("S256: BASE64URL(SHA-256(verifier)), 43 chars", async () => {
+    assert.match(challenge, /^[A-Za-z0-9_-]{43}$/);
+    assert.equal(verifierMatchesChallenge(verifier, challenge), true);
+    assert.equal(verifierMatchesChallenge("short", challenge), false);
+    assert.equal(verifierMatchesChallenge(undefined, challenge), false);
+    await ctx.close();
+  });
+
+  test("exchange succeeds with the matching verifier", async () => {
+    const code = generateCode();
+    await putWithChallenge("state-pkce-ok", code);
+    const res = await post(ctx.url, "/api/auth/desktop/exchange", {
+      state: "state-pkce-ok",
+      code,
+      code_verifier: verifier,
+    });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.userId, "user-pkce");
+    await ctx.close();
+  });
+
+  test("an intercepted state + code without the verifier is useless and burnt", async () => {
+    const code = generateCode();
+    await putWithChallenge("state-pkce-stolen", code);
+    const stolen = await post(ctx.url, "/api/auth/desktop/exchange", {
+      state: "state-pkce-stolen",
+      code,
+    });
+    assert.equal(stolen.status, 401);
+    const wrong = await post(ctx.url, "/api/auth/desktop/exchange", {
+      state: "state-pkce-stolen",
+      code,
+      code_verifier: "x".repeat(43),
+    });
+    assert.equal(wrong.status, 401);
+    await ctx.close();
+  });
+
+  test("a wrong verifier burns the code even for the real client", async () => {
+    const code = generateCode();
+    await putWithChallenge("state-pkce-wrong", code);
+    const wrong = await post(ctx.url, "/api/auth/desktop/exchange", {
+      state: "state-pkce-wrong",
+      code,
+      code_verifier: "y".repeat(43),
+    });
+    assert.equal(wrong.status, 401);
+    const late = await post(ctx.url, "/api/auth/desktop/exchange", {
+      state: "state-pkce-wrong",
+      code,
+      code_verifier: verifier,
+    });
+    assert.equal(late.status, 401);
+    await ctx.close();
+  });
+});
+
 describe("POST /api/auth/desktop/refresh", () => {
   let ctx: Awaited<ReturnType<typeof makeTestServer>>;
 
@@ -249,6 +333,23 @@ describe("GET /api/auth/desktop/start validation", () => {
     await ctx.close();
   });
 
+  test("400 when code_challenge is malformed or not S256", async () => {
+    const good = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM";
+    for (const query of [
+      `code_challenge=${good}`,
+      `code_challenge=${good}&code_challenge_method=plain`,
+      "code_challenge=too-short&code_challenge_method=S256",
+    ]) {
+      const res = await fetch(
+        `${ctx.url}/api/auth/desktop/start?provider=google&state=abc&${query}`,
+      );
+      assert.equal(res.status, 400, query);
+      const body = await res.json();
+      assert.equal(body.code, "INVALID_CODE_CHALLENGE", query);
+    }
+    await ctx.close();
+  });
+
   test("400 when state is too long", async () => {
     const longState = "x".repeat(300);
     const res = await fetch(`${ctx.url}/api/auth/desktop/start?provider=google&state=${longState}`);
@@ -264,6 +365,18 @@ describe("GET /api/auth/desktop/callback validation", () => {
 
   beforeEach(async () => {
     ctx = await makeTestServer();
+  });
+
+  test("bounces a tampered tiao_challenge back to the app as an error", async () => {
+    const res = await fetch(
+      `${ctx.url}/api/auth/desktop/callback?tiao_state=s1&tiao_challenge=bad`,
+      {
+        redirect: "manual",
+      },
+    );
+    assert.equal(res.status, 302);
+    assert.equal(res.headers.get("location"), "tiao://auth/error?state=s1&reason=bad_request");
+    await ctx.close();
   });
 
   test("400 when tiao_state is missing", async () => {
