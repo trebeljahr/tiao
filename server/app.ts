@@ -15,6 +15,7 @@ import gameRoutes from "./routes/game.routes";
 import gameAuthRoutes from "./routes/game-auth.routes";
 import googlePlayRoutes from "./routes/googlePlay.routes";
 import indexRoutes from "./routes/index.routes";
+import mobileAuthRoutes from "./routes/mobile-auth.routes";
 import reportRoutes from "./routes/report.routes";
 import shopRoutes from "./routes/shop.routes";
 import socialRoutes from "./routes/social.routes";
@@ -48,6 +49,15 @@ app.use(
 // When DISCORD_BOT_TOKEN / DISCORD_PUBLIC_KEY are unset the route is a 404.
 app.use("/discord", discordRoutes);
 app.use("/api/discord", discordRoutes);
+
+// Account linking for the native apps (system browser + deep link), see
+// routes/mobile-auth.routes.ts. Only /link/start is called with fetch().
+app.use(
+  "/api/auth/mobile",
+  cors({ origin: [...MOBILE_ORIGINS], credentials: false }),
+  express.json({ limit: "10kb" }),
+  mobileAuthRoutes,
+);
 
 // Native mobile apps call better-auth cross-origin with a bearer token.
 app.use("/api/auth", nativeAuthCors);
