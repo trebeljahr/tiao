@@ -158,8 +158,23 @@ together whenever data collection changes.
 - The app does not set `viewport-fit=cover`. iOS keeps the page inside the
   safe area, and on Android 15+ Capacitor pads the WebView out of the
   system bars, so content never draws under the status bar.
-- `tiao://auth/complete` is registered on both platforms for the OAuth
-  return from the system browser.
+- Routing: Capacitor would serve the root `index.html` for every page
+  path. Native routers (`ios/App/App/TiaoRoutes.swift` via
+  `MainViewController`, `android/.../TiaoRoutes.java` via
+  `TiaoWebViewClient`) serve each route's own page instead. Paths without
+  a locale use `en` (next-intl `as-needed`), and dynamic routes such as
+  `/game/<id>/` get the `__spa__` page, whose view reads the real id with
+  `useDynamicParam`. The URL keeps the real path, so reloads, back
+  navigation and client-side links work. Unknown paths get the root
+  shell (`scripts/index-redirect.js`), which redirects to the locale
+  home. Both routers are tested against `scripts/routes-cases.txt`
+  (`pnpm run test:release`, and `./gradlew testDebugUnitTest`).
+- Deep links: `tiao://<path>` and `https://playtiao.com/<path>` open the
+  page in the app, including on cold start
+  (`client/src/components/NativeDeepLinkHandler.tsx`).
+  `tiao://auth/complete` is registered on both platforms for the OAuth
+  return; those URLs go to `onAuthDeepLink` in
+  `client/src/lib/nativeDeepLinks.ts`, never to navigation.
 - The mobile build hides the Stripe shop: store rules require in-app
   purchase for digital goods.
 

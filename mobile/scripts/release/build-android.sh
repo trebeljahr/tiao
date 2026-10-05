@@ -11,6 +11,6 @@ pnpm run build:client
 pnpm exec cap sync android
 (
   cd android
-  ./gradlew --no-daemon --max-workers=2 bundleRelease assembleRelease
+  ./gradlew --no-daemon --max-workers=2 testReleaseUnitTest bundleRelease assembleRelease
 )
 bash scripts/release/verify-android.sh

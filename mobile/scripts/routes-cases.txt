@@ -1,0 +1,64 @@
+# Shared fixture for the native route mappers:
+#   ios/App/App/TiaoRoutes.swift   (scripts/test-ios-routes.sh)
+#   android/app/src/main/java/com/ricoslabs/tiao/TiaoRoutes.java   (TiaoRoutesTest)
+# "F <path>" lists a file present in the bundled static export.
+# "C <request path> <served file>" is one mapping case.
+
+F /index.html
+F /404.html
+F /en/index.html
+F /en/index.txt
+F /tiao-icon.png
+F /en/play/index.html
+F /en/play/index.txt
+F /en/profile/index.html
+F /en/game/__spa__/index.html
+F /en/game/__spa__/index.txt
+F /en/game/__spa__/__next._tree.txt
+F /en/game/__spa__/__next.$d$locale.game.$d$gameId.__PAGE__.txt
+F /en/embed/game/__spa__/index.html
+F /en/profile/__spa__/index.html
+F /de/tournament/__spa__/index.html
+F /_next/static/chunks/main.js
+
+# Root and static pages: extension-less paths load the page's index.html.
+C / /index.html
+C /index.html /index.html
+C /en /en/index.html
+C /en/ /en/index.html
+C /en/play/ /en/play/index.html
+C /en/play /en/play/index.html
+C /en/play/index.txt /en/play/index.txt
+C /en/profile/ /en/profile/index.html
+
+# Dynamic routes: the real param is served the __spa__ placeholder page,
+# for HTML, the RSC payload and the segment prefetch files alike.
+C /en/game/ABC123/ /en/game/__spa__/index.html
+C /en/game/ABC123 /en/game/__spa__/index.html
+C /en/game/ABC123/index.txt /en/game/__spa__/index.txt
+C /en/game/ABC123/__next._tree.txt /en/game/__spa__/__next._tree.txt
+C /en/game/ABC123/__next.$d$locale.game.$d$gameId.__PAGE__.txt /en/game/__spa__/__next.$d$locale.game.$d$gameId.__PAGE__.txt
+C /en/game/__spa__/ /en/game/__spa__/index.html
+C /en/embed/game/XYZ/ /en/embed/game/__spa__/index.html
+C /en/profile/rico/ /en/profile/__spa__/index.html
+C /de/tournament/T42/ /de/tournament/__spa__/index.html
+
+# No locale prefix means the default locale (next-intl "as-needed"):
+# the app's own links for English are unprefixed, e.g. router.push("/play").
+C /play/ /en/play/index.html
+C /play/index.txt /en/play/index.txt
+C /index.txt /en/index.txt
+C /game/ABC123/ /en/game/__spa__/index.html
+C /game/ABC123/index.txt /en/game/__spa__/index.txt
+C /tiao-icon.png /tiao-icon.png
+
+# Unknown pages fall back to the root shell, which redirects (see
+# scripts/write-index-redirect.sh). Unknown files stay as-is (404).
+C /en/game/ABC123/extra/ /index.html
+C /en/nope/ /index.html
+C /nope/ /index.html
+C /en/game/index.txt /en/game/index.txt
+C /_next/static/chunks/main.js /_next/static/chunks/main.js
+C /_next/static/chunks/missing.js /_next/static/chunks/missing.js
+C /../secret.txt /index.html
+C /en/game/../../index.html /index.html

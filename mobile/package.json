@@ -26,7 +26,7 @@
     "itch:push:android": "butler push --userversion $npm_package_version android/app/build/outputs/apk/release/app-release.apk $ITCH_USER/$ITCH_GAME:android",
     "mobile:resources": "bash scripts/make-resources.sh",
     "mobile:version": "node scripts/release/mobile-version.mjs",
-    "test:release": "node --test scripts/release/*.test.mjs && python3 -m unittest discover -s scripts/release -p '*_test.py'"
+    "test:release": "node --test scripts/*.test.mjs scripts/release/*.test.mjs && python3 -m unittest discover -s scripts/release -p '*_test.py' && bash scripts/test-ios-routes.sh"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.0",

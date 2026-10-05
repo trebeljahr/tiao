@@ -66,7 +66,7 @@ jobs:
           RELEASE_MODE: ${{ inputs.mode }}
           RELEASE_BUILD_NUMBER: ${{ inputs.build_number }}
         run: node scripts/release/plan.mjs mobile
-      - run: node --test scripts/release/*.test.mjs
+      - run: node --test scripts/*.test.mjs scripts/release/*.test.mjs
       - run: python3 -m unittest discover -s scripts/release -p '*_test.py'
 
   android:
@@ -124,7 +124,7 @@ jobs:
           pnpm run build:client
           pnpm exec cap sync android
           cd android
-          ./gradlew --no-daemon --max-workers=2 assembleDebug
+          ./gradlew --no-daemon --max-workers=2 testDebugUnitTest assembleDebug
       - run: node scripts/release/collect.mjs android universal signed
         if: needs.plan.outputs.mode == 'signed'
       - uses: actions/attest@v4
@@ -180,6 +180,8 @@ jobs:
       - uses: pnpm/action-setup@v4
       - run: pnpm --dir ../client install --frozen-lockfile
       - run: pnpm install --frozen-lockfile
+      - name: Native route tests
+        run: bash scripts/test-ios-routes.sh
       - run: bash scripts/release/build-ios.sh
         if: needs.plan.outputs.mode == 'signed'
       - name: Compile without signing
