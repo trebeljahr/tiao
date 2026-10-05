@@ -6,10 +6,13 @@ export interface IRatingEntry {
 }
 
 export interface ISubscription {
+  /** Stripe subscription id, or `play:<purchaseToken>` for Google Play. */
   subscriptionId: string;
   badgeId: string;
   status: "active" | "past_due" | "canceled";
   currentPeriodEnd: Date;
+  /** Which store bills this subscription. Missing on rows written before Play billing. */
+  provider?: "stripe" | "google_play";
 }
 
 export interface IGameAccount extends Document {
@@ -35,8 +38,13 @@ export interface IGameAccount extends Document {
   bio: string;
   /** Stripe customer ID for this account. */
   stripeCustomerId?: string;
-  /** Active Stripe subscriptions granting badges. */
+  /** Active subscriptions (Stripe or Google Play) granting badges. */
   activeSubscriptions: ISubscription[];
+  /**
+   * Opaque id passed to Google Play Billing as the obfuscated account id,
+   * so Google ties each purchase to this account. A hash, never the raw id.
+   */
+  googlePlayAccountId?: string;
   rating: {
     overall: IRatingEntry;
   };
@@ -121,9 +129,13 @@ const GameAccountSchema = new Schema<IGameAccount>(
           badgeId: { type: String, required: true },
           status: { type: String, enum: ["active", "past_due", "canceled"], default: "active" },
           currentPeriodEnd: { type: Date, required: true },
+          provider: { type: String, enum: ["stripe", "google_play"] },
         },
       ],
       default: [],
+    },
+    googlePlayAccountId: {
+      type: String,
     },
     rating: {
       overall: {
@@ -140,6 +152,7 @@ const GameAccountSchema = new Schema<IGameAccount>(
 GameAccountSchema.index({ friends: 1 });
 GameAccountSchema.index({ receivedFriendRequests: 1 });
 GameAccountSchema.index({ sentFriendRequests: 1 });
+GameAccountSchema.index({ googlePlayAccountId: 1 }, { unique: true, sparse: true });
 
 const GameAccount = models.GameAccount || model<IGameAccount>("GameAccount", GameAccountSchema);
 

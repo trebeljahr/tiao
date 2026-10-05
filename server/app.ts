@@ -12,6 +12,7 @@ import desktopAuthRoutes from "./routes/desktop-auth.routes";
 import discordRoutes from "./routes/discord.routes";
 import gameRoutes from "./routes/game.routes";
 import gameAuthRoutes from "./routes/game-auth.routes";
+import googlePlayRoutes from "./routes/googlePlay.routes";
 import indexRoutes from "./routes/index.routes";
 import reportRoutes from "./routes/report.routes";
 import shopRoutes from "./routes/shop.routes";
@@ -78,6 +79,7 @@ mountRouteVariants("/player/admin", adminRoutes);
 mountRouteVariants("/player", reportRoutes);
 mountRouteVariants("/", tournamentRoutes);
 mountRouteVariants("/shop/iap", storePurchaseRoutes);
+mountRouteVariants("/shop/iap/google-play", googlePlayRoutes);
 mountRouteVariants("/shop", shopRoutes);
 mountRouteVariants("/player", achievementRoutes);
 

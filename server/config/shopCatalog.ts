@@ -34,6 +34,13 @@ export type ShopItem = {
    * Absent for items that are not sold in the Microsoft Store.
    */
   msStoreOfferToken?: string;
+  /**
+   * Google Play Console product for the Android app. One-time items map to
+   * a one-time product; recurring items map to a subscription plus the base
+   * plan that carries the price. IDs are permanent in the Play Console —
+   * never rename one after it has been created there.
+   */
+  googlePlay: { productId: string; basePlanId?: string };
 };
 
 export const SHOP_ITEMS: ShopItem[] = [
@@ -47,6 +54,7 @@ export const SHOP_ITEMS: ShopItem[] = [
     price: 299,
     currency: "usd",
     stripeName: "Supporter Badge — Classic Gold",
+    googlePlay: { productId: "badge_supporter" },
   },
   {
     type: "badge",
@@ -56,6 +64,7 @@ export const SHOP_ITEMS: ShopItem[] = [
     price: 599,
     currency: "usd",
     stripeName: "Super Supporter Badge — Animated Gold",
+    googlePlay: { productId: "badge_super_supporter" },
   },
   {
     type: "badge",
@@ -65,6 +74,7 @@ export const SHOP_ITEMS: ShopItem[] = [
     price: 299,
     currency: "usd",
     stripeName: "Supporter Badge — Coral",
+    googlePlay: { productId: "badge_coral" },
   },
   {
     type: "badge",
@@ -74,6 +84,7 @@ export const SHOP_ITEMS: ShopItem[] = [
     price: 299,
     currency: "usd",
     stripeName: "Supporter Badge — Indigo",
+    googlePlay: { productId: "badge_indigo" },
   },
   {
     type: "badge",
@@ -83,6 +94,7 @@ export const SHOP_ITEMS: ShopItem[] = [
     price: 599,
     currency: "usd",
     stripeName: "Supporter Badge — Rose Shimmer",
+    googlePlay: { productId: "badge_rose_shimmer" },
   },
   {
     type: "badge",
@@ -92,6 +104,7 @@ export const SHOP_ITEMS: ShopItem[] = [
     price: 599,
     currency: "usd",
     stripeName: "Supporter Badge — Teal Shimmer",
+    googlePlay: { productId: "badge_teal_shimmer" },
   },
   {
     type: "badge",
@@ -101,6 +114,7 @@ export const SHOP_ITEMS: ShopItem[] = [
     price: 299,
     currency: "usd",
     stripeName: "Supporter Badge — Slate",
+    googlePlay: { productId: "badge_slate" },
   },
   {
     type: "badge",
@@ -110,6 +124,7 @@ export const SHOP_ITEMS: ShopItem[] = [
     price: 599,
     currency: "usd",
     stripeName: "Supporter Badge — Ember Shimmer",
+    googlePlay: { productId: "badge_ember_shimmer" },
   },
   {
     type: "badge",
@@ -119,6 +134,7 @@ export const SHOP_ITEMS: ShopItem[] = [
     price: 999,
     currency: "usd",
     stripeName: "Supporter Badge — Prism Rainbow",
+    googlePlay: { productId: "badge_prism_rainbow" },
   },
   {
     type: "badge",
@@ -128,6 +144,7 @@ export const SHOP_ITEMS: ShopItem[] = [
     price: 599,
     currency: "usd",
     stripeName: "Supporter Badge — Midnight Blue",
+    googlePlay: { productId: "badge_midnight_blue" },
   },
 
   // Subscription badges
@@ -138,6 +155,7 @@ export const SHOP_ITEMS: ShopItem[] = [
     currency: "usd",
     stripeName: "Patron Badge",
     recurring: { interval: "month" },
+    googlePlay: { productId: "sub_patron", basePlanId: "monthly" },
   },
 
   // Board themes (classic is free/default, not in shop)
@@ -149,6 +167,7 @@ export const SHOP_ITEMS: ShopItem[] = [
     stripeName: "Night Board Theme",
     steamItemId: 2001,
     msStoreOfferToken: "tiao.theme.night",
+    googlePlay: { productId: "theme_night" },
   },
   {
     type: "theme",
@@ -158,6 +177,7 @@ export const SHOP_ITEMS: ShopItem[] = [
     stripeName: "Sakura Board Theme",
     steamItemId: 2002,
     msStoreOfferToken: "tiao.theme.sakura",
+    googlePlay: { productId: "theme_sakura" },
   },
   {
     type: "theme",
@@ -167,6 +187,7 @@ export const SHOP_ITEMS: ShopItem[] = [
     stripeName: "Ocean Board Theme",
     steamItemId: 2003,
     msStoreOfferToken: "tiao.theme.ocean",
+    googlePlay: { productId: "theme_ocean" },
   },
   {
     type: "theme",
@@ -176,8 +197,14 @@ export const SHOP_ITEMS: ShopItem[] = [
     stripeName: "Marble Board Theme",
     steamItemId: 2004,
     msStoreOfferToken: "tiao.theme.marble",
+    googlePlay: { productId: "theme_marble" },
   },
 ];
+
+/** Lookup a shop item by its Google Play product id. */
+export function findShopItemByPlayProductId(productId: string): ShopItem | undefined {
+  return SHOP_ITEMS.find((item) => item.googlePlay.productId === productId);
+}
 
 /** Lookup a shop item by type + id. */
 export function findShopItem(type: ShopItemType, id: string): ShopItem | undefined {

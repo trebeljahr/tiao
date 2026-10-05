@@ -238,6 +238,7 @@ router.get("/subscriptions", async (req: Request, res: Response) => {
       badgeId: s.badgeId,
       status: s.status,
       currentPeriodEnd: s.currentPeriodEnd,
+      provider: s.provider ?? "stripe",
     }));
 
     return res.json({ subscriptions });
@@ -284,6 +285,15 @@ router.post("/cancel-subscription", async (req: Request, res: Response) => {
       return res.status(404).json({
         code: "SUBSCRIPTION_NOT_FOUND",
         message: "Subscription not found.",
+      });
+    }
+
+    // Google Play subscriptions can only be cancelled by the player in the
+    // Play Store; the RTDN for that cancellation updates the row.
+    if (sub.provider === "google_play") {
+      return res.status(409).json({
+        code: "MANAGED_BY_GOOGLE_PLAY",
+        message: "Manage this subscription in the Google Play Store.",
       });
     }
 
@@ -375,6 +385,7 @@ router.post(
                     badgeId: itemId,
                     status: "active" as const,
                     currentPeriodEnd: subscriptionPeriodEnd(subscription),
+                    provider: "stripe" as const,
                   };
                   if (existingIdx !== undefined && existingIdx >= 0) {
                     account.activeSubscriptions[existingIdx] = subRecord;

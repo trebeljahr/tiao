@@ -3,6 +3,7 @@ import { getPlayerFromRequest } from "../auth/sessionHelper";
 import type { ShopItem } from "../config/shopCatalog";
 import { handleRouteError } from "../error-handling/routeError";
 import GameAccount from "../models/GameAccount";
+import { getGooglePlayApi } from "../payments/googlePlayApi";
 import { steamMicroTxnFromEnv } from "../payments/steamMicroTxn";
 import {
   createStorePurchaseService,
@@ -19,6 +20,8 @@ import {
  *   POST /steam/init        { itemType, itemId, ticket, language } → { orderId }
  *   POST /steam/finalize    { orderId } → { status, itemType, itemId }
  *   POST /steam/reconcile   settle this player's pending Steam orders
+ *
+ * Google Play Billing is mounted beside it at /shop/iap/google-play.
  *
  * Kept apart from shop.routes.ts (Stripe) so the Steam and Microsoft Store
  * builds never touch the Stripe code path, which their store rules forbid.
@@ -85,6 +88,8 @@ router.get("/config", (_req: Request, res: Response) => {
   getService();
   return res.json({
     steam: { enabled: steamEnabled, sandbox: steamSandbox },
+    // Play billing itself lives in googlePlay.routes.ts (/shop/iap/google-play).
+    googlePlay: { enabled: getGooglePlayApi() !== null },
   });
 });
 
