@@ -9,6 +9,7 @@ process.env.MONGODB_URI ??= "mongodb://127.0.0.1:27017/tiao-test";
 process.env.S3_BUCKET_NAME ??= "tiao-test-assets";
 process.env.S3_PUBLIC_URL ??= "https://assets.test.local";
 
+import * as bearerSessionModule from "../auth/bearerSession";
 import {
   DEFAULT_EXCHANGE_TTL_SEC,
   generateCode,
@@ -18,7 +19,7 @@ import {
 import { verifySessionToken } from "../auth/desktopSessionManager";
 import { installFakeDesktopSessions } from "./fakeDesktopSessions";
 
-installFakeDesktopSessions();
+const fakeSessions = installFakeDesktopSessions();
 
 import desktopAuthRoutes, {
   codeChallengeFromVerifier,
@@ -238,6 +239,102 @@ describe("PKCE on the mobile exchange", () => {
       code_verifier: verifier,
     });
     assert.equal(late.status, 401);
+    await ctx.close();
+  });
+});
+
+describe("token_type=session on the mobile exchange", () => {
+  let ctx: Awaited<ReturnType<typeof makeTestServer>>;
+  const verifier = "a-verifier_with.unreserved~chars-0123456789";
+  const challenge = codeChallengeFromVerifier(verifier);
+  const minted: string[] = [];
+
+  beforeEach(async () => {
+    resetExchangeCodeStoreForTests();
+    fakeSessions.setSecurityState("fake-security-state");
+    minted.length = 0;
+    (bearerSessionModule as Record<string, unknown>).mintBearerSession = async (userId: string) => {
+      minted.push(userId);
+      return { token: `ba-session-for-${userId}.sig`, expiresAt: Date.now() + 1000 };
+    };
+    ctx = await makeTestServer();
+  });
+
+  async function put(state: string, code: string, withChallenge: boolean) {
+    await getExchangeCodeStore().put(
+      state,
+      code,
+      JSON.stringify({
+        userId: "user-native",
+        sourceSessionId: "fake-browser-session",
+        securityState: "fake-security-state",
+        ...(withChallenge ? { codeChallenge: challenge } : {}),
+      }),
+      DEFAULT_EXCHANGE_TTL_SEC,
+    );
+  }
+
+  test("returns a better-auth session token for a PKCE flow", async () => {
+    const code = generateCode();
+    await put("state-native", code, true);
+    const res = await post(ctx.url, "/api/auth/desktop/exchange", {
+      state: "state-native",
+      code,
+      code_verifier: verifier,
+      token_type: "session",
+    });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.tokenType, "session");
+    assert.equal(res.body.sessionToken, "ba-session-for-user-native.sig");
+    assert.deepEqual(minted, ["user-native"]);
+    await ctx.close();
+  });
+
+  test("refuses a session token without PKCE", async () => {
+    const code = generateCode();
+    await put("state-no-pkce", code, false);
+    const res = await post(ctx.url, "/api/auth/desktop/exchange", {
+      state: "state-no-pkce",
+      code,
+      token_type: "session",
+    });
+    assert.equal(res.status, 401);
+    assert.deepEqual(minted, []);
+    await ctx.close();
+  });
+
+  test("refuses when the account's security state changed since the callback", async () => {
+    const code = generateCode();
+    await put("state-changed", code, true);
+    fakeSessions.setSecurityState("password-changed");
+    const res = await post(ctx.url, "/api/auth/desktop/exchange", {
+      state: "state-changed",
+      code,
+      code_verifier: verifier,
+      token_type: "session",
+    });
+    assert.equal(res.status, 401);
+    assert.deepEqual(minted, []);
+    await ctx.close();
+  });
+
+  test("rejects unknown token types before consuming the code", async () => {
+    const code = generateCode();
+    await put("state-bad-type", code, true);
+    const bad = await post(ctx.url, "/api/auth/desktop/exchange", {
+      state: "state-bad-type",
+      code,
+      code_verifier: verifier,
+      token_type: "jwt",
+    });
+    assert.equal(bad.status, 400);
+    const ok = await post(ctx.url, "/api/auth/desktop/exchange", {
+      state: "state-bad-type",
+      code,
+      code_verifier: verifier,
+      token_type: "session",
+    });
+    assert.equal(ok.status, 200);
     await ctx.close();
   });
 });

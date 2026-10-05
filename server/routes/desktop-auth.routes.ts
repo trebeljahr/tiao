@@ -2,6 +2,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { fromNodeHeaders } from "better-auth/node";
 import express, { type Request, type Response } from "express";
 import { auth } from "../auth/auth";
+import * as bearerSession from "../auth/bearerSession";
 import { normalizeAuthId } from "../auth/betterAuthIds";
 import {
   DEFAULT_EXCHANGE_TTL_SEC,
@@ -239,11 +240,26 @@ router.post("/exchange", async (req: Request, res: Response) => {
       state,
       code,
       code_verifier: codeVerifier,
-    } = (req.body ?? {}) as { state?: unknown; code?: unknown; code_verifier?: unknown };
+      token_type: tokenType,
+    } = (req.body ?? {}) as {
+      state?: unknown;
+      code?: unknown;
+      code_verifier?: unknown;
+      token_type?: unknown;
+    };
     if (typeof state !== "string" || !state || typeof code !== "string" || !code) {
       return res.status(400).json({
         code: "BAD_REQUEST",
         message: "state and code are required",
+      });
+    }
+    // Native mobile asks for a better-auth session (token_type "session"),
+    // which every better-auth endpoint accepts through the bearer plugin.
+    // Desktop omits it and keeps its revocable v2 token.
+    if (tokenType !== undefined && tokenType !== "session") {
+      return res.status(400).json({
+        code: "BAD_REQUEST",
+        message: 'token_type must be "session" when present',
       });
     }
 
@@ -275,6 +291,22 @@ router.post("/exchange", async (req: Request, res: Response) => {
       typeof securityState !== "string"
     ) {
       return res.status(401).json({ code: "EXCHANGE_FAILED" });
+    }
+    if (tokenType === "session") {
+      // Only PKCE flows may receive a full better-auth session: without a
+      // verifier, whoever intercepted the deep link could redeem it.
+      if (codeChallenge === undefined) {
+        return res.status(401).json({ code: "EXCHANGE_FAILED", message: "PKCE is required." });
+      }
+      const current = await desktopSessionStore.securityState(userId, sourceSessionId);
+      if (current !== securityState) return res.status(401).json({ code: "EXCHANGE_FAILED" });
+      const minted = await bearerSession.mintBearerSession(userId);
+      return res.json({
+        sessionToken: minted.token,
+        userId,
+        expiresAt: minted.expiresAt,
+        tokenType: "session",
+      });
     }
     const sessionToken = await createSessionToken(userId, sourceSessionId, securityState);
     const payload = await verifySessionToken(sessionToken);
