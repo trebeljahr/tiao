@@ -164,6 +164,80 @@ build time via `NEXT_PUBLIC_MOBILE_API_URL` (see
 `client/next.config.mjs`, default `https://api.playtiao.com`). Override
 for dev/staging by exporting the var before `pnpm run build:client`.
 
+## Social sign-in (system browser + deep link)
+
+Google refuses OAuth inside embedded WebViews (`disallowed_useragent`),
+so the app never runs a provider flow in its own WebView. Tapping
+Apple / Google / GitHub / Discord calls `startMobileOAuth()` in
+`client/src/lib/mobileAuth.ts`, which:
+
+1. creates a random `state` and a PKCE verifier and keeps them in
+   Capacitor Preferences;
+2. opens `https://api.playtiao.com/api/auth/desktop/start?provider=…&state=…&code_challenge=…&code_challenge_method=S256`
+   with `@capacitor/browser` (SFSafariViewController / Chrome Custom Tab);
+3. receives `tiao://auth/complete?state=…&code=…` through
+   `@capacitor/app`'s `appUrlOpen` event (or `getLaunchUrl()` after a cold
+   start), closes the browser, and POSTs `{state, code, code_verifier}` to
+   `/api/auth/desktop/exchange`;
+4. stores the returned revocable bearer token in Preferences and sends it
+   as `Authorization: Bearer` on every API call and as `?token=` on the
+   WebSocket, exactly like the desktop app.
+
+The server side is the desktop bridge plus PKCE: any app can claim the
+`tiao://` scheme on a phone, so an intercepted deep link is useless
+without the verifier that never leaves this app. Logout calls
+`/api/auth/desktop/logout` before the token is forgotten.
+
+The native projects need the `tiao` URL scheme registered. `cap add`
+does not do this; add it once after generating `ios/` and `android/`.
+
+**iOS — `ios/App/App/Info.plist`** (inside the top-level `<dict>`):
+
+```xml
+<key>CFBundleURLTypes</key>
+<array>
+  <dict>
+    <key>CFBundleURLName</key>
+    <string>com.ricoslabs.tiao.auth</string>
+    <key>CFBundleURLSchemes</key>
+    <array>
+      <string>tiao</string>
+    </array>
+  </dict>
+</array>
+```
+
+Capacitor's generated `AppDelegate.swift` already forwards
+`application(_:open:options:)` to `ApplicationDelegateProxy`, which is
+what fires `appUrlOpen`. Keep that method if you edit the delegate.
+
+**Android — `android/app/src/main/AndroidManifest.xml`**, inside the
+existing `<activity android:name=".MainActivity" …>` (keep its
+`android:launchMode="singleTask"` so the callback reaches the running
+activity instead of starting a second one):
+
+```xml
+<intent-filter android:autoVerify="false">
+  <action android:name="android.intent.action.VIEW" />
+  <category android:name="android.intent.category.DEFAULT" />
+  <category android:name="android.intent.category.BROWSABLE" />
+  <data android:scheme="tiao" android:host="auth" />
+</intent-filter>
+```
+
+Then `pnpm run cap:sync` so `@capacitor/browser` is linked into both
+projects.
+
+Sign in with Apple uses the same web flow on iOS. That satisfies App
+Store guideline 4.8; a native `ASAuthorizationController` button would
+need an extra Capacitor plugin and the server already accepts ID tokens
+for the bundle ID `com.ricoslabs.tiao` if that is added later.
+
+The token lives in Capacitor Preferences (UserDefaults /
+SharedPreferences): sandboxed per app, but not Keychain-encrypted like
+the desktop build's `safeStorage`. Moving it to a Keychain / Keystore
+plugin is a possible hardening step.
+
 ## Why `mobile/` is a sibling of `desktop/`
 
 Same reason: the Capacitor CLI expects `cap sync` to run from the

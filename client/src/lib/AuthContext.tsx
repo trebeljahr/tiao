@@ -23,6 +23,14 @@ import { getAuthClient } from "@/lib/auth-client";
 import type { SocialProvider } from "@/lib/authProviders";
 import { isNetworkError, readableError, toastError } from "@/lib/errors";
 import { setUser as setGlitchtipUser } from "@/lib/glitchtip";
+import {
+  isNativeMobileApp,
+  loadPersistedMobileToken,
+  logoutMobile,
+  startMobileOAuth,
+  subscribeMobileAuth,
+} from "@/lib/mobileAuth";
+import { getOAuthErrorMessage } from "@/lib/oauthErrors";
 import { op, setAuthReady } from "@/lib/openpanel";
 import { safeLocalStorage } from "@/lib/safeLocalStorage";
 import { resetActiveBadges } from "@/lib/useActiveBadge";
@@ -235,6 +243,8 @@ export function AuthProvider({
         // subsequent better-auth getSession() call includes it in
         // Authorization: Bearer. Web build no-ops this.
         await refreshElectronTokenFromBridge();
+        // Native mobile: same idea, token kept in Capacitor Preferences.
+        await loadPersistedMobileToken();
 
         // Lazy-load the better-auth client (first call pays the dynamic
         // import; subsequent calls resolve from cache).
@@ -360,6 +370,29 @@ export function AuthProvider({
       }
     };
   }, []);
+
+  // Native mobile: OAuth finishes in the system browser and comes back as
+  // a tiao://auth/complete deep link; mobileAuth exchanges it for a bearer
+  // token. Refresh the identity the same way the desktop bridge does.
+  useEffect(() => {
+    return subscribeMobileAuth(async (result) => {
+      if (!result.ok) {
+        toastError(getOAuthErrorMessage(result.reason, t));
+        return;
+      }
+      try {
+        const { player } = await getPlayerIdentity();
+        if (player) {
+          setCachedAuth({ player });
+          setAuth({ player });
+          setAppError(null);
+          setAuthDialogOpen(false);
+        }
+      } catch (error) {
+        toastError(readableError(error));
+      }
+    });
+  }, [t]);
 
   // Desktop Electron: on first mount, ask the main process whether OS
   // credential encryption is available.  If not (almost always Linux
@@ -529,6 +562,14 @@ export function AuthProvider({
         return;
       }
 
+      // Native mobile: Google blocks OAuth in embedded WebViews, so run
+      // the flow in the system browser and return via deep link. The
+      // session update arrives through subscribeMobileAuth above.
+      if (isNativeMobileApp()) {
+        await startMobileOAuth(provider);
+        return;
+      }
+
       // Web: standard better-auth browser redirect flow.
       // On both success and failure, return the user to the page they
       // initiated OAuth from. On failure better-auth appends `?error=` to
@@ -575,6 +616,14 @@ export function AuthProvider({
         toastError(
           "Could not revoke your desktop session. Check your connection and retry logout.",
         );
+        return;
+      }
+    }
+    if (isNativeMobileApp()) {
+      try {
+        await logoutMobile();
+      } catch {
+        toastError("Could not revoke your session. Check your connection and retry logout.");
         return;
       }
     }
