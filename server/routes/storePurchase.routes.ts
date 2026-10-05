@@ -3,7 +3,7 @@ import { getPlayerFromRequest } from "../auth/sessionHelper";
 import type { ShopItem } from "../config/shopCatalog";
 import { handleRouteError } from "../error-handling/routeError";
 import GameAccount from "../models/GameAccount";
-import { getGooglePlayApi } from "../payments/googlePlayApi";
+import { isGooglePlayStorefrontEnabled } from "../payments/googlePlayApi";
 import { steamMicroTxnFromEnv } from "../payments/steamMicroTxn";
 import {
   createStorePurchaseService,
@@ -89,7 +89,7 @@ router.get("/config", (_req: Request, res: Response) => {
   return res.json({
     steam: { enabled: steamEnabled, sandbox: steamSandbox },
     // Play billing itself lives in googlePlay.routes.ts (/shop/iap/google-play).
-    googlePlay: { enabled: getGooglePlayApi() !== null },
+    googlePlay: { enabled: isGooglePlayStorefrontEnabled() },
   });
 });
 

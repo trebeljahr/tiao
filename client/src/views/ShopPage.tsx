@@ -38,9 +38,13 @@ import {
 } from "@/lib/api";
 import { toastError } from "@/lib/errors";
 import { isAdmin } from "@/lib/featureGate";
+import { getGooglePlayPrices, openGooglePlaySubscriptions } from "@/lib/GooglePlayBridge";
 import {
   canPurchaseIn,
+  canSubscribeIn,
+  purchaseWithGooglePlay,
   purchaseWithSteam,
+  restoreFromGooglePlay,
   StorePurchaseCancelled,
   StoreUnavailableError,
   useStorePurchaseChannel,
@@ -121,6 +125,38 @@ function formatPrice(cents: number, currency: string): string {
 function BadgeDescText({ badge }: { badge: BadgeId }) {
   const desc = useBadgeDescription(badge);
   return <p className="text-sm text-[#6e5b48]">{desc}</p>;
+}
+
+const PLAY_SUBSCRIPTIONS_URL = "https://play.google.com/store/account/subscriptions";
+
+/**
+ * Google Play subscriptions are cancelled in the Play Store, not here: the
+ * Android app opens Play's subscription screen, other clients link to it.
+ */
+function ManageInGooglePlay({ label }: { label: string }) {
+  const channel = useStorePurchaseChannel();
+  if (channel === "google_play") {
+    return (
+      <Button
+        variant="ghost"
+        size="sm"
+        className="text-xs"
+        onClick={() => void openGooglePlaySubscriptions()}
+      >
+        {label}
+      </Button>
+    );
+  }
+  return (
+    <a
+      href={PLAY_SUBSCRIPTIONS_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-xs font-medium text-[#6c543c] underline underline-offset-2"
+    >
+      {label}
+    </a>
+  );
 }
 
 export function ShopPage() {
@@ -325,6 +361,66 @@ export function ShopPage() {
     return () => clearTimeout(timer);
   }, [loading]);
 
+  // Google Play: localized prices from the Play Store (store policy — the
+  // price shown must be the one Play charges), and a silent restore so a
+  // purchase that never reached the server (app killed mid-checkout,
+  // pending payment cleared later) is granted on the next visit.
+  const [playPrices, setPlayPrices] = useState<Record<string, string>>({});
+  const [restoring, setRestoring] = useState(false);
+  useEffect(() => {
+    if (channel !== "google_play" || !catalog) return;
+    let cancelled = false;
+    void getGooglePlayPrices(
+      catalog.flatMap((i) =>
+        i.googlePlay
+          ? [
+              {
+                productId: i.googlePlay.productId,
+                productType: i.recurring ? ("subs" as const) : ("inapp" as const),
+              },
+            ]
+          : [],
+      ),
+    ).then((prices) => {
+      if (!cancelled) setPlayPrices(prices);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [channel, catalog]);
+
+  useEffect(() => {
+    if (channel !== "google_play" || !isAccount) return;
+    restoreFromGooglePlay()
+      .then(({ granted }) => {
+        if (granted > 0) void fetchCatalog(true);
+      })
+      .catch(() => {});
+  }, [channel, isAccount, fetchCatalog]);
+
+  async function handleRestore() {
+    if (!isAccount) {
+      onOpenAuth("login");
+      return;
+    }
+    setRestoring(true);
+    try {
+      const { granted } = await restoreFromGooglePlay();
+      await fetchCatalog(true);
+      toast.success(granted > 0 ? t("restoreComplete") : t("restoreNothing"));
+    } catch (error) {
+      toastError(error);
+    } finally {
+      setRestoring(false);
+    }
+  }
+
+  function displayPrice(item: ShopCatalogItem): string {
+    const playPrice = item.googlePlay && playPrices[item.googlePlay.productId];
+    if (channel === "google_play" && playPrice) return playPrice;
+    return formatPrice(item.price, item.currency);
+  }
+
   // Steam: settle orders the player approved while the game was closed
   // or offline before the finalize step ran.
   useEffect(() => {
@@ -339,9 +435,16 @@ export function ShopPage() {
   async function handleStorePurchase(item: ShopCatalogItem) {
     const key = `${item.type}-${item.id}`;
     try {
-      const result = await purchaseWithSteam(item, locale);
+      const result =
+        channel === "google_play"
+          ? await purchaseWithGooglePlay(item)
+          : await purchaseWithSteam(item, locale);
       if (result.status === "granted") {
         await fetchCatalog(true);
+        if (item.recurring) {
+          const subsRes = await getSubscriptions().catch(() => null);
+          if (subsRes) setSubscriptions(subsRes.subscriptions);
+        }
         if (item.type === "badge" && BADGE_DEFINITIONS[item.id as BadgeId]) {
           toast.success(<BadgeToast badge={item.id as BadgeId} title={t("purchaseComplete")} />);
         } else {
@@ -355,7 +458,12 @@ export function ShopPage() {
       }
     } catch (error) {
       if (error instanceof StorePurchaseCancelled) toast(t("purchaseCancelled"));
-      else if (error instanceof StoreUnavailableError) toast.error(t("steamNotRunning"));
+      else if (error instanceof StoreUnavailableError)
+        toast.error(
+          error.reason === "google_play_unavailable"
+            ? t("googlePlayUnavailable")
+            : t("steamNotRunning"),
+        );
       else toastError(error);
     }
   }
@@ -367,7 +475,7 @@ export function ShopPage() {
     }
 
     setBuyingItem(`${item.type}-${item.id}`);
-    if (channel === "steam") {
+    if (channel === "steam" || channel === "google_play") {
       await handleStorePurchase(item);
       setBuyingItem(null);
       return;
@@ -415,9 +523,10 @@ export function ShopPage() {
   }
 
   const oneTimeBadgeItems = catalog?.filter((i) => i.type === "badge" && !i.recurring) ?? [];
-  // Subscriptions bill through Stripe only; store builds sell one-time items.
-  const subscriptionBadgeItems =
-    channel === "stripe" ? (catalog?.filter((i) => i.type === "badge" && i.recurring) ?? []) : [];
+  // Subscriptions bill through Stripe or Google Play; Steam sells one-time items only.
+  const subscriptionBadgeItems = canSubscribeIn(channel)
+    ? (catalog?.filter((i) => i.type === "badge" && i.recurring) ?? [])
+    : [];
   const themeItems = catalog?.filter((i) => i.type === "theme") ?? [];
 
   function getSubscriptionForBadge(badgeId: string): Subscription | undefined {
@@ -432,13 +541,26 @@ export function ShopPage() {
           <h1 className="font-display text-4xl text-[#2b1e14]">{t("title")}</h1>
           <p className="mt-1 text-sm text-[#6e5b48]">{t("description")}</p>
         </div>
-        {isAdmin(auth) && (
-          <Link href="/admin/badges">
-            <Button variant="outline" size="sm" className="text-xs">
-              {t("adminPanel")}
+        <div className="flex items-center gap-2">
+          {channel === "google_play" && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs"
+              onClick={handleRestore}
+              disabled={restoring}
+            >
+              {restoring ? t("processing") : t("restorePurchases")}
             </Button>
-          </Link>
-        )}
+          )}
+          {isAdmin(auth) && (
+            <Link href="/admin/badges">
+              <Button variant="outline" size="sm" className="text-xs">
+                {t("adminPanel")}
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Active Badge Selector (if user has badges) */}
@@ -491,7 +613,7 @@ export function ShopPage() {
                       </div>
                       <div className="mt-4 flex items-center justify-between">
                         <span className="font-display text-lg font-bold text-[#2b1e14]">
-                          {formatPrice(item.price, item.currency)}
+                          {displayPrice(item)}
                         </span>
                         {item.owned ? (
                           <Badge className="whitespace-nowrap bg-emerald-100 text-emerald-700">
@@ -534,7 +656,7 @@ export function ShopPage() {
                       <div className="mt-4 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
                           <span className="font-display text-lg font-bold text-[#2b1e14]">
-                            {t("perMonth", { price: formatPrice(item.price, item.currency) })}
+                            {t("perMonth", { price: displayPrice(item) })}
                           </span>
                           {!sub && (
                             <Button
@@ -555,15 +677,19 @@ export function ShopPage() {
                                 date: new Date(sub.currentPeriodEnd).toLocaleDateString(),
                               })}
                             </span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-xs text-red-600 hover:text-red-700"
-                              onClick={() => setCancelTarget(sub)}
-                              disabled={cancellingItem === sub.subscriptionId}
-                            >
-                              {t("cancelSubscription")}
-                            </Button>
+                            {sub.provider === "google_play" ? (
+                              <ManageInGooglePlay label={t("manageInGooglePlay")} />
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-xs text-red-600 hover:text-red-700"
+                                onClick={() => setCancelTarget(sub)}
+                                disabled={cancellingItem === sub.subscriptionId}
+                              >
+                                {t("cancelSubscription")}
+                              </Button>
+                            )}
                           </div>
                         )}
                         {isCanceled && sub && (
@@ -708,7 +834,7 @@ export function ShopPage() {
                       </div>
                       <div className="mt-3 flex items-center justify-between">
                         <span className="font-display text-base font-bold text-[#2b1e14]">
-                          {formatPrice(item.price, item.currency)}
+                          {displayPrice(item)}
                         </span>
                         {item.owned ? (
                           <Badge className="whitespace-nowrap bg-emerald-100 text-emerald-700">

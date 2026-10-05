@@ -585,6 +585,7 @@ export type ShopCatalogItem = {
   recurring?: { interval: "month" | "year" };
   steamItemId?: number;
   msStoreOfferToken?: string;
+  googlePlay?: { productId: string; basePlanId?: string };
 };
 
 export type Subscription = {
@@ -592,6 +593,8 @@ export type Subscription = {
   badgeId: string;
   status: "active" | "past_due" | "canceled";
   currentPeriodEnd: string;
+  /** Which store bills it. Older servers omit it (Stripe). */
+  provider?: "stripe" | "google_play";
 };
 
 export function getShopCatalog() {
@@ -620,6 +623,8 @@ export function cancelSubscription(subscriptionId: string) {
 
 export type StorePurchaseConfig = {
   steam: { enabled: boolean; sandbox: boolean };
+  /** Absent on servers that predate Google Play billing. */
+  googlePlay?: { enabled: boolean };
 };
 
 export type StorePurchaseResult = {
@@ -653,6 +658,55 @@ export function reconcileSteamPurchases() {
   return request<{ results: StorePurchaseResult[] }>("/api/shop/iap/steam/reconcile", {
     method: "POST",
   });
+}
+
+// ── Google Play Billing (Android app) ──
+
+export type GooglePlayConfig = {
+  enabled: boolean;
+  packageName: string | null;
+  /** Passed to Play as obfuscatedAccountId; null for guests. */
+  obfuscatedAccountId: string | null;
+  products: {
+    productId: string;
+    basePlanId: string | null;
+    productType: "inapp" | "subs";
+    itemType: "badge" | "theme";
+    itemId: string;
+  }[];
+};
+
+export type GooglePlayVerifyResult =
+  | {
+      status: "granted";
+      itemType: "badge" | "theme";
+      itemId: string;
+      kind: "one_time" | "subscription";
+      acknowledged: boolean;
+    }
+  | { status: "pending" }
+  | { status: "not_entitled"; state: string }
+  | { status: "unattributed" };
+
+export function getGooglePlayConfig() {
+  return request<GooglePlayConfig>("/api/shop/iap/google-play/config");
+}
+
+export function verifyGooglePlayPurchase(body: { productId: string; purchaseToken: string }) {
+  return request<GooglePlayVerifyResult>("/api/shop/iap/google-play/verify", {
+    method: "POST",
+    body,
+  });
+}
+
+export function restoreGooglePlayPurchases(
+  purchases: { productId: string; purchaseToken: string }[],
+) {
+  return request<{
+    results: Array<
+      { productId?: string } & (GooglePlayVerifyResult | { status: "error"; code: string })
+    >;
+  }>("/api/shop/iap/google-play/restore", { method: "POST", body: { purchases } });
 }
 
 // ── Tournament API ──

@@ -38,6 +38,9 @@ importers:
       '@capacitor/status-bar':
         specifier: ^8.0.2
         version: 8.0.3(@capacitor/core@8.4.2)
+      '@capgo/native-purchases':
+        specifier: ^8.8.1
+        version: 8.8.1(@capacitor/core@8.4.2)
     devDependencies:
       '@capacitor/android':
         specifier: ^8.3.1
@@ -143,6 +146,11 @@ packages:
 
   '@capacitor/synapse@1.0.4':
     resolution: {integrity: sha512-/C1FUo8/OkKuAT4nCIu/34ny9siNHr9qtFezu4kxm6GY1wNFxrCFWjfYx5C1tUhVGz3fxBABegupkpjXvjCHrw==}
+
+  '@capgo/native-purchases@8.8.1':
+    resolution: {integrity: sha512-FE78+ZK7ZhGKER5cAz+FMfoHBcJ2356HY+p3xuCDw2+78QHG1lx3Y5SSvK3z6rR+wEfrlq/QPrywxexe6bZmNg==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -1737,6 +1745,10 @@ snapshots:
       '@capacitor/core': 8.4.2
 
   '@capacitor/synapse@1.0.4': {}
+
+  '@capgo/native-purchases@8.8.1(@capacitor/core@8.4.2)':
+    dependencies:
+      '@capacitor/core': 8.4.2
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:

@@ -92,6 +92,7 @@ describe("Google Play routes", () => {
     mockAccounts.clear();
     delete process.env.GOOGLE_PLAY_RTDN_AUDIENCE;
     delete process.env.GOOGLE_PLAY_RTDN_TOKEN;
+    process.env.GOOGLE_PLAY_BILLING_ENABLED = "true";
 
     const accountModel = GameAccount as unknown as Record<string, unknown>;
     accountModel.updateOne = async (filter: unknown, update: unknown) => {
@@ -136,6 +137,15 @@ describe("Google Play routes", () => {
     assert.ok(
       result.body.products.some((p: { productId: string }) => p.productId === "sub_patron"),
     );
+  });
+
+  test("GET /config keeps the storefront off until the rollout flag is set", async () => {
+    process.env.GOOGLE_PLAY_BILLING_ENABLED = "false";
+    const account = createTestAccount("player", "player@test.com");
+    const result = await invoke(router, "GET", "/config", { cookie: account.cookie });
+    assert.equal(result.body.enabled, false);
+    // Purchases still verify while the storefront is hidden (license testing).
+    assert.equal(result.body.obfuscatedAccountId, playAccountIdFor(account.player.playerId));
   });
 
   test("GET /config gives an account its obfuscated id and stores it for RTDN lookups", async () => {

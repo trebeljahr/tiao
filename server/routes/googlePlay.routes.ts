@@ -3,7 +3,11 @@ import { getPlayerFromRequest } from "../auth/sessionHelper";
 import { SHOP_ITEMS } from "../config/shopCatalog";
 import { handleRouteError } from "../error-handling/routeError";
 import GameAccount from "../models/GameAccount";
-import { GooglePlayApiError, getGooglePlayApi } from "../payments/googlePlayApi";
+import {
+  GooglePlayApiError,
+  getGooglePlayApi,
+  isGooglePlayStorefrontEnabled,
+} from "../payments/googlePlayApi";
 import {
   type DeveloperNotification,
   type PlayEntitlementStore,
@@ -119,7 +123,7 @@ router.get("/config", async (req: Request, res: Response) => {
     }
 
     return res.json({
-      enabled: api !== null,
+      enabled: isGooglePlayStorefrontEnabled(),
       packageName: api?.packageName ?? null,
       obfuscatedAccountId,
       products,

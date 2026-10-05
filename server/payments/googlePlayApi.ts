@@ -283,6 +283,15 @@ export function getGooglePlayApi(): GooglePlayApi | null {
   return singleton;
 }
 
+/**
+ * Whether the Android app should offer the shop. Credentials alone are not
+ * enough: they also verify purchases and RTDN while the Play Console side is
+ * still being tested, so the storefront stays off until this flag is set.
+ */
+export function isGooglePlayStorefrontEnabled(): boolean {
+  return getGooglePlayApi() !== null && process.env.GOOGLE_PLAY_BILLING_ENABLED === "true";
+}
+
 /** Tests swap in a client backed by a fake fetch; null clears the override. */
 export function setGooglePlayApiForTesting(api: GooglePlayApi | null | undefined): void {
   singleton = api;

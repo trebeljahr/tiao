@@ -75,10 +75,33 @@ They stop only the processes they started.
 - Deep link `tiao://auth/complete` is registered on both platforms for the
   OAuth return.
 - Splash hides itself after 1 s. Background colour `#2a1d13` everywhere.
-- The mobile build hides the Stripe shop (store payment rules).
+- The mobile build never shows the Stripe shop (store payment rules);
+  Android sells through Google Play Billing, see below.
 
 `scripts/release/native-config.test.mjs` fails if a `cap` regeneration drops
 any of the settings above.
+
+## In-app purchases (Google Play Billing)
+
+Google Play's payments policy requires Play Billing for the badges, themes
+and the Patron subscription, so the Android app never shows Stripe. The
+billing client is [`@capgo/native-purchases`](https://github.com/Cap-go/native-purchases)
+(Play Billing Library 9); `cap sync` links it into `android/`.
+
+- Client: `client/src/lib/GooglePlayBridge.ts` (plugin wrapper) and
+  `client/src/lib/storePurchases.ts` (the `google_play` shop channel).
+- Server: `server/routes/googlePlay.routes.ts` at `/api/shop/iap/google-play`
+  verifies every token with the Play Developer API, grants the item and
+  acknowledges it. The app passes `autoAcknowledgePurchases: false` and
+  never calls the plugin's `restorePurchases()`, which acknowledges on the
+  device before the server has granted anything.
+- Product IDs live in `server/config/shopCatalog.ts` (`googlePlay`).
+- The shop appears in the app only when the API reports
+  `googlePlay.enabled` (`GOOGLE_PLAY_BILLING_ENABLED=true` plus service
+  account credentials, see `server/.env.example`).
+- Test with a license-tester account. Play returns no products until a
+  build with this package name has been uploaded to a testing track;
+  install that build from the track's opt-in link.
 
 ## Social sign-in (system browser + deep link)
 
