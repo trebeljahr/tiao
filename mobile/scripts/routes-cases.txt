@@ -1,6 +1,7 @@
 # Shared fixture for the native route mappers:
 #   ios/App/App/TiaoRoutes.swift   (scripts/test-ios-routes.sh)
 #   android/app/src/main/java/com/ricoslabs/tiao/TiaoRoutes.java   (TiaoRoutesTest)
+#   ../desktop/src/routes.cjs   (desktop/src/routes.test.cjs, app:// handler)
 # "F <path>" lists a file present in the bundled static export.
 # "C <request path> <served file>" is one mapping case.
 
