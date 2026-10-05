@@ -15,7 +15,7 @@ Built only by the `msstore` leg of `.github/workflows/build-desktop.yml`, on
 `windows-latest` (MSVC + Windows SDK, which ships the C++/WinRT headers):
 
 ```powershell
-npx node-gyp@11 rebuild --target=<electron version> --arch=x64 --dist-url=https://electronjs.org/headers
+npx node-gyp@13.1.0 rebuild --target=<electron version> --arch=x64 --dist-url=https://electronjs.org/headers
 ```
 
 `scripts/release/builder-config.cjs` adds `build/Release/tiao_msstore.node`
