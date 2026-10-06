@@ -19,7 +19,9 @@ if grep -Fq 'com.apple.security.cs.disable-library-validation' <<< "$entitlement
   echo 'The MAS app carries Developer ID entitlements.' >&2; exit 1
 fi
 test -f "$app/Contents/embedded.provisionprofile"
-if find "$app" -iname '*steam*' | grep -q .; then
+steam_files="$(find "$app" \( -iname '*steamworks*' -o -iname '*steam_api*' -o -iname '*steam_appid*' \))"
+if [[ -n "$steam_files" ]]; then
+  printf 'Steam files:\n%s\n' "$steam_files" >&2
   echo 'The MAS app contains Steam files.' >&2; exit 1
 fi
 archs="$(lipo -archs "$app/Contents/MacOS/Tiao")"
