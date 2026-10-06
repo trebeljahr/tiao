@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +27,8 @@ export function Dialog({
   // Only close when both mousedown AND mouseup (click) happen on the backdrop, so that
   // dragging text from inside the dialog to outside doesn't accidentally close it.
   const mouseDownOnBackdrop = useRef(false);
+  const titleId = useId();
+  const descriptionId = useId();
   // Portal mounting flag — `document` is only available after hydration in
   // Next.js client components. Without the mount gate, `createPortal` would
   // throw on SSR.
@@ -99,12 +101,20 @@ export function Dialog({
           className,
         )}
         onClick={(event) => event.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={description ? descriptionId : undefined}
       >
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <h2 className="font-display text-3xl font-bold">{title}</h2>
+            <h2 id={titleId} className="font-display text-3xl font-bold">
+              {title}
+            </h2>
             {description ? (
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
+              <p id={descriptionId} className="mt-2 text-sm leading-6 text-muted-foreground">
+                {description}
+              </p>
             ) : null}
           </div>
           {closeable ? (
