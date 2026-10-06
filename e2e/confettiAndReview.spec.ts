@@ -25,6 +25,7 @@ test.describe("Game review from My Games page", () => {
     const gameId = gameUrl.split("/").pop()!;
     await bobPage.goto(gameUrl);
     await expect(bobPage.locator("text=Live match")).toBeVisible();
+    await expect(alicePage.locator("text=Live match")).toBeVisible();
 
     // Force finish the game
     await alicePage.evaluate(async (gameId) => {
@@ -74,9 +75,7 @@ test.describe("Game review from My Games page", () => {
     await bobContext.close();
   });
 
-  test("review mode shows nav buttons and hides rematch when opponent offline", async ({
-    browser,
-  }) => {
+  test("review mode shows nav buttons after the opponent leaves", async ({ browser }) => {
     test.setTimeout(60000);
     const aliceContext = await browser.newContext();
     const bobContext = await browser.newContext();
@@ -99,6 +98,7 @@ test.describe("Game review from My Games page", () => {
     const gameId = gameUrl.split("/").pop()!;
     await bobPage.goto(gameUrl);
     await expect(bobPage.locator("text=Live match")).toBeVisible();
+    await expect(alicePage.locator("text=Live match")).toBeVisible();
 
     // Force finish
     await alicePage.evaluate(async (gameId) => {
@@ -119,10 +119,8 @@ test.describe("Game review from My Games page", () => {
     await alicePage.click('button:has-text("Review")');
     await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/);
 
-    // Rematch button should NOT be visible (Bob is offline, rematch requires opponent online)
-    await expect(alicePage.locator('button:has-text("Rematch")')).not.toBeVisible({
-      timeout: 3000,
-    });
+    // Rematch stays available while Bob is offline (#108 removed the online
+    // gate in favor of an offline hint), so it is not asserted here.
 
     // Move navigation buttons should appear in the floating review nav
     await expect(alicePage.locator('[data-testid="review-nav-buttons"]')).toBeVisible({

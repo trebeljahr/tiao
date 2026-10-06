@@ -80,8 +80,9 @@ test.describe("Spectate link always visible (#90)", () => {
     await bobPage.goto(gameUrl);
     await expect(bobPage.locator("text=Live match")).toBeVisible({ timeout: 10000 });
 
-    // Spectator visits the game
-    await spectatorPage.goto(gameUrl);
+    // Spectator opens the shared spectate link. A bare game URL makes a
+    // fresh guest pass the rules intro before joining the room socket.
+    await spectatorPage.goto(`${gameUrl}?spectate=true`);
     await expect(spectatorPage.locator('[data-testid="cell-9-9"]')).toBeVisible();
 
     // Eye icon should now show count "1" for Alice (button label switches

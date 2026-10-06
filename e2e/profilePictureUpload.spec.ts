@@ -1,31 +1,11 @@
 import { expect, test } from "@playwright/test";
+import { signUpViaAPI } from "./helpers";
 
+// The shared helper waits for the account session; a bare email sign-up on
+// /play can lose its cookie to the guest session the page mints in parallel.
 async function signUpViaApi(page: import("@playwright/test").Page) {
-  const slug = Math.random().toString(36).slice(2, 7);
-  const username = `upload_${slug}`;
-  const email = `upload_${slug}@test.local`;
-
-  await page.goto("/play");
-
-  const result = await page.evaluate(
-    async ({ name, mail }) => {
-      const res = await fetch("/api/auth/sign-up/email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          name,
-          email: mail,
-          password: "testpass123",
-          displayName: name,
-        }),
-      });
-      return { status: res.status, body: await res.text() };
-    },
-    { name: username, mail: email },
-  );
-
-  expect(result.status).toBe(200);
+  const username = `upload_${Math.random().toString(36).slice(2, 7)}`;
+  await signUpViaAPI(page, username, "testpass123");
   return username;
 }
 
@@ -80,7 +60,8 @@ test.describe("Profile picture upload", () => {
 
     expect(response.status).toBe(415);
     expect(response.body.message).toContain("Unsupported file type");
-    expect(response.body.message).toMatch(/JPEG.*PNG.*WebP.*GIF/i);
+    expect(response.body.message).toMatch(/JPEG.*PNG.*GIF/i);
+    expect(response.body.message).not.toMatch(/WebP/i);
   });
 
   test("rejects non-image files (PDF) with 415", async ({ page }) => {

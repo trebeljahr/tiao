@@ -1,23 +1,8 @@
 import { expect, test } from "@playwright/test";
-import { waitForAppReady } from "./helpers";
+import { waitForAppReady, waitForHumanTurn } from "./helpers";
 
 function cell(page: import("@playwright/test").Page, x: number, y: number) {
   return page.locator(`[data-testid="cell-${x}-${y}"]`);
-}
-
-/**
- * Wait until it's the human's turn, returning the human's color.
- * The computer color is random, so the human might be white or black.
- * When it's the human's turn, the status shows "{Color} to move".
- * When it's the computer's turn, the status shows "Computer thinking...".
- */
-async function waitForHumanTurn(page: import("@playwright/test").Page) {
-  // Wait for computer to finish thinking first
-  await expect(page.locator("text=Computer thinking")).not.toBeVisible({ timeout: 15000 });
-  const toMove = page.locator("text=/^(White|Black) to move$/");
-  await expect(toMove).toBeVisible({ timeout: 10000 });
-  const text = await toMove.textContent();
-  return text!.startsWith("White") ? "white" : "black";
 }
 
 /**

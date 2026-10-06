@@ -13,8 +13,8 @@ test.describe("Copy profile link (#93)", () => {
     const username = uniqueName("cplink");
     await signUpViaAPI(page, username, "password123");
 
-    // Navigate to profile page
-    await page.goto("/profile");
+    // Navigate to the settings page (the own-profile editor)
+    await page.goto("/settings");
     await waitForAppReady(page);
 
     // Grant clipboard permissions so the copy action succeeds
@@ -26,9 +26,7 @@ test.describe("Copy profile link (#93)", () => {
     await copyBtn.click();
 
     // Button text should temporarily change to "Copied" or a toast should appear
-    await expect(
-      page.locator('button:has-text("Copied")').or(page.locator("text=Copied")),
-    ).toBeVisible({ timeout: 3000 });
+    await expect(page.getByRole("button", { name: "Copied" })).toBeVisible({ timeout: 3000 });
 
     // Verify the clipboard contains the profile URL
     const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
@@ -94,8 +92,8 @@ test.describe("Delete account (#91)", () => {
     const username = uniqueName("delme");
     await signUpViaAPI(page, username, "password123");
 
-    // Navigate to profile page
-    await page.goto("/profile");
+    // Navigate to the settings page (the own-profile editor)
+    await page.goto("/settings");
     await waitForAppReady(page);
 
     // Scroll to the bottom where the delete button lives
@@ -109,11 +107,11 @@ test.describe("Delete account (#91)", () => {
     await deleteBtn.click();
 
     // Confirmation dialog should appear
-    const dialog = page.locator('[role="dialog"], .fixed.inset-0');
+    const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible({ timeout: 3000 });
 
     // Type the display name to confirm deletion
-    const confirmInput = dialog.locator('input[type="text"]');
+    const confirmInput = dialog.locator("#delete-confirm-name");
     await expect(confirmInput).toBeVisible({ timeout: 2000 });
     await confirmInput.fill(username);
 
@@ -123,8 +121,9 @@ test.describe("Delete account (#91)", () => {
     );
     await confirmDeleteBtn.click();
 
-    // Should be redirected to the lobby
-    await expect(page).toHaveURL("/play", { timeout: 10000 });
+    // Logout does a full page load to the public home; the page's own
+    // router.push("/play") can win that race, so accept either.
+    await expect(page).toHaveURL(/\/(play)?$/, { timeout: 10000 });
 
     await context.close();
   });

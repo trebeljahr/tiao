@@ -1,22 +1,8 @@
 import { expect, test } from "@playwright/test";
-import { waitForAppReady } from "./helpers";
+import { waitForAppReady, waitForHumanTurn } from "./helpers";
 
 function cell(page: import("@playwright/test").Page, x: number, y: number) {
   return page.locator(`[data-testid="cell-${x}-${y}"]`);
-}
-
-/**
- * Wait until it's the human's turn, returning the human's color.
- * The computer color is random, so the human might be white or black.
- */
-async function waitForHumanTurn(page: import("@playwright/test").Page) {
-  // Wait for "Computer thinking..." to disappear first (if present)
-  await expect(page.locator("text=Computer thinking")).not.toBeVisible({ timeout: 15000 });
-  // Now wait for the human turn indicator
-  const toMove = page.locator("text=/^(White|Black) to move$/");
-  await expect(toMove).toBeVisible({ timeout: 10000 });
-  const text = await toMove.textContent();
-  return text!.startsWith("White") ? "white" : "black";
 }
 
 /** Count pieces of a given color on the board. */
@@ -209,13 +195,16 @@ test.describe("Computer game undo", () => {
     await page.locator('button:has-text("Undo move")').click();
     await expect(page.locator(`text=${humanLabel} to move`)).toBeVisible({ timeout: 5000 });
 
-    const lastMoveCount = await page.locator("[data-last-move]").count();
+    // The turn label already read "<human> to move" before the undo, so
+    // wait on the board itself: retrying assertions, not a one-shot count.
+    await expect(page.locator(`[data-piece="${humanColor}"]`)).toHaveCount(0, { timeout: 5000 });
+    const lastMove = page.locator("[data-last-move]");
     if (computerColor === "white") {
       // Computer went first — its opening move should be highlighted
-      expect(lastMoveCount).toBeGreaterThan(0);
+      await expect(lastMove).not.toHaveCount(0, { timeout: 5000 });
     } else {
       // Human went first — no moves remain after undo, no indicators
-      expect(lastMoveCount).toBe(0);
+      await expect(lastMove).toHaveCount(0, { timeout: 5000 });
     }
   });
 

@@ -1,16 +1,8 @@
 import { expect, test } from "@playwright/test";
-import { waitForAppReady } from "./helpers";
+import { waitForAppReady, waitForHumanTurn } from "./helpers";
 
 function cell(page: import("@playwright/test").Page, x: number, y: number) {
   return page.locator(`[data-testid="cell-${x}-${y}"]`);
-}
-
-async function waitForHumanTurn(page: import("@playwright/test").Page) {
-  await expect(page.locator("text=Computer thinking")).not.toBeVisible({ timeout: 15000 });
-  const toMove = page.locator("text=/^(White|Black) to move$/");
-  await expect(toMove).toBeVisible({ timeout: 10000 });
-  const text = await toMove.textContent();
-  return text!.startsWith("White") ? "white" : "black";
 }
 
 async function findEmptyCell(

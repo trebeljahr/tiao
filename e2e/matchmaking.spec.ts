@@ -147,7 +147,7 @@ test("cancel matchmaking returns to lobby", async ({ page }) => {
   await expect(page.locator("text=Searching")).toBeVisible();
 
   await page.locator('button:has-text("Cancel Search")').click();
-  await expect(page).toHaveURL(/\/$/, { timeout: 5000 });
+  await expect(page).toHaveURL(/\/play$/, { timeout: 5000 });
 });
 
 test("different time controls do not match each other", async ({ browser }) => {

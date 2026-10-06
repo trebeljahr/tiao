@@ -13,6 +13,23 @@ export async function waitForAppReady(page: Page) {
 }
 
 /**
+ * Wait until it's the human's turn in a computer game, returning the human's
+ * color. The computer color is random. Read it from the "(You)" score label:
+ * the "<Color> to move" title renders before the computer's thinking flag
+ * flips, so the first title seen can belong to the computer's turn.
+ */
+export async function waitForHumanTurn(page: Page): Promise<"white" | "black"> {
+  const youLabel = page.getByText(/^(White|Black) \(You\)$/).first();
+  await expect(youLabel).toBeVisible({ timeout: 10_000 });
+  const humanColor = (await youLabel.textContent())!.startsWith("White") ? "white" : "black";
+  const humanLabel = humanColor === "white" ? "White" : "Black";
+  await expect(page.getByText(`${humanLabel} to move`, { exact: true })).toBeVisible({
+    timeout: 15_000,
+  });
+  return humanColor;
+}
+
+/**
  * On mobile (touch) devices, Playwright's .tap() doesn't always generate the
  * synthetic click event that TiaoBoard's onClick handler relies on for piece
  * selection and jump execution. This helper first resets the touch-event

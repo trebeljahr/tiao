@@ -102,12 +102,14 @@ test.describe("Tournament list page", () => {
     const username = uniqueName("tourney");
     await signUpViaAPI(page, username, "password123");
 
-    const _tournamentId = await createTournamentViaApi(page, "Test Cup");
+    // Parallel workers share the database, so other tournaments may be listed too.
+    const name = uniqueName("Test Cup");
+    const _tournamentId = await createTournamentViaApi(page, name);
 
     await page.goto("/tournaments");
     await waitForAppReady(page);
-    await expect(page.locator("text=Test Cup")).toBeVisible({ timeout: 10000 });
-    await expect(page.locator("text=REGISTRATION")).toBeVisible();
+    await expect(page.getByText(name)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("registration", { exact: true }).first()).toBeVisible();
 
     await context.close();
   });

@@ -25,6 +25,7 @@ test("multiplayer rematch decline flow", async ({ browser }) => {
 
   await bobPage.goto(gameUrl);
   await expect(bobPage.locator("text=Live match")).toBeVisible();
+  await expect(alicePage.locator("text=Live match")).toBeVisible();
 
   // Force finish the game
   await alicePage.evaluate(async (gameId) => {
