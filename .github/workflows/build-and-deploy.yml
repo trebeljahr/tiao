@@ -47,6 +47,7 @@ jobs:
       - name: Carry previous release assets
         env:
           PREVIOUS_IMAGE: ghcr.io/${{ github.repository_owner }}/tiao-client:main
+          SERVING_IMAGE: ${{ vars.TIAO_CLIENT_SERVING_IMAGE }}
         run: |
           set -euo pipefail
           if ! docker pull --quiet "$PREVIOUS_IMAGE"; then
@@ -64,8 +65,21 @@ jobs:
           docker cp "$container:/app/.next/static" "$work/static"
           docker cp "$container:/app/release-static" "$work/release-static" 2>/dev/null || true
           docker rm "$container" >/dev/null
+          serving_args=()
+          # Builds can be pushed without being deployed. When the image actually
+          # serving traffic is known (digest reference), carry it first.
+          if [ -n "$SERVING_IMAGE" ] && docker pull --quiet "$SERVING_IMAGE"; then
+            serving_sha=$(docker image inspect "$SERVING_IMAGE" \
+              --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')
+            mkdir -p "$work/serving"
+            container=$(docker create "$SERVING_IMAGE")
+            docker cp "$container:/app/.next/static" "$work/serving/static"
+            docker rm "$container" >/dev/null
+            serving_args=(--serving-dir "$work/serving" --serving-sha "$serving_sha")
+          fi
           node client/scripts/carry-release-static.mjs compose \
-            --previous-dir "$work" --previous-sha "$previous_sha" --out client/release-carry
+            --previous-dir "$work" --previous-sha "$previous_sha" "${serving_args[@]}" \
+            --out client/release-carry
 
       - name: Extract image metadata
         id: meta

@@ -8,6 +8,8 @@
  *   Writes <out>/<sha>/... for the previous release and the releases it still
  *   carried, newest first, at most --keep in total, plus <out>/releases.json.
  *   A missing or empty previous dir yields an empty carry (first build).
+ *   --serving-dir/--serving-sha add the image actually serving traffic first
+ *   when it is not the previous build (e.g. builds pushed but never deployed).
  *
  *   verify --own <client/.next/static> --carried <dir> [--max-bytes N]
  *   Fails when one path holds different bytes in two releases (hashed names
@@ -59,11 +61,24 @@ function readManifest(dir) {
   return (parsed.releases ?? []).filter((row) => SHA.test(row?.sha ?? ""));
 }
 
-export function compose({ previousDir, previousSha, out, keep = 2 }) {
+export function compose({ previousDir, previousSha, servingDir, servingSha, out, keep = 2 }) {
   mkdirSync(out, { recursive: true });
   const releases = [];
+  // The release actually serving traffic (when it differs from the previous
+  // build) comes first: its open tabs are the ones that need their chunks.
+  const servingStatic = servingDir ? join(servingDir, "static") : "";
+  if (
+    servingDir &&
+    servingSha !== previousSha &&
+    existsSync(servingStatic) &&
+    files(servingStatic).length
+  ) {
+    if (!SHA.test(servingSha ?? "")) throw new Error("--serving-sha must be a git SHA");
+    cpSync(servingStatic, join(out, servingSha), { recursive: true, dereference: true });
+    releases.push({ sha: servingSha });
+  }
   const ownStatic = previousDir ? join(previousDir, "static") : "";
-  if (previousDir && existsSync(ownStatic) && files(ownStatic).length) {
+  if (previousDir && releases.length < keep && existsSync(ownStatic) && files(ownStatic).length) {
     if (!SHA.test(previousSha ?? "")) throw new Error("--previous-sha must be a git SHA");
     cpSync(ownStatic, join(out, previousSha), { recursive: true, dereference: true });
     releases.push({ sha: previousSha });
@@ -120,6 +135,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const releases = compose({
       previousDir: options["previous-dir"],
       previousSha: options["previous-sha"],
+      servingDir: options["serving-dir"],
+      servingSha: options["serving-sha"],
       out: options.out,
       keep: Number(options.keep ?? 2),
     });

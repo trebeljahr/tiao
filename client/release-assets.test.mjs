@@ -149,6 +149,43 @@ test("compose carries the previous release and what it carried, newest first, tw
   assert.equal(readFileSync(join(copied, B, "chunks/b.js"), "utf8"), "b");
 });
 
+test("the serving release is carried first when it is not the previous build", () => {
+  const root = mkdtempSync(join(tmpdir(), "tiao-carry-"));
+  const previous = join(root, "previous");
+  write(previous, "static/chunks/b.js", "b");
+  write(previous, `release-static/${A}/chunks/a.js`, "a");
+  writeFileSync(
+    join(previous, "release-static/releases.json"),
+    JSON.stringify({ schema: 1, releases: [{ sha: A }] }),
+  );
+  const serving = join(root, "serving");
+  write(serving, "static/chunks/c.js", "c");
+  const out = join(root, "out");
+  const releases = compose({
+    previousDir: previous,
+    previousSha: B,
+    servingDir: serving,
+    servingSha: C,
+    out,
+  });
+  assert.deepEqual(
+    releases.map((row) => row.sha),
+    [C, B],
+  );
+  assert.equal(readFileSync(join(out, C, "chunks/c.js"), "utf8"), "c");
+  const same = compose({
+    previousDir: previous,
+    previousSha: B,
+    servingDir: serving,
+    servingSha: B,
+    out: join(root, "same"),
+  });
+  assert.deepEqual(
+    same.map((row) => row.sha),
+    [B, A],
+  );
+});
+
 test("verify rejects one asset path holding different bytes in two releases", () => {
   const root = mkdtempSync(join(tmpdir(), "tiao-carry-"));
   const own = join(root, "own");

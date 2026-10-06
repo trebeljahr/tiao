@@ -130,7 +130,10 @@ A browser tab keeps running the JavaScript of the release that served its
 document. CI copies the previous `tiao-client:main` image's `/_next/static` and
 the releases that image carried into the new image (two releases in total,
 `client/scripts/carry-release-static.mjs`); the Docker build refuses a hashed
-path with different bytes. `client/release-assets.mjs` serves those files when
+path with different bytes. Builds can be pushed without being deployed, so the
+repository variable `TIAO_CLIENT_SERVING_IMAGE` (an image digest reference)
+names the image actually serving traffic; when set, it is carried first.
+`client/release-assets.mjs` serves those files when
 the running build has no file at that path, so old tabs keep loading their lazy
 chunks after a deploy. Assets are about 3 MB per carried release.
 
