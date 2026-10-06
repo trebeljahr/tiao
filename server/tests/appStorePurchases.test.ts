@@ -253,7 +253,7 @@ describe("App Store product mapping", () => {
     assert.equal(new Set(ids).size, ids.length);
     for (const item of SHOP_ITEMS) {
       assert.equal(findShopItemByAppStoreProductId(appStoreProductId(item)), item);
-      assert.match(appStoreProductId(item), /^com\.ricoslabs\.tiao\.[a-z0-9.-]+$/);
+      assert.match(appStoreProductId(item), /^com\.ricoslabs\.tiao\.[a-z0-9._]+$/);
     }
   });
 
@@ -267,6 +267,11 @@ describe("App Store product mapping", () => {
     assert.equal(
       appStoreProductId(SHOP_ITEMS.find((i) => i.id === "patron")!),
       "com.ricoslabs.tiao.sub.patron.monthly",
+    );
+    // App Store Connect rejects hyphens in product ids.
+    assert.equal(
+      appStoreProductId(SHOP_ITEMS.find((i) => i.id === "super-supporter")!),
+      "com.ricoslabs.tiao.badge.super_supporter",
     );
   });
 
@@ -324,7 +329,7 @@ describe("App Store purchase verification", () => {
   });
 
   test("replaying the same transaction is idempotent", async () => {
-    const signed = signJws(transaction({ productId: "com.ricoslabs.tiao.badge.badge-7" }));
+    const signed = signJws(transaction({ productId: "com.ricoslabs.tiao.badge.badge_7" }));
     await claimAppStorePurchase(gateway, PLAYER_A, { signedTransaction: signed });
     await claimAppStorePurchase(gateway, PLAYER_A, { signedTransaction: signed });
     assert.deepEqual(accounts.get(PLAYER_A)!.badges, ["badge-7"]);
@@ -356,7 +361,7 @@ describe("App Store purchase verification", () => {
     const signed = signJws(transaction({ productId: "com.ricoslabs.tiao.badge.supporter" }));
     const [header, , signature] = signed.split(".");
     const forged = Buffer.from(
-      JSON.stringify(transaction({ productId: "com.ricoslabs.tiao.badge.badge-7" })),
+      JSON.stringify(transaction({ productId: "com.ricoslabs.tiao.badge.badge_7" })),
     ).toString("base64url");
     await assert.rejects(
       claimAppStorePurchase(gateway, PLAYER_A, {
@@ -612,7 +617,7 @@ describe("App Store Server Notifications v2", () => {
 
   test("duplicate notifications are processed once", async () => {
     const tx = transaction({
-      productId: "com.ricoslabs.tiao.badge.badge-3",
+      productId: "com.ricoslabs.tiao.badge.badge_3",
       appAccountToken: appStoreAccountTokenFor(PLAYER_A),
     });
     const uuid = randomUUID();

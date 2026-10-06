@@ -239,18 +239,26 @@ export type AppStoreProductType = "non_consumable" | "auto_renewable_subscriptio
  * Stripe and App Store catalogs cannot drift apart:
  *
  *   badge/supporter  -> com.ricoslabs.tiao.badge.supporter
+ *   badge/badge-1    -> com.ricoslabs.tiao.badge.badge_1
  *   theme/night      -> com.ricoslabs.tiao.theme.night
  *   badge/patron     -> com.ricoslabs.tiao.sub.patron.monthly
+ *
+ * App Store product ids allow only letters, digits, underscores and
+ * periods, so hyphens in shop item ids become underscores.
  *
  * App Store Connect product ids are permanent once created — renaming a
  * shop item id here orphans its App Store product.
  */
+function appStoreIdSegment(id: string): string {
+  return id.replace(/-/g, "_");
+}
+
 export function appStoreProductId(item: ShopItem): string {
   if (item.recurring) {
     const period = item.recurring.interval === "month" ? "monthly" : "yearly";
-    return `${APP_STORE_BUNDLE_ID}.sub.${item.id}.${period}`;
+    return `${APP_STORE_BUNDLE_ID}.sub.${appStoreIdSegment(item.id)}.${period}`;
   }
-  return `${APP_STORE_BUNDLE_ID}.${item.type}.${item.id}`;
+  return `${APP_STORE_BUNDLE_ID}.${item.type}.${appStoreIdSegment(item.id)}`;
 }
 
 /**

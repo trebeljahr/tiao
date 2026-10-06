@@ -49,7 +49,7 @@
  */
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const PRODUCT_ID_RE = /^com\.ricoslabs\.tiao\.[a-z0-9.-]+$/;
+const PRODUCT_ID_RE = /^com\.ricoslabs\.tiao\.[a-z0-9._]+$/;
 
 /**
  * @param {Record<string, any>} tx Electron.Transaction
