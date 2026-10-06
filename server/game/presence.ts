@@ -7,6 +7,7 @@ export interface RoomPresence {
   join(connection: string, room: string, player: PlayerIdentity): Promise<void>;
   leave(connection: string): Promise<void>;
   hasConnection(room: string, connection: string): Promise<boolean>;
+  connectionIds(room: string): Promise<string[]>;
   players(room: string): Promise<Map<string, PlayerIdentity>>;
   close(): Promise<void>;
   isReady(): boolean;
@@ -23,6 +24,9 @@ export class InMemoryRoomPresence implements RoomPresence {
   }
   async hasConnection(room: string, connection: string): Promise<boolean> {
     return this.connections.get(connection)?.room === room;
+  }
+  async connectionIds(room: string): Promise<string[]> {
+    return [...this.connections].filter(([, row]) => row.room === room).map(([id]) => id);
   }
   async players(room: string): Promise<Map<string, PlayerIdentity>> {
     return new Map(
@@ -133,6 +137,11 @@ export class RedisRoomPresence extends InMemoryRoomPresence {
     return rows.some(
       (raw) => (JSON.parse(raw) as { connectionId: string }).connectionId === connection,
     );
+  }
+  override async connectionIds(room: string): Promise<string[]> {
+    this.assertReady();
+    const rows = (await this.redis.eval(RedisRoomPresence.READ, 1, this.key(room))) as string[];
+    return rows.map((raw) => (JSON.parse(raw) as { connectionId: string }).connectionId);
   }
   override async players(room: string): Promise<Map<string, PlayerIdentity>> {
     this.assertReady();

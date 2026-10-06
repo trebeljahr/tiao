@@ -3253,15 +3253,18 @@ export class GameService {
       // Broadcast updated snapshot so game shows as finished
       this.broadcastSnapshotSafe(savedRoom);
 
-      // Re-enter the opponent into matchmaking (skip for tournament games)
-      if (
-        !isTournament &&
-        opponentPlayer &&
-        (!this.requireConnectedSearches ||
-          (await this.isPlayerConnectedToLobby(opponentPlayer.playerId)))
-      ) {
+      // Re-enter the opponent into matchmaking (skip for tournament games).
+      // The search is owned by one of their live lobby connections, so the
+      // owner prune drops it once that tab closes. An opponent with no lobby
+      // connection is not requeued: nobody would be there to play the match.
+      if (!isTournament && opponentPlayer) {
         try {
-          await this.enterMatchmaking(opponentPlayer, derived.timeControl);
+          const [ownerId] = await this.presence.connectionIds(`lobby:${opponentPlayer.playerId}`);
+          if (ownerId)
+            await this.enterMatchmaking(opponentPlayer, derived.timeControl, {
+              ownerId,
+              attemptId: `${opponentPlayer.playerId}:server-${randomUUID()}`,
+            });
         } catch {
           // Best-effort requeue
         }
