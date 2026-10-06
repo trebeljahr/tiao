@@ -55,7 +55,6 @@ import { useMultiplayerGame } from "@/lib/hooks/useMultiplayerGame";
 import { useSocialData } from "@/lib/hooks/useSocialData";
 import { useTournamentNextMatch } from "@/lib/hooks/useTournamentNextMatch";
 import { useLobbyMessage } from "@/lib/LobbySocketContext";
-import { op } from "@/lib/openpanel";
 import { useSocialNotifications } from "@/lib/SocialNotificationsContext";
 import { safeLocalStorage } from "@/lib/safeLocalStorage";
 import { useDynamicParam } from "@/lib/useDynamicParam";
@@ -726,10 +725,6 @@ export function MultiplayerGamePage() {
               onAccept={() => {
                 toast.dismiss(rematchToastId);
                 sendMultiplayerMessage({ type: "request-rematch" });
-                op.track("rematch_requested", {
-                  game_id: multiplayerSnapshot?.gameId,
-                  source: "toast_accept",
-                });
               }}
               onDecline={() => {
                 toast.dismiss(rematchToastId);
@@ -1529,10 +1524,6 @@ export function MultiplayerGamePage() {
                                   sendMultiplayerMessage({
                                     type: "request-takeback",
                                   });
-                                  op.track("takeback_requested", {
-                                    game_id: multiplayerSnapshot.gameId,
-                                    move_count: multiplayerSnapshot.state.history.length,
-                                  });
                                 }}
                                 disabled={
                                   multiplayerSnapshot.state.history.length === 0 ||
@@ -1647,13 +1638,6 @@ export function MultiplayerGamePage() {
                                   onClick={() => {
                                     sendMultiplayerMessage({
                                       type: "request-rematch",
-                                    });
-                                    op.track("rematch_requested", {
-                                      game_id: multiplayerSnapshot.gameId,
-                                      source: "in_game_panel",
-                                      is_accept: Boolean(
-                                        multiplayerSnapshot.rematch?.requestedBy.length,
-                                      ),
                                     });
                                     if (multiplayerSnapshot.rematch?.requestedBy.length) {
                                       toast.dismiss(`rematch-${multiplayerSnapshot.gameId}`);
@@ -1955,11 +1939,6 @@ export function MultiplayerGamePage() {
               <Button
                 onClick={() => {
                   sendMultiplayerMessage({ type: "request-rematch" });
-                  op.track("rematch_requested", {
-                    game_id: multiplayerSnapshot?.gameId,
-                    source: "game_over_dialog",
-                    is_accept: Boolean(multiplayerSnapshot?.rematch?.requestedBy.length),
-                  });
                   if (multiplayerSnapshot?.rematch?.requestedBy.length) {
                     toast.dismiss(`rematch-${multiplayerSnapshot.gameId}`);
                   } else {

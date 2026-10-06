@@ -152,7 +152,6 @@ function setup() {
   });
   const ledger = new MemoryLedger();
   const grants: string[] = [];
-  const revenue: string[] = [];
   const service = createStorePurchaseService({
     ledger,
     steam: null,
@@ -162,14 +161,12 @@ function setup() {
       grants.push(`${playerId}:${item.type}/${item.id}`);
     },
     isOwned: async () => false,
-    onRevenue: (playerId, item, provider) => revenue.push(`${provider}:${playerId}:${item.id}`),
   });
   return {
     microsoft,
     client,
     ledger,
     grants,
-    revenue,
     service,
     advance: (ms: number) => {
       now += ms;
@@ -252,7 +249,7 @@ describe("Microsoft Store entitlement sync", () => {
   });
 
   test("grants owned catalog add-ons once and restores them on later syncs", async () => {
-    const { service, microsoft, grants, revenue } = ctx;
+    const { service, microsoft, grants } = ctx;
     const key = storeKey(ALICE);
     microsoft.ownership.set(key, [
       durable("tiao.badge.supporter", "a1"),
@@ -266,12 +263,11 @@ describe("Microsoft Store entitlement sync", () => {
       { itemType: "theme", itemId: "night" },
     ]);
     assert.deepEqual(first.restored, []);
-    assert.equal(revenue.length, 2);
+    assert.equal(grants.length, 2);
 
     const again = await service.syncMsStorePurchases({ playerId: ALICE, storeIdKey: key });
     assert.deepEqual(again.granted, []);
     assert.equal(again.restored.length, 2);
-    assert.equal(revenue.length, 2, "revenue is recorded once per Store purchase");
     // Re-grant is idempotent ($addToSet) and repairs a manually removed item.
     assert.equal(grants.length, 4);
   });

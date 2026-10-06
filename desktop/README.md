@@ -158,7 +158,7 @@ wins.
 ```
 desktop/
 ├── main.cjs          ← entry: preflight, protocol reg, bootstrap
-├── preload.cjs       ← contextBridge: window.electron.{config, auth, analytics}
+├── preload.cjs       ← contextBridge: window.electron.{config, auth}
 ├── package.json      ← scripts + electron-builder config (all platforms)
 └── src/
     ├── config.cjs    ← shared resolveApiUrl() used by main + authBridge
@@ -167,7 +167,6 @@ desktop/
     ├── menu.cjs      ← native menu, Mac-aware split
     ├── deepLink.cjs  ← tiao:// URL scheme: open-url + second-instance + cold-start
     ├── authBridge.cjs← OAuth start → exchange → safeStorage persist → IPC broadcast
-    ├── analytics.cjs ← OpenPanel main-process events, opt-in, persisted prefs
     └── updater.cjs   ← electron-updater, gated behind TIAO_ENABLE_UPDATER=1
 ```
 
@@ -222,7 +221,7 @@ Useful DevTools console prods while debugging:
 ```js
 // Confirm the bridge is exposed
 window.electron;
-// → { isElectron: true, platform: 'darwin', version: 'dev', auth: {...}, analytics: {...} }
+// → { isElectron: true, platform: 'darwin', version: 'dev', auth: {...} }
 
 // Force a fresh OAuth flow
 await window.electron.auth.startOAuth("github");
@@ -350,9 +349,6 @@ Operational problems you hit while developing or shipping today.
   unsigned dev build, the OS protocol registration may be pointing at a stale
   Electron binary; check `src/deepLink.cjs` for the `defaultApp` branch.
 - **Main process logs in DevTools.** They're not there — check your terminal.
-- **Analytics never fires.** The OpenPanel client id is unset in dev
-  (`TIAO_OPENPANEL_CLIENT_ID`), so `track()` short-circuits. Set it in
-  `.env.release` to smoke-test.
 - **Universal binary is huge.** Yes — one binary containing both arm64 and x64
   code is roughly the sum of the two. If you need a smaller download, change
   `build.mac.target.arch` back to `["arm64", "x64"]` for split builds.

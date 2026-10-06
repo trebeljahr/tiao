@@ -4,7 +4,7 @@ import type {
   JWSTransactionDecodedPayload,
   ResponseBodyV2DecodedPayload,
 } from "@apple/app-store-server-library";
-import { track } from "../analytics/openpanel";
+import { trackGoal } from "../analytics/plausible";
 import {
   appStoreProductType,
   findShopItemByAppStoreProductId,
@@ -439,19 +439,7 @@ async function applyNotification(
     `[appStore] ${notificationType}${notification.subtype ? `/${notification.subtype}` : ""} -> ${result.itemType}/${result.itemId} ${result.status} for ${playerId}`,
   );
   if (notificationType === "SUBSCRIBED") {
-    track("subscription_started", {
-      profileId: playerId,
-      badge_id: result.itemId,
-      subscription_id: `apple:${result.originalTransactionId}`,
-      store: "app_store",
-    });
-  } else if (notificationType === "EXPIRED") {
-    track("subscription_cancelled", {
-      profileId: playerId,
-      badge_id: result.itemId,
-      subscription_id: `apple:${result.originalTransactionId}`,
-      store: "app_store",
-    });
+    trackGoal("subscription_started", { badge_id: result.itemId, store: "app_store" });
   }
   return { handled: "applied", result };
 }

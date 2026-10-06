@@ -7,7 +7,6 @@ import type {
   SocialSearchRelationship,
   SocialSearchResult,
 } from "../../shared/src";
-import { track } from "../analytics/openpanel";
 import { requireAccount } from "../auth/sessionHelper";
 import { fetchSsoProfilePictures } from "../auth/ssoProfilePicture";
 import { escapeRegExp } from "../error-handling/escapeRegExp";
@@ -640,19 +639,6 @@ router.post(
       // Check friend-count achievements for both players
       void onFriendAdded({ playerId: account.id, friendCount: account.friends.length });
       void onFriendAdded({ playerId: requester.id, friendCount: requester.friends.length });
-
-      // Fire one event per side so both profiles get the friend_added in
-      // their analytics timeline.
-      track("friend_added", {
-        profileId: account.id,
-        friend_id: requester.id,
-        friend_count: account.friends.length,
-      });
-      track("friend_added", {
-        profileId: requester.id,
-        friend_id: account.id,
-        friend_count: requester.friends.length,
-      });
 
       return res.status(200).json({
         message: "Friend request accepted.",

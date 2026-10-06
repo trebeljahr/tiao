@@ -26,7 +26,6 @@ import {
 import { isNetworkError, readableError, toastError } from "@/lib/errors";
 import { DataExportCard } from "./profile/DataExportCard";
 import { LinkedAccounts, SOCIAL_PROVIDERS } from "./profile/LinkedAccounts";
-import { PrivacyCard } from "./profile/PrivacyCard";
 import { formatTimestamp, resizeImage } from "./profile/profileHelpers";
 
 export function ProfilePage() {
@@ -812,8 +811,6 @@ export function ProfilePage() {
               })();
             }}
           />
-
-          <PrivacyCard />
 
           <DataExportCard />
 

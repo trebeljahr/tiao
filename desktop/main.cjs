@@ -32,7 +32,6 @@ const {
   flushPendingDeepLinks,
   DEEP_LINK_SCHEME,
 } = require("./src/deepLink.cjs");
-const { initAnalytics, track, setEnabled: setAnalyticsEnabled } = require("./src/analytics.cjs");
 const { maybeInitUpdater } = require("./src/updater.cjs");
 const {
   initGlitchtip,
@@ -263,21 +262,14 @@ function bootstrap() {
   // first call rather than null.
   loadPersistedToken();
   registerAuthIpc();
-  initAnalytics();
-  registerAnalyticsIpc();
   // Steamworks init. No-op unless STEAM_BUILD=true. A failure here
   // (Steam client not running, wrong appid, missing binding) logs a
   // warning and leaves `isSteamActive() === false` — the rest of
   // the app keeps working as if we were a standalone build.
-  const steamOk = initSteam();
+  initSteam();
   registerSteamIpc();
   registerMsStoreIpc();
   registerInAppPurchaseIpc();
-  track("desktop:app_start", {
-    packaged: app.isPackaged,
-    steam: STEAM_ENABLED ? (steamOk ? "active" : "init_failed") : "off",
-    channel: DISTRIBUTION_CHANNEL,
-  });
 
   // Check whether the bundled static export is reachable BEFORE we
   // create the window — if it's missing we'll spawn the window
@@ -309,7 +301,6 @@ function bootstrap() {
       distributionChannel: DISTRIBUTION_CHANNEL,
     },
   });
-  track("desktop:window_created", HMR_RENDERER_URL ? { hmr: true } : undefined);
 
   Menu.setApplicationMenu(buildMenu());
 
@@ -348,19 +339,6 @@ function bootstrap() {
   // Auto-updater is installed but gated behind TIAO_ENABLE_UPDATER=1
   // until the first signed macOS build — see src/updater.cjs.
   maybeInitUpdater();
-}
-
-/**
- * Minimal analytics IPC surface. The renderer calls
- * `window.electron.analytics.setEnabled(bool)` when the OpenPanel
- * consent banner state changes — main process persists the flag so
- * the next cold start honors it.
- */
-function registerAnalyticsIpc() {
-  handleTrustedIpc(ipcMain, "analytics:setEnabled", async (_event, enabled) => {
-    setAnalyticsEnabled(!!enabled);
-    return { ok: true };
-  });
 }
 
 /**

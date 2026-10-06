@@ -38,10 +38,6 @@ defaults:
 env:
   # Public values baked into the static export (they ship in the bundle).
   NEXT_PUBLIC_MOBILE_API_URL: https://api.playtiao.com
-  NEXT_PUBLIC_OPENPANEL_API_URL: https://analytics-api.trebeljahr.com
-  # Empty disables analytics. The OpenPanel client must allow the app
-  # origins capacitor://localhost (iOS) and https://localhost (Android).
-  NEXT_PUBLIC_OPENPANEL_CLIENT_ID: ${{ vars.MOBILE_OPENPANEL_CLIENT_ID }}
   NEXT_PUBLIC_GLITCHTIP_DSN: https://e44c9bfbc30546e19f875b55b4429b97@glitchtip.trebeljahr.com/1
   NEXT_PUBLIC_CREATOR_RICO_ID: 69c80a6cb5edd849e485b970
   NEXT_PUBLIC_CREATOR_ANDREAS_ID: 69c8193de40bacfe753a2472

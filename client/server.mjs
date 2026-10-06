@@ -3,16 +3,15 @@
  *
  * Proxies:
  *   /api/* and /ws/*  → backend (API_URL)
- *   /collect/*        → OpenPanel analytics (OPENPANEL_PROXY_URL)
  *   /_e               → GlitchTip/Sentry envelope ingestion (GLITCHTIP_PROXY_URL).
  *                       Short path name is deliberate — an earlier "/bugs"
  *                       tripped Cloudflare's WAF "suspicious path" rules
  *                       and every captured error 403'd.
  *
- * The analytics and error-monitoring proxies exist so that browser
- * requests look like first-party traffic. Ad-blockers and privacy
- * extensions block direct requests to analytics-*.example.com or
- * sentry/glitchtip domains; routing through the same origin avoids that.
+ * The error-monitoring proxy exists so that browser requests look like
+ * first-party traffic. Ad-blockers and privacy extensions block direct
+ * requests to sentry/glitchtip domains; routing through the same origin
+ * avoids that.
  *
  * Usage:
  *   node server.mjs              (production: PORT)
@@ -157,14 +156,6 @@ const releaseAssets = createReleaseAssets({
   deploymentId: buildCommit,
 });
 
-// --- OpenPanel analytics proxy -----------------------------------------------
-// When set, /collect/* requests are forwarded to the OpenPanel API so that
-// browser analytics traffic looks like a first-party request (invisible to
-// adblockers). The client SDK is configured with apiUrl="/collect" instead of
-// the direct analytics-api.* domain.
-const openpanelProxyTarget = process.env.OPENPANEL_PROXY_URL; // e.g. "https://analytics-api.trebeljahr.com"
-const openpanelUrl = openpanelProxyTarget ? new URL(openpanelProxyTarget) : null;
-
 // --- GlitchTip (Sentry) tunnel proxy ----------------------------------------
 // When set, /_e receives Sentry envelopes from the browser SDK (via its
 // `tunnel` option) and forwards them to the GlitchTip ingestion endpoint.
@@ -239,7 +230,6 @@ const handle = app.getRequestHandler();
 await app.prepare();
 
 console.log(`> API proxy target: ${new URL(apiTarget).origin}`);
-if (openpanelUrl) console.log(`> Analytics proxy: /collect → ${openpanelUrl.origin}`);
 console.log(
   `> Build ${buildCommit ?? "development"}; carried releases: ${releaseAssets.releases.join(", ") || "none"}`,
 );
@@ -277,13 +267,6 @@ const httpServer = createServer((req, res) => {
     url.pathname.startsWith("/ws/")
   ) {
     apiProxy.http(req, res);
-    return;
-  }
-
-  // OpenPanel analytics proxy: /collect/* → OPENPANEL_PROXY_URL/*
-  if (openpanelUrl && url.pathname.startsWith("/collect")) {
-    const targetPath = url.pathname.replace(/^\/collect/, "") + url.search;
-    proxyToTarget(req, res, openpanelUrl, targetPath || "/");
     return;
   }
 

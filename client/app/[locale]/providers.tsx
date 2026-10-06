@@ -36,7 +36,6 @@ import { useEffect, useRef } from "react";
 import { Toaster } from "sonner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { NativeDeepLinkHandler } from "@/components/NativeDeepLinkHandler";
-import { AnalyticsConsentProvider } from "@/lib/AnalyticsConsent";
 import { AuthProvider, useAuth } from "@/lib/AuthContext";
 import { toastError } from "@/lib/errors";
 import { isEmbedPath } from "@/lib/frameHeaders";
@@ -68,11 +67,6 @@ const AuthDialog = dynamic(() => import("./AuthDialog").then((m) => m.AuthDialog
 
 const PwaInstallBanner = dynamic(
   () => import("@/components/PwaInstallBanner").then((m) => ({ default: m.PwaInstallBanner })),
-  { ssr: false },
-);
-
-const ConsentBanner = dynamic(
-  () => import("@/components/ConsentBanner").then((m) => ({ default: m.ConsentBanner })),
   { ssr: false },
 );
 
@@ -205,7 +199,6 @@ function AppShell({ children, publicPage }: { children: React.ReactNode; publicP
       <AuthDialog />
       <OAuthErrorHandler />
       {process.env.NEXT_PUBLIC_PLATFORM === "mobile" && <NativeDeepLinkHandler />}
-      <ConsentBanner />
       {!publicPage && <PwaInstallBanner />}
       {!publicPage && <DumpInstaller />}
       {/* Sonner hardcodes z-index:999999999 on [data-sonner-toaster].
@@ -249,18 +242,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
   // `/embed/*` renders inside third-party iframes. It gets none of the
   // app shell: no auth bootstrap (would mint a guest session per host
   // page, and the cookie is blocked cross-site anyway), no lobby socket,
-  // no consent / PWA banners, no toaster. Just the page.
+  // no PWA banner, no toaster. Just the page.
   if (isEmbedPath(pathname ?? "")) {
     return <ErrorBoundary>{children}</ErrorBoundary>;
   }
 
   return (
     <ErrorBoundary>
-      <AnalyticsConsentProvider>
-        <AuthProvider createGuestSession={!publicPage}>
-          <AppShell publicPage={publicPage}>{children}</AppShell>
-        </AuthProvider>
-      </AnalyticsConsentProvider>
+      <AuthProvider createGuestSession={!publicPage}>
+        <AppShell publicPage={publicPage}>{children}</AppShell>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }

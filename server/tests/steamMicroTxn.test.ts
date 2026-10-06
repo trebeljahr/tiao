@@ -187,7 +187,6 @@ function setup() {
   const ledger = new MemoryLedger();
   const owned = new Map<string, Set<string>>();
   const grants: Array<{ playerId: string; item: string }> = [];
-  const revenue: Array<{ playerId: string; item: string; provider: string }> = [];
   let nextOrder = 1000;
   const service = createStorePurchaseService({
     ledger,
@@ -199,11 +198,9 @@ function setup() {
       owned.set(playerId, set);
     },
     isOwned: async (playerId, item) => owned.get(playerId)?.has(`${item.type}/${item.id}`) ?? false,
-    onRevenue: (playerId, item, provider) =>
-      revenue.push({ playerId, item: `${item.type}/${item.id}`, provider }),
     newOrderId: () => String(nextOrder++),
   });
-  return { steamApi, steam, ledger, grants, revenue, service };
+  return { steamApi, steam, ledger, grants, service };
 }
 
 async function rejects(p: Promise<unknown>, code: string) {
@@ -302,7 +299,7 @@ describe("Steam purchase flow", () => {
   });
 
   test("init → approve → finalize grants exactly once", async () => {
-    const { service, steamApi, grants, revenue, ledger } = ctx;
+    const { service, steamApi, grants, ledger } = ctx;
     const { orderId } = await service.startSteamPurchase({
       playerId: PLAYER,
       itemType: "badge",
@@ -324,7 +321,6 @@ describe("Steam purchase flow", () => {
     const done = await service.finalizeSteamPurchase({ playerId: PLAYER, orderId });
     assert.deepEqual(done, { status: "granted", itemType: "badge", itemId: "supporter" });
     assert.deepEqual(grants, [{ playerId: PLAYER, item: "badge/supporter" }]);
-    assert.equal(revenue.length, 1);
     assert.equal((await ledger.find("steam", orderId))?.status, "granted");
 
     // Retried finalize (double click, network retry) is a no-op.

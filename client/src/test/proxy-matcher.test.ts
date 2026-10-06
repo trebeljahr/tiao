@@ -31,15 +31,12 @@ describe("next-intl middleware matcher (proxy.ts)", () => {
     expect(matches("/_vercel/insights/view")).toBe(false);
   });
 
-  it("skips analytics + error-monitoring infra paths (regression #160)", () => {
-    // /collect/track (OpenPanel) and /_e (GlitchTip tunnel) are reverse-
-    // proxied by server.mjs when OPENPANEL_PROXY_URL / GLITCHTIP_PROXY_URL
-    // are set. The next-intl middleware must NEVER touch them — otherwise,
-    // in the missing-env-var failure mode or any race, the path gets
-    // rewritten to /<locale>/collect/track (404) and every tracked event
-    // or reported error becomes a console error for the user.
-    expect(matches("/collect/track")).toBe(false);
-    expect(matches("/collect/screen_view")).toBe(false);
+  it("skips the error-monitoring tunnel (regression #160)", () => {
+    // /_e (GlitchTip tunnel) is reverse-proxied by server.mjs when
+    // GLITCHTIP_PROXY_URL is set. The next-intl middleware must NEVER
+    // touch it — otherwise, in the missing-env-var failure mode or any
+    // race, the path gets rewritten to /<locale>/_e (404) and every
+    // reported error becomes a console error for the user.
     expect(matches("/_e")).toBe(false);
   });
 

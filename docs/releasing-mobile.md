@@ -86,12 +86,8 @@ other Ricos Labs apps. The provisioning profile is per app.
 
 ### Variables
 
-| Variable | Purpose |
-| --- | --- |
-| `MOBILE_OPENPANEL_CLIENT_ID` | OpenPanel client for the apps. Empty disables analytics. The client must allow the origins `capacitor://localhost` (iOS) and `https://localhost` (Android). |
-
-The API URL, OpenPanel API URL, GlitchTip DSN and creator IDs are public
-values set in the workflow `env`, matching the web build.
+No repository variables are required. The API URL, GlitchTip DSN and creator IDs are public values set in the
+workflow `env`, matching the web build.
 
 ## One-time store setup
 
@@ -133,13 +129,18 @@ declares, with no tracking:
 
 | Data | Linked to user | Purpose | Source |
 | --- | --- | --- | --- |
-| Email address, name | Yes | App functionality, analytics | Account sign-up; OpenPanel `identify` |
-| User ID | Yes | App functionality, analytics | Player ID; OpenPanel profile; GlitchTip user |
+| Email address, name | Yes | App functionality, analytics¹ | Account sign-up |
+| User ID | Yes | App functionality, analytics¹ | Player ID; GlitchTip user |
 | Photos | Yes | App functionality | Optional profile picture |
 | Gameplay content | Yes | App functionality | Games, moves, ratings, tournaments |
-| Product interaction | Yes | Analytics | OpenPanel events, after consent |
-| Coarse location | Yes | Analytics | OpenPanel IP geolocation |
+| Product interaction¹ | Yes | Analytics | None since OpenPanel was retired |
+| Coarse location¹ | Yes | Analytics | None since OpenPanel was retired |
 | Crash data, diagnostics | Yes | App functionality | GlitchTip |
+
+¹ Left over from OpenPanel, which was retired in October 2026. The apps no
+longer send analytics; the server counts a few aggregate goals in Plausible
+without account ids. These entries now over-declare. Remove them from the
+manifest, the App Privacy answers and the Play Data safety form in one go.
 
 Required-reason APIs: UserDefaults (`CA92.1`) and file timestamps (`C617.1`).
 Update the manifest, the App Privacy answers and the Play Data safety form

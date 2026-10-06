@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { track, trackRevenue } from "../analytics/openpanel";
+import { trackGoal } from "../analytics/plausible";
 import { findShopItemByPlayProductId, type ShopItem } from "../config/shopCatalog";
 import type { ISubscription } from "../models/GameAccount";
 import type { PlayPurchaseKind } from "../models/PlayPurchase";
@@ -280,18 +280,6 @@ export class PlayFulfillment {
 
     if (firstGrant) {
       console.info(`[google-play] Granted ${item.type} "${item.id}" to ${owner}`);
-      // Play does not report the charged amount here, so revenue is the
-      // catalog list price in USD — the same number Stripe's checkout uses.
-      if (!record.testPurchase) {
-        trackRevenue(item.price, {
-          profileId: owner,
-          currency: item.currency.toUpperCase(),
-          item_type: item.type,
-          item_id: item.id,
-          mode: "payment",
-          store: "google_play",
-        });
-      }
     }
     return {
       status: "granted",
@@ -406,21 +394,7 @@ export class PlayFulfillment {
       });
       if (!wasEntitled) {
         console.info(`[google-play] Subscription badge "${item.id}" granted to ${owner}`);
-        track("subscription_started", {
-          profileId: owner,
-          badge_id: item.id,
-          store: "google_play",
-        });
-        if (!record.testPurchase) {
-          trackRevenue(item.price, {
-            profileId: owner,
-            currency: item.currency.toUpperCase(),
-            item_type: item.type,
-            item_id: item.id,
-            mode: "subscription",
-            store: "google_play",
-          });
-        }
+        trackGoal("subscription_started", { badge_id: item.id, store: "google_play" });
       }
       return {
         status: "granted",
@@ -450,11 +424,6 @@ export class PlayFulfillment {
       }
       if (wasEntitled && !existing?.supersededBy) {
         console.info(`[google-play] Subscription badge "${item.id}" revoked from ${owner}`);
-        track("subscription_cancelled", {
-          profileId: owner,
-          badge_id: item.id,
-          store: "google_play",
-        });
       }
     }
     await this.store.updatePurchase(purchaseToken, { state, expiryTime: expiry });

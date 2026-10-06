@@ -52,23 +52,6 @@ if (!FRONTEND_URL && process.env.NODE_ENV === "production") {
 }
 const REDIS_URL = process.env.REDIS_URL;
 
-// --- OpenPanel analytics ----------------------------------------------------
-// CLIENT_ID and CLIENT_SECRET together authenticate the Node SDK. The
-// secret never ships to the browser — it must stay server-side. API_URL
-// points at a self-hosted OpenPanel (see server/.env.example); if any of
-// the three is missing the server-side SDK boots fully disabled and all
-// track() calls become no-ops.
-const OPENPANEL_CLIENT_ID = process.env.OPENPANEL_CLIENT_ID;
-const OPENPANEL_CLIENT_SECRET = process.env.OPENPANEL_CLIENT_SECRET;
-const OPENPANEL_API_URL = process.env.OPENPANEL_API_URL;
-
-// Read-mode credentials for the Export API (GDPR data export). Separate
-// from the write credentials above because OpenPanel scopes access by
-// client mode. When missing the data export still works — it just won't
-// include the analytics_events section.
-const OPENPANEL_READ_CLIENT_ID = process.env.OPENPANEL_READ_CLIENT_ID;
-const OPENPANEL_READ_CLIENT_SECRET = process.env.OPENPANEL_READ_CLIENT_SECRET;
-
 // --- Discord webhooks -------------------------------------------------------
 // Each announcement feature has its own webhook URL. Unset means the feature
 // is a silent no-op (see server/discord/webhooks.ts).
@@ -82,11 +65,6 @@ export {
   FRONTEND_URL,
   GLITCHTIP_DSN,
   MONGODB_URI,
-  OPENPANEL_API_URL,
-  OPENPANEL_CLIENT_ID,
-  OPENPANEL_CLIENT_SECRET,
-  OPENPANEL_READ_CLIENT_ID,
-  OPENPANEL_READ_CLIENT_SECRET,
   PORT,
   REDIS_URL,
   S3_ENDPOINT,

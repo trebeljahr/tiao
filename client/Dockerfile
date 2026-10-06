@@ -25,15 +25,6 @@ ENV APP_VERSION=${APP_VERSION}
 ARG BUILD_COMMIT
 ENV BUILD_COMMIT=${BUILD_COMMIT}
 
-# OpenPanel — analytics client for the browser. Both CLIENT_ID and API_URL
-# must be set at build time for the consent banner + web SDK to activate.
-ARG NEXT_PUBLIC_OPENPANEL_CLIENT_ID
-ARG NEXT_PUBLIC_OPENPANEL_API_URL
-ARG NEXT_PUBLIC_OPENPANEL_ENABLE_IN_DEV
-ENV NEXT_PUBLIC_OPENPANEL_CLIENT_ID=${NEXT_PUBLIC_OPENPANEL_CLIENT_ID}
-ENV NEXT_PUBLIC_OPENPANEL_API_URL=${NEXT_PUBLIC_OPENPANEL_API_URL}
-ENV NEXT_PUBLIC_OPENPANEL_ENABLE_IN_DEV=${NEXT_PUBLIC_OPENPANEL_ENABLE_IN_DEV}
-
 # GlitchTip (Sentry-compatible) error monitoring — DSN inlined at build time.
 ARG NEXT_PUBLIC_GLITCHTIP_DSN
 ENV NEXT_PUBLIC_GLITCHTIP_DSN=${NEXT_PUBLIC_GLITCHTIP_DSN}
@@ -108,10 +99,9 @@ COPY --from=build /app/client/messages ./messages
 ENV NODE_ENV=production
 ENV PORT=80
 
-# Runtime-only proxy targets (not baked into the JS bundle). The custom
-# server.mjs reads these at startup to proxy analytics and error monitoring
-# requests through the app's own origin, avoiding adblocker filters.
-# OPENPANEL_PROXY_URL=https://analytics-api.trebeljahr.com
+# Runtime-only proxy target (not baked into the JS bundle). The custom
+# server.mjs reads it at startup to proxy error monitoring requests
+# through the app's own origin, avoiding adblocker filters.
 # GLITCHTIP_PROXY_URL=https://glitchtip.trebeljahr.com
 
 EXPOSE 80

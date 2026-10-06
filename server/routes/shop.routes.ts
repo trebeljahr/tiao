@@ -1,5 +1,5 @@
 import express, { type Request, type Response } from "express";
-import { track, trackRevenue } from "../analytics/openpanel";
+import { trackGoal } from "../analytics/plausible";
 import { getPlayerFromRequest } from "../auth/sessionHelper";
 import { FRONTEND_URL } from "../config/envVars";
 import { appStoreProductId, findShopItem, SHOP_ITEMS } from "../config/shopCatalog";
@@ -409,11 +409,7 @@ router.post(
                 }
                 await grantBadge(playerId, itemId);
                 console.info(`[shop] Subscription badge "${itemId}" granted to ${playerId}`);
-                track("subscription_started", {
-                  profileId: playerId,
-                  badge_id: itemId,
-                  subscription_id: subscriptionId,
-                });
+                trackGoal("subscription_started", { badge_id: itemId, store: "stripe" });
               }
             } else {
               if (itemType === "badge") {
@@ -423,27 +419,6 @@ router.post(
                 await grantTheme(playerId, itemId);
                 console.info(`[shop] Granted theme "${itemId}" to ${playerId}`);
               }
-            }
-
-            // Revenue event — fire for every successful checkout, whether
-            // subscription or one-off. OpenPanel's __revenue parser stores
-            // the raw number we send without any cents→dollars conversion,
-            // and their e-commerce docs pass Stripe's `session.amount_total`
-            // directly — which is in minor units. So we match that contract
-            // and pass the raw cents. amount_total can be null for
-            // subscriptions created with a zero-invoice upfront; skip then.
-            if (typeof session.amount_total === "number" && session.amount_total > 0) {
-              const amount = session.amount_total;
-              console.info(
-                `[shop] Firing revenue event: amount=${amount} currency=${session.currency} player=${playerId} item=${itemType}/${itemId}`,
-              );
-              trackRevenue(amount, {
-                profileId: playerId,
-                currency: (session.currency ?? "usd").toUpperCase(),
-                item_type: itemType,
-                item_id: itemId,
-                mode: session.mode,
-              });
             }
           } catch (grantErr) {
             // Return 500 so Stripe retries — the user paid but didn't get
@@ -502,11 +477,6 @@ router.post(
           } catch (err) {
             console.error("[shop] Failed to revoke badge:", err);
           }
-          track("subscription_cancelled", {
-            profileId: playerId,
-            badge_id: itemId,
-            subscription_id: subscription.id,
-          });
           break;
         }
 

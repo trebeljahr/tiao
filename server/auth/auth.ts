@@ -4,7 +4,7 @@ import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { APIError } from "better-auth/api";
 import { anonymous, bearer } from "better-auth/plugins";
 import { MongoClient } from "mongodb";
-import { identify, track } from "../analytics/openpanel";
+import { trackGoal } from "../analytics/plausible";
 import { FRONTEND_URL, MONGODB_URI, PORT, TOKEN_SECRET } from "../config/envVars";
 import { generateFunAnonymousName } from "../game/playerTokens";
 import { MOBILE_ORIGINS } from "../lib/wsOrigin";
@@ -46,7 +46,6 @@ export const auth = betterAuth({
     },
     sendResetPassword: async ({ user, url }) => {
       await sendPasswordResetEmail(user.email, url);
-      track("password_reset_requested", { profileId: user.id });
     },
   },
 
@@ -265,18 +264,10 @@ export const auth = betterAuth({
             }
           }
 
-          // Authoritative signup event. Fire after the GameAccount exists so
-          // downstream analytics can join on profileId without a race. Guests
-          // bail earlier (isAnonymous short-circuit above) so this only
-          // records real accounts — OAuth + email/password both land here.
-          identify(user.id, {
-            firstName: displayName,
-            ...(user.email ? { email: user.email } : {}),
-          });
-          track("user_signed_up", {
-            profileId: user.id,
-            method: user.email ? "email" : "oauth",
-          });
+          // Authoritative signup goal, fired after the GameAccount exists.
+          // Guests bail earlier (isAnonymous short-circuit above) so this
+          // only counts real accounts — OAuth + email/password both land here.
+          trackGoal("user_signed_up", { method: user.email ? "email" : "oauth" });
         },
       },
     },
@@ -307,16 +298,10 @@ export const auth = betterAuth({
           (newUser.user as { displayName?: string }).displayName || newUser.user.name;
         const { gameService } = await import("../game/gameService");
         try {
-          const result = await gameService.migrateGuestToAccount(guestId, {
+          await gameService.migrateGuestToAccount(guestId, {
             playerId: newId,
             displayName: newDisplayName,
             kind: "account",
-          });
-          track("guest_upgraded", {
-            profileId: newId,
-            guest_id: guestId,
-            migrated_games: result.migrated,
-            dropped_games: result.deleted,
           });
         } catch (err) {
           console.error("[auth] Guest game migration failed:", err);

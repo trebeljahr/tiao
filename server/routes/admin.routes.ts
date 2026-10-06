@@ -1,5 +1,4 @@
 import express, { type Request, type Response } from "express";
-import { openPanelEnabled, trackRevenue } from "../analytics/openpanel";
 import { requireAdmin } from "../auth/sessionHelper";
 import { escapeRegExp } from "../error-handling/escapeRegExp";
 import { handleRouteError } from "../error-handling/routeError";
@@ -257,52 +256,6 @@ router.post("/tournaments/:id/dev-force-match-result", async (req: Request, res:
   } catch (error) {
     return handleRouteError(res, error, "Unable to force match result.", req);
   }
-});
-
-// ---------------------------------------------------------------------------
-// POST /admin/dev-test-revenue — DEV ONLY
-// Fires a synthetic OpenPanel revenue event so we can verify the .revenue()
-// SDK method is producing dashboard-aggregatable data without having to run
-// a real Stripe checkout. Guarded by NODE_ENV !== "production".
-// ---------------------------------------------------------------------------
-
-router.post("/dev-test-revenue", async (req: Request, res: Response) => {
-  if (process.env.NODE_ENV === "production") {
-    return res
-      .status(404)
-      .json({ code: "NOT_FOUND", message: "Dev-only endpoint is not available." });
-  }
-  const admin = await requireAdmin(req, res);
-  if (!admin) return;
-
-  // Amount is in MINOR UNITS (cents) to match what the real shop webhook
-  // sends. Default to 1234 cents ($12.34) for a quick sanity check.
-  const { amount, currency } = req.body as { amount?: number; currency?: string };
-  const finalAmount = typeof amount === "number" && amount > 0 ? amount : 1234;
-  const finalCurrency = (currency ?? "USD").toUpperCase();
-
-  if (!openPanelEnabled) {
-    return res.status(200).json({
-      ok: false,
-      message: "OpenPanel is disabled (missing env vars or NODE_ENV check). No event sent.",
-    });
-  }
-
-  console.info(
-    `[admin] Firing synthetic revenue event: amount=${finalAmount} currency=${finalCurrency} player=${admin._id}`,
-  );
-  trackRevenue(finalAmount, {
-    profileId: String(admin._id),
-    currency: finalCurrency,
-    item_type: "dev_test",
-    item_id: "dev_test_revenue",
-    mode: "payment",
-  });
-
-  return res.status(200).json({
-    ok: true,
-    message: `Fired synthetic revenue event: ${finalAmount} minor units (${finalCurrency})`,
-  });
 });
 
 export default router;

@@ -66,7 +66,6 @@ function harness() {
       if (name === "node:fs") return fakeFs;
       if (name === "./trust.cjs") return trust;
       if (name === "./config.cjs") return { resolveApiUrl: () => "https://example.invalid" };
-      if (name === "./analytics.cjs") return { track: () => {} };
       if (name === "./glitchtip.cjs") return { captureException: () => {} };
       if (name === "node:path" || name === "node:crypto") return require(name);
       throw new Error(`Unexpected import: ${name}`);

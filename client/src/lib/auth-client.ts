@@ -12,7 +12,7 @@
  * (login, signup, signOut, linkSocial, etc.), so the extra `await` is
  * invisible.
  *
- * Unlike glitchtip/openpanel, better-auth IS needed in dev (users log
+ * Unlike glitchtip, better-auth IS needed in dev (users log
  * in during development), so there is no NODE_ENV gate. The win is
  * purely structural: the initial cold compile of any route skips the
  * 3.4 MB graph, and the first auth operation pays the one-time lazy

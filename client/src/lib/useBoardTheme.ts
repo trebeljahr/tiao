@@ -1,6 +1,5 @@
 import { useCallback, useSyncExternalStore } from "react";
 import { type BoardTheme, DEFAULT_THEME_ID, getTheme } from "@/components/game/boardThemes";
-import { op } from "@/lib/openpanel";
 import { safeLocalStorage } from "@/lib/safeLocalStorage";
 
 const STORAGE_KEY = "tiao:boardTheme";
@@ -51,18 +50,10 @@ export function useBoardTheme(): BoardTheme {
 export function useSetBoardTheme(): [string, (id: string) => void] {
   const themeId = useBoardThemeId();
 
-  const setTheme = useCallback(
-    (id: string) => {
-      safeLocalStorage.setItem(STORAGE_KEY, id);
-      emitChange();
-      // Only fire when the theme actually changed, so noisy dropdown
-      // re-clicks on the current theme don't generate events.
-      if (id !== themeId) {
-        op.track("theme_changed", { theme_id: id, from_theme_id: themeId });
-      }
-    },
-    [themeId],
-  );
+  const setTheme = useCallback((id: string) => {
+    safeLocalStorage.setItem(STORAGE_KEY, id);
+    emitChange();
+  }, []);
 
   return [themeId, setTheme];
 }

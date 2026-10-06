@@ -10,7 +10,6 @@ import { getTutorialSteps } from "@/components/tutorial/tutorialSteps";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/AuthContext";
 import { markTutorialComplete } from "@/lib/api";
-import { op } from "@/lib/openpanel";
 import { safeLocalStorage } from "@/lib/safeLocalStorage";
 import { cn } from "@/lib/utils";
 
@@ -105,15 +104,6 @@ function TutorialPageInner() {
 
   const steps = useMemo(() => getTutorialSteps(t), [t]);
 
-  // Fire tutorial_started exactly once per mount. Onboarding funnel needs
-  // this as step 1 of [started → step_completed → finished].
-  // biome-ignore lint/correctness/useExhaustiveDependencies: fire-once-on-mount; from* values are a snapshot of how the user arrived, not a re-trigger
-  useEffect(() => {
-    op.track("tutorial_started", {
-      from: fromGame ? "game" : fromMatchmaking ? "matchmaking" : "direct",
-    });
-  }, []);
-
   const [navOpen, setNavOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(1);
@@ -151,11 +141,6 @@ function TutorialPageInner() {
     if (currentStep < steps.length - 1) {
       // Mark current step as completed when advancing
       setCompletedSteps((prev) => new Set(prev).add(currentStep));
-      op.track("tutorial_step_completed", {
-        step_index: currentStep,
-        step_id: steps[currentStep]?.id ?? `step-${currentStep}`,
-        total_steps: steps.length,
-      });
       goTo(currentStep + 1);
     }
   }, [currentStep, goTo, steps]);
@@ -184,12 +169,6 @@ function TutorialPageInner() {
     // played before" path write this key so the rules-intro modal stays hidden
     // for users who have committed one way or the other.
     safeLocalStorage.setItem("tiao:knowsHowToPlay", "1");
-
-    op.track("tutorial_finished", {
-      steps_completed: completedSteps.size,
-      total_steps: steps.length,
-      is_replay: isReplay,
-    });
 
     if (auth?.player.kind === "account" && !isReplay) {
       markTutorialComplete()

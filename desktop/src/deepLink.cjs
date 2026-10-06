@@ -29,7 +29,6 @@
  */
 
 const { app } = require("electron");
-const { track } = require("./analytics.cjs");
 
 const DEEP_LINK_SCHEME = "tiao";
 
@@ -92,11 +91,6 @@ function dispatchRawUrl(raw) {
     console.warn(`[deepLink] unexpected protocol: ${parsed.protocol}`);
     return;
   }
-
-  track("desktop:deep_link_received", {
-    host: parsed.host,
-    pathname: parsed.pathname,
-  });
 
   // Auth: tiao://auth/complete or tiao://auth/error
   if (

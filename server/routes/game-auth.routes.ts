@@ -4,7 +4,6 @@ import express, { type Request, type Response } from "express";
 import { ObjectId } from "mongodb";
 import mongoose from "mongoose";
 import { isValidUsername } from "../../shared/src";
-import { anonymizeOpenPanelProfile, identify, track } from "../analytics/openpanel";
 import { auth } from "../auth/auth";
 import { sendEmailChangeVerification } from "../auth/email";
 import { getPlayerFromRequest, requireAccount, requireAdmin } from "../auth/sessionHelper";
@@ -309,17 +308,6 @@ router.post("/login", authRateLimiter, async (req: Request, res: Response) => {
     }
 
     const player = buildPlayerIdentityFromAccount(account, result.user.email);
-
-    // Authoritative login event. Fire-and-forget: never blocks the response,
-    // never throws on analytics failure.
-    identify(player.playerId, {
-      firstName: player.displayName,
-      email: result.user.email,
-    });
-    track("user_logged_in", {
-      profileId: player.playerId,
-      method: "username_password",
-    });
 
     return res.status(200).json({ player });
   } catch (error: any) {
@@ -1422,17 +1410,6 @@ router.delete("/account", async (req: Request, res: Response) => {
       db.collection("account").deleteMany({ userId: idFilter } as any),
       db.collection("verification").deleteMany({ identifier: userDoc?.email } as any),
     ]);
-
-    // (i) GDPR right to erasure for analytics — anonymize the profile in
-    // OpenPanel by overwriting all PII with empty strings. Events remain
-    // as aggregate non-identifiable data (they reference profile_id only,
-    // no email/name). Full row deletion isn't possible because OpenPanel's
-    // public REST API has no DELETE endpoint for profiles; see the long
-    // comment on anonymizeOpenPanelProfile for details. Fire-and-forget
-    // so the primary deletion flow can't be blocked by analytics being
-    // down.
-    track("account_deleted", { profileId: accountId });
-    void anonymizeOpenPanelProfile(accountId);
 
     return res.status(200).json({ message: "Account deleted successfully." });
   } catch (error) {

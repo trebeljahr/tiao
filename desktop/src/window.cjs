@@ -31,7 +31,6 @@ const {
 } = require("./csp.cjs");
 
 const { installWindowTrust } = require("./trust.cjs");
-const { track } = require("./analytics.cjs");
 
 let cspApplied = false;
 
@@ -129,7 +128,6 @@ function createMainWindow({ startUrl, devTools, runtimeConfig }) {
     isPackaged: app.isPackaged,
     openExternal: async (url) => {
       await shell.openExternal(url);
-      track("desktop:external_link_opened", { host: new URL(url).host });
     },
   });
 

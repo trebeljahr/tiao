@@ -22,15 +22,13 @@
  *   - Output is a single JSON file, not a ZIP. Avoids pulling in an
  *     archiver dependency for a feature that will run <100 times/year.
  *     Plain JSON is trivially parseable by users and regulators alike.
- *   - The export includes OpenPanel analytics events fetched via the
- *     Export API (read-mode credentials). When read creds aren't
- *     configured the section is an empty array — the export still works.
+ *   - There is no analytics section: Plausible keeps only aggregate,
+ *     cookieless counts and stores nothing keyed to an account.
  */
 
 import crypto from "node:crypto";
 import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { exportOpenPanelEvents } from "../analytics/openpanel";
 import { BUCKET_NAME } from "../config/envVars";
 import { getRedisClient } from "../config/redisClient";
 import { s3Client } from "../config/s3Client";
@@ -233,20 +231,18 @@ const exportScheduler: ExportJobScheduler = (() => {
  * require a full API traversal on every export.
  */
 async function collectUserData(accountId: string): Promise<Record<string, unknown>> {
-  const [account, games, tournaments, sentInvites, receivedInvites, analyticsEvents] =
-    await Promise.all([
-      GameAccount.findById(accountId).lean(),
-      GameRoom.find({
-        status: "finished",
-        $or: [{ "seats.white.playerId": accountId }, { "seats.black.playerId": accountId }],
-      })
-        .lean()
-        .exec(),
-      Tournament.find({ "participants.playerId": accountId }).lean().exec(),
-      GameInvitation.find({ senderId: accountId }).lean().exec(),
-      GameInvitation.find({ recipientId: accountId }).lean().exec(),
-      exportOpenPanelEvents(accountId),
-    ]);
+  const [account, games, tournaments, sentInvites, receivedInvites] = await Promise.all([
+    GameAccount.findById(accountId).lean(),
+    GameRoom.find({
+      status: "finished",
+      $or: [{ "seats.white.playerId": accountId }, { "seats.black.playerId": accountId }],
+    })
+      .lean()
+      .exec(),
+    Tournament.find({ "participants.playerId": accountId }).lean().exec(),
+    GameInvitation.find({ senderId: accountId }).lean().exec(),
+    GameInvitation.find({ recipientId: accountId }).lean().exec(),
+  ]);
 
   // Strip denormalized identity from each game. Two things are going on:
   //
@@ -311,7 +307,6 @@ async function collectUserData(accountId: string): Promise<Record<string, unknow
     tournaments: leanTournaments,
     sent_invitations: sentInvites,
     received_invitations: receivedInvites,
-    analytics_events: analyticsEvents,
   };
 }
 

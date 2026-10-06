@@ -32,7 +32,6 @@ const { app, ipcMain, shell, safeStorage, BrowserWindow } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
 const { randomUUID } = require("node:crypto");
-const { track } = require("./analytics.cjs");
 const { captureException: captureGlitchtipException } = require("./glitchtip.cjs");
 const { resolveApiUrl } = require("./config.cjs");
 
@@ -167,7 +166,6 @@ async function startOAuth(provider) {
   evictStaleFlows();
   const state = randomUUID();
   pendingAuth.set(state, { provider, createdAt: Date.now() });
-  track("desktop:auth_flow_start", { provider });
   const url = `${resolveApiUrl()}/api/auth/desktop/start?provider=${encodeURIComponent(
     provider,
   )}&state=${encodeURIComponent(state)}`;
@@ -221,7 +219,6 @@ async function handleAuthDeepLink(parsedUrl) {
   const pending = pendingAuth.get(state);
   if (!pending) {
     console.warn(`[authBridge] deep link received for unknown or expired state: ${state}`);
-    track("desktop:auth_flow_failed", { reason: "state_mismatch" });
     broadcastToRenderer("auth:error", { reason: "state_mismatch" });
     return;
   }
@@ -229,13 +226,11 @@ async function handleAuthDeepLink(parsedUrl) {
   const generation = authGeneration;
 
   if (kind === "auth/error") {
-    track("desktop:auth_flow_failed", { reason, provider: pending.provider });
     broadcastToRenderer("auth:error", { reason });
     return;
   }
 
   if (kind !== "auth/complete" || !code) {
-    track("desktop:auth_flow_failed", { reason: "malformed_callback", provider: pending.provider });
     broadcastToRenderer("auth:error", { reason: "malformed_callback" });
     return;
   }
@@ -250,11 +245,6 @@ async function handleAuthDeepLink(parsedUrl) {
     });
     if (!res.ok) {
       console.warn(`[authBridge] /exchange returned ${res.status}`);
-      track("desktop:auth_flow_failed", {
-        reason: "exchange_failed",
-        status: res.status,
-        provider: pending.provider,
-      });
       broadcastToRenderer("auth:error", { reason: "exchange_failed" });
       return;
     }
@@ -266,11 +256,9 @@ async function handleAuthDeepLink(parsedUrl) {
       return;
     }
     persistToken(payload.sessionToken);
-    track("desktop:auth_flow_complete", { provider: pending.provider });
     broadcastToRenderer("auth:complete", payload);
   } catch (err) {
     console.error("[authBridge] exchange request failed:", err);
-    track("desktop:auth_flow_failed", { reason: "network_error", provider: pending.provider });
     captureGlitchtipException(err, {
       location: "authBridge.handleAuthDeepLink.exchange",
       provider: pending.provider,

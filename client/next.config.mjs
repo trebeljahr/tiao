@@ -178,13 +178,11 @@ const nextConfig = {
     // aren't in the default list. Primarily helps production builds;
     // dev also benefits wherever we use named barrel imports.
     //
-    // Note: @sentry/browser and @openpanel/web are lazy-imported in
-    // src/lib/glitchtip.ts and src/lib/openpanel.ts so they never
-    // enter the dev critical path in the first place — listing them
-    // here is purely for the production build.
+    // Note: @sentry/browser is lazy-imported in src/lib/glitchtip.ts so
+    // it never enters the dev critical path in the first place — listing
+    // it here is purely for the production build.
     optimizePackageImports: [
       "@sentry/browser",
-      "@openpanel/web",
       "better-auth",
       "better-auth/react",
       "better-auth/client/plugins",

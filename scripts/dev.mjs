@@ -323,7 +323,7 @@ const waitTimeout = parallelMode ? 120 : 30;
 // tsx ESM loader so TypeScript files transpile on the fly.
 //
 // Client: `node server.mjs` with cwd=client/ — the client's own
-// custom Next.js server wrapper (runtime API proxying for OpenPanel +
+// custom Next.js server wrapper (runtime API proxying for the backend +
 // GlitchTip), invoked directly instead of via its `dev` npm script.
 //
 // Both commands `cd` into their respective package dirs first so

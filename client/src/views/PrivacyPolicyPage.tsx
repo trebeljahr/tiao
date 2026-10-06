@@ -59,7 +59,6 @@ export function PrivacyPolicyPage() {
             <p>{t("legalBasisIntro")}</p>
             <ul className="list-disc space-y-1 pl-5">
               <li>{t("legalContract")}</li>
-              <li>{t("legalConsent")}</li>
               <li>{t("legalLegitimate")}</li>
               <li>{t("legalLegalObligation")}</li>
             </ul>
@@ -92,7 +91,6 @@ export function PrivacyPolicyPage() {
               <li>{t("rightRestriction")}</li>
               <li>{t("rightPortability")}</li>
               <li>{t("rightObject")}</li>
-              <li>{t("rightWithdraw")}</li>
               <li>{t("rightComplain")}</li>
             </ul>
             <p>{t("rightsHowTo")}</p>

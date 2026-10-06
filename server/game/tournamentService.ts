@@ -29,7 +29,7 @@ import {
 export const MAX_ONGOING_TOURNAMENTS_PER_CREATOR = 10;
 
 import { getFinishReason, getWinner } from "../../shared/src";
-import { track } from "../analytics/openpanel";
+import { trackGoal } from "../analytics/plausible";
 import { getPlayerProfiles } from "../cache/playerIdentityCache";
 import { onTournamentWon } from "./achievementService";
 
@@ -1590,15 +1590,10 @@ export class TournamentService implements TournamentGameCallback {
       // Achievement's unique key makes a replay safe. External analytics and
       // notifications remain best effort; they are not exactly-once deliveries.
       if (winner) await onTournamentWon(winner.playerId);
-      for (const p of tournament.participants) {
-        track("tournament_finished", {
-          profileId: p.playerId,
-          tournament_id: tournament.tournamentId,
-          format: tournament.settings.format,
-          participants: tournament.participants.length,
-          result: p.status === "winner" ? "won" : "eliminated",
-        });
-      }
+      trackGoal("tournament_finished", {
+        format: tournament.settings.format,
+        participants: tournament.participants.length,
+      });
       tournament.completionEffectsPending = false;
       await this.persist(tournament);
       this.broadcastTournamentListUpdate();

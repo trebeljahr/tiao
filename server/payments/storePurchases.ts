@@ -1,5 +1,4 @@
 import { randomBytes } from "node:crypto";
-import { trackRevenue } from "../analytics/openpanel";
 import {
   findShopItem,
   findShopItemByMsStoreOfferToken,
@@ -125,25 +124,12 @@ export type StorePurchaseDeps = {
   steam: SteamMicroTxnClient | null;
   msStore?: MsStoreCollectionsClient | null;
   now?: () => number;
-  /** Revenue hook; defaults to OpenPanel. Amount is list price in USD cents. */
-  onRevenue?: (playerId: string, item: ShopItem, provider: StoreProvider) => void;
   newOrderId?: () => string;
 };
 
 /** Random positive 48-bit integer as a decimal string — fits Steam's uint64 orderid. */
 export function generateSteamOrderId(): string {
   return String(randomBytes(6).readUIntBE(0, 6) + 1);
-}
-
-function defaultRevenue(playerId: string, item: ShopItem, provider: StoreProvider) {
-  trackRevenue(item.price, {
-    profileId: playerId,
-    currency: item.currency.toUpperCase(),
-    item_type: item.type,
-    item_id: item.id,
-    mode: "payment",
-    provider,
-  });
 }
 
 /** Statuses after which a Steam order will never be capturable. */
@@ -171,7 +157,6 @@ export type MsStoreSyncResult = {
 };
 
 export function createStorePurchaseService(deps: StorePurchaseDeps) {
-  const onRevenue = deps.onRevenue ?? defaultRevenue;
   const newOrderId = deps.newOrderId ?? generateSteamOrderId;
 
   function requireSteam(): SteamMicroTxnClient {
@@ -364,7 +349,6 @@ export function createStorePurchaseService(deps: StorePurchaseDeps) {
       status: "granted",
       transactionId: txn.transId || record.transactionId,
     });
-    onRevenue(record.playerId, item, "steam");
     return { status: "granted", ...base };
   }
 
@@ -500,7 +484,6 @@ export function createStorePurchaseService(deps: StorePurchaseDeps) {
       });
       if (inserted) {
         result.granted.push(ref);
-        onRevenue(input.playerId, item, "msstore");
       } else {
         result.restored.push(ref);
       }

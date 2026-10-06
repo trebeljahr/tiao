@@ -21,10 +21,6 @@ vi.mock("@/lib/api", () => ({
   getCachedElectronToken: () => null,
   onAuthTokenIssued: vi.fn(),
 }));
-vi.mock("@/lib/openpanel", () => ({
-  op: { identify: vi.fn(), clear: vi.fn() },
-  setAuthReady: vi.fn(),
-}));
 vi.mock("@/lib/glitchtip", () => ({ setUser: vi.fn() }));
 vi.mock("@/lib/useActiveBadge", () => ({ resetActiveBadges: vi.fn() }));
 vi.mock("@/lib/useBoardTheme", () => ({ resetBoardTheme: vi.fn() }));

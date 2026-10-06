@@ -42,10 +42,10 @@ regexes = ['''^api:\s*eJ[A-Za-z0-9+/=]{20,}''']
 # ---------------------------------------------------------------------------
 # OpenPanel public client ids.
 #
-# OpenPanel "client ids" are public identifiers shipped in the browser
-# bundle (NEXT_PUBLIC_*) and in desktop builds. They are not secrets; the
-# write-protected part of OpenPanel auth is the client *secret*, which is
-# never committed. Only the id in the deploy workflow is pinned here.
+# OpenPanel (retired) "client ids" were public identifiers shipped in the
+# browser bundle (NEXT_PUBLIC_*). They are not secrets; the client *secret*
+# was never committed. Kept so history scans stay clean: the id still
+# appears in older commits of the deploy workflow.
 # ---------------------------------------------------------------------------
 [[allowlists]]
 description = "OpenPanel public client id (UUID) assigned to an *_OPENPANEL_CLIENT_ID variable"

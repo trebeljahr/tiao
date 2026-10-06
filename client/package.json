@@ -19,7 +19,6 @@
     "@capacitor/browser": "^8.0.5",
     "@capacitor/core": "^8.5.2",
     "@capacitor/preferences": "^8.0.1",
-    "@openpanel/web": "^1.4.1",
     "@sentry/browser": "^10.75.3",
     "better-auth": "^1.7.6",
     "canvas-confetti": "^1.9.4",

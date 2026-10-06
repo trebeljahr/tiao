@@ -34,7 +34,6 @@ import {
   subscribeMobileAuth,
 } from "@/lib/mobileAuth";
 import { getOAuthErrorMessage } from "@/lib/oauthErrors";
-import { op, setAuthReady } from "@/lib/openpanel";
 import { safeLocalStorage } from "@/lib/safeLocalStorage";
 import { resetActiveBadges } from "@/lib/useActiveBadge";
 import { resetBoardTheme } from "@/lib/useBoardTheme";
@@ -171,35 +170,6 @@ export function AuthProvider({
     toastError(appError);
     setAppError(null);
   }, [appError]);
-
-  // Mirror the current player into OpenPanel. Anonymous guests are
-  // intentionally *not* identified — they're tracked as anonymous sessions
-  // so we don't pollute the profile list with throwaway guest ids. Once a
-  // guest upgrades to an account the next `applyAuth` flip kicks in and
-  // identifies them. When the user hasn't granted analytics consent the
-  // underlying `op` is a no-op stub so this call is safe unconditionally.
-  useEffect(() => {
-    const player = auth?.player;
-    if (!player || player.kind !== "account") return;
-    op.identify({
-      profileId: player.playerId,
-      firstName: player.displayName,
-      ...(player.email ? { email: player.email } : {}),
-    });
-  }, [auth?.player]);
-
-  // Unblock OpenPanel tracking once auth bootstrap has resolved. Before
-  // this point we can't tell whether an incoming request belongs to an
-  // anonymous guest or a logged-in user whose session cookie is still
-  // being hydrated, so firing anything would attribute events to the
-  // wrong profile. The consent provider also has to have granted —
-  // setAuthReady flips a flag and the tracking instance is only swapped
-  // in when both gates are satisfied.
-  useEffect(() => {
-    if (!authLoading) {
-      setAuthReady(true);
-    }
-  }, [authLoading]);
 
   // Sync GlitchTip user context so captured errors include playerId
   useEffect(() => {
@@ -680,15 +650,6 @@ export function AuthProvider({
     }
 
     setCachedAuth(null);
-    // Drop the OpenPanel profile id from the SDK's internal state so the
-    // next guest session starts unidentified. Safe to call when tracking
-    // is disabled — the SDK no-ops.
-    try {
-      op.clear();
-    } catch {
-      /* best-effort */
-    }
-
     // Navigate to the public home via a full page load — rebuilds the React
     // tree from scratch so protected pages never render in a half-
     // logged-out state.
