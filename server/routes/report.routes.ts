@@ -18,7 +18,7 @@ router.post("/report", async (req: Request, res: Response) => {
   const account = await requireAccount(req, res);
   if (!account) return;
 
-  const { reportedId, reason, details } = req.body as {
+  const { reportedId, reason, details } = (req.body ?? {}) as {
     reportedId?: string;
     reason?: string;
     details?: string;

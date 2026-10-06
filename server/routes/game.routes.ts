@@ -668,7 +668,7 @@ router.post("/games/:gameId/test-finish", async (req: ExpressRequest, res: Respo
   }
 
   const gameId = req.params.gameId as string;
-  const { winner } = req.body as { winner: string };
+  const { winner } = (req.body ?? {}) as { winner: string };
 
   if (typeof winner !== "string" || (winner !== "white" && winner !== "black")) {
     return res
@@ -701,7 +701,7 @@ router.post("/test-auth", async (req: ExpressRequest, res: Response) => {
       .json({ code: "FORBIDDEN", message: "Only available in test environment." });
   }
 
-  const { username, password, email } = req.body as {
+  const { username, password, email } = (req.body ?? {}) as {
     username: string;
     password: string;
     email?: string;

@@ -499,7 +499,7 @@ router.post("/player/social/friend-requests", async (req: Request, res: Response
       return;
     }
 
-    const { accountId } = req.body as {
+    const { accountId } = (req.body ?? {}) as {
       accountId?: string;
     };
 
@@ -864,7 +864,7 @@ router.post("/player/social/game-invitations", async (req: Request, res: Respons
       return;
     }
 
-    const { gameId, recipientId, expiresInMinutes } = req.body as {
+    const { gameId, recipientId, expiresInMinutes } = (req.body ?? {}) as {
       gameId?: string;
       recipientId?: string;
       expiresInMinutes?: number;

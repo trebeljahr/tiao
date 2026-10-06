@@ -201,7 +201,7 @@ router.post("/login", authRateLimiter, async (req: Request, res: Response) => {
       });
     }
 
-    const { identifier, password } = req.body as {
+    const { identifier, password } = (req.body ?? {}) as {
       identifier?: string;
       password?: string;
     };
@@ -360,7 +360,7 @@ router.post("/set-username", async (req: Request, res: Response) => {
     const account = await requireAccount(req, res);
     if (!account) return;
 
-    const { username } = req.body as { username?: string };
+    const { username } = (req.body ?? {}) as { username?: string };
     const sanitized = username?.trim().toLowerCase();
 
     if (!sanitized || !isValidUsername(sanitized)) {
@@ -693,7 +693,7 @@ router.put("/profile", async (req: Request, res: Response) => {
     const account = await requireAccount(req, res);
     if (!account) return;
 
-    const { displayName, password, currentPassword, bio } = req.body as {
+    const { displayName, password, currentPassword, bio } = (req.body ?? {}) as {
       displayName?: string;
       password?: string;
       currentPassword?: string;
@@ -959,7 +959,7 @@ router.post("/request-email-change", async (req: Request, res: Response) => {
     const account = await requireAccount(req, res);
     if (!account) return;
 
-    const { newEmail, currentPassword } = req.body as {
+    const { newEmail, currentPassword } = (req.body ?? {}) as {
       newEmail?: string;
       currentPassword?: string;
     };
@@ -1179,7 +1179,7 @@ router.put("/badges/active", async (req: Request, res: Response) => {
     const account = await requireAccount(req, res);
     if (!account) return;
 
-    const { activeBadges } = req.body as { activeBadges?: string[] };
+    const { activeBadges } = (req.body ?? {}) as { activeBadges?: string[] };
 
     if (!Array.isArray(activeBadges)) {
       return res.status(400).json({
@@ -1242,7 +1242,7 @@ router.post("/admin/badges/grant", async (req: Request, res: Response) => {
   try {
     const admin = await requireAdmin(req, res);
     if (!admin) return;
-    const { playerId, badgeId } = req.body as { playerId?: string; badgeId?: string };
+    const { playerId, badgeId } = (req.body ?? {}) as { playerId?: string; badgeId?: string };
     if (!playerId || typeof playerId !== "string" || !badgeId || typeof badgeId !== "string") {
       return res
         .status(400)
@@ -1258,7 +1258,7 @@ router.post("/admin/badges/revoke", async (req: Request, res: Response) => {
   try {
     const admin = await requireAdmin(req, res);
     if (!admin) return;
-    const { playerId, badgeId } = req.body as { playerId?: string; badgeId?: string };
+    const { playerId, badgeId } = (req.body ?? {}) as { playerId?: string; badgeId?: string };
     if (!playerId || typeof playerId !== "string" || !badgeId || typeof badgeId !== "string") {
       return res
         .status(400)
@@ -1279,7 +1279,7 @@ router.delete("/account", async (req: Request, res: Response) => {
     const account = await requireAccount(req, res);
     if (!account) return;
 
-    const { displayName } = req.body as { displayName?: string };
+    const { displayName } = (req.body ?? {}) as { displayName?: string };
 
     if (!displayName || displayName !== account.displayName) {
       return res.status(400).json({

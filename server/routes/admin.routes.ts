@@ -70,7 +70,7 @@ router.get("/users/search", async (req: Request, res: Response) => {
 router.post("/badges/grant", async (req: Request, res: Response) => {
   const admin = await requireAdmin(req, res);
   if (!admin) return;
-  const { playerId, badgeId } = req.body as { playerId?: string; badgeId?: string };
+  const { playerId, badgeId } = (req.body ?? {}) as { playerId?: string; badgeId?: string };
   if (!playerId || !badgeId) {
     return res
       .status(400)
@@ -86,7 +86,7 @@ router.post("/badges/grant", async (req: Request, res: Response) => {
 router.post("/badges/revoke", async (req: Request, res: Response) => {
   const admin = await requireAdmin(req, res);
   if (!admin) return;
-  const { playerId, badgeId } = req.body as { playerId?: string; badgeId?: string };
+  const { playerId, badgeId } = (req.body ?? {}) as { playerId?: string; badgeId?: string };
   if (!playerId || !badgeId) {
     return res
       .status(400)
@@ -102,7 +102,7 @@ router.post("/badges/revoke", async (req: Request, res: Response) => {
 router.post("/themes/grant", async (req: Request, res: Response) => {
   const admin = await requireAdmin(req, res);
   if (!admin) return;
-  const { playerId, themeId } = req.body as { playerId?: string; themeId?: string };
+  const { playerId, themeId } = (req.body ?? {}) as { playerId?: string; themeId?: string };
   if (!playerId || !themeId) {
     return res
       .status(400)
@@ -118,7 +118,7 @@ router.post("/themes/grant", async (req: Request, res: Response) => {
 router.post("/themes/revoke", async (req: Request, res: Response) => {
   const admin = await requireAdmin(req, res);
   if (!admin) return;
-  const { playerId, themeId } = req.body as { playerId?: string; themeId?: string };
+  const { playerId, themeId } = (req.body ?? {}) as { playerId?: string; themeId?: string };
   if (!playerId || !themeId) {
     return res
       .status(400)
@@ -138,7 +138,7 @@ router.post("/themes/revoke", async (req: Request, res: Response) => {
 router.post("/achievements/grant", async (req: Request, res: Response) => {
   const admin = await requireAdmin(req, res);
   if (!admin) return;
-  const { playerId, achievementId } = req.body as {
+  const { playerId, achievementId } = (req.body ?? {}) as {
     playerId?: string;
     achievementId?: string;
   };
@@ -164,7 +164,7 @@ router.post("/achievements/grant", async (req: Request, res: Response) => {
 router.post("/achievements/revoke", async (req: Request, res: Response) => {
   const admin = await requireAdmin(req, res);
   if (!admin) return;
-  const { playerId, achievementId } = req.body as {
+  const { playerId, achievementId } = (req.body ?? {}) as {
     playerId?: string;
     achievementId?: string;
   };
@@ -205,7 +205,7 @@ router.get("/tournaments", async (req: Request, res: Response) => {
 router.post("/tournaments/:id/featured", async (req: Request, res: Response) => {
   const admin = await requireAdmin(req, res);
   if (!admin) return;
-  const { featured } = req.body as { featured?: boolean };
+  const { featured } = (req.body ?? {}) as { featured?: boolean };
   if (typeof featured !== "boolean") {
     return res
       .status(400)
@@ -233,7 +233,7 @@ router.post("/tournaments/:id/dev-force-match-result", async (req: Request, res:
   }
   const admin = await requireAdmin(req, res);
   if (!admin) return;
-  const { matchId, winnerId, scoreWhite, scoreBlack, finishReason } = req.body as {
+  const { matchId, winnerId, scoreWhite, scoreBlack, finishReason } = (req.body ?? {}) as {
     matchId?: string;
     winnerId?: string;
     scoreWhite?: number;

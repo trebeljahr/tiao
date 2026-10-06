@@ -88,7 +88,7 @@ router.post("/achievements/ai-win", async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Authentication required." });
     }
 
-    const { difficulty } = req.body;
+    const { difficulty } = req.body ?? {};
     if (![1, 2, 3].includes(difficulty)) {
       return res.status(400).json({ error: "Invalid difficulty." });
     }

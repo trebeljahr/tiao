@@ -92,7 +92,7 @@ router.post("/tournaments", async (req: Request, res: Response) => {
   if (!player) return;
 
   try {
-    const { name, description, settings } = req.body as {
+    const { name, description, settings } = (req.body ?? {}) as {
       name: string;
       description?: string;
       settings: TournamentSettings;
@@ -143,7 +143,7 @@ router.post("/tournaments/:id/access", async (req: Request, res: Response) => {
   if (!player) return;
 
   try {
-    const { inviteCode } = req.body as { inviteCode: string };
+    const { inviteCode } = (req.body ?? {}) as { inviteCode: string };
     if (!inviteCode || typeof inviteCode !== "string") {
       return res
         .status(400)
@@ -167,7 +167,7 @@ router.post("/tournaments/:id/register", async (req: Request, res: Response) => 
   if (!player) return;
 
   try {
-    const { inviteCode } = req.body as { inviteCode?: string };
+    const { inviteCode } = (req.body ?? {}) as { inviteCode?: string };
     await tournamentService.registerPlayer(req.params.id as string, player, inviteCode);
     const snapshot = await tournamentService.getTournamentSnapshot(req.params.id as string);
     return res.status(200).json({ tournament: snapshot });
@@ -222,7 +222,7 @@ router.put("/tournaments/:id/seeding", async (req: Request, res: Response) => {
   if (!player) return;
 
   try {
-    const { seeds } = req.body as { seeds: { playerId: string; seed: number }[] };
+    const { seeds } = (req.body ?? {}) as { seeds: { playerId: string; seed: number }[] };
     if (!Array.isArray(seeds)) {
       return res
         .status(400)
@@ -252,7 +252,7 @@ router.put("/tournaments/:id/featured-match", async (req: Request, res: Response
   if (!player) return;
 
   try {
-    const { matchId } = req.body as { matchId: string | null };
+    const { matchId } = (req.body ?? {}) as { matchId: string | null };
     await tournamentService.setFeaturedMatch(req.params.id as string, player.playerId, matchId);
     const snapshot = await tournamentService.getTournamentSnapshot(req.params.id as string);
     return res.status(200).json({ tournament: snapshot });
@@ -267,7 +267,7 @@ router.post("/tournaments/:id/matches/:matchId/forfeit", async (req: Request, re
   if (!player) return;
 
   try {
-    const { loserId } = req.body as { loserId: string };
+    const { loserId } = (req.body ?? {}) as { loserId: string };
     if (!loserId) {
       return res.status(400).json({ code: "VALIDATION_ERROR", message: "loserId is required." });
     }
