@@ -70,6 +70,24 @@ regexes = [
     '''^mongodb://user:password@mongo:27017/[a-z-]+$''',
 ]
 
+# App Store / IAP fixtures and constants. Each is pinned to its exact value.
+# - 0f9a3c1e-…: fake appAccountToken used by the client and desktop IAP tests.
+# - 3f0c6d52-…: UUID v5 namespace in server/appStore/appStoreEntitlements.ts.
+#   It is a public derivation constant, not a credential.
+[[allowlists]]
+description = "App Store IAP test token and appAccountToken UUID namespace"
+regexes = [
+    '''^0f9a3c1e-2b4d-5e6f-8a9b-0c1d2e3f4a5b$''',
+    '''^3f0c6d52-9a1e-4c7b-8f2d-6b1e5a7c9d40$''',
+]
+
+# Leaf key of the generated test-only StoreKit PKI in
+# server/tests/appStoreTestPki.ts. Pinned to this key's own bytes, so any
+# other private key anywhere in the tree is still reported.
+[[allowlists]]
+description = "generated StoreKit test PKI leaf private key"
+regexes = ['''^-----BEGIN PRIVATE KEY-----\s*MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgBPsu7w31mp4JHEUl''']
+
 # 24-hex MongoDB ObjectId fixtures such as "000000000000000000000002" that
 # server/tests/socialRoutes.test.ts uses as stand-in account ids.
 [[allowlists]]
