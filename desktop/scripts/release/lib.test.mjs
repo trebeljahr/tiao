@@ -239,6 +239,10 @@ test("Steam settings refuse ambiguous depots and the default branch", () => {
   assert.throws(() => steamDepotIds({ STEAM_DEPOT_WINDOWS: "1", STEAM_DEPOT_LINUX: "2" }));
   assert.equal(steamBranch(""), "");
   assert.equal(steamBranch("beta"), "beta");
+  assert.equal(steamBranch("", "internal"), "internal");
+  assert.equal(steamBranch("beta", "internal"), "beta");
+  assert.equal(steamBranch("-", "internal"), "");
+  assert.throws(() => steamBranch("", "default"));
   assert.throws(() => steamBranch("default"));
   assert.throws(() => steamBranch('beta"; "SetLive" "default'));
   const vdf = steamBuildVdf({

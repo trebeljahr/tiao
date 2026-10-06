@@ -104,7 +104,7 @@ gh workflow run publish-desktop.yml --ref main -f run_id=RUN_ID -f destination=m
 | ----------------- | --------------------- | ------------ |
 | `downloads-draft` | macos, windows, linux | Requires tag `desktop-vX.Y.Z` at the build commit (`npm run release:tag`, then push the tag). Creates a draft GitHub Release with the direct files, update metadata, manifests and `SHA256SUMS.txt`. Never retags or overwrites. Publish the draft by hand. |
 | `itch`            | macos, windows, linux | `butler push` to `ricoslabs/tiao`, channels `osx-universal`, `windows`, `linux`, with `--userversion X.Y.Z`. |
-| `steam`           | macos, windows, linux | Unpacks the three depots, writes the app build VDF for app `5035580`, runs SteamCMD. Empty `steam_branch` uploads without setting a build live; a beta branch sets that branch live. `default` is refused: promote to default in Steamworks. Success is the `Successfully finished AppID 5035580 build` line, never the exit code. SteamCMD output is never printed. |
+| `steam`           | macos, windows, linux | Unpacks the three depots, writes the app build VDF for app `5035580`, runs SteamCMD. Empty `steam_branch` sets the `STEAM_DEFAULT_BRANCH` variable's branch live (upload only when it is unset); `-` uploads without setting a build live; a beta branch sets that branch live. `default` is refused: promote to default in Steamworks. Success is the `Successfully finished AppID 5035580 build` line, never the exit code. SteamCMD output is never printed. |
 | `mas`             | mas                   | macOS runner. `xcrun altool --upload-app -t macos` with the App Store Connect API key. Review, TestFlight and release stay in App Store Connect. |
 | `msstore`         | msstore               | With all five Partner Center API values set: `msstore publish --noCommit` creates a draft submission with the AppX. With none set: a notice, and you upload the AppX from the build run in Partner Center. A partial set fails. |
 
@@ -152,7 +152,7 @@ A signed `msstore` leg fails without all three. A smoke build uses placeholders.
 | --- | --- | --- |
 | `release-downloads-draft` | none (uses `GITHUB_TOKEN`) | none |
 | `release-itch` | `BUTLER_API_KEY` | `ITCH_USER=ricoslabs`, `ITCH_GAME=tiao` |
-| `release-steam` | `STEAM_USERNAME`, `STEAM_CONFIG_VDF` | `STEAM_DEPOT_WINDOWS`, `STEAM_DEPOT_MACOS`, `STEAM_DEPOT_LINUX` (three distinct depot IDs of app 5035580) |
+| `release-steam` | `STEAM_USERNAME`, `STEAM_CONFIG_VDF` | `STEAM_DEPOT_WINDOWS`, `STEAM_DEPOT_MACOS`, `STEAM_DEPOT_LINUX` (three distinct depot IDs of app 5035580); optional `STEAM_DEFAULT_BRANCH` (`internal`) |
 | `release-mas` | `APPLE_API_KEY_BASE64`, `APPLE_API_KEY_ID`, `APPLE_API_ISSUER_ID` (or rely on the repository secrets) | none |
 | `release-msstore` | `MSSTORE_TENANT_ID`, `MSSTORE_CLIENT_ID`, `MSSTORE_CLIENT_SECRET`, `MSSTORE_SELLER_ID` (optional) | `MSSTORE_PRODUCT_ID` (optional; all five or none) |
 
@@ -218,6 +218,17 @@ That account must have the permissions above on app 5035580. The file contains
 refresh credentials: never commit it or upload it as an artifact. Renew it when
 the upload reports an expired session or Steam Guard asks again. A browser login
 does not replace it.
+
+Valve refuses automatic set-live on `default`, so test builds go to a private
+`internal` beta branch. Steamworks only offers branch creation once the app has
+a build, so the first time:
+
+1. Publish with `-f steam_branch=-` (upload only).
+2. In Steamworks → SteamPipe → Builds, create branch `internal` with a password
+   or as private, then set the uploaded build live on it.
+3. `gh variable set STEAM_DEFAULT_BRANCH --env release-steam --body internal`.
+
+After that an empty `steam_branch` sets every upload live on `internal`.
 
 Verify launch, overlay, achievements, stats and Steam Cloud through a beta
 branch install before promoting a build to `default` in Steamworks.

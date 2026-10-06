@@ -279,11 +279,14 @@ export function steamDepotIds(env) {
   return { windows: ids[0], linux: ids[1], macos: ids[2] };
 }
 
-export function steamBranch(value = "") {
-  if (value && (!/^[a-zA-Z0-9_-]+$/.test(value) || value === "default")) {
-    throw new Error("Choose a Steam beta branch or leave empty for upload only.");
+// "-" uploads without setting a build live; empty falls back to the
+// STEAM_DEFAULT_BRANCH variable so test builds land on a private beta branch.
+export function steamBranch(value = "", fallback = "") {
+  const branch = value === "-" ? "" : value || fallback;
+  if (branch && (!/^[a-zA-Z0-9_-]+$/.test(branch) || branch === "default")) {
+    throw new Error('Choose a Steam beta branch, or "-" for upload only.');
   }
-  return value;
+  return branch;
 }
 
 export function steamBuildVdf({ version: appVersion, commit, outputDir, roots, depots, branch }) {

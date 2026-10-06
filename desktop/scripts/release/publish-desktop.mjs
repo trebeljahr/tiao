@@ -105,7 +105,7 @@ if (destination === "downloads-draft") {
 } else if (destination === "steam") {
   requireCredentials("steam", process.env);
   const depots = steamDepotIds(process.env);
-  const branch = steamBranch(process.env.STEAM_BRANCH || "");
+  const branch = steamBranch(process.env.STEAM_BRANCH || "", process.env.STEAM_DEFAULT_BRANCH || "");
   const root = resolve("artifacts/steam");
   const roots = {};
   for (const platform of ["windows", "linux", "macos"]) {
