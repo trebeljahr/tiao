@@ -122,6 +122,9 @@ function createBuilderConfig({ base, channel, signed, env = {} }) {
       // checks the config and leaves dist/mas/mas-universal/Tiao.app.
       ...(signed ? {} : { identity: null }),
     };
+    // Embeds the profile world-readable and normalizes modes before signing:
+    // App Store Connect rejects files only root can read.
+    config.afterPack = "./scripts/release/after-pack.cjs";
   } else if (signed) {
     config.mac.hardenedRuntime = true;
   } else {

@@ -19,6 +19,12 @@ if grep -Fq 'com.apple.security.cs.disable-library-validation' <<< "$entitlement
   echo 'The MAS app carries Developer ID entitlements.' >&2; exit 1
 fi
 test -f "$app/Contents/embedded.provisionprofile"
+# App Store Connect rejects a pkg with files only root can read (409).
+unreadable="$(find "$app" ! -type l \( ! -perm -0444 -o \( -type d ! -perm -0111 \) \))"
+if [[ -n "$unreadable" ]]; then
+  printf 'Not world-readable:\n%s\n' "$unreadable" >&2
+  echo 'The MAS app contains files or directories other users cannot read.' >&2; exit 1
+fi
 steam_files="$(find "$app" \( -iname '*steamworks*' -o -iname '*steam_api*' -o -iname '*steam_appid*' \))"
 if [[ -n "$steam_files" ]]; then
   printf 'Steam files:\n%s\n' "$steam_files" >&2

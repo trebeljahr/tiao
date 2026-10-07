@@ -176,6 +176,10 @@ jobs:
         run: |
           umask 077
           printf '%s' "$MAS_PROVISIONING_PROFILE_BASE64" | base64 --decode > "$RUNNER_TEMP/tiao.provisionprofile"
+          # The profile ships inside the app, and App Store Connect rejects
+          # files only root can read. scripts/release/after-pack.cjs also
+          # embeds it at 0644.
+          chmod 644 "$RUNNER_TEMP/tiao.provisionprofile"
           echo "MAS_PROVISIONING_PROFILE=$RUNNER_TEMP/tiao.provisionprofile" >> "$GITHUB_ENV"
 
       - name: Package every channel of this leg

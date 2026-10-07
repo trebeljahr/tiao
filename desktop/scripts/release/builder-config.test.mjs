@@ -94,6 +94,8 @@ test("Mac App Store build is universal, sandboxed and needs its provisioning pro
   assert.equal(mas.mas.entitlementsInherit, "build/entitlements.mas.inherit.plist");
   assert.equal(mas.forceCodeSigning, true);
   assert.equal(config("mas").mas.identity, null);
+  assert.equal(mas.afterPack, "./scripts/release/after-pack.cjs", "modes are fixed before signing");
+  assert.equal(config("direct").afterPack, undefined);
 });
 
 test("Microsoft Store AppX is unsigned and requires the Partner Center identity when releasing", () => {
