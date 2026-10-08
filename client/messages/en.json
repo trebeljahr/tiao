@@ -1067,7 +1067,7 @@
     "subProcessorHosting": "Hetzner Online GmbH (Nuremberg, Germany) with Coolify as the orchestration layer — application hosting.",
     "subProcessorAnalytics": "Plausible Analytics (Community Edition) — self-hosted on the controller's Hetzner infrastructure (plausible.trebeljahr.com). No data leaves this infrastructure; no third-party analytics network is used.",
     "subProcessorStorage": "Amazon Web Services EMEA SARL — S3 object storage for avatars and assets. Data-transfer safeguards: EU Standard Contractual Clauses.",
-    "subProcessorEmail": "Resend — transactional email (password resets, account notifications).",
+    "subProcessorEmail": "Amazon Web Services EMEA SARL — Amazon SES (EU, Ireland region) for transactional email (password resets, account notifications). Mail is handed to SES by a self-hosted Listmonk instance on the controller's Hetzner infrastructure (Nuremberg, Germany). Data-transfer safeguards: EU Standard Contractual Clauses.",
     "subProcessorPayments": "Stripe — payment processing for shop purchases and subscriptions.",
     "subProcessorOAuth": "Google, GitHub, Discord — identity providers used only if you choose to log in with them.",
     "retentionTitle": "5. How long we keep data",
