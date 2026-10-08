@@ -1097,7 +1097,7 @@
     "providerTitle": "Provider (§ 5 DDG)",
     "providerAddress": "Rico Trebeljahr\nc/o Block Services\nStuttgarter Str. 106\n70736 Fellbach\nGermany",
     "contactTitle": "Contact",
-    "contactBody": "Email: imprint@playtiao.com",
+    "contactBody": "Email: contact@playtiao.com",
     "responsibleTitle": "Person responsible for content (§ 18 (2) MStV)",
     "responsibleBody": "Rico Trebeljahr\nc/o Block Services\nStuttgarter Str. 106\n70736 Fellbach",
     "euDisputeTitle": "EU online dispute resolution",
@@ -1110,6 +1110,21 @@
     "liabilityLinksBody": "Our service contains links to external third-party websites whose content we have no influence over. Therefore, we cannot assume any liability for this third-party content. The respective provider or operator of the pages is always responsible for the content of the linked pages. The linked pages were checked for possible legal violations at the time of linking. Illegal content was not discernible at that time. However, permanent content control of linked pages is unreasonable without specific indications of a legal violation. Upon becoming aware of legal violations, we will remove such links immediately.",
     "copyrightTitle": "Copyright",
     "copyrightBody": "The content and works created by the site operator on these pages are subject to German copyright law. Duplication, processing, distribution and any kind of exploitation outside the limits of copyright law require the written consent of the respective author or creator. Downloads and copies of this site are only permitted for private, non-commercial use. Insofar as the content on this site was not created by the operator, the copyrights of third parties are respected. Should you nevertheless become aware of a copyright infringement, please let us know. Upon becoming aware of legal violations, we will remove such content immediately."
+  },
+  "support": {
+    "title": "Support",
+    "metaDescription": "Get help with Tiao: contact, bug reports, rules, account deletion and purchases.",
+    "intro": "Stuck, found a bug, or have a question about your account? Here is how to reach us.",
+    "contactTitle": "Contact",
+    "contactBody": "Email <email>support@playtiao.com</email>. We usually answer within two working days.",
+    "bugsTitle": "Bug reports and ideas",
+    "bugsBody": "Open an issue on <repo>GitHub</repo>. Say which device and app version you use, and what you did before the problem appeared.",
+    "rulesTitle": "Learning the rules",
+    "rulesBody": "Read the <rules>rules</rules> or play the interactive <tutorial>tutorial</tutorial>.",
+    "accountTitle": "Your account",
+    "accountBody": "You can play as a guest without an account. To delete your account and its data, open <settings>Settings</settings> and choose Delete Account. Our <privacy>privacy policy</privacy> explains what we store.",
+    "purchasesTitle": "Purchases",
+    "purchasesBody": "Bought something in the iOS, Mac or Android app? Open the shop and tap Restore purchases. Refunds for App Store and Google Play purchases go through Apple or Google."
   },
   "about": {
     "title": "About Tiao",

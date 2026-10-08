@@ -20,6 +20,7 @@ const staticRoutes = [
   { pathname: "/creators/andreas", changeFrequency: "yearly", priority: 0.6 },
   { pathname: "/creators/rico", changeFrequency: "yearly", priority: 0.6 },
   { pathname: "/press", changeFrequency: "monthly", priority: 0.5 },
+  { pathname: "/support", changeFrequency: "yearly", priority: 0.4 },
   { pathname: "/privacy", changeFrequency: "yearly", priority: 0.3 },
   { pathname: "/impressum", changeFrequency: "yearly", priority: 0.3 },
 ] as const satisfies Array<{
