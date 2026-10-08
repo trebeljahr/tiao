@@ -13,7 +13,10 @@
  *
  *   verify --own <client/.next/static> --carried <dir> [--max-bytes N]
  *   Fails when one path holds different bytes in two releases (hashed names
- *   must never collide) or when the carry exceeds its size limit.
+ *   must never collide) or when the carry exceeds its size limit. Next's
+ *   per-build manifests are exempt: with deploymentId set, Next 16 uses one
+ *   fixed build ID, so every release has `<buildId>/_buildManifest.js` with
+ *   its own bytes, and release-assets.mjs always serves the running build's.
  */
 
 import { createHash } from "node:crypto";
@@ -26,7 +29,7 @@ import {
   statSync,
   writeFileSync,
 } from "node:fs";
-import { join, relative } from "node:path";
+import { join, relative, sep } from "node:path";
 
 const SHA = /^[0-9a-f]{7,40}$/;
 
@@ -98,11 +101,14 @@ export function compose({ previousDir, previousSha, servingDir, servingSha, out,
   return releases;
 }
 
+const PER_BUILD_MANIFEST = /^[^/]+\/_(build|ssg)Manifest\.js$/;
+
 const digest = (path) => createHash("sha256").update(readFileSync(path)).digest("hex");
 
 export function verify({ own, carried, maxBytes = 200 * 1024 * 1024 }) {
   const seen = new Map();
   const remember = (base, path, label) => {
+    if (PER_BUILD_MANIFEST.test(path.split(sep).join("/"))) return;
     const hash = digest(join(base, path));
     const previous = seen.get(path);
     if (previous && previous.hash !== hash)

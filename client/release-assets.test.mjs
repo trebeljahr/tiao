@@ -198,6 +198,16 @@ test("verify rejects one asset path holding different bytes in two releases", ()
   write(carried, `${A}/chunks/shared.js`, "different");
   assert.throws(() => verify({ own, carried }), /collision/);
   write(carried, `${A}/chunks/shared.js`, "same");
+  // Next 16 reuses one build ID when deploymentId is set; its manifests differ per release.
+  write(own, "build-TfctsWXpff2fKS/_buildManifest.js", "new");
+  write(carried, `${A}/build-TfctsWXpff2fKS/_buildManifest.js`, "old");
+  write(own, "build-TfctsWXpff2fKS/_ssgManifest.js", "new");
+  write(carried, `${A}/build-TfctsWXpff2fKS/_ssgManifest.js`, "old");
+  assert.deepEqual(verify({ own, carried }).releases, [A]);
+  write(carried, `${A}/chunks/x/_buildManifest.js`, "nested");
+  write(own, "chunks/x/_buildManifest.js", "other");
+  assert.throws(() => verify({ own, carried }), /collision/);
+  write(own, "chunks/x/_buildManifest.js", "nested");
   assert.throws(() => verify({ own, carried, maxBytes: 2 }), /limit/);
   writeFileSync(
     join(carried, "releases.json"),
