@@ -129,18 +129,17 @@ declares, with no tracking:
 
 | Data | Linked to user | Purpose | Source |
 | --- | --- | --- | --- |
-| Email address, name | Yes | App functionality, analytics¹ | Account sign-up |
-| User ID | Yes | App functionality, analytics¹ | Player ID; GlitchTip user |
+| Email address, name | Yes | App functionality | Account sign-up |
+| User ID | Yes | App functionality | Player ID; GlitchTip user |
 | Photos | Yes | App functionality | Optional profile picture |
 | Gameplay content | Yes | App functionality | Games, moves, ratings, tournaments |
-| Product interaction¹ | Yes | Analytics | None since OpenPanel was retired |
-| Coarse location¹ | Yes | Analytics | None since OpenPanel was retired |
+| Purchase history | Yes | App functionality | Shop unlocks (StoreKit, Play Billing) |
 | Crash data, diagnostics | Yes | App functionality | GlitchTip |
 
-¹ Left over from OpenPanel, which was retired in October 2026. The apps no
-longer send analytics; the server counts a few aggregate goals in Plausible
-without account ids. These entries now over-declare. Remove them from the
-manifest, the App Privacy answers and the Play Data safety form in one go.
+No analytics purpose: the apps send no analytics since OpenPanel was retired
+in October 2026, and the server counts a few aggregate goals in Plausible
+without account ids or player IP addresses. App Store Connect App Privacy and
+the Play Data safety form must match this table.
 
 Required-reason APIs: UserDefaults (`CA92.1`) and file timestamps (`C617.1`).
 Update the manifest, the App Privacy answers and the Play Data safety form

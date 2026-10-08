@@ -35,10 +35,15 @@ test("iOS privacy manifest ships in the app bundle and declares no tracking", ()
     "EmailAddress",
     "UserID",
     "GameplayContent",
-    "ProductInteraction",
+    "PurchaseHistory",
     "CrashData",
   ]) {
     assert.ok(manifest.includes(`NSPrivacyCollectedDataType${type}`), type);
+  }
+  // The apps send no analytics since OpenPanel was retired; Plausible only
+  // counts aggregate server goals without account ids.
+  for (const stale of ["ProductInteraction", "CoarseLocation", "PurposeAnalytics"]) {
+    assert.ok(!manifest.includes(stale), `stale declaration ${stale}`);
   }
   assert.ok(manifest.includes("CA92.1"));
   assert.doesNotMatch(manifest, /<key>NSPrivacyCollectedDataTypeTracking<\/key>\s*<true\/>/);
