@@ -103,3 +103,8 @@ venv/
 
 # local-only output of the secret/history audit (see .gitleaks.toml)
 SECURITY-AUDIT.md
+
+# Store screenshot sets per size (scripts/app-store-screenshots.mjs). Regenerate; too large to commit.
+output/playwright/store-gameplay/*/
+output/playwright/store-ui/*/
+!output/playwright/store-ui/avatars/

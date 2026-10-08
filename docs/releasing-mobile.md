@@ -36,6 +36,37 @@ release tooling.
 4. Finish the release in App Store Connect / Play Console (tester groups,
    review, rollout). An upload is not a store submission.
 
+### App Store submission (iOS and macOS together)
+
+The iOS app and the Mac App Store build share one App Store Connect record
+(app `6814740804`). Both version records must carry the same version as the
+builds (`1.0.0`). After pushing `main`:
+
+```sh
+gh workflow run build-mobile.yml --ref main -f platform=ios -f mode=signed -f build_number=2
+gh workflow run build-desktop.yml --ref main -f platform=mas -f mode=signed
+# when both runs are green, with their run IDs:
+gh workflow run publish-mobile.yml --ref main -f run_id=MOBILE_RUN_ID -f destination=testflight
+gh workflow run publish-desktop.yml --ref main -f run_id=DESKTOP_RUN_ID -f destination=mas
+```
+
+Use a `build_number` above every build in TestFlight and Play (build 1
+exists). Then attach each processed build to its version in App Store
+Connect, fill in the listing, and submit.
+
+Screenshots for every App Store size (iPhone 6.9", 6.5", iPhone Duo outer and
+inner, 13" iPad, Mac) come from one command against a local client:
+
+```sh
+(cd client && PORT=51234 node server.mjs)   # any free port; no API needed
+pnpm store:screenshots http://localhost:51234
+```
+
+The JPEGs land in `output/playwright/store-gameplay/<size>/` and
+`output/playwright/store-ui/<size>/` (not committed). Sizes and their App Store
+Connect display types are in `scripts/store-sizes.mjs`. If Playwright has no
+browser build, set `CHROMIUM_PATH` to a cached Chromium headless shell.
+
 `mode=smoke` needs no secrets. It compiles a debug APK and an unsigned iOS
 build to prove the native projects still compile.
 

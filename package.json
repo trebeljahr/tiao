@@ -21,6 +21,7 @@
     "steam:achievements": "node scripts/steam-achievements.mjs",
     "steam:achievements:check": "node scripts/steam-achievements.mjs --check",
     "steam:icons": "node scripts/steam-achievement-icons.mjs",
+    "store:screenshots": "node scripts/app-store-screenshots.mjs",
     "discord:register": "pnpm --dir ./server exec tsx ../scripts/discord-register-commands.ts",
     "setup:discord": "tsx scripts/discord-setup.ts",
     "dev:desktop:prod": "pnpm --dir ./desktop run dev:prod",

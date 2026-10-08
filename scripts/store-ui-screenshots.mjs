@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Capture the shipped UI with isolated sample API data, never production accounts.
-// Usage: CHROMIUM_PATH=... node scripts/store-ui-screenshots.mjs http://localhost:59327
+// Usage: CHROMIUM_PATH=... node scripts/store-ui-screenshots.mjs http://localhost:59327 [--size=<name>]
+// Sizes: scripts/store-sizes.mjs. Full-page captures only run at the default size.
 import assert from "node:assert/strict";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -15,10 +16,13 @@ import {
   jumpPiece,
   placePiece,
 } from "../shared/src/tiao.ts";
+import { storeSize } from "./store-sizes.mjs";
 
 const baseURL = process.argv[2];
 assert(/^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(baseURL));
-const output = resolve("output/playwright/store-ui");
+const size = storeSize();
+const shared = resolve("output/playwright/store-ui");
+const output = size.store ? resolve(shared, size.name) : shared;
 mkdirSync(output, { recursive: true });
 const unwrap = (r) => {
   assert(r.ok, JSON.stringify(r));
@@ -309,8 +313,8 @@ const errors = [];
 const unexpected = new Set();
 try {
   const context = await browser.newContext({
-    viewport: { width: 1920, height: 1080 },
-    deviceScaleFactor: 1,
+    viewport: size.viewport,
+    deviceScaleFactor: size.scale,
     locale: "en-AU",
     timezoneId: "Australia/Sydney",
   });
@@ -337,7 +341,7 @@ try {
     assert(names.some((player) => name === `${player}.jpg`));
     await route.fulfill({
       contentType: "image/jpeg",
-      body: readFileSync(resolve(output, "avatars", name)),
+      body: readFileSync(resolve(shared, "avatars", name)),
     });
   });
   await context.routeWebSocket(/\/api\/ws/, (socket) => {
@@ -353,6 +357,8 @@ try {
     await page.waitForTimeout(1200);
   }
   async function shoot(name, fullPage = false) {
+    // Store sets need the exact device size; tall captures are press-only.
+    if (fullPage && size.store) return;
     const avatarImages = page.locator('img[src^="/sample-avatars/"]');
     if (name !== "06-tournaments") {
       assert((await avatarImages.count()) > 0, `${name}: missing profile images`);
@@ -361,11 +367,12 @@ try {
         if (images.some((img) => img.naturalWidth === 0)) throw new Error("Broken profile image");
       });
     }
-    await page.mouse.move(1900, 1060);
+    await page.mouse.move(size.viewport.width - 4, size.viewport.height - 4);
     await page.screenshot({
-      path: resolve(output, `${name}.png`),
+      path: resolve(output, `${name}.${size.ext}`),
       animations: "disabled",
       fullPage,
+      ...(size.ext === "jpg" ? { type: "jpeg", quality: 92 } : {}),
     });
     writeFileSync(resolve(output, `${name}.aria.txt`), await page.locator("body").ariaSnapshot());
     console.log("Captured", name);

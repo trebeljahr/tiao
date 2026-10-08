@@ -2,6 +2,7 @@
 // Real local-game captures. Every position starts at the empty board and
 // every move is checked by the shared engine, then replayed through the UI.
 // Start an isolated client first; pass its URL as the first argument.
+// `--size=<name>` (scripts/store-sizes.mjs) captures one store's size.
 import assert from "node:assert/strict";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -16,8 +17,11 @@ import {
   jumpPiece,
   placePiece,
 } from "../shared/src/tiao.ts";
+import { storeSize } from "./store-sizes.mjs";
 
-const output = resolve("output/playwright/store-gameplay");
+const size = storeSize();
+const replays = resolve("output/playwright/store-gameplay");
+const output = size.store ? resolve(replays, size.name) : replays;
 mkdirSync(output, { recursive: true });
 const unwrap = (result) => {
   assert.equal(result.ok, true, JSON.stringify(result));
@@ -107,7 +111,7 @@ for (const [name, scene] of Object.entries(scenes)) {
     scene.before.score,
   );
 }
-writeFileSync(resolve(output, "legal-replays.json"), JSON.stringify(scenes, null, 2));
+writeFileSync(resolve(replays, "legal-replays.json"), `${JSON.stringify(scenes, null, 2)}\n`);
 if (process.argv.includes("--prepare-only")) process.exit(0);
 
 const baseURL = process.argv[2];
@@ -118,8 +122,8 @@ const browser = await chromium.launch({
 });
 try {
   const page = await browser.newPage({
-    viewport: { width: 1920, height: 1080 },
-    deviceScaleFactor: 1,
+    viewport: size.viewport,
+    deviceScaleFactor: size.scale,
   });
   await page.addInitScript(() => {
     localStorage.setItem("tiao:analytics-consent", "denied");
@@ -166,7 +170,7 @@ try {
     return state;
   }
   async function shot(name, state) {
-    await page.mouse.move(1900, 1060);
+    await page.mouse.move(size.viewport.width - 4, size.viewport.height - 4);
     await page.waitForTimeout(900);
     await checkBoard(state);
     const scores = await page.locator("p.tabular-nums").allTextContents();
@@ -174,7 +178,11 @@ try {
       scores.map((s) => s.replace(/\s/g, "")),
       [`${state.score.black}/${state.scoreToWin}`, `${state.score.white}/${state.scoreToWin}`],
     );
-    await page.screenshot({ path: resolve(output, `${name}.png`), animations: "disabled" });
+    await page.screenshot({
+      path: resolve(output, `${name}.${size.ext}`),
+      animations: "disabled",
+      ...(size.ext === "jpg" ? { type: "jpeg", quality: 92 } : {}),
+    });
     console.log("Captured", name);
   }
   for (const [name, scene] of Object.entries(scenes)) {
