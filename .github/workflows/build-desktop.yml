@@ -25,6 +25,10 @@ on:
         type: choice
         options: [signed, smoke]
         default: signed
+      build_number:
+        description: Mac App Store CFBundleVersion (integer above every earlier MAS upload; default this run's number)
+        type: string
+        required: false
   pull_request:
     paths:
       - "desktop/**"
@@ -195,6 +199,7 @@ jobs:
           WINDOWS_STORE_IDENTITY_NAME: ${{ matrix.platform == 'msstore' && vars.WINDOWS_STORE_IDENTITY_NAME || '' }}
           WINDOWS_STORE_PUBLISHER: ${{ matrix.platform == 'msstore' && vars.WINDOWS_STORE_PUBLISHER || '' }}
           WINDOWS_STORE_PUBLISHER_DISPLAY_NAME: ${{ matrix.platform == 'msstore' && vars.WINDOWS_STORE_PUBLISHER_DISPLAY_NAME || '' }}
+          TIAO_BUILD_NUMBER: ${{ matrix.platform == 'mas' && (inputs.build_number || github.run_number) || '' }}
         run: node scripts/release/package.mjs ${{ matrix.platform }} ${{ needs.plan.outputs.mode }}
 
       - name: Verify Developer ID signatures, notarization and staples

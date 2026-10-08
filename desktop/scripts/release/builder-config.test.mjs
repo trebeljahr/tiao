@@ -23,6 +23,9 @@ test("the base config carries Tiao identity, icons and store metadata", () => {
   assert.equal(base.mac.category, "public.app-category.board-games");
   assert.equal(base.mac.extendInfo.ITSAppUsesNonExemptEncryption, false);
   assert.equal(base.mac.extendInfo.ElectronTeamID, "4BHY8H2J25");
+  // macOS 26 reads the icon from the compiled catalog (scripts/make-mac-asset-catalog.sh).
+  assert.equal(base.mac.extendInfo.CFBundleIconName, "Icon");
+  assert.deepEqual(base.mac.extraResources, [{ from: "build/Assets.car", to: "Assets.car" }]);
   assert.deepEqual(base.protocols[0].schemes, ["tiao"]);
   assert.equal(base.files.includes("steam_appid.txt"), false, "steam_appid.txt is dev-only");
   assert.deepEqual(base.appx.languages, ["en-US", "de-DE", "es-ES"]);
@@ -85,7 +88,17 @@ test("signed desktop builds force signing; unsigned Mac builds skip identity and
 
 test("Mac App Store build is universal, sandboxed and needs its provisioning profile", () => {
   assert.throws(() => config("mas", true), /MAS_PROVISIONING_PROFILE/);
-  const mas = config("mas", true, { MAS_PROVISIONING_PROFILE: "/tmp/tiao.provisionprofile" });
+  assert.throws(
+    () => config("mas", true, { MAS_PROVISIONING_PROFILE: "/tmp/tiao.provisionprofile" }),
+    /TIAO_BUILD_NUMBER/,
+  );
+  assert.throws(() => config("mas", false, { TIAO_BUILD_NUMBER: "1.2" }), /positive integer/);
+  const mas = config("mas", true, {
+    MAS_PROVISIONING_PROFILE: "/tmp/tiao.provisionprofile",
+    TIAO_BUILD_NUMBER: "42",
+  });
+  assert.equal(mas.mas.bundleVersion, "42", "each upload gets a new CFBundleVersion");
+  assert.equal(config("mas").mas.bundleVersion, undefined);
   assert.deepEqual(mas.mac.target, [{ target: "mas", arch: ["universal"] }]);
   assert.equal(mas.mas.provisioningProfile, "/tmp/tiao.provisionprofile");
   assert.equal(mas.mas.type, "distribution");

@@ -114,9 +114,20 @@ function createBuilderConfig({ base, channel, signed, env = {} }) {
     if (signed && !profile) {
       throw new Error("A signed Mac App Store build needs MAS_PROVISIONING_PROFILE (a file path).");
     }
+    // App Store Connect refuses a second upload with the same CFBundleVersion
+    // for one version. electron-builder would write the bare version
+    // (1.0.0) every time, so CI passes a fresh integer build number.
+    const buildNumber = envValue(env, "TIAO_BUILD_NUMBER");
+    if (buildNumber !== undefined && !/^[1-9]\d{0,8}$/.test(buildNumber)) {
+      throw new Error(`TIAO_BUILD_NUMBER must be a positive integer: ${buildNumber}`);
+    }
+    if (signed && buildNumber === undefined) {
+      throw new Error("A signed Mac App Store build needs TIAO_BUILD_NUMBER.");
+    }
     config.mas = {
       ...base.mas,
       provisioningProfile: profile ?? null,
+      ...(buildNumber ? { bundleVersion: buildNumber } : {}),
       // Unsigned: skip signing outright. electron-builder's ad-hoc fallback
       // cannot derive ElectronTeamID and fails; an unsigned MAS run only
       // checks the config and leaves dist/mas/mas-universal/Tiao.app.

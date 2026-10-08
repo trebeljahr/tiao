@@ -39,9 +39,12 @@ npm run version:set -- 0.2.0
 npm run version:check     # CI runs this in the plan job
 ```
 
-The Mac App Store and Microsoft Store refuse a version they already accepted.
-Bump the version for every store upload, including a re-upload after a
-rejected build.
+The Mac App Store version must match the App Store Connect version record
+(`1.0.0` for the first release). Each Mac App Store upload also needs a new
+`CFBundleVersion`: the `mas` leg writes the workflow's `build_number` input
+there, or the run number when the input is empty. A re-upload of the same
+version therefore only needs a new build run. The Microsoft Store refuses a
+version it already accepted, so bump the version before an msstore re-upload.
 
 ## Build: "Build desktop binaries" (build-desktop.yml)
 
@@ -51,6 +54,9 @@ Inputs:
   (mas + msstore), or one leg.
 - `mode`: `signed` requires `main` and every credential of each selected leg;
   `smoke` builds unsigned artifacts that the publisher never accepts.
+- `build_number` (optional): the Mac App Store `CFBundleVersion`. Empty uses
+  the run number, which only grows. Set it only to jump above an earlier
+  upload.
 
 ```sh
 gh workflow run build-desktop.yml --ref main -f platform=all -f mode=signed
@@ -255,6 +261,11 @@ packaged, and the depot script excludes it.
   sign-in works inside the sandbox; the app does not call
   `setAsDefaultProtocolClient` in a MAS build.
 - The MAS build contains no `steamworks.js` and no updater.
+- Icon: every macOS build ships `icon.icns` (macOS 11-15) and the compiled
+  catalog `desktop/build/Assets.car` with `CFBundleIconName=Icon` (macOS 26
+  draws the icon from it). Rebuild the catalog with
+  `bash desktop/scripts/make-mac-asset-catalog.sh` (needs Xcode 26) when the
+  iOS app icon changes.
 
 ### Microsoft Store
 

@@ -99,8 +99,15 @@
       "artifactName": "Tiao-${version}-macos-${arch}.${ext}",
       "extendInfo": {
         "ITSAppUsesNonExemptEncryption": false,
-        "ElectronTeamID": "4BHY8H2J25"
-      }
+        "ElectronTeamID": "4BHY8H2J25",
+        "CFBundleIconName": "Icon"
+      },
+      "extraResources": [
+        {
+          "from": "build/Assets.car",
+          "to": "Assets.car"
+        }
+      ]
     },
     "dmg": {
       "artifactName": "Tiao-${version}-macos-${arch}.${ext}"
