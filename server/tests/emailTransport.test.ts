@@ -28,23 +28,16 @@ describe("selectEmailTransport", () => {
     assert.equal(selectEmailTransport({}), "console");
   });
 
-  test("selects Resend when only RESEND_API_KEY is set", () => {
-    assert.equal(selectEmailTransport({ RESEND_API_KEY: "re_123" }), "resend");
-  });
-
-  test("selects Listmonk once its whole set is present, even with Resend configured", () => {
-    // This is the cutover: Resend's key is still set when the Listmonk set
-    // is completed, and Listmonk has to win without removing it first.
+  test("selects Listmonk once its whole set is present", () => {
     assert.equal(selectEmailTransport(fullListmonk), "listmonk");
-    assert.equal(selectEmailTransport({ ...fullListmonk, RESEND_API_KEY: "re_123" }), "listmonk");
   });
 
-  test("keeps live mail on Resend while the Listmonk set is incomplete", () => {
+  test("falls back to the console while the Listmonk set is incomplete", () => {
     for (const missing of LISTMONK_KEYS) {
       assert.equal(
-        selectEmailTransport({ ...fullListmonk, [missing]: "", RESEND_API_KEY: "re_123" }),
-        "resend",
-        `a missing ${missing} must not take mail away from Resend`,
+        selectEmailTransport({ ...fullListmonk, [missing]: "" }),
+        "console",
+        `a blank ${missing} must not select Listmonk`,
       );
       assert.equal(
         selectEmailTransport({ ...fullListmonk, [missing]: undefined }),
@@ -55,7 +48,6 @@ describe("selectEmailTransport", () => {
   });
 
   test("treats whitespace-only values as unset", () => {
-    assert.equal(selectEmailTransport({ RESEND_API_KEY: "  " }), "console");
     assert.equal(selectEmailTransport({ ...fullListmonk, LISTMONK_API_TOKEN: " " }), "console");
   });
 
@@ -175,10 +167,9 @@ describe("sendViaListmonk", () => {
 });
 
 // The account emails read the environment on every send, so these cover the
-// wiring the cutover depends on: the same call goes to Listmonk or to Resend
-// depending only on which variables are set.
+// wiring from environment variables to the Listmonk request.
 describe("account emails", () => {
-  const ENV_KEYS = [...LISTMONK_KEYS, "RESEND_API_KEY", "EMAIL_FROM"] as const;
+  const ENV_KEYS = LISTMONK_KEYS;
   let saved: Record<string, string | undefined>;
 
   beforeEach(() => {
@@ -194,8 +185,8 @@ describe("account emails", () => {
     }
   });
 
-  test("go through Listmonk once its set is complete, with Resend still configured", async () => {
-    Object.assign(process.env, fullListmonk, { RESEND_API_KEY: "re_123" });
+  test("go through Listmonk once its set is complete", async () => {
+    Object.assign(process.env, fullListmonk);
     const calls = stubFetch(() => okJson({ data: true }));
 
     await sendVerificationEmail("player@example.com", "https://playtiao.com/verify?token=abc");
@@ -210,7 +201,7 @@ describe("account emails", () => {
   });
 
   test("all four senders go through Listmonk with tiao's From", async () => {
-    Object.assign(process.env, fullListmonk, { RESEND_API_KEY: "re_123" });
+    Object.assign(process.env, fullListmonk);
     const calls = stubFetch(() => okJson({ data: true }));
 
     await sendPasswordResetEmail("player@example.com", "https://playtiao.com/reset?token=r");
@@ -252,21 +243,18 @@ describe("account emails", () => {
     );
   });
 
-  test("stay on Resend, from EMAIL_FROM, while the Listmonk set is incomplete", async () => {
-    Object.assign(process.env, fullListmonk, {
-      LISTMONK_API_TOKEN: "",
-      RESEND_API_KEY: "re_123",
-      EMAIL_FROM: "noreply@playtiao.com",
-    });
-    const calls = stubFetch(() => okJson({ id: "email_1" }));
+  test("are logged, not sent, while the Listmonk set is incomplete", async () => {
+    Object.assign(process.env, fullListmonk, { LISTMONK_API_TOKEN: "" });
+    const calls = stubFetch(() => okJson({ data: true }));
+    const info = mock.method(console, "info", () => {});
 
     await sendEmailChangeVerification("new@example.com", "https://playtiao.com/confirm");
 
-    assert.equal(calls.length, 1);
-    assert.match(calls[0].url, /^https:\/\/api\.resend\.com\/emails/);
-    const body = JSON.parse(calls[0].init.body as string);
-    assert.equal(body.from, "noreply@playtiao.com");
-    assert.deepEqual(body.to, "new@example.com");
+    assert.equal(calls.length, 0);
+    assert.match(
+      String(info.mock.calls[0]?.arguments[0]),
+      /no email provider configured.*new@example\.com/,
+    );
   });
 
   test("skip seed accounts without calling any provider", async () => {
@@ -280,9 +268,24 @@ describe("account emails", () => {
 });
 
 test("Reply-To preserves the sole recipient and rejects header injection", () => {
-  const message = { to: "one@example.com", subject: "fixture", text: "fixture", html: "<p>fixture</p>" };
-  const body = listmonkTxBody(message, { ...fullListmonk, LISTMONK_REPLY_TO: "Owner <hi@example.com>" });
+  const message = {
+    to: "one@example.com",
+    subject: "fixture",
+    text: "fixture",
+    html: "<p>fixture</p>",
+  };
+  const body = listmonkTxBody(message, {
+    ...fullListmonk,
+    LISTMONK_REPLY_TO: "Owner <hi@example.com>",
+  });
   assert.deepEqual(body.headers, [{ "Reply-To": "Owner <hi@example.com>" }]);
   assert.equal(body.subscriber_email, "one@example.com");
-  assert.throws(() => listmonkTxBody(message, { ...fullListmonk, LISTMONK_REPLY_TO: "hi@example.com\r\nBcc: other@example.com" }), /Invalid LISTMONK_REPLY_TO/);
+  assert.throws(
+    () =>
+      listmonkTxBody(message, {
+        ...fullListmonk,
+        LISTMONK_REPLY_TO: "hi@example.com\r\nBcc: other@example.com",
+      }),
+    /Invalid LISTMONK_REPLY_TO/,
+  );
 });

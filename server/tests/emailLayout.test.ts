@@ -114,7 +114,7 @@ describe("listmonkTxBody plain text", () => {
 });
 
 describe("every account email uses the branded layout", () => {
-  const ENV_KEYS = [...Object.keys(fullListmonk), "RESEND_API_KEY", "EMAIL_FROM"];
+  const ENV_KEYS = Object.keys(fullListmonk);
   let saved: Record<string, string | undefined>;
 
   beforeEach(() => {

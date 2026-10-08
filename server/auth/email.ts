@@ -1,11 +1,9 @@
-import { Resend } from "resend";
-
 import { renderEmail } from "./emailLayout";
 
 const IS_DEV = process.env.NODE_ENV !== "production";
 const LISTMONK_TIMEOUT_MS = 10_000;
 
-export type EmailTransportKind = "listmonk" | "resend" | "console";
+export type EmailTransportKind = "listmonk" | "console";
 
 /**
  * The subset of the environment that decides how mail leaves this server.
@@ -19,8 +17,6 @@ export interface EmailTransportEnv {
   LISTMONK_TX_TEMPLATE_ID?: string;
   LISTMONK_FROM?: string;
   LISTMONK_REPLY_TO?: string;
-  RESEND_API_KEY?: string;
-  EMAIL_FROM?: string;
 }
 
 export interface EmailMessage {
@@ -48,21 +44,16 @@ export function missingListmonkVars(source: EmailTransportEnv): string[] {
 }
 
 /**
- * Which transport a given environment selects, in a fixed order:
+ * Which transport a given environment selects:
  *
  *   1. Listmonk — only when its whole set is present. It relays through
- *                 Amazon SES, and the cutover from Resend is nothing more
- *                 than completing this set in Coolify. A partial set is a
- *                 half-finished cutover, not a transport: it must not take
- *                 live mail away from a working Resend.
- *   2. Resend   — whenever RESEND_API_KEY is set.
- *   3. console  — no provider at all. Sends are logged, not delivered, which
- *                 is right for local dev.
+ *                 Amazon SES. A partial set is a misconfiguration, not a
+ *                 transport, and the boot log names what is missing.
+ *   2. console  — anything else. Sends are logged, not delivered, which is
+ *                 right for local dev.
  */
 export function selectEmailTransport(source: EmailTransportEnv): EmailTransportKind {
-  if (missingListmonkVars(source).length === 0) return "listmonk";
-  if (source.RESEND_API_KEY?.trim()) return "resend";
-  return "console";
+  return missingListmonkVars(source).length === 0 ? "listmonk" : "console";
 }
 
 /**
@@ -143,22 +134,6 @@ export async function sendViaListmonk(
   }
 }
 
-let resend: Resend | null = null;
-
-async function sendViaResend(message: EmailMessage, source: EmailTransportEnv): Promise<void> {
-  resend ??= new Resend(source.RESEND_API_KEY?.trim());
-  const { error } = await resend.emails.send({
-    from: source.EMAIL_FROM || "Tiao <noreply@playtiao.com>",
-    to: message.to,
-    subject: message.subject,
-    html: message.html,
-    ...(message.text ? { text: message.text } : {}),
-  });
-  if (error) {
-    throw new Error(`Resend rejected the message: ${error.message}`);
-  }
-}
-
 /**
  * Extract a URL from the HTML body so we can log it in dev when email
  * delivery isn't actually possible (e.g. no provider configured).
@@ -201,11 +176,7 @@ async function send(message: EmailMessage): Promise<void> {
   }
 
   try {
-    if (transport === "listmonk") {
-      await sendViaListmonk(message, process.env);
-    } else {
-      await sendViaResend(message, process.env);
-    }
+    await sendViaListmonk(message, process.env);
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
     if (IS_DEV) {
@@ -217,7 +188,7 @@ async function send(message: EmailMessage): Promise<void> {
   }
 }
 
-/** One boot line naming the active transport, so a cutover in Coolify can be
+/** One boot line naming the active transport, so a change in Coolify can be
  *  confirmed from the container log before anyone requests a reset. */
 function logSelectedTransport(): void {
   const source: EmailTransportEnv = process.env;
@@ -232,8 +203,6 @@ function logSelectedTransport(): void {
     console.info(
       `[email] transport: Listmonk ${source.LISTMONK_URL?.trim()} (template ${source.LISTMONK_TX_TEMPLATE_ID?.trim()}, from ${source.LISTMONK_FROM?.trim()})`,
     );
-  } else if (transport === "resend") {
-    console.info(`[email] transport: Resend${partial}`);
   } else {
     console.info(`[email] transport: none, emails are logged instead of sent${partial}`);
   }
