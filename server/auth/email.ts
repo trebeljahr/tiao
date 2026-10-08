@@ -1,5 +1,7 @@
 import { Resend } from "resend";
 
+import { renderEmail } from "./emailLayout";
+
 const IS_DEV = process.env.NODE_ENV !== "production";
 const LISTMONK_TIMEOUT_MS = 10_000;
 
@@ -25,6 +27,8 @@ export interface EmailMessage {
   to: string;
   subject: string;
   html: string;
+  /** Plain-text alternative, sent next to the HTML when present. */
+  text?: string;
 }
 
 const LISTMONK_VARS = [
@@ -74,20 +78,30 @@ export function selectEmailTransport(source: EmailTransportEnv): EmailTransportK
  *
  * The HTML goes in unescaped. The tx template renders it with
  * `{{ .Tx.Data.body | Safe }}` and the subject with `{{ .Tx.Data.subject }}`.
+ *
+ * `altbody` becomes the text/plain part. Listmonk runs it through Go's
+ * template engine whenever it contains `{{`, so that sequence is broken up
+ * here: the text can carry a player's display name.
  */
 export function listmonkTxBody(
   message: EmailMessage,
-  source: Pick<EmailTransportEnv, "LISTMONK_TX_TEMPLATE_ID" | "LISTMONK_FROM" | "LISTMONK_REPLY_TO">,
+  source: Pick<
+    EmailTransportEnv,
+    "LISTMONK_TX_TEMPLATE_ID" | "LISTMONK_FROM" | "LISTMONK_REPLY_TO"
+  >,
 ) {
   if (/[\r\n]/.test(source.LISTMONK_REPLY_TO ?? "")) throw new Error("Invalid LISTMONK_REPLY_TO");
   return {
-    ...(source.LISTMONK_REPLY_TO?.trim() ? { headers: [{ "Reply-To": source.LISTMONK_REPLY_TO.trim() }] } : {}),
+    ...(source.LISTMONK_REPLY_TO?.trim()
+      ? { headers: [{ "Reply-To": source.LISTMONK_REPLY_TO.trim() }] }
+      : {}),
     subscriber_email: message.to,
     subscriber_mode: "external",
     template_id: Number(source.LISTMONK_TX_TEMPLATE_ID),
     from_email: source.LISTMONK_FROM?.trim(),
     data: { subject: message.subject, body: message.html },
     content_type: "html",
+    ...(message.text ? { altbody: message.text.replace(/\{\{/g, "{ {") } : {}),
   };
 }
 
@@ -138,6 +152,7 @@ async function sendViaResend(message: EmailMessage, source: EmailTransportEnv): 
     to: message.to,
     subject: message.subject,
     html: message.html,
+    ...(message.text ? { text: message.text } : {}),
   });
   if (error) {
     throw new Error(`Resend rejected the message: ${error.message}`);
@@ -232,9 +247,20 @@ export async function sendPasswordResetEmail(email: string, resetUrl: string): P
   await send({
     to: email,
     subject: "Reset your Tiao password",
-    html: `<p>You requested a password reset. Click the link below to set a new password:</p>
-     <p><a href="${resetUrl}">Reset password</a></p>
-     <p>If you didn't request this, you can safely ignore this email.</p>`,
+    ...renderEmail({
+      preheader: "Choose a new password for your Tiao account.",
+      heading: "Reset your password",
+      paragraphs: [
+        "Someone asked to reset the password of the Tiao account that uses this email address.",
+        "Use the link below to choose a new password.",
+      ],
+      action: { label: "Choose a new password", url: resetUrl },
+      notes: [
+        "The link works for 1 hour.",
+        "Did not ask for this? Ignore this email. Your password stays the same.",
+      ],
+      reason: "You got this email because someone asked for a password reset on playtiao.com.",
+    }),
   });
 }
 
@@ -242,8 +268,20 @@ export async function sendVerificationEmail(email: string, verifyUrl: string): P
   await send({
     to: email,
     subject: "Verify your Tiao email",
-    html: `<p>Welcome to Tiao! Click the link below to verify your email address:</p>
-     <p><a href="${verifyUrl}">Verify email</a></p>`,
+    ...renderEmail({
+      preheader: "Confirm your email address to finish your Tiao sign-up.",
+      heading: "Confirm your email address",
+      paragraphs: [
+        "Thanks for signing up for Tiao.",
+        "Confirm this email address to finish setting up your account.",
+      ],
+      action: { label: "Confirm email address", url: verifyUrl },
+      notes: [
+        "The link works for 1 hour.",
+        "Did not sign up? Ignore this email. Nothing happens without the link.",
+      ],
+      reason: "You got this email because someone signed up on playtiao.com with this address.",
+    }),
   });
 }
 
@@ -254,8 +292,15 @@ export async function sendModerationAlert(displayName: string, reportCount: numb
   await send({
     to: "moderation@playtiao.com",
     subject: `[Tiao] Player flagged for review: ${displayName}`,
-    html: `<p>The player <strong>${displayName}</strong> has received <strong>${reportCount}</strong> report(s) and has been automatically flagged for review.</p>
-     <p><a href="${adminUrl}">Review flagged players</a></p>`,
+    ...renderEmail({
+      preheader: `${displayName} has ${reportCount} report(s).`,
+      heading: "Player flagged for review",
+      paragraphs: [
+        `The player ${displayName} has ${reportCount} report(s). Tiao flagged the player automatically.`,
+      ],
+      action: { label: "Review flagged players", url: adminUrl },
+      reason: "You got this email because this address receives Tiao moderation alerts.",
+    }),
   });
 }
 
@@ -266,9 +311,19 @@ export async function sendEmailChangeVerification(
   await send({
     to: newEmail,
     subject: "Confirm your new Tiao email",
-    html: `<p>Someone (hopefully you) requested to change the email on a Tiao account to this address.</p>
-     <p>Click the link below to confirm the change:</p>
-     <p><a href="${confirmUrl}">Confirm email change</a></p>
-     <p>If you didn't request this, you can safely ignore this email — your account is unaffected.</p>`,
+    ...renderEmail({
+      preheader: "Confirm the new email address for your Tiao account.",
+      heading: "Confirm your new email address",
+      paragraphs: [
+        "Someone asked to move a Tiao account to this email address.",
+        "Use the link below to confirm the change.",
+      ],
+      action: { label: "Confirm new email", url: confirmUrl },
+      notes: [
+        "The link works for 24 hours.",
+        "Did not ask for this? Ignore this email. The account keeps its current address.",
+      ],
+      reason: "You got this email because someone entered this address on playtiao.com.",
+    }),
   });
 }
