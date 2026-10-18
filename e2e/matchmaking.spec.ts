@@ -14,6 +14,16 @@ async function startMatchmaking(page: Page) {
   await expect(page.locator("text=Searching")).toBeVisible({ timeout: 15000 });
 }
 
+// The second player is paired the moment the server sees them in the queue,
+// often before "Searching" ever renders, so only require it from the first.
+async function joinOpponent(page: Page, path = "/matchmaking") {
+  await page.goto(path, { waitUntil: "domcontentloaded" });
+  await waitForAppReady(page);
+  await expect(page.locator("text=Searching").or(page.locator("text=Live match"))).toBeVisible({
+    timeout: 15000,
+  });
+}
+
 async function startTimedMatchmaking(page: Page, initialMs: number, incrementMs: number) {
   await page.goto(`/matchmaking?initial=${initialMs}&increment=${incrementMs}`, {
     waitUntil: "domcontentloaded",
@@ -38,7 +48,7 @@ test("matchmaking pairs two players into a game", async ({ browser }) => {
   await expect(alicePage).toHaveURL(/\/matchmaking/);
   await expect(alicePage.locator("text=Searching")).toBeVisible();
 
-  await startMatchmaking(bobPage);
+  await joinOpponent(bobPage);
 
   // Both should eventually land in a game — matchmaking polls every
   // few seconds so it can take 10-15s under CI load for both players
@@ -81,7 +91,7 @@ test("matchmaking game has no console errors", async ({ browser }) => {
   bobPage.on("pageerror", (err) => bobErrors.push(err.message));
 
   await startMatchmaking(alicePage);
-  await startMatchmaking(bobPage);
+  await joinOpponent(bobPage);
 
   // Both should land in a game
   await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/, { timeout: 10000 });
@@ -126,7 +136,7 @@ test("timed matchmaking (30+0) pairs two players", async ({ browser }) => {
   // Verify time control label is shown
   await expect(alicePage.locator("text=30+0")).toBeVisible();
 
-  await startTimedMatchmaking(bobPage, 1_800_000, 0);
+  await joinOpponent(bobPage, "/matchmaking?initial=1800000&increment=0");
 
   // Both should land in a game
   await expect(alicePage).toHaveURL(/\/game\/[A-Z0-9]{6}/, { timeout: 10000 });
