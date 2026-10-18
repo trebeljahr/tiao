@@ -9,8 +9,10 @@ description: Production deployment notes for Tiao — the web client on Cloudfla
 Tiao runs as two pieces on one browser origin, `playtiao.com`:
 
 - the **web client**, a static export (`pnpm --dir client build` writes
-  `client/out`) served by the assets-only Cloudflare Worker `tiao-client`
-  (`client/wrangler.jsonc`). There is no Worker script and no Node server.
+  `client/out`) served by the Cloudflare Worker `tiao-client`
+  (`client/wrangler.jsonc`). No Node server. A small Worker script
+  (`client/worker`) runs only for game, profile, tournament and embed pages,
+  to serve their placeholder page and write each link's share preview.
 - the **game server**, a Coolify application built from `server/Dockerfile`.
 
 The Cloudflare zone decides which one answers. The route `playtiao.com/*`

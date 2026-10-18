@@ -359,12 +359,15 @@ Key properties:
 ```
 
 The web client is a static export (`client/out`, see
-`client/scripts/finalize-web-export.mjs`) served by an assets-only Worker,
-`tiao-client`. No Worker script runs, so the site does not count toward the
-Workers request limit. Routes without a Worker send the API, WebSocket and
-error-tunnel paths to the server container on the same hostname, so the
-session cookie stays first-party. The desktop and mobile apps ship their own
-static exports and call `https://api.playtiao.com`.
+`client/scripts/finalize-web-export.mjs`) served by the Worker `tiao-client`
+from Workers static assets. Its script (`client/worker`) runs only for game,
+profile, tournament and embed pages: it serves the route's `__spa__`
+placeholder and writes that link's title and preview image into it; the game
+server renders the images (`/api/og/...`). Every other request is a static
+asset and does not count toward the Workers request limit. Routes without a
+Worker send the API, WebSocket and error-tunnel paths to the server container
+on the same hostname, so the session cookie stays first-party. The desktop and
+mobile apps ship their own static exports and call `https://api.playtiao.com`.
 
 The server scales horizontally across multiple `tiao-server` replicas — matchmaking state, locks, and broadcasts are shared through Redis rather than held in a single process. Set the `REDIS_URL` environment variable to configure the connection. The server refuses to start without it (outside `NODE_ENV=test`), so a misconfigured deployment fails fast at startup rather than silently dropping cross-instance features.
 
