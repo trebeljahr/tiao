@@ -1,10 +1,10 @@
 /**
  * Serves the finished web export (out/) the way playtiao.com does.
  *
- * In production the Cloudflare zone routes `playtiao.com/*` to the
- * assets-only Worker (wrangler.jsonc) and sends the paths below, through
- * routes without a Worker, to the Coolify origin. Locally, `wrangler dev`
- * runs Cloudflare's own asset worker on out/ (with `_redirects` and
+ * In production the Cloudflare zone routes `playtiao.com/*` to the Worker
+ * (wrangler.jsonc) and sends the paths below, through routes without a
+ * Worker, to the Coolify origin. Locally, `wrangler dev` runs the same
+ * Worker and Cloudflare's own asset worker on out/ (with `_redirects` and
  * `_headers`), and this front server sends the same paths to the API.
  *
  *   pnpm build && PORT=3001 API_PORT=5006 node serve-export.mjs
@@ -119,6 +119,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       "--port",
       String(assetsPort),
       "--show-interactive-dev-session=false",
+      // The Worker reads link-preview data from the API it fronts here.
+      "--var",
+      `API_ORIGIN:${new URL(apiTarget).origin}`,
     ],
     {
       cwd: here,

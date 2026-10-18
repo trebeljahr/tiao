@@ -77,7 +77,7 @@ test("moves English to the root and writes the routing files", () => {
   assert.throws(() => finalize({ out, commit: COMMIT }), /already finalized/);
 });
 
-test("redirects map every id of a dynamic route onto its placeholder files", () => {
+test("redirects serve segment files and never give one request two answers", () => {
   const rules = redirectsFile(["game"])
     .split("\n")
     .filter((line) => line && !line.startsWith("#"));
@@ -85,14 +85,35 @@ test("redirects map every id of a dynamic route onto its placeholder files", () 
     "/en / 301",
     "/en/* /:splat 301",
     "/game/:id/ /game/:id 308",
-    "/game/:id.txt /game/__spa__.txt 200",
     "/game/:id/* /game/__spa__/:splat 200",
-    "/game/:id /game/__spa__ 200",
-    "/:locale/game/:id/ /:locale/game/:id 308",
-    "/:locale/game/:id.txt /:locale/game/__spa__.txt 200",
-    "/:locale/game/:id/* /:locale/game/__spa__/:splat 200",
-    "/:locale/game/:id /:locale/game/__spa__ 200",
+    "/de/game/:id/ /de/game/:id 308",
+    "/de/game/:id/* /de/game/__spa__/:splat 200",
+    "/es/game/:id/ /es/game/:id 308",
+    "/es/game/:id/* /es/game/__spa__/:splat 200",
   ]);
+  // Cloudflare does not keep the file order. Apart from the trailing-slash
+  // redirect, which also sorts first, no path may match two rules.
+  const regex = (from) =>
+    new RegExp(
+      `^${from
+        .split("*")
+        .map((part) => part.replace(/[.]/g, "\\.").replace(/:\w+/g, "[^/]+"))
+        .join(".*")}$`,
+    );
+  const compiled = rules.map((line) => ({
+    from: line.split(" ")[0],
+    regex: regex(line.split(" ")[0]),
+  }));
+  for (const path of [
+    "/en/game/ABC234",
+    "/game/ABC234/__next._tree.txt",
+    "/de/game/X/__next._full.txt",
+  ]) {
+    assert.equal(compiled.filter((rule) => rule.regex.test(path)).length, 1, path);
+  }
+  const both = compiled.filter((rule) => rule.regex.test("/game/ABC234/")).map((rule) => rule.from);
+  assert.deepEqual(both, ["/game/:id/", "/game/:id/*"]);
+  assert.ok(both[0] < both[1]);
 });
 
 test("refuses an export whose locales disagree, or that would overwrite a file", () => {

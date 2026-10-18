@@ -1,22 +1,59 @@
 {
   // The playtiao.com web client: the static export in ./out, served by
-  // Cloudflare Workers static assets. There is no Worker script, so no
-  // request counts toward the Workers Free request limit.
+  // Cloudflare Workers static assets.
   //
   // Routing lives on the zone, not here: `playtiao.com/*` points at this
   // Worker, and routes without a Worker send `/api/*`, `/ws*`, `/_e*` and
   // the ACME challenge path to the Coolify origin. With no `routes` key,
-  // `wrangler versions deploy` leaves them alone. Never add `main`,
-  // `run_worker_first` or `cache`: each turns asset requests into billed
-  // Worker invocations.
+  // `wrangler versions deploy` leaves them alone.
+  //
+  // The script (worker/index.mjs) runs only for the paths in
+  // `run_worker_first`: a game, profile, tournament or embed page and its
+  // RSC payload. It serves the route's `__spa__` placeholder and writes the
+  // link's preview into it. Each of those requests counts toward the Workers
+  // request limit; every other request is a free asset request. Keep the
+  // list equal to runWorkerFirstPatterns() in worker/previews.mjs (a test
+  // checks it), and never add `cache` or `run_worker_first: true`.
   "$schema": "https://unpkg.com/wrangler@4.143.1/config-schema.json",
   "name": "tiao-client",
+  "main": "worker/index.mjs",
   "compatibility_date": "2026-09-29",
   "workers_dev": false,
   "preview_urls": false,
+  "vars": {
+    // Where the Worker reads link-preview data; serve-export.mjs overrides it.
+    "API_ORIGIN": "https://api.playtiao.com"
+  },
   "assets": {
     "directory": "./out",
+    "binding": "ASSETS",
     "html_handling": "auto-trailing-slash",
-    "not_found_handling": "404-page"
+    "not_found_handling": "404-page",
+    "run_worker_first": [
+      "/embed/game/*",
+      "!/embed/game/*/*",
+      "/game/*",
+      "!/game/*/*",
+      "/profile/*",
+      "!/profile/*/*",
+      "/tournament/*",
+      "!/tournament/*/*",
+      "/de/embed/game/*",
+      "!/de/embed/game/*/*",
+      "/de/game/*",
+      "!/de/game/*/*",
+      "/de/profile/*",
+      "!/de/profile/*/*",
+      "/de/tournament/*",
+      "!/de/tournament/*/*",
+      "/es/embed/game/*",
+      "!/es/embed/game/*/*",
+      "/es/game/*",
+      "!/es/game/*/*",
+      "/es/profile/*",
+      "!/es/profile/*/*",
+      "/es/tournament/*",
+      "!/es/tournament/*/*"
+    ]
   }
 }
