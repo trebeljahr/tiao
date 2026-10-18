@@ -79,7 +79,7 @@ test("writes a game's preview from its status", () => {
     description:
       "Watch or join this Tiao game. 13x13 board, first to 5 captures. Time control: 5+2.",
     socialDescription: "alice vs bob — final score 5-3",
-    image: "https://playtiao.com/api/og/game/abc234.png",
+    image: "https://playtiao.com/api/og/game/abc234.jpg",
   });
   const waiting = previewFor(target, {
     ...base,
@@ -104,7 +104,7 @@ test("writes profile and tournament previews, with or without data", () => {
     { profile: { displayName: "Rico" } },
   );
   assert.equal(profile.title, "Rico on Tiao");
-  assert.equal(profile.image, "https://playtiao.com/api/og/profile/rico.png");
+  assert.equal(profile.image, "https://playtiao.com/api/og/profile/rico.jpg");
   assert.equal(
     previewFor({ locale: "en", route: "profile", id: "ghost" }, null).title,
     "ghost on Tiao",

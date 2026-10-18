@@ -1,13 +1,15 @@
-import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { Resvg } from "@resvg/resvg-js";
-import satori from "satori";
+import { Worker } from "node:worker_threads";
 
 /**
  * The 1200×630 link-preview card for game, profile and tournament links,
- * rendered to PNG. The web client is static files, so the game server draws
+ * rendered to JPEG: the gradients make a ~390 KB PNG, and WhatsApp drops
+ * preview images over about 300 KB. The web client is static files, so the game server draws
  * the per-link images that Next's `opengraph-image` routes drew before; the
  * layout is the same as client/src/lib/tiaoOgImage.tsx.
+ *
+ * Rendering (layout, rasterising, JPEG encoding) takes about a second of
+ * CPU, so it runs in a worker thread: the event loop keeps serving games.
  *
  * Fonts: Geist (SIL Open Font License 1.1, assets/fonts/OFL.txt), read
  * relative to the working directory, which is server/ in development and
@@ -174,30 +176,78 @@ export function previewTree({ eyebrow, title, subtitle, meta }: PreviewCard): No
   );
 }
 
-let fonts: Parameters<typeof satori>[1]["fonts"] | undefined;
-
-function loadFonts() {
-  const dir = join(process.cwd(), "assets", "fonts");
-  fonts ??= (
-    [
-      ["Geist-Regular.ttf", 400],
-      ["Geist-Bold.ttf", 700],
-      ["Geist-Black.ttf", 900],
-    ] as const
-  ).map(([file, weight]) => ({
-    name: "Geist",
-    data: readFileSync(join(dir, file)),
-    weight,
-    style: "normal" as const,
+// A fixed program. It gets the card's element tree, the resolved library
+// paths and the font directory; environment and runtime hooks are cleared.
+const RENDER_WORKER = `
+const { parentPort, workerData } = require('node:worker_threads');
+const { readFileSync } = require('node:fs');
+const { join } = require('node:path');
+(async () => {
+  const satori = require(workerData.satori).default;
+  const { Resvg } = require(workerData.resvg);
+  const { Jimp } = require(workerData.jimp);
+  const fonts = workerData.fonts.map(([file, weight]) => ({
+    name: 'Geist', data: readFileSync(join(workerData.fontDir, file)), weight, style: 'normal'
   }));
-  return fonts;
-}
+  const svg = await satori(workerData.tree, { width: workerData.width, height: workerData.height, fonts });
+  const png = new Resvg(svg, { fitTo: { mode: 'width', value: workerData.width } }).render().asPng();
+  const image = await Jimp.read(png);
+  parentPort.postMessage(await image.getBuffer('image/jpeg', { quality: workerData.quality }));
+})().catch(() => { process.exitCode = 1; });
+`;
 
-export async function renderPreviewPng(card: PreviewCard): Promise<Buffer> {
-  // satori takes React-element-shaped objects; no React needed.
-  const svg = await satori(previewTree(card) as unknown as Parameters<typeof satori>[0], {
-    ...PREVIEW_SIZE,
-    fonts: loadFonts(),
-  });
-  return new Resvg(svg, { fitTo: { mode: "width", value: PREVIEW_SIZE.width } }).render().asPng();
+const FONTS = [
+  ["Geist-Regular.ttf", 400],
+  ["Geist-Bold.ttf", 700],
+  ["Geist-Black.ttf", 900],
+];
+const MAX_WORKERS = 2;
+const RENDER_TIMEOUT_MS = 15_000;
+let activeWorkers = 0;
+
+export class PreviewBusyError extends Error {}
+
+export async function renderPreviewImage(card: PreviewCard): Promise<Buffer> {
+  if (activeWorkers >= MAX_WORKERS) throw new PreviewBusyError("Preview rendering is busy.");
+  activeWorkers++;
+  let worker: Worker | undefined;
+  try {
+    worker = new Worker(RENDER_WORKER, {
+      eval: true,
+      env: {},
+      execArgv: [],
+      workerData: {
+        tree: previewTree(card),
+        ...PREVIEW_SIZE,
+        quality: 86,
+        fonts: FONTS,
+        fontDir: join(process.cwd(), "assets", "fonts"),
+        satori: require.resolve("satori"),
+        resvg: require.resolve("@resvg/resvg-js"),
+        jimp: require.resolve("jimp"),
+      },
+      resourceLimits: { maxOldGenerationSizeMb: 256, maxYoungGenerationSizeMb: 32 },
+    });
+    const current = worker;
+    return await new Promise<Buffer>((resolve, reject) => {
+      const timer = setTimeout(
+        () => reject(new Error("Preview rendering timed out.")),
+        RENDER_TIMEOUT_MS,
+      );
+      const fail = () => {
+        clearTimeout(timer);
+        reject(new Error("Preview rendering failed."));
+      };
+      current.once("error", fail);
+      current.once("exit", fail);
+      current.once("message", (output: unknown) => {
+        clearTimeout(timer);
+        if (!(output instanceof Uint8Array)) return fail();
+        resolve(Buffer.from(output));
+      });
+    });
+  } finally {
+    if (worker) await worker.terminate();
+    activeWorkers--;
+  }
 }

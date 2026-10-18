@@ -9,19 +9,19 @@ import {
   type ProfilePreview,
   type TournamentPreview,
 } from "../lib/previewData";
-import { type PreviewCard, renderPreviewPng } from "../lib/previewImage";
+import { PreviewBusyError, type PreviewCard, renderPreviewImage } from "../lib/previewImage";
 import { previewImageRateLimiter } from "../middleware/rateLimiter";
 
 const log = createLogger("preview-image");
 
 // ---------------------------------------------------------------------------
-// GET /og/{game,profile,tournament}/<id>.png — link-preview images
+// GET /og/{game,profile,tournament}/<id>.jpg — link-preview images
 // ---------------------------------------------------------------------------
 //
 // The web client's Worker writes these URLs into the og:image / twitter:image
 // tags of game, profile and tournament pages (client/worker/previews.mjs).
 // An unknown id still gets a card (naming the id), as crawlers expect an
-// image. Cloudflare caches the PNG at the edge for five minutes.
+// image. Cloudflare caches the JPEG at the edge for five minutes.
 
 const FORMAT_LABELS: Record<string, string> = {
   "round-robin": "Round Robin",
@@ -114,14 +114,15 @@ const CACHE_LIMIT = 200;
 
 export function createPreviewImageRouter(
   loaders: PreviewLoaders = defaultLoaders,
-  render: typeof renderPreviewPng = renderPreviewPng,
+  render: typeof renderPreviewImage = renderPreviewImage,
 ) {
   const router = Router();
-  const cache = new Map<string, { at: number; png: Buffer }>();
+  const cache = new Map<string, { at: number; image: Buffer }>();
 
   router.get("/og/:kind/:file", previewImageRateLimiter, async (req: Request, res: Response) => {
     const kind = req.params.kind as string;
-    const match = /^(.+)\.png$/.exec(req.params.file as string);
+    // `.png`: the URLs pages carried for the first hour after the cutover.
+    const match = /^(.+)\.(?:jpg|png)$/.exec(req.params.file as string);
     if (!match) {
       res.status(404).json({ message: "Not found." });
       return;
@@ -136,7 +137,7 @@ export function createPreviewImageRouter(
           res.status(404).json({ message: "Not found." });
           return;
         }
-        entry = { at: Date.now(), png: await render(card) };
+        entry = { at: Date.now(), image: await render(card) };
         cache.delete(key);
         cache.set(key, entry);
         if (cache.size > CACHE_LIMIT) cache.delete(cache.keys().next().value as string);
@@ -144,11 +145,15 @@ export function createPreviewImageRouter(
       res
         .status(200)
         .set({
-          "Content-Type": "image/png",
+          "Content-Type": "image/jpeg",
           "Cache-Control": "public, max-age=300, s-maxage=300",
         })
-        .send(entry.png);
+        .send(entry.image);
     } catch (error) {
+      if (error instanceof PreviewBusyError) {
+        res.status(503).set("Retry-After", "2").json({ message: "Busy, try again shortly." });
+        return;
+      }
       log.warn("Preview image failed", { kind, error: String(error) });
       res.status(500).json({ message: "Unable to render the preview." });
     }

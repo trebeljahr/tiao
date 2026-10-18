@@ -3,7 +3,7 @@ import type { AddressInfo } from "node:net";
 import { describe, test } from "node:test";
 import express from "express";
 import type { GamePreview } from "../lib/previewData";
-import { renderPreviewPng } from "../lib/previewImage";
+import { renderPreviewImage } from "../lib/previewImage";
 import {
   cardFor,
   createPreviewImageRouter,
@@ -13,7 +13,7 @@ import {
   tournamentCard,
 } from "../routes/previewImage.routes";
 
-const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+const JPEG_START = Buffer.from([0xff, 0xd8, 0xff]);
 
 const game: GamePreview = {
   gameId: "ABC234",
@@ -87,34 +87,38 @@ async function withServer(router: express.Router, run: (base: string) => Promise
   }
 }
 
-describe("GET /api/og/:kind/:id.png", () => {
-  test("serves a cacheable PNG and renders each link once a minute", async () => {
+describe("GET /api/og/:kind/:id.jpg", () => {
+  test("serves a cacheable JPEG and renders each link once a minute", async () => {
     const calls: string[] = [];
     let renders = 0;
     const render = async () => {
       renders++;
-      return PNG_SIGNATURE;
+      return JPEG_START;
     };
     await withServer(createPreviewImageRouter(loaders(calls), render), async (base) => {
-      for (const path of ["/api/og/game/ABC234.png", "/og/game/abc234.png"]) {
+      for (const path of ["/api/og/game/ABC234.jpg", "/og/game/abc234.jpg"]) {
         const res = await fetch(base + path);
         assert.equal(res.status, 200);
-        assert.equal(res.headers.get("content-type"), "image/png");
+        assert.equal(res.headers.get("content-type"), "image/jpeg");
         assert.equal(res.headers.get("cache-control"), "public, max-age=300, s-maxage=300");
       }
       // An unknown profile still gets a card.
-      assert.equal((await fetch(`${base}/api/og/profile/ghost.png`)).status, 200);
-      assert.equal((await fetch(`${base}/api/og/game/ABC234.jpg`)).status, 404);
-      assert.equal((await fetch(`${base}/api/og/badge/x.png`)).status, 404);
+      assert.equal((await fetch(`${base}/api/og/profile/ghost.jpg`)).status, 200);
+      assert.equal((await fetch(`${base}/api/og/game/ABC234.png`)).status, 200);
+      assert.equal((await fetch(`${base}/api/og/game/ABC234.gif`)).status, 404);
+      assert.equal((await fetch(`${base}/api/og/badge/x.jpg`)).status, 404);
     });
     assert.equal(renders, 2);
     assert.deepEqual(calls, ["game:ABC234", "profile:ghost"]);
   });
 
-  test("renders a real 1200x630 PNG", async () => {
-    const png = await renderPreviewPng(gameCard("ABC234", game));
-    assert.deepEqual(png.subarray(0, 8), PNG_SIGNATURE);
-    assert.equal(png.readUInt32BE(16), 1200);
-    assert.equal(png.readUInt32BE(20), 630);
+  test("renders a real 1200x630 JPEG small enough for WhatsApp", async () => {
+    const jpeg = await renderPreviewImage(gameCard("ABC234", game));
+    assert.deepEqual(jpeg.subarray(0, 3), JPEG_START);
+    assert.ok(jpeg.length < 300_000, `${jpeg.length} bytes`);
+    const { Jimp } = await import("jimp");
+    const image = await Jimp.read(jpeg);
+    assert.equal(image.width, 1200);
+    assert.equal(image.height, 630);
   });
 });

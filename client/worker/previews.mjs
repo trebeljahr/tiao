@@ -104,7 +104,7 @@ export function previewDataPath(route, id) {
 
 /** Where the game server renders a route's preview image. */
 export function previewImageUrl(route, id) {
-  return `${SITE_URL}/api/og/${route}/${encodeURIComponent(id)}.png`;
+  return `${SITE_URL}/api/og/${route}/${encodeURIComponent(id)}.jpg`;
 }
 
 /**
