@@ -370,7 +370,7 @@ async function shutdown(signal: NodeJS.Signals): Promise<void> {
   beginDrain();
   console.info(`${signal} received. Draining multiplayer server for 20 seconds.`);
 
-  // Let Coolify's health check remove this instance from Traefik before
+  // Let the health checks remove this instance from Traefik before
   // closing sockets. Clients then reconnect to the replacement instance.
   await new Promise((resolve) => setTimeout(resolve, 20_000));
 

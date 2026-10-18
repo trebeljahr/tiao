@@ -5,6 +5,7 @@ import express, { type Router } from "express";
 import { auth } from "./auth/auth";
 import { configureApp } from "./config";
 import addErrorHandlingToApp from "./error-handling";
+import { isProxyDraining, isTraefikProbe } from "./lib/readiness";
 import { MOBILE_ORIGINS } from "./lib/wsOrigin";
 import { nativeAuthCors } from "./middleware/nativeAuthCors";
 import achievementRoutes from "./routes/achievement.routes";
@@ -26,6 +27,22 @@ import storePurchaseRoutes from "./routes/storePurchase.routes";
 import tournamentRoutes from "./routes/tournament.routes";
 
 const app = express();
+
+// Traefik's drain probe — ahead of everything, so a request that arrives
+// every few seconds skips CORS, logging and the database. It reports only
+// whether this container is draining; readiness is the health check Docker
+// runs. Traefik sends it straight to this container with an
+// X-Hatchkit-Drain header; a visitor's request is forwarded by Traefik,
+// which always adds X-Forwarded-For, so a visitor can't pose as it.
+app.use((req, res, next) => {
+  if (!isTraefikProbe(req.headers)) return next();
+  const draining = isProxyDraining();
+  res
+    .status(draining ? 503 : 200)
+    .set("cache-control", "no-store")
+    .type("text/plain")
+    .send(draining ? "draining\n" : "serving\n");
+});
 
 // Desktop OAuth bridge routes run BEFORE both the better-auth catchall
 // (so /api/auth/desktop/* takes precedence) and the global CORS
