@@ -58,43 +58,9 @@ jobs:
       # Worker version serves only its own files. Carry the live release and
       # the one it carried (release-assets.json lists them) into this upload.
       - name: Carry earlier releases' assets
-        id: carry
         run: |
-          set -euo pipefail
-          result=$(node client/scripts/carry-release-static.mjs fetch \
-            --site https://playtiao.com --out client/release-carry)
-          echo "$result"
-          echo "manifest=$(printf '%s' "$result" | jq -r .manifest)" >> "$GITHUB_OUTPUT"
-
-      # Only for the first upload after the move from Coolify: the live site
-      # is then still the client image, which publishes no release-assets.json.
-      - name: Log in to GHCR
-        if: steps.carry.outputs.manifest != 'true'
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Carry the client image's assets
-        if: steps.carry.outputs.manifest != 'true'
-        env:
-          PREVIOUS_IMAGE: ghcr.io/${{ github.repository_owner }}/tiao-client:main
-        run: |
-          set -euo pipefail
-          if ! docker pull --quiet "$PREVIOUS_IMAGE"; then
-            echo "No client image; nothing to carry."
-            exit 0
-          fi
-          previous_sha=$(docker image inspect "$PREVIOUS_IMAGE" \
-            --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')
-          work=$(mktemp -d)
-          container=$(docker create "$PREVIOUS_IMAGE")
-          docker cp "$container:/app/.next/static" "$work/static"
-          docker cp "$container:/app/release-static" "$work/release-static" 2>/dev/null || true
-          docker rm "$container" >/dev/null
-          node client/scripts/carry-release-static.mjs compose \
-            --previous-dir "$work" --previous-sha "$previous_sha" --out client/release-carry
+          node client/scripts/carry-release-static.mjs fetch \
+            --site https://playtiao.com --out client/release-carry
 
       # NEXT_PUBLIC_* values are inlined into the static site at build time.
       # They're hardcoded on purpose: they end up in the public bundle

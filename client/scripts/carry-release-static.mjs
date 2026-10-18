@@ -7,39 +7,18 @@
  *   finalize-web-export.mjs), and downloads the files of its newest --keep
  *   releases into <out>/<sha>/..., each checked against its sha256, plus
  *   <out>/releases.json. A site without the manifest yields an empty carry
- *   and `"manifest": false`, so the caller can fall back to `compose`.
- *
- *   The commands below carry from a client Docker image instead. The web
- *   client ran as one until it moved to Cloudflare; the first upload there
- *   carries the image's assets.
- *
- *   compose --previous-dir <dir> --previous-sha <sha> --out <dir> [--keep 2]
- *     <dir>/static          the previous image's own .next/static
- *     <dir>/release-static  what the previous image carried (optional)
- *   Writes <out>/<sha>/... for the previous release and the releases it still
- *   carried, newest first, at most --keep in total, plus <out>/releases.json.
- *   A missing or empty previous dir yields an empty carry (first build).
- *   --serving-dir/--serving-sha add the image actually serving traffic first
- *   when it is not the previous build (e.g. builds pushed but never deployed).
+ *   and `"manifest": false`.
  *
  *   verify --own <client/.next/static> --carried <dir> [--max-bytes N]
  *   Fails when one path holds different bytes in two releases (hashed names
  *   must never collide) or when the carry exceeds its size limit. Next's
- *   per-build manifests are exempt: with deploymentId set, Next 16 uses one
- *   fixed build ID, so every release has `<buildId>/_buildManifest.js` with
- *   its own bytes, and release-assets.mjs always serves the running build's.
+ *   per-build manifests (`<buildId>/_buildManifest.js`) are exempt: a build
+ *   ID can repeat across releases, and the running build's own manifest is
+ *   the one its pages load.
  */
 
 import { createHash } from "node:crypto";
-import {
-  cpSync,
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  statSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, sep } from "node:path";
 
 const SHA = /^[0-9a-f]{7,40}$/;
@@ -73,43 +52,6 @@ function readManifest(dir) {
   if (!existsSync(path)) return [];
   const parsed = JSON.parse(readFileSync(path, "utf8"));
   return (parsed.releases ?? []).filter((row) => SHA.test(row?.sha ?? ""));
-}
-
-export function compose({ previousDir, previousSha, servingDir, servingSha, out, keep = 2 }) {
-  mkdirSync(out, { recursive: true });
-  const releases = [];
-  // The release actually serving traffic (when it differs from the previous
-  // build) comes first: its open tabs are the ones that need their chunks.
-  const servingStatic = servingDir ? join(servingDir, "static") : "";
-  if (
-    servingDir &&
-    servingSha !== previousSha &&
-    existsSync(servingStatic) &&
-    files(servingStatic).length
-  ) {
-    if (!SHA.test(servingSha ?? "")) throw new Error("--serving-sha must be a git SHA");
-    cpSync(servingStatic, join(out, servingSha), { recursive: true, dereference: true });
-    releases.push({ sha: servingSha });
-  }
-  const ownStatic = previousDir ? join(previousDir, "static") : "";
-  if (previousDir && releases.length < keep && existsSync(ownStatic) && files(ownStatic).length) {
-    if (!SHA.test(previousSha ?? "")) throw new Error("--previous-sha must be a git SHA");
-    cpSync(ownStatic, join(out, previousSha), { recursive: true, dereference: true });
-    releases.push({ sha: previousSha });
-    const carried = join(previousDir, "release-static");
-    for (const row of readManifest(carried)) {
-      if (releases.length >= keep) break;
-      if (releases.some((existing) => existing.sha === row.sha)) continue;
-      if (!existsSync(join(carried, row.sha))) continue;
-      cpSync(join(carried, row.sha), join(out, row.sha), { recursive: true, dereference: true });
-      releases.push({ sha: row.sha });
-    }
-  }
-  writeFileSync(
-    join(out, "releases.json"),
-    `${JSON.stringify({ schema: 1, releases }, null, 2)}\n`,
-  );
-  return releases;
 }
 
 const PER_BUILD_MANIFEST = /^[^/]+\/_(build|ssg)Manifest\.js$/;
@@ -223,16 +165,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       keep: Number(options.keep ?? 2),
     });
     console.log(JSON.stringify(result));
-  } else if (command === "compose") {
-    const releases = compose({
-      previousDir: options["previous-dir"],
-      previousSha: options["previous-sha"],
-      servingDir: options["serving-dir"],
-      servingSha: options["serving-sha"],
-      out: options.out,
-      keep: Number(options.keep ?? 2),
-    });
-    console.log(JSON.stringify({ carried: releases.map((row) => row.sha) }));
   } else if (command === "verify") {
     const result = verify({
       own: options.own,
@@ -241,7 +173,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     });
     console.log(JSON.stringify(result));
   } else {
-    console.error("usage: carry-release-static.mjs fetch|compose|verify ...");
+    console.error("usage: carry-release-static.mjs fetch|verify ...");
     process.exit(2);
   }
 }

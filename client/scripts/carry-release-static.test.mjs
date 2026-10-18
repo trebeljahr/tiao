@@ -1,18 +1,11 @@
 // @vitest-environment node
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import {
-  lstatSync,
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  symlinkSync,
-  writeFileSync,
-} from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { test } from "vitest";
-import { compose, fetchCarry, verify } from "./carry-release-static.mjs";
+import { fetchCarry, verify } from "./carry-release-static.mjs";
 
 const A = "a".repeat(40);
 const B = "b".repeat(40);
@@ -116,84 +109,6 @@ test("fetch refuses a file that does not match its hash, or an unsafe path", asy
   await assert.rejects(
     fetchCarry({ site: "https://playtiao.test", out, fetchImpl: missing.fetchImpl }),
     /404/,
-  );
-});
-
-test("compose carries the previous release and what it carried, newest first, two at most", () => {
-  const root = mkdtempSync(join(tmpdir(), "tiao-carry-"));
-  const previous = join(root, "previous");
-  write(previous, "static/chunks/b.js", "b");
-  write(previous, `release-static/${A}/chunks/a.js`, "a");
-  write(previous, `release-static/${C}/chunks/c.js`, "c");
-  writeFileSync(
-    join(previous, "release-static/releases.json"),
-    JSON.stringify({ schema: 1, releases: [{ sha: A }, { sha: C }] }),
-  );
-  const out = join(root, "out");
-  const releases = compose({ previousDir: previous, previousSha: B, out });
-  assert.deepEqual(
-    releases.map((row) => row.sha),
-    [B, A],
-  );
-  assert.equal(readFileSync(join(out, B, "chunks/b.js"), "utf8"), "b");
-  assert.equal(readFileSync(join(out, A, "chunks/a.js"), "utf8"), "a");
-  assert.deepEqual(JSON.parse(readFileSync(join(out, "releases.json"), "utf8")).releases, [
-    { sha: B },
-    { sha: A },
-  ]);
-  const legacy = join(root, "legacy");
-  write(legacy, "static/chunks/l.js", "l");
-  assert.deepEqual(
-    compose({ previousDir: legacy, previousSha: C, out: join(root, "legacy-out") }).map(
-      (row) => row.sha,
-    ),
-    [C],
-  );
-  assert.deepEqual(compose({ previousDir: join(root, "absent"), out: join(root, "empty") }), []);
-  // A symlinked previous static dir is copied as files, never as a link.
-  const linked = join(root, "linked");
-  mkdirSync(linked);
-  symlinkSync(join(previous, "static"), join(linked, "static"));
-  const copied = join(root, "copied");
-  compose({ previousDir: linked, previousSha: B, out: copied });
-  assert.equal(lstatSync(join(copied, B)).isSymbolicLink(), false);
-  assert.equal(readFileSync(join(copied, B, "chunks/b.js"), "utf8"), "b");
-});
-
-test("the serving release is carried first when it is not the previous build", () => {
-  const root = mkdtempSync(join(tmpdir(), "tiao-carry-"));
-  const previous = join(root, "previous");
-  write(previous, "static/chunks/b.js", "b");
-  write(previous, `release-static/${A}/chunks/a.js`, "a");
-  writeFileSync(
-    join(previous, "release-static/releases.json"),
-    JSON.stringify({ schema: 1, releases: [{ sha: A }] }),
-  );
-  const serving = join(root, "serving");
-  write(serving, "static/chunks/c.js", "c");
-  const out = join(root, "out");
-  const releases = compose({
-    previousDir: previous,
-    previousSha: B,
-    servingDir: serving,
-    servingSha: C,
-    out,
-  });
-  assert.deepEqual(
-    releases.map((row) => row.sha),
-    [C, B],
-  );
-  assert.equal(readFileSync(join(out, C, "chunks/c.js"), "utf8"), "c");
-  const same = compose({
-    previousDir: previous,
-    previousSha: B,
-    servingDir: serving,
-    servingSha: B,
-    out: join(root, "same"),
-  });
-  assert.deepEqual(
-    same.map((row) => row.sha),
-    [B, A],
   );
 });
 
