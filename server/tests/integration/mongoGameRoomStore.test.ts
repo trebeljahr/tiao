@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { after, before, beforeEach, describe, test } from "node:test";
+import { after, before, beforeEach, describe, type TestContext, test } from "node:test";
+import type { CommandSucceededEvent } from "mongodb";
 import mongoose from "mongoose";
 import {
   type CompactHistory,
@@ -50,7 +51,11 @@ describe("MongoGameRoomStore move history", () => {
 
   before(async () => {
     try {
-      await mongoose.connect(MONGODB_URI, { dbName: DB_NAME, serverSelectionTimeoutMS: 2000 });
+      await mongoose.connect(MONGODB_URI, {
+        dbName: DB_NAME,
+        serverSelectionTimeoutMS: 2000,
+        monitorCommands: true,
+      });
       mongoAvailable = true;
     } catch {
       mongoAvailable = false;
@@ -100,11 +105,30 @@ describe("MongoGameRoomStore move history", () => {
     id: string,
     step: (state: GameState) => RuleResult<GameState>,
     now: number,
+    on: MongoGameRoomStore = store,
   ): Promise<StoredMultiplayerRoom> {
-    const room = await store.getRoom(id);
+    const room = await on.getRoom(id);
     assert.ok(room);
     const state = stamp(room.state, unwrap(step(room.state)), now);
-    return store.saveRoom({ ...room, state });
+    return on.saveRoom({ ...room, state });
+  }
+
+  /** For each room document MongoDB returns from now on: did it carry moveHistory? */
+  function watchHistoryReads(t: TestContext): boolean[] {
+    const reads: boolean[] = [];
+    const client = mongoose.connection.getClient();
+    const listener = (event: CommandSucceededEvent) => {
+      if (event.commandName !== "find" && event.commandName !== "aggregate") return;
+      const reply = event.reply as { cursor?: { firstBatch?: Record<string, unknown>[] } };
+      for (const doc of reply.cursor?.firstBatch ?? []) {
+        if ("roomId" in doc) reads.push("moveHistory" in doc);
+      }
+    };
+    client.on("commandSucceeded", listener);
+    t.after(() => {
+      client.off("commandSucceeded", listener);
+    });
+    return reads;
   }
 
   async function assertPersisted(id: string, expected: TurnRecord[]) {
@@ -283,5 +307,100 @@ describe("MongoGameRoomStore move history", () => {
       store.saveRoom({ ...room, state: unwrap(placePiece(room.state, { x: 4, y: 4 })) }),
       /reload the room/,
     );
+    // The revision did not move, so only forgetting the cached history on the
+    // failed save lets the reload see the stored one.
+    const reloaded = await store.getRoom("GUARD");
+    assert.deepEqual(reloaded?.state.history, compactToHistory((await raw("GUARD")).moveHistory!));
+    assert.equal(reloaded?.state.history.length, 2);
+  });
+
+  test("a re-read after a save reuses the cached history", async (t) => {
+    if (!mongoAvailable) return t.skip();
+    await createRoom("CACHE");
+    await play("CACHE", (s) => placePiece(s, { x: 3, y: 3 }), 1);
+    const reads = watchHistoryReads(t);
+    await play("CACHE", (s) => placePiece(s, { x: 4, y: 4 }), 2);
+    const saved = await play("CACHE", (s) => placePiece(s, { x: 5, y: 5 }), 3);
+    const cached = await store.getRoom("CACHE");
+    assert.deepEqual(reads, [false, false, false]);
+    assert.ok(cached);
+    assert.deepEqual(cached.state.history, saved.state.history);
+    // The room's history is its own copy, not the cache's array.
+    cached.state.history.pop();
+
+    // Another instance has nothing cached and reads the stored history.
+    const fresh = await new MongoGameRoomStore().getRoom("CACHE");
+    assert.deepEqual(reads, [false, false, false, true]);
+    assert.deepEqual(fresh?.state.history, saved.state.history);
+    assert.equal(fresh?.revision, cached.revision);
+    assert.deepEqual(compactToHistory((await raw("CACHE")).moveHistory!), saved.state.history);
+    assert.equal((await store.getRoom("CACHE"))?.state.history.length, 3);
+  });
+
+  test("a save from another instance makes the cached history miss", async (t) => {
+    if (!mongoAvailable) return t.skip();
+    const other = new MongoGameRoomStore();
+    await createRoom("FOREIGN");
+    await play("FOREIGN", (s) => placePiece(s, { x: 3, y: 3 }), 1);
+    await play("FOREIGN", (s) => placePiece(s, { x: 4, y: 4 }), 2);
+    const foreign = await play("FOREIGN", (s) => placePiece(s, { x: 5, y: 5 }), 3, other);
+    const reads = watchHistoryReads(t);
+    const room = await store.getRoom("FOREIGN");
+    assert.deepEqual(reads, [true]);
+    assert.deepEqual(room?.state.history, foreign.state.history);
+    assert.equal(room?.revision, foreign.revision);
+
+    // The full read restored the append mark, so the next move appends again.
+    const next = await play("FOREIGN", (s) => placePiece(s, { x: 6, y: 6 }), 4);
+    assert.equal(next.state.history.length, 4);
+    await assertPersisted("FOREIGN", next.state.history);
+  });
+
+  test("a recreated room with the same id and revision misses the cache", async (t) => {
+    if (!mongoAvailable) return t.skip();
+    await createRoom("REBORN");
+    await play("REBORN", (s) => placePiece(s, { x: 3, y: 3 }), 1);
+    const old = await play("REBORN", (s) => placePiece(s, { x: 4, y: 4 }), 2);
+    await GameRoom.deleteOne({ roomId: "REBORN" }).exec();
+    const other = new MongoGameRoomStore();
+    await other.createRoom({ ...old, state: createInitialGameState() });
+    await play("REBORN", (s) => placePiece(s, { x: 7, y: 7 }), 3, other);
+    const reborn = await play("REBORN", (s) => placePiece(s, { x: 8, y: 8 }), 4, other);
+    assert.equal(reborn.revision, old.revision);
+
+    const reads = watchHistoryReads(t);
+    const room = await store.getRoom("REBORN");
+    assert.deepEqual(reads, [true]);
+    assert.deepEqual(room?.state.history, reborn.state.history);
+  });
+
+  test("a takeback replaces the cached history, on this or another instance", async (t) => {
+    if (!mongoAvailable) return t.skip();
+    const other = new MongoGameRoomStore();
+    await createRoom("UNDO");
+    await play("UNDO", (s) => placePiece(s, { x: 3, y: 3 }), 1);
+    await play("UNDO", (s) => placePiece(s, { x: 4, y: 4 }), 2);
+    await play("UNDO", (s) => placePiece(s, { x: 5, y: 5 }), 3);
+
+    // Takeback here: the rewrite is cached, and later moves append to it.
+    const reads = watchHistoryReads(t);
+    const undone = await play("UNDO", undoLastTurn, 4);
+    assert.equal(undone.state.history.length, 2);
+    const reread = await store.getRoom("UNDO");
+    assert.deepEqual(reread?.state.history, undone.state.history);
+    const replaced = await play("UNDO", (s) => placePiece(s, { x: 9, y: 9 }), 5);
+    assert.deepEqual(reads, [false, false, false]);
+    await assertPersisted("UNDO", replaced.state.history);
+
+    // Takeback on another instance: this one reads the shorter history in full.
+    const foreignUndo = await play("UNDO", undoLastTurn, 6, other);
+    assert.equal(foreignUndo.state.history.length, 2);
+    reads.length = 0;
+    const afterForeign = await store.getRoom("UNDO");
+    assert.deepEqual(reads, [true]);
+    assert.deepEqual(afterForeign?.state.history, foreignUndo.state.history);
+    const last = await play("UNDO", (s) => placePiece(s, { x: 10, y: 10 }), 7);
+    assert.equal(last.state.history.length, 3);
+    await assertPersisted("UNDO", last.state.history);
   });
 });

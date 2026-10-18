@@ -1,3 +1,4 @@
+import type { Types } from "mongoose";
 import {
   type CompactHistory,
   cloneGameState,
@@ -341,8 +342,11 @@ function toStoredRoom(room: PersistedGameRoom): StoredMultiplayerRoom {
   return buildStoredRoom(room, hydrated, persisted);
 }
 
-/** saveRoom's write result omits moveHistory, so it passes the history it just wrote. */
-function toSavedRoom(
+/**
+ * For a document read or written without moveHistory: the caller passes the
+ * history it already holds (what saveRoom just wrote, or a cache hit).
+ */
+function toRoomWithHistory(
   room: PersistedGameRoom,
   history: readonly TurnRecord[],
   persisted: readonly TurnRecord[] | undefined,
@@ -410,8 +414,67 @@ export async function claimRoomAuthority(key: string, token: string): Promise<vo
 
 const PENDING_MATCH_REPLAY_MS = 10 * 60_000;
 
+type PersistedGameRoomDoc = PersistedGameRoom & { _id: Types.ObjectId };
+
+type HistoryCacheEntry = {
+  docId: Types.ObjectId;
+  revision: number;
+  /** Appendable history, so it doubles as the persistedHistory mark. Never mutated. */
+  history: readonly TurnRecord[];
+};
+
+const HISTORY_CACHE_ROOMS = 500;
+
+/**
+ * LRU of hydrated move histories by room id, each valid for one document
+ * `_id` and `revision`. Every saveRoom bumps the revision and nothing else
+ * writes moveHistory (createRoom makes a new `_id`), so an entry that matches
+ * the stored document holds exactly its history, whichever instance wrote it.
+ */
+class HistoryCache {
+  private entries = new Map<string, HistoryCacheEntry>();
+
+  get(roomId: string): HistoryCacheEntry | undefined {
+    const entry = this.entries.get(roomId);
+    if (entry) {
+      this.entries.delete(roomId);
+      this.entries.set(roomId, entry);
+    }
+    return entry;
+  }
+
+  /** Remember the history a document holds, or forget the room when it can't be cached. */
+  remember(
+    roomId: string,
+    doc: PersistedGameRoomDoc,
+    history: readonly TurnRecord[] | undefined,
+  ): void {
+    if (!history || typeof doc.revision !== "number") {
+      this.entries.delete(roomId);
+      return;
+    }
+    const current = this.entries.get(roomId);
+    // A read that started before a save must not replace what the save stored.
+    if (current?.docId.equals(doc._id) && current.revision > doc.revision) return;
+    this.entries.delete(roomId);
+    this.entries.set(roomId, { docId: doc._id, revision: doc.revision, history });
+    if (this.entries.size > HISTORY_CACHE_ROOMS) {
+      this.entries.delete(this.entries.keys().next().value as string);
+    }
+  }
+
+  forget(roomId: string): void {
+    this.entries.delete(roomId);
+  }
+}
+
+function matchesEntry(doc: PersistedGameRoomDoc, entry: HistoryCacheEntry): boolean {
+  return entry.docId.equals(doc._id) && entry.revision === doc.revision;
+}
+
 export class MongoGameRoomStore implements GameRoomStore {
   private notificationCursor: string | null = null;
+  private historyCache = new HistoryCache();
   async claimSearchIntent(input: {
     attemptId: string;
     playerId: string;
@@ -550,18 +613,50 @@ export class MongoGameRoomStore implements GameRoomStore {
   }
 
   async getRoom(roomId: string): Promise<StoredMultiplayerRoom | null> {
-    const room = await GameRoom.findOne({
-      roomId: normalizeRoomId(roomId),
-    })
-      .lean<PersistedGameRoom>()
-      .exec();
+    const id = normalizeRoomId(roomId);
+    const cached = this.historyCache.get(id);
+    const room = cached
+      ? (
+          await GameRoom.aggregate<PersistedGameRoomDoc>([
+            { $match: { roomId: id } },
+            { $limit: 1 },
+            // Leave out the history this process already holds for this revision.
+            {
+              $set: {
+                moveHistory: {
+                  $cond: [
+                    {
+                      $and: [
+                        { $eq: ["$_id", cached.docId] },
+                        { $eq: ["$revision", cached.revision] },
+                      ],
+                    },
+                    "$$REMOVE",
+                    "$moveHistory",
+                  ],
+                },
+              },
+            },
+          ]).exec()
+        )[0]
+      : await GameRoom.findOne({ roomId: id }).lean<PersistedGameRoomDoc>().exec();
 
-    return room ? toStoredRoom(room) : null;
+    if (!room) {
+      this.historyCache.forget(id);
+      return null;
+    }
+    if (cached && matchesEntry(room, cached)) {
+      return toRoomWithHistory(room, cached.history, cached.history);
+    }
+    const stored = toStoredRoom(room);
+    this.historyCache.remember(id, room, stored.persistedHistory);
+    return stored;
   }
 
   async deleteRoom(roomId: string): Promise<void> {
     await assertCurrentLocks();
     const token = currentLockToken(`room:${normalizeRoomId(roomId)}`);
+    this.historyCache.forget(normalizeRoomId(roomId));
     await GameRoom.deleteOne({
       roomId: normalizeRoomId(roomId),
       ...(token ? { authorityToken: token } : {}),
@@ -587,12 +682,13 @@ export class MongoGameRoomStore implements GameRoomStore {
     const token = currentLockToken(`room:${normalizeRoomId(room.id)}`);
     if (token && token !== room.authorityToken)
       throw new Error("Game authority changed; reload the room");
+    const id = normalizeRoomId(room.id);
     const revision = room.revision ?? 0;
     const history = room.state.history;
     const moves = moveHistoryUpdate(room.persistedHistory, history);
     const updatedRoom = await GameRoom.findOneAndUpdate(
       {
-        roomId: normalizeRoomId(room.id),
+        roomId: id,
         authorityToken: room.authorityToken ?? null,
         ...(revision === 0
           ? { $or: [{ revision: 0 }, { revision: { $exists: false } }] }
@@ -625,14 +721,17 @@ export class MongoGameRoomStore implements GameRoomStore {
       // The history is what this call just wrote; don't read it back.
       { new: true, projection: { moveHistory: 0 } },
     )
-      .lean<PersistedGameRoom>()
+      .lean<PersistedGameRoomDoc>()
       .exec();
 
     if (!updatedRoom) {
+      // The reload this asks for reads the history in full.
+      this.historyCache.forget(id);
       throw new Error("Game state or authority changed; reload the room before retrying");
     }
 
-    return toSavedRoom(updatedRoom, history, moves.persisted);
+    this.historyCache.remember(id, updatedRoom, moves.persisted);
+    return toRoomWithHistory(updatedRoom, history, moves.persisted);
   }
 
   async listRoomsForPlayer(playerId: string): Promise<StoredMultiplayerRoom[]> {
