@@ -8,8 +8,9 @@ import { Worker } from "node:worker_threads";
  * the per-link images that Next's `opengraph-image` routes drew before; the
  * layout is the same as client/src/lib/tiaoOgImage.tsx.
  *
- * Rendering (layout, rasterising, JPEG encoding) takes about a second of
- * CPU, so it runs in a worker thread: the event loop keeps serving games.
+ * Rendering (layout, rasterising, JPEG encoding) is CPU work, so it runs in
+ * a worker thread: the event loop keeps serving games. The worker stays up
+ * for five idle minutes, so a burst of crawlers pays its start-up once.
  *
  * Fonts: Geist (SIL Open Font License 1.1, assets/fonts/OFL.txt), read
  * relative to the working directory, which is server/ in development and
@@ -50,16 +51,20 @@ function boardPreview(): Node {
   const lines = Array.from({ length: 13 }, (_, index) => index);
   const line = (style: Style) =>
     h("div", { position: "absolute", background: "rgba(60, 36, 18, 0.42)", ...style });
-  return h(
+  // No box-shadows: resvg draws each blurred shadow as a Gaussian filter,
+  // which made a render take seconds. A flat offset shape stands in for
+  // the board's shadow.
+  const board = h(
     "div",
     {
       display: "flex",
-      position: "relative",
+      position: "absolute",
+      top: 0,
+      left: 0,
       width: 384,
       height: 384,
       borderRadius: 28,
       background: "linear-gradient(135deg, #e7c98d 0%, #bc8650 100%)",
-      boxShadow: "0 36px 80px rgba(47, 27, 12, 0.34)",
       border: "3px solid rgba(61, 37, 19, 0.5)",
     },
     ...lines.map((i) => line({ left: 34, right: 34, top: 36 + i * 26, height: 2 })),
@@ -74,9 +79,22 @@ function boardPreview(): Node {
         borderRadius: 999,
         background: stone.color,
         border: stone.color === "#1f1711" ? "2px solid #0d0906" : "2px solid #fff9ef",
-        boxShadow: "0 8px 16px rgba(33, 19, 10, 0.26)",
       }),
     ),
+  );
+  return h(
+    "div",
+    { display: "flex", position: "relative", width: 384, height: 404 },
+    h("div", {
+      position: "absolute",
+      top: 20,
+      left: 6,
+      width: 372,
+      height: 384,
+      borderRadius: 28,
+      background: "rgba(47, 27, 12, 0.22)",
+    }),
+    board,
   );
 }
 
@@ -99,7 +117,6 @@ export function previewTree({ eyebrow, title, subtitle, meta }: PreviewCard): No
         height: 42,
         borderRadius: 999,
         background: "#24170e",
-        boxShadow: "inset -10px -12px 0 rgba(255,255,255,0.16)",
       }),
       h("span", {}, "Tiao"),
     ),
@@ -176,24 +193,32 @@ export function previewTree({ eyebrow, title, subtitle, meta }: PreviewCard): No
   );
 }
 
-// A fixed program. It gets the card's element tree, the resolved library
-// paths and the font directory; environment and runtime hooks are cleared.
+// A fixed program. It gets the resolved library paths and the font
+// directory once, then one card's element tree per message; environment and
+// runtime hooks are cleared. Cards render one after another.
 const RENDER_WORKER = `
 const { parentPort, workerData } = require('node:worker_threads');
 const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
-(async () => {
-  const satori = require(workerData.satori).default;
-  const { Resvg } = require(workerData.resvg);
-  const { Jimp } = require(workerData.jimp);
-  const fonts = workerData.fonts.map(([file, weight]) => ({
-    name: 'Geist', data: readFileSync(join(workerData.fontDir, file)), weight, style: 'normal'
-  }));
-  const svg = await satori(workerData.tree, { width: workerData.width, height: workerData.height, fonts });
-  const png = new Resvg(svg, { fitTo: { mode: 'width', value: workerData.width } }).render().asPng();
-  const image = await Jimp.read(png);
-  parentPort.postMessage(await image.getBuffer('image/jpeg', { quality: workerData.quality }));
-})().catch(() => { process.exitCode = 1; });
+const satori = require(workerData.satori).default;
+const { Resvg } = require(workerData.resvg);
+const { Jimp } = require(workerData.jimp);
+const fonts = workerData.fonts.map(([file, weight]) => ({
+  name: 'Geist', data: readFileSync(join(workerData.fontDir, file)), weight, style: 'normal'
+}));
+let queue = Promise.resolve();
+parentPort.on('message', ({ id, tree }) => {
+  queue = queue.then(async () => {
+    try {
+      const svg = await satori(tree, { width: workerData.width, height: workerData.height, fonts });
+      const png = new Resvg(svg, { fitTo: { mode: 'width', value: workerData.width } }).render().asPng();
+      const image = await Jimp.read(png);
+      parentPort.postMessage({ id, image: await image.getBuffer('image/jpeg', { quality: workerData.quality }) });
+    } catch {
+      parentPort.postMessage({ id, error: true });
+    }
+  });
+});
 `;
 
 const FONTS = [
@@ -201,53 +226,85 @@ const FONTS = [
   ["Geist-Bold.ttf", 700],
   ["Geist-Black.ttf", 900],
 ];
-const MAX_WORKERS = 2;
+/** Cards waiting at most; more answer 503 (the edge retries are cheap). */
+const MAX_PENDING = 4;
 const RENDER_TIMEOUT_MS = 15_000;
-let activeWorkers = 0;
+/** The warm worker saves its start-up (~1 s on the server) per render. */
+const IDLE_MS = 5 * 60_000;
 
 export class PreviewBusyError extends Error {}
 
+type Pending = { resolve: (image: Buffer) => void; reject: (error: Error) => void };
+type RenderWorker = { worker: Worker; pending: Map<number, Pending>; idle?: NodeJS.Timeout };
+
+let current: RenderWorker | null = null;
+let nextId = 0;
+
+function renderWorker(): RenderWorker {
+  if (current) return current;
+  const worker = new Worker(RENDER_WORKER, {
+    eval: true,
+    env: {},
+    execArgv: [],
+    workerData: {
+      ...PREVIEW_SIZE,
+      quality: 86,
+      fonts: FONTS,
+      fontDir: join(process.cwd(), "assets", "fonts"),
+      satori: require.resolve("satori"),
+      resvg: require.resolve("@resvg/resvg-js"),
+      jimp: require.resolve("jimp"),
+    },
+    resourceLimits: { maxOldGenerationSizeMb: 256, maxYoungGenerationSizeMb: 32 },
+  });
+  const state: RenderWorker = { worker, pending: new Map() };
+  const stop = () => {
+    if (current === state) current = null;
+    for (const { reject } of state.pending.values()) reject(new Error("Preview worker stopped."));
+    state.pending.clear();
+  };
+  worker.on("message", ({ id, image }: { id: number; image?: Uint8Array }) => {
+    const job = state.pending.get(id);
+    if (!job) return;
+    state.pending.delete(id);
+    if (image instanceof Uint8Array) job.resolve(Buffer.from(image));
+    else job.reject(new Error("Preview rendering failed."));
+  });
+  worker.on("error", stop);
+  worker.on("exit", stop);
+  // After the listeners: a 'message' listener refs the worker's port again.
+  worker.unref();
+  current = state;
+  return state;
+}
+
 export async function renderPreviewImage(card: PreviewCard): Promise<Buffer> {
-  if (activeWorkers >= MAX_WORKERS) throw new PreviewBusyError("Preview rendering is busy.");
-  activeWorkers++;
-  let worker: Worker | undefined;
+  const state = renderWorker();
+  if (state.pending.size >= MAX_PENDING) throw new PreviewBusyError("Preview rendering is busy.");
+  clearTimeout(state.idle);
+  const id = nextId++;
   try {
-    worker = new Worker(RENDER_WORKER, {
-      eval: true,
-      env: {},
-      execArgv: [],
-      workerData: {
-        tree: previewTree(card),
-        ...PREVIEW_SIZE,
-        quality: 86,
-        fonts: FONTS,
-        fontDir: join(process.cwd(), "assets", "fonts"),
-        satori: require.resolve("satori"),
-        resvg: require.resolve("@resvg/resvg-js"),
-        jimp: require.resolve("jimp"),
-      },
-      resourceLimits: { maxOldGenerationSizeMb: 256, maxYoungGenerationSizeMb: 32 },
-    });
-    const current = worker;
     return await new Promise<Buffer>((resolve, reject) => {
-      const timer = setTimeout(
-        () => reject(new Error("Preview rendering timed out.")),
-        RENDER_TIMEOUT_MS,
-      );
-      const fail = () => {
-        clearTimeout(timer);
-        reject(new Error("Preview rendering failed."));
-      };
-      current.once("error", fail);
-      current.once("exit", fail);
-      current.once("message", (output: unknown) => {
-        clearTimeout(timer);
-        if (!(output instanceof Uint8Array)) return fail();
-        resolve(Buffer.from(output));
+      const timer = setTimeout(() => {
+        state.pending.delete(id);
+        reject(new Error("Preview rendering timed out."));
+      }, RENDER_TIMEOUT_MS);
+      state.pending.set(id, {
+        resolve: (image) => {
+          clearTimeout(timer);
+          resolve(image);
+        },
+        reject: (error) => {
+          clearTimeout(timer);
+          reject(error);
+        },
       });
+      state.worker.postMessage({ id, tree: previewTree(card) });
     });
   } finally {
-    if (worker) await worker.terminate();
-    activeWorkers--;
+    if (!state.pending.size && current === state) {
+      state.idle = setTimeout(() => void state.worker.terminate(), IDLE_MS);
+      state.idle.unref();
+    }
   }
 }
