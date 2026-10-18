@@ -126,17 +126,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     {
       cwd: here,
       env: { ...process.env, WRANGLER_SEND_METRICS: "false", CI: process.env.CI ?? "true" },
+      // Same process group as this server: a runner that kills the group
+      // (Playwright does, with SIGKILL) stops wrangler and workerd too, and
+      // nothing is left holding its output pipe open.
       stdio: ["ignore", "inherit", "inherit"],
-      // Own process group: stopping it also stops npx's wrangler and workerd.
-      detached: true,
     },
   );
-  // Whatever ends this process also ends wrangler and workerd.
-  process.on("exit", () => {
-    try {
-      process.kill(-wrangler.pid, "SIGTERM");
-    } catch {}
-  });
+  // A normal exit stops wrangler too (npm exec passes the signal on).
+  process.on("exit", () => wrangler.kill("SIGTERM"));
   wrangler.once("exit", (code) => {
     console.error(`wrangler dev exited (${code})`);
     process.exit(1);
