@@ -13,6 +13,7 @@ import {
   type SparsePositions,
   sparseToPositions,
   type TimeControl,
+  type TurnRecord,
 } from "../../shared/src";
 import type { RatingStatus } from "../models/GameRoom";
 import GameRoom from "../models/GameRoom";
@@ -56,6 +57,12 @@ export type StoredMultiplayerRoom = {
   tournamentMatchId: string | null;
   createdAt: Date;
   updatedAt: Date;
+  /**
+   * Store-private: the history as last read from or written to MongoDB, set
+   * only when the stored layout can be appended to. Lets saveRoom `$push` the
+   * new moves instead of rewriting the whole history on every move.
+   */
+  persistedHistory?: readonly TurnRecord[];
 };
 
 export type CreateStoredMultiplayerRoomInput = {
@@ -198,6 +205,73 @@ function hydrateGameState(
   return { ...r, positions, history } as GameState;
 }
 
+/** True when `history` starts with exactly the records of `prefix`. */
+function extendsHistory(history: readonly TurnRecord[], prefix: readonly TurnRecord[]): boolean {
+  if (history.length < prefix.length) return false;
+  for (let i = 0; i < prefix.length; i++) {
+    if (history[i] !== prefix[i]) return false;
+  }
+  return true;
+}
+
+/**
+ * A stored moveHistory can take a `$push` only when its `t` array is present
+ * and aligned with `m` (historyToCompact omits `t` when nothing is timed).
+ */
+function isAppendable(compact: CompactHistory | null | undefined, historyLength: number): boolean {
+  return (
+    !!compact &&
+    Array.isArray(compact.m) &&
+    Array.isArray(compact.t) &&
+    compact.m.length === historyLength &&
+    compact.t.length === historyLength
+  );
+}
+
+type MoveHistoryUpdate = {
+  filter: Record<string, unknown>;
+  set: { moveHistory?: CompactHistory };
+  push?: Record<string, { $each: unknown[] }>;
+  persisted: readonly TurnRecord[] | undefined;
+};
+
+/**
+ * The moveHistory part of a save. When the history only grew since the store
+ * last read or wrote it, append the new moves; the `$size` guards make that
+ * save fail rather than append to a history that changed underneath. Any
+ * other change (takeback, legacy layout, untimed history) rewrites it whole.
+ */
+function moveHistoryUpdate(
+  persisted: readonly TurnRecord[] | undefined,
+  history: TurnRecord[],
+): MoveHistoryUpdate {
+  if (persisted && extendsHistory(history, persisted)) {
+    if (history.length === persisted.length) {
+      return { filter: {}, set: {}, persisted };
+    }
+    const appended = historyToCompact(history.slice(persisted.length));
+    return {
+      filter: {
+        "moveHistory.m": { $size: persisted.length },
+        "moveHistory.t": { $size: persisted.length },
+      },
+      set: {},
+      push: {
+        "moveHistory.m": { $each: appended.m },
+        "moveHistory.t": { $each: appended.t ?? appended.m.map(() => null) },
+      },
+      persisted: history.slice(),
+    };
+  }
+
+  const moveHistory = historyToCompact(history);
+  return {
+    filter: {},
+    set: { moveHistory },
+    persisted: isAppendable(moveHistory, history.length) ? history.slice() : undefined,
+  };
+}
+
 export function cloneStoredRoom(room: StoredMultiplayerRoom): StoredMultiplayerRoom {
   return {
     id: room.id,
@@ -224,6 +298,7 @@ export function cloneStoredRoom(room: StoredMultiplayerRoom): StoredMultiplayerR
     tournamentMatchId: room.tournamentMatchId,
     createdAt: new Date(room.createdAt),
     updatedAt: new Date(room.updatedAt),
+    persistedHistory: room.persistedHistory,
   };
 }
 
@@ -254,9 +329,34 @@ type PersistedGameRoom = {
 };
 
 function toStoredRoom(room: PersistedGameRoom): StoredMultiplayerRoom {
-  const state = cloneGameState(
-    hydrateGameState(room.state as unknown as Record<string, unknown>, room.moveHistory),
+  const hydrated = hydrateGameState(
+    room.state as unknown as Record<string, unknown>,
+    room.moveHistory,
   );
+  // The clone copies the history array, so `hydrated.history` stays private
+  // to the persistedHistory mark.
+  const persisted = isAppendable(room.moveHistory, hydrated.history.length)
+    ? hydrated.history
+    : undefined;
+  return buildStoredRoom(room, hydrated, persisted);
+}
+
+/** saveRoom's write result omits moveHistory, so it passes the history it just wrote. */
+function toSavedRoom(
+  room: PersistedGameRoom,
+  history: readonly TurnRecord[],
+  persisted: readonly TurnRecord[] | undefined,
+): StoredMultiplayerRoom {
+  const hydrated = hydrateGameState(room.state as unknown as Record<string, unknown>, null);
+  return buildStoredRoom(room, { ...hydrated, history: history as TurnRecord[] }, persisted);
+}
+
+function buildStoredRoom(
+  room: PersistedGameRoom,
+  hydrated: GameState,
+  persistedHistory: readonly TurnRecord[] | undefined,
+): StoredMultiplayerRoom {
+  const state = cloneGameState(hydrated);
   return {
     id: room.roomId,
     authorityToken: room.authorityToken ?? null,
@@ -282,6 +382,7 @@ function toStoredRoom(room: PersistedGameRoom): StoredMultiplayerRoom {
     tournamentMatchId: room.tournamentMatchId ?? null,
     createdAt: new Date(room.createdAt),
     updatedAt: new Date(room.updatedAt),
+    persistedHistory,
   };
 }
 
@@ -487,6 +588,8 @@ export class MongoGameRoomStore implements GameRoomStore {
     if (token && token !== room.authorityToken)
       throw new Error("Game authority changed; reload the room");
     const revision = room.revision ?? 0;
+    const history = room.state.history;
+    const moves = moveHistoryUpdate(room.persistedHistory, history);
     const updatedRoom = await GameRoom.findOneAndUpdate(
       {
         roomId: normalizeRoomId(room.id),
@@ -494,14 +597,16 @@ export class MongoGameRoomStore implements GameRoomStore {
         ...(revision === 0
           ? { $or: [{ revision: 0 }, { revision: { $exists: false } }] }
           : { revision }),
+        ...moves.filter,
       },
       {
         $inc: { revision: 1 },
+        ...(moves.push ? { $push: moves.push } : {}),
         $set: {
           roomType: room.roomType,
           status: room.status,
           state: dehydrateGameState(room.state),
-          moveHistory: historyToCompact(room.state.history),
+          ...moves.set,
           rematch: cloneRematch(room.rematch),
           takeback: cloneTakeback(room.takeback),
           seats: cloneSeats(room.seats),
@@ -517,7 +622,8 @@ export class MongoGameRoomStore implements GameRoomStore {
           staleAt: room.status === "waiting" ? undefined : null,
         },
       },
-      { new: true },
+      // The history is what this call just wrote; don't read it back.
+      { new: true, projection: { moveHistory: 0 } },
     )
       .lean<PersistedGameRoom>()
       .exec();
@@ -526,7 +632,7 @@ export class MongoGameRoomStore implements GameRoomStore {
       throw new Error("Game state or authority changed; reload the room before retrying");
     }
 
-    return toStoredRoom(updatedRoom);
+    return toSavedRoom(updatedRoom, history, moves.persisted);
   }
 
   async listRoomsForPlayer(playerId: string): Promise<StoredMultiplayerRoom[]> {

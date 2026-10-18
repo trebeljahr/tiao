@@ -139,40 +139,12 @@ function cloneJumpStep(jump: JumpStep): JumpStep {
   };
 }
 
-function cloneHistoryRecord(record: TurnRecord): TurnRecord {
-  if (record.type === "put") {
-    return {
-      type: "put",
-      color: record.color,
-      position: clonePosition(record.position),
-      ...(record.timestamp != null ? { timestamp: record.timestamp } : {}),
-    };
-  }
-
-  if (record.type === "forfeit") {
-    return {
-      type: "forfeit",
-      color: record.color,
-      ...(record.reason ? { reason: record.reason } : {}),
-    };
-  }
-
-  if (record.type === "win") {
-    return { type: "win", color: record.color };
-  }
-
-  if (record.type === "draw") {
-    return { type: "draw" };
-  }
-
-  return {
-    type: "jump",
-    color: record.color,
-    jumps: record.jumps.map(cloneJumpStep),
-    ...(record.timestamp != null ? { timestamp: record.timestamp } : {}),
-  };
-}
-
+/**
+ * Copies everything a rule step may mutate. The history array is copied but
+ * its records are shared, so a move does not deep-copy the whole game.
+ * Invariant: a TurnRecord is never modified once an earlier state holds it.
+ * Callers may still stamp a record that the rule step just created.
+ */
 export function cloneGameState(state: GameState): GameState {
   return {
     boardSize: state.boardSize,
@@ -182,7 +154,7 @@ export function cloneGameState(state: GameState): GameState {
     pendingJump: state.pendingJump.map(cloneJumpStep),
     pendingCaptures: state.pendingCaptures.map(clonePosition),
     score: { ...state.score },
-    history: state.history.map(cloneHistoryRecord),
+    history: state.history.slice(),
   };
 }
 
@@ -448,8 +420,11 @@ function positionCouldBeJumpedByEnemy(state: GameState, position: Position): boo
     }
 
     if (jumpingPiece === null) {
-      const recursiveState = cloneGameState(state);
-      recursiveState.pendingCaptures.push(clonePosition(middle));
+      // The recursion only reads the board, so only pendingCaptures needs a copy.
+      const recursiveState: GameState = {
+        ...state,
+        pendingCaptures: [...state.pendingCaptures, clonePosition(middle)],
+      };
 
       if (positionCouldBeJumpedByEnemy(recursiveState, jumpingPosition)) {
         return true;
