@@ -10,8 +10,7 @@ const intlMiddleware = createMiddleware(routing);
  *
  * The production web build is a static export and runs no middleware: there,
  * scripts/finalize-web-export.mjs writes the same behaviour as `_redirects`
- * and `_headers`, and src/lib/localeRedirect.ts negotiates the locale in the
- * browser. Keep the three in step.
+ * and `_headers`. Keep the two in step.
  *
  * Every HTML route refuses to be iframed except `/embed/*`, which is the
  * one surface built for third-party embedding (finished-game replays).

@@ -7,7 +7,6 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { ReleaseRecovery } from "@/components/ReleaseRecovery";
 import { routing } from "@/i18n/routing";
-import { LOCALE_REDIRECT_INLINE_SCRIPT } from "@/lib/localeRedirect";
 import { OG_IMAGES, TWITTER_IMAGES } from "@/lib/metadata";
 import { RELEASE_RECOVERY_INLINE_SCRIPT } from "@/lib/releaseRecovery";
 import { Providers } from "./providers";
@@ -31,10 +30,6 @@ const zenOldMincho = localFont({
   variable: "--font-zen-old-mincho",
   display: "swap",
 });
-
-// The web build negotiates the locale in the browser (see localeRedirect.ts);
-// the desktop and mobile shells pick it themselves.
-const IS_WEB = !process.env.NEXT_PUBLIC_PLATFORM;
 
 const plausibleDomain = "playtiao.com";
 const plausibleScriptUrl =
@@ -106,11 +101,6 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        {IS_WEB && (
-          // Before anything renders, so a redirect shows no other locale first.
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: static, build-time constant
-          <script dangerouslySetInnerHTML={{ __html: LOCALE_REDIRECT_INLINE_SCRIPT }} />
-        )}
         {/* Must run before any chunk loads; see releaseRecovery.ts. */}
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: static, build-time constant */}
         <script dangerouslySetInnerHTML={{ __html: RELEASE_RECOVERY_INLINE_SCRIPT }} />

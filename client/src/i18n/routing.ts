@@ -8,5 +8,8 @@ export const routing = defineRouting({
   locales,
   defaultLocale,
   localePrefix: "as-needed",
-  localeDetection: true,
+  // The web client is static files: an unprefixed URL is always English,
+  // and only the language switcher changes the language. Off here too, so
+  // `next dev` (middleware) behaves like production.
+  localeDetection: false,
 });
