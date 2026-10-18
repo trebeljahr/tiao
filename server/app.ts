@@ -18,6 +18,7 @@ import gameAuthRoutes from "./routes/game-auth.routes";
 import googlePlayRoutes from "./routes/googlePlay.routes";
 import indexRoutes from "./routes/index.routes";
 import mobileAuthRoutes from "./routes/mobile-auth.routes";
+import previewImageRoutes from "./routes/previewImage.routes";
 import reportRoutes from "./routes/report.routes";
 import shopRoutes from "./routes/shop.routes";
 import socialRoutes from "./routes/social.routes";
@@ -106,6 +107,7 @@ mountRouteVariants("/shop/iap/google-play", googlePlayRoutes);
 mountRouteVariants("/shop/iap/app-store", appStoreRoutes);
 mountRouteVariants("/shop", shopRoutes);
 mountRouteVariants("/player", achievementRoutes);
+mountRouteVariants("/", previewImageRoutes);
 
 addErrorHandlingToApp(app);
 

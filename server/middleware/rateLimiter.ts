@@ -79,3 +79,18 @@ export const userSearchRateLimiter = rateLimit({
     message: "Too many search requests. Please try again later.",
   },
 });
+
+/** Link-preview images: crawlers are anonymous, so per IP; 60 renders per minute. */
+export const previewImageRateLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 60,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  store: createStore("tiao:rl:og:"),
+  keyGenerator: (req: Request) => `ip:${ipKeyGenerator(req.ip ?? "127.0.0.1")}`,
+  validate: !isTest,
+  message: {
+    code: "RATE_LIMITED",
+    message: "Too many preview requests. Please try again later.",
+  },
+});

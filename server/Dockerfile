@@ -35,6 +35,8 @@ ENV PORT=3000
 COPY --from=build /app/server/package*.json ./
 COPY --from=build /app/server/node_modules ./node_modules
 COPY --from=build /app/server/dist ./dist
+# Fonts for the link-preview images (lib/previewImage.ts).
+COPY --from=build /app/server/assets ./assets
 
 # Full commit SHA, reported by /health as `build`. Last, so a new commit
 # does not invalidate the cached layers above.

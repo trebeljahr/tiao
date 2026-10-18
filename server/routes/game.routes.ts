@@ -6,8 +6,8 @@ import { getPlayerFromRequest } from "../auth/sessionHelper";
 import { applySsoProfilePicturesToSummaries } from "../auth/ssoProfilePicture";
 import { handleRouteError } from "../error-handling/routeError";
 import { gameService } from "../game/gameService";
+import { isValidGameId, loadGamePreview } from "../lib/previewData";
 import { gameActionRateLimiter } from "../middleware/rateLimiter";
-import GameAccount from "../models/GameAccount";
 import GameInvitation from "../models/GameInvitation";
 import GameRoom, { type IGameRoom } from "../models/GameRoom";
 import { notifyLobbyUpdate } from "./social.routes";
@@ -63,12 +63,6 @@ async function checkTournamentJoinBlock(gameId: string, res: Response): Promise<
     return false;
   }
   return true;
-}
-
-const GAME_ID_PATTERN = /^[A-Z2-9]{6}$/;
-
-function isValidGameId(gameId: string): boolean {
-  return GAME_ID_PATTERN.test(gameId.trim().toUpperCase());
 }
 
 async function acceptPendingInvitationsForPlayer(gameId: string, playerId: string) {
@@ -452,55 +446,11 @@ router.get("/games/:gameId/og", async (req: ExpressRequest, res: Response) => {
   }
 
   try {
-    const room = (await GameRoom.findOne(
-      { roomId: (req.params.gameId as string).trim().toUpperCase() },
-      {
-        status: 1,
-        "state.boardSize": 1,
-        "state.scoreToWin": 1,
-        "state.score": 1,
-        "seats.white.displayName": 1,
-        "seats.white.playerId": 1,
-        "seats.black.displayName": 1,
-        "seats.black.playerId": 1,
-        timeControl: 1,
-        roomType: 1,
-      },
-    ).lean()) as IGameRoom | null;
-
-    if (!room) {
+    const preview = await loadGamePreview(req.params.gameId as string);
+    if (!preview) {
       return res.status(404).json({ code: "NOT_FOUND", message: "Game not found." });
     }
-
-    // For waiting games, look up the host's ELO
-    let whiteRating: number | undefined;
-    let blackRating: number | undefined;
-
-    if (room.status === "waiting") {
-      const hostId = room.seats?.white?.playerId ?? room.seats?.black?.playerId;
-      if (hostId) {
-        const hostAccount = await GameAccount.findById(hostId, {
-          "rating.overall.elo": 1,
-        }).lean();
-        const elo = (hostAccount as any)?.rating?.overall?.elo;
-        if (room.seats?.white?.playerId === hostId) whiteRating = elo;
-        else blackRating = elo;
-      }
-    }
-
-    return res.status(200).json({
-      gameId: (req.params.gameId as string).trim().toUpperCase(),
-      status: room.status,
-      boardSize: room.state?.boardSize,
-      scoreToWin: room.state?.scoreToWin,
-      score: room.state?.score,
-      white: room.seats?.white?.displayName ?? null,
-      black: room.seats?.black?.displayName ?? null,
-      whiteRating,
-      blackRating,
-      timeControl: room.timeControl,
-      roomType: room.roomType,
-    });
+    return res.status(200).json(preview);
   } catch {
     return res.status(500).json({ code: "INTERNAL_ERROR", message: "Unable to load game info." });
   }
