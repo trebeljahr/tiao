@@ -134,7 +134,7 @@ This abstraction keeps the game logic testable without requiring a running datab
 
 ## Client Layer
 
-The frontend is built with React 18, TypeScript, Next.js 14, and Tailwind CSS. A custom `server.mjs` proxies `/api` and `/ws` requests to the Express backend and serves the Next.js application.
+The frontend is built with React 18, TypeScript, Next.js 14, and Tailwind CSS. In production it is a static export served by Cloudflare Workers static assets; in development a custom `server.mjs` runs `next dev` and proxies `/api` and `/ws` requests to the Express backend.
 
 ### Pages
 
@@ -333,34 +333,32 @@ Key properties:
 
 ## Deployment
 
-### Container Architecture
+### Hosting
 
 ```
-                    Internet
-                       |
-              +--------+--------+
-              |   Node.js       |    client container
-              |   Next.js app   |    - serves the frontend
-              |  (reverse proxy)|    - proxies /api/* to server
-              +--------+--------+
-                       |
-                  /api/*
-                       |
-              +--------+--------+
-              |   Node.js       |    server container
-              |   Express +     |
-              |   WebSocket     |
-              +--------+--------+
-                       |
-              +--------+--------+
-              |    MongoDB      |
-              +-----------------+
-              +--------+--------+
-              |  Redis (optional)|
-              +-----------------+
+                         Internet
+                            |
+                 Cloudflare (playtiao.com zone)
+                  |                       |
+        playtiao.com/*          playtiao.com/api/*, /ws*, /_e*
+                  |              (routes without a Worker)
+        +---------+--------+              |
+        | Workers static   |     +--------+--------+
+        | assets: the web  |     |   Node.js       |   server container
+        | client's export  |     |   Express +     |   (Coolify, Traefik)
+        +------------------+     |   WebSocket     |
+                                 +--------+--------+
+                                          |
+                                 MongoDB, Redis
 ```
 
-Both containers are deployed as Docker images. The client container runs a Node.js server (`server.mjs`) that serves the Next.js application and reverse-proxies all `/api` and `/ws` requests to the server container. This same-origin setup avoids cross-origin cookie issues with the session cookie.
+The web client is a static export (`client/out`, see
+`client/scripts/finalize-web-export.mjs`) served by an assets-only Worker,
+`tiao-client`. No Worker script runs, so the site does not count toward the
+Workers request limit. Routes without a Worker send the API, WebSocket and
+error-tunnel paths to the server container on the same hostname, so the
+session cookie stays first-party. The desktop and mobile apps ship their own
+static exports and call `https://api.playtiao.com`.
 
 When Redis is available, the server can scale horizontally — matchmaking state and locks are shared across instances rather than held in a single process. Set the `REDIS_URL` environment variable to configure the connection. Without Redis, the server runs as a single instance with in-memory state, which is sufficient for low-traffic deployments.
 
@@ -381,10 +379,10 @@ Move history is stored as part of `GameState.history` in the `GameRoom.state` fi
 The GitHub Actions pipeline runs on every push:
 
 ```
-build --> test --> push images to GHCR --> deploy via Coolify API
+build --> test --> server image to GHCR + Coolify webhook; web export to a Worker version --> activate
 ```
 
 1. **Build** — compile shared, server, and client packages
 2. **Test** — run unit tests and Playwright E2E tests
-3. **Push** — publish Docker images to GitHub Container Registry
-4. **Deploy** — trigger deployment through the Coolify API
+3. **Push** — publish the server image to GitHub Container Registry and upload the web export as a Worker version
+4. **Deploy** — the server through a signed Coolify webhook, then the Worker version once the server of the same commit is live

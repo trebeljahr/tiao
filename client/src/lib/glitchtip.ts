@@ -7,31 +7,28 @@
  * When DSN is unset all exports are no-ops. Safe for dev and CI.
  *
  * Gated to production-only because:
- *   1. In dev we use `next dev` directly, which bypasses `server.mjs` and
- *      its `/_e` envelope proxy — so tunnelled POSTs get rewritten by
- *      next-intl middleware to `/<locale>/_e` and 404.
- *   2. Local errors show up in the dev console already; there's no value
+ *   1. Local errors show up in the dev console already; there's no value
  *      in shipping them to GlitchTip and polluting the production project.
- *   3. In the desktop Electron build the `/_e` tunnel resolves to
- *      `app://tiao/_e` which the protocol handler doesn't map to a
+ *   2. In the desktop Electron build the tunnel resolves to
+ *      `app://tiao/api/_e`, which the protocol handler doesn't map to a
  *      file — every session-capture POST would 404. Main-process crash
  *      reporting is planned as a follow-up; the renderer stays silent
  *      for now to avoid spamming the dev tools console.
  *
- * Tunnel path "/_e" (not "/bugs" and not "/e"):
- *   The tunnel endpoint is deliberately short, underscore-prefixed, and
- *   meaningless.
+ * Tunnel path "/api/_e" (served by the game server, see
+ * server/routes/errorTunnel.routes.ts):
+ *   Envelopes go to the site's own origin so ad blockers that filter
+ *   sentry/glitchtip hosts let them through. On playtiao.com, `/api/*`
+ *   is the path the Cloudflare zone sends to the game server; the web
+ *   client itself is static files.
  *     - "/bugs" was the first attempt; Cloudflare's managed WAF flagged
  *       it as a suspicious recon/debug path and started 403-blocking
  *       POSTs from real user browsers — every captured error turned
  *       into a red console entry on playtiao.com (#160).
- *     - "/e" alone would prefix-collide with the "en" locale inside the
- *       next-intl matcher's negative-lookahead exclusion list and
- *       silently break English routing.
- *     - "/_e" matches the "_next" / "_vercel" underscore-prefix
- *       convention for infra paths, is short enough to not be
- *       adblocker-filtered by path, and is too generic for most WAF
- *       rules to key on.
+ *     - "_e" is short, meaningless and underscore-prefixed like "_next",
+ *       too generic for most WAF rules or path-based blocklists to key on.
+ *       Releases before the static site posted to "/_e", which the
+ *       server also answers.
  *
  * Cold-compile note (2026-04-16):
  *   `@sentry/browser` is a very large SDK (thousands of files). We used
@@ -85,13 +82,13 @@ if (typeof window !== "undefined" && glitchtipEnabled) {
     void promise.then((Sentry) => {
       Sentry.init({
         dsn: dsn!,
-        // Route envelopes through /_e so requests look first-party and
-        // aren't blocked by adblockers or privacy extensions that filter
-        // sentry/glitchtip domains. The server.mjs proxy extracts the
-        // project ID from the envelope header and forwards to the real
-        // GlitchTip ingestion endpoint. See the "Tunnel path" note in
-        // the file header for why /_e, not /bugs and not /e.
-        tunnel: "/_e",
+        // Route envelopes through the game server so requests look
+        // first-party and aren't blocked by adblockers or privacy
+        // extensions that filter sentry/glitchtip domains. The server
+        // extracts the project ID from the envelope header and forwards
+        // to the real GlitchTip ingestion endpoint. See the "Tunnel path"
+        // note in the file header.
+        tunnel: "/api/_e",
         environment: process.env.NODE_ENV ?? "development",
         release: process.env.NEXT_PUBLIC_APP_VERSION ?? "unknown",
       });

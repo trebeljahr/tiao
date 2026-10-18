@@ -1,9 +1,9 @@
 import type { MetadataRoute } from "next";
 import { locales } from "@/i18n/routing";
 import { languageAlternates, localizedUrl } from "@/lib/metadata";
-import { fetchPublicTournaments } from "@/lib/publicSeoData";
 
-export const revalidate = 300;
+// Written once at build time: the web client is a static export.
+export const dynamic = "force-static";
 
 const staticRoutes = [
   { pathname: "/", changeFrequency: "daily", priority: 1 },
@@ -46,27 +46,9 @@ function sitemapEntries(
   }));
 }
 
-function tournamentChangeFrequency(
-  status: string,
-): MetadataRoute.Sitemap[number]["changeFrequency"] {
-  return status === "registration" || status === "active" ? "daily" : "weekly";
-}
-
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
-  const tournaments = await fetchPublicTournaments();
-
-  return [
-    ...staticRoutes.flatMap((route) =>
-      sitemapEntries(route.pathname, lastModified, route.changeFrequency, route.priority),
-    ),
-    ...tournaments.flatMap((tournament) =>
-      sitemapEntries(
-        `/tournament/${encodeURIComponent(tournament.tournamentId)}`,
-        new Date(tournament.createdAt),
-        tournamentChangeFrequency(tournament.status),
-        tournament.isFeatured ? 0.75 : 0.65,
-      ),
-    ),
-  ];
+  return staticRoutes.flatMap((route) =>
+    sitemapEntries(route.pathname, lastModified, route.changeFrequency, route.priority),
+  );
 }

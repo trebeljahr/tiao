@@ -2,6 +2,9 @@ import type { MetadataRoute } from "next";
 import { locales } from "@/i18n/routing";
 import { SITE_URL } from "@/lib/metadata";
 
+// Written once at build time: the web client is a static export.
+export const dynamic = "force-static";
+
 const privatePaths = ["/settings", "/friends", "/matchmaking", "/onboarding", "/reset-password"];
 const privateTrees = ["/admin"];
 const infrastructurePaths = ["/api/", "/ws/", "/_vercel/", "/collect/", "/_e/"];

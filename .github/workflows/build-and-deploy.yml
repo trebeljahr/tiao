@@ -13,9 +13,20 @@ permissions:
   contents: read
   packages: write
 
+env:
+  # Keep in step with client/serve-export.mjs.
+  WRANGLER_VERSION: 4.143.1
+
 jobs:
-  build-client:
+  # The web client is a static site on Cloudflare Workers static assets
+  # (client/wrangler.jsonc). This job builds it and uploads a Worker version
+  # that serves nothing yet; deploy-web makes it live once the game server of
+  # the same commit runs. Upload first, activate later: a one-step deploy
+  # leaves seconds in which new chunks 404.
+  build-web:
     runs-on: ubuntu-latest
+    outputs:
+      version_id: ${{ steps.upload.outputs.version_id }}
     steps:
       - name: Check out source
         uses: actions/checkout@v6
@@ -31,147 +42,94 @@ jobs:
           SHORT=$(git rev-parse --short HEAD)
           echo "app_version=${BASE}-build.${COUNT}+${SHORT}" >> "$GITHUB_OUTPUT"
 
-      - name: Set up Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: pnpm/action-setup@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: client/pnpm-lock.yaml
+
+      - name: Install client dependencies
+        run: pnpm --dir client install --frozen-lockfile
+
+      # Open tabs keep requesting the chunks of the release they loaded, and a
+      # Worker version serves only its own files. Carry the live release and
+      # the one it carried (release-assets.json lists them) into this upload.
+      - name: Carry earlier releases' assets
+        id: carry
+        run: |
+          set -euo pipefail
+          result=$(node client/scripts/carry-release-static.mjs fetch \
+            --site https://playtiao.com --out client/release-carry)
+          echo "$result"
+          echo "manifest=$(printf '%s' "$result" | jq -r .manifest)" >> "$GITHUB_OUTPUT"
+
+      # Only for the first upload after the move from Coolify: the live site
+      # is then still the client image, which publishes no release-assets.json.
       - name: Log in to GHCR
+        if: steps.carry.outputs.manifest != 'true'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Open tabs keep requesting the chunks of the release they loaded. Carry
-      # the previous image's /_next/static and what it carried itself (two
-      # releases in total) so the new image can still serve them.
-      - name: Carry previous release assets
+      - name: Carry the client image's assets
+        if: steps.carry.outputs.manifest != 'true'
         env:
           PREVIOUS_IMAGE: ghcr.io/${{ github.repository_owner }}/tiao-client:main
-          SERVING_IMAGE: ${{ vars.TIAO_CLIENT_SERVING_IMAGE }}
         run: |
           set -euo pipefail
           if ! docker pull --quiet "$PREVIOUS_IMAGE"; then
-            echo "No previous client image; nothing to carry."
+            echo "No client image; nothing to carry."
             exit 0
           fi
           previous_sha=$(docker image inspect "$PREVIOUS_IMAGE" \
             --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')
-          if [ "$previous_sha" = "$GITHUB_SHA" ]; then
-            echo "Previous image is this commit; nothing to carry."
-            exit 0
-          fi
           work=$(mktemp -d)
           container=$(docker create "$PREVIOUS_IMAGE")
           docker cp "$container:/app/.next/static" "$work/static"
           docker cp "$container:/app/release-static" "$work/release-static" 2>/dev/null || true
           docker rm "$container" >/dev/null
-          serving_args=()
-          # Builds can be pushed without being deployed. When the image actually
-          # serving traffic is known (digest reference), carry it first.
-          if [ -n "$SERVING_IMAGE" ] && docker pull --quiet "$SERVING_IMAGE"; then
-            serving_sha=$(docker image inspect "$SERVING_IMAGE" \
-              --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')
-            mkdir -p "$work/serving"
-            container=$(docker create "$SERVING_IMAGE")
-            docker cp "$container:/app/.next/static" "$work/serving/static"
-            docker rm "$container" >/dev/null
-            serving_args=(--serving-dir "$work/serving" --serving-sha "$serving_sha")
-          fi
           node client/scripts/carry-release-static.mjs compose \
-            --previous-dir "$work" --previous-sha "$previous_sha" "${serving_args[@]}" \
-            --out client/release-carry
+            --previous-dir "$work" --previous-sha "$previous_sha" --out client/release-carry
 
-      - name: Extract image metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository_owner }}/tiao-client
-          tags: |
-            type=raw,value=main
-            type=sha
-
-      - name: Build and push client image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./client/Dockerfile
-          push: true
-          no-cache: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          # NEXT_PUBLIC_* vars must be passed as build-args here because
-          # `next build` inlines them into the browser bundle at build time.
-          # Coolify only pulls the pre-built image, so setting them in the
-          # Coolify env-vars UI has no effect on the already-compiled JS.
-          # They're hardcoded on purpose: they end up in the public bundle
-          # anyway, so there's nothing to protect as a secret.
-          build-args: |
-            APP_VERSION=${{ steps.version.outputs.app_version }}
-            BUILD_COMMIT=${{ github.sha }}
-            NEXT_PUBLIC_CREATOR_RICO_ID=69c80a6cb5edd849e485b970
-            NEXT_PUBLIC_CREATOR_ANDREAS_ID=69c8193de40bacfe753a2472
-            NEXT_PUBLIC_GLITCHTIP_DSN=https://e44c9bfbc30546e19f875b55b4429b97@glitchtip.trebeljahr.com/1
-
-      # Tell Coolify to deploy. There is no Coolify API token here: each
-      # app has its own webhook secret (hatchkit mints it), and a `push`
-      # payload signed with it queues a deploy of that one app — it can
-      # read nothing and touch no other app. The payload names
-      # `.hatchkit/deploy-webhook`, the app's only watch path, so an ordinary
-      # push that reaches Coolify through its GitHub App never deploys a
-      # build that does not exist yet; only this step does.
-      #
-      # This job deploys only the client app, the one it just built;
-      # the other job deploys the other one.
-      #
-      - name: Deploy via signed Coolify webhook
+      # NEXT_PUBLIC_* values are inlined into the static site at build time.
+      # They're hardcoded on purpose: they end up in the public bundle
+      # anyway, so there's nothing to protect as a secret.
+      - name: Build the static site
         env:
-          COOLIFY_BASE_URL: ${{ secrets.COOLIFY_BASE_URL }}
-          COOLIFY_CLIENT_RESOURCE_UUID: ${{ secrets.COOLIFY_CLIENT_RESOURCE_UUID }}
-          COOLIFY_CLIENT_DEPLOY_SECRET: ${{ secrets.COOLIFY_CLIENT_DEPLOY_SECRET }}
-          COOLIFY_CLIENT_DEPLOY_REPOSITORY: ${{ secrets.COOLIFY_CLIENT_DEPLOY_REPOSITORY }}
-          COOLIFY_CLIENT_DEPLOY_BRANCH: ${{ secrets.COOLIFY_CLIENT_DEPLOY_BRANCH }}
-        if: vars.TIAO_IMAGE_ROLLOUT_READY == 'true' && env.COOLIFY_BASE_URL != ''
+          APP_VERSION: ${{ steps.version.outputs.app_version }}
+          BUILD_COMMIT: ${{ github.sha }}
+          NEXT_PUBLIC_CREATOR_RICO_ID: 69c80a6cb5edd849e485b970
+          NEXT_PUBLIC_CREATOR_ANDREAS_ID: 69c8193de40bacfe753a2472
+          NEXT_PUBLIC_GLITCHTIP_DSN: https://e44c9bfbc30546e19f875b55b4429b97@glitchtip.trebeljahr.com/1
+        run: pnpm --dir client run build
+
+      # CLOUDFLARE_API_TOKEN may edit this one Worker (the "Individual Workers
+      # Editor" role) and nothing else: no routes, no DNS, no other Worker.
+      - name: Upload the Worker version (not live yet)
+        id: upload
+        if: vars.TIAO_WEB_DEPLOY == 'true'
+        working-directory: client
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.ndjson
+          WRANGLER_SEND_METRICS: "false"
         run: |
           set -euo pipefail
-          deployed=0
-          deploy() { # label, secret-name prefix
-            local uuid_var="${2}RESOURCE_UUID" secret_var="${2}DEPLOY_SECRET"
-            local repo_var="${2}DEPLOY_REPOSITORY" branch_var="${2}DEPLOY_BRANCH"
-            local uuid="${!uuid_var:-}" secret="${!secret_var:-}"
-            local repo="${!repo_var:-}" branch="${!branch_var:-}"
-            [ -n "$uuid" ] || return 0
-            if [ -z "$secret" ] || [ -z "$repo" ] || [ -z "$branch" ]; then
-              echo "::error::${2}DEPLOY_SECRET/_REPOSITORY/_BRANCH are not set — run \`hatchkit sync\` or \`hatchkit secrets isolate\`."
-              exit 1
-            fi
-            local body sig answer
-            body=$(jq -cn --arg ref "refs/heads/$branch" --arg sha "$GITHUB_SHA" --arg repo "$repo" \
-              '{ref: $ref, after: $sha, repository: {full_name: $repo}, commits: [{id: $sha, added: [], removed: [], modified: [".hatchkit/deploy-webhook"]}]}')
-            sig=$(printf '%s' "$body" | HOOK_SECRET="$secret" node -e \
-              'process.stdout.write(require("node:crypto").createHmac("sha256", process.env.HOOK_SECRET).update(require("node:fs").readFileSync(0)).digest("hex"))')
-            answer=$(curl -fsS -X POST "$COOLIFY_BASE_URL/webhooks/source/github/events/manual" \
-              -H 'Content-Type: application/json' -H 'X-GitHub-Event: push' \
-              -H "X-Hub-Signature-256: sha256=$sig" --data-binary "$body")
-            if printf '%s' "$answer" | jq -e --arg uuid "$uuid" \
-              'type == "array" and any(.[]; .application_uuid == $uuid and .status == "success")' \
-              >/dev/null 2>&1; then
-              echo "deploy queued for the $1 app ($uuid)"
-              deployed=$((deployed + 1))
-            else
-              # Other apps on the same repo answer "Invalid signature.";
-              # they are left out so a public log names only this one.
-              detail=$(printf '%s' "$answer" | jq -c '[.[]? | select(.message != "Invalid signature.") | {status, message}]' 2>/dev/null || printf '%s' "$answer" | head -c 200)
-              echo "::error::Coolify did not queue a deploy of the $1 app: $detail"
-              exit 1
-            fi
-          }
-          deploy app COOLIFY_
-          deploy server COOLIFY_SERVER_
-          deploy client COOLIFY_CLIENT_
-          if [ "$deployed" -eq 0 ]; then
-            echo "::error::COOLIFY_BASE_URL is set but no COOLIFY_*RESOURCE_UUID is — nothing was deployed."
+          npx --yes "wrangler@${WRANGLER_VERSION}" versions upload \
+            --tag "$GITHUB_SHA" --message "$GITHUB_SHA"
+          version_id=$(jq -r 'select(.type == "version-upload") | .version_id' \
+            "$WRANGLER_OUTPUT_FILE_PATH" | tail -n 1)
+          if [ -z "$version_id" ] || [ "$version_id" = "null" ]; then
+            echo "::error::wrangler reported no version id"
             exit 1
           fi
+          echo "version_id=$version_id" >> "$GITHUB_OUTPUT"
 
   build-server:
     runs-on: ubuntu-latest
@@ -206,6 +164,9 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # Reported by /health as `build`; deploy-web waits for it.
+          build-args: |
+            BUILD_COMMIT=${{ github.sha }}
 
       # Tell Coolify to deploy. There is no Coolify API token here: each
       # app has its own webhook secret (hatchkit mints it), and a `push`
@@ -215,8 +176,7 @@ jobs:
       # push that reaches Coolify through its GitHub App never deploys a
       # build that does not exist yet; only this step does.
       #
-      # This job deploys only the server app, the one it just built;
-      # the other job deploys the other one.
+      # This job deploys only the server app, the one it just built.
       #
       - name: Deploy via signed Coolify webhook
         env:
@@ -262,8 +222,68 @@ jobs:
           }
           deploy app COOLIFY_
           deploy server COOLIFY_SERVER_
-          deploy client COOLIFY_CLIENT_
           if [ "$deployed" -eq 0 ]; then
             echo "::error::COOLIFY_BASE_URL is set but no COOLIFY_*RESOURCE_UUID is — nothing was deployed."
             exit 1
           fi
+
+  # Server first: the web switch is one atomic step that takes seconds, so it
+  # waits until the game server of this commit answers. What remains is an
+  # old tab calling a new server, the compatible direction.
+  deploy-web:
+    needs: [build-web, build-server]
+    if: needs.build-web.outputs.version_id != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for the game server of this commit
+        if: vars.TIAO_IMAGE_ROLLOUT_READY == 'true'
+        run: |
+          set -euo pipefail
+          for _ in $(seq 1 90); do
+            build=$(curl -fsS --max-time 5 https://api.playtiao.com/health | jq -r '.build // empty' || true)
+            if [ "$build" = "$GITHUB_SHA" ]; then
+              echo "game server ${GITHUB_SHA::12} is live"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::the game server never reported ${GITHUB_SHA::12}; the web version was not activated"
+          exit 1
+
+      - name: Activate the Worker version
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_SEND_METRICS: "false"
+          VERSION_ID: ${{ needs.build-web.outputs.version_id }}
+        run: |
+          npx --yes "wrangler@${WRANGLER_VERSION}" versions deploy "$VERSION_ID@100%" \
+            --name tiao-client --message "$GITHUB_SHA" --yes
+
+      # Before playtiao.com/* is routed to the Worker (and after a rollback
+      # that deleted the route) the Coolify client answers, and version.json
+      # does not exist there: that is reported, not failed.
+      - name: Check the live site
+        run: |
+          set -euo pipefail
+          commit=""
+          for attempt in $(seq 1 30); do
+            body=$(curl -sS --max-time 5 -w '\n%{http_code}' "https://playtiao.com/version.json?check=$attempt" || true)
+            status=$(printf '%s' "$body" | tail -n 1)
+            if [ "$status" = 404 ]; then
+              echo "::warning::playtiao.com/version.json is 404: the site is not routed to the Worker; nothing to check"
+              exit 0
+            fi
+            commit=$(printf '%s' "$body" | sed '$d' | jq -r '.commit // empty' 2>/dev/null || true)
+            if [ "$commit" = "$GITHUB_SHA" ]; then break; fi
+            sleep 5
+          done
+          if [ "$commit" != "$GITHUB_SHA" ]; then
+            echo "::error::playtiao.com/version.json reports ${commit:-nothing}, not ${GITHUB_SHA::12}"
+            exit 1
+          fi
+          for path in / /de /play /game/ABCDEF /api/health; do
+            status=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "https://playtiao.com$path")
+            echo "$path $status"
+            [ "$status" = 200 ] || { echo "::error::$path answered $status"; exit 1; }
+          done

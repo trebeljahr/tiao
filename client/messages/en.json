@@ -934,7 +934,8 @@
     "achievementsTitle": "Achievements — Tiao",
     "achievementsDescription": "Track your Tiao achievements and milestones. Earn trophies by playing games, winning tournaments, and climbing the ladder.",
     "publicProfileTitle": "{name} on Tiao",
-    "publicProfileDescription": "View {name}'s Tiao profile, match history, ratings, and badges."
+    "publicProfileDescription": "View {name}'s Tiao profile, match history, ratings, and badges.",
+    "playerProfileTitle": "Player profile"
   },
   "embed": {
     "loading": "Loading game…",

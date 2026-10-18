@@ -58,20 +58,6 @@ export function localizedUrl(locale: string, pathname = "/"): string {
   return new URL(localizedPath(locale, pathname), SITE_URL).toString();
 }
 
-export function localizedImagePath(locale: string, pathname: string, imageName: string): string {
-  const basePath = localizedPath(locale, pathname).replace(/\/+$/, "") || "/";
-  return basePath === "/" ? `/${imageName}` : `${basePath}/${imageName}`;
-}
-
-export function localizedOpenGraphImage(locale: string, pathname: string, alt: string) {
-  return {
-    url: localizedImagePath(locale, pathname, "opengraph-image"),
-    width: 1200,
-    height: 630,
-    alt,
-  };
-}
-
 export function languageAlternates(pathname = "/"): Record<string, string> {
   return {
     ...Object.fromEntries(locales.map((locale) => [locale, localizedUrl(locale, pathname)])),
@@ -86,5 +72,28 @@ export function localizedAlternates(
   return {
     canonical: localizedUrl(locale, pathname),
     languages: languageAlternates(pathname),
+  };
+}
+
+/**
+ * Metadata for a page baked once with the `__spa__` placeholder and served
+ * for every value of its dynamic segment. It names no canonical URL, which
+ * would point at the placeholder, and shares the site-wide preview image.
+ */
+export function placeholderRouteMetadata({
+  title,
+  description,
+  robots,
+}: {
+  title: string;
+  description: string;
+  robots?: Metadata["robots"];
+}): Metadata {
+  return {
+    title,
+    description,
+    ...(robots && { robots }),
+    openGraph: { title, description, images: OG_IMAGES },
+    twitter: { card: "summary_large_image", title, description, images: TWITTER_IMAGES },
   };
 }

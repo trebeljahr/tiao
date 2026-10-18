@@ -1,5 +1,6 @@
 // @vitest-environment node
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import {
   lstatSync,
   mkdirSync,
@@ -10,10 +11,8 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { PassThrough } from "node:stream";
 import { test } from "vitest";
-import { createReleaseAssets, staticRelativePath } from "./release-assets.mjs";
-import { compose, verify } from "./scripts/carry-release-static.mjs";
+import { compose, fetchCarry, verify } from "./carry-release-static.mjs";
 
 const A = "a".repeat(40);
 const B = "b".repeat(40);
@@ -24,88 +23,100 @@ function write(root, path, body) {
   writeFileSync(join(root, path), body);
 }
 
-function response() {
-  const res = new PassThrough();
-  const chunks = [];
-  res.on("data", (chunk) => chunks.push(chunk));
-  res.writeHead = (status, headers) => {
-    res.status = status;
-    res.headers = headers;
+const sha256 = (body) => createHash("sha256").update(body).digest("hex");
+
+/** A fake live site: release-assets.json plus the files it lists. */
+function site(manifest, files) {
+  const requested = [];
+  const fetchImpl = async (url) => {
+    const { pathname } = new URL(url);
+    requested.push(pathname);
+    if (pathname === "/release-assets.json") {
+      return manifest
+        ? new Response(JSON.stringify(manifest), { status: 200 })
+        : new Response("not found", { status: 404 });
+    }
+    const body = files[decodeURIComponent(pathname)];
+    return body === undefined
+      ? new Response("not found", { status: 404 })
+      : new Response(body, { status: 200 });
   };
-  res.body = () => Buffer.concat(chunks).toString();
-  return res;
+  return { fetchImpl, requested };
 }
 
-function fixture() {
-  const root = mkdtempSync(join(tmpdir(), "tiao-release-assets-"));
-  const own = join(root, "own");
-  const carried = join(root, "carried");
-  write(own, "chunks/own.js", "own");
-  write(carried, `${A}/chunks/old.js`, "old release chunk");
-  write(carried, `${B}/chunks/older.js`, "older");
-  write(carried, `${A}/chunks/own.js`, "stale copy must not win");
-  writeFileSync(
-    join(carried, "releases.json"),
-    JSON.stringify({ schema: 1, releases: [{ sha: A }, { sha: B }] }),
+test("fetch carries the live release and what it carried, newest first, two at most", async () => {
+  const out = join(mkdtempSync(join(tmpdir(), "tiao-fetch-")), "carry");
+  const files = {
+    "/_next/static/chunks/app/[locale]/page-b.js": "b page",
+    "/_next/static/chunks/a.js": "a",
+    "/_next/static/chunks/c.js": "c",
+  };
+  const entry = (path) => ({ path, sha256: sha256(files[`/_next/static/${path}`]) });
+  const { fetchImpl, requested } = site(
+    {
+      schema: 1,
+      releases: [
+        { sha: B, files: [entry("chunks/app/[locale]/page-b.js")] },
+        { sha: A, files: [entry("chunks/a.js")] },
+        { sha: C, files: [entry("chunks/c.js")] },
+      ],
+    },
+    files,
   );
-  return { root, own, carried };
-}
-
-test("serves a carried chunk the running build lacks, with immutable caching", async () => {
-  const { own, carried } = fixture();
-  const assets = createReleaseAssets({ ownStaticDir: own, carriedDir: carried });
-  assert.deepEqual(assets.releases, [A, B]);
-  const res = response();
-  assert.equal(assets.serve({ method: "GET" }, res, "/_next/static/chunks/old.js"), true);
-  await new Promise((resolve) => res.on("end", resolve));
-  assert.equal(res.status, 200);
-  assert.equal(res.body(), "old release chunk");
-  assert.match(res.headers["Cache-Control"], /immutable/);
-  assert.equal(res.headers["Content-Type"], "application/javascript; charset=utf-8");
-  assert.equal(res.headers["X-Tiao-Release-Asset"], A);
-  const older = response();
-  assert.equal(assets.serve({ method: "HEAD" }, older, "/_next/static/chunks/older.js"), true);
-  assert.equal(older.headers["X-Tiao-Release-Asset"], B);
+  const result = await fetchCarry({ site: "https://playtiao.test/x", out, fetchImpl });
+  assert.deepEqual(result, { manifest: true, carried: [B, A], files: 2 });
+  assert.equal(readFileSync(join(out, B, "chunks/app/[locale]/page-b.js"), "utf8"), "b page");
+  assert.equal(readFileSync(join(out, A, "chunks/a.js"), "utf8"), "a");
+  assert.ok(!requested.includes("/_next/static/chunks/c.js"));
+  assert.ok(requested.includes("/_next/static/chunks/app/%5Blocale%5D/page-b.js"));
+  assert.deepEqual(JSON.parse(readFileSync(join(out, "releases.json"), "utf8")).releases, [
+    { sha: B },
+    { sha: A },
+  ]);
+  // The carry it wrote passes the collision check against a new build.
+  const own = join(out, "..", "own");
+  write(own, "chunks/new.js", "new");
+  assert.deepEqual(verify({ own, carried: out }).releases, [B, A]);
 });
 
-test("leaves own, unknown, unsafe and non-GET paths to Next", () => {
-  const { own, carried } = fixture();
-  const assets = createReleaseAssets({ ownStaticDir: own, carriedDir: carried });
-  for (const path of [
-    "/_next/static/chunks/own.js",
-    "/_next/static/chunks/missing.js",
-    "/_next/static/../../etc/passwd",
-    "/_next/static/chunks/%2e%2e/%2e%2e/secret",
-    "/_next/static/",
-    "/other/chunks/old.js",
-  ])
-    assert.equal(assets.serve({ method: "GET" }, response(), path), false, path);
-  assert.equal(assets.serve({ method: "POST" }, response(), "/_next/static/chunks/old.js"), false);
-  assert.equal(staticRelativePath("/_next/static/a//b.js"), null);
+test("fetch yields an empty carry when the site has no manifest yet", async () => {
+  const out = join(mkdtempSync(join(tmpdir(), "tiao-fetch-")), "carry");
+  const { fetchImpl } = site(null, {});
+  assert.deepEqual(await fetchCarry({ site: "https://playtiao.test", out, fetchImpl }), {
+    manifest: false,
+    carried: [],
+    files: 0,
+  });
+  assert.deepEqual(JSON.parse(readFileSync(join(out, "releases.json"), "utf8")).releases, []);
 });
 
-test("without a carry manifest nothing is served", () => {
-  const root = mkdtempSync(join(tmpdir(), "tiao-release-assets-"));
-  const assets = createReleaseAssets({ ownStaticDir: root, carriedDir: join(root, "none") });
-  assert.deepEqual(assets.releases, []);
-  assert.equal(assets.serve({ method: "GET" }, response(), "/_next/static/x.js"), false);
-});
-
-test("refuses router and action requests from another release only", () => {
-  const { own, carried } = fixture();
-  const assets = createReleaseAssets({ ownStaticDir: own, carriedDir: carried, deploymentId: C });
-  const foreign = { "x-deployment-id": A };
-  assert.equal(assets.isForeignFlight({ headers: { ...foreign, rsc: "1" } }), true);
-  assert.equal(assets.isForeignFlight({ headers: { ...foreign, "next-action": "x" } }), true);
-  assert.equal(assets.isForeignFlight({ headers: { ...foreign } }), false);
-  assert.equal(assets.isForeignFlight({ headers: { "x-deployment-id": C, rsc: "1" } }), false);
-  assert.equal(assets.isForeignFlight({ headers: { rsc: "1" } }), false);
-  const res = response();
-  assets.refuseForeignFlight(res);
-  assert.equal(res.status, 409);
-  assert.equal(res.headers["Cache-Control"], "no-store");
-  const undeployed = createReleaseAssets({ ownStaticDir: own, carriedDir: carried });
-  assert.equal(undeployed.isForeignFlight({ headers: { ...foreign, rsc: "1" } }), false);
+test("fetch refuses a file that does not match its hash, or an unsafe path", async () => {
+  const out = join(mkdtempSync(join(tmpdir(), "tiao-fetch-")), "carry");
+  const files = { "/_next/static/chunks/a.js": "tampered" };
+  const bad = site(
+    { schema: 1, releases: [{ sha: A, files: [{ path: "chunks/a.js", sha256: sha256("a") }] }] },
+    files,
+  );
+  await assert.rejects(
+    fetchCarry({ site: "https://playtiao.test", out, fetchImpl: bad.fetchImpl }),
+    /sha256/,
+  );
+  const unsafe = site(
+    { schema: 1, releases: [{ sha: A, files: [{ path: "../x.js", sha256: sha256("a") }] }] },
+    {},
+  );
+  await assert.rejects(
+    fetchCarry({ site: "https://playtiao.test", out, fetchImpl: unsafe.fetchImpl }),
+    /Unsafe/,
+  );
+  const missing = site(
+    { schema: 1, releases: [{ sha: A, files: [{ path: "chunks/gone.js", sha256: "0" }] }] },
+    {},
+  );
+  await assert.rejects(
+    fetchCarry({ site: "https://playtiao.test", out, fetchImpl: missing.fetchImpl }),
+    /404/,
+  );
 });
 
 test("compose carries the previous release and what it carried, newest first, two at most", () => {
@@ -198,7 +209,7 @@ test("verify rejects one asset path holding different bytes in two releases", ()
   write(carried, `${A}/chunks/shared.js`, "different");
   assert.throws(() => verify({ own, carried }), /collision/);
   write(carried, `${A}/chunks/shared.js`, "same");
-  // Next 16 reuses one build ID when deploymentId is set; its manifests differ per release.
+  // A build ID can repeat across releases (Next 16 with deploymentId); its manifests differ.
   write(own, "build-TfctsWXpff2fKS/_buildManifest.js", "new");
   write(carried, `${A}/build-TfctsWXpff2fKS/_buildManifest.js`, "old");
   write(own, "build-TfctsWXpff2fKS/_ssgManifest.js", "new");

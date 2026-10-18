@@ -1,6 +1,17 @@
 #!/usr/bin/env node
 /**
- * Carry the browser assets of earlier releases into the next client image.
+ * Carry the browser assets of earlier releases into the next client upload.
+ *
+ *   fetch --site <origin> --out <dir> [--keep 2]
+ *   Reads <origin>/release-assets.json, which every web upload publishes (see
+ *   finalize-web-export.mjs), and downloads the files of its newest --keep
+ *   releases into <out>/<sha>/..., each checked against its sha256, plus
+ *   <out>/releases.json. A site without the manifest yields an empty carry
+ *   and `"manifest": false`, so the caller can fall back to `compose`.
+ *
+ *   The commands below carry from a client Docker image instead. The web
+ *   client ran as one until it moved to Cloudflare; the first upload there
+ *   carries the image's assets.
  *
  *   compose --previous-dir <dir> --previous-sha <sha> --out <dir> [--keep 2]
  *     <dir>/static          the previous image's own .next/static
@@ -29,7 +40,7 @@ import {
   statSync,
   writeFileSync,
 } from "node:fs";
-import { join, relative, sep } from "node:path";
+import { dirname, join, relative, sep } from "node:path";
 
 const SHA = /^[0-9a-f]{7,40}$/;
 
@@ -134,10 +145,85 @@ export function verify({ own, carried, maxBytes = 200 * 1024 * 1024 }) {
   return { releases: releases.map((row) => row.sha), bytes };
 }
 
+/** A manifest path names a file under /_next/static/ and nothing else. */
+function safeStaticPath(path) {
+  if (typeof path !== "string" || !path || /[\\\0?#]/.test(path)) return false;
+  return path.split("/").every((part) => part !== "" && part !== "." && part !== "..");
+}
+
+async function download(url, fetchImpl, attempts = 3) {
+  let lastError;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      const response = await fetchImpl(url, { headers: { "Cache-Control": "no-cache" } });
+      if (!response.ok) throw new Error(`${url} answered ${response.status}`);
+      return Buffer.from(await response.arrayBuffer());
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError;
+}
+
+export async function fetchCarry({ site, out, keep = 2, fetchImpl = fetch, concurrency = 8 }) {
+  mkdirSync(out, { recursive: true });
+  const origin = new URL(site).origin;
+  const response = await fetchImpl(`${origin}/release-assets.json`, {
+    headers: { "Cache-Control": "no-cache" },
+  });
+  let releases = [];
+  const manifest = response.ok;
+  if (manifest) {
+    const parsed = await response.json();
+    if (parsed.schema !== 1 || !Array.isArray(parsed.releases))
+      throw new Error("Unknown release-assets.json format");
+    releases = parsed.releases.slice(0, keep);
+  } else if (response.status !== 404) {
+    throw new Error(`${origin}/release-assets.json answered ${response.status}`);
+  }
+  const jobs = [];
+  for (const release of releases) {
+    if (!SHA.test(release.sha ?? "")) throw new Error("Manifest release without a git SHA");
+    for (const file of release.files ?? []) {
+      if (!safeStaticPath(file.path))
+        throw new Error(`Unsafe asset path in manifest: ${file.path}`);
+      jobs.push({ sha: release.sha, ...file });
+    }
+  }
+  let next = 0;
+  const worker = async () => {
+    while (next < jobs.length) {
+      const job = jobs[next++];
+      const url = `${origin}/_next/static/${job.path.split("/").map(encodeURIComponent).join("/")}`;
+      const body = await download(url, fetchImpl);
+      const hash = createHash("sha256").update(body).digest("hex");
+      if (hash !== job.sha256)
+        throw new Error(`/_next/static/${job.path} of ${job.sha} does not match its sha256`);
+      const target = join(out, job.sha, ...job.path.split("/"));
+      mkdirSync(dirname(target), { recursive: true });
+      writeFileSync(target, body);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(concurrency, jobs.length) }, worker));
+  const carried = releases.map(({ sha }) => ({ sha }));
+  writeFileSync(
+    join(out, "releases.json"),
+    `${JSON.stringify({ schema: 1, releases: carried }, null, 2)}\n`,
+  );
+  return { manifest, carried: carried.map((row) => row.sha), files: jobs.length };
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
   const [command, ...rest] = process.argv.slice(2);
   const options = args(rest);
-  if (command === "compose") {
+  if (command === "fetch") {
+    const result = await fetchCarry({
+      site: options.site,
+      out: options.out,
+      keep: Number(options.keep ?? 2),
+    });
+    console.log(JSON.stringify(result));
+  } else if (command === "compose") {
     const releases = compose({
       previousDir: options["previous-dir"],
       previousSha: options["previous-sha"],
@@ -155,7 +241,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     });
     console.log(JSON.stringify(result));
   } else {
-    console.error("usage: carry-release-static.mjs compose|verify ...");
+    console.error("usage: carry-release-static.mjs fetch|compose|verify ...");
     process.exit(2);
   }
 }

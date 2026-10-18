@@ -1,21 +1,33 @@
 ---
 sidebar_position: 6
 title: Deployment
-description: Production deployment notes for Tiao on Coolify, including frontend and backend containers, routing, environment variables, and operations.
+description: Production deployment notes for Tiao — the web client on Cloudflare Workers static assets and the game server on Coolify — including routing, environment variables, and operations.
 ---
 
-# Tiao On Coolify
+# Tiao In Production
 
-Tiao is now set up to deploy as two applications:
+Tiao runs as two pieces on one browser origin, `playtiao.com`:
 
-- a frontend container built from `client/Dockerfile`
-- a backend container built from `server/Dockerfile`
+- the **web client**, a static export (`pnpm --dir client build` writes
+  `client/out`) served by the assets-only Cloudflare Worker `tiao-client`
+  (`client/wrangler.jsonc`). There is no Worker script and no Node server.
+- the **game server**, a Coolify application built from `server/Dockerfile`.
 
-The recommended production shape still keeps a single browser origin:
+The Cloudflare zone decides which one answers. The route `playtiao.com/*`
+points at the Worker. Routes without a Worker send `playtiao.com/api/*`
+(HTTP and the `/api/ws` WebSocket), `playtiao.com/ws*`, `playtiao.com/_e*`
+and `playtiao.com/.well-known/acme-challenge/*` to the origin, where Traefik
+hands them to the server. The session cookie therefore stays first-party.
+`.github/workflows/build-and-deploy.yml` uploads a Worker version per push and
+activates it once the server of the same commit is live.
 
-- the frontend serves the Next.js application via a Node.js server
-- either the frontend proxies `/api` and `/api/ws` to the backend over the private network, or Coolify path-routes those same paths directly to the backend
-- the backend does not serve frontend assets anymore
+`pnpm --dir client start` previews the export locally the same way:
+Cloudflare's asset worker through `wrangler dev`, with the API paths sent to
+the local server (`client/serve-export.mjs`).
+
+The rest of this page documents the Coolify side. Sections that still describe
+a `tiao-client` container date from before the web client moved to
+Cloudflare (October 2026).
 
 ## Recommended production shape
 

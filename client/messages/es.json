@@ -934,7 +934,8 @@
     "achievementsTitle": "Logros — Tiao",
     "achievementsDescription": "Sigue tus logros e hitos en Tiao. Gana trofeos jugando partidas, ganando torneos y subiendo en el ranking.",
     "publicProfileTitle": "{name} en Tiao",
-    "publicProfileDescription": "Ve el perfil de Tiao, historial de partidas, puntuación e insignias de {name}."
+    "publicProfileDescription": "Ve el perfil de Tiao, historial de partidas, puntuación e insignias de {name}.",
+    "playerProfileTitle": "Perfil de jugador"
   },
   "embed": {
     "loading": "Cargando partida…",

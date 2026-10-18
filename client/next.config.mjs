@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import withSerwistInit from "@serwist/next";
+import { PHASE_PRODUCTION_BUILD } from "next/constants.js";
 import createNextIntlPlugin from "next-intl/plugin";
 
 // Desktop Electron static-export build is selected via the env var.
@@ -21,11 +22,11 @@ const IS_DESKTOP_BUILD = process.env.NEXT_PUBLIC_PLATFORM === "desktop";
 // runtime config injection).
 const IS_MOBILE_BUILD = process.env.NEXT_PUBLIC_PLATFORM === "mobile";
 
-// Either standalone-asset build shares the same output: "export"
-// settings (no Node runtime to serve from, image optimizer is off,
-// trailing slashes for index.html-per-dir layout). The only thing
-// that differs is the distDir.
-const IS_STATIC_EXPORT = IS_DESKTOP_BUILD || IS_MOBILE_BUILD;
+// Either native build shares the same output: "export" settings (no
+// Node runtime to serve from, image optimizer is off, trailing slashes
+// for index.html-per-dir layout). The only thing that differs is the
+// distDir.
+const IS_NATIVE_EXPORT = IS_DESKTOP_BUILD || IS_MOBILE_BUILD;
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
@@ -37,7 +38,7 @@ const withSerwist = withSerwistInit({
   // on disk (Electron app://, Capacitor capacitor://), SW precaching
   // is redundant and the custom schemes don't allow SW registration
   // in the first place.
-  disable: process.env.NODE_ENV === "development" || IS_STATIC_EXPORT,
+  disable: process.env.NODE_ENV === "development" || IS_NATIVE_EXPORT,
   reloadOnOnline: true,
 });
 
@@ -70,42 +71,32 @@ function getAppVersion() {
   return _cachedVersion;
 }
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+/**
+ * @param {boolean} isWebExport `next build` of the web client: a static
+ *   export served by Cloudflare Workers static assets (see
+ *   scripts/finalize-web-export.mjs). `next dev` keeps the Node dev
+ *   server with the locale middleware.
+ * @returns {import('next').NextConfig}
+ */
+const createNextConfig = (isWebExport) => ({
   reactStrictMode: true,
   allowedDevOrigins: ["192.168.0.*", "192.168.1.*", "localhost", "127.0.0.1"],
   outputFileTracingRoot: path.resolve(__dirname, ".."),
-
-  // `*.web.ts(x)` files under app/ are web-only routes: OG/Twitter
-  // images, robots.txt and the sitemap. They render per request on the
-  // web server, which a static export cannot do, and the desktop and
-  // mobile apps have no use for them. Static exports drop the `web.*`
-  // extensions so those files are not routes there.
-  pageExtensions: IS_STATIC_EXPORT
-    ? ["tsx", "ts", "jsx", "js"]
-    : ["web.tsx", "web.ts", "tsx", "ts", "jsx", "js"],
 
   // Emit browser-side source maps when EMIT_SOURCE_MAPS=1 is set at build
   // time. The root `test:e2e` script flips this on so that when a playwright
   // test surfaces a runtime error, the stack trace points at real source
   // files instead of minified bundle chunks. Stays OFF by default because
-  // source maps roughly double .next/ output size and production deploys
+  // source maps roughly double the output size and production deploys
   // don't want them shipped to end users.
   productionBrowserSourceMaps: process.env.EMIT_SOURCE_MAPS === "1",
-
-  // Release identity for the web image: Next sends it as x-deployment-id on
-  // router requests, and server.mjs refuses flight data across releases so
-  // an old tab loads one complete document instead (see release-assets.mjs).
-  ...(process.env.BUILD_COMMIT && !IS_STATIC_EXPORT
-    ? { deploymentId: process.env.BUILD_COMMIT }
-    : {}),
 
   // Static-export overrides for the Electron (desktop) and Capacitor
   // (mobile) bundles. Both targets serve files from disk with no Node
   // runtime, so they share output mode, image-optimizer disablement,
   // and index.html-per-dir layout. Only the distDir differs so the
   // two outputs don't stomp on each other.
-  ...(IS_STATIC_EXPORT && {
+  ...(IS_NATIVE_EXPORT && {
     // Full static export — produces HTML/JS/CSS on disk with no
     // Node runtime required to serve them. The Electron `app://`
     // protocol handler and the Capacitor `capacitor://` WebView both
@@ -119,6 +110,16 @@ const nextConfig = {
     // `<route>.html` — simplifies the protocol handler's path
     // resolution and matches conventional static-hosting layouts.
     trailingSlash: true,
+  }),
+
+  // Web export into out/. No trailing slashes: `<route>.html` files keep
+  // the public URLs (`/play`, `/de/rules`) as they were under the Node
+  // server, because Cloudflare serves `/play` from `play.html` and
+  // redirects `/play/` to it. scripts/finalize-web-export.mjs then moves
+  // the default locale to the root and writes the routing files.
+  ...(isWebExport && {
+    output: "export",
+    images: { unoptimized: true },
   }),
 
   env: {
@@ -221,6 +222,9 @@ const nextConfig = {
 
     return config;
   },
-};
+});
 
-export default withSerwist(withNextIntl(nextConfig));
+export default function nextConfig(phase) {
+  const isWebExport = phase === PHASE_PRODUCTION_BUILD && !IS_NATIVE_EXPORT;
+  return withSerwist(withNextIntl(createNextConfig(isWebExport)));
+}

@@ -4,6 +4,7 @@ import { TIAO_OG_SIZE, TiaoOgImage } from "@/lib/tiaoOgImage";
 export const alt = "Tiao online strategy board game";
 export const size = TIAO_OG_SIZE;
 export const contentType = "image/png";
+export const dynamic = "force-static";
 
 export default function Image() {
   return new ImageResponse(

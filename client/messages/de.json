@@ -934,7 +934,8 @@
     "achievementsTitle": "Erfolge — Tiao",
     "achievementsDescription": "Verfolge deine Tiao-Erfolge und Meilensteine. Verdiene Trophäen durch Spielen, Turniersiege und das Erklimmen der Rangliste.",
     "publicProfileTitle": "{name} auf Tiao",
-    "publicProfileDescription": "Sieh dir Tiao-Profil, Spielverlauf, Wertung und Abzeichen von {name} an."
+    "publicProfileDescription": "Sieh dir Tiao-Profil, Spielverlauf, Wertung und Abzeichen von {name} an.",
+    "playerProfileTitle": "Spielerprofil"
   },
   "embed": {
     "loading": "Partie wird geladen…",

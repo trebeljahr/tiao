@@ -6,7 +6,12 @@ import { frameHeadersFor } from "@/lib/frameHeaders";
 const intlMiddleware = createMiddleware(routing);
 
 /**
- * Locale routing (next-intl) plus the frame-embedding policy.
+ * Locale routing (next-intl) plus the frame-embedding policy, for `next dev`.
+ *
+ * The production web build is a static export and runs no middleware: there,
+ * scripts/finalize-web-export.mjs writes the same behaviour as `_redirects`
+ * and `_headers`, and src/lib/localeRedirect.ts negotiates the locale in the
+ * browser. Keep the three in step.
  *
  * Every HTML route refuses to be iframed except `/embed/*`, which is the
  * one surface built for third-party embedding (finished-game replays).
@@ -22,12 +27,10 @@ export default function proxy(request: NextRequest) {
 }
 
 // Exclusions (the negative-lookahead group):
-//   api, ws           — backend proxied by server.mjs.
+//   api, ws           — backend, proxied by server.mjs in development.
 //   _next, _vercel    — Next.js / Vercel internals.
-//   _e                — error-monitoring tunnel. server.mjs reverse-
-//                       proxies it to GlitchTip when GLITCHTIP_PROXY_URL
-//                       is set. If that var is missing (or the match
-//                       races the middleware for any reason), we do NOT
+//   _e                — error-monitoring tunnel of earlier releases (now
+//                       /api/_e, answered by the game server). We do NOT
 //                       want next-intl rewriting the URL to /<locale>/_e
 //                       and turning every reported error into a 404 page
 //                       render — see issue #160.

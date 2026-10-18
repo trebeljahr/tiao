@@ -7,10 +7,10 @@
   },
   "scripts": {
     "dev": "node server.mjs",
-    "build": "next build --webpack",
+    "build": "next build --webpack && node scripts/finalize-web-export.mjs",
     "build:desktop": "NEXT_PUBLIC_PLATFORM=desktop next build --webpack",
     "build:mobile": "NEXT_PUBLIC_PLATFORM=mobile next build --webpack",
-    "start": "NODE_ENV=production node server.mjs",
+    "start": "node serve-export.mjs",
     "typecheck": "next typegen && tsc",
     "test": "vitest run"
   },

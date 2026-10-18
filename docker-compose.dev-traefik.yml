@@ -1,21 +1,25 @@
-# Local "prod-parity" stack for verifying Dockerfile changes and
+# Local "prod-parity" stack for verifying server Dockerfile changes and
 # Traefik routing quirks without running full Coolify locally.
 #
+# The web client is not part of it: in production it is a static site on
+# Cloudflare Workers. Preview that with
+# `pnpm --dir client build && pnpm --dir client start` (serve-export.mjs).
+#
 # Layers on top of `docker-compose.dev.yml` — run both files together
-# so Mongo / Redis / S3 (RustFS) come along with the client + server + Traefik
+# so Mongo / Redis / S3 (RustFS) come along with the server + Traefik
 # containers you actually want to exercise:
 #
 #   npm run dev:docker            # starts the whole stack
 #   npm run dev:docker:stop       # clean shutdown
 #   npm run dev:docker:rebuild    # force image rebuild (after Dockerfile edits)
 #
-# Hostnames: `playtiao.localhost` and `api.playtiao.localhost`.
+# Hostname: `api.playtiao.localhost`.
 # RFC 6761 reserves `*.localhost` for loopback, so modern browsers
 # and resolvers (Chrome, Firefox, Safari, getaddrinfo on Linux glibc
 # 2.26+) auto-map these to 127.0.0.1 with NO `/etc/hosts` edit.
 # If your OS is old enough to miss that RFC (ancient macOS, vanilla
 # Windows without the "localhost" suffix rule), fall back to adding
-# `127.0.0.1 playtiao.localhost api.playtiao.localhost` to hosts.
+# `127.0.0.1 api.playtiao.localhost` to hosts.
 #
 # Prereqs:
 #
@@ -27,9 +31,6 @@
 #
 # After `npm run dev:docker`:
 #
-#   http://playtiao.localhost/              → the client (via the Next.js
-#                                              production server baked
-#                                              into client/Dockerfile)
 #   http://api.playtiao.localhost/api/...   → the Express backend
 #   http://api.playtiao.localhost/ws/...    → WebSocket (tournaments, matches)
 #   http://localhost:8080/dashboard/        → Traefik routing dashboard
@@ -42,11 +43,11 @@
 #     Strict-Transport-Security), set up a real staging VPS with a
 #     public DNS entry.
 #
-#   - Hot reload. The client Dockerfile produces a production-baked
-#     Next.js build — no HMR, no watch, every source change requires
-#     a full image rebuild. That's on purpose: this flow mirrors the
-#     real deployment image, not the dev loop. For fast inner-loop
-#     iteration, keep using `npm run dev` or `npm run dev:desktop`.
+#   - Hot reload. The server image is a production build — no watch,
+#     every source change requires a full image rebuild. That's on
+#     purpose: this flow mirrors the real deployment image, not the dev
+#     loop. For fast inner-loop iteration, keep using `npm run dev` or
+#     `npm run dev:desktop`.
 
 services:
   traefik:
@@ -75,41 +76,6 @@ services:
       # never spawns containers of its own.
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
-      - tiao-traefik
-
-  tiao-client:
-    image: tiao-dev-client:latest
-    build:
-      context: .
-      dockerfile: ./client/Dockerfile
-      args:
-        # Build-time NEXT_PUBLIC_* vars baked into the JS bundle.
-        # All optional — values here are dev-only placeholders; the
-        # real values live in Coolify's build-arg tab for production.
-        APP_VERSION: dev-docker
-        NEXT_PUBLIC_API_BASE_URL: http://api.playtiao.localhost
-        NEXT_PUBLIC_WS_URL: ws://api.playtiao.localhost
-    container_name: tiao-dev-client
-    restart: unless-stopped
-    depends_on:
-      - tiao-server
-    environment:
-      NODE_ENV: production
-      # The Next.js custom server (client/server.mjs) proxies /api and
-      # /ws to the backend. In this compose file Traefik already
-      # routes them directly to tiao-server via the api.playtiao.localhost
-      # host, so the client's internal proxy is exercised only on
-      # same-origin requests — if any exist.
-      API_URL: http://tiao-server:80
-    labels:
-      - "traefik.enable=true"
-      # HTTP router on the bare playtiao.localhost host.
-      - "traefik.http.routers.tiao-client.rule=Host(`playtiao.localhost`)"
-      - "traefik.http.routers.tiao-client.entrypoints=web"
-      - "traefik.http.routers.tiao-client.service=tiao-client"
-      - "traefik.http.services.tiao-client.loadbalancer.server.port=80"
-    networks:
-      - default
       - tiao-traefik
 
   tiao-server:

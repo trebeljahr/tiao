@@ -1,0 +1,22 @@
+{
+  // The playtiao.com web client: the static export in ./out, served by
+  // Cloudflare Workers static assets. There is no Worker script, so no
+  // request counts toward the Workers Free request limit.
+  //
+  // Routing lives on the zone, not here: `playtiao.com/*` points at this
+  // Worker, and routes without a Worker send `/api/*`, `/ws*`, `/_e*` and
+  // the ACME challenge path to the Coolify origin. With no `routes` key,
+  // `wrangler versions deploy` leaves them alone. Never add `main`,
+  // `run_worker_first` or `cache`: each turns asset requests into billed
+  // Worker invocations.
+  "$schema": "https://unpkg.com/wrangler@4.143.1/config-schema.json",
+  "name": "tiao-client",
+  "compatibility_date": "2026-09-29",
+  "workers_dev": false,
+  "preview_urls": false,
+  "assets": {
+    "directory": "./out",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  }
+}

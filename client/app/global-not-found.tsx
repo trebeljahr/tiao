@@ -1,6 +1,15 @@
+import type { Metadata } from "next";
 import { CardContent } from "@/components/ui/card";
 import { PaperCard } from "@/components/ui/paper-card";
+import { SITE_URL } from "@/lib/metadata";
 import "./[locale]/globals.css";
+
+// The root Open Graph image applies here too; without a base its URL
+// would resolve against the build machine.
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  title: "Page not found | Tiao",
+};
 
 /**
  * Global 404 document. Rendered outside the [locale] root layout so we cannot

@@ -126,41 +126,35 @@ absent, clears it on reconnect through any replica, and unregisters after 15
 seconds. A failed presence read neither records absence nor removes anyone.
 ## Web client across releases
 
-A browser tab keeps running the JavaScript of the release that served its
-document. CI copies the previous `tiao-client:main` image's `/_next/static` and
-the releases that image carried into the new image (two releases in total,
-`client/scripts/carry-release-static.mjs`); the Docker build refuses a hashed
-path with different bytes. Builds can be pushed without being deployed, so the
-repository variable `TIAO_CLIENT_SERVING_IMAGE` (an image digest reference)
-names the image actually serving traffic; when set, it is carried first.
-`client/release-assets.mjs` serves those files when
-the running build has no file at that path, so old tabs keep loading their lazy
-chunks after a deploy. Assets are about 3 MB per carried release.
+The web client is a static site on Cloudflare Workers static assets
+(`client/wrangler.jsonc`); routes without a Worker send `/api/*`, `/ws*`,
+`/_e*` and the ACME path to the Coolify origin. A browser tab keeps running
+the JavaScript of the release that served its document, but a Worker version
+serves only its own files. So every upload carries the `/_next/static` files
+of the two previous releases: CI reads the live site's `release-assets.json`
+(written by `client/scripts/finalize-web-export.mjs`), downloads the listed
+files, checks each against its sha256 and refuses a hashed path with different
+bytes (`client/scripts/carry-release-static.mjs`). Assets are about 3 MB per
+carried release.
 
-The full commit SHA is Next's `deploymentId` (`BUILD_COMMIT`). Router and action
-requests carrying another release's `x-deployment-id` get 409; the Next router
-then loads one complete document from the current release. The service worker
-never caches flight data, so an old payload cannot reach a newer page.
+CI uploads the version first and activates it in a later job, once
+`https://api.playtiao.com/health` reports the same commit as `build`; a
+one-step deploy leaves seconds in which new chunks 404. The game server goes
+first, so what remains is an old tab calling a new server.
 
-A tab whose chunks are no longer anywhere (older than two releases, or a new
-document that reached the old container during overlap) reloads once. An inline
-script handles failed initial chunks; `ReleaseRecovery` and the error boundaries
-handle lazy ones. A 30-second guard stops loops. Hot-seat and computer games are
-saved in tab session storage and restored after any reload of the same URL;
-leaving the page inside the app discards them. Online state is server-owned and
-matchmaking keeps its saved search id.
+The static export has no `deploymentId`, so every build has its own build ID.
+A router request from an old tab gets the new release's payload, whose build
+ID differs, and the Next router loads one complete document instead. The
+service worker never caches flight data, so an old payload cannot reach a
+newer page.
 
-After draining, the frontend gives open connections 8 seconds, then exits 0,
-inside a 30-second container stop. `/health` reports `build` and the carried
-releases.
+A tab whose chunks are no longer anywhere (older than two releases) reloads
+once. An inline script handles failed initial chunks; `ReleaseRecovery` and
+the error boundaries handle lazy ones. A 30-second guard stops loops.
+Hot-seat and computer games are saved in tab session storage and restored
+after any reload of the same URL; leaving the page inside the app discards
+them. Online state is server-owned and matchmaking keeps its saved search id.
 
-`node scripts/test-client-releases.mjs` builds two real clients (B, and C with a
-changed lazily loaded module that carries B), runs both production servers
-behind a routing proxy and drives Chromium: B's document running entirely on
-chunks served by C, a refused foreign router request followed by exactly one
-full navigation, recovery from missing initial chunks, hot-seat restore after a
-reload, and a clean drain. Set `CHROMIUM_PATH` to use an installed Chromium.
-
-The first deploy of this code carries the live image's assets but that image has
-no recovery code; old tabs only gain carried chunks, not the 409 path. Client
-proxy retirement remains a separate release gate.
+Rollback of the web client is `wrangler versions deploy <earlier version>@100%`
+(the upload is tagged with its commit), complete because each version keeps
+its own files.

@@ -108,3 +108,6 @@ SECURITY-AUDIT.md
 output/playwright/store-gameplay/*/
 output/playwright/store-ui/*/
 !output/playwright/store-ui/avatars/
+
+# wrangler dev state (client/serve-export.mjs)
+**/.wrangler/

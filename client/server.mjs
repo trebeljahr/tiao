@@ -1,206 +1,26 @@
 /**
- * Custom Next.js server with runtime API proxying.
+ * Development server: `next dev` plus the API proxy.
  *
- * Proxies:
- *   /api/* and /ws/*  → backend (API_URL)
- *   /_e               → GlitchTip/Sentry envelope ingestion (GLITCHTIP_PROXY_URL).
- *                       Short path name is deliberate — an earlier "/bugs"
- *                       tripped Cloudflare's WAF "suspicious path" rules
- *                       and every captured error 403'd.
+ * Proxies /api/* and /ws/* (HTTP and WebSocket) to the backend (API_URL,
+ * else http://127.0.0.1:API_PORT), so the browser talks to one origin as it
+ * does in production, where the Cloudflare zone sends those paths to the
+ * game server and everything else is the static export.
  *
- * The error-monitoring proxy exists so that browser requests look like
- * first-party traffic. Ad-blockers and privacy extensions block direct
- * requests to sentry/glitchtip domains; routing through the same origin
- * avoids that.
+ * Production is not served from here: `pnpm build` writes the static site to
+ * out/ (see scripts/finalize-web-export.mjs), and `pnpm start`
+ * (serve-export.mjs) previews it the way Cloudflare serves it.
  *
  * Usage:
- *   node server.mjs              (production: PORT)
- *   node server.mjs              (dev: PORT, handled by dev.mjs)
+ *   node server.mjs              (PORT, handled by scripts/dev.mjs)
  */
 
-import { createReadStream, existsSync, statSync } from "node:fs";
-import { createServer, request as httpRequest } from "node:http";
-import { request as httpsRequest } from "node:https";
-import { extname, join, resolve } from "node:path";
+import { createServer } from "node:http";
 import next from "next";
-import { createReleaseAssets } from "./release-assets.mjs";
 import { createApiProxy } from "./runtime-proxy.mjs";
-import { buildGlitchtipEnvelopeTarget } from "./tunnel-envelope.mjs";
 
-const MIME_TYPES = {
-  ".jpeg": "image/jpeg",
-  ".jpg": "image/jpeg",
-  ".png": "image/png",
-  ".svg": "image/svg+xml",
-  ".mp3": "audio/mpeg",
-  ".json": "application/json",
-  ".ico": "image/x-icon",
-  ".webp": "image/webp",
-  ".webm": "video/webm",
-  // Press kit bundle at /press/tiao-press-kit.zip (see views/PressPage.tsx).
-  ".zip": "application/zip",
-  // Service worker bundles (e.g. /sw.js) must be served with a JS
-  // content type — Chromium refuses to register a worker whose
-  // script is delivered as application/octet-stream, which blocks
-  // Serwist from installing at all.
-  ".js": "application/javascript",
-  ".mjs": "application/javascript",
-  ".map": "application/json",
-  ".css": "text/css",
-  ".txt": "text/plain",
-  ".html": "text/html",
-  ".woff": "font/woff",
-  ".woff2": "font/woff2",
-};
-
-const publicDir = resolve("./public");
-
-/**
- * Try to serve a static file from the public directory.
- * Returns true if the file was served, false otherwise.
- */
-export function servePublicFile(_req, res, pathname) {
-  // Decode URI-encoded characters (e.g. %20 -> space)
-  let decodedPath;
-  try {
-    decodedPath = decodeURIComponent(pathname);
-  } catch {
-    return false;
-  }
-
-  // Resolve the full path and prevent path traversal
-  const filePath = resolve(join(publicDir, decodedPath));
-  if (!filePath.startsWith(publicDir + "/")) {
-    return false;
-  }
-
-  // Check if file exists and is a regular file
-  if (!existsSync(filePath)) {
-    return false;
-  }
-  const stat = statSync(filePath);
-  if (!stat.isFile()) {
-    return false;
-  }
-
-  const ext = extname(filePath).toLowerCase();
-  const contentType = MIME_TYPES[ext] || "application/octet-stream";
-
-  // Binary formats (audio, images, video) are already compressed.
-  // Omit Content-Length for these so Node uses chunked transfer encoding —
-  // otherwise Cloudflare gzip-compresses the body but forwards the original
-  // Content-Length, causing ERR_CONTENT_DECODING_FAILED in browsers.
-  // no-transform is also set as a hint, though Cloudflare ignores it.
-  const binaryExts = new Set([
-    ".mp3",
-    ".jpeg",
-    ".jpg",
-    ".png",
-    ".webp",
-    ".webm",
-    ".ico",
-    ".woff",
-    ".woff2",
-  ]);
-  const isBinary = binaryExts.has(ext);
-
-  // Service workers need no-cache semantics at the CDN edge.
-  //
-  // Two reasons:
-  //   1. Updates. The browser's SW update check re-fetches /sw.js on
-  //      every navigation (cache-busted up to 24h per the SW spec). If
-  //      Cloudflare holds a year-long `immutable` copy, updates never
-  //      propagate until the edge TTL expires, which means bug fixes
-  //      to the SW itself (or to what it precaches) stay invisible to
-  //      returning users.
-  //   2. Recovery from a bad deploy. If we ever accidentally serve
-  //      /sw.js with the wrong Content-Type (as happened pre-b35e279d
-  //      when .js wasn't in the MIME table — Chromium refused to
-  //      register the SW for application/octet-stream), an immutable
-  //      year-long CDN cache entry of that broken response keeps the
-  //      error live for every visitor until we manually purge CF.
-  //      no-store on /sw.js means the next deploy fixes it immediately
-  //      for everyone.
-  //
-  // Everything else in public/ stays on the year-long immutable cache —
-  // those assets are content-hashed by Next and would never legitimately
-  // need to change behind a stable URL.
-  const isServiceWorker = filePath === join(publicDir, "sw.js");
-
-  const headers = {
-    "Content-Type": contentType,
-    "Cache-Control": isServiceWorker
-      ? "no-store, no-cache, must-revalidate, max-age=0"
-      : isBinary
-        ? "public, max-age=31536000, immutable, no-transform"
-        : "public, max-age=31536000, immutable",
-  };
-  if (!isBinary) {
-    headers["Content-Length"] = stat.size;
-  }
-
-  res.writeHead(200, headers);
-  createReadStream(filePath).pipe(res);
-  return true;
-}
-
-const dev = process.env.NODE_ENV !== "production";
 const port = Number.parseInt(process.env.PORT || "3000", 10);
 const apiTarget = process.env.API_URL || `http://127.0.0.1:${process.env.API_PORT || "5005"}`;
 const apiProxy = createApiProxy(apiTarget);
-// Full commit of this build (also Next's deploymentId); unset in development.
-const buildCommit = process.env.BUILD_COMMIT || undefined;
-const releaseAssets = createReleaseAssets({
-  ownStaticDir: resolve("./.next/static"),
-  carriedDir: resolve(process.env.RELEASE_STATIC_DIR || "./release-static"),
-  deploymentId: buildCommit,
-});
-
-// --- GlitchTip (Sentry) tunnel proxy ----------------------------------------
-// When set, /_e receives Sentry envelopes from the browser SDK (via its
-// `tunnel` option) and forwards them to the GlitchTip ingestion endpoint.
-// The DSN's project ID is extracted from the envelope header at runtime
-// so the proxy doesn't need to know the DSN itself. Path is "/_e" (not
-// "/bugs") because "/bugs" looks like a recon/debug endpoint to
-// Cloudflare's managed WAF, which started 403'ing tunnel POSTs in
-// production. The underscore prefix matches the "_next" / "_vercel"
-// infra-path convention and avoids the "en"-locale collision that a
-// bare "/e" would cause in the next-intl matcher's negative-lookahead.
-const glitchtipProxyTarget = process.env.GLITCHTIP_PROXY_URL; // e.g. "https://glitchtip.trebeljahr.com"
-const glitchtipUrl = glitchtipProxyTarget ? new URL(glitchtipProxyTarget) : null;
-
-/**
- * Generic reverse proxy for a single request. Sends the request to the
- * given target URL, rewriting Host and path as needed.
- */
-function proxyToTarget(req, res, target, targetPath) {
-  const targetIsHttps = target.protocol === "https:";
-  const doRequest = targetIsHttps ? httpsRequest : httpRequest;
-
-  const proxyReq = doRequest(
-    {
-      hostname: target.hostname,
-      port: target.port || (targetIsHttps ? 443 : 80),
-      path: targetPath,
-      method: req.method,
-      headers: { ...req.headers, host: target.host },
-    },
-    (proxyRes) => {
-      res.writeHead(proxyRes.statusCode, proxyRes.headers);
-      proxyRes.pipe(res, { end: true });
-    },
-  );
-
-  proxyReq.on("error", (err) => {
-    console.error("Monitoring proxy unavailable", { code: err.code ?? "UPSTREAM_ERROR" });
-    if (!res.headersSent) {
-      res.writeHead(502, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: "Bad Gateway" }));
-    }
-  });
-
-  req.pipe(proxyReq, { end: true });
-}
 
 // Bundler selection.
 //
@@ -218,7 +38,7 @@ function proxyToTarget(req, res, target, targetPath) {
 // `node scripts/measure-cold-compile.mjs /matchmaking` before
 // swapping.
 const bundlerChoice = process.env.NEXT_DEV_BUNDLER;
-const nextOptions = { dev, port };
+const nextOptions = { dev: true, port };
 if (bundlerChoice === "webpack") {
   nextOptions.webpack = true;
 } else if (bundlerChoice === "turbopack") {
@@ -230,148 +50,38 @@ const handle = app.getRequestHandler();
 await app.prepare();
 
 console.log(`> API proxy target: ${new URL(apiTarget).origin}`);
-console.log(
-  `> Build ${buildCommit ?? "development"}; carried releases: ${releaseAssets.releases.join(", ") || "none"}`,
-);
-if (glitchtipUrl) console.log(`> Error tunnel: /_e → ${glitchtipUrl.origin}`);
+
+const isApiPath = (pathname) =>
+  pathname.startsWith("/api/") || pathname === "/ws" || pathname.startsWith("/ws/");
 
 const httpServer = createServer((req, res) => {
-  const url = new URL(req.url, `http://${req.headers.host}`);
-
-  // /health is liveness: static pages keep serving while the API drains or
-  // restarts. /ready additionally requires a healthy API, for deploy gating.
-  if (url.pathname === "/health" || url.pathname === "/ready") {
-    void (async () => {
-      const apiReady = dev || (await apiProxy.ready());
-      const healthy = !draining && (url.pathname === "/health" || apiReady);
-      res.writeHead(healthy ? 200 : 503, {
-        "Content-Type": "application/json",
-        "Cache-Control": "no-store",
-      });
-      res.end(
-        JSON.stringify({
-          status: draining ? "draining" : healthy ? "ok" : "starting",
-          api: apiReady ? "ready" : "unavailable",
-          rollingProtocol: 2,
-          build: buildCommit ?? null,
-          carriedReleases: releaseAssets.releases,
-        }),
-      );
-    })();
-    return;
-  }
-
-  if (
-    url.pathname.startsWith("/api/") ||
-    url.pathname === "/ws" ||
-    url.pathname.startsWith("/ws/")
-  ) {
+  const { pathname } = new URL(req.url, `http://${req.headers.host}`);
+  if (isApiPath(pathname)) {
     apiProxy.http(req, res);
     return;
   }
-
-  // GlitchTip/Sentry tunnel: /_e receives envelope POST from the Sentry
-  // SDK and forwards to the real ingestion endpoint. The envelope header's
-  // first line contains the DSN, from which we build the target URL +
-  // synthesized auth query params (see buildGlitchtipEnvelopeTarget).
-  if (glitchtipUrl && url.pathname === "/_e") {
-    // Buffer the body to parse the envelope header and extract the project ID.
-    const chunks = [];
-    req.on("data", (chunk) => chunks.push(chunk));
-    req.on("end", () => {
-      const body = Buffer.concat(chunks);
-      try {
-        const { targetPath } = buildGlitchtipEnvelopeTarget(body);
-        proxyToTarget(
-          // Wrap the buffered body as a readable-like object for proxyToTarget.
-          // We override pipe to write the already-buffered body directly.
-          {
-            ...req,
-            pipe: (dest, opts) => {
-              dest.write(body);
-              if (opts?.end !== false) dest.end();
-            },
-          },
-          res,
-          glitchtipUrl,
-          targetPath,
-        );
-      } catch {
-        console.error("Error-report envelope rejected");
-        if (!res.headersSent) {
-          res.writeHead(400, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ error: "Bad envelope" }));
-        }
-      }
-    });
-    return;
-  }
-
-  // Serve static files from public/ directly (fixes Docker path mismatch)
-  if (servePublicFile(req, res, url.pathname)) {
-    return;
-  }
-
-  // Tabs of the previous two releases keep loading their own chunks here.
-  if (releaseAssets.serve(req, res, url.pathname)) return;
-
-  // Never decode another release's flight data; Next reloads the document.
-  if (releaseAssets.isForeignFlight(req)) {
-    releaseAssets.refuseForeignFlight(res);
-    return;
-  }
-
   handle(req, res);
 });
 
 // Proxy WebSocket upgrade requests to the backend
 httpServer.on("upgrade", (req, socket, head) => {
   const { pathname } = new URL(req.url, `http://${req.headers.host}`);
-
-  if (pathname.startsWith("/api/") || pathname === "/ws" || pathname.startsWith("/ws/")) {
-    if (draining) {
-      socket.end("HTTP/1.1 503 Service Unavailable\r\nConnection: close\r\n\r\n");
-      return;
-    }
+  if (isApiPath(pathname)) {
     apiProxy.upgrade(req, socket, head);
     return;
   }
-
   // Not an API WebSocket — let Next.js HMR handle it
 });
 
 httpServer.listen(port, () => {
-  console.log(`> Next.js ready on http://localhost:${port} (${dev ? "dev" : "production"})`);
+  console.log(`> Next.js ready on http://localhost:${port} (dev)`);
 });
 
-let draining = false;
-function shutdown(signal) {
-  if (draining) return;
-  draining = true;
-  console.log(`${signal} received. Draining frontend for 20 seconds.`);
-  setTimeout(async () => {
-    // Backstop: cut remaining connections and exit cleanly before the
-    // container runtime's 30-second stop timeout escalates to SIGKILL.
-    const force = setTimeout(() => {
-      httpServer.closeAllConnections();
-      process.exit(0);
-    }, 8_000);
-    force.unref();
-    try {
-      const closed = new Promise((resolve, reject) =>
-        httpServer.close((error) => (error ? reject(error) : resolve())),
-      );
-      // Idle keep-alive sockets would otherwise hold close() until the backstop.
-      httpServer.closeIdleConnections();
-      await apiProxy.close();
-      await closed;
-      await app.close();
-      clearTimeout(force);
-      process.exit(0);
-    } catch {
-      process.exit(1);
-    }
-  }, 20_000);
+for (const signal of ["SIGTERM", "SIGINT"]) {
+  process.once(signal, async () => {
+    httpServer.closeAllConnections();
+    await apiProxy.close();
+    await app.close();
+    process.exit(0);
+  });
 }
-process.once("SIGTERM", () => shutdown("SIGTERM"));
-process.once("SIGINT", () => shutdown("SIGINT"));
