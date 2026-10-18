@@ -36,6 +36,11 @@ COPY --from=build /app/server/package*.json ./
 COPY --from=build /app/server/node_modules ./node_modules
 COPY --from=build /app/server/dist ./dist
 
+# Full commit SHA, reported by /health as `build`. Last, so a new commit
+# does not invalidate the cached layers above.
+ARG BUILD_COMMIT
+ENV BUILD_COMMIT=${BUILD_COMMIT}
+
 USER node
 
 EXPOSE 3000

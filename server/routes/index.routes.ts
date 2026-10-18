@@ -66,6 +66,9 @@ router.get("/health", async (_: Request, res: Response) => {
     redis: redisState,
     realtime: realtimeReady ? "ready" : "recovering",
     rollingProtocol: 2,
+    // Commit of this image (Dockerfile BUILD_COMMIT); the deploy workflow
+    // waits for it before it switches the web client to the same commit.
+    build: process.env.BUILD_COMMIT || null,
   });
 });
 

@@ -12,6 +12,7 @@ import adminRoutes from "./routes/admin.routes";
 import appStoreRoutes from "./routes/appStore.routes";
 import desktopAuthRoutes from "./routes/desktop-auth.routes";
 import discordRoutes from "./routes/discord.routes";
+import { createErrorTunnelRouter, errorTunnelTargetFromEnv } from "./routes/errorTunnel.routes";
 import gameRoutes from "./routes/game.routes";
 import gameAuthRoutes from "./routes/game-auth.routes";
 import googlePlayRoutes from "./routes/googlePlay.routes";
@@ -50,6 +51,13 @@ app.use(
 // When DISCORD_BOT_TOKEN / DISCORD_PUBLIC_KEY are unset the route is a 404.
 app.use("/discord", discordRoutes);
 app.use("/api/discord", discordRoutes);
+
+// The web client's GlitchTip envelope tunnel (POST /api/_e, and /_e for tabs
+// of releases that posted there). Raw body, so it also sits in front of
+// express.json(); see routes/errorTunnel.routes.ts.
+const errorTunnel = createErrorTunnelRouter(errorTunnelTargetFromEnv());
+app.use("/", errorTunnel);
+app.use("/api", errorTunnel);
 
 // Account linking for the native apps (system browser + deep link), see
 // routes/mobile-auth.routes.ts. Only /link/start is called with fetch().
