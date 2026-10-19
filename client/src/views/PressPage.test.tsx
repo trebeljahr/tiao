@@ -38,6 +38,17 @@ describe("PressPage", () => {
     expect(screen.getAllByRole("link", { name: "Creator page" })).toHaveLength(2);
   });
 
+  it("states the current price and attributes no quotes to Rico", () => {
+    render(<PressPage downloadAvailable />);
+
+    expect(
+      screen.getByText(
+        "Free on the web and on every store. No login required. No ads. Optional donations.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/attribute to Rico/i)).toBeNull();
+  });
+
   it("links the zip when the press kit exists", () => {
     render(<PressPage downloadAvailable />);
 

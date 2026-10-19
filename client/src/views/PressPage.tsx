@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Press page: fact sheet, description paragraphs, story angles, quotes,
+ * Press page: fact sheet, description paragraphs, story angles,
  * creator credits, contact, image-kit download and technical facts for
  * journalists and reviewers.
  *
@@ -182,16 +182,7 @@ export function PressPage({ downloadAvailable }: { downloadAvailable: boolean })
             </ul>
           </Section>
 
-          <Section title={t("quotesTitle")}>
-            {([1, 2, 3] as const).map((n) => (
-              <blockquote
-                key={n}
-                className="border-l-2 border-[#d8c29c] pl-4 italic text-[#4a3728]"
-              >
-                <p>{t(`quote${n}`)}</p>
-              </blockquote>
-            ))}
-          </Section>
+          {/* Rico adds his own quotes here if he wants a quotes section. */}
 
           <Section title={t("creditsTitle")}>
             <FactTable
