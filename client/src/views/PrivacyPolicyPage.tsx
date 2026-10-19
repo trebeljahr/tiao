@@ -50,6 +50,7 @@ export function PrivacyPolicyPage() {
               <li>{t("dataAccount")}</li>
               <li>{t("dataGameplay")}</li>
               <li>{t("dataAnalytics")}</li>
+              <li>{t("dataPerformance")}</li>
               <li>{t("dataPayment")}</li>
               <li>{t("dataLogs")}</li>
             </ul>
@@ -68,6 +69,7 @@ export function PrivacyPolicyPage() {
             <p>{t("subProcessorsIntro")}</p>
             <ul className="list-disc space-y-1 pl-5">
               <li>{t("subProcessorHosting")}</li>
+              <li>{t("subProcessorCloudflare")}</li>
               <li>{t("subProcessorAnalytics")}</li>
               <li>{t("subProcessorStorage")}</li>
               <li>{t("subProcessorEmail")}</li>
