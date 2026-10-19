@@ -5,11 +5,11 @@
  *
  * Hot path notes (see commits around cold-compile optimization):
  *
- * 1. Heavy UI components that don't render on the critical path (auth
- *    modal, PWA install banner, cookie consent banner) are pulled in
- *    via `next/dynamic` so their module graphs (the Dialog + form
- *    primitives, the react-icons sub-path imports, etc.) land in
- *    separate chunks and don't bloat every route's cold compile.
+ * 1. Heavy UI components that don't render on the critical path (the
+ *    auth modal) are pulled in via `next/dynamic` so their module
+ *    graphs (the Dialog + form primitives, the react-icons sub-path
+ *    imports, etc.) land in separate chunks and don't bloat every
+ *    route's cold compile.
  *
  * 2. The lobby-scoped provider chain (LobbySocketProvider + Social +
  *    Tournament notifications) is extracted into its own module at
@@ -45,16 +45,14 @@ import { LobbyProviders } from "./LobbyProviders";
 
 // ─── Dynamic imports ─────────────────────────────────────────────────
 //
-// These three components are rendered from AppShell unconditionally,
-// but their BODIES only render when some state flag says so (the auth
-// dialog only when `authDialogOpen`, the banners only when the user
-// hasn't dismissed them). next/dynamic lets Turbopack pull their
-// module graphs into separate chunks so every route's cold compile
-// doesn't have to walk the Dialog + form primitives + icon imports.
+// The auth dialog is rendered from AppShell unconditionally, but its
+// BODY only renders when `authDialogOpen` is set. next/dynamic lets
+// Turbopack pull its module graph into a separate chunk so every
+// route's cold compile doesn't have to walk the Dialog + form
+// primitives + icon imports.
 //
-// ssr: false on the auth dialog so we don't ship ~15kb of form JSX
-// through the server renderer when it's closed. The banners do render
-// server-side so they can have the right initial position class.
+// ssr: false so we don't ship ~15kb of form JSX through the server
+// renderer when it's closed.
 //
 // We tried dynamic-importing LobbyProviders too (ssr: true) and it
 // was ~2× SLOWER on cold compile — `ssr: true` dynamic imports add
@@ -64,11 +62,6 @@ import { LobbyProviders } from "./LobbyProviders";
 const AuthDialog = dynamic(() => import("./AuthDialog").then((m) => m.AuthDialog), {
   ssr: false,
 });
-
-const PwaInstallBanner = dynamic(
-  () => import("@/components/PwaInstallBanner").then((m) => ({ default: m.PwaInstallBanner })),
-  { ssr: false },
-);
 
 /**
  * Redirects SSO users who haven't chosen a valid username to /onboarding.
@@ -199,7 +192,6 @@ function AppShell({ children, publicPage }: { children: React.ReactNode; publicP
       <AuthDialog />
       <OAuthErrorHandler />
       {process.env.NEXT_PUBLIC_PLATFORM === "mobile" && <NativeDeepLinkHandler />}
-      {!publicPage && <PwaInstallBanner />}
       {!publicPage && <DumpInstaller />}
       {/* Sonner hardcodes z-index:999999999 on [data-sonner-toaster].
             Override it above dialogs (z-300) but below the mobile nav
@@ -242,7 +234,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   // `/embed/*` renders inside third-party iframes. It gets none of the
   // app shell: no auth bootstrap (would mint a guest session per host
   // page, and the cookie is blocked cross-site anyway), no lobby socket,
-  // no PWA banner, no toaster. Just the page.
+  // no toaster. Just the page.
   if (isEmbedPath(pathname ?? "")) {
     return <ErrorBoundary>{children}</ErrorBoundary>;
   }

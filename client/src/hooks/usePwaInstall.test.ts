@@ -2,8 +2,6 @@ import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type BeforeInstallPromptEvent, usePwaInstall } from "./usePwaInstall";
 
-const DISMISS_STORAGE_KEY = "tiao:pwa-install-dismissed";
-
 /**
  * Builds a minimal BeforeInstallPromptEvent stand-in whose `userChoice`
  * promise resolves to the caller-supplied outcome. We can't construct the
@@ -48,20 +46,20 @@ describe("usePwaInstall", () => {
     vi.clearAllMocks();
   });
 
-  it("starts with canPrompt = false when no install event has fired", () => {
+  it("starts with canInstall = false when no install event has fired", () => {
     const { result } = renderHook(() => usePwaInstall());
-    expect(result.current.canPrompt).toBe(false);
+    expect(result.current.canInstall).toBe(false);
     expect(result.current.isStandalone).toBe(false);
   });
 
-  it("flips canPrompt = true after beforeinstallprompt fires", () => {
+  it("flips canInstall = true after beforeinstallprompt fires", () => {
     const { result } = renderHook(() => usePwaInstall());
 
     act(() => {
       window.dispatchEvent(makeBeforeInstallPromptEvent("accepted"));
     });
 
-    expect(result.current.canPrompt).toBe(true);
+    expect(result.current.canInstall).toBe(true);
   });
 
   it("reports standalone when the display-mode media query matches", () => {
@@ -82,52 +80,11 @@ describe("usePwaInstall", () => {
     const { result } = renderHook(() => usePwaInstall());
     expect(result.current.isStandalone).toBe(true);
 
-    // Banner should not prompt when already installed.
+    // No install entry when already installed.
     act(() => {
       window.dispatchEvent(makeBeforeInstallPromptEvent("accepted"));
     });
-    expect(result.current.canPrompt).toBe(false);
-  });
-
-  it("does not prompt when cooldown is active from a previous dismissal", () => {
-    window.localStorage.setItem(DISMISS_STORAGE_KEY, String(Date.now()));
-
-    const { result } = renderHook(() => usePwaInstall());
-
-    act(() => {
-      window.dispatchEvent(makeBeforeInstallPromptEvent("accepted"));
-    });
-
-    expect(result.current.canPrompt).toBe(false);
-  });
-
-  it("allows prompting again after the cooldown window expires", () => {
-    const fifteenDaysAgo = Date.now() - 1000 * 60 * 60 * 24 * 15;
-    window.localStorage.setItem(DISMISS_STORAGE_KEY, String(fifteenDaysAgo));
-
-    const { result } = renderHook(() => usePwaInstall());
-
-    act(() => {
-      window.dispatchEvent(makeBeforeInstallPromptEvent("accepted"));
-    });
-
-    expect(result.current.canPrompt).toBe(true);
-  });
-
-  it("dismiss() records a cooldown and hides the banner", () => {
-    const { result } = renderHook(() => usePwaInstall());
-
-    act(() => {
-      window.dispatchEvent(makeBeforeInstallPromptEvent("accepted"));
-    });
-    expect(result.current.canPrompt).toBe(true);
-
-    act(() => {
-      result.current.dismiss();
-    });
-
-    expect(result.current.canPrompt).toBe(false);
-    expect(window.localStorage.getItem(DISMISS_STORAGE_KEY)).not.toBeNull();
+    expect(result.current.canInstall).toBe(false);
   });
 
   it("promptInstall() returns 'unavailable' before beforeinstallprompt fires", async () => {
@@ -136,7 +93,7 @@ describe("usePwaInstall", () => {
     expect(outcome).toBe("unavailable");
   });
 
-  it("promptInstall() returns the user's choice and clears canPrompt on accept", async () => {
+  it("promptInstall() returns the user's choice and clears canInstall on accept", async () => {
     const { result } = renderHook(() => usePwaInstall());
 
     act(() => {
@@ -149,12 +106,10 @@ describe("usePwaInstall", () => {
     });
 
     expect(outcome).toBe("accepted");
-    expect(result.current.canPrompt).toBe(false);
-    // Accepted installs do not set a dismissal cooldown.
-    expect(window.localStorage.getItem(DISMISS_STORAGE_KEY)).toBeNull();
+    expect(result.current.canInstall).toBe(false);
   });
 
-  it("promptInstall() records dismissal cooldown when user declines the native prompt", async () => {
+  it("promptInstall() returns 'dismissed' and stores nothing when the user declines", async () => {
     const { result } = renderHook(() => usePwaInstall());
 
     act(() => {
@@ -167,28 +122,7 @@ describe("usePwaInstall", () => {
     });
 
     expect(outcome).toBe("dismissed");
-    expect(window.localStorage.getItem(DISMISS_STORAGE_KEY)).not.toBeNull();
-  });
-
-  it("canInstall stays true after dismissal — the nav drawer entry point should remain reachable", () => {
-    // The PWA banner uses canPrompt (which respects the 14-day cooldown).
-    // The nav drawer's "Download the app" section uses canInstall, which
-    // intentionally ignores dismissal so users who clicked away the banner
-    // still have a clear path to install.
-    const { result } = renderHook(() => usePwaInstall());
-
-    act(() => {
-      window.dispatchEvent(makeBeforeInstallPromptEvent("accepted"));
-    });
-    expect(result.current.canPrompt).toBe(true);
-    expect(result.current.canInstall).toBe(true);
-
-    act(() => {
-      result.current.dismiss();
-    });
-
-    expect(result.current.canPrompt).toBe(false);
-    expect(result.current.canInstall).toBe(true);
+    expect(window.localStorage.length).toBe(0);
   });
 
   it("canInstall is false when the app is already standalone", () => {
@@ -214,19 +148,19 @@ describe("usePwaInstall", () => {
     expect(result.current.canInstall).toBe(false);
   });
 
-  it("appinstalled event marks the app as standalone and hides the banner", () => {
+  it("appinstalled event marks the app as standalone and hides the install entry", () => {
     const { result } = renderHook(() => usePwaInstall());
 
     act(() => {
       window.dispatchEvent(makeBeforeInstallPromptEvent("accepted"));
     });
-    expect(result.current.canPrompt).toBe(true);
+    expect(result.current.canInstall).toBe(true);
 
     act(() => {
       window.dispatchEvent(new Event("appinstalled"));
     });
 
-    expect(result.current.canPrompt).toBe(false);
+    expect(result.current.canInstall).toBe(false);
     expect(result.current.isStandalone).toBe(true);
   });
 });

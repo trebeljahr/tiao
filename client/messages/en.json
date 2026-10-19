@@ -1314,10 +1314,7 @@
     "flaggedBadge": "Flagged"
   },
   "pwaInstall": {
-    "title": "Install Tiao",
-    "description": "Add Tiao to your home screen for a faster, full-screen experience.",
     "install": "Install",
-    "dismiss": "Not now",
     "navTitle": "Download the app",
     "navDescription": "Install Tiao on your device for a faster, full-screen experience."
   },
