@@ -65,7 +65,7 @@ for (const [name, width, height] of specs) {
     alpha: false,
   });
 }
-const logoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="600" viewBox="0 0 1280 600">${logo(35, 465, 550, "#fff8e8")}</svg>`;
+const logoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="600" viewBox="0 0 1280 600">${logo(35, 465, 550, "#28170e")}</svg>`;
 writeFileSync(resolve(output, "steam-library-logo.svg"), logoSvg);
 await sharp(Buffer.from(logoSvg)).png().toFile(resolve(output, "steam-library-logo.png"));
 await sharp(new URL("../desktop/build/icon.png", import.meta.url).pathname)

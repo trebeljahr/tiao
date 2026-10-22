@@ -167,10 +167,19 @@ declares, with no tracking:
 | Purchase history | Yes | App functionality | Shop unlocks (StoreKit, Play Billing) |
 | Crash data, diagnostics | Yes | App functionality | GlitchTip |
 
-No analytics purpose: the apps send no analytics since OpenPanel was retired
-in October 2026, and the server counts a few aggregate goals in Plausible
-without account ids or player IP addresses. App Store Connect App Privacy and
-the Play Data safety form must match this table.
+This table uses Apple's purpose definitions. OpenPanel was retired in October
+2026; the server counts a few aggregate goals in Plausible without account IDs
+or player IP addresses.
+
+Google Play uses different purpose definitions: diagnosing crashes counts as
+Analytics. Declare crash logs, diagnostics and the interaction breadcrumbs sent
+with crash reports under Analytics, along with the user ID and username attached
+to those reports. This does not mean advertising or behavioral tracking.
+Account fields also serve Account management on Google Play. Include optional
+profile biographies as Other user-generated content, the in-app friends graph
+as Contacts, and gameplay as Other actions. Contacts here means the game's
+social graph, not access to the device's address book. Keep each store's answers
+consistent with its own definitions and the current collection behavior.
 
 Required-reason APIs: UserDefaults (`CA92.1`) and file timestamps (`C617.1`).
 Update the manifest, the App Privacy answers and the Play Data safety form
