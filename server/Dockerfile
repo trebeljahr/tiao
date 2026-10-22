@@ -1,4 +1,4 @@
-FROM node:24.14.1-bookworm-slim AS deps
+FROM node:24.22.1-bookworm-slim AS deps
 WORKDIR /app
 
 RUN npm install -g pnpm@10.33.2
@@ -16,7 +16,7 @@ COPY server ./server
 RUN pnpm --dir server run build
 RUN pnpm --dir server install --prod --frozen-lockfile --ignore-scripts
 
-FROM node:24.14.1-bookworm-slim AS runtime
+FROM node:24.22.1-bookworm-slim AS runtime
 WORKDIR /app/server
 
 # curl for Coolify's health check. Coolify probes the container by
