@@ -1,0 +1,47 @@
+{
+  "source": "https://playtiao.com/game/K94SC6",
+  "speed": 1.75,
+  "duration": 30,
+  "captureCount": 1004,
+  "takeStarts": [
+    0,
+    343,
+    685
+  ],
+  "captions": [
+    {
+      "start": 0,
+      "end": 8.907428571428579,
+      "text": "Place a stone on an empty point."
+    },
+    {
+      "start": 8.907428571428579,
+      "end": 11.210857142857153,
+      "text": "Jump an opponent\u2019s stone to capture it."
+    },
+    {
+      "start": 11.210857142857153,
+      "end": 26.129142857142767,
+      "text": "Chain jumps to capture several stones."
+    },
+    {
+      "start": 26.129142857142767,
+      "end": 30,
+      "text": "First to capture ten stones wins."
+    }
+  ],
+  "audio": false,
+  "videoBitrate": "6 Mbps CBR",
+  "output": "build/store-trailer/tiao-gameplay-current.mp4",
+  "approval": "prepared for requested store upload; not publicly published",
+  "note": "Actual replay UI screenshots. Pauses between three capture takes removed. Final frame held through 30 seconds.",
+  "selectedOn": "2026-10-23",
+  "sha256": "f2257223a6ba8364a998327943549dc262473a876866abf231de3ed1488a94ae",
+  "uploadState": {
+    "steam": "blocked: Create trailer displays alert before upload",
+    "googlePlay": "not uploaded; optional YouTube URL not created",
+    "apple": "not uploaded; this is not an App Preview export"
+  },
+  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/store-readiness/trailer/",
+  "files": "Video and original frames are local-only; recipe and selection JSON are tracked. Archive retains original frames, metadata and previous CRF18 cut."
+}
