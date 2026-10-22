@@ -47,11 +47,13 @@ for (const [name, width, height] of specs) {
   const title = hero
     ? ""
     : logo(
-        width * (vertical ? 0.1 : 0.07),
-        height * (vertical ? 0.29 : 0.6),
-        Math.min(width * (vertical ? 0.4 : 0.32), height * (vertical ? 0.3 : 0.6)),
+        width * (small ? 0.04 : vertical ? 0.1 : 0.07),
+        height * (small ? 0.88 : vertical ? 0.29 : 0.6),
+        small
+          ? height * 1.14
+          : Math.min(width * (vertical ? 0.4 : 0.32), height * (vertical ? 0.3 : 0.6)),
       );
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${defs}<rect width="${width}" height="${height}" fill="#f4eddd"/><g transform="translate(${hero ? width * 0.43 : bx} ${by}) rotate(${vertical ? 10 : 14} ${side / 2} ${side / 2}) scale(${side / 660})" opacity="${small ? 0.65 : 1}">${board}</g>${title}</svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${defs}<rect width="${width}" height="${height}" fill="#f4eddd"/><g transform="translate(${hero ? width * 0.43 : bx} ${by}) rotate(${vertical ? 10 : 14} ${side / 2} ${side / 2}) scale(${side / 660})" opacity="${small ? 0.2 : 1}">${board}</g>${title}</svg>`;
   writeFileSync(resolve(output, `${name}.svg`), svg);
   await sharp(Buffer.from(svg))
     .flatten({ background: "#f4eddd" })
