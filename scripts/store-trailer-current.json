@@ -33,15 +33,25 @@
   "audio": false,
   "videoBitrate": "6 Mbps CBR",
   "output": "build/store-trailer/tiao-gameplay-current.mp4",
-  "approval": "prepared for requested store upload; not publicly published",
+  "approval": "uploaded as requested; not publicly published",
   "note": "Actual replay UI screenshots. Pauses between three capture takes removed. Final frame held through 30 seconds.",
   "selectedOn": "2026-10-23",
   "sha256": "f2257223a6ba8364a998327943549dc262473a876866abf231de3ed1488a94ae",
   "uploadState": {
-    "steam": "blocked: Create trailer displays alert before upload",
+    "steam": "uploaded, converted and saved; Gameplay category; suitable for all ages; store draft only",
     "googlePlay": "not uploaded; optional YouTube URL not created",
     "apple": "not uploaded; this is not an App Preview export"
   },
   "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/store-readiness/trailer/",
-  "files": "Video and original frames are local-only; recipe and selection JSON are tracked. Archive retains original frames, metadata and previous CRF18 cut."
+  "files": "Video and original frames are local-only; recipe and selection JSON are tracked. Archive retains original frames, metadata and previous CRF18 cut.",
+  "steamTrailer": {
+    "uploadedOn": "2026-10-23",
+    "entryId": 1399906,
+    "assetId": 1404839554,
+    "viewUrl": "https://store.steampowered.com/trailer/assets/?trailer=5035580/1404839554/ba4083cc48118e0606d0f31b62bda4648f06af6e/1792682318",
+    "category": "Gameplay",
+    "language": "English",
+    "suitableForAllAges": true,
+    "countryRestrictions": []
+  }
 }
