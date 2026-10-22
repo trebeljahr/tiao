@@ -14,6 +14,7 @@ root.
 | `seed-tournament.mjs` | Dev-only: create bot accounts and drive a tournament. |
 | `steam-achievements.mjs` | Turn `shared/src/achievements.ts` into Partner Portal shapes. |
 | `steam-achievement-icons.mjs` | Render the achievement icons Steam wants. |
+| `store-art.mjs` | Export Steam capsules/library art, Apple header, and Google Play icon/feature graphic to `build/store-media/`. Run `pnpm store:art`. Uses existing board artwork and a recorded legal position; outputs promotional graphics, not screenshots. |
 | `wait-for-port.mjs` | Block until a TCP port accepts connections. |
 
 ## Database backups: `db-backup.sh`

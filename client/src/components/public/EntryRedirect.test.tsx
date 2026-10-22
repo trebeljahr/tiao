@@ -29,13 +29,13 @@ describe("public entry", () => {
     expect(replace).not.toHaveBeenCalled();
   });
 
-  it("waits for session verification before redirecting an account", () => {
+  it("keeps signed-in accounts on the landing page after session verification", () => {
     session.auth = { player: { kind: "account" } };
     const view = render(<EntryRedirect />);
     expect(replace).not.toHaveBeenCalled();
     session.authBootstrapped = true;
     view.rerender(<EntryRedirect />);
-    expect(replace).toHaveBeenCalledWith("/play");
+    expect(replace).not.toHaveBeenCalled();
   });
 
   it("preserves query and hash when entering play", () => {

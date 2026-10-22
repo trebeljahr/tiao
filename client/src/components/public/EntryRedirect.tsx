@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useAuth } from "@/lib/AuthContext";
 
-/** Leave public HTML visible to visitors while the existing session is verified. */
+/** Preserve installed-app launches and old invitation links. */
 export function EntryRedirect() {
   const { auth, authBootstrapped } = useAuth();
   const router = useRouter();
@@ -17,7 +17,7 @@ export function EntryRedirect() {
     const signedIn = authBootstrapped && auth?.player.kind === "account";
     // The app's onboarding guard owns incomplete account setup.
     if (signedIn && auth.player.needsUsername) return;
-    if (desktop || invitation || signedIn) {
+    if (desktop || invitation) {
       router.replace(`/play${window.location.search}${window.location.hash}`);
     }
   }, [auth, authBootstrapped, router]);
