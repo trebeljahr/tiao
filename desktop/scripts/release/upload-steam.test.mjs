@@ -109,3 +109,10 @@ test("Steam success prints only the app and build confirmation", () => {
 test("Steam data directory is also accepted without quotes", () => {
   assert.equal(runUpload(ok, 0, { FAKE_UNQUOTED_LOG_DIR: "1" }).status, 0);
 });
+
+test("demo upload accepts only its own SteamCMD success marker", () => {
+  const env = { STEAM_TARGET: "steam-demo" };
+  assert.equal(runUpload("Successfully finished AppID 5491870 build (BuildID 123)",0,env).status,0);
+  assert.equal(runUpload(ok,0,env).status,1);
+  assert.notEqual(runUpload(ok,0,{STEAM_TARGET:"unknown"}).status,0);
+});

@@ -65,6 +65,7 @@ import {
   getSteamWebApiTicket,
   hasSteamPurchaseBridge,
   isSteamBuild,
+  isSteamDemo,
   waitForSteamMicroTxnAuthorization,
 } from "./SteamBridge";
 
@@ -119,6 +120,7 @@ function isStoreBuild(): boolean {
 }
 
 export function getStorePurchaseChannel(): StorePurchaseChannel {
+  if (isSteamDemo()) return "none";
   if (isSteamBuild()) {
     if (!hasSteamPurchaseBridge()) return "none";
     if (!config) return settled ? "none" : "loading";

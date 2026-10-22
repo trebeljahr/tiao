@@ -27,7 +27,8 @@
     "package:msstore": "TIAO_DISTRIBUTION_CHANNEL=msstore electron-builder --config electron-builder.config.cjs --win --x64 --publish never",
     "version:check": "node scripts/release/version.mjs --check",
     "version:set": "node scripts/release/version.mjs",
-    "release:check": "node --test 'scripts/release/*.test.mjs'"
+    "release:check": "node --test 'scripts/release/*.test.mjs'",
+    "package:steam-demo": "TIAO_DISTRIBUTION_CHANNEL=steam-demo electron-builder --config electron-builder.config.cjs --publish never"
   },
   "dependencies": {
     "@sentry/node": "^10.75.3",

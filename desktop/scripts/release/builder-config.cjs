@@ -15,9 +15,9 @@
  * (builder-config.test.mjs) rather than a build on another OS.
  */
 
-const STEAM_APP_ID = 5035580;
+const STEAM_PRODUCTS = require("../../steam-apps.json");
 const TEAM_ID = "4BHY8H2J25";
-const CHANNELS = ["direct", "itch", "steam", "mas", "msstore"];
+const CHANNELS = ["direct", "itch", "steam", "steam-demo", "mas", "msstore"];
 const MSSTORE_ADDON = "native/msstore/build/Release/tiao_msstore.node";
 const STORE_IDENTITY_VARS = [
   "WINDOWS_STORE_IDENTITY_NAME",
@@ -61,13 +61,22 @@ function createBuilderConfig({ base, channel, signed, env = {} }) {
     linux: { ...base.linux },
   };
 
-  if (channel === "steam") {
-    const appId = Number.parseInt(envValue(env, "TIAO_STEAM_APPID") ?? String(STEAM_APP_ID), 10);
-    if (!Number.isInteger(appId) || appId <= 0 || appId === 480) {
-      throw new Error("TIAO_STEAM_APPID must be Tiao's real appid (never Spacewar 480).");
+  if (channel === "steam" || channel === "steam-demo") {
+    const product = STEAM_PRODUCTS[channel];
+    const override = envValue(env, "TIAO_STEAM_APPID");
+    if (override !== undefined && override !== String(product.appId)) {
+      throw new Error("TIAO_STEAM_APPID must match the selected Tiao product (never Spacewar 480).");
     }
     config.extraMetadata.steamBuild = true;
-    config.extraMetadata.steamAppId = appId;
+    config.extraMetadata.steamAppId = product.appId;
+    config.extraMetadata.steamDemo = channel === "steam-demo";
+    if (channel === "steam-demo") {
+      config.appId = base.appId + ".demo";
+      config.productName = product.productName;
+      config.extraMetadata.name = "tiao-desktop-demo";
+      config.extraMetadata.productName = product.productName;
+      config.linux.executableName = "tiao-demo";
+    }
   }
 
   if (store) {
@@ -95,7 +104,7 @@ function createBuilderConfig({ base, channel, signed, env = {} }) {
     config.mac.target = [{ target: "zip", arch: universal }];
     config.win.target = [{ target: "zip", arch: x64 }];
     config.linux.target = [{ target: "AppImage", arch: x64 }];
-  } else if (channel === "steam") {
+  } else if (channel === "steam" || channel === "steam-demo") {
     config.mac.target = [{ target: "dir", arch: universal }];
     config.win.target = [{ target: "dir", arch: x64 }];
     config.linux.target = [{ target: "dir", arch: x64 }];
@@ -180,4 +189,4 @@ function createBuilderConfig({ base, channel, signed, env = {} }) {
   return config;
 }
 
-module.exports = { createBuilderConfig, CHANNELS, STEAM_APP_ID, TEAM_ID, STORE_IDENTITY_VARS };
+module.exports = { createBuilderConfig, CHANNELS, STEAM_PRODUCTS, TEAM_ID, STORE_IDENTITY_VARS };

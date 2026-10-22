@@ -77,13 +77,14 @@ function applyCspHeader(targetSession, { startUrl, apiUrl }) {
  * prefix to keep the preload parser simple and to avoid collisions
  * with Chromium's own CLI flags.
  *
- * @param {{ apiUrl: string; isSteamBuild: boolean; distributionChannel: string }} runtimeConfig
+ * @param {{ apiUrl: string; isSteamBuild: boolean; isSteamDemo?: boolean; distributionChannel: string }} runtimeConfig
  * @returns {string[]}
  */
 function buildAdditionalArguments(runtimeConfig) {
   return [
     `--tiao-api-url=${runtimeConfig.apiUrl}`,
     `--tiao-steam-build=${runtimeConfig.isSteamBuild ? "1" : "0"}`,
+    `--tiao-steam-demo=${runtimeConfig.isSteamDemo ? "1" : "0"}`,
     `--tiao-distribution-channel=${runtimeConfig.distributionChannel}`,
   ];
 }
@@ -92,7 +93,7 @@ function buildAdditionalArguments(runtimeConfig) {
  * @param {{
  *   startUrl: string;
  *   devTools: boolean;
- *   runtimeConfig: { apiUrl: string; isSteamBuild: boolean; distributionChannel: string };
+ *   runtimeConfig: { apiUrl: string; isSteamBuild: boolean; isSteamDemo?: boolean; distributionChannel: string };
  * }} options
  */
 function createMainWindow({ startUrl, devTools, runtimeConfig }) {

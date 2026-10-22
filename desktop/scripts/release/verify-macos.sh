@@ -20,7 +20,9 @@ verify_app() {
   spctl --assess --type execute --verbose=2 "$app" 2>&1 | grep -F 'source=Notarized Developer ID'
   xcrun stapler validate "$app"
   local archs
-  archs="$(lipo -archs "$app/Contents/MacOS/Tiao")"
+  local binary
+  binary="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Contents/Info.plist")"
+  archs="$(lipo -archs "$app/Contents/MacOS/$binary")"
   [[ "$archs" == *x86_64* && "$archs" == *arm64* ]] || { echo "Not universal: $archs" >&2; exit 1; }
 }
 expect_one() {
@@ -50,6 +52,8 @@ done
 zips=("$dist_dir"/direct/*.zip "$dist_dir"/itch/*.zip)
 [[ ${#zips[@]} -eq 2 ]] || { echo 'Expected one direct ZIP and one itch ZIP.' >&2; exit 1; }
 
-for channel in direct itch steam; do
-  verify_app "$dist_dir/$channel/mac-universal/Tiao.app"
+for channel in direct itch steam steam-demo; do
+  apps=("$dist_dir/$channel/mac-universal/"*.app)
+  expect_one "$channel app" "${apps[@]}"
+  verify_app "${apps[0]}"
 done

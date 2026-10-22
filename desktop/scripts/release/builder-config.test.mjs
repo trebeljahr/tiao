@@ -32,11 +32,11 @@ test("the base config carries Tiao identity, icons and store metadata", () => {
 });
 
 test("every channel bakes its name and writes to its own output directory", () => {
-  for (const channel of ["direct", "itch", "steam", "mas", "msstore"]) {
+  for (const channel of ["direct", "itch", "steam", "steam-demo", "mas", "msstore"]) {
     const c = config(channel);
     assert.equal(c.extraMetadata.distributionChannel, channel);
     assert.equal(c.directories.output, "dist/" + channel);
-    assert.equal(c.extraMetadata.steamBuild === true, channel === "steam");
+    assert.equal(c.extraMetadata.steamBuild === true, ["steam", "steam-demo"].includes(channel));
     assert.equal(c.publish === null, channel !== "direct", "only direct carries an update feed");
   }
   assert.throws(() => config("appstore"));
@@ -121,4 +121,16 @@ test("Microsoft Store AppX is unsigned and requires the Partner Center identity 
   assert.equal(store.forceCodeSigning, undefined);
   assert.equal(store.win.signtoolOptions.sign, undefined);
   assert.match(config("msstore").appx.publisher, /^CN=/);
+});
+
+test("demo identity and app id cannot cross into the full game", () => {
+  const demo = config("steam-demo");
+  assert.equal(demo.appId, "com.ricoslabs.tiao.demo");
+  assert.equal(demo.productName, "Tiao Demo");
+  assert.equal(demo.extraMetadata.steamAppId, 5491870);
+  assert.equal(demo.extraMetadata.steamDemo, true);
+  assert.equal(demo.linux.executableName, "tiao-demo");
+  assert.equal(demo.publish, null);
+  assert.throws(() => config("steam-demo", false, { TIAO_STEAM_APPID: "5035580" }));
+  assert.throws(() => config("steam", false, { TIAO_STEAM_APPID: "5491870" }));
 });

@@ -48,6 +48,7 @@ const msStore = createMsStoreBridge({ channel: DISTRIBUTION_CHANNEL, platform: p
 const { createInAppPurchaseBridge } = require("./src/inAppPurchase.cjs");
 const {
   STEAM_ENABLED,
+  STEAM_DEMO,
   maybeRestartForSteam,
   prepareSteamOverlay,
   initSteam,
@@ -296,6 +297,7 @@ function bootstrap() {
       // closed is still a Steam build and still bound by Valve's
       // rules about external payment.
       isSteamBuild: STEAM_ENABLED,
+      isSteamDemo: STEAM_DEMO,
       // Which storefront shipped this binary (direct | itch | steam |
       // mas | msstore). Baked at package time; see src/distribution.cjs.
       distributionChannel: DISTRIBUTION_CHANNEL,

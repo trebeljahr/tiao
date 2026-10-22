@@ -55,6 +55,13 @@ function getBridge(): SteamBridge | null {
   return w.electron?.steam ?? null;
 }
 
+/** The demo has no commerce, even when the full game enables its shop. */
+export function isSteamDemo(): boolean {
+  if (typeof window === "undefined") return false;
+  const w = window as unknown as { electron?: { config?: { isSteamDemo?: boolean } } };
+  return w.electron?.config?.isSteamDemo === true;
+}
+
 /**
  * True when the running binary was packaged as a Steam build.
  *

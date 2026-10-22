@@ -340,3 +340,21 @@ test("the locked electron-builder is past the macOS 26 keychain bug", () => {
     );
   }
 });
+
+test("demo upload requires its own depot variables and app identity", () => {
+  const env = {STEAM_DEPOT_WINDOWS:"1", STEAM_DEPOT_LINUX:"2", STEAM_DEPOT_MACOS:"3"};
+  assert.throws(() => steamDepotIds(env, "steam-demo"));
+  const depots = steamDepotIds({...env, STEAM_DEMO_DEPOT_WINDOWS:"5491871", STEAM_DEMO_DEPOT_MACOS:"5491872", STEAM_DEMO_DEPOT_LINUX:"5491873"}, "steam-demo");
+  const vdf = steamBuildVdf({destination:"steam-demo", version:"1.2.3", commit:"abc", outputDir:"/out", roots:{windows:"/w",linux:"/l",macos:"/m"},depots,branch:""});
+  assert.match(vdf, /"AppID" "5491870"/);
+  assert.doesNotMatch(vdf, /5035580|SetLive/);
+  const directory = mkdtempSync(join(tmpdir(), "tiao-demo-artifact-"));
+  try {
+    const path = join(directory,"app.asar");
+    for (const [steamAppId,steamDemo,valid] of [[5491870,true,true],[5035580,true,false],[5491870,false,false]]) {
+      writeAsar(path,{"package.json":JSON.stringify({distributionChannel:"steam-demo",steamBuild:true,steamAppId,steamDemo})});
+      if(valid) assert.doesNotThrow(()=>assertPackagedChannel(path,"steam-demo"));
+      else assert.throws(()=>assertPackagedChannel(path,"steam-demo"));
+    }
+  } finally { rmSync(directory,{recursive:true,force:true}); }
+});

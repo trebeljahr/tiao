@@ -66,7 +66,7 @@
  *
  * The default appid is Tiao's own (5035580, Ricos Labs LLC).  The
  * Steam build bakes it into package.json as `steamAppId`;
- * `TIAO_STEAM_APPID` overrides it in dev (e.g. Valve's public
+ * `TIAO_STEAM_APPID` sets it in dev when no baked AppID exists (e.g. Valve's public
  * Spacewar test app for an account that does not own Tiao).
  *
  * ## Exposed surface
@@ -97,13 +97,13 @@
  * the steam channel (electron-builder `extraMetadata`).
  * Absent in dev and in standalone builds, hence the try/catch.
  *
- * @type {{ steamBuild?: boolean | string; steamAppId?: number | string }}
+ * @type {{ steamBuild?: boolean | string; steamAppId?: number | string; steamDemo?: boolean }}
  */
 let bakedMeta = {};
 try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   bakedMeta =
-    /** @type {typeof import("../package.json") & { steamBuild?: boolean | string; steamAppId?: number | string }} */ (
+    /** @type {typeof import("../package.json") & { steamBuild?: boolean | string; steamAppId?: number | string; steamDemo?: boolean }} */ (
       require("../package.json")
     );
 } catch {
@@ -121,11 +121,13 @@ const STEAM_ENABLED =
   bakedMeta.steamBuild === true ||
   bakedMeta.steamBuild === "true";
 
+const STEAM_DEMO = STEAM_ENABLED && bakedMeta.steamDemo === true;
+
 /** Tiao's Steam appid, used when nothing else specifies one. */
 const TIAO_STEAM_APPID = 5035580;
 const STEAM_APPID =
-  Number.parseInt(process.env.TIAO_STEAM_APPID ?? "", 10) ||
   Number.parseInt(String(bakedMeta.steamAppId ?? ""), 10) ||
+  Number.parseInt(process.env.TIAO_STEAM_APPID ?? "", 10) ||
   TIAO_STEAM_APPID;
 
 /**
@@ -310,7 +312,7 @@ function getSteamUser() {
  * @param {string} apiName
  */
 function unlockAchievement(apiName) {
-  if (!client) return;
+  if (!client || STEAM_DEMO) return;
   try {
     const ach = client.achievement;
     if (typeof ach?.activate === "function") {
@@ -331,7 +333,7 @@ function unlockAchievement(apiName) {
  * @param {number} max
  */
 function indicateAchievementProgress(apiName, current, max) {
-  if (!client) return;
+  if (!client || STEAM_DEMO) return;
   try {
     const ach = client.achievement;
     if (typeof ach?.indicateAchievementProgress === "function") {
@@ -358,7 +360,7 @@ function indicateAchievementProgress(apiName, current, max) {
 function getAchievementStates(apiNames) {
   /** @type {Record<string, boolean>} */
   const out = {};
-  if (!client) return out;
+  if (!client || STEAM_DEMO) return out;
   if (!Array.isArray(apiNames)) return out;
   for (const name of apiNames) {
     if (typeof name !== "string" || !name) continue;
@@ -397,7 +399,7 @@ function getAchievementStates(apiNames) {
  * @returns {{ ok: boolean; written: number; stored: boolean }}
  */
 function setStats(stats) {
-  if (!client) return { ok: false, written: 0, stored: false };
+  if (!client || STEAM_DEMO) return { ok: false, written: 0, stored: false };
   if (!stats || typeof stats !== "object") return { ok: false, written: 0, stored: false };
 
   let written = 0;
@@ -514,7 +516,7 @@ const STEAM_WEB_API_IDENTITY = "tiao-iap";
  * @returns {Promise<string | null>} null when Steam isn't active or the ticket request fails
  */
 async function getWebApiTicket() {
-  if (!client) return null;
+  if (!client || STEAM_DEMO) return null;
   try {
     if (typeof client.auth?.getAuthTicketForWebApi !== "function") return null;
     const ticket = await client.auth.getAuthTicketForWebApi(STEAM_WEB_API_IDENTITY);
@@ -544,6 +546,7 @@ let microTxnHandle = null;
  * @returns {() => void}
  */
 function onMicroTxnAuthorization(listener) {
+  if (STEAM_DEMO) return () => {};
   microTxnListeners.add(listener);
   if (!microTxnHandle && client) {
     try {
@@ -576,6 +579,7 @@ function onMicroTxnAuthorization(listener) {
 
 module.exports = {
   STEAM_ENABLED,
+  STEAM_DEMO,
   STEAM_APPID,
   OVERLAY_DIALOG_CODES,
   maybeRestartForSteam,

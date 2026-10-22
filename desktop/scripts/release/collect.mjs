@@ -59,7 +59,7 @@ const unpacked = {
 const asarOf = (channel) => {
   const root = join("dist", channel, unpacked);
   return platform === "macos" || platform === "mas"
-    ? join(root, "Tiao.app", "Contents", "Resources", "app.asar")
+    ? join(root, channel === "steam-demo" ? "Tiao Demo.app" : "Tiao.app", "Contents", "Resources", "app.asar")
     : join(root, "resources", "app.asar");
 };
 
@@ -91,7 +91,7 @@ for (const channel of target.channels) {
     const suffix = platform === "linux" ? ".AppImage" : ".zip";
     for (const name of matching(dir, (n) => n.endsWith(suffix), 1))
       add(join(dir, name), withSuffix(name, "itch"), channel);
-  } else if (channel === "steam") {
+  } else if (channel === "steam" || channel === "steam-demo") {
     depot(join(dir, unpacked), channel);
   } else if (channel === "mas") {
     // A signed MAS build writes its pkg next to the app, not into dist/mas/.

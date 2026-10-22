@@ -8,9 +8,16 @@ import { basename, join } from "node:path";
 export const repository = "trebeljahr/tiao";
 export const appId = "com.ricoslabs.tiao";
 export const teamId = "4BHY8H2J25";
-export const steamAppId = "5035580";
+export const steamProducts = JSON.parse(
+  readFileSync(new URL("../../steam-apps.json", import.meta.url), "utf8"),
+);
+export const steamAppId = String(steamProducts.steam.appId);
+export function steamProduct(destination = "steam") {
+  if (!Object.hasOwn(steamProducts, destination)) throw new Error("Unknown Steam product: " + destination);
+  return steamProducts[destination];
+}
 export const buildWorkflow = "build-desktop.yml";
-export const channels = ["direct", "itch", "steam", "mas", "msstore"];
+export const channels = ["direct", "itch", "steam", "steam-demo", "mas", "msstore"];
 
 // The lowest electron-builder that may sign a macOS build. Through 26.16.0 its
 // throwaway keychain got a random password, but `security
@@ -56,21 +63,21 @@ export const desktopTargets = [
     arch: "universal",
     runner: "macos-15",
     flag: "mac",
-    channels: ["direct", "itch", "steam"],
+    channels: ["direct", "itch", "steam", "steam-demo"],
   },
   {
     platform: "windows",
     arch: "x64",
     runner: "windows-2025",
     flag: "win",
-    channels: ["direct", "itch", "steam"],
+    channels: ["direct", "itch", "steam", "steam-demo"],
   },
   {
     platform: "linux",
     arch: "x64",
     runner: "ubuntu-24.04",
     flag: "linux",
-    channels: ["direct", "itch", "steam"],
+    channels: ["direct", "itch", "steam", "steam-demo"],
   },
   { platform: "mas", arch: "universal", runner: "macos-15", flag: "mac", channels: ["mas"] },
   { platform: "msstore", arch: "x64", runner: "windows-2025", flag: "win", channels: ["msstore"] },
@@ -92,6 +99,7 @@ export const destinations = {
   "downloads-draft": { platforms: ["macos", "windows", "linux"], channel: "direct" },
   itch: { platforms: ["macos", "windows", "linux"], channel: "itch" },
   steam: { platforms: ["macos", "windows", "linux"], channel: "steam" },
+  "steam-demo": { platforms: ["macos", "windows", "linux"], channel: "steam-demo" },
   mas: { platforms: ["mas"], channel: "mas" },
   msstore: { platforms: ["msstore"], channel: "msstore" },
 };
@@ -120,6 +128,10 @@ export const credentials = {
     "STEAM_DEPOT_WINDOWS",
     "STEAM_DEPOT_LINUX",
     "STEAM_DEPOT_MACOS",
+  ],
+  "steam-demo": [
+    "STEAM_USERNAME", "STEAM_CONFIG_VDF", "STEAM_DEMO_DEPOT_WINDOWS",
+    "STEAM_DEMO_DEPOT_LINUX", "STEAM_DEMO_DEPOT_MACOS",
   ],
   appstore: ["APPLE_API_KEY_BASE64", "APPLE_API_KEY_ID", "APPLE_API_ISSUER_ID"],
   "msstore-submission": [
@@ -271,8 +283,10 @@ export function oneFile(manifest, channel, suffix) {
   return files[0];
 }
 
-export function steamDepotIds(env) {
-  const ids = ["WINDOWS", "LINUX", "MACOS"].map((os) => env["STEAM_DEPOT_" + os]);
+export function steamDepotIds(env, destination = "steam") {
+  steamProduct(destination);
+  const prefix = destination === "steam-demo" ? "STEAM_DEMO_DEPOT_" : "STEAM_DEPOT_";
+  const ids = ["WINDOWS", "LINUX", "MACOS"].map((os) => env[prefix + os]);
   if (ids.some((id) => !/^[1-9]\d*$/.test(id ?? "")) || new Set(ids).size !== ids.length) {
     throw new Error("Set three distinct Steam depot IDs.");
   }
@@ -289,7 +303,8 @@ export function steamBranch(value = "", fallback = "") {
   return branch;
 }
 
-export function steamBuildVdf({ version: appVersion, commit, outputDir, roots, depots, branch }) {
+export function steamBuildVdf({ version: appVersion, commit, outputDir, roots, depots, branch, destination = "steam" }) {
+  const product = steamProduct(destination);
   const quote = (value) => JSON.stringify(String(value));
   const depot = (os) =>
     quote(depots[os]) +
@@ -299,9 +314,9 @@ export function steamBuildVdf({ version: appVersion, commit, outputDir, roots, d
     ' "FileExclusion" "steam_appid.txt" "FileExclusion" "*.pdb" "FileExclusion" "*.map" "FileExclusion" ".DS_Store" }';
   return (
     '"appbuild" { "AppID" ' +
-    quote(steamAppId) +
+    quote(product.appId) +
     ' "Desc" ' +
-    quote("Tiao " + appVersion + " " + commit) +
+    quote(product.productName + " " + appVersion + " " + commit) +
     ' "BuildOutput" ' +
     quote(outputDir) +
     (branch ? ' "SetLive" ' + quote(branch) : "") +
@@ -349,10 +364,12 @@ export function assertPackagedChannel(asarPath, channel) {
     );
   }
   const steam = meta.steamBuild === true || meta.steamBuild === "true";
-  if (steam !== (channel === "steam"))
+  if (steam !== (channel === "steam" || channel === "steam-demo"))
     throw new Error(asarPath + " has the wrong steamBuild flag for " + channel);
-  if (channel === "steam" && String(meta.steamAppId) !== steamAppId)
+  if (steam && String(meta.steamAppId) !== String(steamProduct(channel).appId))
     throw new Error(asarPath + " has the wrong Steam appid");
+  if (steam && (meta.steamDemo === true) !== (channel === "steam-demo"))
+    throw new Error(asarPath + " has the wrong Steam demo flag");
   if (
     (channel === "mas" || channel === "msstore") &&
     asarHas(asarPath, "node_modules/steamworks.js")

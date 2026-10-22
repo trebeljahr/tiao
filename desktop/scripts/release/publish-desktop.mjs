@@ -102,11 +102,11 @@ if (destination === "downloads-draft") {
       appVersion,
     ]);
   }
-} else if (destination === "steam") {
-  requireCredentials("steam", process.env);
-  const depots = steamDepotIds(process.env);
+} else if (destination === "steam" || destination === "steam-demo") {
+  requireCredentials(destination, process.env);
+  const depots = steamDepotIds(process.env, destination);
   const branch = steamBranch(process.env.STEAM_BRANCH || "", process.env.STEAM_DEFAULT_BRANCH || "");
-  const root = resolve("artifacts/steam");
+  const root = resolve("artifacts/" + destination);
   const roots = {};
   for (const platform of ["windows", "linux", "macos"]) {
     const manifest = byPlatform(platform);
@@ -116,7 +116,7 @@ if (destination === "downloads-draft") {
     // on the Linux runner unpacks them as real files, which breaks the app's seal.
     execute("tar", [
       "-xzf",
-      pathOf(manifest, oneFile(manifest, "steam", "-depot.tar.gz")),
+      pathOf(manifest, oneFile(manifest, destination, "-depot.tar.gz")),
       "--exclude",
       "._*",
       "-C",
@@ -131,6 +131,7 @@ if (destination === "downloads-draft") {
   writeFileSync(
     "artifacts/steam-build.vdf",
     steamBuildVdf({
+      destination,
       version: appVersion,
       commit: run.head_sha,
       outputDir: join(process.env.RUNNER_TEMP || resolve("artifacts"), "steam-build-output"),

@@ -36,7 +36,8 @@ $files = @(
     $portable[0].FullName,
     (Join-Path $dist 'direct/win-unpacked/Tiao.exe'),
     (Join-Path $dist 'itch/win-unpacked/Tiao.exe'),
-    (Join-Path $dist 'steam/win-unpacked/Tiao.exe')
+    (Join-Path $dist 'steam/win-unpacked/Tiao.exe'),
+    (Join-Path $dist 'steam-demo/win-unpacked/Tiao Demo.exe')
 )
 foreach ($file in $files) { Assert-Signature $file }
 

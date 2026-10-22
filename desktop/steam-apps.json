@@ -1,0 +1,11 @@
+{
+  "steam": {
+    "appId": 5035580,
+    "productName": "Tiao"
+  },
+  "steam-demo": {
+    "appId": 5491870,
+    "productName": "Tiao Demo",
+    "parentAppId": 5035580
+  }
+}

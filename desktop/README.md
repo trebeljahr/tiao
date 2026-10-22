@@ -254,6 +254,7 @@ Every package is built for exactly one channel, baked into the packaged
 | `direct`  | DMG + ZIP, NSIS + portable EXE, AppImage   | electron-updater (opt-in)  |
 | `itch`    | ZIP (mac, win), AppImage (linux)           | butler / itch app          |
 | `steam`   | unpacked app directories (SteamPipe depots)| Steam                      |
+| `steam-demo` | separate demo app directories | Steam |
 | `mas`     | Mac App Store `.pkg` (universal, sandboxed)| Mac App Store              |
 | `msstore` | `.appx` for Partner Center (unsigned)      | Microsoft Store            |
 
@@ -490,3 +491,30 @@ settings window, a game-over modal, a tray-spawned quick-game window)
 means auditing every `registerX()` call for idempotency, or splitting
 bootstrap into "once per app" and "once per window" phases. Worth
 knowing before Phase 3b.
+
+### Steam demo
+
+`steam-apps.json` defines full-game AppID `5035580` and demo AppID `5491870`.
+`npm run package:steam-demo` creates `Tiao Demo.app`, `Tiao Demo.exe`, or
+`tiao-demo` under `dist/steam-demo/`. The demo has a separate application ID
+and user-data directory. Its runtime distribution channel is `steam`, with
+`config.isSteamDemo` true. Core offline and online play use the same client.
+Purchases, Steam achievements, and Steam stats writes are disabled in the demo;
+Tiao account progress remains available. The demo cannot mint purchase tickets.
+
+The desktop build workflow includes demo artifacts in all three desktop legs.
+Publishing destination `steam-demo` reuses the `release-steam` environment and
+Steam session, but requires distinct repository variables:
+
+| Variable | Depot | OS |
+| --- | --- | --- |
+| `STEAM_DEMO_DEPOT_WINDOWS` | `5491871` | Windows |
+| `STEAM_DEMO_DEPOT_MACOS` | `5491872` | macOS universal |
+| `STEAM_DEMO_DEPOT_LINUX` | `5491873` | Linux x64 |
+
+Demo packages are `1894670` (developer), `1894671` (beta), and `1894672` (free).
+Each must include all three OS depots. Upload with destination `steam-demo`
+and branch `-` to stage a build without making it live. The manifest and baked
+metadata checks reject full-game artifacts, wrong AppIDs, or missing demo flags.
+SteamCMD success must name the demo AppID. Publishing a build to the default
+branch and releasing the demo remain separate Steamworks actions after QA.

@@ -56,6 +56,7 @@ function readArgValue(prefix) {
 const runtimeConfig = {
   apiUrl: readArgValue("--tiao-api-url=") || "",
   isSteamBuild: readArgValue("--tiao-steam-build=") === "1",
+  isSteamDemo: readArgValue("--tiao-steam-demo=") === "1",
   distributionChannel:
     readArgValue("--tiao-distribution-channel=") ||
     (readArgValue("--tiao-steam-build=") === "1" ? "steam" : "direct"),
@@ -84,6 +85,7 @@ contextBridge.exposeInMainWorld("electron", {
      * — those must stay hidden even when Steam isn't running.
      */
     isSteamBuild: runtimeConfig.isSteamBuild,
+    isSteamDemo: runtimeConfig.isSteamDemo,
     /**
      * Storefront that shipped this binary: "direct" | "itch" | "steam" |
      * "mas" | "msstore". Store channels own updates and payments.

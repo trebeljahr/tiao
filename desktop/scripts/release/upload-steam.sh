@@ -1,9 +1,17 @@
 #!/usr/bin/env bash
-# Runs SteamCMD against artifacts/steam-build.vdf (written by publish-desktop.mjs steam).
+# Runs SteamCMD against artifacts/steam-build.vdf (written by publish-desktop.mjs).
 # Ported from Raptor Runner, including its Linux-runner fixes. Success is the
-# "Successfully finished AppID 5035580" line, never the exit code alone, and raw
+# selected app's "Successfully finished AppID" line, never the exit code alone, and raw
 # SteamCMD output is never printed: it can contain authentication data.
 set -euo pipefail
+# Read the selected, allowlisted app identity before contacting Steam.
+app_id=$(node -e '
+const fs = require("node:fs");
+const products = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+const target = process.env.STEAM_TARGET || "steam";
+if (!Object.hasOwn(products, target)) throw new Error("Unknown Steam target");
+process.stdout.write(String(products[target].appId));
+' "$(dirname "$0")/../../steam-apps.json")
 : "${STEAM_USERNAME:?Missing Steam build account}"
 : "${STEAM_CONFIG_VDF:?Missing authorized SteamCMD session}"
 : "${RUNNER_TEMP:?Missing RUNNER_TEMP}"
@@ -50,7 +58,7 @@ chmod 600 "$config_path"
 # Session config contains refresh credentials. Keep all Steam logs out of artifacts.
 steam_status=0
 "$steam_dir/steamcmd.sh" +login "$STEAM_USERNAME" +run_app_build "$PWD/artifacts/steam-build.vdf" +quit < /dev/null > "$steam_dir/upload.log" 2>&1 || steam_status=$?
-success='Successfully finished AppID 5035580 build \(BuildID [0-9]+\)'
+success="Successfully finished AppID $app_id build \\(BuildID [0-9]+\\)"
 if (( steam_status != 0 )) || ! grep -Eq "$success" "$steam_dir/upload.log"; then
   printf 'Steam upload failed (SteamCMD exit code %s). No successful upload was confirmed.\n' "$steam_status" >&2
   # Emit only fixed diagnoses; raw log lines can contain authentication data.

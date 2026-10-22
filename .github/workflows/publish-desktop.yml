@@ -15,7 +15,7 @@ on:
       destination:
         description: Upload destination
         type: choice
-        options: [downloads-draft, itch, steam, mas, msstore]
+        options: [downloads-draft, itch, steam, steam-demo, mas, msstore]
         default: downloads-draft
       steam_branch:
         description: Steam beta branch to set live; empty uses the STEAM_DEFAULT_BRANCH variable (upload only if unset); "-" uploads only
@@ -36,7 +36,7 @@ jobs:
     if: inputs.destination != 'mas'
     runs-on: ubuntu-24.04
     timeout-minutes: 40
-    environment: release-${{ inputs.destination }}
+    environment: release-${{ inputs.destination == 'steam-demo' && 'steam' || inputs.destination }}
     permissions:
       contents: write
       actions: read
@@ -80,24 +80,28 @@ jobs:
         run: node scripts/release/publish-desktop.mjs itch
 
       - name: Prepare Steam depots
-        if: inputs.destination == 'steam'
+        if: inputs.destination == 'steam' || inputs.destination == 'steam-demo'
         env:
           STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
           STEAM_CONFIG_VDF: ${{ secrets.STEAM_CONFIG_VDF }}
           STEAM_DEPOT_WINDOWS: ${{ vars.STEAM_DEPOT_WINDOWS }}
           STEAM_DEPOT_LINUX: ${{ vars.STEAM_DEPOT_LINUX }}
           STEAM_DEPOT_MACOS: ${{ vars.STEAM_DEPOT_MACOS }}
+          STEAM_DEMO_DEPOT_WINDOWS: ${{ vars.STEAM_DEMO_DEPOT_WINDOWS }}
+          STEAM_DEMO_DEPOT_LINUX: ${{ vars.STEAM_DEMO_DEPOT_LINUX }}
+          STEAM_DEMO_DEPOT_MACOS: ${{ vars.STEAM_DEMO_DEPOT_MACOS }}
           STEAM_BRANCH: ${{ inputs.steam_branch }}
           STEAM_DEFAULT_BRANCH: ${{ vars.STEAM_DEFAULT_BRANCH }}
-        run: node scripts/release/publish-desktop.mjs steam
+        run: node scripts/release/publish-desktop.mjs ${{ inputs.destination }}
       - name: Install SteamCMD runtime
-        if: inputs.destination == 'steam'
+        if: inputs.destination == 'steam' || inputs.destination == 'steam-demo'
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y lib32gcc-s1
       - name: Upload Steam depots
-        if: inputs.destination == 'steam'
+        if: inputs.destination == 'steam' || inputs.destination == 'steam-demo'
         env:
+          STEAM_TARGET: ${{ inputs.destination }}
           STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
           STEAM_CONFIG_VDF: ${{ secrets.STEAM_CONFIG_VDF }}
         run: bash scripts/release/upload-steam.sh

@@ -20,12 +20,12 @@ const script = fileURLToPath(new URL("./collect.mjs", import.meta.url));
 function linuxFixture(meta = {}) {
   const fixture = mkdtempSync(join(tmpdir(), "tiao-collect-"));
   writeFileSync(join(fixture, "package.json"), '{"version":"1.2.3"}');
-  for (const channel of ["direct", "itch", "steam"]) {
+  for (const channel of ["direct", "itch", "steam", "steam-demo"]) {
     const resources = join(fixture, "dist", channel, "linux-unpacked", "resources");
     mkdirSync(resources, { recursive: true });
     const baked = {
       distributionChannel: channel,
-      ...(channel === "steam" ? { steamBuild: true, steamAppId: 5035580 } : {}),
+      ...(["steam", "steam-demo"].includes(channel) ? { steamBuild: true, steamAppId: channel === "steam-demo" ? 5491870 : 5035580, steamDemo: channel === "steam-demo" } : {}),
       ...meta[channel],
     };
     writeAsar(join(resources, "app.asar"), { "package.json": JSON.stringify(baked) });
@@ -59,6 +59,7 @@ test("Linux collection tags every file with its channel, keeps executables and d
     assert.deepEqual(
       manifest.files.map((f) => [f.name, f.channel]),
       [
+        ["Tiao-1.2.3-linux-x64-steam-demo-depot.tar.gz", "steam-demo"],
         ["Tiao-1.2.3-linux-x64-steam-depot.tar.gz", "steam"],
         ["Tiao-1.2.3-linux-x86_64-itch.AppImage", "itch"],
         ["Tiao-1.2.3-linux-x86_64.AppImage", "direct"],

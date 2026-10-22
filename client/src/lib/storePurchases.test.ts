@@ -22,10 +22,10 @@ import {
 
 type Listener = (e: { appId: number; orderId: string; authorized: boolean }) => void;
 
-function installSteam({ ticket = "abcdef0123456789" as string | null } = {}) {
+function installSteam({ ticket = "abcdef0123456789" as string | null, demo = false } = {}) {
   const listeners = new Set<Listener>();
   (window as unknown as { electron: unknown }).electron = {
-    config: { isSteamBuild: true },
+    config: { isSteamBuild: true, isSteamDemo: demo },
     steam: {
       isActive: async () => true,
       getWebApiTicket: async () => ticket,
@@ -44,6 +44,12 @@ function installSteam({ ticket = "abcdef0123456789" as string | null } = {}) {
 }
 
 describe("store purchase channel", () => {
+  it("keeps demo commerce disabled even when full-game Steam purchases are enabled", () => {
+    installSteam({ demo: true });
+    expect(getStorePurchaseChannel()).toBe("none");
+    _resetStorePurchaseConfigForTests({steam:{enabled:true}} as never);
+    expect(getStorePurchaseChannel()).toBe("none");
+  });
   afterEach(() => {
     delete (window as unknown as { electron?: unknown }).electron;
     _resetStorePurchaseConfigForTests(null);
