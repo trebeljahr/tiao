@@ -5,9 +5,15 @@ verify_app() {
   local app="$1"
   echo "Verifying $app"
   codesign --verify --deep --strict --verbose=2 "$app"
-  codesign -dv --verbose=4 "$app" 2>&1 | grep -Fx 'TeamIdentifier=4BHY8H2J25'
-  codesign -dv "$app" 2>&1 | grep -Eq 'flags=0x[0-9a-f]*\(runtime\)'
-  spctl --assess --type execute --verbose=2 "$app" 2>&1 | grep -F 'source=Notarized Developer ID'
+  local signature
+  local assessment
+  # Capture complete reports before grep: a quiet match can otherwise close
+  # the pipe early and turn a valid codesign result into SIGPIPE under pipefail.
+  signature="$(codesign -dv --verbose=4 "$app" 2>&1)"
+  grep -Fx 'TeamIdentifier=4BHY8H2J25' <<< "$signature"
+  grep -Eq 'flags=0x[0-9a-f]*\(runtime\)' <<< "$signature"
+  assessment="$(spctl --assess --type execute --verbose=2 "$app" 2>&1)"
+  grep -F 'source=Notarized Developer ID' <<< "$assessment"
   xcrun stapler validate "$app"
   local archs
   local binary
