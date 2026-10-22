@@ -76,6 +76,8 @@ test("signed desktop builds force signing; unsigned Mac builds skip identity and
   const signed = config("direct", true);
   assert.equal(signed.forceCodeSigning, true);
   assert.equal(signed.mac.hardenedRuntime, true);
+  assert.equal(signed.mac.notarize, false);
+  assert.equal(signed.afterSign, "./scripts/release/notarize.cjs");
   assert.equal(signed.win.signtoolOptions.sign, "./scripts/sign-windows.cjs");
   assert.equal(signed.win.signtoolOptions.publisherName, "Ricos Labs LLC");
   assert.deepEqual(signed.win.signtoolOptions.signingHashAlgorithms, ["sha256"]);

@@ -59,6 +59,13 @@ export async function verifyDepot(target, platform, depot) {
   assertPackagedChannel(join(resources,"app.asar"),target);
   await nonempty(join(resources,"client-bundle","en","index.html"));
   const files = await readdir(depot,{recursive:true,withFileTypes:true});
+  const actualDepot = await realpath(depot);
+  for (const entry of files.filter(e => e.isSymbolicLink())) {
+    const target = await realpath(join(entry.parentPath,entry.name));
+    if (target !== actualDepot && !target.startsWith(actualDepot + sep)) {
+      throw Error("Depot contains a symlink outside its directory");
+    }
+  }
   if (files.some(e => e.isFile() && /^(steam_appid\.txt|\.env(?:\..*)?|reviewer-credentials\.json)$|\.(dmg|AppImage|pdb)$/i.test(e.name))) {
     throw Error("Depot contains a development ID, credential file, installer, or debug file");
   }

@@ -115,8 +115,8 @@ function createBuilderConfig({ base, channel, signed, env = {} }) {
   }
 
   // macOS signing. Developer ID for direct/itch/steam with notarization
-  // from APPLE_API_KEY / APPLE_API_KEY_ID / APPLE_API_ISSUER (read by
-  // electron-builder itself); Apple Distribution + Mac Installer
+  // from a notarytool profile or Apple credentials (read by afterSign);
+  // Apple Distribution + Mac Installer
   // Distribution for MAS with the store provisioning profile.
   if (channel === "mas") {
     const profile = envValue(env, "MAS_PROVISIONING_PROFILE");
@@ -147,6 +147,8 @@ function createBuilderConfig({ base, channel, signed, env = {} }) {
     config.afterPack = "./scripts/release/after-pack.cjs";
   } else if (signed) {
     config.mac.hardenedRuntime = true;
+    config.mac.notarize = false;
+    config.afterSign = "./scripts/release/notarize.cjs";
   } else {
     // An ad-hoc signature has no Team ID, and the hardened runtime's
     // library validation then refuses Electron Framework at launch.

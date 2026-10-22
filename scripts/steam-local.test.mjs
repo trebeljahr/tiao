@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { once } from "node:events";
-import { chmod, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readFile, readlink, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -54,6 +54,28 @@ test("invalid input cannot replace the last usable local stage",async()=>{
     writeAsar(join(demo,"Contents","Resources","app.asar"),{"package.json":JSON.stringify({distributionChannel:"steam-demo",steamBuild:true,steamDemo:true,steamAppId:5035580})});
     await assert.rejects(stage("steam-demo","macos",demo,root),/appid/);
     await verifyDepot("steam-demo","macos",staged);
+  } finally { await rm(directory,{recursive:true,force:true}); }
+});
+
+test("macOS framework links remain relative and cannot point outside the staged depot",async()=>{
+  const directory = await mkdtemp(join(tmpdir(),"tiao-local-links-"));
+  try {
+    const app = await fixture(directory,"steam-demo");
+    const framework = join(app,"Contents","Frameworks","Example.framework");
+    await mkdir(join(framework,"Versions","A"),{recursive:true});
+    await writeFile(join(framework,"Versions","A","Example"),"framework fixture");
+    await symlink("A",join(framework,"Versions","Current"));
+    await symlink("Versions/Current/Example",join(framework,"Example"));
+    const root = join(directory,"work");
+    const depot = await stage("steam-demo","macos",app,root);
+    const stagedFramework = join(depot,"Tiao Demo.app","Contents","Frameworks","Example.framework");
+    assert.equal(await readlink(join(stagedFramework,"Versions","Current")),"A");
+    assert.equal(await readlink(join(stagedFramework,"Example")),"Versions/Current/Example");
+    assert.equal(await readFile(join(stagedFramework,"Example"),"utf8"),"framework fixture");
+    await writeFile(join(directory,"private"),"must stay outside");
+    await symlink(join(directory,"private"),join(framework,"escape"));
+    await assert.rejects(stage("steam-demo","macos",app,root),/symlink outside/);
+    await verifyDepot("steam-demo","macos",depot);
   } finally { await rm(directory,{recursive:true,force:true}); }
 });
 
