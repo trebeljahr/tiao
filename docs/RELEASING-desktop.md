@@ -325,3 +325,60 @@ hosted signed run plus installed-app testing establishes release readiness.
   ad-hoc-signed app; only the verify scripts catch it.
 - The direct updater stays off until `TIAO_ENABLE_UPDATER=1` is baked in
   deliberately; draft releases already carry `latest*.yml` and blockmaps.
+
+## Full game and demo local SteamPipe workflow
+
+The full game (`5035580`) and demo (`5491870`) have separate products and depots
+in `desktop/steam-apps.json`. This mirrors Mesozoic Protocol's local staging,
+local build VDF, and loopback content server. It does not upload a build, set a
+remote branch live, install client configuration, or launch the game.
+
+```bash
+# Build the host platform, default target is the demo.
+pnpm steam:local:build --target steam-demo
+pnpm steam:local:build --target steam
+
+# On a Mac with Developer ID + notarization credentials, build universal and verify.
+pnpm steam:local:build --target steam-demo --signed
+
+# Or stage the verified output from hosted CI (the .app on macOS).
+pnpm steam:local:stage --target steam-demo --platform macos --source '/path/Tiao Demo.app'
+pnpm steam:local:stage --target steam --platform windows --source '/path/win-unpacked'
+pnpm steam:local:stage --target steam-demo --platform linux --source '/path/linux-unpacked'
+
+# Prepare one or several staged platforms. Choose a free high port.
+pnpm steam:local:prepare --target steam-demo --platform macos --port 52871
+pnpm steam:local:serve --target steam-demo
+```
+
+Output stays in ignored `.steam-local/steam/` or `.steam-local/steam-demo/`.
+Only `htdocs/` is served, on `127.0.0.1`; traversal, symlink escapes, and writes
+are rejected. An occupied port fails instead of displacing another server.
+Stop the foreground server with Ctrl+C when finished.
+
+Preparation writes `scripts/app_build_local.vdf`, per-platform depot VDFs,
+and `steam_dev.cfg`. Use Valve's SteamCMD with your existing authorized login
+to run that VDF. Its `local` field builds chunks into `htdocs`, and `setlive`
+is empty. After creating the metadata build, select the **local** branch in
+Steamworks. Never select **default** for local content. To test locally,
+back up any existing Steam client `steam_dev.cfg` before installing the
+prepared file; restore it after testing. The tool never overwrites another
+game's local-server configuration. Use one target/server configuration at a time.
+
+**Branches for both AppIDs:** `internal` receives hosted CI builds, `local`
+selects local content-server builds, and `default` is the release branch.
+Protect `internal` and `local` with dashboard beta access codes. Steam creates
+`default` automatically and it stays public. No CI publisher may set `default`
+live; use the Steamworks release flow after installed-build QA. Demo upload
+uses `destination=steam-demo`, `steam_branch=-` for upload only, and its own
+three `STEAM_DEMO_DEPOT_*` variables in `release-steam`.
+
+Local macOS signing reuses the installed Developer ID identity. Optional
+`desktop/.env.release` is parsed as environment data, with existing variables
+taking precedence. Set `APPLE_KEYCHAIN_PROFILE` there, or supply a complete
+Apple API-key / Apple ID notarization configuration. No signing key is copied
+into Git. The build requires the lockfile's electron-builder version with the
+macOS keychain fix, forces signing and hardened runtime, then verifies the
+Team ID, universal slices, notarization, Gatekeeper assessment, and stapled
+ticket before staging. A signed Windows build uses the hosted Azure OIDC
+workflow; its final executables must pass the existing signature gate.

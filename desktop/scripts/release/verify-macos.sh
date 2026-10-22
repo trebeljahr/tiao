@@ -11,20 +11,8 @@ cleanup() {
   rm -rf "$scratch"
 }
 trap cleanup EXIT
-verify_app() {
-  local app="$1"
-  echo "Verifying $app"
-  codesign --verify --deep --strict --verbose=2 "$app"
-  codesign -dv --verbose=4 "$app" 2>&1 | grep -Fx 'TeamIdentifier=4BHY8H2J25'
-  codesign -dv "$app" 2>&1 | grep -Eq 'flags=0x[0-9a-f]*\(runtime\)'
-  spctl --assess --type execute --verbose=2 "$app" 2>&1 | grep -F 'source=Notarized Developer ID'
-  xcrun stapler validate "$app"
-  local archs
-  local binary
-  binary="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Contents/Info.plist")"
-  archs="$(lipo -archs "$app/Contents/MacOS/$binary")"
-  [[ "$archs" == *x86_64* && "$archs" == *arm64* ]] || { echo "Not universal: $archs" >&2; exit 1; }
-}
+verify_app() { bash "$(dirname "$0")/verify-app-macos.sh" "$1"; }
+
 expect_one() {
   local label="$1"; shift
   [[ $# -eq 1 && -e "$1" ]] || { echo "Expected exactly one $label." >&2; exit 1; }

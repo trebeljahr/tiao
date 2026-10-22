@@ -16,7 +16,7 @@
     "dev:build-client": "npm --prefix ../client run build:desktop && rm -rf client-bundle && cp -R ../client/.next-desktop/. client-bundle",
     "dev:rebuild-client": "npm run dev:build-client",
     "typecheck": "tsc --noEmit",
-    "test": "node --test 'src/**/*.test.cjs' 'scripts/release/*.test.mjs'",
+    "test": "node --test 'src/**/*.test.cjs' 'scripts/release/*.test.mjs' ../scripts/steam-local.test.mjs",
     "package": "electron-builder --config electron-builder.config.cjs --publish never",
     "package:all": "electron-builder --config electron-builder.config.cjs -mwl --publish never",
     "package:steam": "TIAO_DISTRIBUTION_CHANNEL=steam electron-builder --config electron-builder.config.cjs --publish never",

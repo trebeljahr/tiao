@@ -1,11 +1,21 @@
 {
   "steam": {
     "appId": 5035580,
-    "productName": "Tiao"
+    "productName": "Tiao",
+    "depots": {
+      "windows": 5035581,
+      "macos": 5035582,
+      "linux": 5035583
+    }
   },
   "steam-demo": {
     "appId": 5491870,
     "productName": "Tiao Demo",
-    "parentAppId": 5035580
+    "parentAppId": 5035580,
+    "depots": {
+      "windows": 5491871,
+      "macos": 5491872,
+      "linux": 5491873
+    }
   }
 }

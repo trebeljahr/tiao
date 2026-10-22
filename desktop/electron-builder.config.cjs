@@ -1,6 +1,6 @@
 // electron-builder entry point: `electron-builder --config electron-builder.config.cjs`.
 //
-// TIAO_DISTRIBUTION_CHANNEL  direct | itch | steam | mas | msstore (default direct)
+// TIAO_DISTRIBUTION_CHANNEL  direct | itch | steam | steam-demo | mas | msstore (default direct)
 // TIAO_SIGNED=1              force signing (CI release mode); otherwise unsigned
 // See scripts/release/builder-config.cjs and ../docs/RELEASING-desktop.md.
 const { build } = require("./package.json");

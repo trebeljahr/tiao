@@ -111,3 +111,6 @@ output/playwright/store-ui/*/
 
 # wrangler dev state (client/serve-export.mjs)
 **/.wrangler/
+
+# Local SteamPipe chunks and staging (never credentials or release artifacts).
+.steam-local/
