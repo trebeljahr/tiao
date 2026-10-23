@@ -3,7 +3,8 @@ import { test } from "node:test";
 import type Redis from "ioredis";
 import { RedisRoomPresence } from "../game/presence";
 
-test("presence shutdown waits for a delayed renewal before deleting its member", async () => {
+test("presence shutdown waits for a delayed renewal before deleting its member", async (t) => {
+  t.mock.timers.enable({ apis: ["setInterval"] });
   const members = new Set<string>();
   let calls = 0;
   let release!: () => void;
@@ -29,15 +30,14 @@ test("presence shutdown waits for a delayed renewal before deleting its member",
       return 1;
     },
   } as unknown as Redis;
-  const presence = new RedisRoomPresence(redis, 60);
-  // Keep the test alive while the production interval is unref'ed.
-  const keepAlive = setTimeout(() => undefined, 2000);
+  const presence = new RedisRoomPresence(redis, 15_000);
   try {
     await presence.join("socket", "room", {
       playerId: "guest",
       displayName: "Guest",
       kind: "guest",
     });
+    t.mock.timers.tick(5_000);
     await renewalStarted;
     let closed = false;
     const closing = presence.close().then(() => {
@@ -52,6 +52,5 @@ test("presence shutdown waits for a delayed renewal before deleting its member",
   } finally {
     release();
     await presence.close();
-    clearTimeout(keepAlive);
   }
 });
