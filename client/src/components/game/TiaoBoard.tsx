@@ -44,6 +44,9 @@ type TiaoBoardProps = {
   disabled?: boolean;
   confirmReady?: boolean;
   lastMove?: LastMoveHighlight;
+  showCoordinates?: boolean;
+  /** Pages with separate turn buttons can keep edge intersections unobstructed. */
+  showJumpControls?: boolean;
   onPointClick?: (position: Position) => void;
   onUndoLastJump?: () => void;
   onConfirmJump?: () => void;
@@ -56,6 +59,8 @@ export function TiaoBoard({
   disabled = false,
   confirmReady = true,
   lastMove,
+  showCoordinates = false,
+  showJumpControls = true,
   onPointClick,
   onUndoLastJump,
   onConfirmJump,
@@ -468,7 +473,10 @@ export function TiaoBoard({
 
   return (
     <div
-      className={cn("relative z-0 overflow-hidden rounded-4xl border p-3")}
+      className={cn(
+        "relative z-0 overflow-hidden rounded-4xl border",
+        showCoordinates ? "p-6" : "p-3",
+      )}
       style={{
         borderColor: theme.boardBorder,
         background: theme.boardBg,
@@ -479,12 +487,33 @@ export function TiaoBoard({
         className="pointer-events-none absolute inset-0"
         style={{ background: theme.boardSheen }}
       />
+      {showCoordinates &&
+        Array.from({ length: bs }, (_, index) => {
+          // Align with the inner grid, accounting for the optional 24px padding.
+          const coordinate = `calc(${pp(index)}% + ${24 * (1 - (2 * pp(index)) / 100)}px)`;
+          return (
+            // biome-ignore lint/suspicious/noArrayIndexKey: fixed coordinate labels
+            <span key={index} className="pointer-events-none" aria-hidden="true">
+              <span
+                className="absolute top-1.5 -translate-x-1/2 text-[10px] font-semibold"
+                style={{ left: coordinate, color: theme.gridLineColor }}
+              >
+                {String.fromCharCode(65 + index)}
+              </span>
+              <span
+                className="absolute left-2 -translate-y-1/2 text-[10px] font-semibold"
+                style={{ top: coordinate, color: theme.gridLineColor }}
+              >
+                {index + 1}
+              </span>
+            </span>
+          );
+        })}
       <div
         ref={boardRef}
         data-testid="tiao-board"
         className={cn(
-          "relative aspect-square w-full rounded-[1.55rem]",
-          IS_TOUCH_DEVICE && "touch-none",
+          "relative aspect-square w-full rounded-[1.55rem] touch-none",
           zoom.isAnimating &&
             "transition-transform duration-250 ease-[cubic-bezier(0.22,1,0.36,1)]",
         )}
@@ -603,6 +632,11 @@ export function TiaoBoard({
               key={pieceKey}
               type="button"
               data-testid={`cell-${position.x}-${position.y}`}
+              aria-label={
+                showCoordinates
+                  ? `${String.fromCharCode(65 + position.x)}${position.y + 1}: ${piece ?? "empty"}`
+                  : undefined
+              }
               data-piece={piece ?? undefined}
               data-last-move={isLastMove || undefined}
               disabled={disabled}
@@ -887,7 +921,7 @@ export function TiaoBoard({
         mobilePreview={mobilePreview}
         mobilePreviewValid={mobilePreviewValid}
         disabled={disabled}
-        hasPendingJump={hasPendingJump}
+        hasPendingJump={hasPendingJump && showJumpControls}
         zoom={{ isZoomed: zoom.isZoomed, scale: zoom.scale, resetZoom: zoom.resetZoom }}
         onCancelPreview={() => setMobilePreview(null)}
         onConfirmPreview={(pos) => {

@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import withSerwistInit from "@serwist/next";
-import { PHASE_PRODUCTION_BUILD } from "next/constants.js";
+import { PHASE_DEVELOPMENT_SERVER, PHASE_PRODUCTION_BUILD } from "next/constants.js";
 import createNextIntlPlugin from "next-intl/plugin";
 
 // Desktop Electron static-export build is selected via the env var.
@@ -78,7 +78,13 @@ function getAppVersion() {
  *   server with the locale middleware.
  * @returns {import('next').NextConfig}
  */
-const createNextConfig = (isWebExport) => ({
+const createNextConfig = (isWebExport, isDevelopment) => ({
+  // A page.dev.tsx is a route only in next dev. Production web, desktop and
+  // mobile builds never discover it, so neither the route nor its answers
+  // enter the exported HTML or client chunks.
+  pageExtensions: isDevelopment
+    ? ["dev.tsx", "tsx", "ts", "jsx", "js"]
+    : ["tsx", "ts", "jsx", "js"],
   reactStrictMode: true,
   allowedDevOrigins: ["192.168.0.*", "192.168.1.*", "localhost", "127.0.0.1"],
   outputFileTracingRoot: path.resolve(__dirname, ".."),
@@ -226,5 +232,7 @@ const createNextConfig = (isWebExport) => ({
 
 export default function nextConfig(phase) {
   const isWebExport = phase === PHASE_PRODUCTION_BUILD && !IS_NATIVE_EXPORT;
-  return withSerwist(withNextIntl(createNextConfig(isWebExport)));
+  return withSerwist(
+    withNextIntl(createNextConfig(isWebExport, phase === PHASE_DEVELOPMENT_SERVER)),
+  );
 }

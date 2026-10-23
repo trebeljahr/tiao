@@ -387,6 +387,23 @@ export function Navbar({
         </svg>
       ),
     },
+    ...(process.env.NODE_ENV === "development"
+      ? [
+          {
+            label: "Puzzle studies",
+            href: "/puzzles",
+            active: pathname === "/puzzles",
+            badge: 0,
+            icon: (
+              <svg aria-hidden="true" {...iconProps}>
+                <path {...pathProps} d="M4 4h16v16H4zM4 12h16M12 4v16" />
+                <circle {...pathProps} cx="8" cy="8" r="1.5" />
+                <circle {...pathProps} cx="16" cy="16" r="1.5" />
+              </svg>
+            ),
+          },
+        ]
+      : []),
     {
       label: t("about"),
       href: "/about",
