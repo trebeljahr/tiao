@@ -1,0 +1,244 @@
+{
+  "method": "Source-frame inspection of committed placements, origin vacancy on actual jumps, and captured-stone removal on confirmation. Hover/preview arrows are excluded. Frames are zero-based at 30 fps.",
+  "sources": [
+    {
+      "file": "rules.webm",
+      "fps": 30,
+      "sha256": "14e13ff801738ddd97a7c896486efb93f32ea0137a85161546a11aeb20426e5b",
+      "events": [
+        {
+          "id": "rules-0",
+          "kind": "place",
+          "color": "white",
+          "position": {
+            "x": 9,
+            "y": 9
+          },
+          "frame": 51
+        },
+        {
+          "id": "rules-1",
+          "kind": "place",
+          "color": "black",
+          "position": {
+            "x": 10,
+            "y": 9
+          },
+          "frame": 79
+        },
+        {
+          "id": "rules-2",
+          "kind": "jump",
+          "color": "white",
+          "from": {
+            "x": 9,
+            "y": 9
+          },
+          "to": {
+            "x": 11,
+            "y": 9
+          },
+          "frame": 174
+        },
+        {
+          "id": "rules-3",
+          "kind": "confirm",
+          "color": "white",
+          "captures": [
+            {
+              "x": 10,
+              "y": 9
+            }
+          ],
+          "frame": 210
+        }
+      ],
+      "grid": {
+        "origin": [296.46, 78.46],
+        "spacing": 51.282
+      }
+    },
+    {
+      "file": "chain.webm",
+      "fps": 30,
+      "sha256": "842ca1ef2e087effe03df20fdc7a1aba364d0d4bc58174f3bd70d13a01490f5b",
+      "events": [
+        {
+          "id": "chain-0",
+          "kind": "jump",
+          "color": "black",
+          "from": {
+            "x": 7,
+            "y": 9
+          },
+          "to": {
+            "x": 5,
+            "y": 9
+          },
+          "frame": 76
+        },
+        {
+          "id": "chain-1",
+          "kind": "jump",
+          "color": "black",
+          "from": {
+            "x": 5,
+            "y": 9
+          },
+          "to": {
+            "x": 7,
+            "y": 11
+          },
+          "frame": 116
+        },
+        {
+          "id": "chain-2",
+          "kind": "jump",
+          "color": "black",
+          "from": {
+            "x": 7,
+            "y": 11
+          },
+          "to": {
+            "x": 7,
+            "y": 9
+          },
+          "frame": 157
+        },
+        {
+          "id": "chain-3",
+          "kind": "jump",
+          "color": "black",
+          "from": {
+            "x": 7,
+            "y": 9
+          },
+          "to": {
+            "x": 9,
+            "y": 9
+          },
+          "frame": 198
+        },
+        {
+          "id": "chain-4",
+          "kind": "confirm",
+          "color": "black",
+          "captures": [
+            {
+              "x": 6,
+              "y": 9
+            },
+            {
+              "x": 6,
+              "y": 10
+            },
+            {
+              "x": 7,
+              "y": 10
+            },
+            {
+              "x": 8,
+              "y": 9
+            }
+          ],
+          "frame": 242
+        }
+      ],
+      "grid": {
+        "origin": [296.46, 70.46],
+        "spacing": 51.282
+      }
+    },
+    {
+      "file": "win.webm",
+      "fps": 30,
+      "sha256": "e1348722b4d4ece85f587b9aadd90f41e785e0a65b953ce0431f2bd57258e206",
+      "events": [
+        {
+          "id": "win-0",
+          "kind": "jump",
+          "color": "black",
+          "from": {
+            "x": 7,
+            "y": 14
+          },
+          "to": {
+            "x": 5,
+            "y": 14
+          },
+          "frame": 72
+        },
+        {
+          "id": "win-1",
+          "kind": "jump",
+          "color": "black",
+          "from": {
+            "x": 5,
+            "y": 14
+          },
+          "to": {
+            "x": 5,
+            "y": 12
+          },
+          "frame": 112
+        },
+        {
+          "id": "win-2",
+          "kind": "jump",
+          "color": "black",
+          "from": {
+            "x": 5,
+            "y": 12
+          },
+          "to": {
+            "x": 3,
+            "y": 14
+          },
+          "frame": 157
+        },
+        {
+          "id": "win-3",
+          "kind": "jump",
+          "color": "black",
+          "from": {
+            "x": 3,
+            "y": 14
+          },
+          "to": {
+            "x": 3,
+            "y": 16
+          },
+          "frame": 197
+        },
+        {
+          "id": "win-4",
+          "kind": "confirm",
+          "color": "black",
+          "captures": [
+            {
+              "x": 6,
+              "y": 14
+            },
+            {
+              "x": 5,
+              "y": 13
+            },
+            {
+              "x": 4,
+              "y": 13
+            },
+            {
+              "x": 3,
+              "y": 15
+            }
+          ],
+          "frame": 242
+        }
+      ],
+      "grid": {
+        "origin": [296.46, 70.46],
+        "spacing": 51.282
+      }
+    }
+  ]
+}

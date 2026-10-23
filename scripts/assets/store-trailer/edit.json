@@ -1,5 +1,5 @@
 {
-  "title": "Tiao — original piano trailer",
+  "title": "Tiao — piano trailer with synchronized moves",
   "source": "Shipped Tiao UI; legal local match replays and isolated sample social/tournament accounts",
   "duration": 50.2,
   "style": {
@@ -228,7 +228,8 @@
       "speed": 1.25,
       "crop": [230, 20, 1580, 889],
       "name": "Full legal match, accelerating — 1",
-      "timelineStart": 38.7
+      "timelineStart": 38.7,
+      "moveSounds": false
     },
     {
       "kind": "footage",
@@ -238,7 +239,8 @@
       "speed": 1.5384615384615383,
       "crop": [340, 200, 1040, 585],
       "name": "Full legal match, accelerating — 2",
-      "timelineStart": 40.3
+      "timelineStart": 40.3,
+      "moveSounds": false
     },
     {
       "kind": "footage",
@@ -248,7 +250,8 @@
       "speed": 2.0,
       "crop": [230, 20, 1580, 889],
       "name": "Full legal match, accelerating — 3",
-      "timelineStart": 41.6
+      "timelineStart": 41.6,
+      "moveSounds": false
     },
     {
       "kind": "footage",
@@ -258,7 +261,8 @@
       "speed": 2.5,
       "crop": [340, 200, 1040, 585],
       "name": "Full legal match, accelerating — 4",
-      "timelineStart": 42.6
+      "timelineStart": 42.6,
+      "moveSounds": false
     },
     {
       "kind": "footage",
@@ -268,7 +272,8 @@
       "speed": 3.3333333333333335,
       "crop": [230, 20, 1580, 889],
       "name": "Full legal match, accelerating — 5",
-      "timelineStart": 43.4
+      "timelineStart": 43.4,
+      "moveSounds": false
     },
     {
       "kind": "footage",
@@ -278,7 +283,8 @@
       "speed": 6.5,
       "crop": [340, 200, 1040, 585],
       "name": "Full legal match, accelerating — 6",
-      "timelineStart": 44.0
+      "timelineStart": 44.0,
+      "moveSounds": false
     },
     {
       "kind": "footage",
@@ -311,26 +317,6 @@
   ],
   "sounds": [
     {
-      "type": "tap",
-      "time": 0.2,
-      "gain": 0.5
-    },
-    {
-      "type": "tap",
-      "time": 0.65,
-      "gain": 0.5
-    },
-    {
-      "type": "tap",
-      "time": 1.1,
-      "gain": 0.5
-    },
-    {
-      "type": "tap",
-      "time": 1.55,
-      "gain": 0.5
-    },
-    {
       "type": "whoosh",
       "time": 2
     },
@@ -343,26 +329,6 @@
       "time": 5.1
     },
     {
-      "type": "tap",
-      "time": 5.3,
-      "gain": 0.5
-    },
-    {
-      "type": "tap",
-      "time": 5.75,
-      "gain": 0.5
-    },
-    {
-      "type": "tap",
-      "time": 6.2,
-      "gain": 0.5
-    },
-    {
-      "type": "tap",
-      "time": 6.65,
-      "gain": 0.5
-    },
-    {
       "type": "whoosh",
       "time": 7.7
     },
@@ -371,57 +337,12 @@
       "time": 9.2
     },
     {
-      "type": "tap",
-      "time": 9.4,
-      "gain": 0.5
-    },
-    {
-      "type": "tap",
-      "time": 9.85,
-      "gain": 0.5
-    },
-    {
-      "type": "tap",
-      "time": 10.3,
-      "gain": 0.5
-    },
-    {
-      "type": "tap",
-      "time": 10.75,
-      "gain": 0.5
-    },
-    {
       "type": "whoosh",
       "time": 13.0
     },
     {
       "type": "whoosh",
       "time": 14.5
-    },
-    {
-      "type": "tap",
-      "time": 14.7,
-      "gain": 0.5
-    },
-    {
-      "type": "tap",
-      "time": 15.15,
-      "gain": 0.5
-    },
-    {
-      "type": "tap",
-      "time": 15.6,
-      "gain": 0.5
-    },
-    {
-      "type": "tap",
-      "time": 16.05,
-      "gain": 0.5
-    },
-    {
-      "type": "tap",
-      "time": 18.6,
-      "gain": 0.5
     },
     {
       "type": "whoosh",
@@ -468,63 +389,8 @@
       "time": 38.7
     },
     {
-      "type": "tap",
-      "time": 38.8,
-      "gain": 0.5
-    },
-    {
-      "type": "tap",
-      "time": 40.4,
-      "gain": 0.5
-    },
-    {
-      "type": "tap",
-      "time": 41.7,
-      "gain": 0.5
-    },
-    {
-      "type": "tap",
-      "time": 42.7,
-      "gain": 0.5
-    },
-    {
-      "type": "tap",
-      "time": 43.5,
-      "gain": 0.5
-    },
-    {
-      "type": "tap",
-      "time": 44.1,
-      "gain": 0.5
-    },
-    {
       "type": "whoosh",
       "time": 44.4
-    },
-    {
-      "type": "tap",
-      "time": 44.6,
-      "gain": 0.5
-    },
-    {
-      "type": "tap",
-      "time": 45.05,
-      "gain": 0.5
-    },
-    {
-      "type": "tap",
-      "time": 45.5,
-      "gain": 0.5
-    },
-    {
-      "type": "tap",
-      "time": 45.95,
-      "gain": 0.5
-    },
-    {
-      "type": "tap",
-      "time": 47.0,
-      "gain": 0.5
     }
   ],
   "music": {
@@ -559,6 +425,12 @@
     "fadeOut": 1.2,
     "targetPeakDb": -8
   },
-  "outputName": "tiao-custom-piano.mp4",
-  "audioDescription": "Original Next Move piano composition, native game taps and normalized transition swooshes; music ducks at each transition."
+  "outputName": "tiao-move-synced.mp4",
+  "audioDescription": "Original Next Move piano, source-frame synchronized move sounds and normalized transition swooshes; no click pulse during the compressed match buildup.",
+  "moveSounds": {
+    "file": "scripts/assets/store-trailer/move-events.json",
+    "gain": 0.5,
+    "timing": "Source frame mapped through shot trim and playback speed, rounded to output frame",
+    "montage": "Music carries the compressed buildup; no artificial click pulse."
+  }
 }

@@ -2,7 +2,7 @@
 
 The current local selection and checksum are in `scripts/store-trailer-current.json`. A local selection does not change the uploaded trailer.
 
-`pnpm store:trailer` renders the 50.2-second energetic edit from `build/store-trailer-v5/raw/` to `build/store-trailer-v5/tiao-custom-piano.mp4`. The selected stable copy is `build/store-trailer/tiao-gameplay-current.mp4`; the distinct review copy is `build/store-trailer/tiao-custom-piano.mp4`.
+`pnpm store:trailer` renders the 50.2-second energetic edit from `build/store-trailer-v6/raw/` to `build/store-trailer-v6/tiao-move-synced.mp4`. The selected stable copy is `build/store-trailer/tiao-gameplay-current.mp4`; the distinct review copy is `build/store-trailer/tiao-move-synced.mp4`.
 
 ## Inputs and rebuild
 
@@ -28,13 +28,17 @@ Rules first, friends at 20s, tournament bracket/final at 25s, badges/achievement
 The performance has deterministic timing/velocity variation, pedal releases at harmonic changes and a short dark room. The 54-second lossless performance is archived; the tracked 320 kbps MP3 is the production input, trimmed/faded to 50.2s. The MIDI and score JSON are tracked under `music/`.
 
 ```sh
-node scripts/compose-trailer-piano.mjs build/store-trailer-v5
-python3 scripts/render-trailer-piano.py build/store-trailer-v5/piano-score.json build/store-trailer-v5/audio/next-move-original.wav
+node scripts/compose-trailer-piano.mjs build/store-trailer-v6
+python3 scripts/render-trailer-piano.py build/store-trailer-v6/piano-score.json build/store-trailer-v6/audio/next-move-original.wav
 ```
 
 The Python renderer requires NumPy, SciPy, FFmpeg and the installed sample directory named in the score. It selects nearby soft/medium velocity samples, resamples pitch by at most four semitones and renders the completed arrangement offline. It never opens a speaker device. Regenerating the production MP3 uses `libmp3lame -b:a 320k`; preserve the full lossless render in the vault.
 
-Music ducks by 10 dB at transitions; swooshes normalize to −7 dBFS peak before final mastering, with their peak aligned to the cut. The mix report checks each cue’s effect/music contrast and every second of the music for unexpected silence. Master target is −16 LUFS / −2 dBFS true peak, with static gain constrained by peaks. Verify the encoded AAC, not just the stems. The original in-key piano cadence replaces the stock closing impact. The previous Meydän credit is removed from the new closing card; it remains in the previous export/archive.
+Music ducks by 10 dB at transitions; swooshes normalize to −7 dBFS peak before final mastering, with their peak aligned to the cut. The mix report checks each cue’s effect/music contrast and every second of the music for unexpected silence. Master target is −16 LUFS / −2 dBFS true peak, with static gain constrained by peaks. Verify the encoded AAC, not just the stems. Move sounds come from `move-events.json`: 14 verified source-frame actions projected into 19 cues because the chain recording appears twice. Only committed placements, origin vacancy on jumps and captured-piece removal on confirmation qualify. Hover arrows, selection and ghost previews do not. The renderer projects frames through each shot’s trim and speed, rounds to the output frame and checks available source hashes. Manual global `tap` cues are rejected when the manifest is enabled.
+
+The compressed `prepare-win.webm` montage explicitly sets `moveSounds: false`; music carries that sequence. The separate `moves.wav` stem allows exact silence checks during previews, static UI and victory holds. `store-trailer-move-sounds.test.mjs` covers the recorded regression frames, trim/speed/reuse, montage opt-out and rejection of uncorrelated taps. All exported cue frames are audited in the current vault bundle.
+
+The original in-key piano cadence replaces the stock closing impact. The previous Meydän credit is removed from the new closing card; it remains in the previous export/archive.
 
 ## Capture and provenance
 
@@ -44,4 +48,4 @@ Original phases: `setup`, `rules`, `prepare-chain`, `chain`, `prepare-win`, `win
 
 Gameplay is clicked through the real local game UI. Every move is replayed through the shared engine. Social, tournament and earned-item views use fictional sample accounts with coherent fixture history and owned themes; no live invitations, results, purchases or account changes. External requests are blocked. Zoom and cropping improve presentation without altering shipped UI components. Feature records are illustrative history, not achievements awarded for the four-hop match shown later.
 
-The vault preserves new recordings, reused source references, previous cuts, selected export, QA and checksums. Media remains local-only; recipes, source audio and selection metadata are tracked. `previous-current.json`, `rules-overlay-current.json` `intertitles-piano-current.json` and `energy-finale-current.json` retain earlier selections. `store-trailer-replay.mjs` preserves the original 30-second encoder.
+The vault preserves new recordings, reused source references, previous cuts, selected export, QA and checksums. Media remains local-only; recipes, source audio and selection metadata are tracked. `previous-current.json`, `rules-overlay-current.json` `intertitles-piano-current.json`, `energy-finale-current.json` and `custom-piano-current.json` retain earlier selections. `store-trailer-replay.mjs` preserves the original 30-second encoder.

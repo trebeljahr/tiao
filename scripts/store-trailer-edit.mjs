@@ -3,23 +3,39 @@
 // SHARP_MODULE may point to a separately installed Sharp package.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
+import { projectMoveSounds } from "./store-trailer-move-sounds.mjs";
 
 const require = createRequire(import.meta.url);
 const sharp = require(process.env.SHARP_MODULE || "sharp");
 sharp.concurrency(1);
 const root = resolve(
-  process.argv.slice(2).find((a) => !a.startsWith("--")) || "build/store-trailer-v5",
+  process.argv.slice(2).find((a) => !a.startsWith("--")) || "build/store-trailer-v6",
 );
 const editPath =
   process.argv.find((a) => a.startsWith("--edit="))?.slice(7) ||
   "scripts/assets/store-trailer/edit.json";
 const edit = JSON.parse(readFileSync(editPath, "utf8"));
+const moveManifest = edit.moveSounds
+  ? JSON.parse(readFileSync(edit.moveSounds.file, "utf8"))
+  : null;
+const moveCues = moveManifest ? projectMoveSounds(edit, moveManifest) : [];
+const sounds = [...edit.sounds, ...moveCues].sort((a, b) => a.time - b.time);
 const audioOnly = process.argv.includes("--audio-only");
-const outputName = edit.outputName || "tiao-custom-piano.mp4";
+const outputName = edit.outputName || "tiao-move-synced.mp4";
 const selectedShot = process.argv.find((a) => a.startsWith("--shot="))?.slice(7);
+for (const source of moveManifest?.sources || []) {
+  const file = resolve(root, "raw", source.file);
+  if (existsSync(file))
+    assert.equal(
+      createHash("sha256").update(readFileSync(file)).digest("hex"),
+      source.sha256,
+      "Move timing belongs to a different recording: " + source.file,
+    );
+}
 for (const dir of ["graphics", "cut", "audio"]) mkdirSync(resolve(root, dir), { recursive: true });
 const run = (args, options = {}) => {
   const r = spawnSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", ...args], {
@@ -195,12 +211,13 @@ const samples = new Float32Array(Math.ceil(duration * 48000) * 2);
 const music = decode(resolve(root, "audio", "music.wav"));
 assert(music.length >= samples.length - 960, "Music bed is shorter than the cut");
 const effects = new Float32Array(samples.length);
+const moves = new Float32Array(samples.length);
 const duckedMusic = new Float32Array(samples.length);
 const taps = decode("client/public/move.mp3");
 const whoosh = decode(edit.transition.file, edit.transition.duration);
 const hit = decode(edit.endHit.file, edit.endHit.duration);
 const peak = (stem) => stem.reduce((n, v) => Math.max(n, Math.abs(v)), 0);
-const duckEvents = edit.sounds.filter((e) => e.type !== "tap");
+const duckEvents = sounds.filter((e) => e.type !== "tap");
 for (let i = 0; i < samples.length; i += 2) {
   const time = i / 96000;
   let duckDb = 0;
@@ -220,7 +237,7 @@ for (let i = 0; i < samples.length; i += 2) {
   duckedMusic[i] = (music[i] || 0) * gain;
   duckedMusic[i + 1] = (music[i + 1] || 0) * gain;
 }
-for (const event of edit.sounds) {
+for (const event of sounds) {
   const isTap = event.type === "tap";
   const stem = isTap ? taps : event.type === "whoosh" ? whoosh : hit;
   const settings = isTap ? null : event.type === "whoosh" ? edit.transition : edit.endHit;
@@ -235,6 +252,7 @@ for (const event of edit.sounds) {
     const remain = (stem.length - i) / 96000;
     const fade = settings ? Math.min(1, remain / settings.fadeOut) : 1;
     effects[target] += stem[i] * gain * fade;
+    if (isTap) moves[target] += stem[i] * gain * fade;
   }
 }
 for (let i = 0; i < samples.length; i++) samples[i] = duckedMusic[i] + effects[i];
@@ -266,6 +284,7 @@ assert(
 );
 for (const [name, stem] of [
   ["effects", effects],
+  ["moves", moves],
   ["music-ducked", duckedMusic],
 ]) {
   writeFileSync(resolve(root, "audio", name + ".f32"), Buffer.from(stem.buffer));
@@ -337,6 +356,7 @@ run([
 ]);
 const measured = measure(resolve(root, outputName));
 const audioReport = {
+  moveCues,
   musicSource: edit.music,
   beforeMusic,
   musicGainDb: musicGain,
@@ -355,6 +375,7 @@ writeFileSync(
   JSON.stringify(
     {
       ...edit,
+      resolvedMoveSounds: moveCues,
       duration,
       width: 1920,
       height: 1080,

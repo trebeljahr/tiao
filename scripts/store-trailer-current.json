@@ -1,5 +1,5 @@
 {
-  "title": "Tiao — original piano trailer",
+  "title": "Tiao — piano trailer with synchronized moves",
   "selectedOn": "2026-10-23",
   "duration": 50.2,
   "width": 1920,
@@ -7,15 +7,15 @@
   "fps": 30,
   "shotCount": 33,
   "output": "build/store-trailer/tiao-gameplay-current.mp4",
-  "candidate": "build/store-trailer-v5/tiao-custom-piano.mp4",
-  "sha256": "8e7f24d9defed6d455e84231b0905676e7375e56fc8eec0028f67769e1aaefcb",
-  "bytes": 36719369,
+  "candidate": "build/store-trailer-v6/tiao-move-synced.mp4",
+  "sha256": "e4b7848248066ac2147ffddfb4df896d4edba3002556a5b6edc8fbda5321cc45",
+  "bytes": 36719444,
   "videoBitrate": "6 Mbps CBR target",
   "audio": true,
-  "audioDescription": "Original Next Move piano composition, native game taps and normalized transition swooshes; music ducks at each transition.",
+  "audioDescription": "Original Next Move piano, source-frame synchronized move sounds and normalized transition swooshes; no click pulse during the compressed match buildup.",
   "approval": "Local review revision; not approved or uploaded",
   "source": "Actual shipped UI recordings. Legal local game replays; isolated sample social, tournament and profile data.",
-  "note": "Original locally composed piano replaces the licensed Raptor Runner track. Relaxed D-major harmony, steady 99.6 BPM pulse, brighter final phrase and final chord at 48.2s. Picture edit preserved; old music credit removed.",
+  "note": "Move clicks now follow verified committed source frames through trim/speed changes. No clicks during hover previews, selection, settled holds or compressed buildup. All video packets and ducked piano stem preserved exactly.",
   "uploadState": {
     "steam": "New cut is local only. Previous 30-second cut remains uploaded in the store draft.",
     "googlePlay": "not uploaded",
@@ -32,11 +32,11 @@
     "suitableForAllAges": true,
     "countryRestrictions": []
   },
-  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/custom-piano-trailer/",
-  "files": "Original score JSON, editable MIDI, composition/render scripts, production MP3, audio provenance and current selection tracked. Lossless performance, standalone preview, trailer export, stems and QA preserved locally in vault; no Apple sample assets copied.",
+  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/move-sound-sync/",
+  "files": "Renderer, source-frame move manifest, projection helper/tests, QA script, production audio and selection metadata tracked. Corrected video, stems and visual/audio QA preserved locally; prior cut retained.",
   "intertitleCount": 7,
   "brandCardCount": 2,
-  "reviewCopy": "build/store-trailer/tiao-custom-piano.mp4",
+  "reviewCopy": "build/store-trailer/tiao-move-synced.mp4",
   "music": {
     "file": "scripts/assets/store-trailer/audio/next-move-original.mp3",
     "title": "Next Move",
@@ -54,16 +54,23 @@
     "ending": "Original D-major ninth resolves on the logo; replaces the previous stock piano impact to keep the cadence in key."
   },
   "audioMeasurements": {
-    "integratedLufs": -17.1,
+    "integratedLufs": -16.9,
     "truePeakDbfs": -2
   },
   "previousLocalSelection": {
     "duration": 50.2,
-    "sha256": "7a948a3f0f2234d1b2411ab9097ade58e44e3f62d859b37be70e37c3b5a0d0b5",
-    "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/energy-finale-trailer/"
+    "sha256": "8e7f24d9defed6d455e84231b0905676e7375e56fc8eec0028f67769e1aaefcb",
+    "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/custom-piano-trailer/"
   },
   "audioValidation": {
-    "minimumTransitionAboveDuckedMusicDb": 10.34562583764406,
+    "minimumTransitionAboveDuckedMusicDb": 10.28979362697152,
     "allMusicSecondsPresent": true
+  },
+  "moveSoundValidation": {
+    "cueCount": 19,
+    "sourceActionCount": 14,
+    "allCueVisualOffsetsFrames": 0,
+    "silentPreviewsAndHolds": true,
+    "compressedMontageClicks": false
   }
 }

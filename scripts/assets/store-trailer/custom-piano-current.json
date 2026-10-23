@@ -1,0 +1,69 @@
+{
+  "title": "Tiao — original piano trailer",
+  "selectedOn": "2026-10-23",
+  "duration": 50.2,
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "shotCount": 33,
+  "output": "build/store-trailer/tiao-gameplay-current.mp4",
+  "candidate": "build/store-trailer-v5/tiao-custom-piano.mp4",
+  "sha256": "8e7f24d9defed6d455e84231b0905676e7375e56fc8eec0028f67769e1aaefcb",
+  "bytes": 36719369,
+  "videoBitrate": "6 Mbps CBR target",
+  "audio": true,
+  "audioDescription": "Original Next Move piano composition, native game taps and normalized transition swooshes; music ducks at each transition.",
+  "approval": "Local review revision; not approved or uploaded",
+  "source": "Actual shipped UI recordings. Legal local game replays; isolated sample social, tournament and profile data.",
+  "note": "Original locally composed piano replaces the licensed Raptor Runner track. Relaxed D-major harmony, steady 99.6 BPM pulse, brighter final phrase and final chord at 48.2s. Picture edit preserved; old music credit removed.",
+  "uploadState": {
+    "steam": "New cut is local only. Previous 30-second cut remains uploaded in the store draft.",
+    "googlePlay": "not uploaded",
+    "apple": "not uploaded"
+  },
+  "previousSteamUpload": {
+    "sha256": "f2257223a6ba8364a998327943549dc262473a876866abf231de3ed1488a94ae",
+    "uploadedOn": "2026-10-23",
+    "entryId": 1399906,
+    "assetId": 1404839554,
+    "viewUrl": "https://store.steampowered.com/trailer/assets/?trailer=5035580/1404839554/ba4083cc48118e0606d0f31b62bda4648f06af6e/1792682318",
+    "category": "Gameplay",
+    "language": "English",
+    "suitableForAllAges": true,
+    "countryRestrictions": []
+  },
+  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/custom-piano-trailer/",
+  "files": "Original score JSON, editable MIDI, composition/render scripts, production MP3, audio provenance and current selection tracked. Lossless performance, standalone preview, trailer export, stems and QA preserved locally in vault; no Apple sample assets copied.",
+  "intertitleCount": 7,
+  "brandCardCount": 2,
+  "reviewCopy": "build/store-trailer/tiao-custom-piano.mp4",
+  "music": {
+    "file": "scripts/assets/store-trailer/audio/next-move-original.mp3",
+    "title": "Next Move",
+    "creator": "Original composition made for Tiao in this chat",
+    "method": "Explicit MIDI composition rendered locally with installed Apple Yamaha piano multisamples; no text-to-audio service",
+    "key": "D major",
+    "tempoBpm": 99.58506224066389,
+    "in": 0,
+    "targetLufs": -18,
+    "fadeIn": 0.12,
+    "fadeOut": 1.5,
+    "resolveAt": 48.2,
+    "licence": "Original arrangement; Apple sample content used in finished soundtrack under Logic Pro licence",
+    "licenceUrl": "https://www.apple.com/legal/sla/docs/LogicPro.pdf",
+    "ending": "Original D-major ninth resolves on the logo; replaces the previous stock piano impact to keep the cadence in key."
+  },
+  "audioMeasurements": {
+    "integratedLufs": -17.1,
+    "truePeakDbfs": -2
+  },
+  "previousLocalSelection": {
+    "duration": 50.2,
+    "sha256": "7a948a3f0f2234d1b2411ab9097ade58e44e3f62d859b37be70e37c3b5a0d0b5",
+    "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/energy-finale-trailer/"
+  },
+  "audioValidation": {
+    "minimumTransitionAboveDuckedMusicDb": 10.34562583764406,
+    "allMusicSecondsPresent": true
+  }
+}
