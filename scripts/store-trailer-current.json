@@ -1,50 +1,28 @@
 {
-  "source": "https://playtiao.com/game/K94SC6",
-  "speed": 1.75,
-  "duration": 30,
-  "captureCount": 1004,
-  "takeStarts": [
-    0,
-    343,
-    685
-  ],
-  "captions": [
-    {
-      "start": 0,
-      "end": 8.907428571428579,
-      "text": "Place a stone on an empty point."
-    },
-    {
-      "start": 8.907428571428579,
-      "end": 11.210857142857153,
-      "text": "Jump an opponent\u2019s stone to capture it."
-    },
-    {
-      "start": 11.210857142857153,
-      "end": 26.129142857142767,
-      "text": "Chain jumps to capture several stones."
-    },
-    {
-      "start": 26.129142857142767,
-      "end": 30,
-      "text": "First to capture ten stones wins."
-    }
-  ],
-  "audio": false,
-  "videoBitrate": "6 Mbps CBR",
-  "output": "build/store-trailer/tiao-gameplay-current.mp4",
-  "approval": "uploaded as requested; not publicly published",
-  "note": "Actual replay UI screenshots. Pauses between three capture takes removed. Final frame held through 30 seconds.",
+  "title": "Tiao \u2014 rules, friends and the final",
   "selectedOn": "2026-10-23",
-  "sha256": "f2257223a6ba8364a998327943549dc262473a876866abf231de3ed1488a94ae",
+  "duration": 50.3,
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "shotCount": 18,
+  "output": "build/store-trailer/tiao-gameplay-current.mp4",
+  "candidate": "build/store-trailer-v2/tiao-rules-and-friends.mp4",
+  "sha256": "c785dbbcb5249eefd31889baace91fe4f241e5aadaf02fe17a6d56ae980bda58",
+  "bytes": 36427994,
+  "videoBitrate": "6 Mbps CBR target",
+  "audio": true,
+  "audioDescription": "Existing game move sound and original quiet sine accents. No narration or music.",
+  "approval": "Local review cut; not yet approved for upload",
+  "source": "Actual shipped UI recordings. Legal local game replays; isolated sample social, tournament and profile data.",
+  "note": "18 hard cuts, board close-ups, hover paths, placement/jump/chain explanations, accelerated match, friend setup, final victory, champion badge and achievements. No live accounts were changed.",
   "uploadState": {
-    "steam": "uploaded, converted and saved; Gameplay category; suitable for all ages; store draft only",
-    "googlePlay": "not uploaded; optional YouTube URL not created",
-    "apple": "not uploaded; this is not an App Preview export"
+    "steam": "New cut is local only. Previous 30-second cut remains uploaded in the store draft.",
+    "googlePlay": "not uploaded",
+    "apple": "not uploaded"
   },
-  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/store-readiness/trailer/",
-  "files": "Video and original frames are local-only; recipe and selection JSON are tracked. Archive retains original frames, metadata and previous CRF18 cut.",
-  "steamTrailer": {
+  "previousSteamUpload": {
+    "sha256": "f2257223a6ba8364a998327943549dc262473a876866abf231de3ed1488a94ae",
     "uploadedOn": "2026-10-23",
     "entryId": 1399906,
     "assetId": 1404839554,
@@ -53,5 +31,7 @@
     "language": "English",
     "suitableForAllAges": true,
     "countryRestrictions": []
-  }
+  },
+  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/rules-and-friends-trailer/",
+  "files": "Selected MP4, raw clips and QA media are local-only. Recipes, edit decisions, selection and checksum inventory are tracked. Rebuildable per-shot encodes are omitted from the archive."
 }

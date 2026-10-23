@@ -1,0 +1,416 @@
+{
+  "title": "Tiao — rules, friends and the final",
+  "source": "Shipped Tiao UI; legal local match replays and isolated sample social/tournament accounts",
+  "shots": [
+    {
+      "file": "chain.webm",
+      "start": 2,
+      "speed": 2.8,
+      "duration": 2.4,
+      "crop": [400, 400, 700, 394],
+      "label": "TIAO",
+      "title": "One stone. Four captures.",
+      "size": 80,
+      "timelineStart": 0
+    },
+    {
+      "card": true,
+      "duration": 1.3,
+      "title": "Find your next move.",
+      "sub": "A TWO-PLAYER STRATEGY GAME",
+      "timelineStart": 2.4
+    },
+    {
+      "file": "rules.webm",
+      "start": 0.7,
+      "duration": 3.1,
+      "crop": [520, 350, 650, 366],
+      "label": "01 / PLACE",
+      "title": "Take turns placing stones.",
+      "sub": "Choose an empty point.",
+      "timelineStart": 3.7
+    },
+    {
+      "file": "rules.webm",
+      "start": 3.6,
+      "duration": 4.2,
+      "crop": [520, 350, 650, 366],
+      "label": "02 / JUMP",
+      "title": "Or jump to capture.",
+      "sub": "Leap over an opponent onto an empty point.",
+      "timelineStart": 6.8
+    },
+    {
+      "file": "chain.webm",
+      "start": 1.7,
+      "speed": 1.45,
+      "duration": 4.8,
+      "crop": [400, 400, 700, 394],
+      "label": "03 / CHAIN",
+      "title": "Keep jumping with the same stone.",
+      "sub": "Change direction. Capture several stones.",
+      "timelineStart": 11
+    },
+    {
+      "file": "chain.webm",
+      "start": 8.8,
+      "duration": 1.8,
+      "crop": [230, 30, 1580, 889],
+      "label": "YOUR TURN",
+      "title": "Confirm your path.",
+      "sub": "Collect the captures.",
+      "timelineStart": 15.8
+    },
+    {
+      "file": "friends.webm",
+      "start": 1.3,
+      "duration": 2,
+      "crop": [360, 80, 1200, 675],
+      "label": "PLAY TOGETHER",
+      "title": "Invite a friend.",
+      "timelineStart": 17.6
+    },
+    {
+      "file": "friends.webm",
+      "start": 3.1,
+      "duration": 2.6,
+      "crop": [320, 170, 1280, 720],
+      "label": "MAKE IT YOUR GAME",
+      "title": "Choose your board.",
+      "size": 58,
+      "timelineStart": 19.6
+    },
+    {
+      "file": "tournament.webm",
+      "start": 1.8,
+      "duration": 3,
+      "crop": [420, 0, 1080, 608],
+      "label": "TOURNAMENTS",
+      "title": "Play through the bracket.",
+      "timelineStart": 22.2
+    },
+    {
+      "file": "prepare-win.webm",
+      "start": 1.2,
+      "speed": 2.33,
+      "duration": 3,
+      "crop": [230, 20, 1580, 889],
+      "label": "A REAL MATCH / FAST FORWARD",
+      "title": "Build your position.",
+      "timelineStart": 25.2
+    },
+    {
+      "file": "prepare-win.webm",
+      "start": 8.2,
+      "speed": 1.86,
+      "duration": 3,
+      "crop": [400, 170, 900, 506],
+      "label": "THE FINAL MOVES / FAST FORWARD",
+      "title": "Find the opening.",
+      "timelineStart": 28.2
+    },
+    {
+      "file": "win.webm",
+      "start": 2.2,
+      "speed": 1.8,
+      "duration": 3.4,
+      "crop": [350, 660, 740, 416],
+      "label": "6–9 DOWN",
+      "title": "One chain can turn the game.",
+      "timelineStart": 31.2
+    },
+    {
+      "file": "win.webm",
+      "start": 8,
+      "duration": 2.6,
+      "crop": [230, 20, 1580, 889],
+      "label": "10–9",
+      "title": "First to ten captures wins.",
+      "timelineStart": 34.6
+    },
+    {
+      "file": "winner.webm",
+      "start": 4,
+      "duration": 3,
+      "crop": [460, 930, 1000, 150],
+      "label": "TOURNAMENT COMPLETE",
+      "title": "Win the final.",
+      "timelineStart": 37.2,
+      "detail": true
+    },
+    {
+      "file": "badges.webm",
+      "start": 2,
+      "duration": 3,
+      "crop": [192, 640, 512, 440],
+      "label": "YOUR PROFILE",
+      "title": "Equip your Champion badge.",
+      "size": 66,
+      "timelineStart": 40.2,
+      "detail": true
+    },
+    {
+      "file": "achievement-champion.png",
+      "still": true,
+      "duration": 2.3,
+      "crop": [600, 470, 730, 155],
+      "label": "ACHIEVEMENTS",
+      "title": "A record of your wins.",
+      "timelineStart": 43.2,
+      "detail": true
+    },
+    {
+      "file": "achievement-combat.png",
+      "still": true,
+      "duration": 1.8,
+      "crop": [550, 300, 900, 506],
+      "label": "ACHIEVEMENTS",
+      "title": "A new challenge to try.",
+      "timelineStart": 45.5
+    },
+    {
+      "card": true,
+      "duration": 3,
+      "title": "Your friend. Your next opponent.",
+      "sub": "PLACE · JUMP · CHAIN · CAPTURE TEN",
+      "timelineStart": 47.3
+    }
+  ],
+  "sounds": [
+    {
+      "type": "tap",
+      "time": 0.35,
+      "gain": 0.55
+    },
+    {
+      "type": "tap",
+      "time": 0.775,
+      "gain": 0.55
+    },
+    {
+      "type": "tap",
+      "time": 1.2,
+      "gain": 0.55
+    },
+    {
+      "type": "tap",
+      "time": 1.625,
+      "gain": 0.55
+    },
+    {
+      "type": "tone",
+      "time": 2.5,
+      "frequency": 330
+    },
+    {
+      "type": "tap",
+      "time": 4.7,
+      "gain": 0.5
+    },
+    {
+      "type": "tap",
+      "time": 5.8,
+      "gain": 0.5
+    },
+    {
+      "type": "tap",
+      "time": 7.8,
+      "gain": 0.5
+    },
+    {
+      "type": "tap",
+      "time": 8.9,
+      "gain": 0.5
+    },
+    {
+      "type": "tap",
+      "time": 11.35,
+      "gain": 0.55
+    },
+    {
+      "type": "tap",
+      "time": 12.375,
+      "gain": 0.55
+    },
+    {
+      "type": "tap",
+      "time": 13.4,
+      "gain": 0.55
+    },
+    {
+      "type": "tap",
+      "time": 14.425,
+      "gain": 0.55
+    },
+    {
+      "type": "tone",
+      "time": 17.7,
+      "frequency": 440
+    },
+    {
+      "type": "tone",
+      "time": 22.3,
+      "frequency": 220
+    },
+    {
+      "type": "tap",
+      "time": 25.3,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 25.54,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 25.78,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 26.02,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 26.26,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 26.5,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 26.74,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 26.98,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 27.22,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 27.46,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 27.7,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 27.94,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 28.3,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 28.54,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 28.78,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 29.02,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 29.26,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 29.5,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 29.74,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 29.98,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 30.22,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 30.46,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 30.7,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 30.94,
+      "gain": 0.3
+    },
+    {
+      "type": "tap",
+      "time": 31.55,
+      "gain": 0.55
+    },
+    {
+      "type": "tap",
+      "time": 32.225,
+      "gain": 0.55
+    },
+    {
+      "type": "tap",
+      "time": 32.9,
+      "gain": 0.55
+    },
+    {
+      "type": "tap",
+      "time": 33.575,
+      "gain": 0.55
+    },
+    {
+      "type": "tone",
+      "time": 34.7,
+      "frequency": 220
+    },
+    {
+      "type": "tone",
+      "time": 37.3,
+      "frequency": 330
+    },
+    {
+      "type": "tone",
+      "time": 40.3,
+      "frequency": 440
+    },
+    {
+      "type": "tone",
+      "time": 47.4,
+      "frequency": 330
+    }
+  ]
+}
