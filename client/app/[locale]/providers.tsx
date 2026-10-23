@@ -36,6 +36,7 @@ import { useEffect, useRef } from "react";
 import { Toaster } from "sonner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { NativeDeepLinkHandler } from "@/components/NativeDeepLinkHandler";
+import { SteamAccountSetup } from "@/components/SteamAccountSetup";
 import { AuthProvider, useAuth } from "@/lib/AuthContext";
 import { toastError } from "@/lib/errors";
 import { isEmbedPath } from "@/lib/frameHeaders";
@@ -184,11 +185,16 @@ function DumpInstaller() {
 }
 
 function AppShell({ children, publicPage }: { children: React.ReactNode; publicPage: boolean }) {
+  const { steamSetupRequired } = useAuth();
   const content = (
     <div className="min-h-screen bg-background text-foreground">
-      <UsernameOnboardingGuard>
-        <main className="min-h-screen">{children}</main>
-      </UsernameOnboardingGuard>
+      {steamSetupRequired ? (
+        <SteamAccountSetup />
+      ) : (
+        <UsernameOnboardingGuard>
+          <main className="min-h-screen">{children}</main>
+        </UsernameOnboardingGuard>
+      )}
       <AuthDialog />
       <OAuthErrorHandler />
       {process.env.NEXT_PUBLIC_PLATFORM === "mobile" && <NativeDeepLinkHandler />}

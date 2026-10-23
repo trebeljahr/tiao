@@ -1466,5 +1466,22 @@
     "cluster-mergeBody": "Puedes unir dos grupos de menos de diez piedras, aunque el grupo resultante supere diez.",
     "cluster-enemyBody": "Puedes colocar junto a un grupo rival de cualquier tamaño, siempre que cumplas las demás reglas.",
     "cluster-jumpBody": "Puedes aterrizar junto a un grupo de diez al saltar. El límite del grupo solo se aplica al colocar."
+  },
+  "steamAccount": {
+    "title": "Te damos la bienvenida a Tiao",
+    "description": "Usa Steam para guardar tu progreso y jugar en línea. Sin correo ni contraseña.",
+    "newPlayer": "Soy nuevo en Tiao",
+    "existingPlayer": "Ya juego a Tiao",
+    "existingHint": "Inicia sesión una vez para conservar tu progreso, amigos y compras. Después vincula Steam.",
+    "username": "Elige tu nombre de usuario",
+    "usernameHint": "Entre 3 y 32 letras minúsculas, números, guiones o guiones bajos.",
+    "continueSteam": "Continuar con Steam",
+    "signedInAs": "Sesión iniciada como {username}",
+    "linkAccount": "Vincular Steam a esta cuenta",
+    "differentAccount": "Usar otra cuenta de Tiao",
+    "working": "Conectando…",
+    "back": "Volver",
+    "skip": "Jugar sin vincular",
+    "webAccess": "Añade una contraseña abajo para usar esta cuenta en la web. Tu progreso seguirá en la misma cuenta."
   }
 }

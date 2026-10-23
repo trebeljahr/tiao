@@ -7,7 +7,8 @@ const path = require("node:path");
 const { EventEmitter } = require("node:events");
 const trust = require("./trust.cjs");
 
-function harness() {
+/** @param {{ steam?: boolean; fetcher?: (url: string, init?: any) => Promise<any> }} options */
+function harness({ steam = false, fetcher } = {}) {
   const handlers = /** @type {Map<string, Function>} */ (new Map());
   const wc = /** @type {any} */ (
     Object.assign(new EventEmitter(), {
@@ -70,7 +71,8 @@ function harness() {
       if (name === "node:path" || name === "node:crypto") return require(name);
       throw new Error(`Unexpected import: ${name}`);
     },
-    fetch: /** @param {string} url */ async (url) => {
+    fetch: /** @param {string} url @param {any} init */ async (url, init) => {
+      if (fetcher) return fetcher(url, init);
       if (url.endsWith("/logout")) {
         revoked = !failLogout;
         return { ok: !failLogout };
@@ -88,7 +90,14 @@ function harness() {
     },
   };
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, "authBridge.cjs"), "utf8"), sandbox);
-  module.exports.registerAuthIpc();
+  module.exports.registerAuthIpc(
+    steam
+      ? {
+          getTicket: async () => ({ ticket: "fake-native-ticket", cancel: () => {} }),
+          appId: 5491870,
+        }
+      : null,
+  );
   return {
     bridge: module.exports,
     event,
@@ -107,6 +116,8 @@ function harness() {
 test("auth IPC blocks other frames before touching mocked credentials", () => {
   const h = harness();
   for (const name of [
+    "auth:steam",
+    "auth:login",
     "auth:getToken",
     "auth:logout",
     "auth:startOAuth",
@@ -141,4 +152,70 @@ test("ordinary system-browser OAuth callback still exchanges with mocked network
   assert.equal(await h.call("auth:getToken"), "fake-new-token");
   assert.equal(h.state().stored, true);
   assert.equal((await h.call("auth:startOAuth", "unknown")).reason, "bad_provider");
+});
+
+test("Steam sign-in gets the ticket and demo AppID from main and persists only verified sessions", async () => {
+  const calls = /** @type {any[]} */ ([]);
+  const h = harness({
+    steam: true,
+    fetcher: async (url, init) => {
+      calls.push({ url, init });
+      return {
+        ok: true,
+        json: async () => ({ status: "signed_in", sessionToken: "steam-session" }),
+      };
+    },
+  });
+  await h.call("auth:steam", {
+    action: "create",
+    username: "player",
+    ticket: "forged",
+    appId: 480,
+  });
+  assert.equal(await h.call("auth:getToken"), "steam-session");
+  assert.deepEqual(JSON.parse(calls[0].init.body), {
+    action: "create",
+    username: "player",
+    ticket: "fake-native-ticket",
+    appId: 5491870,
+  });
+  await h.call("auth:steam", { action: "link" });
+  assert.equal(calls[1].init.headers.Authorization, "Bearer steam-session");
+});
+
+test("an unlinked Steam player clears another player's saved desktop identity", async () => {
+  const h = harness({
+    steam: true,
+    fetcher: async () => ({ ok: true, json: async () => ({ status: "needs_setup" }) }),
+  });
+  h.bridge.loadPersistedToken();
+  assert.equal(await h.call("auth:getToken"), "fake-token");
+  assert.equal((await h.call("auth:steam", { action: "check" })).status, "needs_setup");
+  assert.equal(await h.call("auth:getToken"), null);
+});
+
+test("Steam link conflicts preserve the existing account and standalone builds do not fetch tickets", async () => {
+  const h = harness({
+    steam: true,
+    fetcher: async () => ({ ok: false, json: async () => ({ message: "Already linked" }) }),
+  });
+  h.bridge.loadPersistedToken();
+  await assert.rejects(h.call("auth:steam", { action: "link" }), /Already linked/);
+  assert.equal(await h.call("auth:getToken"), "fake-token");
+  assert.equal((await harness().call("auth:steam", { action: "check" })).status, "unavailable");
+});
+
+test("desktop password login exchanges the signed session and persists the revocable token", async () => {
+  const calls = /** @type {any[]} */ ([]);
+  const h = harness({
+    fetcher: async (url, init) => {
+      calls.push({ url, init });
+      return url.endsWith("/login")
+        ? { ok: true, headers: new Map([["set-auth-token", "signed-ba-token"]]) }
+        : { ok: true, json: async () => ({ sessionToken: "desktop-password-token" }) };
+    },
+  });
+  await h.call("auth:login", "web-player", "fake-password");
+  assert.equal(calls[1].init.headers.Authorization, "Bearer signed-ba-token");
+  assert.equal(await h.call("auth:getToken"), "desktop-password-token");
 });

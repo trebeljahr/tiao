@@ -167,12 +167,15 @@ export class SteamMicroTxnClient {
    * minted it. This is what stops a client from initiating an order
    * against somebody else's SteamID.
    */
-  async authenticateUserTicket(ticketHex: string): Promise<SteamTicketOwner> {
+  async authenticateUserTicket(
+    ticketHex: string,
+    identity = STEAM_WEB_API_IDENTITY,
+  ): Promise<SteamTicketOwner> {
     const path = "/ISteamUserAuth/AuthenticateUserTicket/v1/";
     const body = await this.call("GET", path, {
       appid: this.config.appId,
       ticket: ticketHex,
-      identity: STEAM_WEB_API_IDENTITY,
+      identity,
     });
     const r = body.response;
     // AuthenticateUserTicket nests `result` inside `params`, unlike MicroTxn.

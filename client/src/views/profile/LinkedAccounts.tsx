@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { FaApple, FaDiscord, FaGithub, FaGoogle } from "react-icons/fa";
+import { FaApple, FaDiscord, FaGithub, FaGoogle, FaSteam } from "react-icons/fa";
 import { toast } from "sonner";
 import { AnimatedCard } from "@/components/ui/animated-card";
 import { Button } from "@/components/ui/button";
@@ -9,20 +9,23 @@ import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { PaperCard } from "@/components/ui/paper-card";
 import { PasswordInput } from "@/components/ui/password-input";
-import { setAccountPassword } from "@/lib/api";
+import { useAuth } from "@/lib/AuthContext";
+import { getPlayerIdentity, setAccountPassword } from "@/lib/api";
 import { getAuthClient } from "@/lib/auth-client";
 import { type SocialProvider, useAppleSignInEnabled } from "@/lib/authProviders";
+import { signInWithSteam } from "@/lib/desktopAuth";
 import { readableError, toastError } from "@/lib/errors";
 import {
   isNativeMobileApp,
   MOBILE_LINK_COMPLETE_EVENT,
   startMobileLinkSocial,
 } from "@/lib/mobileAuth";
+import { isSteamBuild } from "@/lib/SteamBridge";
 import { unlinkProviderAccount } from "@/lib/unlinkProviderAccount";
 
 export const SOCIAL_PROVIDERS = [
   { id: "github" as const, label: "GitHub", icon: FaGithub },
-  { id: "google" as const, label: "Google", icon: FaGoogle },
+  { id: "google" as const, label: "Google", icon: FaGoogle, FaSteam },
   { id: "discord" as const, label: "Discord", icon: FaDiscord },
   { id: "apple" as const, label: "Apple", icon: FaApple },
 ];
@@ -41,6 +44,9 @@ export function LinkedAccounts({
   currentDisplayName,
 }: LinkedAccountsProps) {
   const t = useTranslations("profile");
+  const ts = useTranslations("steamAccount");
+  const { applyAuth, finishSteamSetup } = useAuth();
+  const [steamError, setSteamError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [setPasswordOpen, setSetPasswordOpen] = useState(false);
   const [setPasswordEmail, setSetPasswordEmail] = useState("");
@@ -56,7 +62,7 @@ export function LinkedAccounts({
     (p) => !providers.includes(p.id) && (p.id !== "apple" || appleEnabled),
   );
   const linkedProviders = providers.filter((p) => p !== "credential");
-  const unlinkableProviders = providers.length > 1;
+  const unlinkableProviders = providers.filter((provider) => provider !== "steam").length > 1;
   const hasCredential = providers.includes("credential");
 
   // Native mobile: the link finishes in the system browser and comes back
@@ -153,6 +159,10 @@ export function LinkedAccounts({
         email: setPasswordEmail || undefined,
         displayName: setPasswordUsername || undefined,
       });
+      if (providers.includes("steam")) {
+        const result = await signInWithSteam("check");
+        if (result.status === "signed_in") applyAuth(await getPlayerIdentity());
+      }
       setSetPasswordOpen(false);
       setNewPasswordValue("");
       setConfirmPasswordValue("");
@@ -176,6 +186,34 @@ export function LinkedAccounts({
             <CardDescription>{t("linkedAccountsDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {providers.includes("steam") && !hasCredential && (
+              <p className="text-sm text-[#7b6550]">{ts("webAccess")}</p>
+            )}
+            {isSteamBuild() && !providers.includes("steam") && (
+              <div className="space-y-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={busy === "steam"}
+                  onClick={() => {
+                    setBusy("steam");
+                    setSteamError(null);
+                    void finishSteamSetup?.("link")
+                      .then(onProvidersChange)
+                      .catch((error) => setSteamError(readableError(error)))
+                      .finally(() => setBusy(null));
+                  }}
+                >
+                  <FaSteam aria-hidden="true" />
+                  {ts("linkAccount")}
+                </Button>
+                {steamError && (
+                  <p role="alert" className="text-sm text-red-700">
+                    {steamError}
+                  </p>
+                )}
+              </div>
+            )}
             {/* Password/credential provider */}
             {hasCredential && (
               <div className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50/50 px-4 py-2.5">
@@ -205,7 +243,7 @@ export function LinkedAccounts({
               <div className="space-y-2">
                 {linkedProviders.map((providerId) => {
                   const meta = SOCIAL_PROVIDERS.find((p) => p.id === providerId);
-                  const Icon = meta?.icon;
+                  const Icon = providerId === "steam" ? FaSteam : meta?.icon;
                   return (
                     <div
                       key={providerId}
@@ -213,12 +251,12 @@ export function LinkedAccounts({
                     >
                       <span className="inline-flex items-center gap-2 text-sm font-medium text-[#4e3d2c]">
                         {Icon && <Icon className="h-4 w-4" />}
-                        {meta?.label ?? providerId}
+                        {providerId === "steam" ? "Steam" : (meta?.label ?? providerId)}
                         <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
                           {t("connected")}
                         </span>
                       </span>
-                      {unlinkableProviders && (
+                      {unlinkableProviders && providerId !== "steam" && (
                         <Button
                           type="button"
                           variant="ghost"

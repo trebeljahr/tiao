@@ -10,6 +10,7 @@ import { auth } from "./auth";
 import { type BetterAuthUserLike, normalizeAuthUser } from "./betterAuthIds";
 import * as betterAuthUserLookup from "./betterAuthUserLookup";
 import { extractBearerUserId } from "./desktopSessionManager";
+import { publicAccountEmail } from "./steamEmail";
 
 // Track which players have already had their achievement→badge backfill
 // checked this process lifetime. Avoids an Achievement.find() query on
@@ -94,7 +95,7 @@ async function toPlayerIdentity(
     playerId: user.id,
     displayName,
     kind: "account",
-    email: user.email,
+    email: publicAccountEmail(user.email),
     profilePicture: account?.profilePicture || user.image || undefined,
     hasSeenTutorial: account?.hasSeenTutorial ?? false,
     badges: [...new Set<string>(account?.badges ?? [])],

@@ -527,6 +527,25 @@ async function getWebApiTicket() {
   }
 }
 
+/**
+ * Login tickets work in both the full game and demo. Keep the native handle
+ * alive until the server has verified it, then cancel it even on failure.
+ * @returns {Promise<{ ticket: string; cancel: () => void } | null>}
+ */
+async function getAuthWebApiTicket() {
+  if (!client || typeof client.auth?.getAuthTicketForWebApi !== "function") return null;
+  try {
+    const ticket = await client.auth.getAuthTicketForWebApi("tiao-auth", 8);
+    return {
+      ticket: Buffer.from(ticket.getBytes()).toString("hex"),
+      cancel: () => ticket.cancel(),
+    };
+  } catch {
+    console.warn("[steam] Could not obtain a sign-in ticket.");
+    return null;
+  }
+}
+
 /** @type {Set<(event: { appId: number; orderId: string; authorized: boolean }) => void>} */
 const microTxnListeners = new Set();
 /** @type {any} */
@@ -596,5 +615,6 @@ module.exports = {
   openOverlayUrl,
   STEAM_WEB_API_IDENTITY,
   getWebApiTicket,
+  getAuthWebApiTicket,
   onMicroTxnAuthorization,
 };

@@ -518,3 +518,35 @@ and branch `-` to stage a build without making it live. The manifest and baked
 metadata checks reject full-game artifacts, wrong AppIDs, or missing demo flags.
 SteamCMD success must name the demo AppID. Publishing a build to the default
 branch and releasing the demo remain separate Steamworks actions after QA.
+
+## Steam account login
+
+Full-game and demo builds verify a `GetAuthTicketForWebApi("tiao-auth")`
+ticket in Electron main on launch. The API validates the ticket with Valve
+before resolving the player's SteamID. `STEAM_PUBLISHER_WEB_API_KEY` must be
+set on the server; `STEAM_AUTH_APP_IDS` defaults to `5035580,5491870`.
+Authentication works independently of whether Steam purchases are enabled.
+
+An unlinked Steam player sees a first-run account choice. New players pick a
+username. Existing players sign into Tiao with their usual password or social
+provider, then explicitly link the shown account. A unique sparse `steamId`
+index on GameAccount prevents competing links. Full game and demo share that
+mapping. Conflicts preserve both accounts and never merge or move progress.
+
+Returning players receive a fresh revocable desktop session for the verified
+Steam player. A Steam account switch discards the previous desktop identity.
+Offline launches keep local play usable. “Play without linking” and explicit
+logout suppress automatic sign-in until “Continue with Steam” is selected.
+
+Steam supplies no email. The internal Better Auth adapter address uses the
+reserved `steam.tiao.invalid` domain, is never displayed, and cannot be used
+to register through normal signup. A Steam player can add a password login
+in Settings to use the same account on the web. This does not move saves,
+friends, ratings or purchases between accounts. Steam can also be linked
+later in Settings from the Steam build.
+
+Validation: client onboarding/desktop-auth tests, desktop auth bridge tests,
+and `server/tests/integration/steamAccounts.test.ts` (throwaway local MongoDB
+database, fake Steam responses). A real Steam launch still requires a running
+Steam client, ownership of the full game or demo, and the configured server
+publisher key. Unit tests never read the OS keychain.

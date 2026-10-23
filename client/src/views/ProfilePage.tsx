@@ -163,10 +163,12 @@ export function ProfilePage() {
 
   const providers = profile?.providers ?? [];
   const hasCredentialProvider = providers.includes("credential");
-  const hasOAuthProvider = providers.some((p) => p !== "credential");
-  const oauthProviderId = providers.find((p) => p !== "credential");
+  const hasOAuthProvider = providers.some((p) => p !== "credential" && p !== "steam");
+  const oauthProviderId = providers.find((p) => p !== "credential" && p !== "steam");
   const oauthProviderLabel =
-    SOCIAL_PROVIDERS.find((p) => p.id === oauthProviderId)?.label ?? oauthProviderId ?? "OAuth";
+    SOCIAL_PROVIDERS.find((p) => p.id === oauthProviderId)?.label ??
+    (oauthProviderId === "steam" ? "Steam" : oauthProviderId) ??
+    "OAuth";
 
   useEffect(() => {
     return () => {

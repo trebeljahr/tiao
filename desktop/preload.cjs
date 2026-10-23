@@ -110,6 +110,10 @@ contextBridge.exposeInMainWorld("electron", {
   },
 
   auth: {
+    /** @param {{ action: "check" | "create" | "link"; username?: string }} input */
+    steam: (input) => ipcRenderer.invoke("auth:steam", input),
+    /** @param {string} identifier @param {string} password */
+    login: (identifier, password) => ipcRenderer.invoke("auth:login", identifier, password),
     /**
      * @param {"github"|"google"|"discord"|"apple"} provider
      * @returns {Promise<{ ok: true } | { ok: false; reason: string }>}

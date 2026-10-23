@@ -1466,5 +1466,22 @@
     "cluster-mergeBody": "You can join two groups of fewer than ten stones, even if the merged group exceeds ten.",
     "cluster-enemyBody": "You can place beside an enemy group regardless of its size, as long as the placement meets the other rules.",
     "cluster-jumpBody": "You can land beside a group of ten when you jump. The group limit applies only to placement."
+  },
+  "steamAccount": {
+    "title": "Welcome to Tiao",
+    "description": "Use Steam to save your progress and play online. No email or password needed.",
+    "newPlayer": "I’m new to Tiao",
+    "existingPlayer": "I already play Tiao",
+    "existingHint": "Sign in once to keep your progress, friends and purchases. Then link Steam.",
+    "username": "Choose your username",
+    "usernameHint": "3–32 lowercase letters, numbers, hyphens or underscores.",
+    "continueSteam": "Continue with Steam",
+    "signedInAs": "Signed in as {username}",
+    "linkAccount": "Link Steam to this account",
+    "differentAccount": "Use another Tiao account",
+    "working": "Connecting…",
+    "back": "Back",
+    "skip": "Play without linking",
+    "webAccess": "To use this account on the web, add a password login below. Your progress stays on the same account."
   }
 }

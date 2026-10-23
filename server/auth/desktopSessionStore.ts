@@ -39,7 +39,7 @@ type AuthAccount = {
   accountId?: string;
   password?: string;
 };
-type GameAccountSecurity = { _id: AuthId; isAdmin?: boolean };
+type GameAccountSecurity = { _id: AuthId; isAdmin?: boolean; steamId?: string };
 
 function db() {
   return mongoose.connection.getClient().db();
@@ -63,7 +63,7 @@ export const desktopSessionStore: DesktopSessionStore = {
         ),
       db()
         .collection<GameAccountSecurity>("gameaccounts")
-        .findOne({ _id: userFilter }, { projection: { isAdmin: 1 } }),
+        .findOne({ _id: userFilter }, { projection: { isAdmin: 1, steamId: 1 } }),
       db()
         .collection<AuthSession>("session")
         .findOne({
@@ -95,6 +95,7 @@ export const desktopSessionStore: DesktopSessionStore = {
           user.role ?? null,
           gameAccount.isAdmin ?? false,
           credentials,
+          ...(gameAccount.steamId ? [gameAccount.steamId] : []),
         ]),
       )
       .digest("hex");

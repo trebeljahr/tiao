@@ -20,6 +20,8 @@ export interface ISubscription {
 
 export interface IGameAccount extends Document {
   displayName: string;
+  /** Verified Steam player identity, shared by the full game and demo. */
+  steamId?: string;
   profilePicture?: string;
   friends: Schema.Types.ObjectId[];
   receivedFriendRequests: Schema.Types.ObjectId[];
@@ -62,6 +64,7 @@ export interface IGameAccount extends Document {
 
 const GameAccountSchema = new Schema<IGameAccount>(
   {
+    steamId: { type: String },
     displayName: {
       type: String,
       required: true,
@@ -160,6 +163,7 @@ const GameAccountSchema = new Schema<IGameAccount>(
   },
 );
 
+GameAccountSchema.index({ steamId: 1 }, { unique: true, sparse: true });
 GameAccountSchema.index({ friends: 1 });
 GameAccountSchema.index({ receivedFriendRequests: 1 });
 GameAccountSchema.index({ sentFriendRequests: 1 });

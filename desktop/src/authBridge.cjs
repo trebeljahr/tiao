@@ -284,7 +284,10 @@ async function revokeToken(token) {
  * before the first renderer loads so handlers are ready when
  * AuthContext calls `window.electron.auth.getToken()` on bootstrap.
  */
-function registerAuthIpc() {
+/**
+ * @param {{ getTicket: () => Promise<{ ticket: string; cancel: () => void } | null>; appId: number } | null} steam
+ */
+function registerAuthIpc(steam = null) {
   handleTrustedIpc(ipcMain, "auth:startOAuth", async (_event, provider) => {
     if (!["google", "github", "discord", "apple"].includes(provider))
       return { ok: false, reason: "bad_provider" };
@@ -295,6 +298,76 @@ function registerAuthIpc() {
       console.error("[authBridge] startOAuth failed:", err);
       return { ok: false, reason: "browser_launch_failed" };
     }
+  });
+
+  handleTrustedIpc(ipcMain, "auth:steam", async (_event, input) => {
+    if (!steam) return { status: "unavailable" };
+    const { action, username } = input ?? {};
+    if (!["check", "create", "link"].includes(action)) throw new Error("Invalid Steam action.");
+    const generation = authGeneration;
+    const ticket = await steam.getTicket();
+    if (!ticket) return { status: "unavailable" };
+    const res = await fetch(`${resolveApiUrl()}/api/auth/steam/session`, {
+      method: "POST",
+      redirect: "error",
+      signal: AbortSignal.timeout(15000),
+      headers: {
+        "Content-Type": "application/json",
+        ...(action === "link" && cachedToken ? { Authorization: `Bearer ${cachedToken}` } : {}),
+      },
+      body: JSON.stringify({ action, username, ticket: ticket.ticket, appId: steam.appId }),
+    }).finally(() => ticket.cancel());
+    const result = /** @type {{ status?: string; sessionToken?: string; message?: string }} */ (
+      await res.json()
+    );
+    if (!res.ok) throw new Error(result.message || "Steam sign-in failed.");
+    if (generation !== authGeneration) {
+      if (result.sessionToken) await revokeToken(result.sessionToken);
+      return { status: "unavailable" };
+    }
+    if (result.status === "needs_setup") clearPersistedToken();
+    if (result.status === "signed_in") {
+      if (typeof result.sessionToken !== "string") throw new Error("Missing session token.");
+      persistToken(result.sessionToken);
+    }
+    // Renderer reads the token through getToken after this resolves. Avoid an
+    // auth-complete event racing the bootstrap that initiated this request.
+    return { status: result.status };
+  });
+
+  handleTrustedIpc(ipcMain, "auth:login", async (_event, identifier, password) => {
+    if (
+      typeof identifier !== "string" ||
+      typeof password !== "string" ||
+      identifier.length > 320 ||
+      password.length > 128
+    )
+      throw new Error("Invalid login.");
+    const generation = authGeneration;
+    const res = await fetch(`${resolveApiUrl()}/api/player/login`, {
+      method: "POST",
+      redirect: "error",
+      signal: AbortSignal.timeout(15000),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ identifier, password }),
+    });
+    if (!res.ok) throw new Error("Invalid credentials.");
+    const token = res.headers.get("set-auth-token");
+    if (!token) throw new Error("Could not create a desktop session.");
+    const exchange = await fetch(`${resolveApiUrl()}/api/auth/desktop/session`, {
+      method: "POST",
+      redirect: "error",
+      signal: AbortSignal.timeout(10000),
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!exchange.ok) throw new Error("Could not create a desktop session.");
+    const result = /** @type {{ sessionToken?: string }} */ (await exchange.json());
+    if (typeof result.sessionToken !== "string") throw new Error("Missing session token.");
+    if (generation !== authGeneration) {
+      await revokeToken(result.sessionToken);
+      throw new Error("Sign-in cancelled.");
+    }
+    persistToken(result.sessionToken);
   });
 
   handleTrustedIpc(ipcMain, "auth:getToken", async () => {

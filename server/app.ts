@@ -23,6 +23,7 @@ import previewImageRoutes from "./routes/previewImage.routes";
 import reportRoutes from "./routes/report.routes";
 import shopRoutes from "./routes/shop.routes";
 import socialRoutes from "./routes/social.routes";
+import steamAuthRoutes from "./routes/steam-auth.routes";
 import storePurchaseRoutes from "./routes/storePurchase.routes";
 import tournamentRoutes from "./routes/tournament.routes";
 
@@ -85,6 +86,9 @@ app.use(
   express.json({ limit: "10kb" }),
   mobileAuthRoutes,
 );
+
+// Steam's signed ticket is exchanged by Electron main, never by a browser.
+app.use("/api/auth/steam", express.json({ limit: "10kb" }), steamAuthRoutes);
 
 // Native mobile apps call better-auth cross-origin with a bearer token.
 app.use("/api/auth", nativeAuthCors);

@@ -1466,5 +1466,22 @@
     "cluster-mergeBody": "Du kannst zwei Gruppen mit jeweils weniger als zehn Steinen verbinden, auch wenn die neue Gruppe mehr als zehn hat.",
     "cluster-enemyBody": "Du kannst unabhängig von ihrer Größe neben eine gegnerische Gruppe setzen, solange die anderen Regeln erfüllt sind.",
     "cluster-jumpBody": "Du kannst bei einem Sprung neben einer Zehnergruppe landen. Die Gruppengrenze gilt nur beim Setzen."
+  },
+  "steamAccount": {
+    "title": "Willkommen bei Tiao",
+    "description": "Speichere deinen Fortschritt und spiele online mit Steam. Ohne E-Mail oder Passwort.",
+    "newPlayer": "Ich bin neu bei Tiao",
+    "existingPlayer": "Ich spiele Tiao bereits",
+    "existingHint": "Melde dich einmal an, um Fortschritt, Freunde und Käufe zu behalten. Verknüpfe dann Steam.",
+    "username": "Wähle deinen Benutzernamen",
+    "usernameHint": "3–32 Kleinbuchstaben, Zahlen, Bindestriche oder Unterstriche.",
+    "continueSteam": "Mit Steam fortfahren",
+    "signedInAs": "Angemeldet als {username}",
+    "linkAccount": "Steam mit diesem Konto verknüpfen",
+    "differentAccount": "Anderes Tiao-Konto verwenden",
+    "working": "Verbindung wird hergestellt…",
+    "back": "Zurück",
+    "skip": "Ohne Verknüpfung spielen",
+    "webAccess": "Füge unten eine Passwort-Anmeldung hinzu, um dieses Konto im Web zu nutzen. Dein Fortschritt bleibt im selben Konto."
   }
 }

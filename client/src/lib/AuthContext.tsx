@@ -22,6 +22,7 @@ import {
 } from "@/lib/api";
 import { getAuthClient } from "@/lib/auth-client";
 import type { SocialProvider } from "@/lib/authProviders";
+import { desktopAuthBridge, signInWithSteam } from "@/lib/desktopAuth";
 import { isNetworkError, readableError, toastError } from "@/lib/errors";
 import { setUser as setGlitchtipUser } from "@/lib/glitchtip";
 import {
@@ -34,6 +35,7 @@ import {
   subscribeMobileAuth,
 } from "@/lib/mobileAuth";
 import { getOAuthErrorMessage } from "@/lib/oauthErrors";
+import { isSteamBuild } from "@/lib/SteamBridge";
 import { safeLocalStorage } from "@/lib/safeLocalStorage";
 import { resetActiveBadges } from "@/lib/useActiveBadge";
 import { resetBoardTheme } from "@/lib/useBoardTheme";
@@ -41,6 +43,9 @@ import { resetBoardTheme } from "@/lib/useBoardTheme";
 export interface AuthContextValue {
   auth: AuthResponse | null;
   authLoading: boolean;
+  steamSetupRequired?: boolean;
+  finishSteamSetup?: (action: "check" | "create" | "link", username?: string) => Promise<void>;
+  skipSteamSetup?: () => void;
   /**
    * True once the bootstrap effect has finished verifying the session
    * cookie with better-auth. Distinct from `authLoading`, which is
@@ -132,6 +137,7 @@ export function AuthProvider({
 }) {
   const t = useTranslations("common");
   const [auth, setAuth] = useState<AuthResponse | null>(null);
+  const [steamSetupRequired, setSteamSetupRequired] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [authBootstrapped, setAuthBootstrapped] = useState(false);
   const [appError, setAppError] = useState<string | null>(null);
@@ -144,7 +150,7 @@ export function AuthProvider({
   // flash of skeleton when returning from external redirects like Stripe.
   const [cacheHydrated, setCacheHydrated] = useState(false);
   useEffect(() => {
-    const cached = getCachedAuth();
+    const cached = isSteamBuild() ? null : getCachedAuth();
     if (cached) {
       hadCachedAuthRef.current = true;
       setAuth(cached);
@@ -218,6 +224,39 @@ export function AuthProvider({
         await refreshElectronTokenFromBridge();
         // Native mobile: same idea, token kept in Capacitor Preferences.
         await loadPersistedMobileToken();
+
+        // Verify the active Steam player before reusing a stored desktop login.
+        // Switching Steam accounts must never expose the previous player's data.
+        let steamStatus: "signed_in" | "needs_setup" | "unavailable" = "unavailable";
+        try {
+          steamStatus = (await signInWithSteam("check")).status;
+        } catch {
+          // Offline, Steam unavailable, or older server: keep local play usable.
+        }
+        if (cancelled) return;
+        if (isSteamBuild() && steamStatus === "unavailable") {
+          // Without proof of the active Steam player, retain no online identity.
+          // Local games stay usable even if Steam or the API is offline.
+          setElectronTokenCache(null);
+          setAuth(null);
+          setCachedAuth(null);
+          return;
+        }
+        setSteamSetupRequired(steamStatus === "needs_setup");
+        if (getCachedElectronToken()) {
+          const player = await fetchPlayerIdentity();
+          if (cancelled) return;
+          if (player) {
+            setCachedAuth({ player });
+            setAuth({ player });
+            return;
+          }
+        }
+        if (steamStatus === "needs_setup") {
+          setAuth(null);
+          setCachedAuth(null);
+          return;
+        }
 
         // Lazy-load the better-auth client (first call pays the dynamic
         // import; subsequent calls resolve from cache).
@@ -330,6 +369,7 @@ export function AuthProvider({
           setCachedAuth({ player });
           setAuth({ player });
           setAppError(null);
+          setAuthDialogOpen(false);
         }
       } catch (error) {
         toastError(readableError(error));
@@ -441,6 +481,28 @@ export function AuthProvider({
     [updateAuth],
   );
 
+  const finishSteamSetup = useCallback(
+    async (action: "check" | "create" | "link", username?: string) => {
+      safeLocalStorage.removeItem("tiao:steam-signed-out");
+      const result = await signInWithSteam(action, username);
+      if (result.status === "needs_setup") {
+        setSteamSetupRequired(true);
+        setAuthDialogOpen(false);
+        return;
+      }
+      if (result.status !== "signed_in")
+        throw new Error("Steam is unavailable. Open Steam and try again.");
+      applyAuth(await getPlayerIdentity());
+      setSteamSetupRequired(false);
+    },
+    [applyAuth],
+  );
+
+  const skipSteamSetup = useCallback(() => {
+    safeLocalStorage.setItem("tiao:steam-signed-out", "1");
+    setSteamSetupRequired(false);
+  }, []);
+
   const onOpenAuth = useCallback((mode: AuthDialogMode, options?: { forced?: boolean }) => {
     setAuthDialogMode(mode);
     setAuthDialogError(null);
@@ -454,8 +516,14 @@ export function AuthProvider({
 
     try {
       // Use our custom login endpoint (supports username or email)
-      const result = await loginWithUsername(loginEmail, loginPassword);
-      applyAuth(result);
+      const desktop = desktopAuthBridge();
+      if (desktop?.login) {
+        await desktop.login(loginEmail, loginPassword);
+        await refreshElectronTokenFromBridge();
+        applyAuth(await getPlayerIdentity());
+      } else {
+        applyAuth(await loginWithUsername(loginEmail, loginPassword));
+      }
       setAuthDialogOpen(false);
     } catch (error) {
       if (isNetworkError(error)) {
@@ -624,6 +692,12 @@ export function AuthProvider({
       }
     }
     setElectronTokenCache(null);
+    if (desktopAuthBridge()) {
+      safeLocalStorage.setItem("tiao:steam-signed-out", "1");
+      setCachedAuth(null);
+      window.location.assign("/");
+      return;
+    }
 
     // Order matters for the rest: do the server-side signout + new-guest
     // session dance while React state is still "logged in", then navigate
@@ -664,6 +738,9 @@ export function AuthProvider({
     () => ({
       auth,
       authLoading,
+      steamSetupRequired,
+      finishSteamSetup,
+      skipSteamSetup,
       authBootstrapped,
       appError,
       authDialogOpen,
@@ -698,6 +775,9 @@ export function AuthProvider({
     [
       auth,
       authLoading,
+      steamSetupRequired,
+      finishSteamSetup,
+      skipSteamSetup,
       authBootstrapped,
       appError,
       authDialogOpen,

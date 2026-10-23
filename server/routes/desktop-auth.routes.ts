@@ -363,6 +363,28 @@ router.post("/refresh", async (req: Request, res: Response) => {
   }
 });
 
+// Upgrade a password-authenticated session to the desktop's revocable token.
+// Electron main calls this with Better Auth's signed set-auth-token response.
+router.post("/session", async (req: Request, res: Response) => {
+  res.setHeader("Cache-Control", "no-store");
+  if (!req.headers.authorization?.startsWith("Bearer "))
+    return res.status(401).json({ code: "NOT_AUTHENTICATED" });
+  try {
+    const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
+    const userId = normalizeAuthId(session?.user.id);
+    if (!session || !userId || (session.user as { isAnonymous?: boolean }).isAnonymous)
+      return res.status(401).json({ code: "NOT_AUTHENTICATED" });
+    const securityState = await desktopSessionStore.securityState(userId, session.session.id);
+    if (!securityState) return res.status(401).json({ code: "NOT_AUTHENTICATED" });
+    return res.json({
+      sessionToken: await createSessionToken(userId, session.session.id, securityState),
+      userId,
+    });
+  } catch {
+    return res.status(503).json({ code: "SESSION_UNAVAILABLE" });
+  }
+});
+
 router.post("/logout", async (req: Request, res: Response) => {
   const token = req.body?.sessionToken;
   if (typeof token !== "string") return res.status(400).json({ code: "BAD_REQUEST" });

@@ -50,6 +50,7 @@ const { createInAppPurchaseBridge } = require("./src/inAppPurchase.cjs");
 const {
   STEAM_ENABLED,
   STEAM_DEMO,
+  STEAM_APPID,
   maybeRestartForSteam,
   prepareSteamOverlay,
   initSteam,
@@ -63,6 +64,7 @@ const {
   openOverlay: openSteamOverlay,
   openOverlayUrl: openSteamOverlayUrl,
   getWebApiTicket: getSteamWebApiTicket,
+  getAuthWebApiTicket: getSteamAuthWebApiTicket,
   onMicroTxnAuthorization,
 } = require("./src/steam.cjs");
 
@@ -263,7 +265,9 @@ function bootstrap() {
   // auth:getToken returns the previously persisted value on the
   // first call rather than null.
   loadPersistedToken();
-  registerAuthIpc();
+  registerAuthIpc(
+    STEAM_ENABLED ? { getTicket: getSteamAuthWebApiTicket, appId: STEAM_APPID } : null,
+  );
   registerWindowControlsIpc(ipcMain);
   // Steamworks init. No-op unless STEAM_BUILD=true. A failure here
   // (Steam client not running, wrong appid, missing binding) logs a

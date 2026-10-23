@@ -7,6 +7,7 @@ import { isValidUsername } from "../../shared/src";
 import { auth } from "../auth/auth";
 import { sendEmailChangeVerification } from "../auth/email";
 import { getPlayerFromRequest, requireAccount, requireAdmin } from "../auth/sessionHelper";
+import { publicAccountEmail, STEAM_EMAIL_DOMAIN } from "../auth/steamEmail";
 import { invalidatePlayerProfile } from "../cache/playerIdentityCache";
 import { BUCKET_NAME, CLOUDFRONT_URL, FRONTEND_URL, PORT } from "../config/envVars";
 import { s3Client } from "../config/s3Client";
@@ -67,7 +68,7 @@ async function verifyPassword(accountId: string, password: string): Promise<bool
 async function getEmailForAccount(accountId: string): Promise<string | undefined> {
   const db = mongoose.connection.getClient().db();
   const baUser = await db.collection("user").findOne({ _id: baIdFilter(accountId) as any });
-  return baUser?.email ?? undefined;
+  return publicAccountEmail(baUser?.email);
 }
 
 /** Look up a user's SSO profile image from better-auth's user collection. */
@@ -102,7 +103,7 @@ export function buildPlayerIdentityFromAccount(
   const needsUsername = !isValidUsername(account.displayName);
   return {
     playerId: account.id,
-    email,
+    email: publicAccountEmail(email),
     displayName: account.displayName,
     kind: "account" as const,
     profilePicture: account.profilePicture,
@@ -138,7 +139,7 @@ function serializeAccountProfile(
 ) {
   return {
     displayName: account.displayName,
-    email,
+    email: publicAccountEmail(email),
     profilePicture: account.profilePicture,
     badges: account.badges ?? [],
     activeBadges: account.activeBadges ?? [],
@@ -184,7 +185,10 @@ async function getProvidersForAccount(accountId: string): Promise<string[]> {
     }
   }
 
-  return accounts.map((a) => a.providerId as string);
+  const providers = accounts.map((a) => a.providerId as string);
+  const gameAccount = await GameAccount.findById(accountId).select("steamId");
+  if (gameAccount?.steamId) providers.push("steam");
+  return providers;
 }
 
 // ---------------------------------------------------------------------------
@@ -849,10 +853,10 @@ router.post("/set-password", async (req: Request, res: Response) => {
       });
     }
 
-    if (password.length < 8) {
+    if (password.length < 8 || password.length > 128) {
       return res.status(400).json({
         code: "INVALID_PASSWORD",
-        message: "Passwords must be at least 8 characters long.",
+        message: "Passwords must be between 8 and 128 characters long.",
       });
     }
 
@@ -861,6 +865,32 @@ router.post("/set-password", async (req: Request, res: Response) => {
       return res.status(409).json({
         code: "CREDENTIAL_EXISTS",
         message: "This account already has a password. Use change password instead.",
+      });
+    }
+
+    const loginEmail =
+      typeof newEmail === "string"
+        ? newEmail.trim().toLowerCase()
+        : await getEmailForAccount(account.id);
+    if (
+      !loginEmail ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginEmail) ||
+      loginEmail.endsWith(`@${STEAM_EMAIL_DOMAIN}`)
+    ) {
+      return res
+        .status(400)
+        .json({ code: "INVALID_EMAIL", message: "Provide a real email address for web sign-in." });
+    }
+    const emailOwner = await mongoose.connection
+      .getClient()
+      .db()
+      .collection("user")
+      .findOne({ email: loginEmail });
+    if (emailOwner && String(emailOwner._id) !== account.id) {
+      return res.status(409).json({
+        code: "EMAIL_IN_USE",
+        message:
+          "That email belongs to another Tiao account. Sign in to that account to link Steam.",
       });
     }
 
@@ -900,7 +930,10 @@ router.post("/set-password", async (req: Request, res: Response) => {
     if (typeof newEmail === "string" && newEmail.trim()) {
       await db
         .collection("user")
-        .updateOne({ _id: baUserIdFilter as any }, { $set: { email: newEmail.trim() } });
+        .updateOne(
+          { _id: baUserIdFilter as any },
+          { $set: { email: loginEmail, ...(emailOwner ? {} : { emailVerified: false }) } },
+        );
     }
 
     // Also sync displayName to better-auth's user collection if changed

@@ -30,6 +30,7 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { useAuth } from "@/lib/AuthContext";
 import { useAppleSignInEnabled } from "@/lib/authProviders";
+import { isSteamBuild } from "@/lib/SteamBridge";
 
 /**
  * Sign in with Apple, styled per Apple's HIG: black fill, white Apple
@@ -51,7 +52,8 @@ export function AppleSignInButton({ onClick }: { onClick: () => void }) {
 }
 
 function OAuthButtons() {
-  const { handleOAuthSignIn } = useAuth();
+  const { handleOAuthSignIn, finishSteamSetup, setAuthDialogOpen, steamSetupRequired } = useAuth();
+  const tSteam = useTranslations("steamAccount");
   const appleEnabled = useAppleSignInEnabled();
 
   return (
@@ -59,6 +61,20 @@ function OAuthButtons() {
       <p className="text-center text-xs font-semibold uppercase tracking-wider text-[#7b6550]">
         Or continue with
       </p>
+      {isSteamBuild() && !steamSetupRequired && finishSteamSetup && (
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={() => {
+            void finishSteamSetup("check")
+              .then(() => setAuthDialogOpen(false))
+              .catch((error) => toast.error(String(error.message)));
+          }}
+        >
+          {tSteam("continueSteam")}
+        </Button>
+      )}
       {appleEnabled && <AppleSignInButton onClick={() => void handleOAuthSignIn("apple")} />}
       <div className="flex gap-2">
         <Button

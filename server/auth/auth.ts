@@ -202,6 +202,9 @@ export const auth = betterAuth({
     user: {
       create: {
         before: async (user) => {
+          if (user.email?.toLowerCase().endsWith("@steam.tiao.invalid")) {
+            throw new APIError("BAD_REQUEST", { message: "Use a real email address." });
+          }
           // Validate displayName if provided (signup via email/password)
           const displayName = (user.displayName as string | undefined)?.trim().toLowerCase();
 
@@ -312,3 +315,9 @@ export const auth = betterAuth({
 });
 
 export type BetterAuthSession = typeof auth.$Infer.Session;
+
+/** Release the adapter pool used by isolated database integration tests. */
+export async function closeAuthDatabaseForTests() {
+  if (process.env.NODE_ENV !== "test") throw new Error("Test-only database shutdown");
+  await mongoClient.close();
+}
