@@ -1,5 +1,5 @@
 {
-  "description": "Constructed tactical replay matching the approved store position. White closes its eye; Black invades it; White fills the centre of its other cluster; Black demonstrates five legal captures. A sixth is possible but not shown.",
+  "description": "Constructed tactical replay. White closes its first eye, then builds its second cluster from the centre outward. Black invades the hollow eye; White blocks one diagonal escape; Black takes another route and captures all six stones of the invaded cluster.",
   "initial": {
     "stones": [
       {
@@ -13,11 +13,6 @@
         "color": "white"
       },
       {
-        "x": 7,
-        "y": 6,
-        "color": "white"
-      },
-      {
         "x": 10,
         "y": 6,
         "color": "white"
@@ -28,16 +23,6 @@
         "color": "white"
       },
       {
-        "x": 6,
-        "y": 7,
-        "color": "white"
-      },
-      {
-        "x": 8,
-        "y": 7,
-        "color": "white"
-      },
-      {
         "x": 10,
         "y": 7,
         "color": "white"
@@ -45,11 +30,6 @@
       {
         "x": 12,
         "y": 7,
-        "color": "white"
-      },
-      {
-        "x": 7,
-        "y": 8,
         "color": "white"
       },
       {
@@ -65,31 +45,6 @@
       {
         "x": 10,
         "y": 9,
-        "color": "black"
-      },
-      {
-        "x": 7,
-        "y": 10,
-        "color": "black"
-      },
-      {
-        "x": 8,
-        "y": 10,
-        "color": "black"
-      },
-      {
-        "x": 9,
-        "y": 10,
-        "color": "black"
-      },
-      {
-        "x": 10,
-        "y": 10,
-        "color": "black"
-      },
-      {
-        "x": 8,
-        "y": 11,
         "color": "black"
       },
       {
@@ -113,6 +68,86 @@
     {
       "type": "place",
       "position": {
+        "x": 7,
+        "y": 10
+      },
+      "hold": 900
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 7,
+        "y": 7
+      },
+      "hold": 900
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 8,
+        "y": 10
+      },
+      "hold": 900
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 7,
+        "y": 6
+      },
+      "hold": 900
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 9,
+        "y": 10
+      },
+      "hold": 900
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 6,
+        "y": 7
+      },
+      "hold": 900
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 10,
+        "y": 10
+      },
+      "hold": 900
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 8,
+        "y": 7
+      },
+      "hold": 900
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 8,
+        "y": 11
+      },
+      "hold": 900
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 7,
+        "y": 8
+      },
+      "hold": 900
+    },
+    {
+      "type": "place",
+      "position": {
         "x": 11,
         "y": 7
       },
@@ -121,8 +156,8 @@
     {
       "type": "place",
       "position": {
-        "x": 7,
-        "y": 7
+        "x": 9,
+        "y": 5
       },
       "hold": 1300
     },
@@ -152,6 +187,10 @@
         {
           "x": 9,
           "y": 7
+        },
+        {
+          "x": 11,
+          "y": 7
         }
       ],
       "hold": 4200
@@ -159,6 +198,6 @@
   ],
   "score": {
     "white": 0,
-    "black": 5
+    "black": 6
   }
 }

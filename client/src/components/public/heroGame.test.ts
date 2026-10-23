@@ -1,7 +1,6 @@
 import { confirmPendingJump, createInitialGameState, jumpPiece, placePiece } from "@shared";
 import { describe, expect, it } from "vitest";
 import { canPlacePiece, getJumpTargets, makeBoard } from "@/components/tutorial/tutorialEngine";
-import artwork from "../../../../scripts/assets/store-art/position.json";
 import { HERO_FRAMES, HERO_PRE_JUMP_FRAME } from "./heroGame";
 import recording from "./heroGameRecording.json";
 
@@ -46,7 +45,7 @@ describe("hero game replay", () => {
   });
 });
 
-it("replays the recording through the game rules and ends with five captures", () => {
+it("replays the recording through the game rules and completes all six captures despite White’s defence", () => {
   let state = createInitialGameState({ boardSize: 19, scoreToWin: 10 });
   for (const stone of recording.initial.stones) {
     state.positions[stone.y][stone.x] = stone.color as "white" | "black";
@@ -72,34 +71,58 @@ it("replays the recording through the game rules and ends with five captures", (
       state = result.value;
     }
   }
-  expect(recording.moves.at(-1)?.path).toHaveLength(5);
+  expect(recording.moves.at(-1)?.path).toHaveLength(6);
   expect(state.score).toEqual(recording.score);
-  const setup = HERO_FRAMES[0];
-  const closedEye = HERO_FRAMES[1];
-  const invadedEye = HERO_FRAMES[2];
-  const distractedWhite = HERO_FRAMES[3];
-  const stoneAt = (frame: typeof setup, x: number, y: number) =>
-    frame.stones.find((stone) => stone.x === x && stone.y === y)?.color;
-  expect(stoneAt(setup, 11, 8)).toBeUndefined();
-  expect(stoneAt(closedEye, 11, 8)).toBe("white");
-  expect(stoneAt(closedEye, 11, 7)).toBeUndefined();
-  expect(stoneAt(invadedEye, 11, 7)).toBe("black");
-  for (const [x, y] of [
-    [10, 7],
-    [12, 7],
-    [11, 6],
-    [11, 8],
-  ]) {
-    expect(stoneAt(invadedEye, x, y)).toBe("white");
-  }
-  expect(stoneAt(distractedWhite, 7, 7)).toBe("white");
-  expect(HERO_FRAMES.filter((frame) => frame.move)).toHaveLength(5);
+  expect(state.score).toEqual({ white: 0, black: 6 });
+  expect(HERO_FRAMES.filter((frame) => frame.move)).toHaveLength(6);
+  expect(HERO_FRAMES.at(-1)!.score).toEqual([0, 6]);
+  expect(HERO_FRAMES.at(-1)!.stones.some((stone) => stone.captured)).toBe(false);
+  const board = makeBoard(19);
+  for (const stone of HERO_FRAMES.at(-1)!.stones)
+    board[stone.y][stone.x] = stone.color === "white" ? "W" : "B";
+  expect(getJumpTargets(board, { x: 11, y: 7 }, "B", 19)).toEqual([]);
 });
 
-it("uses the approved artwork position before the chain, centred on the homepage board", () => {
-  const key = (stone: { x: number; y: number; color: string }) =>
-    `${stone.x},${stone.y}:${stone.color}`;
-  expect(HERO_PRE_JUMP_FRAME.stones.map(key).sort()).toEqual(
-    artwork.stones.map((stone) => key({ ...stone, x: stone.x + 5, y: stone.y - 4 })).sort(),
+it("builds White’s second cluster from its centre without leaving a hollow eye", () => {
+  const outer = [
+    { x: 7, y: 6 },
+    { x: 6, y: 7 },
+    { x: 8, y: 7 },
+    { x: 7, y: 8 },
+  ];
+  for (const frame of HERO_FRAMES) {
+    if (
+      outer.some((position) =>
+        frame.stones.some((stone) => stone.x === position.x && stone.y === position.y),
+      )
+    ) {
+      expect(frame.stones).toContainEqual(expect.objectContaining({ x: 7, y: 7, color: "white" }));
+    }
+  }
+  expect(HERO_PRE_JUMP_FRAME.stones).toContainEqual(
+    expect.objectContaining({ x: 7, y: 8, color: "white" }),
   );
+});
+
+it("lets White block a diagonal jump before Black captures the cluster by another route", () => {
+  const beforeDefence = HERO_FRAMES[HERO_FRAMES.indexOf(HERO_PRE_JUMP_FRAME) - 1];
+  const targets = (frame: typeof HERO_PRE_JUMP_FRAME) => {
+    const board = makeBoard(19);
+    for (const stone of frame.stones) board[stone.y][stone.x] = stone.color === "white" ? "W" : "B";
+    return getJumpTargets(board, { x: 11, y: 7 }, "B", 19);
+  };
+  expect(targets(beforeDefence)).toContainEqual({ x: 9, y: 5 });
+  expect(HERO_PRE_JUMP_FRAME.stones).toContainEqual(
+    expect.objectContaining({ x: 9, y: 5, color: "white" }),
+  );
+  expect(targets(HERO_PRE_JUMP_FRAME)).not.toContainEqual({ x: 9, y: 5 });
+  expect(targets(HERO_PRE_JUMP_FRAME)).toContainEqual({ x: 11, y: 9 });
+  const ending = HERO_FRAMES.at(-1)!;
+  const invadedCluster = HERO_PRE_JUMP_FRAME.stones.filter(
+    (stone) =>
+      stone.color === "white" && stone.x >= 10 && stone.x <= 12 && stone.y >= 6 && stone.y <= 8,
+  );
+  expect(invadedCluster).toHaveLength(6);
+  for (const stone of invadedCluster)
+    expect(ending.stones.some((remaining) => remaining.id === stone.id)).toBe(false);
 });
