@@ -9,6 +9,7 @@ import { resolve } from "node:path";
 import {
   confirmPendingJump,
   createInitialGameState,
+  getJumpTargets,
   getWinner,
   jumpPiece,
   placePiece,
@@ -147,6 +148,46 @@ if (phase === "setup") {
       await pause(100);
     }
     await pause(350);
+  `;
+} else if (phase === "opening-safe") {
+  const { positions } = JSON.parse(
+    readFileSync("scripts/assets/store-trailer/opening-safe.json", "utf8"),
+  );
+  let state = createInitialGameState();
+  for (const position of positions) {
+    state = unwrap(placePiece(state, position));
+    for (let y = 0; y < state.boardSize; y++)
+      for (let x = 0; x < state.boardSize; x++)
+        if (state.positions[y][x]) assert.equal(getJumpTargets(state, { x, y }).length, 0);
+  }
+  record = true;
+  body = `
+    await pause(250);
+    for (const position of ${JSON.stringify(positions)}) {
+      await cell(position).hover(); await pause(100);
+      await cell(position).click(); await pause(450);
+    }
+    await page.mouse.move(1350,700); await pause(650);
+    await shot('opening-safe-settled');
+  `;
+} else if (phase === "prepare-badges") {
+  awaitCodeOpen("/settings");
+  body += `
+    await page.evaluate(() => {document.body.style.zoom='2';document.body.style.paddingBottom='500px';});
+    await page.getByText('Badge',{exact:true}).evaluate(el=>el.parentElement.scrollIntoView({block:'center'}));
+    await pause(500);
+    console.log(await page.locator('body').ariaSnapshot());
+    await shot('badge-framing');
+  `;
+} else if (phase === "badges-framed") {
+  record = true;
+  body = `
+    const badge = name => page.getByRole('button').filter({has:page.getByText(name,{exact:true})});
+    await pause(250);
+    await badge('Champion').hover(); await pause(200); await badge('Champion').click(); await pause(650);
+    await badge('One Jump Wonder').hover(); await pause(200); await badge('One Jump Wonder').click(); await pause(650);
+    await badge('Flawless').hover(); await pause(200); await badge('Flawless').click(); await pause(800);
+    await shot('badges-framed-settled');
   `;
 } else if (phase === "opening-clean") {
   const positions = [

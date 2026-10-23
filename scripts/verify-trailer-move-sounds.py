@@ -7,7 +7,7 @@ from pathlib import Path
 import json, subprocess, math, sys
 import numpy as np
 from PIL import Image, ImageDraw
-root = Path(sys.argv[1] if len(sys.argv) > 1 else 'build/store-trailer-v7')
+root = Path(sys.argv[1] if len(sys.argv) > 1 else 'build/store-trailer-v8')
 (root / 'qa').mkdir(exist_ok=True)
 e = json.loads((root / 'edit.json').read_text())
 cues = e['resolvedMoveSounds']

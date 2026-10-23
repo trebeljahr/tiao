@@ -1,5 +1,5 @@
 {
-  "title": "Tiao \u2014 clean opening and continuous winning exchange",
+  "title": "Tiao \u2014 safe opening and full-board themes",
   "source": "Shipped Tiao UI; legal local match replays and isolated sample social/tournament accounts",
   "duration": 50.2,
   "style": {
@@ -32,13 +32,13 @@
       "timelineStart": 3.6
     },
     {
-      "file": "opening-clean.webm",
-      "start": 0.45,
+      "file": "opening-safe.webm",
+      "start": 0.9,
       "duration": 2.6,
-      "crop": [485, 375, 650, 366],
+      "crop": [460, 375, 650, 366],
       "kind": "footage",
-      "name": "Four alternating placements build a position",
-      "speed": 1.15,
+      "name": "Build two friendly pairs without giving either side an immediate jump",
+      "speed": 1.45,
       "timelineStart": 5.1
     },
     {
@@ -85,7 +85,7 @@
     },
     {
       "kind": "intertitle",
-      "title": "Invite a friend.",
+      "title": "Play with friends.",
       "duration": 1.2,
       "timelineStart": 20.0
     },
@@ -109,7 +109,7 @@
     },
     {
       "kind": "intertitle",
-      "title": "Win the bracket.",
+      "title": "Win tournaments.",
       "duration": 1.2,
       "timelineStart": 25.0
     },
@@ -139,13 +139,14 @@
     },
     {
       "kind": "footage",
-      "file": "badges-rich.webm",
-      "start": 3.5,
+      "file": "badges-framed.webm",
+      "start": 0.7,
       "duration": 1.8,
-      "crop": [130, 670, 730, 410],
-      "name": "Choose an earned badge",
+      "crop": [40, 380, 690, 650],
+      "name": "Choose Champion, One Jump Wonder and Flawless in the badge panel",
       "timelineStart": 30.7,
-      "speed": 1.4
+      "speed": 1.5,
+      "framing": "native"
     },
     {
       "kind": "footage",
@@ -168,39 +169,47 @@
     },
     {
       "kind": "footage",
-      "file": "themes.webm",
-      "start": 1.3,
+      "file": "theme-night.png",
+      "start": 0,
       "duration": 0.7,
-      "crop": [230, 20, 1580, 889],
+      "crop": [0, 0, 1920, 1080],
       "name": "Night board",
-      "timelineStart": 35.0
+      "timelineStart": 35.0,
+      "still": true,
+      "framing": "native"
     },
     {
       "kind": "footage",
-      "file": "themes.webm",
-      "start": 3.1,
+      "file": "theme-sakura.png",
+      "start": 0,
       "duration": 0.6,
-      "crop": [230, 20, 1580, 889],
+      "crop": [0, 0, 1920, 1080],
       "name": "Sakura board",
-      "timelineStart": 35.7
+      "timelineStart": 35.7,
+      "still": true,
+      "framing": "native"
     },
     {
       "kind": "footage",
-      "file": "themes.webm",
-      "start": 4.9,
+      "file": "theme-ocean.png",
+      "start": 0,
       "duration": 0.5,
-      "crop": [230, 20, 1580, 889],
+      "crop": [0, 0, 1920, 1080],
       "name": "Ocean board",
-      "timelineStart": 36.3
+      "timelineStart": 36.3,
+      "still": true,
+      "framing": "native"
     },
     {
       "kind": "footage",
-      "file": "themes.webm",
-      "start": 6.7,
+      "file": "theme-marble.png",
+      "start": 0,
       "duration": 0.4,
-      "crop": [230, 20, 1580, 889],
+      "crop": [0, 0, 1920, 1080],
       "name": "Marble board",
-      "timelineStart": 36.8
+      "timelineStart": 36.8,
+      "still": true,
+      "framing": "native"
     },
     {
       "kind": "intertitle",
@@ -299,7 +308,7 @@
     "fadeOut": 1.2,
     "targetPeakDb": -8
   },
-  "outputName": "tiao-clear-opening.mp4",
+  "outputName": "tiao-safe-opening.mp4",
   "audioDescription": "Current original piano and final buildup retained. Five restrained Raptor Runner swooshes; committed move clicks throughout the new continuous legal ending.",
   "moveSounds": {
     "file": "scripts/assets/store-trailer/move-events.json",

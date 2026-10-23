@@ -1,0 +1,4 @@
+{
+  "description": "Two separated friendly pairs; neither player has an immediate jump after any placement.",
+  "positions": [{ "x": 8, "y": 9 }, { "x": 11, "y": 9 }, { "x": 8, "y": 10 }, { "x": 11, "y": 10 }]
+}

@@ -91,3 +91,35 @@ test("moves outside the shot crop stay silent", () => {
   for (const shot of hidden.shots) if (shot.kind === "footage") shot.crop = [0, 0, 100, 100];
   assert.deepEqual(projectMoveSounds(hidden, manifest), []);
 });
+
+test("opening placements build separated pairs with no immediate captures", async () => {
+  const { createInitialGameState, placePiece, getJumpTargets, findConnectedCluster } = await import(
+    "../shared/src/tiao.ts"
+  );
+  const { positions } = JSON.parse(
+    readFileSync("scripts/assets/store-trailer/opening-safe.json", "utf8"),
+  );
+  let state = createInitialGameState();
+  for (const position of positions) {
+    const result = placePiece(state, position);
+    assert(result.ok);
+    state = result.value;
+    for (let y = 0; y < state.boardSize; y++)
+      for (let x = 0; x < state.boardSize; x++)
+        if (state.positions[y][x]) assert.equal(getJumpTargets(state, { x, y }).length, 0);
+  }
+  assert.equal(findConnectedCluster(state, positions[0]).length, 2);
+  assert.equal(findConnectedCluster(state, positions[1]).length, 2);
+});
+
+test("theme cuts retain the full native square board", () => {
+  const themes = edit.shots.filter((s) => s.name?.endsWith("board") && s.file.startsWith("theme-"));
+  assert.equal(themes.length, 4);
+  for (const shot of themes) {
+    assert.equal(shot.framing, "native");
+    assert.deepEqual(shot.crop, [0, 0, 1920, 1080]);
+    assert(shot.still);
+  }
+  assert.equal(edit.shots[9].title, "Play with friends.");
+  assert.equal(edit.shots[12].title, "Win tournaments.");
+});

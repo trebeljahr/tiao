@@ -1,5 +1,5 @@
 {
-  "title": "Tiao \u2014 clean opening and continuous winning exchange",
+  "title": "Tiao \u2014 safe opening and full-board themes",
   "selectedOn": "2026-10-23",
   "duration": 50.2,
   "width": 1920,
@@ -7,15 +7,15 @@
   "fps": 30,
   "shotCount": 28,
   "output": "build/store-trailer/tiao-gameplay-current.mp4",
-  "candidate": "build/store-trailer-v7/tiao-clear-opening.mp4",
-  "sha256": "0ecf4edd6bb0b76c38efa88997297a3d72fc73d7cd3507990eee219607bf0e15",
-  "bytes": 37595458,
+  "candidate": "build/store-trailer-v8/tiao-safe-opening.mp4",
+  "sha256": "8d4d308c7682616bac170549a01ecdeb7da0e6b8df36e472a13301e26957133c",
+  "bytes": 37440626,
   "videoBitrate": "6 Mbps CBR target",
   "audio": true,
   "audioDescription": "Current original piano and final buildup retained. Five restrained Raptor Runner swooshes; committed move clicks throughout the new continuous legal ending.",
   "approval": "Local review revision; not approved or uploaded",
   "source": "Actual shipped UI recordings. Legal local game replays; isolated sample social, tournament and profile data.",
-  "note": "Logo opens; single-line rule cards, new four-stone placement/capture demo. A continuous legal final exchange replaces rapid montage crops. Current piano buildup retained after user clarification. Five Raptor Runner swooshes at half the prior peak amplitude, lighter ducking; 29 move cues include every late capture.",
+  "note": "Cards say Play with friends and Win tournaments. New safe opening builds two separated friendly pairs; no immediate jump exists for either color after any placement. Badge selection shows the complete panel without stretching. Four theme cuts retain the full native 1920\u00d71080 frame and square board. Piano buildup, late legal exchange, restrained transitions and 29 synchronized move cues retained.",
   "uploadState": {
     "steam": "New cut is local only. Previous 30-second cut remains uploaded in the store draft.",
     "googlePlay": "not uploaded",
@@ -32,11 +32,11 @@
     "suitableForAllAges": true,
     "countryRestrictions": []
   },
-  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/clear-opening-continuous-finale/",
+  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/safe-opening-native-themes/",
   "files": "Renderer, source-frame move manifest, projection helper/tests, QA script, production audio and selection metadata tracked. Corrected video, stems and visual/audio QA preserved locally; prior cut retained.",
   "intertitleCount": 7,
   "brandCardCount": 2,
-  "reviewCopy": "build/store-trailer/tiao-clear-opening.mp4",
+  "reviewCopy": "build/store-trailer/tiao-safe-opening.mp4",
   "music": {
     "file": "scripts/assets/store-trailer/audio/next-move-original.mp3",
     "title": "Next Move",
@@ -59,8 +59,8 @@
   },
   "previousLocalSelection": {
     "duration": 50.2,
-    "sha256": "e4b7848248066ac2147ffddfb4df896d4edba3002556a5b6edc8fbda5321cc45",
-    "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/move-sound-sync/"
+    "sha256": "0ecf4edd6bb0b76c38efa88997297a3d72fc73d7cd3507990eee219607bf0e15",
+    "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/clear-opening-continuous-finale/"
   },
   "audioValidation": {
     "transitionCount": 5,
@@ -74,5 +74,11 @@
     "maximumVisualOffsetFrames": 1,
     "silentPreviewsAndHolds": true,
     "lateCaptureConfirmations": 2
+  },
+  "pictureValidation": {
+    "safeOpening": true,
+    "availableJumpsAfterEachOpeningPlacement": 0,
+    "fullNativeThemeFrames": 4,
+    "aspectRatioPreserved": true
   }
 }

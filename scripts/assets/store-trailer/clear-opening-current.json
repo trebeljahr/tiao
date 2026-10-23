@@ -1,0 +1,78 @@
+{
+  "title": "Tiao \u2014 clean opening and continuous winning exchange",
+  "selectedOn": "2026-10-23",
+  "duration": 50.2,
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "shotCount": 28,
+  "output": "build/store-trailer/tiao-gameplay-current.mp4",
+  "candidate": "build/store-trailer-v7/tiao-clear-opening.mp4",
+  "sha256": "0ecf4edd6bb0b76c38efa88997297a3d72fc73d7cd3507990eee219607bf0e15",
+  "bytes": 37595458,
+  "videoBitrate": "6 Mbps CBR target",
+  "audio": true,
+  "audioDescription": "Current original piano and final buildup retained. Five restrained Raptor Runner swooshes; committed move clicks throughout the new continuous legal ending.",
+  "approval": "Local review revision; not approved or uploaded",
+  "source": "Actual shipped UI recordings. Legal local game replays; isolated sample social, tournament and profile data.",
+  "note": "Logo opens; single-line rule cards, new four-stone placement/capture demo. A continuous legal final exchange replaces rapid montage crops. Current piano buildup retained after user clarification. Five Raptor Runner swooshes at half the prior peak amplitude, lighter ducking; 29 move cues include every late capture.",
+  "uploadState": {
+    "steam": "New cut is local only. Previous 30-second cut remains uploaded in the store draft.",
+    "googlePlay": "not uploaded",
+    "apple": "not uploaded"
+  },
+  "previousSteamUpload": {
+    "sha256": "f2257223a6ba8364a998327943549dc262473a876866abf231de3ed1488a94ae",
+    "uploadedOn": "2026-10-23",
+    "entryId": 1399906,
+    "assetId": 1404839554,
+    "viewUrl": "https://store.steampowered.com/trailer/assets/?trailer=5035580/1404839554/ba4083cc48118e0606d0f31b62bda4648f06af6e/1792682318",
+    "category": "Gameplay",
+    "language": "English",
+    "suitableForAllAges": true,
+    "countryRestrictions": []
+  },
+  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/clear-opening-continuous-finale/",
+  "files": "Renderer, source-frame move manifest, projection helper/tests, QA script, production audio and selection metadata tracked. Corrected video, stems and visual/audio QA preserved locally; prior cut retained.",
+  "intertitleCount": 7,
+  "brandCardCount": 2,
+  "reviewCopy": "build/store-trailer/tiao-clear-opening.mp4",
+  "music": {
+    "file": "scripts/assets/store-trailer/audio/next-move-original.mp3",
+    "title": "Next Move",
+    "creator": "Original composition made for Tiao in this chat",
+    "method": "Explicit MIDI composition rendered locally with installed Apple Yamaha piano multisamples; no text-to-audio service",
+    "key": "D major",
+    "tempoBpm": 99.58506224066389,
+    "in": 0,
+    "targetLufs": -18,
+    "fadeIn": 0.12,
+    "fadeOut": 1.5,
+    "resolveAt": 48.2,
+    "licence": "Original arrangement; Apple sample content used in finished soundtrack under Logic Pro licence",
+    "licenceUrl": "https://www.apple.com/legal/sla/docs/LogicPro.pdf",
+    "ending": "Original D-major ninth resolves on the logo; replaces the previous stock piano impact to keep the cadence in key."
+  },
+  "audioMeasurements": {
+    "integratedLufs": -16.7,
+    "truePeakDbfs": -2
+  },
+  "previousLocalSelection": {
+    "duration": 50.2,
+    "sha256": "e4b7848248066ac2147ffddfb4df896d4edba3002556a5b6edc8fbda5321cc45",
+    "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/move-sound-sync/"
+  },
+  "audioValidation": {
+    "transitionCount": 5,
+    "transitionPeakDb": -14,
+    "musicDuckDb": 2,
+    "allMusicSecondsPresent": true
+  },
+  "moveSoundValidation": {
+    "cueCount": 29,
+    "newFinalExchangeCues": 13,
+    "maximumVisualOffsetFrames": 1,
+    "silentPreviewsAndHolds": true,
+    "lateCaptureConfirmations": 2
+  }
+}

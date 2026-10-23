@@ -509,6 +509,57 @@
         "origin": [296.46, 70.46],
         "spacing": 51.282
       }
+    },
+    {
+      "file": "opening-safe.webm",
+      "fps": 30,
+      "sha256": "97662447645a31354878cd664b026a0b5101135603a3809e1f420d524e3a955a",
+      "events": [
+        {
+          "id": "safe-opening-0",
+          "kind": "place",
+          "color": "white",
+          "position": {
+            "x": 8,
+            "y": 9
+          },
+          "frame": 43
+        },
+        {
+          "id": "safe-opening-1",
+          "kind": "place",
+          "color": "black",
+          "position": {
+            "x": 11,
+            "y": 9
+          },
+          "frame": 71
+        },
+        {
+          "id": "safe-opening-2",
+          "kind": "place",
+          "color": "white",
+          "position": {
+            "x": 8,
+            "y": 10
+          },
+          "frame": 93
+        },
+        {
+          "id": "safe-opening-3",
+          "kind": "place",
+          "color": "black",
+          "position": {
+            "x": 11,
+            "y": 10
+          },
+          "frame": 122
+        }
+      ],
+      "grid": {
+        "origin": [296.46, 78.46],
+        "spacing": 51.282
+      }
     }
   ]
 }

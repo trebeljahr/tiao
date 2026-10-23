@@ -13,7 +13,7 @@ const require = createRequire(import.meta.url);
 const sharp = require(process.env.SHARP_MODULE || "sharp");
 sharp.concurrency(1);
 const root = resolve(
-  process.argv.slice(2).find((a) => !a.startsWith("--")) || "build/store-trailer-v7",
+  process.argv.slice(2).find((a) => !a.startsWith("--")) || "build/store-trailer-v8",
 );
 const editPath =
   process.argv.find((a) => a.startsWith("--edit="))?.slice(7) ||
@@ -25,7 +25,7 @@ const moveManifest = edit.moveSounds
 const moveCues = moveManifest ? projectMoveSounds(edit, moveManifest) : [];
 const sounds = [...edit.sounds, ...moveCues].sort((a, b) => a.time - b.time);
 const audioOnly = process.argv.includes("--audio-only");
-const outputName = edit.outputName || "tiao-clear-opening.mp4";
+const outputName = edit.outputName || "tiao-safe-opening.mp4";
 const selectedShot = process.argv.find((a) => a.startsWith("--shot="))?.slice(7);
 for (const source of moveManifest?.sources || []) {
   const file = resolve(root, "raw", source.file);
@@ -115,9 +115,12 @@ if (!audioOnly) {
       const time = shot.still
         ? ""
         : `trim=start=${shot.start || 0}:duration=${shot.duration * speed},setpts=(PTS-STARTPTS)/${speed},`;
-      const camera = shot.detail
-        ? "scale=1760:850:force_original_aspect_ratio=decrease:flags=lanczos,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=0xf4eddd"
-        : "scale=1960:1104:flags=lanczos,crop=1920:1080:x='20+12*sin(t*.7)':y=12";
+      const camera =
+        shot.framing === "native"
+          ? "scale=1920:1080:force_original_aspect_ratio=decrease:flags=lanczos,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=0xf4eddd"
+          : shot.detail
+            ? "scale=1760:850:force_original_aspect_ratio=decrease:flags=lanczos,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=0xf4eddd"
+            : "scale=1960:1104:force_original_aspect_ratio=increase:flags=lanczos,crop=1920:1080:x='20+12*sin(t*.7)':y=12";
       filter = `${time}crop=${w}:${h}:${x}:${y},${camera},fps=30,tpad=stop_mode=clone:stop_duration=${shot.duration},trim=end_frame=${frames},setsar=1`;
       if (edit.shots[i + 1]?.kind !== "footage")
         filter += `,fade=t=out:st=${shot.duration - edit.style.fadeOut}:d=${edit.style.fadeOut}`;
