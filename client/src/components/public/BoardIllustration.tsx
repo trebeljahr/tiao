@@ -47,6 +47,18 @@ export function BoardIllustration({ title }: { title: string }) {
             <stop offset="0.6" stopColor="#29261f" />
             <stop offset="1" stopColor="#12120f" />
           </radialGradient>
+          <marker
+            id="hero-capture-arrow"
+            viewBox="0 0 8 8"
+            refX="6.2"
+            refY="4"
+            markerWidth="5.4"
+            markerHeight="5.4"
+            orient="auto"
+            markerUnits="strokeWidth"
+          >
+            <path d="M0 0L8 4L0 8L2.15 4Z" fill="#8dbc62" />
+          </marker>
           <filter id="hero-shadow" x="-30%" y="-30%" width="180%" height="180%">
             <feDropShadow dx="2" dy="4" stdDeviation="2.5" floodOpacity="0.25" />
           </filter>
@@ -65,32 +77,40 @@ export function BoardIllustration({ title }: { title: string }) {
             <circle key={`${x}-${y}`} cx={42 + x * 32} cy={42 + y * 32} r="3.3" fill="#705330" />
           )),
         )}
-        {frame.move && (
-          <path
-            d={`M${42 + frame.move.from[0] * 32} ${42 + frame.move.from[1] * 32}L${42 + frame.move.to[0] * 32} ${42 + frame.move.to[1] * 32}`}
-            fill="none"
-            stroke="#943d2b"
-            strokeWidth="2.5"
-            strokeDasharray="5 6"
-          />
-        )}
+        {frame.trail?.map(({ from, to }) => {
+          const dx = to[0] - from[0];
+          const dy = to[1] - from[1];
+          const distance = Math.hypot(dx, dy);
+          const startInset = 11;
+          const endInset = 14;
+          const line = {
+            x1: 42 + from[0] * 32 + (dx / distance) * startInset,
+            y1: 42 + from[1] * 32 + (dy / distance) * startInset,
+            x2: 42 + to[0] * 32 - (dx / distance) * endInset,
+            y2: 42 + to[1] * 32 - (dy / distance) * endInset,
+          };
+          return (
+            <g key={`${from.join(",")}-${to.join(",")}`} fill="none" strokeLinecap="round">
+              <line {...line} stroke="#5f813d" strokeWidth="3.15" />
+              <line
+                {...line}
+                stroke="#8dbc62"
+                strokeWidth="2.45"
+                markerEnd="url(#hero-capture-arrow)"
+              />
+            </g>
+          );
+        })}
         {frame.stones.map(({ id, x, y, color, captured }) => (
           <g
             key={id}
             className={styles.replayStone}
             style={{
               transform: `translate(${42 + x * 32}px, ${42 + y * 32}px)`,
-              opacity: captured ? 0.4 : 1,
+              opacity: captured ? 0.55 : 1,
             }}
           >
             <circle r="14.5" fill={`url(#hero-${color})`} filter="url(#hero-shadow)" />
-            {captured && (
-              <path
-                d="M-5 -5L5 5M-5 5L5 -5"
-                stroke={color === "white" ? "#943d2b" : "#fffaf0"}
-                strokeWidth="2"
-              />
-            )}
           </g>
         ))}
       </svg>

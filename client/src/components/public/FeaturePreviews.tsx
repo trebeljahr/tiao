@@ -5,15 +5,11 @@ import { useTranslations } from "next-intl";
 import { TiaoBoard } from "@/components/game/TiaoBoard";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { TournamentCard } from "@/components/tournament/TournamentCard";
-import { HERO_FRAMES } from "./heroGame";
+import { HERO_PRE_JUMP_FRAME } from "./heroGame";
 import styles from "./PublicSite.module.css";
 
-// Reuse a settled position from the recorded game, with no pending captures.
-const frame =
-  HERO_FRAMES.find(
-    (candidate) =>
-      candidate.stones.length >= 24 && candidate.stones.every((stone) => !stone.captured),
-  ) ?? HERO_FRAMES[8];
+// Reuse the tactical setup before its capture chain.
+const frame = HERO_PRE_JUMP_FRAME;
 const sampleGame = createInitialGameState();
 for (const stone of frame.stones) sampleGame.positions[stone.y][stone.x] = stone.color;
 sampleGame.currentTurn = frame.turn;

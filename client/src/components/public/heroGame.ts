@@ -12,22 +12,28 @@ export type HeroFrame = {
   turn: "white" | "black";
   score: [number, number];
   move?: { from: [number, number]; to: [number, number] };
+  trail?: { from: [number, number]; to: [number, number] }[];
   hold: number;
 };
 
-/** Expand the recorded game into placements, individual hops and confirmations. No AI runs in the browser. */
+/** Expand the composed tactical example into placements, hops and confirmation. */
 function buildFrames(): HeroFrame[] {
-  let stones: HeroStone[] = [];
-  let turn: HeroStone["color"] = "white";
-  let score: [number, number] = [0, 0];
-  let nextId = 0;
-  const frames: HeroFrame[] = [{ stones, turn, score, hold: 350 }];
-  for (const [index, move] of recording.moves.entries()) {
+  let stones: HeroStone[] = recording.initial.stones.map((stone, id) => ({
+    ...stone,
+    id,
+    color: stone.color as HeroStone["color"],
+  }));
+  let turn: HeroStone["color"] = recording.initial.turn as HeroStone["color"];
+  let score = [...recording.initial.score] as [number, number];
+  let nextId = stones.length;
+  const frames: HeroFrame[] = [{ stones, turn, score, hold: 1400 }];
+  for (const move of recording.moves) {
     if (move.type === "place" && move.position) {
       stones = [...stones, { id: nextId++, ...move.position, color: turn }];
     } else if (move.from && move.path) {
       let from: [number, number] = [move.from.x, move.from.y];
       const moving = stones.find((s) => s.x === from[0] && s.y === from[1])!;
+      const trail: NonNullable<HeroFrame["trail"]> = [];
       for (const target of move.path) {
         const to: [number, number] = [target.x, target.y];
         const victim = stones.find(
@@ -40,7 +46,8 @@ function buildFrames(): HeroFrame[] {
               ? { ...s, captured: true }
               : s,
         );
-        frames.push({ stones, turn, score, move: { from, to }, hold: 550 });
+        trail.push({ from, to });
+        frames.push({ stones, turn, score, move: { from, to }, trail: [...trail], hold: 700 });
         from = to;
       }
       stones = stones.filter((s) => !s.captured);
@@ -48,7 +55,7 @@ function buildFrames(): HeroFrame[] {
       score[turn === "white" ? 0 : 1] += move.path.length;
     }
     turn = turn === "white" ? "black" : "white";
-    frames.push({ stones, turn, score, hold: index < recording.openingPlies ? 400 : 700 });
+    frames.push({ stones, turn, score, hold: move.hold });
   }
   frames.at(-1)!.hold = 4200;
   return frames;

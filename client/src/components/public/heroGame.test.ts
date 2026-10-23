@@ -1,13 +1,8 @@
-import {
-  confirmPendingJump,
-  createInitialGameState,
-  getSelectableJumpOrigins,
-  jumpPiece,
-  placePiece,
-} from "@shared";
+import { confirmPendingJump, createInitialGameState, jumpPiece, placePiece } from "@shared";
 import { describe, expect, it } from "vitest";
 import { canPlacePiece, getJumpTargets, makeBoard } from "@/components/tutorial/tutorialEngine";
-import { HERO_FRAMES } from "./heroGame";
+import artwork from "../../../../scripts/assets/store-art/position.json";
+import { HERO_FRAMES, HERO_PRE_JUMP_FRAME } from "./heroGame";
 import recording from "./heroGameRecording.json";
 
 describe("hero game replay", () => {
@@ -53,11 +48,10 @@ describe("hero game replay", () => {
 
 it("replays the recording through the game rules and ends with five captures", () => {
   let state = createInitialGameState({ boardSize: 19, scoreToWin: 10 });
-  for (const [index, move] of recording.moves.entries()) {
-    if (index < recording.openingPlies) {
-      expect(getSelectableJumpOrigins(state, "white")).toHaveLength(0);
-      expect(getSelectableJumpOrigins(state, "black")).toHaveLength(0);
-    }
+  for (const stone of recording.initial.stones) {
+    state.positions[stone.y][stone.x] = stone.color as "white" | "black";
+  }
+  for (const move of recording.moves) {
     if (move.type === "place" && move.position) {
       const result = placePiece(state, move.position);
       expect(result.ok).toBe(true);
@@ -80,5 +74,32 @@ it("replays the recording through the game rules and ends with five captures", (
   }
   expect(recording.moves.at(-1)?.path).toHaveLength(5);
   expect(state.score).toEqual(recording.score);
-  expect(Math.max(...HERO_FRAMES.map((frame) => frame.stones.length))).toBeGreaterThanOrEqual(69);
+  const setup = HERO_FRAMES[0];
+  const closedEye = HERO_FRAMES[1];
+  const invadedEye = HERO_FRAMES[2];
+  const distractedWhite = HERO_FRAMES[3];
+  const stoneAt = (frame: typeof setup, x: number, y: number) =>
+    frame.stones.find((stone) => stone.x === x && stone.y === y)?.color;
+  expect(stoneAt(setup, 11, 8)).toBeUndefined();
+  expect(stoneAt(closedEye, 11, 8)).toBe("white");
+  expect(stoneAt(closedEye, 11, 7)).toBeUndefined();
+  expect(stoneAt(invadedEye, 11, 7)).toBe("black");
+  for (const [x, y] of [
+    [10, 7],
+    [12, 7],
+    [11, 6],
+    [11, 8],
+  ]) {
+    expect(stoneAt(invadedEye, x, y)).toBe("white");
+  }
+  expect(stoneAt(distractedWhite, 7, 7)).toBe("white");
+  expect(HERO_FRAMES.filter((frame) => frame.move)).toHaveLength(5);
+});
+
+it("uses the approved artwork position before the chain, centred on the homepage board", () => {
+  const key = (stone: { x: number; y: number; color: string }) =>
+    `${stone.x},${stone.y}:${stone.color}`;
+  expect(HERO_PRE_JUMP_FRAME.stones.map(key).sort()).toEqual(
+    artwork.stones.map((stone) => key({ ...stone, x: stone.x + 5, y: stone.y - 4 })).sort(),
+  );
 });

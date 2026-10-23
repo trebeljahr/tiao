@@ -1,0 +1,141 @@
+{
+  "description": "Approved five-hop promotional artwork. Starting-position illustration; a sixth hop remains possible. Homepage uses the same arrangement translated by +5,-4 to centre it on the full board.",
+  "stones": [
+    {
+      "x": 10,
+      "y": 8,
+      "color": "white"
+    },
+    {
+      "x": 9,
+      "y": 9,
+      "color": "white"
+    },
+    {
+      "x": 2,
+      "y": 10,
+      "color": "white"
+    },
+    {
+      "x": 5,
+      "y": 10,
+      "color": "white"
+    },
+    {
+      "x": 6,
+      "y": 10,
+      "color": "white"
+    },
+    {
+      "x": 1,
+      "y": 11,
+      "color": "white"
+    },
+    {
+      "x": 2,
+      "y": 11,
+      "color": "white"
+    },
+    {
+      "x": 3,
+      "y": 11,
+      "color": "white"
+    },
+    {
+      "x": 5,
+      "y": 11,
+      "color": "white"
+    },
+    {
+      "x": 6,
+      "y": 11,
+      "color": "black"
+    },
+    {
+      "x": 7,
+      "y": 11,
+      "color": "white"
+    },
+    {
+      "x": 2,
+      "y": 12,
+      "color": "white"
+    },
+    {
+      "x": 6,
+      "y": 12,
+      "color": "white"
+    },
+    {
+      "x": 7,
+      "y": 12,
+      "color": "white"
+    },
+    {
+      "x": 3,
+      "y": 13,
+      "color": "black"
+    },
+    {
+      "x": 5,
+      "y": 13,
+      "color": "black"
+    },
+    {
+      "x": 2,
+      "y": 14,
+      "color": "black"
+    },
+    {
+      "x": 3,
+      "y": 14,
+      "color": "black"
+    },
+    {
+      "x": 4,
+      "y": 14,
+      "color": "black"
+    },
+    {
+      "x": 5,
+      "y": 14,
+      "color": "black"
+    },
+    {
+      "x": 3,
+      "y": 15,
+      "color": "black"
+    },
+    {
+      "x": 5,
+      "y": 15,
+      "color": "black"
+    }
+  ],
+  "path": [
+    {
+      "x": 6,
+      "y": 11
+    },
+    {
+      "x": 6,
+      "y": 13
+    },
+    {
+      "x": 8,
+      "y": 11
+    },
+    {
+      "x": 6,
+      "y": 11
+    },
+    {
+      "x": 6,
+      "y": 9
+    },
+    {
+      "x": 4,
+      "y": 11
+    }
+  ]
+}
