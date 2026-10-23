@@ -11,10 +11,11 @@ const require = createRequire(import.meta.url);
 const sharp = require(process.env.SHARP_MODULE || "sharp");
 sharp.concurrency(1);
 const root = resolve(
-  process.argv.slice(2).find((a) => !a.startsWith("--")) || "build/store-trailer-v3",
+  process.argv.slice(2).find((a) => !a.startsWith("--")) || "build/store-trailer-v4",
 );
 const edit = JSON.parse(readFileSync("scripts/assets/store-trailer/edit.json", "utf8"));
 const audioOnly = process.argv.includes("--audio-only");
+const selectedShot = process.argv.find((a) => a.startsWith("--shot="))?.slice(7);
 for (const dir of ["graphics", "cut", "audio"]) mkdirSync(resolve(root, dir), { recursive: true });
 const run = (args, options = {}) => {
   const r = spawnSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", ...args], {
@@ -41,7 +42,7 @@ const cardSvg = (shot) => {
   const { intertitleBackground: background, ink, accent } = edit.style;
   if (shot.kind === "brand")
     return svg(
-      `<rect width="1920" height="1080" fill="${background}"/>${brand}<text x="960" y="637" text-anchor="middle" font-family="Georgia,serif" font-size="48" fill="${ink}">${esc(shot.title)}</text><path d="M900 704H1020" stroke="${accent}" stroke-width="3"/><text x="960" y="787" text-anchor="middle" font-family="Arial,sans-serif" font-size="27" letter-spacing="3" fill="${accent}">${esc(shot.sub)}</text>`,
+      `<rect width="1920" height="1080" fill="${background}"/>${brand}<text x="960" y="637" text-anchor="middle" font-family="Georgia,serif" font-size="48" fill="${ink}">${esc(shot.title)}</text><path d="M900 704H1020" stroke="${accent}" stroke-width="3"/><text x="960" y="787" text-anchor="middle" font-family="Arial,sans-serif" font-size="27" letter-spacing="3" fill="${accent}">${esc(shot.sub)}</text>${shot.end ? `<text x="960" y="960" text-anchor="middle" font-family="Arial,sans-serif" font-size="21" fill="#a99c87">Music: L’Etoile danse (Pt. 1) — Meydän · Havor (2018)</text><text x="960" y="996" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" fill="#a99c87">CC BY 4.0 · creativecommons.org/licenses/by/4.0/ · freemusicarchive.org</text>` : ""}`,
     );
   const lines = shot.title.split("\n");
   const top = lines.length === 1 ? 565 : 488;
@@ -73,6 +74,7 @@ const encoder = [
 ];
 if (!audioOnly) {
   for (const [i, shot] of edit.shots.entries()) {
+    if (selectedShot !== undefined && i !== Number(selectedShot)) continue;
     const id = String(i).padStart(2, "0"),
       frames = Math.round(shot.duration * 30);
     const args = ["-threads", "2"];
@@ -152,12 +154,12 @@ const measure = (file) => {
   assert(integrated && peak, "Loudness measurement missing");
   return { integratedLufs: Number(integrated[1]), truePeakDbfs: Number(peak[1]) };
 };
-// One continuous piano excerpt, at its original tempo and pitch.
+// One continuous music excerpt, at its original tempo and pitch.
 run([
-  "-i",
-  edit.music.file,
   "-ss",
   String(edit.music.in),
+  "-i",
+  edit.music.file,
   "-t",
   String(duration),
   "-af",
@@ -187,24 +189,95 @@ const decode = (file, seconds) => {
 };
 const samples = new Float32Array(Math.ceil(duration * 48000) * 2);
 const music = decode(resolve(root, "audio", "music.wav"));
-samples.set(music.subarray(0, samples.length));
+assert(music.length >= samples.length - 960, "Music bed is shorter than the cut");
+const effects = new Float32Array(samples.length);
+const duckedMusic = new Float32Array(samples.length);
 const taps = decode("client/public/move.mp3");
 const whoosh = decode(edit.transition.file, edit.transition.duration);
-const piano = decode(edit.endHit.file, edit.endHit.duration);
+const hit = decode(edit.endHit.file, edit.endHit.duration);
+const peak = (stem) => stem.reduce((n, v) => Math.max(n, Math.abs(v)), 0);
+const duckEvents = edit.sounds.filter((e) => e.type !== "tap");
+for (let i = 0; i < samples.length; i += 2) {
+  const time = i / 96000;
+  let duckDb = 0;
+  for (const event of duckEvents) {
+    const delta = time - event.time;
+    const envelope =
+      delta < -0.25 || delta > 0.7
+        ? 0
+        : delta < -0.08
+          ? (delta + 0.25) / 0.17
+          : delta < 0.18
+            ? 1
+            : (0.7 - delta) / 0.52;
+    duckDb = Math.min(duckDb, -edit.transition.duckDb * envelope);
+  }
+  const gain = 10 ** (duckDb / 20);
+  duckedMusic[i] = (music[i] || 0) * gain;
+  duckedMusic[i + 1] = (music[i + 1] || 0) * gain;
+}
 for (const event of edit.sounds) {
-  const isTap = event.type === "tap",
-    stem = isTap ? taps : event.type === "whoosh" ? whoosh : piano;
+  const isTap = event.type === "tap";
+  const stem = isTap ? taps : event.type === "whoosh" ? whoosh : hit;
   const settings = isTap ? null : event.type === "whoosh" ? edit.transition : edit.endHit;
-  const offset = settings?.peakOffset || 0;
-  const at = Math.round((event.time - offset) * 48000) * 2;
-  const gain = isTap ? event.gain || 0.45 : 10 ** (event.gainDb / 20);
+  const at = Math.round((event.time - (settings?.peakOffset || 0)) * 48000) * 2;
+  // Normalize each effect by its own peak. Raw source gains are not comparable.
+  const gain = isTap
+    ? event.gain || 0.45
+    : 10 ** ((event.targetPeakDb ?? settings.targetPeakDb) / 20) / peak(stem);
   for (let i = 0; i < stem.length; i++) {
     const target = at + i;
     if (target < 0 || target >= samples.length) continue;
     const remain = (stem.length - i) / 96000;
     const fade = settings ? Math.min(1, remain / settings.fadeOut) : 1;
-    samples[target] += stem[i] * gain * fade;
+    effects[target] += stem[i] * gain * fade;
   }
+}
+for (let i = 0; i < samples.length; i++) samples[i] = duckedMusic[i] + effects[i];
+const windowRms = (stem, time) => {
+  const begin = Math.max(0, Math.floor((time - 0.12) * 96000));
+  const end = Math.min(stem.length, Math.ceil((time + 0.22) * 96000));
+  let sum = 0;
+  for (let i = begin; i < end; i++) sum += stem[i] ** 2;
+  return 10 * Math.log10(Math.max(1e-12, sum / (end - begin)));
+};
+const musicContinuity = Array.from({ length: Math.floor(duration) - 1 }, (_, time) => ({
+  time: time + 0.5,
+  rmsDb: windowRms(music, time + 0.5),
+}));
+assert(
+  musicContinuity.every((window) => window.rmsDb > -60),
+  "Unexpected silence in the music bed",
+);
+const cueReport = duckEvents.map((event) => ({
+  type: event.type,
+  time: event.time,
+  effectRmsDb: windowRms(effects, event.time),
+  duckedMusicRmsDb: windowRms(duckedMusic, event.time),
+  effectAboveMusicDb: windowRms(effects, event.time) - windowRms(duckedMusic, event.time),
+}));
+assert(
+  cueReport.every((c) => c.effectAboveMusicDb >= 2),
+  "A transition is masked by the music",
+);
+for (const [name, stem] of [
+  ["effects", effects],
+  ["music-ducked", duckedMusic],
+]) {
+  writeFileSync(resolve(root, "audio", name + ".f32"), Buffer.from(stem.buffer));
+  run([
+    "-f",
+    "f32le",
+    "-ar",
+    "48000",
+    "-ac",
+    "2",
+    "-i",
+    resolve(root, "audio", name + ".f32"),
+    "-c:a",
+    "pcm_s24le",
+    resolve(root, "audio", name + ".wav"),
+  ]);
 }
 writeFileSync(resolve(root, "audio", "mix.f32"), Buffer.from(samples.buffer));
 run([
@@ -223,7 +296,7 @@ run([
   resolve(root, "audio", "mix.wav"),
 ]);
 const beforeMaster = measure(resolve(root, "audio", "mix.wav"));
-const masterGain = Math.min(-18 - beforeMaster.integratedLufs, -2 - beforeMaster.truePeakDbfs);
+const masterGain = Math.min(-16 - beforeMaster.integratedLufs, -2 - beforeMaster.truePeakDbfs);
 run([
   "-i",
   resolve(root, "audio", "mix.wav"),
@@ -256,9 +329,9 @@ run([
   String(duration),
   "-movflags",
   "+faststart",
-  resolve(root, "tiao-intertitles-and-piano.mp4"),
+  resolve(root, "tiao-energy-finale.mp4"),
 ]);
-const measured = measure(resolve(root, "tiao-intertitles-and-piano.mp4"));
+const measured = measure(resolve(root, "tiao-energy-finale.mp4"));
 const audioReport = {
   musicSource: edit.music,
   beforeMusic,
@@ -266,6 +339,8 @@ const audioReport = {
   beforeMaster,
   masterGainDb: masterGain,
   measured,
+  cues: cueReport,
+  musicContinuity,
 };
 writeFileSync(
   resolve(root, "audio", "mix-report.json"),
@@ -280,7 +355,8 @@ writeFileSync(
       width: 1920,
       height: 1080,
       fps: 30,
-      audio: "Continuous Beethoven piano, game taps and Raptor Runner transition effects",
+      audio:
+        "Continuous rhythmic Meydän track, game taps and normalized Raptor Runner swooshes; music ducks at each transition",
       approval: "Local review cut; not uploaded or approved",
     },
     null,
@@ -292,6 +368,6 @@ console.log(
     duration,
     shots: edit.shots.length,
     audio: measured,
-    output: resolve(root, "tiao-intertitles-and-piano.mp4"),
+    output: resolve(root, "tiao-energy-finale.mp4"),
   }),
 );

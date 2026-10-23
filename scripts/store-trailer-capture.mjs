@@ -67,6 +67,7 @@ if (phase === "setup") {
   const me = data["/api/player/me"].player;
   me.badges = ["tournament-champion", "one-jump-wonder", "flawless-victory"];
   me.activeBadges = [];
+  me.unlockedThemes = ["night", "sakura", "ocean", "marble"];
   data["/api/player/profile"] = {
     profile: {
       ...me,
@@ -83,7 +84,13 @@ if (phase === "setup") {
       "first-move",
       "getting-started",
       "regular",
-      "first-victory",
+      "first-blood",
+      "chain-reaction",
+      "speed-demon",
+      "first-friend",
+      "ai-easy",
+      "ai-medium",
+      "tutorial-complete",
       "tournament-champion",
       "one-jump-wonder",
       "flawless-victory",
@@ -206,7 +213,7 @@ if (phase === "setup") {
       finishReason: "captured",
       historyLength: 62,
     });
-    body += `await page.route('**/api/tournaments/AUTUMN8',route=>route.fulfill({json:${JSON.stringify({ tournament: t })}}));`;
+    body += `await page.context().route('**/api/tournaments/AUTUMN8{,/access}',route=>route.fulfill({json:${JSON.stringify({ tournament: t })}}));`;
   }
   awaitCodeOpen("/tournament/AUTUMN8");
   record = true;
@@ -217,6 +224,16 @@ if (phase === "setup") {
     await pause(1400);
     ${phase === "winner" ? `await page.getByText('Winner',{exact:true}).scrollIntoViewIfNeeded(); await pause(2000); await shot('winner-banner');` : `await page.getByRole('button',{name:'Play',exact:true}).last().hover(); await pause(800);`}
     console.log(await page.locator('body').ariaSnapshot());
+  `;
+} else if (phase === "badges-rich") {
+  awaitCodeOpen("/settings");
+  body += `await page.evaluate(() => {document.body.style.zoom='2.6';}); await page.getByText('Champion',{exact:true}).last().scrollIntoViewIfNeeded(); await pause(600);`;
+  record = true;
+  body += `
+    const badge = name => page.getByRole('button').filter({has:page.getByText(name,{exact:true})});
+    await badge('Champion').click(); await pause(900); await shot('badge-rich-champion');
+    await badge('One Jump Wonder').click(); await pause(900); await shot('badge-rich-chain');
+    await badge('Flawless').click(); await pause(900); await shot('badge-rich-flawless');
   `;
 } else if (phase === "badges") {
   body += `await page.evaluate(() => fetch('/api/player/badges/active',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({activeBadges:[]})}));`;
@@ -230,6 +247,29 @@ if (phase === "setup") {
     await badge.hover(); await pause(650); await badge.click(); await pause(1800);
     await shot('badge-equipped');
     console.log(await page.locator('body').ariaSnapshot());
+  `;
+} else if (phase === "themes") {
+  record = true;
+  body += `
+    if(await page.getByRole('button',{name:'Open navigation',exact:true}).getAttribute('aria-expanded')!=='true') await page.getByRole('button',{name:'Open navigation',exact:true}).click();
+    await pause(650);
+    for (const theme of ['Night','Sakura','Ocean','Marble','Classic']) {
+      await page.getByRole('button',{name:theme+' board theme',exact:true}).click();
+      await pause(400);
+      await page.getByRole('button',{name:'Open navigation',exact:true}).click(); await pause(850);
+      await shot('theme-'+theme.toLowerCase());
+      if(theme!=='Classic') { await page.getByRole('button',{name:'Open navigation',exact:true}).click(); await pause(300); }
+    }
+  `;
+} else if (phase === "achievements-rich") {
+  awaitCodeOpen("/achievements");
+  record = true;
+  body += `
+    await page.evaluate(() => { document.body.style.zoom='1.5'; });
+    await page.getByText('First Blood',{exact:true}).scrollIntoViewIfNeeded(); await pause(1000);
+    await shot('achievement-grid');
+    await page.mouse.wheel(0,500); await pause(1200);
+    await shot('achievement-grid-lower');
   `;
 } else if (phase === "achievements") {
   awaitCodeOpen("/achievements");
