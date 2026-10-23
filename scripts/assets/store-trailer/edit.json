@@ -1,5 +1,5 @@
 {
-  "title": "Tiao — piano trailer with synchronized moves",
+  "title": "Tiao \u2014 clean opening and continuous winning exchange",
   "source": "Shipped Tiao UI; legal local match replays and isolated sample social/tournament accounts",
   "duration": 50.2,
   "style": {
@@ -11,6 +11,11 @@
   },
   "shots": [
     {
+      "kind": "brand",
+      "duration": 1.6,
+      "timelineStart": 0
+    },
+    {
       "file": "chain.webm",
       "start": 2,
       "speed": 3.36,
@@ -18,57 +23,44 @@
       "crop": [400, 400, 700, 394],
       "kind": "footage",
       "name": "One stone. Four captures.",
-      "timelineStart": 0
-    },
-    {
-      "kind": "brand",
-      "title": "Find your next move.",
-      "duration": 1.6,
-      "sub": "A TWO-PLAYER STRATEGY GAME",
-      "timelineStart": 2
+      "timelineStart": 1.6
     },
     {
       "kind": "intertitle",
-      "title": "Place a stone.",
-      "label": "01 / PLACE",
+      "title": "Take turns.",
       "duration": 1.5,
-      "sub": "Take turns on an empty point.",
       "timelineStart": 3.6
     },
     {
-      "file": "rules.webm",
-      "start": 0.7,
+      "file": "opening-clean.webm",
+      "start": 0.45,
       "duration": 2.6,
-      "crop": [520, 350, 650, 366],
+      "crop": [485, 375, 650, 366],
       "kind": "footage",
-      "name": "Take turns placing stones.",
-      "speed": 1.1923076923076923,
+      "name": "Four alternating placements build a position",
+      "speed": 1.15,
       "timelineStart": 5.1
     },
     {
       "kind": "intertitle",
-      "title": "Or jump\nto capture.",
-      "label": "02 / JUMP",
+      "title": "Jump to capture.",
       "duration": 1.5,
-      "sub": "Jump an opponent. Land on an empty point.",
       "timelineStart": 7.7
     },
     {
-      "file": "rules.webm",
-      "start": 3.6,
+      "file": "opening-clean.webm",
+      "start": 3.5,
       "duration": 3.8,
-      "crop": [520, 350, 650, 366],
+      "crop": [485, 375, 650, 366],
       "kind": "footage",
-      "name": "Or jump to capture.",
-      "speed": 1.105263157894737,
+      "name": "White jumps diagonally and captures Black",
+      "speed": 0.65,
       "timelineStart": 9.2
     },
     {
       "kind": "intertitle",
-      "title": "Keep the\nchain going.",
-      "label": "03 / CHAIN",
+      "title": "Chain your jumps.",
       "duration": 1.5,
-      "sub": "The same stone. More captures.",
       "timelineStart": 13.0
     },
     {
@@ -94,7 +86,6 @@
     {
       "kind": "intertitle",
       "title": "Invite a friend.",
-      "label": "PLAY TOGETHER",
       "duration": 1.2,
       "timelineStart": 20.0
     },
@@ -119,7 +110,6 @@
     {
       "kind": "intertitle",
       "title": "Win the bracket.",
-      "label": "TOURNAMENTS",
       "duration": 1.2,
       "timelineStart": 25.0
     },
@@ -144,7 +134,6 @@
     {
       "kind": "intertitle",
       "title": "Make it yours.",
-      "label": "BADGES · ACHIEVEMENTS · THEMES",
       "duration": 1.2,
       "timelineStart": 29.5
     },
@@ -215,85 +204,28 @@
     },
     {
       "kind": "intertitle",
-      "title": "First to ten\ncaptures wins.",
-      "label": "YOUR NEXT MOVE",
+      "title": "Capture ten.\nWin the game.",
       "duration": 1.5,
       "timelineStart": 37.2
     },
     {
       "kind": "footage",
-      "file": "prepare-win.webm",
-      "start": 1.2,
-      "duration": 1.6,
-      "speed": 1.25,
+      "file": "finale-continuous.webm",
+      "start": 0.35,
+      "duration": 5.7,
+      "speed": 0.9210526315789473,
       "crop": [230, 20, 1580, 889],
-      "name": "Full legal match, accelerating — 1",
-      "timelineStart": 38.7,
-      "moveSounds": false
+      "name": "Continuous final exchange \u2014 placements and White three-capture chain",
+      "timelineStart": 38.7
     },
     {
       "kind": "footage",
-      "file": "prepare-win.webm",
-      "start": 3.2,
-      "duration": 1.3,
-      "speed": 1.5384615384615383,
-      "crop": [340, 200, 1040, 585],
-      "name": "Full legal match, accelerating — 2",
-      "timelineStart": 40.3,
-      "moveSounds": false
-    },
-    {
-      "kind": "footage",
-      "file": "prepare-win.webm",
-      "start": 5.2,
-      "duration": 1.0,
-      "speed": 2.0,
-      "crop": [230, 20, 1580, 889],
-      "name": "Full legal match, accelerating — 3",
-      "timelineStart": 41.6,
-      "moveSounds": false
-    },
-    {
-      "kind": "footage",
-      "file": "prepare-win.webm",
-      "start": 7.2,
-      "duration": 0.8,
-      "speed": 2.5,
-      "crop": [340, 200, 1040, 585],
-      "name": "Full legal match, accelerating — 4",
-      "timelineStart": 42.6,
-      "moveSounds": false
-    },
-    {
-      "kind": "footage",
-      "file": "prepare-win.webm",
-      "start": 9.2,
-      "duration": 0.6,
-      "speed": 3.3333333333333335,
-      "crop": [230, 20, 1580, 889],
-      "name": "Full legal match, accelerating — 5",
-      "timelineStart": 43.4,
-      "moveSounds": false
-    },
-    {
-      "kind": "footage",
-      "file": "prepare-win.webm",
-      "start": 11.2,
-      "duration": 0.4,
-      "speed": 6.5,
-      "crop": [340, 200, 1040, 585],
-      "name": "Full legal match, accelerating — 6",
-      "timelineStart": 44.0,
-      "moveSounds": false
-    },
-    {
-      "kind": "footage",
-      "file": "win.webm",
-      "start": 2.2,
+      "file": "finale-continuous.webm",
+      "start": 5.6,
       "duration": 2.5,
-      "speed": 2.4,
+      "speed": 1.04,
       "crop": [350, 600, 740, 416],
-      "name": "Four-hop winning chain",
+      "name": "Black replies with the four-hop winning chain",
       "timelineStart": 44.4
     },
     {
@@ -303,13 +235,11 @@
       "duration": 1.3,
       "speed": 1.2,
       "crop": [230, 20, 1580, 889],
-      "name": "Ten captures — Black wins",
+      "name": "Ten captures \u2014 Black wins",
       "timelineStart": 46.9
     },
     {
       "kind": "brand",
-      "title": "Your friend. Your next opponent.",
-      "sub": "PLACE · JUMP · CHAIN · CAPTURE TEN",
       "duration": 2,
       "end": true,
       "timelineStart": 48.2
@@ -318,51 +248,15 @@
   "sounds": [
     {
       "type": "whoosh",
-      "time": 2
-    },
-    {
-      "type": "whoosh",
       "time": 3.6
     },
     {
       "type": "whoosh",
-      "time": 5.1
+      "time": 20
     },
     {
       "type": "whoosh",
-      "time": 7.7
-    },
-    {
-      "type": "whoosh",
-      "time": 9.2
-    },
-    {
-      "type": "whoosh",
-      "time": 13.0
-    },
-    {
-      "type": "whoosh",
-      "time": 14.5
-    },
-    {
-      "type": "whoosh",
-      "time": 20.0
-    },
-    {
-      "type": "whoosh",
-      "time": 21.2
-    },
-    {
-      "type": "whoosh",
-      "time": 25.0
-    },
-    {
-      "type": "whoosh",
-      "time": 26.2
-    },
-    {
-      "type": "whoosh",
-      "time": 27.8
+      "time": 25
     },
     {
       "type": "whoosh",
@@ -370,27 +264,7 @@
     },
     {
       "type": "whoosh",
-      "time": 30.7
-    },
-    {
-      "type": "whoosh",
-      "time": 32.5
-    },
-    {
-      "type": "whoosh",
-      "time": 34.3
-    },
-    {
-      "type": "whoosh",
       "time": 37.2
-    },
-    {
-      "type": "whoosh",
-      "time": 38.7
-    },
-    {
-      "type": "whoosh",
-      "time": 44.4
     }
   ],
   "music": {
@@ -414,9 +288,9 @@
     "sourceProject": "Raptor Runner",
     "peakOffset": 0.17,
     "duration": 0.9,
-    "fadeOut": 0.18,
-    "targetPeakDb": -7,
-    "duckDb": 10
+    "fadeOut": 0.25,
+    "targetPeakDb": -14,
+    "duckDb": 2
   },
   "endHit": {
     "file": "scripts/assets/store-trailer/audio/cinematic-piano-hit.mp3",
@@ -425,12 +299,12 @@
     "fadeOut": 1.2,
     "targetPeakDb": -8
   },
-  "outputName": "tiao-move-synced.mp4",
-  "audioDescription": "Original Next Move piano, source-frame synchronized move sounds and normalized transition swooshes; no click pulse during the compressed match buildup.",
+  "outputName": "tiao-clear-opening.mp4",
+  "audioDescription": "Current original piano and final buildup retained. Five restrained Raptor Runner swooshes; committed move clicks throughout the new continuous legal ending.",
   "moveSounds": {
     "file": "scripts/assets/store-trailer/move-events.json",
     "gain": 0.5,
     "timing": "Source frame mapped through shot trim and playback speed, rounded to output frame",
-    "montage": "Music carries the compressed buildup; no artificial click pulse."
+    "ending": "Continuous legal final exchange, four placements, White three-capture chain, then Black four-hop reply to win 10\u20139; source-frame synchronized."
   }
 }

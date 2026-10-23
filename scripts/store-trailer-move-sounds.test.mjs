@@ -8,15 +8,35 @@ const manifest = JSON.parse(readFileSync(edit.moveSounds.file, "utf8"));
 
 test("recorded jump clicks occur at moves, with hover and pause ranges silent", () => {
   const cues = projectMoveSounds(edit, manifest);
-  assert.equal(cues.length, 19);
+  assert.equal(cues.length, 29);
   assert.deepEqual(
     cues.filter((cue) => cue.shotIndex === 5).map((cue) => cue.frame),
-    [336, 368],
+    [324, 356],
   );
-  assert(!cues.some((cue) => cue.time >= 9.2 && cue.time < 11.2));
-  assert(!cues.some((cue) => cue.time >= 18.5 && cue.time < 44.4));
+  assert(!cues.some((cue) => cue.time >= 9.2 && cue.time < 10.8));
+  assert(!cues.some((cue) => cue.time >= 18.5 && cue.time < 38.7));
   assert(!cues.some((cue) => cue.time >= 46.9));
-  assert.equal(cues.filter((cue) => cue.action === "place").length, 2);
+  assert.equal(cues.filter((cue) => cue.action === "place").length, 8);
+});
+
+test("the final legal exchange retains every visible placement, jump and capture", () => {
+  const cues = projectMoveSounds(edit, manifest).filter(
+    (c) => c.sourceFile === "finale-continuous.webm",
+  );
+  assert.equal(cues.length, 13);
+  assert.equal(cues.filter((c) => c.action === "confirm").length, 2);
+  assert.equal(cues.filter((c) => c.action === "jump").length, 7);
+  assert.equal(cues.filter((c) => c.action === "place").length, 4);
+  assert.deepEqual(
+    cues.map((c) => c.sourceFrame),
+    [22, 43, 64, 83, 111, 129, 144, 153, 183, 200, 215, 230, 237],
+  );
+  const shots = edit.shots.filter((s) => s.file === "finale-continuous.webm");
+  assert.equal(shots[0].start + shots[0].duration * shots[0].speed, shots[1].start);
+  assert(edit.sounds.length <= 5);
+  assert(edit.transition.targetPeakDb <= -14);
+  assert.equal(edit.shots[0].kind, "brand");
+  assert(edit.shots.every((s) => !s.label && !s.sub));
 });
 
 test("source events follow shot trims and speed changes, including repeated footage", () => {
@@ -62,7 +82,7 @@ test("uncorrelated global taps and preview events cannot enter the move track", 
     projectMoveSounds({ ...edit, sounds: [{ type: "tap", time: 9.4 }] }, manifest),
   );
   const invalid = structuredClone(manifest);
-  invalid.sources[0].events[0].kind = "hover";
+  invalid.sources.find((source) => source.file === "chain.webm").events[0].kind = "hover";
   assert.throws(() => projectMoveSounds(edit, invalid));
 });
 

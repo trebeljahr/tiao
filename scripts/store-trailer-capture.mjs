@@ -132,6 +132,81 @@ if (phase === "setup") {
     await shot('setup');
     console.log(await page.locator('body').ariaSnapshot());
   `;
+} else if (phase === "prepare-opening" || phase === "prepare-finale") {
+  const moves = phase === "prepare-finale" ? scenes.victory.moves.slice(0, 56) : [];
+  body = `
+    await open('/local?autostart=1');
+    await cell({x:9,y:9}).waitFor();
+    for (const move of ${JSON.stringify(moves)}) {
+      if (move.type === 'put') await cell(move.position).click();
+      else {
+        await cell(move.steps[0].from).click();
+        for (const step of move.steps) await cell(step.to).click();
+        await cell(move.steps.at(-1).to).click();
+      }
+      await pause(100);
+    }
+    await pause(350);
+  `;
+} else if (phase === "opening-clean") {
+  const positions = [
+    { x: 9, y: 9 },
+    { x: 10, y: 10 },
+    { x: 11, y: 9 },
+    { x: 10, y: 8 },
+  ];
+  let state = createInitialGameState();
+  for (const position of positions) state = unwrap(placePiece(state, position));
+  state = unwrap(jumpPiece(state, { x: 9, y: 9 }, { x: 11, y: 11 }));
+  unwrap(confirmPendingJump(state));
+  record = true;
+  body = `
+    await pause(250);
+    for (const position of ${JSON.stringify(positions)}) {
+      await cell(position).hover(); await pause(100);
+      await cell(position).click(); await pause(450);
+    }
+    await cell({x:9,y:9}).click(); await pause(250);
+    await cell({x:11,y:11}).hover(); await pause(650);
+    await cell({x:11,y:11}).click(); await pause(700);
+    await cell({x:11,y:11}).click(); await pause(1100);
+    await shot('opening-clean-confirmed');
+  `;
+} else if (phase === "finale-continuous") {
+  let final = scenes.victory.before;
+  for (const step of scenes.victory.steps) final = unwrap(jumpPiece(final, step.from, step.to));
+  final = unwrap(confirmPendingJump(final));
+  assert.equal(getWinner(final), "black");
+  record = true;
+  body = `
+    await pause(300);
+    for (const [i, move] of ${JSON.stringify(scenes.victory.moves.slice(56))}.entries()) {
+      if (move.type === 'put') {
+        await cell(move.position).hover(); await pause(140);
+        await cell(move.position).click(); await pause(500 - i * 35);
+      } else {
+        await cell(move.steps[0].from).click(); await pause(200);
+        for (const [j, step] of move.steps.entries()) {
+          await cell(step.to).hover(); await pause(220 - j * 30);
+          await cell(step.to).click(); await pause(320 - j * 35);
+        }
+        await cell(move.steps.at(-1).to).click(); await pause(450);
+      }
+    }
+    const steps = ${JSON.stringify(scenes.victory.steps)};
+    await cell(steps[0].from).click(); await pause(250);
+    for (const [j, step] of steps.entries()) {
+      await cell(step.to).hover(); await pause(200 - j * 25);
+      await cell(step.to).click(); await pause(320 - j * 35);
+    }
+    await cell(steps.at(-1).to).click(); await pause(1500);
+    const actual = await page.locator('[data-testid^="cell-"]').evaluateAll(els => els.map(el => ({id:el.dataset.testid,piece:el.dataset.piece || null})));
+    const expected = ${JSON.stringify(final.positions)};
+    for (const c of actual) { const [,x,y]=c.id.split('-').map(Number); if(c.piece!==expected[y][x]) throw Error('Board mismatch '+c.id); }
+    console.log('Continuous legal final exchange, followed by Black winning 10–9.');
+    await shot('finale-continuous-winner');
+    console.log(await page.locator('body').ariaSnapshot());
+  `;
 } else if (phase === "rules") {
   record = true;
   body = `

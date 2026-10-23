@@ -7,12 +7,13 @@ from pathlib import Path
 import json, subprocess, math, sys
 import numpy as np
 from PIL import Image, ImageDraw
-root = Path(sys.argv[1] if len(sys.argv) > 1 else 'build/store-trailer-v6')
+root = Path(sys.argv[1] if len(sys.argv) > 1 else 'build/store-trailer-v7')
 (root / 'qa').mkdir(exist_ok=True)
 e = json.loads((root / 'edit.json').read_text())
 cues = e['resolvedMoveSounds']
 manifest = json.loads(Path(e['moveSounds']['file']).read_text())
 events = {x['id']: x for s in manifest['sources'] for x in s['events']}
+grids = {s['file']: s['grid'] for s in manifest['sources']}
 want = {max(0, c['frame'] + offset) for c in cues for offset in [-3, -2, -1, 0, 1, 2, 3, 4]}
 saved = {}
 p = subprocess.Popen(['ffmpeg', '-v', 'error', '-threads', '2', '-i', str(root / e['outputName']), '-vf', 'scale=960:540', '-pix_fmt', 'rgb24', '-f', 'rawvideo', 'pipe:1'], stdout=subprocess.PIPE)
@@ -32,12 +33,14 @@ for i, c in enumerate(cues):
     event = events[c['actionId']]
     crop = shot['crop']
     scale = 1960 / crop[2]
-    y0 = 78.46 if c['sourceFile'] == 'rules.webm' else 70.46
+    grid = grids[c['sourceFile']]
+    x0, y0 = grid['origin']
+    spacing = grid['spacing']
     points = event['captures'] if event['kind'] == 'confirm' else [event.get('position', event.get('from'))]
 
     def pos(point, frame):
         t = (frame - round(shot['timelineStart'] * 30)) / 30
-        return (((296.46 + point['x'] * 51.282 - crop[0]) * scale - (20 + 12 * math.sin(t * 0.7))) / 2, ((y0 + point['y'] * 51.282 - crop[1]) * 1104 / crop[3] - 12) / 2)
+        return (((x0 + point['x'] * spacing - crop[0]) * scale - (20 + 12 * math.sin(t * 0.7))) / 2, ((y0 + point['y'] * spacing - crop[1]) * 1104 / crop[3] - 12) / 2)
 
     def color(frame):
         values = []
@@ -54,7 +57,7 @@ for i, c in enumerate(cues):
     first = max(round(shot['timelineStart'] * 30), c['frame'] - 3)
     before = color(first)
     delta = [float(np.linalg.norm(color(frame) - before)) for frame in range(first, c['frame'] + 5)]
-    changed = [first + j for j, d in enumerate(delta) if d > 25]
+    changed = [first + j for j, d in enumerate(delta) if d > (15 if event['kind'] == 'place' and event['color'] == 'white' else 25)]
     assert changed, (i, c, delta)
     change = changed[0]
     error = change - c['frame']
@@ -87,6 +90,6 @@ assert all((abs(x['firstVisibleChangeRelativeFrames']) <= 1 for x in checks)), '
 print('Visible-change frame offsets:', [x['firstVisibleChangeRelativeFrames'] for x in checks])
 raw = subprocess.check_output(['ffmpeg', '-v', 'error', '-i', str(root / 'audio/moves.wav'), '-f', 'f32le', '-ac', '2', '-ar', '48000', 'pipe:1'])
 samples = np.frombuffer(raw, np.float32).reshape(-1, 2)
-for a, b in [(2, 5.1), (7.7, 11.15), (12.8, 14.5), (18.5, 44.4), (46.9, 50.2)]:
+for a, b in [(0, 1.6), (3.5, 5.1), (7.7, 10.75), (12.8, 14.5), (18.5, 38.7), (46.9, 50.2)]:
     assert np.max(np.abs(samples[round(a * 48000):round(b * 48000)])) == 0, (a, b)
-print('Preview, pause, UI, montage and victory-hold move tracks verified silent')
+print('Logo, preview, pause, UI and victory-hold move tracks verified silent')

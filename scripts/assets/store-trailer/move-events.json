@@ -239,6 +239,276 @@
         "origin": [296.46, 70.46],
         "spacing": 51.282
       }
+    },
+    {
+      "file": "opening-clean.webm",
+      "fps": 30,
+      "sha256": "c05542bec814fa4f3fd948ab9a61bfe143892f36f31f33c95ef85a67d667b8f3",
+      "events": [
+        {
+          "id": "opening-0",
+          "kind": "place",
+          "color": "white",
+          "position": {
+            "x": 9,
+            "y": 9
+          },
+          "frame": 20
+        },
+        {
+          "id": "opening-1",
+          "kind": "place",
+          "color": "black",
+          "position": {
+            "x": 10,
+            "y": 10
+          },
+          "frame": 41
+        },
+        {
+          "id": "opening-2",
+          "kind": "place",
+          "color": "white",
+          "position": {
+            "x": 11,
+            "y": 9
+          },
+          "frame": 72
+        },
+        {
+          "id": "opening-3",
+          "kind": "place",
+          "color": "black",
+          "position": {
+            "x": 10,
+            "y": 8
+          },
+          "frame": 94
+        },
+        {
+          "id": "opening-4",
+          "kind": "jump",
+          "color": "white",
+          "from": {
+            "x": 9,
+            "y": 9
+          },
+          "to": {
+            "x": 11,
+            "y": 11
+          },
+          "frame": 136
+        },
+        {
+          "id": "opening-5",
+          "kind": "confirm",
+          "color": "white",
+          "captures": [
+            {
+              "x": 10,
+              "y": 10
+            }
+          ],
+          "frame": 157
+        }
+      ],
+      "grid": {
+        "origin": [296.46, 70.46],
+        "spacing": 51.282
+      }
+    },
+    {
+      "file": "finale-continuous.webm",
+      "fps": 30,
+      "sha256": "da96b9f551ac4dd24410f09f3fca02cfcbf756535788b91a4a643bcee1514686",
+      "events": [
+        {
+          "id": "finale-56",
+          "kind": "place",
+          "color": "white",
+          "position": {
+            "x": 8,
+            "y": 14
+          },
+          "frame": 22
+        },
+        {
+          "id": "finale-57",
+          "kind": "place",
+          "color": "black",
+          "position": {
+            "x": 7,
+            "y": 7
+          },
+          "frame": 43
+        },
+        {
+          "id": "finale-58",
+          "kind": "place",
+          "color": "white",
+          "position": {
+            "x": 3,
+            "y": 15
+          },
+          "frame": 64
+        },
+        {
+          "id": "finale-59",
+          "kind": "place",
+          "color": "black",
+          "position": {
+            "x": 10,
+            "y": 11
+          },
+          "frame": 83
+        },
+        {
+          "id": "finale-60-0",
+          "kind": "jump",
+          "color": "white",
+          "from": {
+            "x": 11,
+            "y": 11
+          },
+          "to": {
+            "x": 9,
+            "y": 11
+          },
+          "frame": 111
+        },
+        {
+          "id": "finale-60-1",
+          "kind": "jump",
+          "color": "white",
+          "from": {
+            "x": 9,
+            "y": 11
+          },
+          "to": {
+            "x": 9,
+            "y": 13
+          },
+          "frame": 129
+        },
+        {
+          "id": "finale-60-2",
+          "kind": "jump",
+          "color": "white",
+          "from": {
+            "x": 9,
+            "y": 13
+          },
+          "to": {
+            "x": 11,
+            "y": 15
+          },
+          "frame": 144
+        },
+        {
+          "id": "finale-60-confirm",
+          "kind": "confirm",
+          "color": "white",
+          "captures": [
+            {
+              "x": 10,
+              "y": 11
+            },
+            {
+              "x": 9,
+              "y": 12
+            },
+            {
+              "x": 10,
+              "y": 14
+            }
+          ],
+          "frame": 153
+        },
+        {
+          "id": "finale-win-0",
+          "kind": "jump",
+          "color": "black",
+          "from": {
+            "x": 7,
+            "y": 14
+          },
+          "to": {
+            "x": 5,
+            "y": 14
+          },
+          "frame": 183
+        },
+        {
+          "id": "finale-win-1",
+          "kind": "jump",
+          "color": "black",
+          "from": {
+            "x": 5,
+            "y": 14
+          },
+          "to": {
+            "x": 5,
+            "y": 12
+          },
+          "frame": 200
+        },
+        {
+          "id": "finale-win-2",
+          "kind": "jump",
+          "color": "black",
+          "from": {
+            "x": 5,
+            "y": 12
+          },
+          "to": {
+            "x": 3,
+            "y": 14
+          },
+          "frame": 215
+        },
+        {
+          "id": "finale-win-3",
+          "kind": "jump",
+          "color": "black",
+          "from": {
+            "x": 3,
+            "y": 14
+          },
+          "to": {
+            "x": 3,
+            "y": 16
+          },
+          "frame": 230
+        },
+        {
+          "id": "finale-win-confirm",
+          "kind": "confirm",
+          "color": "black",
+          "captures": [
+            {
+              "x": 6,
+              "y": 14
+            },
+            {
+              "x": 5,
+              "y": 13
+            },
+            {
+              "x": 4,
+              "y": 13
+            },
+            {
+              "x": 3,
+              "y": 15
+            }
+          ],
+          "frame": 237
+        }
+      ],
+      "grid": {
+        "origin": [296.46, 70.46],
+        "spacing": 51.282
+      }
     }
   ]
 }

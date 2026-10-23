@@ -1,0 +1,76 @@
+{
+  "title": "Tiao — piano trailer with synchronized moves",
+  "selectedOn": "2026-10-23",
+  "duration": 50.2,
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "shotCount": 33,
+  "output": "build/store-trailer/tiao-gameplay-current.mp4",
+  "candidate": "build/store-trailer-v6/tiao-move-synced.mp4",
+  "sha256": "e4b7848248066ac2147ffddfb4df896d4edba3002556a5b6edc8fbda5321cc45",
+  "bytes": 36719444,
+  "videoBitrate": "6 Mbps CBR target",
+  "audio": true,
+  "audioDescription": "Original Next Move piano, source-frame synchronized move sounds and normalized transition swooshes; no click pulse during the compressed match buildup.",
+  "approval": "Local review revision; not approved or uploaded",
+  "source": "Actual shipped UI recordings. Legal local game replays; isolated sample social, tournament and profile data.",
+  "note": "Move clicks now follow verified committed source frames through trim/speed changes. No clicks during hover previews, selection, settled holds or compressed buildup. All video packets and ducked piano stem preserved exactly.",
+  "uploadState": {
+    "steam": "New cut is local only. Previous 30-second cut remains uploaded in the store draft.",
+    "googlePlay": "not uploaded",
+    "apple": "not uploaded"
+  },
+  "previousSteamUpload": {
+    "sha256": "f2257223a6ba8364a998327943549dc262473a876866abf231de3ed1488a94ae",
+    "uploadedOn": "2026-10-23",
+    "entryId": 1399906,
+    "assetId": 1404839554,
+    "viewUrl": "https://store.steampowered.com/trailer/assets/?trailer=5035580/1404839554/ba4083cc48118e0606d0f31b62bda4648f06af6e/1792682318",
+    "category": "Gameplay",
+    "language": "English",
+    "suitableForAllAges": true,
+    "countryRestrictions": []
+  },
+  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/move-sound-sync/",
+  "files": "Renderer, source-frame move manifest, projection helper/tests, QA script, production audio and selection metadata tracked. Corrected video, stems and visual/audio QA preserved locally; prior cut retained.",
+  "intertitleCount": 7,
+  "brandCardCount": 2,
+  "reviewCopy": "build/store-trailer/tiao-move-synced.mp4",
+  "music": {
+    "file": "scripts/assets/store-trailer/audio/next-move-original.mp3",
+    "title": "Next Move",
+    "creator": "Original composition made for Tiao in this chat",
+    "method": "Explicit MIDI composition rendered locally with installed Apple Yamaha piano multisamples; no text-to-audio service",
+    "key": "D major",
+    "tempoBpm": 99.58506224066389,
+    "in": 0,
+    "targetLufs": -18,
+    "fadeIn": 0.12,
+    "fadeOut": 1.5,
+    "resolveAt": 48.2,
+    "licence": "Original arrangement; Apple sample content used in finished soundtrack under Logic Pro licence",
+    "licenceUrl": "https://www.apple.com/legal/sla/docs/LogicPro.pdf",
+    "ending": "Original D-major ninth resolves on the logo; replaces the previous stock piano impact to keep the cadence in key."
+  },
+  "audioMeasurements": {
+    "integratedLufs": -16.9,
+    "truePeakDbfs": -2
+  },
+  "previousLocalSelection": {
+    "duration": 50.2,
+    "sha256": "8e7f24d9defed6d455e84231b0905676e7375e56fc8eec0028f67769e1aaefcb",
+    "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/custom-piano-trailer/"
+  },
+  "audioValidation": {
+    "minimumTransitionAboveDuckedMusicDb": 10.28979362697152,
+    "allMusicSecondsPresent": true
+  },
+  "moveSoundValidation": {
+    "cueCount": 19,
+    "sourceActionCount": 14,
+    "allCueVisualOffsetsFrames": 0,
+    "silentPreviewsAndHolds": true,
+    "compressedMontageClicks": false
+  }
+}

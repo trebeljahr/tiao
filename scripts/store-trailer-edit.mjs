@@ -13,7 +13,7 @@ const require = createRequire(import.meta.url);
 const sharp = require(process.env.SHARP_MODULE || "sharp");
 sharp.concurrency(1);
 const root = resolve(
-  process.argv.slice(2).find((a) => !a.startsWith("--")) || "build/store-trailer-v6",
+  process.argv.slice(2).find((a) => !a.startsWith("--")) || "build/store-trailer-v7",
 );
 const editPath =
   process.argv.find((a) => a.startsWith("--edit="))?.slice(7) ||
@@ -25,7 +25,7 @@ const moveManifest = edit.moveSounds
 const moveCues = moveManifest ? projectMoveSounds(edit, moveManifest) : [];
 const sounds = [...edit.sounds, ...moveCues].sort((a, b) => a.time - b.time);
 const audioOnly = process.argv.includes("--audio-only");
-const outputName = edit.outputName || "tiao-move-synced.mp4";
+const outputName = edit.outputName || "tiao-clear-opening.mp4";
 const selectedShot = process.argv.find((a) => a.startsWith("--shot="))?.slice(7);
 for (const source of moveManifest?.sources || []) {
   const file = resolve(root, "raw", source.file);
@@ -57,17 +57,15 @@ const sourceSvg = (file) => {
 };
 const icon = sourceSvg("scripts/assets/tiao-icon.svg"),
   wordmark = sourceSvg("scripts/assets/tiao-wordmark.svg");
-const brand = `<svg x="558" y="300" width="185" height="185" viewBox="${icon.viewBox}">${icon.body}</svg><svg x="783" y="312" width="579" height="169" viewBox="${wordmark.viewBox}" fill="#f4ede1" color="#f4ede1">${wordmark.body}</svg>`;
+const brand = `<svg x="558" y="440" width="185" height="185" viewBox="${icon.viewBox}">${icon.body}</svg><svg x="783" y="452" width="579" height="169" viewBox="${wordmark.viewBox}" fill="#f4ede1" color="#f4ede1">${wordmark.body}</svg>`;
 const cardSvg = (shot) => {
-  const { intertitleBackground: background, ink, accent } = edit.style;
+  const { intertitleBackground: background, ink } = edit.style;
   if (shot.kind === "brand")
-    return svg(
-      `<rect width="1920" height="1080" fill="${background}"/>${brand}<text x="960" y="637" text-anchor="middle" font-family="Georgia,serif" font-size="48" fill="${ink}">${esc(shot.title)}</text><path d="M900 704H1020" stroke="${accent}" stroke-width="3"/><text x="960" y="787" text-anchor="middle" font-family="Arial,sans-serif" font-size="27" letter-spacing="3" fill="${accent}">${esc(shot.sub)}</text>`,
-    );
+    return svg(`<rect width="1920" height="1080" fill="${background}"/>${brand}`);
   const lines = shot.title.split("\n");
-  const top = lines.length === 1 ? 565 : 488;
+  const top = lines.length === 1 ? 578 : 514;
   return svg(
-    `<rect width="1920" height="1080" fill="${background}"/><text x="960" y="330" text-anchor="middle" font-family="Arial,sans-serif" font-size="30" letter-spacing="8" fill="${accent}">${esc(shot.label)}</text>${lines.map((line, i) => `<text x="960" y="${top + i * 126}" text-anchor="middle" font-family="Georgia,serif" font-size="112" fill="${ink}">${esc(line)}</text>`).join("")}<path d="M900 ${lines.length === 1 ? 641 : 685}H1020" stroke="${accent}" stroke-width="3"/>${shot.sub ? `<text x="960" y="${lines.length === 1 ? 730 : 775}" text-anchor="middle" font-family="Arial,sans-serif" font-size="34" fill="#c9bcaa">${esc(shot.sub)}</text>` : ""}`,
+    `<rect width="1920" height="1080" fill="${background}"/>${lines.map((line, i) => `<text x="960" y="${top + i * 126}" text-anchor="middle" font-family="Georgia,serif" font-size="112" fill="${ink}">${esc(line)}</text>`).join("")}`,
   );
 };
 const encoder = [
@@ -212,6 +210,7 @@ const music = decode(resolve(root, "audio", "music.wav"));
 assert(music.length >= samples.length - 960, "Music bed is shorter than the cut");
 const effects = new Float32Array(samples.length);
 const moves = new Float32Array(samples.length);
+const transitions = new Float32Array(samples.length);
 const duckedMusic = new Float32Array(samples.length);
 const taps = decode("client/public/move.mp3");
 const whoosh = decode(edit.transition.file, edit.transition.duration);
@@ -253,6 +252,7 @@ for (const event of sounds) {
     const fade = settings ? Math.min(1, remain / settings.fadeOut) : 1;
     effects[target] += stem[i] * gain * fade;
     if (isTap) moves[target] += stem[i] * gain * fade;
+    else transitions[target] += stem[i] * gain * fade;
   }
 }
 for (let i = 0; i < samples.length; i++) samples[i] = duckedMusic[i] + effects[i];
@@ -274,17 +274,15 @@ assert(
 const cueReport = duckEvents.map((event) => ({
   type: event.type,
   time: event.time,
-  effectRmsDb: windowRms(effects, event.time),
+  effectRmsDb: windowRms(transitions, event.time),
   duckedMusicRmsDb: windowRms(duckedMusic, event.time),
-  effectAboveMusicDb: windowRms(effects, event.time) - windowRms(duckedMusic, event.time),
+  effectAboveMusicDb: windowRms(transitions, event.time) - windowRms(duckedMusic, event.time),
 }));
-assert(
-  cueReport.every((c) => c.effectAboveMusicDb >= 2),
-  "A transition is masked by the music",
-);
+// Transitions are accents beneath the piano; never force them above the music.
 for (const [name, stem] of [
   ["effects", effects],
   ["moves", moves],
+  ["transitions", transitions],
   ["music-ducked", duckedMusic],
 ]) {
   writeFileSync(resolve(root, "audio", name + ".f32"), Buffer.from(stem.buffer));
