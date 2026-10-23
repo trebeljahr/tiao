@@ -11,6 +11,7 @@ import { MOBILE_ORIGINS } from "../lib/wsOrigin";
 import GameAccount from "../models/GameAccount";
 import { APPLE_ORIGIN, buildAppleProviderOptions, readAppleConfig } from "./appleSignIn";
 import { sendPasswordResetEmail, sendVerificationEmail } from "./email";
+import { steamIdentityPlugin } from "./steamPlugin";
 
 // Bcrypt is deliberately slow; 10 rounds is ~100ms which is fine in
 // production but adds up quickly in the e2e suite, where every test
@@ -147,6 +148,18 @@ export const auth = betterAuth({
   },
 
   databaseHooks: {
+    account: {
+      delete: {
+        after: async (account) => {
+          if (account.providerId === "steam") {
+            await GameAccount.updateOne(
+              { _id: account.userId, steamId: account.accountId },
+              { $unset: { steamId: "" }, $set: { steamProviderLinked: true } },
+            );
+          }
+        },
+      },
+    },
     session: {
       create: {
         after: async (session) => {
@@ -182,6 +195,10 @@ export const auth = betterAuth({
               }
               return;
             }
+
+            // Steam imports profile metadata only as first-run defaults. A
+            // later sign-in must preserve any avatar chosen in Tiao.
+            if (account.steamId && account.profilePicture) return;
 
             // If the user already has a custom-uploaded picture, don't overwrite
             if (account.profilePicture?.includes("cloudfront")) return;
@@ -277,6 +294,7 @@ export const auth = betterAuth({
   },
 
   plugins: [
+    steamIdentityPlugin(),
     // Native mobile apps cannot keep the cross-site session cookie, so they
     // send the signed session token as Authorization: Bearer. Unsigned raw
     // tokens are refused. Web requests never carry the header and keep the

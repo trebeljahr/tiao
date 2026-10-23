@@ -37,6 +37,11 @@ import {
 import { getOAuthErrorMessage } from "@/lib/oauthErrors";
 import { isSteamBuild } from "@/lib/SteamBridge";
 import { safeLocalStorage } from "@/lib/safeLocalStorage";
+import {
+  finishSteamWebAccount,
+  getPendingSteamWebAccount,
+  type SteamProfileDefaults,
+} from "@/lib/steamWebAuth";
 import { resetActiveBadges } from "@/lib/useActiveBadge";
 import { resetBoardTheme } from "@/lib/useBoardTheme";
 
@@ -44,6 +49,7 @@ export interface AuthContextValue {
   auth: AuthResponse | null;
   authLoading: boolean;
   steamSetupRequired?: boolean;
+  steamProfileDefaults?: SteamProfileDefaults;
   finishSteamSetup?: (action: "check" | "create" | "link", username?: string) => Promise<void>;
   skipSteamSetup?: () => void;
   /**
@@ -137,6 +143,7 @@ export function AuthProvider({
 }) {
   const t = useTranslations("common");
   const [auth, setAuth] = useState<AuthResponse | null>(null);
+  const [steamProfileDefaults, setSteamProfileDefaults] = useState<SteamProfileDefaults>();
   const [steamSetupRequired, setSteamSetupRequired] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [authBootstrapped, setAuthBootstrapped] = useState(false);
@@ -229,7 +236,9 @@ export function AuthProvider({
         // Switching Steam accounts must never expose the previous player's data.
         let steamStatus: "signed_in" | "needs_setup" | "unavailable" = "unavailable";
         try {
-          steamStatus = (await signInWithSteam("check")).status;
+          const steam = await signInWithSteam("check");
+          steamStatus = steam.status;
+          if (steam.profile) setSteamProfileDefaults(steam.profile);
         } catch {
           // Offline, Steam unavailable, or older server: keep local play usable.
         }
@@ -242,7 +251,14 @@ export function AuthProvider({
           setCachedAuth(null);
           return;
         }
-        setSteamSetupRequired(steamStatus === "needs_setup");
+        let pendingSteamWeb = false;
+        if (!desktopAuthBridge() && !isNativeMobileApp()) {
+          const pending = await getPendingSteamWebAccount();
+          if (cancelled) return;
+          pendingSteamWeb = pending.status === "needs_setup";
+          if (pending.profile) setSteamProfileDefaults(pending.profile);
+        }
+        setSteamSetupRequired(steamStatus === "needs_setup" || pendingSteamWeb);
         if (getCachedElectronToken()) {
           const player = await fetchPlayerIdentity();
           if (cancelled) return;
@@ -282,7 +298,7 @@ export function AuthProvider({
         // Public pages only check existing sessions; browsing should not mint accounts.
         setAuth(null);
         setCachedAuth(null);
-        if (!createGuestSession) return;
+        if (!createGuestSession || pendingSteamWeb) return;
 
         // No session — create anonymous guest
         const { data: anonData, error: anonError } = await authClient.signIn.anonymous();
@@ -484,8 +500,13 @@ export function AuthProvider({
   const finishSteamSetup = useCallback(
     async (action: "check" | "create" | "link", username?: string) => {
       safeLocalStorage.removeItem("tiao:steam-signed-out");
-      const result = await signInWithSteam(action, username);
+      const result = desktopAuthBridge()
+        ? await signInWithSteam(action, username)
+        : action === "check"
+          ? await getPendingSteamWebAccount()
+          : await finishSteamWebAccount(action, username);
       if (result.status === "needs_setup") {
+        if (result.profile) setSteamProfileDefaults(result.profile);
         setSteamSetupRequired(true);
         setAuthDialogOpen(false);
         return;
@@ -501,6 +522,8 @@ export function AuthProvider({
   const skipSteamSetup = useCallback(() => {
     safeLocalStorage.setItem("tiao:steam-signed-out", "1");
     setSteamSetupRequired(false);
+    if (!desktopAuthBridge() && !isNativeMobileApp())
+      void finishSteamWebAccount("cancel").catch(() => {});
   }, []);
 
   const onOpenAuth = useCallback((mode: AuthDialogMode, options?: { forced?: boolean }) => {
@@ -739,6 +762,7 @@ export function AuthProvider({
       auth,
       authLoading,
       steamSetupRequired,
+      steamProfileDefaults,
       finishSteamSetup,
       skipSteamSetup,
       authBootstrapped,
@@ -776,6 +800,7 @@ export function AuthProvider({
       auth,
       authLoading,
       steamSetupRequired,
+      steamProfileDefaults,
       finishSteamSetup,
       skipSteamSetup,
       authBootstrapped,

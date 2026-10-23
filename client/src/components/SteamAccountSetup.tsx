@@ -13,13 +13,21 @@ import { readableError } from "@/lib/errors";
 /** First-run page: choose an account before creating any permanent Steam identity. */
 export function SteamAccountSetup() {
   const t = useTranslations("steamAccount");
-  const { auth, finishSteamSetup, skipSteamSetup, onOpenAuth } = useAuth();
+  const {
+    auth,
+    authBootstrapped,
+    steamProfileDefaults,
+    finishSteamSetup,
+    skipSteamSetup,
+    onOpenAuth,
+  } = useAuth();
   const router = useRouter();
   const [newPlayer, setNewPlayer] = useState(false);
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState(steamProfileDefaults?.suggestedUsername ?? "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const account = auth?.player.kind === "account" ? auth.player : null;
+  const account = authBootstrapped && auth?.player.kind === "account" ? auth.player : null;
+  const pending = busy || !authBootstrapped;
 
   async function finish(action: "create" | "link") {
     setBusy(true);
@@ -45,15 +53,32 @@ export function SteamAccountSetup() {
         {t("title")}
       </h1>
       <p className="text-[#7b6550]">{t("description")}</p>
+      {steamProfileDefaults?.displayName && (
+        <div className="flex items-center gap-3">
+          {steamProfileDefaults.avatarUrl && (
+            <img
+              src={steamProfileDefaults.avatarUrl}
+              alt=""
+              width={48}
+              height={48}
+              className="h-12 w-12 rounded-xl object-cover"
+              referrerPolicy="no-referrer"
+            />
+          )}
+          <p className="text-sm text-[#7b6550]">
+            {t("steamProfile", { username: steamProfileDefaults.displayName })}
+          </p>
+        </div>
+      )}
       {account ? (
         <>
           <p className="text-sm text-[#4e3d2c]">
             {t("signedInAs", { username: account.displayName })}
           </p>
-          <Button disabled={busy} onClick={() => void finish("link")}>
+          <Button disabled={pending} onClick={() => void finish("link")}>
             {busy ? t("working") : t("linkAccount")}
           </Button>
-          <Button variant="outline" disabled={busy} onClick={() => onOpenAuth("login")}>
+          <Button variant="outline" disabled={pending} onClick={() => onOpenAuth("login")}>
             {t("differentAccount")}
           </Button>
         </>
@@ -78,22 +103,30 @@ export function SteamAccountSetup() {
             required
             aria-describedby="steam-username-hint"
           />
+          {steamProfileDefaults?.suggestedUsername && (
+            <p className="text-sm text-[#7b6550]">{t("prefilledHint")}</p>
+          )}
           <p id="steam-username-hint" className="text-sm text-[#7b6550]">
             {t("usernameHint")}
           </p>
-          <Button type="submit" disabled={busy || !isValidUsername(username)}>
+          <Button type="submit" disabled={pending || !isValidUsername(username)}>
             {busy ? t("working") : t("continueSteam")}
           </Button>
-          <Button type="button" variant="ghost" disabled={busy} onClick={() => setNewPlayer(false)}>
+          <Button
+            type="button"
+            variant="ghost"
+            disabled={pending}
+            onClick={() => setNewPlayer(false)}
+          >
             {t("back")}
           </Button>
         </form>
       ) : (
         <>
-          <Button disabled={busy} onClick={() => setNewPlayer(true)}>
+          <Button disabled={pending} onClick={() => setNewPlayer(true)}>
             {t("newPlayer")}
           </Button>
-          <Button variant="outline" disabled={busy} onClick={() => onOpenAuth("login")}>
+          <Button variant="outline" disabled={pending} onClick={() => onOpenAuth("login")}>
             {t("existingPlayer")}
           </Button>
           <p className="text-sm text-[#7b6550]">{t("existingHint")}</p>
@@ -106,7 +139,7 @@ export function SteamAccountSetup() {
       )}
       <Button
         variant="ghost"
-        disabled={busy}
+        disabled={pending}
         onClick={() => {
           skipSteamSetup?.();
           router.replace("/play");

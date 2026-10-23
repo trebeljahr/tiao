@@ -1,6 +1,7 @@
 import express from "express";
 import { requireAccount } from "../auth/sessionHelper";
 import * as steam from "../auth/steamAccount";
+import { fetchSteamProfile } from "../auth/steamProfile";
 import { authRateLimiter } from "../middleware/rateLimiter";
 
 export function createSteamAuthRouter(
@@ -14,7 +15,7 @@ export function createSteamAuthRouter(
   },
 ) {
   const router = express.Router();
-  router.post("/session", authRateLimiter, async (req, res) => {
+  router.post("/session", express.json({ limit: "10kb" }), authRateLimiter, async (req, res) => {
     res.setHeader("Cache-Control", "no-store");
     try {
       const { action, ticket, appId, username } = req.body ?? {};
@@ -32,7 +33,8 @@ export function createSteamAuthRouter(
           : action === "create"
             ? await deps.create(steamId, username)
             : await deps.find(steamId);
-      if (!account) return res.json({ status: "needs_setup" });
+      if (!account)
+        return res.json({ status: "needs_setup", profile: await fetchSteamProfile(steamId) });
       return res.json({ status: "signed_in", ...(await deps.mint(account.id)) });
     } catch (error) {
       if (error instanceof steam.SteamAccountError) {

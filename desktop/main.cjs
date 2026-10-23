@@ -266,7 +266,9 @@ function bootstrap() {
   // first call rather than null.
   loadPersistedToken();
   registerAuthIpc(
-    STEAM_ENABLED ? { getTicket: getSteamAuthWebApiTicket, appId: STEAM_APPID } : null,
+    STEAM_ENABLED
+      ? { getTicket: getSteamAuthWebApiTicket, appId: STEAM_APPID, getUser: getSteamUser }
+      : null,
   );
   registerWindowControlsIpc(ipcMain);
   // Steamworks init. No-op unless STEAM_BUILD=true. A failure here

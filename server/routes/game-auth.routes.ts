@@ -187,7 +187,7 @@ async function getProvidersForAccount(accountId: string): Promise<string[]> {
 
   const providers = accounts.map((a) => a.providerId as string);
   const gameAccount = await GameAccount.findById(accountId).select("steamId");
-  if (gameAccount?.steamId) providers.push("steam");
+  if (gameAccount?.steamId && !providers.includes("steam")) providers.push("steam");
   return providers;
 }
 

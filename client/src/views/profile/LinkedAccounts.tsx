@@ -13,7 +13,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { getPlayerIdentity, setAccountPassword } from "@/lib/api";
 import { getAuthClient } from "@/lib/auth-client";
 import { type SocialProvider, useAppleSignInEnabled } from "@/lib/authProviders";
-import { signInWithSteam } from "@/lib/desktopAuth";
+import { desktopAuthBridge, signInWithSteam } from "@/lib/desktopAuth";
 import { readableError, toastError } from "@/lib/errors";
 import {
   isNativeMobileApp,
@@ -21,11 +21,12 @@ import {
   startMobileLinkSocial,
 } from "@/lib/mobileAuth";
 import { isSteamBuild } from "@/lib/SteamBridge";
+import { startSteamWebSignIn } from "@/lib/steamWebAuth";
 import { unlinkProviderAccount } from "@/lib/unlinkProviderAccount";
 
 export const SOCIAL_PROVIDERS = [
   { id: "github" as const, label: "GitHub", icon: FaGithub },
-  { id: "google" as const, label: "Google", icon: FaGoogle, FaSteam },
+  { id: "google" as const, label: "Google", icon: FaGoogle },
   { id: "discord" as const, label: "Discord", icon: FaDiscord },
   { id: "apple" as const, label: "Apple", icon: FaApple },
 ];
@@ -62,7 +63,7 @@ export function LinkedAccounts({
     (p) => !providers.includes(p.id) && (p.id !== "apple" || appleEnabled),
   );
   const linkedProviders = providers.filter((p) => p !== "credential");
-  const unlinkableProviders = providers.filter((provider) => provider !== "steam").length > 1;
+  const unlinkableProviders = providers.length > 1;
   const hasCredential = providers.includes("credential");
 
   // Native mobile: the link finishes in the system browser and comes back
@@ -189,31 +190,35 @@ export function LinkedAccounts({
             {providers.includes("steam") && !hasCredential && (
               <p className="text-sm text-[#7b6550]">{ts("webAccess")}</p>
             )}
-            {isSteamBuild() && !providers.includes("steam") && (
-              <div className="space-y-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={busy === "steam"}
-                  onClick={() => {
-                    setBusy("steam");
-                    setSteamError(null);
-                    void finishSteamSetup?.("link")
-                      .then(onProvidersChange)
-                      .catch((error) => setSteamError(readableError(error)))
-                      .finally(() => setBusy(null));
-                  }}
-                >
-                  <FaSteam aria-hidden="true" />
-                  {ts("linkAccount")}
-                </Button>
-                {steamError && (
-                  <p role="alert" className="text-sm text-red-700">
-                    {steamError}
-                  </p>
-                )}
-              </div>
-            )}
+            {(isSteamBuild() || (!desktopAuthBridge() && !isNativeMobileApp())) &&
+              !providers.includes("steam") && (
+                <div className="space-y-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={busy === "steam"}
+                    onClick={() => {
+                      setBusy("steam");
+                      setSteamError(null);
+                      const linking = isSteamBuild()
+                        ? finishSteamSetup?.("link")
+                        : startSteamWebSignIn("link");
+                      void Promise.resolve(linking)
+                        .then(onProvidersChange)
+                        .catch((error) => setSteamError(readableError(error)))
+                        .finally(() => setBusy(null));
+                    }}
+                  >
+                    <FaSteam aria-hidden="true" />
+                    {ts("linkAccount")}
+                  </Button>
+                  {steamError && (
+                    <p role="alert" className="text-sm text-red-700">
+                      {steamError}
+                    </p>
+                  )}
+                </div>
+              )}
             {/* Password/credential provider */}
             {hasCredential && (
               <div className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50/50 px-4 py-2.5">
@@ -256,18 +261,20 @@ export function LinkedAccounts({
                           {t("connected")}
                         </span>
                       </span>
-                      {unlinkableProviders && providerId !== "steam" && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          disabled={busy === providerId}
-                          onClick={() => void handleUnlink(providerId)}
-                          className="text-xs text-[#9a8670] hover:text-red-600"
-                        >
-                          {busy === providerId ? t("unlinking") : t("unlink")}
-                        </Button>
-                      )}
+                      {unlinkableProviders &&
+                        (providerId !== "steam" ||
+                          (!desktopAuthBridge() && !isNativeMobileApp())) && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled={busy === providerId}
+                            onClick={() => void handleUnlink(providerId)}
+                            className="text-xs text-[#9a8670] hover:text-red-600"
+                          >
+                            {busy === providerId ? t("unlinking") : t("unlink")}
+                          </Button>
+                        )}
                     </div>
                   );
                 })}

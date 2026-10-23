@@ -189,7 +189,7 @@ test("HTTP routes require both account and Steam proofs and return the original 
     assert.equal((await post("/steam/session", { action: "link", userId: "forged" })).status, 401);
     assert.equal((await post("/desktop/session", {})).status, 401);
     const check = await post("/steam/session", { action: "check" });
-    assert.deepEqual(await check.json(), { status: "needs_setup" });
+    assert.equal(((await check.json()) as { status: string }).status, "needs_setup");
     const signed = await steam.createSteamAccount("76561198000000011", "web-route-player");
     const original = await steam.mintSteamDesktopSession(signed.id);
     ticketValid = false;

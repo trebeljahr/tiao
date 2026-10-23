@@ -74,7 +74,8 @@
     "oauthErrorAccessDenied": "Zugriff verweigert. Bitte versuche es erneut und autorisiere die App.",
     "continueWithApple": "Mit Apple fortfahren",
     "desktopPersistenceWarning": "Anmeldung wird zwischen Sitzungen nicht gespeichert — sicherer Speicher ist auf diesem Gerät nicht verfügbar.",
-    "copiedEmbedCode": "Einbettungscode kopiert"
+    "copiedEmbedCode": "Einbettungscode kopiert",
+    "steamSignInFailed": "Die Anmeldung mit Steam ist fehlgeschlagen. Bitte versuche es erneut."
   },
   "lobby": {
     "tagline": "Ein wunderschönes abstraktes Strategiespiel. Spiele online, mit Freunden oder gegen eine KI.",
@@ -1482,6 +1483,8 @@
     "working": "Verbindung wird hergestellt…",
     "back": "Zurück",
     "skip": "Ohne Verknüpfung spielen",
-    "webAccess": "Füge unten eine Passwort-Anmeldung hinzu, um dieses Konto im Web zu nutzen. Dein Fortschritt bleibt im selben Konto."
+    "webAccess": "Melde dich im Web mit „Mit Steam fortfahren“ bei diesem Konto an. Eine Passwort-Anmeldung ist optional.",
+    "steamProfile": "Steam-Profil: {username}",
+    "prefilledHint": "Aus Steam übernommen. Du kannst diesen Namen ändern."
   }
 }

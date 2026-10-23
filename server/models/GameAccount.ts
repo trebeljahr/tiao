@@ -22,6 +22,8 @@ export interface IGameAccount extends Document {
   displayName: string;
   /** Verified Steam player identity, shared by the full game and demo. */
   steamId?: string;
+  /** Distinguishes legacy links from Better Auth provider records. */
+  steamProviderLinked?: boolean;
   profilePicture?: string;
   friends: Schema.Types.ObjectId[];
   receivedFriendRequests: Schema.Types.ObjectId[];
@@ -65,6 +67,7 @@ export interface IGameAccount extends Document {
 const GameAccountSchema = new Schema<IGameAccount>(
   {
     steamId: { type: String },
+    steamProviderLinked: { type: Boolean },
     displayName: {
       type: String,
       required: true,

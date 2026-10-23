@@ -30,7 +30,10 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { useAuth } from "@/lib/AuthContext";
 import { useAppleSignInEnabled } from "@/lib/authProviders";
+import { desktopAuthBridge } from "@/lib/desktopAuth";
+import { isNativeMobileApp } from "@/lib/mobileAuth";
 import { isSteamBuild } from "@/lib/SteamBridge";
+import { startSteamWebSignIn } from "@/lib/steamWebAuth";
 
 /**
  * Sign in with Apple, styled per Apple's HIG: black fill, white Apple
@@ -71,6 +74,16 @@ function OAuthButtons() {
               .then(() => setAuthDialogOpen(false))
               .catch((error) => toast.error(String(error.message)));
           }}
+        >
+          {tSteam("continueSteam")}
+        </Button>
+      )}
+      {!desktopAuthBridge() && !isNativeMobileApp() && !steamSetupRequired && (
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={() => void startSteamWebSignIn().catch((error) => toast.error(error.message))}
         >
           {tSteam("continueSteam")}
         </Button>

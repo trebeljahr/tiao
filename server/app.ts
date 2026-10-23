@@ -88,7 +88,7 @@ app.use(
 );
 
 // Steam's signed ticket is exchanged by Electron main, never by a browser.
-app.use("/api/auth/steam", express.json({ limit: "10kb" }), steamAuthRoutes);
+app.use("/api/auth/steam", steamAuthRoutes);
 
 // Native mobile apps call better-auth cross-origin with a bearer token.
 app.use("/api/auth", nativeAuthCors);

@@ -4,6 +4,9 @@ import { SteamAccountSetup } from "./SteamAccountSetup";
 
 const mocks = vi.hoisted(() => ({
   auth: null as null | { player: { kind: string; displayName: string } },
+  profile: undefined as
+    | undefined
+    | { displayName: string; suggestedUsername: string; avatarUrl?: string },
   finish: vi.fn(),
   skip: vi.fn(),
   openAuth: vi.fn(),
@@ -12,6 +15,8 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/lib/AuthContext", () => ({
   useAuth: () => ({
     auth: mocks.auth,
+    authBootstrapped: true,
+    steamProfileDefaults: mocks.profile,
     finishSteamSetup: mocks.finish,
     skipSteamSetup: mocks.skip,
     onOpenAuth: mocks.openAuth,
@@ -26,6 +31,7 @@ describe("Steam first-run account choice", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.auth = null;
+    mocks.profile = undefined;
     mocks.finish.mockResolvedValue(undefined);
   });
   it("does not create an account until the new player chooses a valid username", async () => {
@@ -82,5 +88,22 @@ describe("Steam first-run account choice", () => {
     render(<SteamAccountSetup />);
     expect(await screen.findByRole("button", { name: "Exit fullscreen" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Quit Tiao" })).toBeInTheDocument();
+  });
+  it("prefills Steam name and avatar while keeping the username editable", async () => {
+    mocks.profile = {
+      displayName: "Mäia Jump!",
+      suggestedUsername: "maia-jump",
+      avatarUrl: "https://avatars.steamstatic.com/fake.jpg",
+    };
+    const { container } = render(<SteamAccountSetup />);
+    expect(screen.getByText("Steam profile: Mäia Jump!")).toBeInTheDocument();
+    expect(container.querySelector("img")?.getAttribute("src")).toBe(mocks.profile.avatarUrl);
+    fireEvent.click(screen.getByRole("button", { name: "I’m new to Tiao" }));
+    expect(screen.getByLabelText("Choose your username")).toHaveValue("maia-jump");
+    fireEvent.change(screen.getByLabelText("Choose your username"), {
+      target: { value: "chosen-name" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Continue with Steam" }));
+    await waitFor(() => expect(mocks.finish).toHaveBeenCalledWith("create", "chosen-name"));
   });
 });

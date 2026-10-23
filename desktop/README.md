@@ -540,13 +540,40 @@ logout suppress automatic sign-in until “Continue with Steam” is selected.
 
 Steam supplies no email. The internal Better Auth adapter address uses the
 reserved `steam.tiao.invalid` domain, is never displayed, and cannot be used
-to register through normal signup. A Steam player can add a password login
-in Settings to use the same account on the web. This does not move saves,
+to register through normal signup. A Steam player can use Continue with Steam
+on the web to open the same account.
+Adding a password login in Settings is optional. This does not move saves,
 friends, ratings or purchases between accounts. Steam can also be linked
-later in Settings from the Steam build.
+later in Settings from the web or Steam build.
 
 Validation: client onboarding/desktop-auth tests, desktop auth bridge tests,
 and `server/tests/integration/steamAccounts.test.ts` (throwaway local MongoDB
 database, fake Steam responses). A real Steam launch still requires a running
 Steam client, ownership of the full game or demo, and the configured server
 publisher key. Unit tests never read the OS keychain.
+
+### Shared Steam identity and profile defaults
+
+Steam is stored in Better Auth's `account` collection as `providerId: steam`,
+`accountId: <SteamID64>`, `userId: <Tiao player ID>`. The Tiao player ID stays
+fixed when names, avatars or login methods change. `GameAccount.steamId` is a
+unique lookup/reservation cache; legacy links are backfilled lazily. Better
+Auth unlinking removes that cache, and a removed provider is never restored
+implicitly from a completed link.
+
+The browser Steam plugin verifies OpenID 2.0 assertions at Steam's fixed
+endpoint, binds state to a signed HttpOnly browser cookie, checks the signed
+return URL and fields, and reserves response nonces once across browser
+flows. Native tickets and browser assertions resolve the same provider row.
+New browser users get a short-lived setup proof and choose new/existing
+before any permanent profile is created. Existing-account linking requires
+both the Steam proof and an authenticated Tiao account. No name/email match
+can transfer an identity.
+
+For new accounts, Steam persona/avatar metadata supplies editable defaults.
+Names are normalised to Tiao's username rules and uniqueness is still checked
+server-side. The avatar comes only from approved Steam HTTPS hosts. Metadata
+lookup failures use a manual-name fallback; login does not depend on the
+profile endpoint. Linking or returning never overwrites a chosen Tiao name
+or custom avatar. `STEAM_WEB_API_KEY` is optional and falls back to the
+publisher key; browser OpenID authentication itself needs no Web API key.

@@ -6,6 +6,7 @@ import { SteamMicroTxnClient } from "../payments/steamMicroTxn";
 import { auth } from "./auth";
 import { createSessionToken } from "./desktopSessionManager";
 import { desktopSessionStore } from "./desktopSessionStore";
+import { fetchSteamProfile, type SteamProfile } from "./steamProfile";
 
 export const STEAM_AUTH_IDENTITY = "tiao-auth";
 export { publicAccountEmail } from "./steamEmail";
@@ -67,17 +68,34 @@ export async function verifySteamAuthTicket(ticket: unknown, appId: unknown): Pr
 }
 
 let indexReady: Promise<unknown> | undefined;
+function accounts() {
+  return mongoose.connection.getClient().db().collection("account");
+}
+
 async function ensureSteamIndex() {
-  indexReady ??= GameAccount.collection
-    .createIndex({ steamId: 1 }, { unique: true, sparse: true })
-    .catch((error: unknown) => {
-      indexReady = undefined;
-      throw error;
-    });
+  indexReady ??= Promise.all([
+    GameAccount.collection.createIndex({ steamId: 1 }, { unique: true, sparse: true }),
+    accounts().createIndex(
+      { providerId: 1, accountId: 1 },
+      { unique: true, partialFilterExpression: { providerId: "steam" } },
+    ),
+    accounts().createIndex(
+      { providerId: 1, userId: 1 },
+      { unique: true, partialFilterExpression: { providerId: "steam" } },
+    ),
+  ]).catch((error: unknown) => {
+    indexReady = undefined;
+    throw error;
+  });
   await indexReady;
 }
 
-async function provisionSteamUser(account: { id: string; displayName: string; steamId?: string }) {
+async function provisionSteamUser(account: {
+  id: string;
+  displayName: string;
+  steamId?: string;
+  profilePicture?: string;
+}) {
   if (!account.steamId) throw new Error("Missing verified Steam identity");
   const db = mongoose.connection.getClient().db();
   // Upsert by the reserved game account ID so a retry can finish an interrupted
@@ -91,6 +109,7 @@ async function provisionSteamUser(account: { id: string; displayName: string; st
         email: `${account.steamId}@${STEAM_EMAIL_DOMAIN}`,
         emailVerified: false,
         isAnonymous: false,
+        image: account.profilePicture || null,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -99,14 +118,53 @@ async function provisionSteamUser(account: { id: string; displayName: string; st
   );
 }
 
+/** Steam is a normal Better Auth account provider, shared by browser and SDK login. */
+async function provisionSteamProvider(steamId: string, userId: string) {
+  await ensureSteamIndex();
+  const owner = await accounts().findOne({ providerId: "steam", accountId: steamId });
+  if (owner && String(owner.userId) !== userId) throw linkConflict();
+  await accounts().updateOne(
+    { providerId: "steam", accountId: steamId },
+    {
+      $setOnInsert: {
+        providerId: "steam",
+        accountId: steamId,
+        userId: new ObjectId(userId),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    },
+    { upsert: true },
+  );
+  await GameAccount.updateOne({ _id: userId, steamId }, { $set: { steamProviderLinked: true } });
+}
+function linkConflict() {
+  return new SteamAccountError(
+    409,
+    "STEAM_LINK_CONFLICT",
+    "Steam or this Tiao account is already linked. Sign in to the linked account to keep your progress.",
+  );
+}
+
 export async function findSteamAccount(steamId: string) {
-  const account = await GameAccount.findOne({ steamId });
-  if (account) await provisionSteamUser(account);
+  const provider = await accounts().findOne({ providerId: "steam", accountId: steamId });
+  // Normal lookups never recreate a deleted provider or user. Only legacy
+  // links that predate provider records need an idempotent backfill.
+  if (provider) return GameAccount.findById(provider.userId);
+  const account = await GameAccount.findOne({ steamId, steamProviderLinked: { $ne: true } });
+  if (account) {
+    await provisionSteamUser(account);
+    await provisionSteamProvider(steamId, account.id);
+  }
   return account;
 }
 
 /** Each write is idempotent, including recovery after a partially completed signup. */
-export async function createSteamAccount(steamId: string, username: unknown) {
+export async function createSteamAccount(
+  steamId: string,
+  username: unknown,
+  profile?: SteamProfile,
+) {
   if (typeof username !== "string" || !isValidUsername(username)) {
     throw new SteamAccountError(
       400,
@@ -115,11 +173,25 @@ export async function createSteamAccount(steamId: string, username: unknown) {
     );
   }
   await ensureSteamIndex();
-  let account: { id: string; displayName: string; steamId?: string } | null = null;
+  const linked = await findSteamAccount(steamId);
+  if (linked) return linked;
+  const defaults = profile ?? (await fetchSteamProfile(steamId));
+  let account: {
+    id: string;
+    displayName: string;
+    steamId?: string;
+    profilePicture?: string;
+  } | null = null;
   try {
     account = await GameAccount.findOneAndUpdate(
-      { steamId },
-      { $setOnInsert: { steamId, displayName: username } },
+      { steamId, steamProviderLinked: { $ne: true } },
+      {
+        $setOnInsert: {
+          steamId,
+          displayName: username,
+          ...(defaults.avatarUrl ? { profilePicture: defaults.avatarUrl } : {}),
+        },
+      },
       { upsert: true, new: true, setDefaultsOnInsert: true },
     );
   } catch (error) {
@@ -131,18 +203,24 @@ export async function createSteamAccount(steamId: string, username: unknown) {
   }
   if (!account) throw new Error("Could not create Steam account");
   await provisionSteamUser(account);
+  await provisionSteamProvider(steamId, account.id);
   return account;
 }
 
 export async function linkSteamAccount(steamId: string, userId: string) {
   await ensureSteamIndex();
+  const owner = await findSteamAccount(steamId);
+  if (owner && owner.id !== userId) throw linkConflict();
   try {
     const account = await GameAccount.findOneAndUpdate(
       { _id: userId, $or: [{ steamId: { $exists: false } }, { steamId }] },
       { $set: { steamId } },
       { new: true },
     );
-    if (account) return account;
+    if (account) {
+      await provisionSteamProvider(steamId, account.id);
+      return account;
+    }
   } catch (error) {
     if (!(error && typeof error === "object" && "code" in error && error.code === 11000))
       throw error;

@@ -74,7 +74,8 @@
     "oauthErrorAccessDenied": "Access was denied. Please try again and authorize the app.",
     "continueWithApple": "Continue with Apple",
     "desktopPersistenceWarning": "Sign-in won't be saved between sessions — secure storage is unavailable on this device.",
-    "copiedEmbedCode": "Copied embed code"
+    "copiedEmbedCode": "Copied embed code",
+    "steamSignInFailed": "Could not sign in with Steam. Please try again."
   },
   "lobby": {
     "tagline": "A beautiful abstract strategy game. Play online, with friends, or against an AI.",
@@ -1482,6 +1483,8 @@
     "working": "Connecting…",
     "back": "Back",
     "skip": "Play without linking",
-    "webAccess": "To use this account on the web, add a password login below. Your progress stays on the same account."
+    "webAccess": "Use Continue with Steam on the web to sign in to this same account. A password login is optional.",
+    "steamProfile": "Steam profile: {username}",
+    "prefilledHint": "Prefilled from Steam. You can change this name."
   }
 }

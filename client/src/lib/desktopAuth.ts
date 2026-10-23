@@ -1,12 +1,14 @@
+import { steamUsernameSuggestion } from "../../../shared/src/steamIdentity";
 import { refreshElectronTokenFromBridge } from "./api";
 import { isSteamBuild } from "./SteamBridge";
 import { safeLocalStorage } from "./safeLocalStorage";
+import type { SteamProfileDefaults } from "./steamWebAuth";
 
 type DesktopAuth = {
-  steam?: (input: {
-    action: "check" | "create" | "link";
-    username?: string;
-  }) => Promise<{ status: "signed_in" | "needs_setup" | "unavailable" }>;
+  steam?: (input: { action: "check" | "create" | "link"; username?: string }) => Promise<{
+    status: "signed_in" | "needs_setup" | "unavailable";
+    profile?: SteamProfileDefaults;
+  }>;
   login?: (identifier: string, password: string) => Promise<void>;
 };
 export function desktopAuthBridge(): DesktopAuth | null {
@@ -23,6 +25,9 @@ export async function signInWithSteam(action: "check" | "create" | "link", usern
     return { status: "unavailable" as const };
   if (!isSteamBuild() || !bridge?.steam) return { status: "unavailable" as const };
   const result = await bridge.steam({ action, username });
+  if (result.profile?.displayName)
+    result.profile.suggestedUsername =
+      steamUsernameSuggestion(result.profile.displayName) || result.profile.suggestedUsername;
   if (result.status !== "unavailable") await refreshElectronTokenFromBridge();
   return result;
 }

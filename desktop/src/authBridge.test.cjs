@@ -219,3 +219,24 @@ test("desktop password login exchanges the signed session and persists the revoc
   assert.equal(calls[1].init.headers.Authorization, "Bearer signed-ba-token");
   assert.equal(await h.call("auth:getToken"), "desktop-password-token");
 });
+
+test("Steam setup returns profile defaults without creating a renderer-chosen identity", async () => {
+  const h = harness({
+    steam: true,
+    fetcher: async () => ({
+      ok: true,
+      json: async () => ({
+        status: "needs_setup",
+        profile: {
+          displayName: "Mäia Jump!",
+          suggestedUsername: "maia-jump",
+          avatarUrl: "https://avatars.steamstatic.com/fake.jpg",
+        },
+      }),
+    }),
+  });
+  const result = await h.call("auth:steam", { action: "check" });
+  assert.equal(result.profile.displayName, "Mäia Jump!");
+  assert.equal(result.profile.suggestedUsername, "maia-jump");
+  assert.equal(await h.call("auth:getToken"), null);
+});

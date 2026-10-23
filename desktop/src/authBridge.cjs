@@ -285,7 +285,7 @@ async function revokeToken(token) {
  * AuthContext calls `window.electron.auth.getToken()` on bootstrap.
  */
 /**
- * @param {{ getTicket: () => Promise<{ ticket: string; cancel: () => void } | null>; appId: number } | null} steam
+ * @param {{ getTicket: () => Promise<{ ticket: string; cancel: () => void } | null>; appId: number; getUser?: () => { displayName: string } | null } | null} steam
  */
 function registerAuthIpc(steam = null) {
   handleTrustedIpc(ipcMain, "auth:startOAuth", async (_event, provider) => {
@@ -317,9 +317,10 @@ function registerAuthIpc(steam = null) {
       },
       body: JSON.stringify({ action, username, ticket: ticket.ticket, appId: steam.appId }),
     }).finally(() => ticket.cancel());
-    const result = /** @type {{ status?: string; sessionToken?: string; message?: string }} */ (
-      await res.json()
-    );
+    const result =
+      /** @type {{ status?: string; sessionToken?: string; message?: string; profile?: { displayName: string; suggestedUsername: string; avatarUrl?: string } }} */ (
+        await res.json()
+      );
     if (!res.ok) throw new Error(result.message || "Steam sign-in failed.");
     if (generation !== authGeneration) {
       if (result.sessionToken) await revokeToken(result.sessionToken);
@@ -332,7 +333,11 @@ function registerAuthIpc(steam = null) {
     }
     // Renderer reads the token through getToken after this resolves. Avoid an
     // auth-complete event racing the bootstrap that initiated this request.
-    return { status: result.status };
+    const displayName = result.profile?.displayName || steam.getUser?.()?.displayName;
+    const profile =
+      result.profile || (displayName ? { displayName, suggestedUsername: "" } : undefined);
+    if (profile && displayName) profile.displayName = displayName;
+    return { status: result.status, ...(profile ? { profile } : {}) };
   });
 
   handleTrustedIpc(ipcMain, "auth:login", async (_event, identifier, password) => {
