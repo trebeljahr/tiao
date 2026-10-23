@@ -1,0 +1,37 @@
+{
+  "title": "Tiao \u2014 rules, friends and the final",
+  "selectedOn": "2026-10-23",
+  "duration": 50.3,
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "shotCount": 18,
+  "output": "build/store-trailer/tiao-gameplay-current.mp4",
+  "candidate": "build/store-trailer-v2/tiao-rules-and-friends.mp4",
+  "sha256": "c785dbbcb5249eefd31889baace91fe4f241e5aadaf02fe17a6d56ae980bda58",
+  "bytes": 36427994,
+  "videoBitrate": "6 Mbps CBR target",
+  "audio": true,
+  "audioDescription": "Existing game move sound and original quiet sine accents. No narration or music.",
+  "approval": "Local review cut; not yet approved for upload",
+  "source": "Actual shipped UI recordings. Legal local game replays; isolated sample social, tournament and profile data.",
+  "note": "18 hard cuts, board close-ups, hover paths, placement/jump/chain explanations, accelerated match, friend setup, final victory, champion badge and achievements. No live accounts were changed.",
+  "uploadState": {
+    "steam": "New cut is local only. Previous 30-second cut remains uploaded in the store draft.",
+    "googlePlay": "not uploaded",
+    "apple": "not uploaded"
+  },
+  "previousSteamUpload": {
+    "sha256": "f2257223a6ba8364a998327943549dc262473a876866abf231de3ed1488a94ae",
+    "uploadedOn": "2026-10-23",
+    "entryId": 1399906,
+    "assetId": 1404839554,
+    "viewUrl": "https://store.steampowered.com/trailer/assets/?trailer=5035580/1404839554/ba4083cc48118e0606d0f31b62bda4648f06af6e/1792682318",
+    "category": "Gameplay",
+    "language": "English",
+    "suitableForAllAges": true,
+    "countryRestrictions": []
+  },
+  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/rules-and-friends-trailer/",
+  "files": "Selected MP4, raw clips and QA media are local-only. Recipes, edit decisions, selection and checksum inventory are tracked. Rebuildable per-shot encodes are omitted from the archive."
+}

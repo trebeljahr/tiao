@@ -1,21 +1,21 @@
 {
-  "title": "Tiao \u2014 rules, friends and the final",
+  "title": "Tiao — full-screen rules and piano",
   "selectedOn": "2026-10-23",
-  "duration": 50.3,
+  "duration": 57.1,
   "width": 1920,
   "height": 1080,
   "fps": 30,
-  "shotCount": 18,
+  "shotCount": 25,
   "output": "build/store-trailer/tiao-gameplay-current.mp4",
-  "candidate": "build/store-trailer-v2/tiao-rules-and-friends.mp4",
-  "sha256": "c785dbbcb5249eefd31889baace91fe4f241e5aadaf02fe17a6d56ae980bda58",
-  "bytes": 36427994,
+  "candidate": "build/store-trailer-v3/tiao-intertitles-and-piano.mp4",
+  "sha256": "533e2b129a39cb7c2e53a086ee29e78d8d1d4decd56fa9df4696e5b6760ac277",
+  "bytes": 43381816,
   "videoBitrate": "6 Mbps CBR target",
   "audio": true,
-  "audioDescription": "Existing game move sound and original quiet sine accents. No narration or music.",
-  "approval": "Local review cut; not yet approved for upload",
+  "audioDescription": "Continuous Beethoven Pathétique, II. Adagio cantabile, Daniel Veesey; game taps and the Raptor Runner whoosh/end-card accent. No narration.",
+  "approval": "Local review revision; not approved or uploaded",
   "source": "Actual shipped UI recordings. Legal local game replays; isolated sample social, tournament and profile data.",
-  "note": "18 hard cuts, board close-ups, hover paths, placement/jump/chain explanations, accelerated match, friend setup, final victory, champion badge and achievements. No live accounts were changed.",
+  "note": "Full-screen rule cards replace all lower-third overlays. Clean gameplay, short fades, transition accents and a continuous piano bed; previous UI recordings reused without changes.",
   "uploadState": {
     "steam": "New cut is local only. Previous 30-second cut remains uploaded in the store draft.",
     "googlePlay": "not uploaded",
@@ -32,6 +32,32 @@
     "suitableForAllAges": true,
     "countryRestrictions": []
   },
-  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/rules-and-friends-trailer/",
-  "files": "Selected MP4, raw clips and QA media are local-only. Recipes, edit decisions, selection and checksum inventory are tracked. Rebuildable per-shot encodes are omitted from the archive."
+  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/intertitles-and-piano-trailer/",
+  "files": "Video, raw footage and audio stems remain local-only. Renderer, edit decisions, source audio, licences, selection and checksum inventory are tracked. Raw footage is a local relative link to the previous verified bundle.",
+  "intertitleCount": 7,
+  "brandCardCount": 2,
+  "reviewCopy": "build/store-trailer/tiao-intertitles-and-piano.mp4",
+  "music": {
+    "file": "scripts/assets/store-trailer/audio/pathetique-veesey-excerpt.mp3",
+    "title": "Piano Sonata No. 8 “Pathétique”: II. Adagio cantabile",
+    "composer": "Ludwig van Beethoven",
+    "performer": "Daniel Veesey",
+    "sourceProject": "Collection of Beauty — YouTube trailer",
+    "sourceFile": "/Users/rico/projects/collection-of-beauty/assets-web/music/v2/beethoven-pathetique-2-veesey.mp3",
+    "licence": "CC0 / public domain",
+    "sourceUrl": "https://freemusicarchive.org/music/Daniel_Veesey/Beethovens_Sonata_No_in_C_Minor_Pathetique/Sonata_8_Pathetique_-_II_Adagio_cantabile/",
+    "in": 0,
+    "targetLufs": -18.5,
+    "fadeIn": 0.5,
+    "fadeOut": 3.5
+  },
+  "audioMeasurements": {
+    "integratedLufs": -18.4,
+    "truePeakDbfs": -2.1
+  },
+  "previousLocalSelection": {
+    "duration": 50.3,
+    "sha256": "c785dbbcb5249eefd31889baace91fe4f241e5aadaf02fe17a6d56ae980bda58",
+    "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/rules-and-friends-trailer/"
+  }
 }
