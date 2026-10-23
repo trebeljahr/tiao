@@ -1,0 +1,84 @@
+{
+  "title": "Tiao \u2014 safe opening and full-board themes",
+  "selectedOn": "2026-10-23",
+  "duration": 50.2,
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "shotCount": 28,
+  "output": "build/store-trailer/tiao-gameplay-current.mp4",
+  "candidate": "build/store-trailer-v8/tiao-safe-opening.mp4",
+  "sha256": "8d4d308c7682616bac170549a01ecdeb7da0e6b8df36e472a13301e26957133c",
+  "bytes": 37440626,
+  "videoBitrate": "6 Mbps CBR target",
+  "audio": true,
+  "audioDescription": "Current original piano and final buildup retained. Five restrained Raptor Runner swooshes; committed move clicks throughout the new continuous legal ending.",
+  "approval": "Local review revision; not approved or uploaded",
+  "source": "Actual shipped UI recordings. Legal local game replays; isolated sample social, tournament and profile data.",
+  "note": "Cards say Play with friends and Win tournaments. New safe opening builds two separated friendly pairs; no immediate jump exists for either color after any placement. Badge selection shows the complete panel without stretching. Four theme cuts retain the full native 1920\u00d71080 frame and square board. Piano buildup, late legal exchange, restrained transitions and 29 synchronized move cues retained.",
+  "uploadState": {
+    "steam": "New cut is local only. Previous 30-second cut remains uploaded in the store draft.",
+    "googlePlay": "not uploaded",
+    "apple": "not uploaded"
+  },
+  "previousSteamUpload": {
+    "sha256": "f2257223a6ba8364a998327943549dc262473a876866abf231de3ed1488a94ae",
+    "uploadedOn": "2026-10-23",
+    "entryId": 1399906,
+    "assetId": 1404839554,
+    "viewUrl": "https://store.steampowered.com/trailer/assets/?trailer=5035580/1404839554/ba4083cc48118e0606d0f31b62bda4648f06af6e/1792682318",
+    "category": "Gameplay",
+    "language": "English",
+    "suitableForAllAges": true,
+    "countryRestrictions": []
+  },
+  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/safe-opening-native-themes/",
+  "files": "Renderer, source-frame move manifest, projection helper/tests, QA script, production audio and selection metadata tracked. Corrected video, stems and visual/audio QA preserved locally; prior cut retained.",
+  "intertitleCount": 7,
+  "brandCardCount": 2,
+  "reviewCopy": "build/store-trailer/tiao-safe-opening.mp4",
+  "music": {
+    "file": "scripts/assets/store-trailer/audio/next-move-original.mp3",
+    "title": "Next Move",
+    "creator": "Original composition made for Tiao in this chat",
+    "method": "Explicit MIDI composition rendered locally with installed Apple Yamaha piano multisamples; no text-to-audio service",
+    "key": "D major",
+    "tempoBpm": 99.58506224066389,
+    "in": 0,
+    "targetLufs": -18,
+    "fadeIn": 0.12,
+    "fadeOut": 1.5,
+    "resolveAt": 48.2,
+    "licence": "Original arrangement; Apple sample content used in finished soundtrack under Logic Pro licence",
+    "licenceUrl": "https://www.apple.com/legal/sla/docs/LogicPro.pdf",
+    "ending": "Original D-major ninth resolves on the logo; replaces the previous stock piano impact to keep the cadence in key."
+  },
+  "audioMeasurements": {
+    "integratedLufs": -16.7,
+    "truePeakDbfs": -2
+  },
+  "previousLocalSelection": {
+    "duration": 50.2,
+    "sha256": "0ecf4edd6bb0b76c38efa88997297a3d72fc73d7cd3507990eee219607bf0e15",
+    "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/clear-opening-continuous-finale/"
+  },
+  "audioValidation": {
+    "transitionCount": 5,
+    "transitionPeakDb": -14,
+    "musicDuckDb": 2,
+    "allMusicSecondsPresent": true
+  },
+  "moveSoundValidation": {
+    "cueCount": 29,
+    "newFinalExchangeCues": 13,
+    "maximumVisualOffsetFrames": 1,
+    "silentPreviewsAndHolds": true,
+    "lateCaptureConfirmations": 2
+  },
+  "pictureValidation": {
+    "safeOpening": true,
+    "availableJumpsAfterEachOpeningPlacement": 0,
+    "fullNativeThemeFrames": 4,
+    "aspectRatioPreserved": true
+  }
+}

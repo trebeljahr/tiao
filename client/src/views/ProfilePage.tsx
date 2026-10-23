@@ -465,7 +465,7 @@ export function ProfilePage() {
       ) : null}
 
       {auth?.player.kind === "account" ? (
-        <div className="grid gap-5 lg:grid-cols-[320px_minmax(0,1fr)]">
+        <div className="grid items-start gap-5 lg:grid-cols-[320px_minmax(0,1fr)]">
           <AnimatedCard delay={0}>
             <PaperCard>
               <CardHeader>
@@ -814,6 +814,13 @@ export function ProfilePage() {
             }}
           />
 
+          <BadgeSelector
+            auth={auth}
+            onAuthChange={onAuthChange}
+            delay={0.15}
+            className="lg:col-span-2"
+          />
+
           <DataExportCard />
 
           <Card className="border-red-300 bg-red-50/50">
@@ -836,8 +843,6 @@ export function ProfilePage() {
               </Button>
             </CardContent>
           </Card>
-
-          <BadgeSelector auth={auth} onAuthChange={onAuthChange} delay={0.15} />
         </div>
       ) : null}
       <Dialog

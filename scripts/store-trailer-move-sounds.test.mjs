@@ -6,33 +6,45 @@ import { projectMoveSounds } from "./store-trailer-move-sounds.mjs";
 const edit = JSON.parse(readFileSync("scripts/assets/store-trailer/edit.json", "utf8"));
 const manifest = JSON.parse(readFileSync(edit.moveSounds.file, "utf8"));
 
-test("recorded jump clicks occur at moves, with hover and pause ranges silent", () => {
+test("move sounds cover the real replay and Black double capture, with UI shots silent", () => {
   const cues = projectMoveSounds(edit, manifest);
-  assert.equal(cues.length, 29);
+  assert.equal(cues.length, 74);
+  const counter = cues.filter((c) => c.sourceFile === "counter.webm");
   assert.deepEqual(
-    cues.filter((cue) => cue.shotIndex === 5).map((cue) => cue.frame),
-    [324, 356],
+    counter.map((c) => c.action),
+    ["jump", "jump", "confirm"],
   );
-  assert(!cues.some((cue) => cue.time >= 9.2 && cue.time < 10.8));
-  assert(!cues.some((cue) => cue.time >= 18.5 && cue.time < 38.7));
-  assert(!cues.some((cue) => cue.time >= 46.9));
-  assert.equal(cues.filter((cue) => cue.action === "place").length, 8);
+  assert(
+    counter.every(
+      (c) =>
+        manifest.sources
+          .find((s) => s.file === c.sourceFile)
+          .events.find((e) => e.id === c.actionId).color === "black",
+    ),
+  );
+  assert(!cues.some((c) => c.time >= 12.5 && c.time < 31.2));
+  assert(!cues.some((c) => c.time >= 46.8));
+  assert(!edit.shots.some((s) => s.title?.toLowerCase().includes("chain")));
 });
 
-test("the final legal exchange retains every visible placement, jump and capture", () => {
-  const cues = projectMoveSounds(edit, manifest).filter(
-    (c) => c.sourceFile === "finale-continuous.webm",
-  );
-  assert.equal(cues.length, 13);
-  assert.equal(cues.filter((c) => c.action === "confirm").length, 2);
-  assert.equal(cues.filter((c) => c.action === "jump").length, 7);
-  assert.equal(cues.filter((c) => c.action === "place").length, 4);
-  assert.deepEqual(
-    cues.map((c) => c.sourceFrame),
-    [22, 43, 64, 83, 111, 129, 144, 153, 183, 200, 215, 230, 237],
-  );
-  const shots = edit.shots.filter((s) => s.file === "finale-continuous.webm");
-  assert.equal(shots[0].start + shots[0].duration * shots[0].speed, shots[1].start);
+test("every AI action survives the continuous, progressively faster ending", () => {
+  const cues = projectMoveSounds(edit, manifest).filter((c) => c.time >= 31.2);
+  const source = manifest.sources.find((s) => s.file === "ai-match.webm");
+  assert.equal(cues.length, source.events.length);
+  assert.equal(new Set(cues.map((c) => c.actionId)).size, 63);
+  const shots = edit.shots.filter((s) => s.name?.includes("accelerating full match"));
+  assert.equal(shots.length, 6);
+  for (let i = 1; i < shots.length; i++) {
+    assert(
+      Math.abs(shots[i - 1].start + shots[i - 1].duration * shots[i - 1].speed - shots[i].start) <
+        1e-8,
+    );
+    assert(shots[i].speed > shots[i - 1].speed);
+  }
+  for (const shot of shots) {
+    assert.equal(shot.framing, "native");
+    assert.deepEqual(shot.crop, [0, 0, 1920, 1080]);
+  }
   assert(edit.sounds.length <= 5);
   assert(edit.transition.targetPeakDb <= -14);
   assert.equal(edit.shots[0].kind, "brand");
@@ -82,7 +94,7 @@ test("uncorrelated global taps and preview events cannot enter the move track", 
     projectMoveSounds({ ...edit, sounds: [{ type: "tap", time: 9.4 }] }, manifest),
   );
   const invalid = structuredClone(manifest);
-  invalid.sources.find((source) => source.file === "chain.webm").events[0].kind = "hover";
+  invalid.sources.find((source) => source.file === "ai-match.webm").events[0].kind = "hover";
   assert.throws(() => projectMoveSounds(edit, invalid));
 });
 
@@ -96,9 +108,9 @@ test("opening placements build separated pairs with no immediate captures", asyn
   const { createInitialGameState, placePiece, getJumpTargets, findConnectedCluster } = await import(
     "../shared/src/tiao.ts"
   );
-  const { positions } = JSON.parse(
-    readFileSync("scripts/assets/store-trailer/opening-safe.json", "utf8"),
-  );
+  const positions = JSON.parse(readFileSync("scripts/assets/store-trailer/ai-match.json", "utf8"))
+    .moves.slice(0, 4)
+    .map((move) => move.position);
   let state = createInitialGameState();
   for (const position of positions) {
     const result = placePiece(state, position);
@@ -113,13 +125,15 @@ test("opening placements build separated pairs with no immediate captures", asyn
 });
 
 test("theme cuts retain the full native square board", () => {
-  const themes = edit.shots.filter((s) => s.name?.endsWith("board") && s.file.startsWith("theme-"));
+  const themes = edit.shots.filter(
+    (s) => s.name?.endsWith("board") && s.file.startsWith("ai-theme-"),
+  );
   assert.equal(themes.length, 4);
   for (const shot of themes) {
     assert.equal(shot.framing, "native");
     assert.deepEqual(shot.crop, [0, 0, 1920, 1080]);
     assert(shot.still);
   }
-  assert.equal(edit.shots[9].title, "Play with friends.");
-  assert.equal(edit.shots[12].title, "Win tournaments.");
+  assert(edit.shots.some((s) => s.title === "Play with friends."));
+  assert(edit.shots.some((s) => s.title === "Win tournaments."));
 });

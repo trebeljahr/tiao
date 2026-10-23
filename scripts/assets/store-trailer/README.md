@@ -1,46 +1,48 @@
 # Trailer build recipe
 
-Current selection, checksum and upload state: `scripts/store-trailer-current.json`. Stable local export: `build/store-trailer/tiao-gameplay-current.mp4`. Distinct review copy: `build/store-trailer/tiao-safe-opening.mp4`. This 50.2-second revision is local and has not been approved or uploaded.
+`scripts/store-trailer-current.json` records the selected local export, checksum, archive and upload state. Stable export: `build/store-trailer/tiao-gameplay-current.mp4`; distinct review copy: `build/store-trailer/tiao-ai-match.mp4`. The new revision is local review only.
 
 ## Rebuild
 
-Requires Node 24+, FFmpeg and Sharp. Supply `SHARP_MODULE` if Sharp lives outside the repo. Run one render at a time; FFmpeg and Sharp concurrency is capped.
+Requires Node 24+, FFmpeg, Sharp and the archived raw recordings. Set `SHARP_MODULE` when Sharp is installed separately. Run one heavy job at a time; the renderer caps FFmpeg/Sharp threads.
 
 ```sh
 SHARP_MODULE=/absolute/path/to/sharp node scripts/store-trailer.mjs /absolute/path/to/trailer-bundle
 ```
 
-The bundle's `raw/` contains actual 1920×1080 UI recordings; the current-selection JSON names their archive. `edit.json` contains 28 shots, trim points, speeds, crops, cards and transition cues. Brand assets are `scripts/assets/tiao-icon.svg` and `tiao-wordmark.svg`. Production audio and licence/source hashes are under `audio/`.
+`edit.json` contains all title cards, crops, speeds and sound settings. The bundle's `raw/` contains actual app recordings and screenshots. `--edit=<archived-edit.json>` selects an earlier recipe, `--audio-only` remixes an existing picture, and `--shot=N` replaces one shot before reassembly. None selects or uploads the candidate. Preserve the previous selection first.
 
-The renderer exports shot encodes, picture, graphics, stems, mix measurements and candidate MP4. `--edit=/absolute/path/to/edit.json` selects an archived recipe. `--audio-only` remixes an existing `picture.mp4`; `--shot=N` replaces one shot before reassembly. These commands do not select or upload the result. Preserve and checksum the prior selection first.
+## Actual AI match
 
-## Selected edit
+`ai-match.json` is the complete recorded decision ledger: White runs the shipped Intermediate engine (level 2), Black runs Hard (level 3), both at their normal search settings. They start from an empty 19×19 board with the normal ten-capture goal. There are no seeded positions or chosen/suppressed moves. The log preserves every search depth, node count, elapsed time, score change and board hash, plus the engine source hash. White wins 13–5 after a five-capture chain; capture chains can exceed the target when confirmed.
 
-The logo opens for 1.6 seconds, followed by a two-second capture sequence. “Take turns.” introduces two separated friendly pairs. Neither color has an available jump after any placement; `opening-safe.json` and the shared engine regression verify every prefix. The following card introduces a separate diagonal-capture example. Each card contains only its main text; brand cards contain only the logo.
+`generate-trailer-ai-match.ts` regenerates a match using the client engine. Run it with an installed `tsx` and `--tsconfig client/tsconfig.json`. Runtime search budgets can affect the resulting decisions; the committed ledger reproduces this exact match without rerunning search. Every generated decision is validated through public `placePiece`, `jumpPiece` and `confirmPendingJump` rules. The replay test independently reconstructs all 45 turns and verifies every board hash and the final result.
 
-“Play with friends.” begins at 20 seconds, “Win tournaments.” at 25, and badges/achievements/themes at 29.5. The newly recorded badge selection uses its complete panel with uniform contain framing. Theme cuts use native 1920×1080 screenshots with the whole square board visible. The camera scale preserves source proportions, including crops that differ from 16:9. The goal card leads into a newly recorded continuous legal final exchange at 38.7: four placements, White's three-capture chain, then Black's four-hop reply to win 10–9. The camera cuts closer for Black's reply without skipping game state. The leading exchange plays at 0.921×, the reply at 1.04×. This replaces the previous 1.25×–6.5× montage. A settled victory view and logo close the cut.
+The full match is clicked through the actual UI, and its final board is checked against the ledger. The opening teaser comes from Black's real three-capture comeback; the placement example uses the match's first four decisions. After the goal card at 29.7 seconds, all 45 turns appear in order from 31.2–46.8. Six contiguous source ranges accelerate from about 1.1× to 3.5×. The board framing stays fixed, and no turn is skipped or replaced. The genuine settled result holds before the logo at 48.2.
 
-The original “Next Move” piano remains after Rico's clarification to retain its buildup. The unducked music stem is byte-identical to the prior selection. It is an explicit 99.585 BPM MIDI composition, rendered locally with installed Apple Yamaha piano multisamples; no text-to-audio service. Its D-major ninth resolves on the closing logo at 48.2 seconds. Score, MIDI and composition/render scripts remain tracked; Apple sample-library assets are not redistributed.
+The separate rules recording illustrates Black's legal double capture, immediately after “Jump to capture.” White's preceding single capture establishes that position before the excerpt. This instructional example is composed legal play; it is not attributed to the AI match. The chain intertitle and the older composed final-game fixture are absent from this cut.
 
-The five section accents use the exact Raptor Runner `clean-woosh-8.mp3` bytes, verified by SHA-256. Peak alignment remains source +0.17s, duration 0.9s and tail fade 0.25s. Peaks are −14 dBFS before mastering, 7 dB quieter than the rejected mix. Music ducks 2 dB instead of 10. No transition plays at launch or at the final winning chain. The transition-only stem keeps level reports independent of nearby move clicks; accents are not required to overpower the piano.
+## UI and camera
 
-`move-events.json` anchors committed source frames. The safe opening contributes four placements, the separate capture example contributes two actions, and the continuous finale contributes thirteen actions. Repeated chain footage brings the selected total to 29 cues. Placement begins when its ghost gives way to the committed animation; jump origins vacate; captured stones disappear on confirmation. Hover arrows, selection, title cards, UI shots and settled holds stay silent in the move stem. The projection helper applies source trim/speed and crop visibility and rejects independent manual taps. Every final cue is audited within one output frame of its visible action.
+“Play with friends.” begins at 12.5 seconds, “Win tournaments.” at 17.5, and “Make it yours.” at 22. The badge picker now occupies a full-width settings row above account management, with inline selection feedback and accessible pressed states. Theme previews use three columns inside the drawer and explicit square SVG dimensions. These are actual client fixes, rebuilt and recaptured; the trailer does not substitute mock controls.
 
-`moves.wav`, `transitions.wav`, `effects.wav`, `music.wav`, `music-ducked.wav` and `master.wav` support mix review. The encoded AAC measures −16.7 LUFS integrated / −2.0 dBFS true peak. The target is −16 LUFS with static gain constrained by peaks.
+All footage uses static framing. Fill and contain modes preserve source proportions. Tournament shots have no sinusoidal pan or animated camera crop. Matching full-frame theme screenshots show the actual AI position after Black's comeback, with all four board edges visible. Desktop/mobile browser QA checks picker bounds, square previews, badge wrapping and mobile drawer scrolling.
 
-## Capture and validation
+## Sound and QA
 
-`store-trailer-preview.mjs /absolute/path/to/client/out` serves an existing export on a random loopback port. Use an isolated muted Playwright CLI session named `tiao-trailer` and set `PLAYWRIGHT_CLI` to its installed entry point.
+The original Next Move piano and 48.2-second cadence remain. Its MIDI, score and production MP3 are tracked; the installed Apple Yamaha samples are not redistributed. Five restrained Raptor Runner swooshes retain −14 dBFS pre-master peaks and 2 dB music ducks.
 
-Run `store-trailer-capture.mjs setup <url> <bundle>`, then `prepare-opening` / `opening-safe`, `prepare-badges` / `badges-framed`, or `prepare-finale` / `finale-continuous`. Setup and preparation happen before recording. The final exchange follows the existing engine-validated legal replay after move 56; its actual UI board is checked against the engine's final 10–9 position. Re-recording changes source-frame anchors: inspect and update the manifest rather than reusing old times. Close the owned browser and server afterward.
-
-Earlier phases still reproduce original rules, chain, friend, tournament and profile footage. Social views use isolated fictional sample accounts. No live invitations or account writes occur. Fixture achievements and tournament history illustrate features independently of the local match shown.
+`move-events.json` records source-frame placements, jump-origin vacancy and captured-stone removal. There are 63 actual actions in the full AI replay; the teaser, opening reuse and Black double example bring the cut to 74 cues. The projection helper applies each shot's trim, speed and crop, rejecting unrelated manual taps. No click pulse is synthesized. Stems include moves, transitions, effects, music, ducked music and the master.
 
 ```sh
-node --test scripts/store-trailer-move-sounds.test.mjs
+node --test scripts/store-trailer-ai-match.test.mjs scripts/store-trailer-move-sounds.test.mjs
 python3 scripts/verify-trailer-move-sounds.py /absolute/path/to/trailer-bundle
 ```
 
-Focused tests also require no available jump after every safe opening placement and full native framing for all four theme cuts. They cover source projection, crop visibility, rejection of preview/manual taps, all late actions, and continuous final source ranges. Visual QA exports before/cue/after sheets for all 29 cues and checks exact move-track silence in logo, preview, UI and settled holds. Final video/audio decode and FFprobe complete export validation.
+The visual verifier exports before/cue/after sheets, checks frame offsets and verifies silence between cues. Its geometry matches fixed fill/contain framing. Inspect the final encoded AAC, full decode and FFprobe metadata as well as stems. Master target is −16 LUFS, constrained by −2 dBFS true peak.
 
-The vault keeps current and earlier exports, new raw clips, linked prior sources, stems, source-frame evidence and verified checksums. Media is local-only; recipes, production audio, licence records, tests and selection metadata are Git-tracked. `clear-opening-current.json` preserves the immediately previous selection; earlier selection JSONs remain alongside it.
+## Capture and preservation
+
+Serve the built/finalized client export with `store-trailer-preview.mjs <client/out>` on an ephemeral loopback port. Use an isolated muted Playwright CLI session named `tiao-trailer` and set `PLAYWRIGHT_CLI` to its installed entry point. Capture phases include `setup`, `prepare-opening` → `ai-match`, `ai-result` → `ai-result-hold`, `prepare-counter` → `counter`, `prepare-customization` → `customization`, and `prepare-ai-theme` → `themes`. Re-recording changes native frame anchors; inspect them again rather than reusing old times. Close the browser and server afterward.
+
+Social/tournament/profile footage uses isolated fictional accounts and owned-item fixtures. No live invitation or account write occurs. Runtime gameplay and UI recordings, all useful prior iterations, recipes, visual/frame QA, source logs, stems and checksums are preserved in the project vault. Production audio, licences, selected edit, AI ledger, generator, tests and selection metadata are tracked in Tiao. `safe-opening-current.json` retains the preceding selection. Large vault media is ignored/local-only and requires the normal vault backup; Git alone cannot reproduce it.

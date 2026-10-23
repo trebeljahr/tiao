@@ -7,7 +7,7 @@ from pathlib import Path
 import json, subprocess, math, sys
 import numpy as np
 from PIL import Image, ImageDraw
-root = Path(sys.argv[1] if len(sys.argv) > 1 else 'build/store-trailer-v8')
+root = Path(sys.argv[1] if len(sys.argv) > 1 else 'build/store-trailer-v9')
 (root / 'qa').mkdir(exist_ok=True)
 e = json.loads((root / 'edit.json').read_text())
 cues = e['resolvedMoveSounds']
@@ -32,15 +32,16 @@ for i, c in enumerate(cues):
     shot = e['shots'][c['shotIndex']]
     event = events[c['actionId']]
     crop = shot['crop']
-    scale = 1960 / crop[2]
+    scale = min(1920 / crop[2], 1080 / crop[3]) if shot.get('framing') == 'native' else max(1920 / crop[2], 1080 / crop[3])
     grid = grids[c['sourceFile']]
     x0, y0 = grid['origin']
     spacing = grid['spacing']
     points = event['captures'] if event['kind'] == 'confirm' else [event.get('position', event.get('from'))]
 
     def pos(point, frame):
-        t = (frame - round(shot['timelineStart'] * 30)) / 30
-        return (((x0 + point['x'] * spacing - crop[0]) * scale - (20 + 12 * math.sin(t * 0.7))) / 2, ((y0 + point['y'] * spacing - crop[1]) * 1104 / crop[3] - 12) / 2)
+        dx = (crop[2] * scale - 1920) / 2
+        dy = (crop[3] * scale - 1080) / 2
+        return (((x0 + point['x'] * spacing - crop[0]) * scale - dx) / 2, ((y0 + point['y'] * spacing - crop[1]) * scale - dy) / 2)
 
     def color(frame):
         values = []
@@ -57,11 +58,44 @@ for i, c in enumerate(cues):
     first = max(round(shot['timelineStart'] * 30), c['frame'] - 3)
     before = color(first)
     delta = [float(np.linalg.norm(color(frame) - before)) for frame in range(first, c['frame'] + 5)]
-    changed = [first + j for j, d in enumerate(delta) if d > (15 if event['kind'] == 'place' and event['color'] == 'white' else 25)]
-    assert changed, (i, c, delta)
+    method = 'origin vacancy'
+    if event['kind'] == 'place':
+        # The blue last-move ring mounts with a committed stone. A hover ghost
+        # has no ring, and the stone itself fades in over 180 ms.
+        point = event['position']
+        def blue_ring(frame):
+            x, y = pos(point, frame)
+            count = 0
+            for angle in np.linspace(0, 2 * np.pi, 64, endpoint=False):
+                xx = round(x + 24.1 * scale / 2 * np.cos(angle))
+                yy = round(y + 24.1 * scale / 2 * np.sin(angle))
+                patch = saved[frame][max(0, yy-1):yy+2, max(0, xx-1):xx+2].astype(float).reshape(-1, 3)
+                count += bool(np.any((patch[:,2]-patch[:,0] > -30) & (patch[:,1]-patch[:,0] > -10)))
+            return count / 64
+        scores = [(frame, blue_ring(frame)) for frame in range(first, c['frame']+5)]
+        ring_frames = [frame for frame, fraction in scores if fraction >= .35]
+        assert ring_frames, (i, c, scores)
+        # Committed stones start their opacity animation at zero. This removes
+        # the hover ghost before the ring becomes fully visible. White therefore
+        # darkens toward wood, Black brightens toward wood, then both fade in.
+        channel, direction = (2, -1) if event['color'] == 'white' else (0, 1)
+        candidates = [(frame, direction * (color(frame)[channel] - color(frame-1)[channel]))
+                      for frame in range(first+1, ring_frames[0]+1)]
+        onset = max(candidates, key=lambda item: item[1])
+        changed = [onset[0]] if onset[1] > 15 else ring_frames
+        method = 'committed opacity reset followed by last-move ring; hover excluded'
+    elif event['kind'] == 'confirm':
+        changed = []
+        for frame in range(first, c['frame']+5):
+            red, green, blue = color(frame)
+            if (red-blue > 60 if event['color'] == 'white' else blue < 155): changed.append(frame)
+        method = 'captured-stone removal; pending fade excluded'
+    else:
+        changed = [first + j for j, d in enumerate(delta) if d > 25]
+    assert changed, (i, c, delta, scores if event['kind'] == 'place' else '')
     change = changed[0]
     error = change - c['frame']
-    checks.append({'cue': i, 'time': c['time'], 'action': c['action'], 'sourceFrame': c['sourceFrame'], 'firstVisibleChangeRelativeFrames': error, 'visualChangeDetected': True})
+    checks.append({'cue': i, 'time': c['time'], 'action': c['action'], 'sourceFrame': c['sourceFrame'], 'firstVisibleChangeRelativeFrames': error, 'visualChangeDetected': True, 'method': method})
     allpts = [event.get('position', event.get('from')), event.get('to')] + event.get('captures', [])
     allpts = [p for p in allpts if p]
     coords = [pos(p, c['frame']) for p in allpts]
@@ -85,11 +119,17 @@ for start in range(0, len(rows), 7):
     for j, row in enumerate(rows[start:start + 7]):
         sheet.paste(row, (0, 250 * j))
     sheet.save(root / 'qa' / f'cue-audit-{start // 7 + 1}.jpg')
-assert all((abs(x['firstVisibleChangeRelativeFrames']) <= 1 for x in checks)), 'A move cue misses its visible action'
 (root / 'qa/cue-validation.json').write_text(json.dumps(checks, indent=2) + '\n')
+print('Cue exceptions:', [x for x in checks if abs(x['firstVisibleChangeRelativeFrames']) > 1])
+assert all((abs(x['firstVisibleChangeRelativeFrames']) <= 1 for x in checks)), 'A move cue misses its visible action'
 print('Visible-change frame offsets:', [x['firstVisibleChangeRelativeFrames'] for x in checks])
 raw = subprocess.check_output(['ffmpeg', '-v', 'error', '-i', str(root / 'audio/moves.wav'), '-f', 'f32le', '-ac', '2', '-ar', '48000', 'pipe:1'])
 samples = np.frombuffer(raw, np.float32).reshape(-1, 2)
-for a, b in [(0, 1.6), (3.5, 5.1), (7.7, 10.75), (12.8, 14.5), (18.5, 38.7), (46.9, 50.2)]:
-    assert np.max(np.abs(samples[round(a * 48000):round(b * 48000)])) == 0, (a, b)
-print('Logo, preview, pause, UI and victory-hold move tracks verified silent')
+intervals = sorted((c['time'], c['time'] + 0.062) for c in cues)
+last = 0
+for a, b in intervals + [(e['duration'], e['duration'])]:
+    if a - last > 0.02:
+        section = samples[round((last + 0.002) * 48000):round(max(last + 0.002, a - 0.002) * 48000)]
+        if len(section): assert np.max(np.abs(section)) == 0, (last, a)
+    last = max(last, b)
+print('Move track verified silent between all committed event cues')

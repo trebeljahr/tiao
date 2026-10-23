@@ -149,6 +149,101 @@ if (phase === "setup") {
     }
     await pause(350);
   `;
+} else if (phase === "ai-match") {
+  const match = JSON.parse(readFileSync("scripts/assets/store-trailer/ai-match.json", "utf8"));
+  record = true;
+  body = `
+    const moves = ${JSON.stringify(match.moves)};
+    const events=[];
+    const now=()=>Date.now();
+    await pause(300);
+    for (const move of moves) {
+      if(move.type==='place') {
+        await cell(move.position).hover();await pause(90);
+        const start=now();await cell(move.position).click();
+        events.push({kind:'place',turn:move.turn,color:move.color,position:move.position,start,end:now()});
+        await pause(230);
+      } else {
+        await cell(move.from).click();await pause(90);
+        let from=move.from;
+        for(const to of move.path) {
+          await cell(to).hover();await pause(90);
+          const start=now();await cell(to).click();
+          events.push({kind:'jump',turn:move.turn,color:move.color,from,to,start,end:now()});from=to;
+          await pause(230);
+        }
+        const start=now();await cell(move.path.at(-1)).click();
+        events.push({kind:'confirm',turn:move.turn,color:move.color,start,end:now()});
+        await pause(230);
+      }
+    }
+    await pause(1000);
+    const viewBoard=page.getByRole('button',{name:'Close',exact:true});
+    if(await viewBoard.isVisible()) await viewBoard.click();
+    await pause(600);
+    const actual=await page.locator('[data-testid^="cell-"]').evaluateAll(els=>els.map(el=>({id:el.dataset.testid,piece:el.dataset.piece||null})));
+    const expected=${JSON.stringify(match.finalState.positions)};
+    for(const c of actual){const[,x,y]=c.id.split('-').map(Number);if(c.piece!==expected[y][x])throw Error('AI replay mismatch '+c.id);}
+    await shot('ai-match-winner');
+    console.log(JSON.stringify({replayEvents:events}));
+  `;
+} else if (phase === "ai-result") {
+  body = `await page.getByRole('button',{name:'Close',exact:true}).click();await pause(300);`;
+} else if (phase === "ai-result-hold") {
+  record = true;
+  body = `await pause(1500);await shot('ai-result');`;
+} else if (phase === "prepare-ai-theme") {
+  const match = JSON.parse(readFileSync("scripts/assets/store-trailer/ai-match.json", "utf8"));
+  body = `
+    await open('/local?autostart=1');
+    for(const move of ${JSON.stringify(match.moves.slice(0, -1))}) {
+      if(move.type==='place') await cell(move.position).click();
+      else {await cell(move.from).click();for(const to of move.path) await cell(to).click();await cell(move.path.at(-1)).click();}
+      await pause(80);
+    }
+    await pause(350);
+  `;
+} else if (phase === "prepare-counter") {
+  const positions = [
+    { x: 9, y: 9 },
+    { x: 10, y: 10 },
+    { x: 11, y: 9 },
+    { x: 10, y: 8 },
+  ];
+  body = `
+    await open('/local?autostart=1');
+    for(const position of ${JSON.stringify(positions)}){await cell(position).click();await pause(100);}
+    await pause(350);
+  `;
+} else if (phase === "counter") {
+  record = true;
+  body = `
+    await pause(300);
+    await cell({x:9,y:9}).click();await pause(200);
+    await cell({x:11,y:11}).hover();await pause(600);
+    await cell({x:11,y:11}).click();await pause(550);
+    await cell({x:11,y:11}).click();await pause(400);
+    await cell({x:10,y:8}).click();await pause(200);
+    await cell({x:12,y:10}).hover();await pause(350);
+    await cell({x:12,y:10}).click();await pause(500);
+    await cell({x:10,y:12}).hover();await pause(300);
+    await cell({x:10,y:12}).click();await pause(450);
+    await cell({x:10,y:12}).click();await pause(800);
+    await shot('counter-confirmed');
+  `;
+} else if (phase === "prepare-customization") {
+  awaitCodeOpen("/settings");
+  body += `await page.getByText('Badge',{exact:true}).scrollIntoViewIfNeeded();await pause(500);await shot('badge-layout-current');`;
+} else if (phase === "customization") {
+  record = true;
+  body = `
+    const badge=name=>page.getByRole('button').filter({has:page.getByText(name,{exact:true})});
+    await pause(300);
+    await badge('Champion').click();await pause(800);
+    await badge('One Jump Wonder').click();await pause(800);
+    await badge('Flawless').click();await pause(900);
+    await shot('badge-layout-selected');
+  `;
 } else if (phase === "opening-safe") {
   const { positions } = JSON.parse(
     readFileSync("scripts/assets/store-trailer/opening-safe.json", "utf8"),
@@ -373,7 +468,7 @@ if (phase === "setup") {
       await page.getByRole('button',{name:theme+' board theme',exact:true}).click();
       await pause(400);
       await page.getByRole('button',{name:'Open navigation',exact:true}).click(); await pause(850);
-      await shot('theme-'+theme.toLowerCase());
+      await shot('ai-theme-'+theme.toLowerCase());
       if(theme!=='Classic') { await page.getByRole('button',{name:'Open navigation',exact:true}).click(); await pause(300); }
     }
   `;

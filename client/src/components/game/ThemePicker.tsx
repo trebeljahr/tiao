@@ -18,7 +18,11 @@ export function ThemeSwatch({ theme }: { theme: BoardTheme }) {
       />
 
       {/* Mini grid */}
-      <svg className="absolute inset-[12%]" viewBox="0 0 40 40" aria-hidden="true">
+      <svg
+        className="absolute left-[12%] top-[12%] h-[76%] w-[76%]"
+        viewBox="0 0 40 40"
+        aria-hidden="true"
+      >
         {/* Groove border */}
         <rect
           x="0"
@@ -94,7 +98,7 @@ export function ThemePicker({
   return (
     <div className="flex flex-col gap-3">
       <h3 className="text-sm font-semibold text-foreground/80">Board theme</h3>
-      <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-5">
+      <div className="grid grid-cols-3 gap-2.5">
         {themesToShow.map((theme) => {
           const isOwned = ownsTheme(theme.id);
           const isActive = theme.id === activeId;

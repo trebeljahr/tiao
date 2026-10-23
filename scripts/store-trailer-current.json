@@ -1,21 +1,21 @@
 {
-  "title": "Tiao \u2014 safe opening and full-board themes",
+  "title": "Tiao — real AI match and accelerating finale",
   "selectedOn": "2026-10-23",
   "duration": 50.2,
   "width": 1920,
   "height": 1080,
   "fps": 30,
-  "shotCount": 28,
+  "shotCount": 29,
   "output": "build/store-trailer/tiao-gameplay-current.mp4",
-  "candidate": "build/store-trailer-v8/tiao-safe-opening.mp4",
-  "sha256": "8d4d308c7682616bac170549a01ecdeb7da0e6b8df36e472a13301e26957133c",
-  "bytes": 37440626,
+  "candidate": "build/store-trailer/tiao-ai-match.mp4",
+  "sha256": "f8811139f873d80514aa72fca492ace56a70003b4525751b7c8034c974b2a249",
+  "bytes": 36662580,
   "videoBitrate": "6 Mbps CBR target",
   "audio": true,
-  "audioDescription": "Current original piano and final buildup retained. Five restrained Raptor Runner swooshes; committed move clicks throughout the new continuous legal ending.",
+  "audioDescription": "Original Next Move piano buildup retained. Five restrained Raptor Runner swooshes and 74 clicks aligned to committed gameplay actions.",
   "approval": "Local review revision; not approved or uploaded",
-  "source": "Actual shipped UI recordings. Legal local game replays; isolated sample social, tournament and profile data.",
-  "note": "Cards say Play with friends and Win tournaments. New safe opening builds two separated friendly pairs; no immediate jump exists for either color after any placement. Badge selection shows the complete panel without stretching. Four theme cuts retain the full native 1920\u00d71080 frame and square board. Piano buildup, late legal exchange, restrained transitions and 29 synchronized move cues retained.",
+  "source": "Actual shipped engine self-play: Intermediate White versus Hard Black, replayed through the real UI. Separate legal instructional double capture. Isolated fictional social, tournament and profile data.",
+  "note": "Complete 45-turn AI match accelerates from 1.1× to 3.5×, with all 63 actions and a genuine 13–5 finish. Jump to capture leads directly to Black capturing two Whites; chain card removed. Static tournament framing. Actual badge picker and square theme-preview layout bugs fixed and recaptured. Existing piano buildup and 48.2-second logo cadence retained.",
   "uploadState": {
     "steam": "New cut is local only. Previous 30-second cut remains uploaded in the store draft.",
     "googlePlay": "not uploaded",
@@ -32,11 +32,11 @@
     "suitableForAllAges": true,
     "countryRestrictions": []
   },
-  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/safe-opening-native-themes/",
-  "files": "Renderer, source-frame move manifest, projection helper/tests, QA script, production audio and selection metadata tracked. Corrected video, stems and visual/audio QA preserved locally; prior cut retained.",
-  "intertitleCount": 7,
+  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/ai-match-trailer/",
+  "files": "Selected edit, complete AI decision ledger, generator, move manifest, renderer, UI fixes, tests and production audio tracked. Local video, raw recordings, stems, capture recipes and visual/frame QA preserved in the vault; previous cut retained.",
+  "intertitleCount": 6,
   "brandCardCount": 2,
-  "reviewCopy": "build/store-trailer/tiao-safe-opening.mp4",
+  "reviewCopy": "build/store-trailer/tiao-ai-match.mp4",
   "music": {
     "file": "scripts/assets/store-trailer/audio/next-move-original.mp3",
     "title": "Next Move",
@@ -54,13 +54,13 @@
     "ending": "Original D-major ninth resolves on the logo; replaces the previous stock piano impact to keep the cadence in key."
   },
   "audioMeasurements": {
-    "integratedLufs": -16.7,
+    "integratedLufs": -16.6,
     "truePeakDbfs": -2
   },
   "previousLocalSelection": {
     "duration": 50.2,
-    "sha256": "0ecf4edd6bb0b76c38efa88997297a3d72fc73d7cd3507990eee219607bf0e15",
-    "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/clear-opening-continuous-finale/"
+    "sha256": "8d4d308c7682616bac170549a01ecdeb7da0e6b8df36e472a13301e26957133c",
+    "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/safe-opening-native-themes/"
   },
   "audioValidation": {
     "transitionCount": 5,
@@ -69,16 +69,26 @@
     "allMusicSecondsPresent": true
   },
   "moveSoundValidation": {
-    "cueCount": 29,
-    "newFinalExchangeCues": 13,
+    "cueCount": 74,
+    "fullAiMatchActions": 63,
     "maximumVisualOffsetFrames": 1,
     "silentPreviewsAndHolds": true,
     "lateCaptureConfirmations": 2
   },
   "pictureValidation": {
-    "safeOpening": true,
-    "availableJumpsAfterEachOpeningPlacement": 0,
+    "completeAiTurns": 45,
+    "engineLevels": {
+      "white": 2,
+      "black": 3
+    },
+    "replayBoardHashesVerified": true,
+    "finalScore": {
+      "white": 13,
+      "black": 5
+    },
     "fullNativeThemeFrames": 4,
-    "aspectRatioPreserved": true
+    "aspectRatioPreserved": true,
+    "staticFootageCamera": true,
+    "desktopAndMobilePickersVerified": true
   }
 }

@@ -1,56 +1,827 @@
 {
-  "method": "Source-frame inspection of committed placements, origin vacancy on actual jumps, and captured-stone removal on confirmation. Hover/preview arrows are excluded. Frames are zero-based at 30 fps.",
+  "method": "Source-frame inspection of committed stone opacity resets, jump-origin vacancy and captured-stone removal; hover previews excluded. AI actions derive from the complete medium/hard decision ledger.",
   "sources": [
     {
-      "file": "rules.webm",
+      "file": "ai-match.webm",
       "fps": 30,
-      "sha256": "14e13ff801738ddd97a7c896486efb93f32ea0137a85161546a11aeb20426e5b",
+      "sha256": "815f04cdb2c5202acb8ba58a96231bc1deeb0909bb6095eb2362711e92d2d84a",
       "events": [
         {
-          "id": "rules-0",
+          "id": "ai-0",
           "kind": "place",
+          "turn": 0,
           "color": "white",
           "position": {
             "x": 9,
             "y": 9
           },
-          "frame": 51
+          "frame": 21
         },
         {
-          "id": "rules-1",
+          "id": "ai-1",
           "kind": "place",
+          "turn": 1,
           "color": "black",
+          "position": {
+            "x": 7,
+            "y": 9
+          },
+          "frame": 36
+        },
+        {
+          "id": "ai-2",
+          "kind": "place",
+          "turn": 2,
+          "color": "white",
+          "position": {
+            "x": 9,
+            "y": 8
+          },
+          "frame": 50
+        },
+        {
+          "id": "ai-3",
+          "kind": "place",
+          "turn": 3,
+          "color": "black",
+          "position": {
+            "x": 7,
+            "y": 8
+          },
+          "frame": 68
+        },
+        {
+          "id": "ai-4",
+          "kind": "place",
+          "turn": 4,
+          "color": "white",
           "position": {
             "x": 10,
             "y": 9
           },
-          "frame": 79
+          "frame": 82
         },
         {
-          "id": "rules-2",
+          "id": "ai-5",
+          "kind": "place",
+          "turn": 5,
+          "color": "black",
+          "position": {
+            "x": 6,
+            "y": 10
+          },
+          "frame": 97
+        },
+        {
+          "id": "ai-6",
+          "kind": "place",
+          "turn": 6,
+          "color": "white",
+          "position": {
+            "x": 9,
+            "y": 10
+          },
+          "frame": 110
+        },
+        {
+          "id": "ai-7",
+          "kind": "place",
+          "turn": 7,
+          "color": "black",
+          "position": {
+            "x": 8,
+            "y": 9
+          },
+          "frame": 124
+        },
+        {
+          "id": "ai-8",
           "kind": "jump",
+          "turn": 8,
           "color": "white",
           "from": {
             "x": 9,
+            "y": 8
+          },
+          "to": {
+            "x": 7,
+            "y": 10
+          },
+          "frame": 154
+        },
+        {
+          "id": "ai-9",
+          "kind": "jump",
+          "turn": 8,
+          "color": "white",
+          "from": {
+            "x": 7,
+            "y": 10
+          },
+          "to": {
+            "x": 5,
+            "y": 10
+          },
+          "frame": 172
+        },
+        {
+          "id": "ai-10",
+          "kind": "confirm",
+          "turn": 8,
+          "color": "white",
+          "captures": [
+            {
+              "x": 8,
+              "y": 9
+            },
+            {
+              "x": 6,
+              "y": 10
+            }
+          ],
+          "frame": 181
+        },
+        {
+          "id": "ai-11",
+          "kind": "place",
+          "turn": 9,
+          "color": "black",
+          "position": {
+            "x": 6,
+            "y": 7
+          },
+          "frame": 201
+        },
+        {
+          "id": "ai-12",
+          "kind": "place",
+          "turn": 10,
+          "color": "white",
+          "position": {
+            "x": 9,
+            "y": 11
+          },
+          "frame": 216
+        },
+        {
+          "id": "ai-13",
+          "kind": "place",
+          "turn": 11,
+          "color": "black",
+          "position": {
+            "x": 6,
+            "y": 9
+          },
+          "frame": 229
+        },
+        {
+          "id": "ai-14",
+          "kind": "place",
+          "turn": 12,
+          "color": "white",
+          "position": {
+            "x": 8,
+            "y": 9
+          },
+          "frame": 244
+        },
+        {
+          "id": "ai-15",
+          "kind": "place",
+          "turn": 13,
+          "color": "black",
+          "position": {
+            "x": 11,
+            "y": 10
+          },
+          "frame": 257
+        },
+        {
+          "id": "ai-16",
+          "kind": "jump",
+          "turn": 14,
+          "color": "white",
+          "from": {
+            "x": 10,
             "y": 9
           },
           "to": {
-            "x": 11,
-            "y": 9
+            "x": 12,
+            "y": 11
           },
-          "frame": 174
+          "frame": 276
         },
         {
-          "id": "rules-3",
+          "id": "ai-17",
           "kind": "confirm",
+          "turn": 14,
+          "color": "white",
+          "captures": [
+            {
+              "x": 11,
+              "y": 10
+            }
+          ],
+          "frame": 284
+        },
+        {
+          "id": "ai-18",
+          "kind": "place",
+          "turn": 15,
+          "color": "black",
+          "position": {
+            "x": 6,
+            "y": 8
+          },
+          "frame": 298
+        },
+        {
+          "id": "ai-19",
+          "kind": "place",
+          "turn": 16,
+          "color": "white",
+          "position": {
+            "x": 9,
+            "y": 8
+          },
+          "frame": 312
+        },
+        {
+          "id": "ai-20",
+          "kind": "place",
+          "turn": 17,
+          "color": "black",
+          "position": {
+            "x": 10,
+            "y": 13
+          },
+          "frame": 326
+        },
+        {
+          "id": "ai-21",
+          "kind": "place",
+          "turn": 18,
+          "color": "white",
+          "position": {
+            "x": 11,
+            "y": 11
+          },
+          "frame": 339
+        },
+        {
+          "id": "ai-22",
+          "kind": "place",
+          "turn": 19,
+          "color": "black",
+          "position": {
+            "x": 13,
+            "y": 9
+          },
+          "frame": 353
+        },
+        {
+          "id": "ai-23",
+          "kind": "place",
+          "turn": 20,
+          "color": "white",
+          "position": {
+            "x": 12,
+            "y": 10
+          },
+          "frame": 366
+        },
+        {
+          "id": "ai-24",
+          "kind": "place",
+          "turn": 21,
+          "color": "black",
+          "position": {
+            "x": 10,
+            "y": 8
+          },
+          "frame": 380
+        },
+        {
+          "id": "ai-25",
+          "kind": "jump",
+          "turn": 22,
+          "color": "white",
+          "from": {
+            "x": 9,
+            "y": 8
+          },
+          "to": {
+            "x": 11,
+            "y": 8
+          },
+          "frame": 398
+        },
+        {
+          "id": "ai-26",
+          "kind": "confirm",
+          "turn": 22,
           "color": "white",
           "captures": [
             {
               "x": 10,
+              "y": 8
+            }
+          ],
+          "frame": 406
+        },
+        {
+          "id": "ai-27",
+          "kind": "place",
+          "turn": 23,
+          "color": "black",
+          "position": {
+            "x": 12,
+            "y": 8
+          },
+          "frame": 420
+        },
+        {
+          "id": "ai-28",
+          "kind": "jump",
+          "turn": 24,
+          "color": "white",
+          "from": {
+            "x": 11,
+            "y": 8
+          },
+          "to": {
+            "x": 13,
+            "y": 8
+          },
+          "frame": 438
+        },
+        {
+          "id": "ai-29",
+          "kind": "jump",
+          "turn": 24,
+          "color": "white",
+          "from": {
+            "x": 13,
+            "y": 8
+          },
+          "to": {
+            "x": 13,
+            "y": 10
+          },
+          "frame": 452
+        },
+        {
+          "id": "ai-30",
+          "kind": "confirm",
+          "turn": 24,
+          "color": "white",
+          "captures": [
+            {
+              "x": 12,
+              "y": 8
+            },
+            {
+              "x": 13,
               "y": 9
             }
           ],
-          "frame": 210
+          "frame": 460
+        },
+        {
+          "id": "ai-31",
+          "kind": "place",
+          "turn": 25,
+          "color": "black",
+          "position": {
+            "x": 10,
+            "y": 6
+          },
+          "frame": 474
+        },
+        {
+          "id": "ai-32",
+          "kind": "place",
+          "turn": 26,
+          "color": "white",
+          "position": {
+            "x": 8,
+            "y": 13
+          },
+          "frame": 488
+        },
+        {
+          "id": "ai-33",
+          "kind": "place",
+          "turn": 27,
+          "color": "black",
+          "position": {
+            "x": 9,
+            "y": 13
+          },
+          "frame": 501
+        },
+        {
+          "id": "ai-34",
+          "kind": "place",
+          "turn": 28,
+          "color": "white",
+          "position": {
+            "x": 7,
+            "y": 6
+          },
+          "frame": 515
+        },
+        {
+          "id": "ai-35",
+          "kind": "place",
+          "turn": 29,
+          "color": "black",
+          "position": {
+            "x": 5,
+            "y": 8
+          },
+          "frame": 529
+        },
+        {
+          "id": "ai-36",
+          "kind": "place",
+          "turn": 30,
+          "color": "white",
+          "position": {
+            "x": 11,
+            "y": 12
+          },
+          "frame": 543
+        },
+        {
+          "id": "ai-37",
+          "kind": "jump",
+          "turn": 31,
+          "color": "black",
+          "from": {
+            "x": 9,
+            "y": 13
+          },
+          "to": {
+            "x": 7,
+            "y": 13
+          },
+          "frame": 561
+        },
+        {
+          "id": "ai-38",
+          "kind": "confirm",
+          "turn": 31,
+          "color": "black",
+          "captures": [
+            {
+              "x": 8,
+              "y": 13
+            }
+          ],
+          "frame": 569
+        },
+        {
+          "id": "ai-39",
+          "kind": "jump",
+          "turn": 32,
+          "color": "white",
+          "from": {
+            "x": 11,
+            "y": 12
+          },
+          "to": {
+            "x": 9,
+            "y": 14
+          },
+          "frame": 588
+        },
+        {
+          "id": "ai-40",
+          "kind": "confirm",
+          "turn": 32,
+          "color": "white",
+          "captures": [
+            {
+              "x": 10,
+              "y": 13
+            }
+          ],
+          "frame": 596
+        },
+        {
+          "id": "ai-41",
+          "kind": "place",
+          "turn": 33,
+          "color": "black",
+          "position": {
+            "x": 8,
+            "y": 12
+          },
+          "frame": 610
+        },
+        {
+          "id": "ai-42",
+          "kind": "place",
+          "turn": 34,
+          "color": "white",
+          "position": {
+            "x": 10,
+            "y": 10
+          },
+          "frame": 624
+        },
+        {
+          "id": "ai-43",
+          "kind": "place",
+          "turn": 35,
+          "color": "black",
+          "position": {
+            "x": 10,
+            "y": 11
+          },
+          "frame": 637
+        },
+        {
+          "id": "ai-44",
+          "kind": "jump",
+          "turn": 36,
+          "color": "white",
+          "from": {
+            "x": 9,
+            "y": 10
+          },
+          "to": {
+            "x": 11,
+            "y": 12
+          },
+          "frame": 655
+        },
+        {
+          "id": "ai-45",
+          "kind": "confirm",
+          "turn": 36,
+          "color": "white",
+          "captures": [
+            {
+              "x": 10,
+              "y": 11
+            }
+          ],
+          "frame": 663
+        },
+        {
+          "id": "ai-46",
+          "kind": "place",
+          "turn": 37,
+          "color": "black",
+          "position": {
+            "x": 5,
+            "y": 9
+          },
+          "frame": 678
+        },
+        {
+          "id": "ai-47",
+          "kind": "place",
+          "turn": 38,
+          "color": "white",
+          "position": {
+            "x": 5,
+            "y": 7
+          },
+          "frame": 691
+        },
+        {
+          "id": "ai-48",
+          "kind": "jump",
+          "turn": 39,
+          "color": "black",
+          "from": {
+            "x": 6,
+            "y": 8
+          },
+          "to": {
+            "x": 4,
+            "y": 6
+          },
+          "frame": 709
+        },
+        {
+          "id": "ai-49",
+          "kind": "confirm",
+          "turn": 39,
+          "color": "black",
+          "captures": [
+            {
+              "x": 5,
+              "y": 7
+            }
+          ],
+          "frame": 717
+        },
+        {
+          "id": "ai-50",
+          "kind": "place",
+          "turn": 40,
+          "color": "white",
+          "position": {
+            "x": 7,
+            "y": 7
+          },
+          "frame": 731
+        },
+        {
+          "id": "ai-51",
+          "kind": "place",
+          "turn": 41,
+          "color": "black",
+          "position": {
+            "x": 5,
+            "y": 7
+          },
+          "frame": 745
+        },
+        {
+          "id": "ai-52",
+          "kind": "place",
+          "turn": 42,
+          "color": "white",
+          "position": {
+            "x": 6,
+            "y": 8
+          },
+          "frame": 758
+        },
+        {
+          "id": "ai-53",
+          "kind": "jump",
+          "turn": 43,
+          "color": "black",
+          "from": {
+            "x": 7,
+            "y": 8
+          },
+          "to": {
+            "x": 9,
+            "y": 10
+          },
+          "frame": 777
+        },
+        {
+          "id": "ai-54",
+          "kind": "jump",
+          "turn": 43,
+          "color": "black",
+          "from": {
+            "x": 9,
+            "y": 10
+          },
+          "to": {
+            "x": 11,
+            "y": 10
+          },
+          "frame": 790
+        },
+        {
+          "id": "ai-55",
+          "kind": "jump",
+          "turn": 43,
+          "color": "black",
+          "from": {
+            "x": 11,
+            "y": 10
+          },
+          "to": {
+            "x": 13,
+            "y": 12
+          },
+          "frame": 804
+        },
+        {
+          "id": "ai-56",
+          "kind": "confirm",
+          "turn": 43,
+          "color": "black",
+          "captures": [
+            {
+              "x": 8,
+              "y": 9
+            },
+            {
+              "x": 10,
+              "y": 10
+            },
+            {
+              "x": 12,
+              "y": 11
+            }
+          ],
+          "frame": 812
+        },
+        {
+          "id": "ai-57",
+          "kind": "jump",
+          "turn": 44,
+          "color": "white",
+          "from": {
+            "x": 6,
+            "y": 8
+          },
+          "to": {
+            "x": 4,
+            "y": 8
+          },
+          "frame": 831
+        },
+        {
+          "id": "ai-58",
+          "kind": "jump",
+          "turn": 44,
+          "color": "white",
+          "from": {
+            "x": 4,
+            "y": 8
+          },
+          "to": {
+            "x": 6,
+            "y": 10
+          },
+          "frame": 845
+        },
+        {
+          "id": "ai-59",
+          "kind": "jump",
+          "turn": 44,
+          "color": "white",
+          "from": {
+            "x": 6,
+            "y": 10
+          },
+          "to": {
+            "x": 6,
+            "y": 8
+          },
+          "frame": 859
+        },
+        {
+          "id": "ai-60",
+          "kind": "jump",
+          "turn": 44,
+          "color": "white",
+          "from": {
+            "x": 6,
+            "y": 8
+          },
+          "to": {
+            "x": 6,
+            "y": 6
+          },
+          "frame": 873
+        },
+        {
+          "id": "ai-61",
+          "kind": "jump",
+          "turn": 44,
+          "color": "white",
+          "from": {
+            "x": 6,
+            "y": 6
+          },
+          "to": {
+            "x": 4,
+            "y": 8
+          },
+          "frame": 887
+        },
+        {
+          "id": "ai-62",
+          "kind": "confirm",
+          "turn": 44,
+          "color": "white",
+          "captures": [
+            {
+              "x": 5,
+              "y": 8
+            },
+            {
+              "x": 5,
+              "y": 9
+            },
+            {
+              "x": 6,
+              "y": 9
+            },
+            {
+              "x": 6,
+              "y": 7
+            },
+            {
+              "x": 5,
+              "y": 7
+            }
+          ],
+          "frame": 895
         }
       ],
       "grid": {
@@ -59,501 +830,79 @@
       }
     },
     {
-      "file": "chain.webm",
+      "file": "counter.webm",
       "fps": 30,
-      "sha256": "842ca1ef2e087effe03df20fdc7a1aba364d0d4bc58174f3bd70d13a01490f5b",
+      "sha256": "f42ca2de0f0b88b17f20825d0b1126db2bc5cde58418709ef75a9d6c12d12a0b",
       "events": [
         {
-          "id": "chain-0",
+          "id": "counter-0",
           "kind": "jump",
-          "color": "black",
+          "color": "white",
           "from": {
-            "x": 7,
-            "y": 9
-          },
-          "to": {
-            "x": 5,
-            "y": 9
-          },
-          "frame": 76
-        },
-        {
-          "id": "chain-1",
-          "kind": "jump",
-          "color": "black",
-          "from": {
-            "x": 5,
-            "y": 9
-          },
-          "to": {
-            "x": 7,
-            "y": 11
-          },
-          "frame": 116
-        },
-        {
-          "id": "chain-2",
-          "kind": "jump",
-          "color": "black",
-          "from": {
-            "x": 7,
-            "y": 11
-          },
-          "to": {
-            "x": 7,
-            "y": 9
-          },
-          "frame": 157
-        },
-        {
-          "id": "chain-3",
-          "kind": "jump",
-          "color": "black",
-          "from": {
-            "x": 7,
-            "y": 9
-          },
-          "to": {
             "x": 9,
             "y": 9
           },
-          "frame": 198
-        },
-        {
-          "id": "chain-4",
-          "kind": "confirm",
-          "color": "black",
-          "captures": [
-            {
-              "x": 6,
-              "y": 9
-            },
-            {
-              "x": 6,
-              "y": 10
-            },
-            {
-              "x": 7,
-              "y": 10
-            },
-            {
-              "x": 8,
-              "y": 9
-            }
-          ],
-          "frame": 242
-        }
-      ],
-      "grid": {
-        "origin": [296.46, 70.46],
-        "spacing": 51.282
-      }
-    },
-    {
-      "file": "win.webm",
-      "fps": 30,
-      "sha256": "e1348722b4d4ece85f587b9aadd90f41e785e0a65b953ce0431f2bd57258e206",
-      "events": [
-        {
-          "id": "win-0",
-          "kind": "jump",
-          "color": "black",
-          "from": {
-            "x": 7,
-            "y": 14
-          },
           "to": {
-            "x": 5,
-            "y": 14
-          },
-          "frame": 72
-        },
-        {
-          "id": "win-1",
-          "kind": "jump",
-          "color": "black",
-          "from": {
-            "x": 5,
-            "y": 14
-          },
-          "to": {
-            "x": 5,
-            "y": 12
-          },
-          "frame": 112
-        },
-        {
-          "id": "win-2",
-          "kind": "jump",
-          "color": "black",
-          "from": {
-            "x": 5,
-            "y": 12
-          },
-          "to": {
-            "x": 3,
-            "y": 14
-          },
-          "frame": 157
-        },
-        {
-          "id": "win-3",
-          "kind": "jump",
-          "color": "black",
-          "from": {
-            "x": 3,
-            "y": 14
-          },
-          "to": {
-            "x": 3,
-            "y": 16
-          },
-          "frame": 197
-        },
-        {
-          "id": "win-4",
-          "kind": "confirm",
-          "color": "black",
-          "captures": [
-            {
-              "x": 6,
-              "y": 14
-            },
-            {
-              "x": 5,
-              "y": 13
-            },
-            {
-              "x": 4,
-              "y": 13
-            },
-            {
-              "x": 3,
-              "y": 15
-            }
-          ],
-          "frame": 242
-        }
-      ],
-      "grid": {
-        "origin": [296.46, 70.46],
-        "spacing": 51.282
-      }
-    },
-    {
-      "file": "opening-clean.webm",
-      "fps": 30,
-      "sha256": "c05542bec814fa4f3fd948ab9a61bfe143892f36f31f33c95ef85a67d667b8f3",
-      "events": [
-        {
-          "id": "opening-0",
-          "kind": "place",
-          "color": "white",
-          "position": {
-            "x": 9,
-            "y": 9
-          },
-          "frame": 20
-        },
-        {
-          "id": "opening-1",
-          "kind": "place",
-          "color": "black",
-          "position": {
-            "x": 10,
-            "y": 10
-          },
-          "frame": 41
-        },
-        {
-          "id": "opening-2",
-          "kind": "place",
-          "color": "white",
-          "position": {
             "x": 11,
-            "y": 9
+            "y": 11
           },
-          "frame": 72
+          "frame": 43
         },
         {
-          "id": "opening-3",
-          "kind": "place",
+          "id": "counter-1",
+          "kind": "confirm",
+          "color": "white",
+          "captures": [
+            {
+              "x": 10,
+              "y": 10
+            }
+          ],
+          "frame": 60
+        },
+        {
+          "id": "counter-2",
+          "kind": "jump",
           "color": "black",
-          "position": {
+          "from": {
             "x": 10,
             "y": 8
           },
-          "frame": 94
-        },
-        {
-          "id": "opening-4",
-          "kind": "jump",
-          "color": "white",
-          "from": {
-            "x": 9,
-            "y": 9
-          },
           "to": {
-            "x": 11,
-            "y": 11
-          },
-          "frame": 136
-        },
-        {
-          "id": "opening-5",
-          "kind": "confirm",
-          "color": "white",
-          "captures": [
-            {
-              "x": 10,
-              "y": 10
-            }
-          ],
-          "frame": 157
-        }
-      ],
-      "grid": {
-        "origin": [296.46, 70.46],
-        "spacing": 51.282
-      }
-    },
-    {
-      "file": "finale-continuous.webm",
-      "fps": 30,
-      "sha256": "da96b9f551ac4dd24410f09f3fca02cfcbf756535788b91a4a643bcee1514686",
-      "events": [
-        {
-          "id": "finale-56",
-          "kind": "place",
-          "color": "white",
-          "position": {
-            "x": 8,
-            "y": 14
-          },
-          "frame": 22
-        },
-        {
-          "id": "finale-57",
-          "kind": "place",
-          "color": "black",
-          "position": {
-            "x": 7,
-            "y": 7
-          },
-          "frame": 43
-        },
-        {
-          "id": "finale-58",
-          "kind": "place",
-          "color": "white",
-          "position": {
-            "x": 3,
-            "y": 15
-          },
-          "frame": 64
-        },
-        {
-          "id": "finale-59",
-          "kind": "place",
-          "color": "black",
-          "position": {
-            "x": 10,
-            "y": 11
-          },
-          "frame": 83
-        },
-        {
-          "id": "finale-60-0",
-          "kind": "jump",
-          "color": "white",
-          "from": {
-            "x": 11,
-            "y": 11
-          },
-          "to": {
-            "x": 9,
-            "y": 11
-          },
-          "frame": 111
-        },
-        {
-          "id": "finale-60-1",
-          "kind": "jump",
-          "color": "white",
-          "from": {
-            "x": 9,
-            "y": 11
-          },
-          "to": {
-            "x": 9,
-            "y": 13
-          },
-          "frame": 129
-        },
-        {
-          "id": "finale-60-2",
-          "kind": "jump",
-          "color": "white",
-          "from": {
-            "x": 9,
-            "y": 13
-          },
-          "to": {
-            "x": 11,
-            "y": 15
-          },
-          "frame": 144
-        },
-        {
-          "id": "finale-60-confirm",
-          "kind": "confirm",
-          "color": "white",
-          "captures": [
-            {
-              "x": 10,
-              "y": 11
-            },
-            {
-              "x": 9,
-              "y": 12
-            },
-            {
-              "x": 10,
-              "y": 14
-            }
-          ],
-          "frame": 153
-        },
-        {
-          "id": "finale-win-0",
-          "kind": "jump",
-          "color": "black",
-          "from": {
-            "x": 7,
-            "y": 14
-          },
-          "to": {
-            "x": 5,
-            "y": 14
-          },
-          "frame": 183
-        },
-        {
-          "id": "finale-win-1",
-          "kind": "jump",
-          "color": "black",
-          "from": {
-            "x": 5,
-            "y": 14
-          },
-          "to": {
-            "x": 5,
-            "y": 12
-          },
-          "frame": 200
-        },
-        {
-          "id": "finale-win-2",
-          "kind": "jump",
-          "color": "black",
-          "from": {
-            "x": 5,
-            "y": 12
-          },
-          "to": {
-            "x": 3,
-            "y": 14
-          },
-          "frame": 215
-        },
-        {
-          "id": "finale-win-3",
-          "kind": "jump",
-          "color": "black",
-          "from": {
-            "x": 3,
-            "y": 14
-          },
-          "to": {
-            "x": 3,
-            "y": 16
-          },
-          "frame": 230
-        },
-        {
-          "id": "finale-win-confirm",
-          "kind": "confirm",
-          "color": "black",
-          "captures": [
-            {
-              "x": 6,
-              "y": 14
-            },
-            {
-              "x": 5,
-              "y": 13
-            },
-            {
-              "x": 4,
-              "y": 13
-            },
-            {
-              "x": 3,
-              "y": 15
-            }
-          ],
-          "frame": 237
-        }
-      ],
-      "grid": {
-        "origin": [296.46, 70.46],
-        "spacing": 51.282
-      }
-    },
-    {
-      "file": "opening-safe.webm",
-      "fps": 30,
-      "sha256": "97662447645a31354878cd664b026a0b5101135603a3809e1f420d524e3a955a",
-      "events": [
-        {
-          "id": "safe-opening-0",
-          "kind": "place",
-          "color": "white",
-          "position": {
-            "x": 8,
-            "y": 9
-          },
-          "frame": 43
-        },
-        {
-          "id": "safe-opening-1",
-          "kind": "place",
-          "color": "black",
-          "position": {
-            "x": 11,
-            "y": 9
-          },
-          "frame": 71
-        },
-        {
-          "id": "safe-opening-2",
-          "kind": "place",
-          "color": "white",
-          "position": {
-            "x": 8,
+            "x": 12,
             "y": 10
           },
           "frame": 93
         },
         {
-          "id": "safe-opening-3",
-          "kind": "place",
+          "id": "counter-3",
+          "kind": "jump",
           "color": "black",
-          "position": {
-            "x": 11,
+          "from": {
+            "x": 12,
             "y": 10
           },
-          "frame": 122
+          "to": {
+            "x": 10,
+            "y": 12
+          },
+          "frame": 120
+        },
+        {
+          "id": "counter-4",
+          "kind": "confirm",
+          "color": "black",
+          "captures": [
+            {
+              "x": 11,
+              "y": 9
+            },
+            {
+              "x": 11,
+              "y": 11
+            }
+          ],
+          "frame": 132
         }
       ],
       "grid": {

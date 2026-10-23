@@ -1,0 +1,2265 @@
+{
+  "method": "Unmodified shipped engine self-play: White Intermediate (level 2), Black Hard (level 3); normal search budgets; no scripted moves or seeded board.",
+  "boardSize": 19,
+  "scoreToWin": 10,
+  "players": {
+    "white": {
+      "level": 2,
+      "label": "Intermediate"
+    },
+    "black": {
+      "level": 3,
+      "label": "Hard"
+    }
+  },
+  "engineSha256": "aaea95ff52525186342e3d54c681f19cc19d1e66ce7b52af598145e57b3333eb",
+  "moves": [
+    {
+      "type": "place",
+      "position": {
+        "x": 9,
+        "y": 9
+      },
+      "color": "white",
+      "turn": 0,
+      "level": 2,
+      "search": {
+        "score": 8,
+        "depth": 4,
+        "nodes": 15104,
+        "elapsedMs": 5020
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 0
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 0
+      },
+      "boardSha256": "da029ba2c9b51f8dd8858af8f3401d9bdecc097014625d1b11d2a46aec4f1640"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 7,
+        "y": 9
+      },
+      "color": "black",
+      "turn": 1,
+      "level": 3,
+      "search": {
+        "score": -49,
+        "depth": 4,
+        "nodes": 30156,
+        "elapsedMs": 4501
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 0
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 0
+      },
+      "boardSha256": "c15b7809931633c9bb152c51494bbff1ad68a953cd2e11d4d64c435321bcdb42"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 9,
+        "y": 8
+      },
+      "color": "white",
+      "turn": 2,
+      "level": 2,
+      "search": {
+        "score": 12,
+        "depth": 4,
+        "nodes": 21504,
+        "elapsedMs": 2885
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 0
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 0
+      },
+      "boardSha256": "e6e317551442abd6440d6ff0edc170963ae7115dbe55b82ef56074127737e084"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 7,
+        "y": 8
+      },
+      "color": "black",
+      "turn": 3,
+      "level": 3,
+      "search": {
+        "score": -41,
+        "depth": 4,
+        "nodes": 41513,
+        "elapsedMs": 4509
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 0
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 0
+      },
+      "boardSha256": "c04db7a5accd65d97645bfcbae3b8d46fbb23027a0e6934a947f6b055dc74958"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 10,
+        "y": 9
+      },
+      "color": "white",
+      "turn": 4,
+      "level": 2,
+      "search": {
+        "score": 16,
+        "depth": 4,
+        "nodes": 57129,
+        "elapsedMs": 3023
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 0
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 0
+      },
+      "boardSha256": "8d181bd3a173d114b9d96eaffb76cd339fc68c848a8b974ded08d38a5b40efaf"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 6,
+        "y": 10
+      },
+      "color": "black",
+      "turn": 5,
+      "level": 3,
+      "search": {
+        "score": 0,
+        "depth": 5,
+        "nodes": 128768,
+        "elapsedMs": 6076
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 0
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 0
+      },
+      "boardSha256": "0c9d30f67781e7775adffbc6ed21fb83eb5a2110f43f9d9372358966123ed2f8"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 9,
+        "y": 10
+      },
+      "color": "white",
+      "turn": 6,
+      "level": 2,
+      "search": {
+        "score": 16,
+        "depth": 4,
+        "nodes": 29696,
+        "elapsedMs": 6150
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 0
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 0
+      },
+      "boardSha256": "c5fdd7cd6114e7e26edebb3a7fdafdaee8e2ed75e7295d22792eeed8aece00a1"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 8,
+        "y": 9
+      },
+      "color": "black",
+      "turn": 7,
+      "level": 3,
+      "search": {
+        "score": 0,
+        "depth": 4,
+        "nodes": 11264,
+        "elapsedMs": 9128
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 0
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 0
+      },
+      "boardSha256": "b541658c12566b01dfe9179be76a111e4332b2f736b3524bda35a77fc3b62d18"
+    },
+    {
+      "type": "jump",
+      "from": {
+        "x": 9,
+        "y": 8
+      },
+      "path": [
+        {
+          "x": 7,
+          "y": 10
+        },
+        {
+          "x": 5,
+          "y": 10
+        }
+      ],
+      "color": "white",
+      "turn": 8,
+      "level": 2,
+      "search": {
+        "score": 1923,
+        "depth": 4,
+        "nodes": 23101,
+        "elapsedMs": 5001
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 0
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 2
+      },
+      "boardSha256": "4a3ea489c17f25d3494f3265344fc17c17183507c1247c8544b72bb36a634045"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 6,
+        "y": 7
+      },
+      "color": "black",
+      "turn": 9,
+      "level": 3,
+      "search": {
+        "score": 0,
+        "depth": 5,
+        "nodes": 71424,
+        "elapsedMs": 6344
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 2
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 2
+      },
+      "boardSha256": "44b2555cc1505ef08a4a114a4e0e418aa90e1a457d9e625b0ba20b13a4e6e8a2"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 9,
+        "y": 11
+      },
+      "color": "white",
+      "turn": 10,
+      "level": 2,
+      "search": {
+        "score": 2084,
+        "depth": 3,
+        "nodes": 6361,
+        "elapsedMs": 3518
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 2
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 2
+      },
+      "boardSha256": "c0a3655c53a7c14ca9f0f31364e9c0fe49fc8f059ba99f746b40b94d76b2e8ab"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 6,
+        "y": 9
+      },
+      "color": "black",
+      "turn": 11,
+      "level": 3,
+      "search": {
+        "score": -1974,
+        "depth": 4,
+        "nodes": 20356,
+        "elapsedMs": 3378
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 2
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 2
+      },
+      "boardSha256": "bda72bdec561aa01f35385805ca76c049a1183dd54fe80eb322ffefec93afbec"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 8,
+        "y": 9
+      },
+      "color": "white",
+      "turn": 12,
+      "level": 2,
+      "search": {
+        "score": 1927,
+        "depth": 4,
+        "nodes": 18614,
+        "elapsedMs": 4149
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 2
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 2
+      },
+      "boardSha256": "0fa6bdb163fb39d741faaba50bfea8e955a061db70da9055053e259649ab984c"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 11,
+        "y": 10
+      },
+      "color": "black",
+      "turn": 13,
+      "level": 3,
+      "search": {
+        "score": 0,
+        "depth": 4,
+        "nodes": 21248,
+        "elapsedMs": 6052
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 2
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 2
+      },
+      "boardSha256": "2d4ea6902fc5ad2fbb650c979471622b1e647cf76cbe7d254a3acb0a25bda822"
+    },
+    {
+      "type": "jump",
+      "from": {
+        "x": 10,
+        "y": 9
+      },
+      "path": [
+        {
+          "x": 12,
+          "y": 11
+        }
+      ],
+      "color": "white",
+      "turn": 14,
+      "level": 2,
+      "search": {
+        "score": 2917,
+        "depth": 4,
+        "nodes": 14848,
+        "elapsedMs": 5654
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 2
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 3
+      },
+      "boardSha256": "9bc5bb9cf40b26f5c678f727d9efb7c1743a2a918df8d1bf427532ad769ecb43"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 6,
+        "y": 8
+      },
+      "color": "black",
+      "turn": 15,
+      "level": 3,
+      "search": {
+        "score": -2917,
+        "depth": 3,
+        "nodes": 6895,
+        "elapsedMs": 3471
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 3
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 3
+      },
+      "boardSha256": "cf7ed262e693cda0260f60504e7c6c9733da6d7de6c10c8afdcc820156ed9c59"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 9,
+        "y": 8
+      },
+      "color": "white",
+      "turn": 16,
+      "level": 2,
+      "search": {
+        "score": 2968,
+        "depth": 3,
+        "nodes": 10496,
+        "elapsedMs": 5484
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 3
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 3
+      },
+      "boardSha256": "f37e49d368ccecf5cc0aaec2f26393e721f2f369936d017a0dab34a9cbbb9912"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 10,
+        "y": 13
+      },
+      "color": "black",
+      "turn": 17,
+      "level": 3,
+      "search": {
+        "score": 0,
+        "depth": 3,
+        "nodes": 7424,
+        "elapsedMs": 6148
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 3
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 3
+      },
+      "boardSha256": "4bbda274a6b4251f24c33511bf566dc9d73f092622b0a43ae987e0b37fa4fbcf"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 11,
+        "y": 11
+      },
+      "color": "white",
+      "turn": 18,
+      "level": 2,
+      "search": {
+        "score": 2978,
+        "depth": 3,
+        "nodes": 5120,
+        "elapsedMs": 5419
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 3
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 3
+      },
+      "boardSha256": "ce52e5c0b437eb156c5e804a9d31b203f15449494a651f6d4bdf225a66921502"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 13,
+        "y": 9
+      },
+      "color": "black",
+      "turn": 19,
+      "level": 3,
+      "search": {
+        "score": 0,
+        "depth": 3,
+        "nodes": 6912,
+        "elapsedMs": 6209
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 3
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 3
+      },
+      "boardSha256": "1930f54cadd2da471bfa83357a0edfe4267957c5e5a1b44b3c12a962a5a8af79"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 12,
+        "y": 10
+      },
+      "color": "white",
+      "turn": 20,
+      "level": 2,
+      "search": {
+        "score": 3198,
+        "depth": 3,
+        "nodes": 6223,
+        "elapsedMs": 3528
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 3
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 3
+      },
+      "boardSha256": "86fa89151f54e6b768a493b977f0d05473a8e04df583ae640ad7f9eaa69f012c"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 10,
+        "y": 8
+      },
+      "color": "black",
+      "turn": 21,
+      "level": 3,
+      "search": {
+        "score": 0,
+        "depth": 4,
+        "nodes": 13056,
+        "elapsedMs": 7449
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 3
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 3
+      },
+      "boardSha256": "41e989e1dc5f1509137afdd3725a0fc4da8302be4ec97a6a38141efb57c54f00"
+    },
+    {
+      "type": "jump",
+      "from": {
+        "x": 9,
+        "y": 8
+      },
+      "path": [
+        {
+          "x": 11,
+          "y": 8
+        }
+      ],
+      "color": "white",
+      "turn": 22,
+      "level": 2,
+      "search": {
+        "score": 3923,
+        "depth": 4,
+        "nodes": 16545,
+        "elapsedMs": 3454
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 3
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 4
+      },
+      "boardSha256": "2db2fc69b48f96c5ba23e961761c4ebfd22511e9ced81dc1b1a6eccc6a596cdd"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 12,
+        "y": 8
+      },
+      "color": "black",
+      "turn": 23,
+      "level": 3,
+      "search": {
+        "score": 0,
+        "depth": 5,
+        "nodes": 114432,
+        "elapsedMs": 6008
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 4
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 4
+      },
+      "boardSha256": "a2ea83658d5a0e09c478ad799546a2cdb22528521b6269a76b4e5a94e260b019"
+    },
+    {
+      "type": "jump",
+      "from": {
+        "x": 11,
+        "y": 8
+      },
+      "path": [
+        {
+          "x": 13,
+          "y": 8
+        },
+        {
+          "x": 13,
+          "y": 10
+        }
+      ],
+      "color": "white",
+      "turn": 24,
+      "level": 2,
+      "search": {
+        "score": 5805,
+        "depth": 5,
+        "nodes": 106752,
+        "elapsedMs": 5004
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 4
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 6
+      },
+      "boardSha256": "7be8d778e2bf626a3541ce7b117b6a797e0bc7ba6d8f6637d374a7e261fdb7b1"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 10,
+        "y": 6
+      },
+      "color": "black",
+      "turn": 25,
+      "level": 3,
+      "search": {
+        "score": 0,
+        "depth": 5,
+        "nodes": 192256,
+        "elapsedMs": 6014
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 6
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 6
+      },
+      "boardSha256": "cdc330dc54aba5ed4dad80f88472b0e128fa2ffb28d668dedd441962f9f04e6d"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 8,
+        "y": 13
+      },
+      "color": "white",
+      "turn": 26,
+      "level": 2,
+      "search": {
+        "score": 5948,
+        "depth": 5,
+        "nodes": 206592,
+        "elapsedMs": 5008
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 6
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 6
+      },
+      "boardSha256": "cc4d7b7a9bd225575df1bb96a261ed46614ae4f3222a49bb2433bbf9a62d351b"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 9,
+        "y": 13
+      },
+      "color": "black",
+      "turn": 27,
+      "level": 3,
+      "search": {
+        "score": -5873,
+        "depth": 5,
+        "nodes": 269783,
+        "elapsedMs": 4783
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 6
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 6
+      },
+      "boardSha256": "4e6ac3ce4207565f8a7e1a596a0518652b763cbe560b43c896d9ba945034bb2b"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 7,
+        "y": 6
+      },
+      "color": "white",
+      "turn": 28,
+      "level": 2,
+      "search": {
+        "score": 5873,
+        "depth": 5,
+        "nodes": 124416,
+        "elapsedMs": 5005
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 6
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 6
+      },
+      "boardSha256": "50784b75e9c9bca914e837086304242b5435c7374cd8020c3c91512290e7372d"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 5,
+        "y": 8
+      },
+      "color": "black",
+      "turn": 29,
+      "level": 3,
+      "search": {
+        "score": -5606,
+        "depth": 5,
+        "nodes": 79462,
+        "elapsedMs": 5102
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 6
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 6
+      },
+      "boardSha256": "22375eaa57fbe40fe77f1e1d006cb155cbdea1e377d22a4abc8b791f85ec1d01"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 11,
+        "y": 12
+      },
+      "color": "white",
+      "turn": 30,
+      "level": 2,
+      "search": {
+        "score": 5799,
+        "depth": 5,
+        "nodes": 106496,
+        "elapsedMs": 5009
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 6
+      },
+      "scoreAfter": {
+        "black": 0,
+        "white": 6
+      },
+      "boardSha256": "28c6d5d839cdc49645276e622448b291e55c60dd22b213d648ffde29d93b50c9"
+    },
+    {
+      "type": "jump",
+      "from": {
+        "x": 9,
+        "y": 13
+      },
+      "path": [
+        {
+          "x": 7,
+          "y": 13
+        }
+      ],
+      "color": "black",
+      "turn": 31,
+      "level": 3,
+      "search": {
+        "score": -5612,
+        "depth": 5,
+        "nodes": 100732,
+        "elapsedMs": 3835
+      },
+      "scoreBefore": {
+        "black": 0,
+        "white": 6
+      },
+      "scoreAfter": {
+        "black": 1,
+        "white": 6
+      },
+      "boardSha256": "0a78ca588e28ccc5c28a9140f785887b2888a519b66ef134a80ec1feb0a9e82a"
+    },
+    {
+      "type": "jump",
+      "from": {
+        "x": 11,
+        "y": 12
+      },
+      "path": [
+        {
+          "x": 9,
+          "y": 14
+        }
+      ],
+      "color": "white",
+      "turn": 32,
+      "level": 2,
+      "search": {
+        "score": 5108,
+        "depth": 5,
+        "nodes": 236544,
+        "elapsedMs": 5002
+      },
+      "scoreBefore": {
+        "black": 1,
+        "white": 6
+      },
+      "scoreAfter": {
+        "black": 1,
+        "white": 7
+      },
+      "boardSha256": "818411aa6c5ac1f3062af1b10903708577e2c504a25d920b48efec8215fbeaaa"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 8,
+        "y": 12
+      },
+      "color": "black",
+      "turn": 33,
+      "level": 3,
+      "search": {
+        "score": -5108,
+        "depth": 5,
+        "nodes": 120897,
+        "elapsedMs": 3177
+      },
+      "scoreBefore": {
+        "black": 1,
+        "white": 7
+      },
+      "scoreAfter": {
+        "black": 1,
+        "white": 7
+      },
+      "boardSha256": "1d73d6bee2061c9b8bae044661d94bcaa19d2adfea5bc49f1c44c05559d38ec5"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 10,
+        "y": 10
+      },
+      "color": "white",
+      "turn": 34,
+      "level": 2,
+      "search": {
+        "score": 5108,
+        "depth": 4,
+        "nodes": 20974,
+        "elapsedMs": 3101
+      },
+      "scoreBefore": {
+        "black": 1,
+        "white": 7
+      },
+      "scoreAfter": {
+        "black": 1,
+        "white": 7
+      },
+      "boardSha256": "2ecc525c56ea08f2be4a9401eac34ef7a92b6634bc8c350952c4e52865a07f9f"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 10,
+        "y": 11
+      },
+      "color": "black",
+      "turn": 35,
+      "level": 3,
+      "search": {
+        "score": 0,
+        "depth": 5,
+        "nodes": 91136,
+        "elapsedMs": 6028
+      },
+      "scoreBefore": {
+        "black": 1,
+        "white": 7
+      },
+      "scoreAfter": {
+        "black": 1,
+        "white": 7
+      },
+      "boardSha256": "f68fe44c47cf86eb9fc4d6fdc4c11a2bfe074c28cfb04cdb902bb04ecdb8f0ba"
+    },
+    {
+      "type": "jump",
+      "from": {
+        "x": 9,
+        "y": 10
+      },
+      "path": [
+        {
+          "x": 11,
+          "y": 12
+        }
+      ],
+      "color": "white",
+      "turn": 36,
+      "level": 2,
+      "search": {
+        "score": 6091,
+        "depth": 5,
+        "nodes": 108032,
+        "elapsedMs": 5006
+      },
+      "scoreBefore": {
+        "black": 1,
+        "white": 7
+      },
+      "scoreAfter": {
+        "black": 1,
+        "white": 8
+      },
+      "boardSha256": "43a5ba48844d3cd0a64e6aaa081ac18e57e43d7d6cd2476d89d97bea259c5cb8"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 5,
+        "y": 9
+      },
+      "color": "black",
+      "turn": 37,
+      "level": 3,
+      "search": {
+        "score": -6605,
+        "depth": 5,
+        "nodes": 210929,
+        "elapsedMs": 5507
+      },
+      "scoreBefore": {
+        "black": 1,
+        "white": 8
+      },
+      "scoreAfter": {
+        "black": 1,
+        "white": 8
+      },
+      "boardSha256": "8132efedcdc834dab2405316e860ceeef967d4cf89e0c491af16df2a3eaf7f0d"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 5,
+        "y": 7
+      },
+      "color": "white",
+      "turn": 38,
+      "level": 2,
+      "search": {
+        "score": 6605,
+        "depth": 5,
+        "nodes": 256197,
+        "elapsedMs": 4304
+      },
+      "scoreBefore": {
+        "black": 1,
+        "white": 8
+      },
+      "scoreAfter": {
+        "black": 1,
+        "white": 8
+      },
+      "boardSha256": "0d1697186b1b7942c808a0fc72509705f7e19d81e0775217a68098f80e0654fc"
+    },
+    {
+      "type": "jump",
+      "from": {
+        "x": 6,
+        "y": 8
+      },
+      "path": [
+        {
+          "x": 4,
+          "y": 6
+        }
+      ],
+      "color": "black",
+      "turn": 39,
+      "level": 3,
+      "search": {
+        "score": -50001,
+        "depth": 7,
+        "nodes": 97543,
+        "elapsedMs": 5224
+      },
+      "scoreBefore": {
+        "black": 1,
+        "white": 8
+      },
+      "scoreAfter": {
+        "black": 2,
+        "white": 8
+      },
+      "boardSha256": "da00e4b8c99695f08a3d9f085e5500f63c7806c891037a0f972211d2142059ed"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 7,
+        "y": 7
+      },
+      "color": "white",
+      "turn": 40,
+      "level": 2,
+      "search": {
+        "score": 50000,
+        "depth": 5,
+        "nodes": 17789,
+        "elapsedMs": 342
+      },
+      "scoreBefore": {
+        "black": 2,
+        "white": 8
+      },
+      "scoreAfter": {
+        "black": 2,
+        "white": 8
+      },
+      "boardSha256": "ff6402b8d46d9d104d6370d0047654dd2218334f230343bdaee1f18686a2b882"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 5,
+        "y": 7
+      },
+      "color": "black",
+      "turn": 41,
+      "level": 3,
+      "search": {
+        "score": -50003,
+        "depth": 7,
+        "nodes": 45604,
+        "elapsedMs": 1267
+      },
+      "scoreBefore": {
+        "black": 2,
+        "white": 8
+      },
+      "scoreAfter": {
+        "black": 2,
+        "white": 8
+      },
+      "boardSha256": "bf3f48bb413a98c45b3c8bf5b2efdc7b895a8e22172d9c9effa0910de8af0057"
+    },
+    {
+      "type": "place",
+      "position": {
+        "x": 6,
+        "y": 8
+      },
+      "color": "white",
+      "turn": 42,
+      "level": 2,
+      "search": {
+        "score": 50002,
+        "depth": 5,
+        "nodes": 13259,
+        "elapsedMs": 161
+      },
+      "scoreBefore": {
+        "black": 2,
+        "white": 8
+      },
+      "scoreAfter": {
+        "black": 2,
+        "white": 8
+      },
+      "boardSha256": "3110b61960a5ef7963848bf73f5ff3cace4029815ec05166cd4227fe21c85988"
+    },
+    {
+      "type": "jump",
+      "from": {
+        "x": 7,
+        "y": 8
+      },
+      "path": [
+        {
+          "x": 9,
+          "y": 10
+        },
+        {
+          "x": 11,
+          "y": 10
+        },
+        {
+          "x": 13,
+          "y": 12
+        }
+      ],
+      "color": "black",
+      "turn": 43,
+      "level": 3,
+      "search": {
+        "score": -50005,
+        "depth": 7,
+        "nodes": 36169,
+        "elapsedMs": 694
+      },
+      "scoreBefore": {
+        "black": 2,
+        "white": 8
+      },
+      "scoreAfter": {
+        "black": 5,
+        "white": 8
+      },
+      "boardSha256": "ea65383b396fc09d7ed3703a26637b0f16efba424b4c89cc823a75ff17b13df4"
+    },
+    {
+      "type": "jump",
+      "from": {
+        "x": 6,
+        "y": 8
+      },
+      "path": [
+        {
+          "x": 4,
+          "y": 8
+        },
+        {
+          "x": 6,
+          "y": 10
+        },
+        {
+          "x": 6,
+          "y": 8
+        },
+        {
+          "x": 6,
+          "y": 6
+        },
+        {
+          "x": 4,
+          "y": 8
+        }
+      ],
+      "color": "white",
+      "turn": 44,
+      "level": 2,
+      "search": {
+        "score": 50004,
+        "depth": 5,
+        "nodes": 5336,
+        "elapsedMs": 42
+      },
+      "scoreBefore": {
+        "black": 5,
+        "white": 8
+      },
+      "scoreAfter": {
+        "black": 5,
+        "white": 13
+      },
+      "boardSha256": "2ee97165a426df17637a735cedefc058abf906551e729009d22468e150b9acaa"
+    }
+  ],
+  "finished": true,
+  "winner": "white",
+  "finalState": {
+    "boardSize": 19,
+    "scoreToWin": 10,
+    "positions": [
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        "black",
+        null,
+        null,
+        "white",
+        null,
+        null,
+        "black",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "white",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        "white",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "black",
+        null,
+        "white",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        "white",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "white",
+        "white",
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "white",
+        null,
+        "white",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "black",
+        null,
+        null,
+        "white",
+        null,
+        "black",
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "black",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "white",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    ],
+    "currentTurn": "black",
+    "pendingJump": [],
+    "pendingCaptures": [],
+    "score": {
+      "black": 5,
+      "white": 13
+    },
+    "history": [
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 9,
+          "y": 9
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 7,
+          "y": 9
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 9,
+          "y": 8
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 7,
+          "y": 8
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 10,
+          "y": 9
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 6,
+          "y": 10
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 9,
+          "y": 10
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 8,
+          "y": 9
+        }
+      },
+      {
+        "type": "jump",
+        "color": "white",
+        "jumps": [
+          {
+            "from": {
+              "x": 9,
+              "y": 8
+            },
+            "over": {
+              "x": 8,
+              "y": 9
+            },
+            "to": {
+              "x": 7,
+              "y": 10
+            },
+            "color": "white"
+          },
+          {
+            "from": {
+              "x": 7,
+              "y": 10
+            },
+            "over": {
+              "x": 6,
+              "y": 10
+            },
+            "to": {
+              "x": 5,
+              "y": 10
+            },
+            "color": "white"
+          }
+        ]
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 6,
+          "y": 7
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 9,
+          "y": 11
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 6,
+          "y": 9
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 8,
+          "y": 9
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 11,
+          "y": 10
+        }
+      },
+      {
+        "type": "jump",
+        "color": "white",
+        "jumps": [
+          {
+            "from": {
+              "x": 10,
+              "y": 9
+            },
+            "over": {
+              "x": 11,
+              "y": 10
+            },
+            "to": {
+              "x": 12,
+              "y": 11
+            },
+            "color": "white"
+          }
+        ]
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 6,
+          "y": 8
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 9,
+          "y": 8
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 10,
+          "y": 13
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 11,
+          "y": 11
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 13,
+          "y": 9
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 12,
+          "y": 10
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 10,
+          "y": 8
+        }
+      },
+      {
+        "type": "jump",
+        "color": "white",
+        "jumps": [
+          {
+            "from": {
+              "x": 9,
+              "y": 8
+            },
+            "over": {
+              "x": 10,
+              "y": 8
+            },
+            "to": {
+              "x": 11,
+              "y": 8
+            },
+            "color": "white"
+          }
+        ]
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 12,
+          "y": 8
+        }
+      },
+      {
+        "type": "jump",
+        "color": "white",
+        "jumps": [
+          {
+            "from": {
+              "x": 11,
+              "y": 8
+            },
+            "over": {
+              "x": 12,
+              "y": 8
+            },
+            "to": {
+              "x": 13,
+              "y": 8
+            },
+            "color": "white"
+          },
+          {
+            "from": {
+              "x": 13,
+              "y": 8
+            },
+            "over": {
+              "x": 13,
+              "y": 9
+            },
+            "to": {
+              "x": 13,
+              "y": 10
+            },
+            "color": "white"
+          }
+        ]
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 10,
+          "y": 6
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 8,
+          "y": 13
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 9,
+          "y": 13
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 7,
+          "y": 6
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 5,
+          "y": 8
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 11,
+          "y": 12
+        }
+      },
+      {
+        "type": "jump",
+        "color": "black",
+        "jumps": [
+          {
+            "from": {
+              "x": 9,
+              "y": 13
+            },
+            "over": {
+              "x": 8,
+              "y": 13
+            },
+            "to": {
+              "x": 7,
+              "y": 13
+            },
+            "color": "black"
+          }
+        ]
+      },
+      {
+        "type": "jump",
+        "color": "white",
+        "jumps": [
+          {
+            "from": {
+              "x": 11,
+              "y": 12
+            },
+            "over": {
+              "x": 10,
+              "y": 13
+            },
+            "to": {
+              "x": 9,
+              "y": 14
+            },
+            "color": "white"
+          }
+        ]
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 8,
+          "y": 12
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 10,
+          "y": 10
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 10,
+          "y": 11
+        }
+      },
+      {
+        "type": "jump",
+        "color": "white",
+        "jumps": [
+          {
+            "from": {
+              "x": 9,
+              "y": 10
+            },
+            "over": {
+              "x": 10,
+              "y": 11
+            },
+            "to": {
+              "x": 11,
+              "y": 12
+            },
+            "color": "white"
+          }
+        ]
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 5,
+          "y": 9
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 5,
+          "y": 7
+        }
+      },
+      {
+        "type": "jump",
+        "color": "black",
+        "jumps": [
+          {
+            "from": {
+              "x": 6,
+              "y": 8
+            },
+            "over": {
+              "x": 5,
+              "y": 7
+            },
+            "to": {
+              "x": 4,
+              "y": 6
+            },
+            "color": "black"
+          }
+        ]
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 7,
+          "y": 7
+        }
+      },
+      {
+        "type": "put",
+        "color": "black",
+        "position": {
+          "x": 5,
+          "y": 7
+        }
+      },
+      {
+        "type": "put",
+        "color": "white",
+        "position": {
+          "x": 6,
+          "y": 8
+        }
+      },
+      {
+        "type": "jump",
+        "color": "black",
+        "jumps": [
+          {
+            "from": {
+              "x": 7,
+              "y": 8
+            },
+            "over": {
+              "x": 8,
+              "y": 9
+            },
+            "to": {
+              "x": 9,
+              "y": 10
+            },
+            "color": "black"
+          },
+          {
+            "from": {
+              "x": 9,
+              "y": 10
+            },
+            "over": {
+              "x": 10,
+              "y": 10
+            },
+            "to": {
+              "x": 11,
+              "y": 10
+            },
+            "color": "black"
+          },
+          {
+            "from": {
+              "x": 11,
+              "y": 10
+            },
+            "over": {
+              "x": 12,
+              "y": 11
+            },
+            "to": {
+              "x": 13,
+              "y": 12
+            },
+            "color": "black"
+          }
+        ]
+      },
+      {
+        "type": "jump",
+        "color": "white",
+        "jumps": [
+          {
+            "from": {
+              "x": 6,
+              "y": 8
+            },
+            "over": {
+              "x": 5,
+              "y": 8
+            },
+            "to": {
+              "x": 4,
+              "y": 8
+            },
+            "color": "white"
+          },
+          {
+            "from": {
+              "x": 4,
+              "y": 8
+            },
+            "over": {
+              "x": 5,
+              "y": 9
+            },
+            "to": {
+              "x": 6,
+              "y": 10
+            },
+            "color": "white"
+          },
+          {
+            "from": {
+              "x": 6,
+              "y": 10
+            },
+            "over": {
+              "x": 6,
+              "y": 9
+            },
+            "to": {
+              "x": 6,
+              "y": 8
+            },
+            "color": "white"
+          },
+          {
+            "from": {
+              "x": 6,
+              "y": 8
+            },
+            "over": {
+              "x": 6,
+              "y": 7
+            },
+            "to": {
+              "x": 6,
+              "y": 6
+            },
+            "color": "white"
+          },
+          {
+            "from": {
+              "x": 6,
+              "y": 6
+            },
+            "over": {
+              "x": 5,
+              "y": 7
+            },
+            "to": {
+              "x": 4,
+              "y": 8
+            },
+            "color": "white"
+          }
+        ]
+      },
+      {
+        "type": "win",
+        "color": "white"
+      }
+    ]
+  }
+}

@@ -2,8 +2,6 @@
 
 import type { AuthResponse } from "@shared";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
-import { BadgeToast } from "@/components/BadgeToast";
 import { BADGE_DEFINITIONS, type BadgeId, UserBadge, useBadgeName } from "@/components/UserBadge";
 import { AnimatedCard } from "@/components/ui/animated-card";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,10 +14,12 @@ export function BadgeSelector({
   auth,
   onAuthChange,
   delay = 0,
+  className,
 }: {
   auth: AuthResponse | null;
   onAuthChange: (auth: AuthResponse) => void;
   delay?: number;
+  className?: string;
 }) {
   const t = useTranslations("profile");
   const badges = [...new Set(auth?.player.badges ?? [])] as BadgeId[];
@@ -36,15 +36,6 @@ export function BadgeSelector({
 
     // Optimistic swap — reflect the change in the UI immediately.
     onAuthChange({ ...auth, player: { ...auth.player, activeBadges: next } });
-
-    // Fire the toast immediately with the actual badge rendered inside.
-    // The localized "Badge updated" title sits next to a live <UserBadge>,
-    // so the user sees their new badge without waiting for the round-trip.
-    if (next.length > 0) {
-      toast.success(<BadgeToast badge={next[0]} title={t("badgeUpdatedShort")} />);
-    } else {
-      toast.success(t("badgeHiddenToast"));
-    }
 
     void updateActiveBadges(next).catch((err) => {
       // Roll back the optimistic swap if the server rejects the update.
@@ -63,17 +54,18 @@ export function BadgeSelector({
   };
 
   return (
-    <AnimatedCard delay={delay}>
+    <AnimatedCard delay={delay} className={className}>
       <PaperCard>
         <CardHeader>
           <CardTitle>{t("badge")}</CardTitle>
           <CardDescription>{t("badgeDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={hideAll}
+              aria-pressed={activeBadges.length === 0}
               className={cn(
                 "rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
                 activeBadges.length === 0
@@ -94,6 +86,7 @@ export function BadgeSelector({
                   key={badgeId}
                   type="button"
                   onClick={() => selectBadge(badgeId)}
+                  aria-pressed={isActive}
                   className={cn(
                     "rounded-xl border p-2 transition-all",
                     isActive
@@ -108,7 +101,7 @@ export function BadgeSelector({
           </div>
 
           {activeBadges.length > 0 && (
-            <p className="mt-3 text-xs text-[#9a8670]">
+            <p role="status" className="mt-3 text-xs text-[#9a8670]">
               {t("badgeActive", { badge: activeBadgeName })}
             </p>
           )}

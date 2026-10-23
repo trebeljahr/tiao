@@ -1,5 +1,5 @@
 {
-  "title": "Tiao \u2014 safe opening and full-board themes",
+  "title": "Tiao \u2014 genuine AI match and Black double capture",
   "source": "Shipped Tiao UI; legal local match replays and isolated sample social/tournament accounts",
   "duration": 50.2,
   "style": {
@@ -16,13 +16,13 @@
       "timelineStart": 0
     },
     {
-      "file": "chain.webm",
-      "start": 2,
-      "speed": 3.36,
-      "duration": 2,
-      "crop": [400, 400, 700, 394],
       "kind": "footage",
-      "name": "One stone. Four captures.",
+      "file": "ai-match.webm",
+      "start": 25.7,
+      "speed": 0.8083333333333336,
+      "duration": 2,
+      "crop": [400, 300, 880, 495],
+      "name": "Hard Black three-capture comeback from the real AI match",
       "timelineStart": 1.6
     },
     {
@@ -32,13 +32,13 @@
       "timelineStart": 3.6
     },
     {
-      "file": "opening-safe.webm",
-      "start": 0.9,
-      "duration": 2.6,
-      "crop": [460, 375, 650, 366],
       "kind": "footage",
-      "name": "Build two friendly pairs without giving either side an immediate jump",
-      "speed": 1.45,
+      "file": "ai-match.webm",
+      "start": 0.5,
+      "speed": 0.8,
+      "duration": 2.6,
+      "crop": [380, 330, 650, 366],
+      "name": "The actual AI opening \u2014 four alternating placements",
       "timelineStart": 5.1
     },
     {
@@ -48,46 +48,20 @@
       "timelineStart": 7.7
     },
     {
-      "file": "opening-clean.webm",
-      "start": 3.5,
-      "duration": 3.8,
-      "crop": [485, 375, 650, 366],
       "kind": "footage",
-      "name": "White jumps diagonally and captures Black",
-      "speed": 0.65,
+      "file": "counter.webm",
+      "start": 2.5,
+      "speed": 0.8,
+      "duration": 3.3,
+      "crop": [600, 380, 650, 366],
+      "name": "Black captures both White stones in one continuous two-hop reply",
       "timelineStart": 9.2
-    },
-    {
-      "kind": "intertitle",
-      "title": "Chain your jumps.",
-      "duration": 1.5,
-      "timelineStart": 13.0
-    },
-    {
-      "file": "chain.webm",
-      "start": 1.7,
-      "speed": 1.74,
-      "duration": 4,
-      "crop": [400, 400, 700, 394],
-      "kind": "footage",
-      "name": "Keep jumping with the same stone.",
-      "timelineStart": 14.5
-    },
-    {
-      "file": "chain.webm",
-      "start": 8.8,
-      "duration": 1.5,
-      "crop": [230, 30, 1580, 889],
-      "kind": "footage",
-      "name": "Confirm your path.",
-      "speed": 1.2,
-      "timelineStart": 18.5
     },
     {
       "kind": "intertitle",
       "title": "Play with friends.",
       "duration": 1.2,
-      "timelineStart": 20.0
+      "timelineStart": 12.5
     },
     {
       "kind": "footage",
@@ -96,7 +70,7 @@
       "duration": 1.4,
       "crop": [360, 80, 1200, 675],
       "name": "Choose your opponent",
-      "timelineStart": 21.2
+      "timelineStart": 13.7
     },
     {
       "kind": "footage",
@@ -105,13 +79,13 @@
       "duration": 2.4,
       "crop": [320, 170, 1280, 720],
       "name": "Choose a side and board size",
-      "timelineStart": 22.6
+      "timelineStart": 15.1
     },
     {
       "kind": "intertitle",
       "title": "Win tournaments.",
       "duration": 1.2,
-      "timelineStart": 25.0
+      "timelineStart": 17.5
     },
     {
       "kind": "footage",
@@ -120,7 +94,7 @@
       "duration": 1.6,
       "crop": [460, 190, 1000, 563],
       "name": "Follow the bracket",
-      "timelineStart": 26.2
+      "timelineStart": 18.7
     },
     {
       "kind": "footage",
@@ -129,23 +103,23 @@
       "duration": 1.7,
       "crop": [795, 250, 640, 360],
       "name": "A final won by one capture",
-      "timelineStart": 27.8
+      "timelineStart": 20.3
     },
     {
       "kind": "intertitle",
       "title": "Make it yours.",
       "duration": 1.2,
-      "timelineStart": 29.5
+      "timelineStart": 22.0
     },
     {
       "kind": "footage",
-      "file": "badges-framed.webm",
-      "start": 0.7,
+      "file": "customization.webm",
+      "start": 0.3,
       "duration": 1.8,
-      "crop": [40, 380, 690, 650],
+      "crop": [480, 555, 960, 210],
       "name": "Choose Champion, One Jump Wonder and Flawless in the badge panel",
-      "timelineStart": 30.7,
-      "speed": 1.5,
+      "timelineStart": 23.2,
+      "speed": 1.4,
       "framing": "native"
     },
     {
@@ -155,59 +129,60 @@
       "duration": 1.8,
       "crop": [420, 325, 1080, 608],
       "name": "Capture challenges and achievement tiers",
-      "timelineStart": 32.5,
+      "timelineStart": 25.0,
       "speed": 0.6
     },
     {
       "kind": "footage",
       "file": "themes.webm",
-      "start": 0.3,
+      "start": 0.35,
       "duration": 0.7,
-      "crop": [0, 480, 640, 360],
+      "crop": [15, 700, 300, 280],
       "name": "Select a board theme",
-      "timelineStart": 34.3
+      "timelineStart": 26.8,
+      "framing": "native"
     },
     {
       "kind": "footage",
-      "file": "theme-night.png",
+      "file": "ai-theme-night.png",
       "start": 0,
       "duration": 0.7,
       "crop": [0, 0, 1920, 1080],
       "name": "Night board",
-      "timelineStart": 35.0,
+      "timelineStart": 27.5,
       "still": true,
       "framing": "native"
     },
     {
       "kind": "footage",
-      "file": "theme-sakura.png",
+      "file": "ai-theme-sakura.png",
       "start": 0,
       "duration": 0.6,
       "crop": [0, 0, 1920, 1080],
       "name": "Sakura board",
-      "timelineStart": 35.7,
+      "timelineStart": 28.2,
       "still": true,
       "framing": "native"
     },
     {
       "kind": "footage",
-      "file": "theme-ocean.png",
+      "file": "ai-theme-ocean.png",
       "start": 0,
       "duration": 0.5,
       "crop": [0, 0, 1920, 1080],
       "name": "Ocean board",
-      "timelineStart": 36.3,
+      "timelineStart": 28.8,
       "still": true,
       "framing": "native"
     },
     {
       "kind": "footage",
-      "file": "theme-marble.png",
+      "file": "ai-theme-marble.png",
       "start": 0,
       "duration": 0.4,
       "crop": [0, 0, 1920, 1080],
       "name": "Marble board",
-      "timelineStart": 36.8,
+      "timelineStart": 29.3,
       "still": true,
       "framing": "native"
     },
@@ -215,37 +190,83 @@
       "kind": "intertitle",
       "title": "Capture ten.\nWin the game.",
       "duration": 1.5,
-      "timelineStart": 37.2
+      "timelineStart": 29.7
     },
     {
       "kind": "footage",
-      "file": "finale-continuous.webm",
+      "file": "ai-match.webm",
       "start": 0.35,
-      "duration": 5.7,
-      "speed": 0.9210526315789473,
-      "crop": [230, 20, 1580, 889],
-      "name": "Continuous final exchange \u2014 placements and White three-capture chain",
-      "timelineStart": 38.7
+      "speed": 1.1492248062015504,
+      "duration": 4.3,
+      "crop": [0, 0, 1920, 1080],
+      "framing": "native",
+      "name": "Medium versus Hard \u2014 accelerating full match 1",
+      "timelineStart": 31.2
     },
     {
       "kind": "footage",
-      "file": "finale-continuous.webm",
-      "start": 5.6,
-      "duration": 2.5,
-      "speed": 1.04,
-      "crop": [350, 600, 740, 416],
-      "name": "Black replies with the four-hop winning chain",
-      "timelineStart": 44.4
+      "file": "ai-match.webm",
+      "start": 5.291666666666666,
+      "speed": 1.4974747474747474,
+      "duration": 3.3,
+      "crop": [0, 0, 1920, 1080],
+      "framing": "native",
+      "name": "Medium versus Hard \u2014 accelerating full match 2",
+      "timelineStart": 35.5
     },
     {
       "kind": "footage",
-      "file": "win.webm",
-      "start": 8.2,
-      "duration": 1.3,
-      "speed": 1.2,
-      "crop": [230, 20, 1580, 889],
-      "name": "Ten captures \u2014 Black wins",
-      "timelineStart": 46.9
+      "file": "ai-match.webm",
+      "start": 10.233333333333333,
+      "speed": 1.8302469135802466,
+      "duration": 2.7,
+      "crop": [0, 0, 1920, 1080],
+      "framing": "native",
+      "name": "Medium versus Hard \u2014 accelerating full match 3",
+      "timelineStart": 38.8
+    },
+    {
+      "kind": "footage",
+      "file": "ai-match.webm",
+      "start": 15.174999999999999,
+      "speed": 2.353174603174603,
+      "duration": 2.1,
+      "crop": [0, 0, 1920, 1080],
+      "framing": "native",
+      "name": "Medium versus Hard \u2014 accelerating full match 4",
+      "timelineStart": 41.5
+    },
+    {
+      "kind": "footage",
+      "file": "ai-match.webm",
+      "start": 20.116666666666667,
+      "speed": 2.7453703703703702,
+      "duration": 1.8,
+      "crop": [0, 0, 1920, 1080],
+      "framing": "native",
+      "name": "Medium versus Hard \u2014 accelerating full match 5",
+      "timelineStart": 43.6
+    },
+    {
+      "kind": "footage",
+      "file": "ai-match.webm",
+      "start": 25.058333333333334,
+      "speed": 3.5297619047619047,
+      "duration": 1.4,
+      "crop": [0, 0, 1920, 1080],
+      "framing": "native",
+      "name": "Medium versus Hard \u2014 accelerating full match 6",
+      "timelineStart": 45.4
+    },
+    {
+      "kind": "footage",
+      "file": "ai-result-hold.webm",
+      "start": 0.2,
+      "duration": 1.4,
+      "crop": [0, 0, 1920, 1080],
+      "framing": "native",
+      "name": "Actual result \u2014 White wins 13\u20135",
+      "timelineStart": 46.8
     },
     {
       "kind": "brand",
@@ -261,19 +282,19 @@
     },
     {
       "type": "whoosh",
-      "time": 20
+      "time": 12.5
     },
     {
       "type": "whoosh",
-      "time": 25
+      "time": 17.5
     },
     {
       "type": "whoosh",
-      "time": 29.5
+      "time": 22.0
     },
     {
       "type": "whoosh",
-      "time": 37.2
+      "time": 29.7
     }
   ],
   "music": {
@@ -308,12 +329,12 @@
     "fadeOut": 1.2,
     "targetPeakDb": -8
   },
-  "outputName": "tiao-safe-opening.mp4",
-  "audioDescription": "Current original piano and final buildup retained. Five restrained Raptor Runner swooshes; committed move clicks throughout the new continuous legal ending.",
+  "outputName": "tiao-ai-match.mp4",
+  "audioDescription": "Original piano buildup retained; sparse restrained swooshes, source-frame move clicks and captures throughout a progressively accelerating real medium-versus-hard AI match.",
   "moveSounds": {
     "file": "scripts/assets/store-trailer/move-events.json",
     "gain": 0.5,
     "timing": "Source frame mapped through shot trim and playback speed, rounded to output frame",
-    "ending": "Continuous legal final exchange, four placements, White three-capture chain, then Black four-hop reply to win 10\u20139; source-frame synchronized."
+    "ending": "All 45 actual engine-chosen turns, starting from an empty board and ending in the genuine 13\u20135 result. Six contiguous source spans accelerate without changing camera framing."
   }
 }
