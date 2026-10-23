@@ -31,6 +31,7 @@ const {
 } = require("./csp.cjs");
 
 const { installWindowTrust } = require("./trust.cjs");
+const { installFullScreenEvents } = require("./windowControls.cjs");
 
 let cspApplied = false;
 
@@ -107,6 +108,7 @@ function createMainWindow({ startUrl, devTools, runtimeConfig }) {
     title: "Tiao",
     icon: iconPath,
     backgroundColor: "#1a0f06",
+    fullscreen: runtimeConfig.isSteamBuild,
     show: false, // wait until content is ready to avoid a white flash
     webPreferences: {
       preload: path.join(__dirname, "..", "preload.cjs"),
@@ -123,6 +125,8 @@ function createMainWindow({ startUrl, devTools, runtimeConfig }) {
       additionalArguments: buildAdditionalArguments(runtimeConfig),
     },
   });
+
+  installFullScreenEvents(win);
 
   installWindowTrust(win, {
     startUrl,

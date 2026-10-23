@@ -93,6 +93,22 @@ contextBridge.exposeInMainWorld("electron", {
     distributionChannel: runtimeConfig.distributionChannel,
   }),
 
+  windowControls: {
+    /** @returns {Promise<boolean>} */
+    isFullScreen: () => ipcRenderer.invoke("window:isFullScreen"),
+    /** @param {boolean} enabled @returns {Promise<void>} */
+    setFullScreen: (enabled) => ipcRenderer.invoke("window:setFullScreen", enabled),
+    /** @returns {Promise<void>} */
+    quit: () => ipcRenderer.invoke("window:quit"),
+    /** @param {(enabled: boolean) => void} cb @returns {() => void} */
+    onFullScreenChanged: (cb) => {
+      const listener = (/** @type {unknown} */ _event, /** @type {boolean} */ enabled) =>
+        cb(enabled);
+      ipcRenderer.on("window:fullScreenChanged", listener);
+      return () => ipcRenderer.off("window:fullScreenChanged", listener);
+    },
+  },
+
   auth: {
     /**
      * @param {"github"|"google"|"discord"|"apple"} provider

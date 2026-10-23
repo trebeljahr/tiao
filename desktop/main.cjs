@@ -25,6 +25,7 @@ const fs = require("node:fs");
 const { registerAppProtocol, DESKTOP_PROTOCOL_SCHEME } = require("./src/protocol.cjs");
 const { handleTrustedIpc } = require("./src/trust.cjs");
 const { createMainWindow } = require("./src/window.cjs");
+const { registerWindowControlsIpc } = require("./src/windowControls.cjs");
 const { buildMenu } = require("./src/menu.cjs");
 const { registerAuthIpc, loadPersistedToken, handleAuthDeepLink } = require("./src/authBridge.cjs");
 const {
@@ -263,6 +264,7 @@ function bootstrap() {
   // first call rather than null.
   loadPersistedToken();
   registerAuthIpc();
+  registerWindowControlsIpc(ipcMain);
   // Steamworks init. No-op unless STEAM_BUILD=true. A failure here
   // (Steam client not running, wrong appid, missing binding) logs a
   // warning and leaves `isSteamActive() === false` — the rest of

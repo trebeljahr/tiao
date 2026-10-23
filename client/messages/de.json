@@ -1,4 +1,10 @@
 {
+  "desktopWindow": {
+    "enterFullScreen": "Vollbild aktivieren",
+    "exitFullScreen": "Vollbild verlassen",
+    "quit": "Tiao beenden",
+    "actionFailed": "Die Aktion ist fehlgeschlagen. Bitte versuche es erneut."
+  },
   "common": {
     "backToLobby": "Zurück zur Lobby",
     "backToTournament": "Zurück zum Turnier",

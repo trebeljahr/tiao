@@ -1,4 +1,10 @@
 {
+  "desktopWindow": {
+    "enterFullScreen": "Activar pantalla completa",
+    "exitFullScreen": "Salir de pantalla completa",
+    "quit": "Salir de Tiao",
+    "actionFailed": "No se pudo completar esta acción. Inténtalo de nuevo."
+  },
   "common": {
     "backToLobby": "Volver a la sala",
     "backToTournament": "Volver al torneo",

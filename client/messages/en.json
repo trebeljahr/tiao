@@ -1,4 +1,10 @@
 {
+  "desktopWindow": {
+    "enterFullScreen": "Enter fullscreen",
+    "exitFullScreen": "Exit fullscreen",
+    "quit": "Quit Tiao",
+    "actionFailed": "Could not complete this action. Please try again."
+  },
   "common": {
     "backToLobby": "Back to lobby",
     "backToTournament": "Back to tournament",
