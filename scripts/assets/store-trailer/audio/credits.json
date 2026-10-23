@@ -58,6 +58,26 @@
       "sourceSha256": "45b59b2350a989509d035a9d461a53b88d345bfc298f0fd1a4258c0d09941932",
       "verifiedOn": "2026-10-23",
       "verification": "Embedded MP3 copyright tag explicitly names Attribution / CC BY 4.0; agrees with Raptor Runner trailer licence record. FMA page unavailable during this revision."
+    },
+    {
+      "file": "next-move-original.mp3",
+      "work": "Next Move",
+      "creator": "Original composition made for Tiao in this chat",
+      "method": "Explicit deterministic MIDI composition; locally rendered Yamaha piano multisamples, no music-generation service or stock loops",
+      "sourceScore": "scripts/assets/store-trailer/music/piano-score.json",
+      "sourceMidi": "scripts/assets/store-trailer/music/next-move.mid",
+      "generator": "scripts/compose-trailer-piano.mjs",
+      "renderer": "scripts/render-trailer-piano.py",
+      "tempoBpm": 99.58506224066389,
+      "key": "D major",
+      "duration": 54,
+      "trailerResolveAt": 48.2,
+      "sampleLibrary": "Installed Apple Logic Yamaha Grand Piano",
+      "licence": "Original arrangement; Apple sample content used in a finished original soundtrack. Sample library assets not copied or redistributed.",
+      "licenceUrl": "https://www.apple.com/legal/sla/docs/LogicPro.pdf",
+      "verifiedOn": "2026-10-23",
+      "sha256": "4da82eaf2522cbe93897045b99ecea554eaa92ca284c7bf867034228f567b08b",
+      "preparation": "Lossless locally rendered original archived separately. MP3 320 kbps is the tracked production input; trailer uses first 50.2 seconds with original tempo and pitch, light fades and transition ducking."
     }
   ]
 }

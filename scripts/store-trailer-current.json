@@ -1,5 +1,5 @@
 {
-  "title": "Tiao — energetic feature cut and accelerating finale",
+  "title": "Tiao — original piano trailer",
   "selectedOn": "2026-10-23",
   "duration": 50.2,
   "width": 1920,
@@ -7,15 +7,15 @@
   "fps": 30,
   "shotCount": 33,
   "output": "build/store-trailer/tiao-gameplay-current.mp4",
-  "candidate": "build/store-trailer-v4/tiao-energy-finale.mp4",
-  "sha256": "7a948a3f0f2234d1b2411ab9097ade58e44e3f62d859b37be70e37c3b5a0d0b5",
-  "bytes": 36719814,
+  "candidate": "build/store-trailer-v5/tiao-custom-piano.mp4",
+  "sha256": "8e7f24d9defed6d455e84231b0905676e7375e56fc8eec0028f67769e1aaefcb",
+  "bytes": 36719369,
   "videoBitrate": "6 Mbps CBR target",
   "audio": true,
-  "audioDescription": "Rhythmic Meydän music; normalized Raptor Runner swooshes, 10 dB transition ducking and native game taps. No narration.",
+  "audioDescription": "Original Next Move piano composition, native game taps and normalized transition swooshes; music ducks at each transition.",
   "approval": "Local review revision; not approved or uploaded",
   "source": "Actual shipped UI recordings. Legal local game replays; isolated sample social, tournament and profile data.",
-  "note": "Feature sequence at 25–37s, with real badge choices, achievement grid and board-theme changes. Ends with an accelerating legal match and winning chain, then a short logo.",
+  "note": "Original locally composed piano replaces the licensed Raptor Runner track. Relaxed D-major harmony, steady 99.6 BPM pulse, brighter final phrase and final chord at 48.2s. Picture edit preserved; old music credit removed.",
   "uploadState": {
     "steam": "New cut is local only. Previous 30-second cut remains uploaded in the store draft.",
     "googlePlay": "not uploaded",
@@ -32,34 +32,38 @@
     "suitableForAllAges": true,
     "countryRestrictions": []
   },
-  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/energy-finale-trailer/",
-  "files": "Source audio, recipes, selection metadata and checksum inventory tracked. Video, audio stems, QA and raw media local-only; unchanged raw recordings use relative links to the previous verified bundle.",
+  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/custom-piano-trailer/",
+  "files": "Original score JSON, editable MIDI, composition/render scripts, production MP3, audio provenance and current selection tracked. Lossless performance, standalone preview, trailer export, stems and QA preserved locally in vault; no Apple sample assets copied.",
   "intertitleCount": 7,
   "brandCardCount": 2,
-  "reviewCopy": "build/store-trailer/tiao-energy-finale.mp4",
+  "reviewCopy": "build/store-trailer/tiao-custom-piano.mp4",
   "music": {
-    "file": "scripts/assets/store-trailer/audio/meydan-letoile-danse.mp3",
-    "title": "L’Etoile danse (Pt. 1)",
-    "artist": "Meydän",
-    "sourceProject": "Raptor Runner",
-    "licence": "CC BY 4.0",
-    "in": 26.7,
+    "file": "scripts/assets/store-trailer/audio/next-move-original.mp3",
+    "title": "Next Move",
+    "creator": "Original composition made for Tiao in this chat",
+    "method": "Explicit MIDI composition rendered locally with installed Apple Yamaha piano multisamples; no text-to-audio service",
+    "key": "D major",
+    "tempoBpm": 99.58506224066389,
+    "in": 0,
     "targetLufs": -18,
-    "fadeIn": 0.4,
-    "fadeOut": 2,
-    "credit": "Music: \"L'Etoile danse (Pt. 1)\" by Meydän (freemusicarchive.org), licensed under CC BY 4.0, https://creativecommons.org/licenses/by/4.0/"
+    "fadeIn": 0.12,
+    "fadeOut": 1.5,
+    "resolveAt": 48.2,
+    "licence": "Original arrangement; Apple sample content used in finished soundtrack under Logic Pro licence",
+    "licenceUrl": "https://www.apple.com/legal/sla/docs/LogicPro.pdf",
+    "ending": "Original D-major ninth resolves on the logo; replaces the previous stock piano impact to keep the cadence in key."
   },
   "audioMeasurements": {
-    "integratedLufs": -16.3,
+    "integratedLufs": -17.1,
     "truePeakDbfs": -2
   },
   "previousLocalSelection": {
-    "duration": 57.1,
-    "sha256": "533e2b129a39cb7c2e53a086ee29e78d8d1d4decd56fa9df4696e5b6760ac277",
-    "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/intertitles-and-piano-trailer/"
+    "duration": 50.2,
+    "sha256": "7a948a3f0f2234d1b2411ab9097ade58e44e3f62d859b37be70e37c3b5a0d0b5",
+    "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/energy-finale-trailer/"
   },
   "audioValidation": {
-    "minimumTransitionAboveDuckedMusicDb": 8.40974303728154,
+    "minimumTransitionAboveDuckedMusicDb": 10.34562583764406,
     "allMusicSecondsPresent": true
   }
 }

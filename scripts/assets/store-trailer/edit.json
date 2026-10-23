@@ -1,5 +1,5 @@
 {
-  "title": "Tiao — energetic feature cut and accelerating finale",
+  "title": "Tiao — original piano trailer",
   "source": "Shipped Tiao UI; legal local match replays and isolated sample social/tournament accounts",
   "duration": 50.2,
   "style": {
@@ -525,23 +525,23 @@
       "type": "tap",
       "time": 47.0,
       "gain": 0.5
-    },
-    {
-      "type": "hit",
-      "time": 48.2
     }
   ],
   "music": {
-    "file": "scripts/assets/store-trailer/audio/meydan-letoile-danse.mp3",
-    "title": "L’Etoile danse (Pt. 1)",
-    "artist": "Meydän",
-    "sourceProject": "Raptor Runner",
-    "licence": "CC BY 4.0",
-    "in": 26.7,
+    "file": "scripts/assets/store-trailer/audio/next-move-original.mp3",
+    "title": "Next Move",
+    "creator": "Original composition made for Tiao in this chat",
+    "method": "Explicit MIDI composition rendered locally with installed Apple Yamaha piano multisamples; no text-to-audio service",
+    "key": "D major",
+    "tempoBpm": 99.58506224066389,
+    "in": 0,
     "targetLufs": -18,
-    "fadeIn": 0.4,
-    "fadeOut": 2,
-    "credit": "Music: \"L'Etoile danse (Pt. 1)\" by Meydän (freemusicarchive.org), licensed under CC BY 4.0, https://creativecommons.org/licenses/by/4.0/"
+    "fadeIn": 0.12,
+    "fadeOut": 1.5,
+    "resolveAt": 48.2,
+    "licence": "Original arrangement; Apple sample content used in finished soundtrack under Logic Pro licence",
+    "licenceUrl": "https://www.apple.com/legal/sla/docs/LogicPro.pdf",
+    "ending": "Original D-major ninth resolves on the logo; replaces the previous stock piano impact to keep the cadence in key."
   },
   "transition": {
     "file": "scripts/assets/store-trailer/audio/clean-woosh-8.mp3",
@@ -558,5 +558,7 @@
     "duration": 2.5,
     "fadeOut": 1.2,
     "targetPeakDb": -8
-  }
+  },
+  "outputName": "tiao-custom-piano.mp4",
+  "audioDescription": "Original Next Move piano composition, native game taps and normalized transition swooshes; music ducks at each transition."
 }

@@ -11,10 +11,14 @@ const require = createRequire(import.meta.url);
 const sharp = require(process.env.SHARP_MODULE || "sharp");
 sharp.concurrency(1);
 const root = resolve(
-  process.argv.slice(2).find((a) => !a.startsWith("--")) || "build/store-trailer-v4",
+  process.argv.slice(2).find((a) => !a.startsWith("--")) || "build/store-trailer-v5",
 );
-const edit = JSON.parse(readFileSync("scripts/assets/store-trailer/edit.json", "utf8"));
+const editPath =
+  process.argv.find((a) => a.startsWith("--edit="))?.slice(7) ||
+  "scripts/assets/store-trailer/edit.json";
+const edit = JSON.parse(readFileSync(editPath, "utf8"));
 const audioOnly = process.argv.includes("--audio-only");
+const outputName = edit.outputName || "tiao-custom-piano.mp4";
 const selectedShot = process.argv.find((a) => a.startsWith("--shot="))?.slice(7);
 for (const dir of ["graphics", "cut", "audio"]) mkdirSync(resolve(root, dir), { recursive: true });
 const run = (args, options = {}) => {
@@ -42,7 +46,7 @@ const cardSvg = (shot) => {
   const { intertitleBackground: background, ink, accent } = edit.style;
   if (shot.kind === "brand")
     return svg(
-      `<rect width="1920" height="1080" fill="${background}"/>${brand}<text x="960" y="637" text-anchor="middle" font-family="Georgia,serif" font-size="48" fill="${ink}">${esc(shot.title)}</text><path d="M900 704H1020" stroke="${accent}" stroke-width="3"/><text x="960" y="787" text-anchor="middle" font-family="Arial,sans-serif" font-size="27" letter-spacing="3" fill="${accent}">${esc(shot.sub)}</text>${shot.end ? `<text x="960" y="960" text-anchor="middle" font-family="Arial,sans-serif" font-size="21" fill="#a99c87">Music: L’Etoile danse (Pt. 1) — Meydän · Havor (2018)</text><text x="960" y="996" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" fill="#a99c87">CC BY 4.0 · creativecommons.org/licenses/by/4.0/ · freemusicarchive.org</text>` : ""}`,
+      `<rect width="1920" height="1080" fill="${background}"/>${brand}<text x="960" y="637" text-anchor="middle" font-family="Georgia,serif" font-size="48" fill="${ink}">${esc(shot.title)}</text><path d="M900 704H1020" stroke="${accent}" stroke-width="3"/><text x="960" y="787" text-anchor="middle" font-family="Arial,sans-serif" font-size="27" letter-spacing="3" fill="${accent}">${esc(shot.sub)}</text>`,
     );
   const lines = shot.title.split("\n");
   const top = lines.length === 1 ? 565 : 488;
@@ -329,9 +333,9 @@ run([
   String(duration),
   "-movflags",
   "+faststart",
-  resolve(root, "tiao-energy-finale.mp4"),
+  resolve(root, outputName),
 ]);
-const measured = measure(resolve(root, "tiao-energy-finale.mp4"));
+const measured = measure(resolve(root, outputName));
 const audioReport = {
   musicSource: edit.music,
   beforeMusic,
@@ -355,8 +359,7 @@ writeFileSync(
       width: 1920,
       height: 1080,
       fps: 30,
-      audio:
-        "Continuous rhythmic Meydän track, game taps and normalized Raptor Runner swooshes; music ducks at each transition",
+      audio: edit.audioDescription,
       approval: "Local review cut; not uploaded or approved",
     },
     null,
@@ -368,6 +371,6 @@ console.log(
     duration,
     shots: edit.shots.length,
     audio: measured,
-    output: resolve(root, "tiao-energy-finale.mp4"),
+    output: resolve(root, outputName),
   }),
 );

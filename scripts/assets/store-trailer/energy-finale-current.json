@@ -1,0 +1,65 @@
+{
+  "title": "Tiao — energetic feature cut and accelerating finale",
+  "selectedOn": "2026-10-23",
+  "duration": 50.2,
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "shotCount": 33,
+  "output": "build/store-trailer/tiao-gameplay-current.mp4",
+  "candidate": "build/store-trailer-v4/tiao-energy-finale.mp4",
+  "sha256": "7a948a3f0f2234d1b2411ab9097ade58e44e3f62d859b37be70e37c3b5a0d0b5",
+  "bytes": 36719814,
+  "videoBitrate": "6 Mbps CBR target",
+  "audio": true,
+  "audioDescription": "Rhythmic Meydän music; normalized Raptor Runner swooshes, 10 dB transition ducking and native game taps. No narration.",
+  "approval": "Local review revision; not approved or uploaded",
+  "source": "Actual shipped UI recordings. Legal local game replays; isolated sample social, tournament and profile data.",
+  "note": "Feature sequence at 25–37s, with real badge choices, achievement grid and board-theme changes. Ends with an accelerating legal match and winning chain, then a short logo.",
+  "uploadState": {
+    "steam": "New cut is local only. Previous 30-second cut remains uploaded in the store draft.",
+    "googlePlay": "not uploaded",
+    "apple": "not uploaded"
+  },
+  "previousSteamUpload": {
+    "sha256": "f2257223a6ba8364a998327943549dc262473a876866abf231de3ed1488a94ae",
+    "uploadedOn": "2026-10-23",
+    "entryId": 1399906,
+    "assetId": 1404839554,
+    "viewUrl": "https://store.steampowered.com/trailer/assets/?trailer=5035580/1404839554/ba4083cc48118e0606d0f31b62bda4648f06af6e/1792682318",
+    "category": "Gameplay",
+    "language": "English",
+    "suitableForAllAges": true,
+    "countryRestrictions": []
+  },
+  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/energy-finale-trailer/",
+  "files": "Source audio, recipes, selection metadata and checksum inventory tracked. Video, audio stems, QA and raw media local-only; unchanged raw recordings use relative links to the previous verified bundle.",
+  "intertitleCount": 7,
+  "brandCardCount": 2,
+  "reviewCopy": "build/store-trailer/tiao-energy-finale.mp4",
+  "music": {
+    "file": "scripts/assets/store-trailer/audio/meydan-letoile-danse.mp3",
+    "title": "L’Etoile danse (Pt. 1)",
+    "artist": "Meydän",
+    "sourceProject": "Raptor Runner",
+    "licence": "CC BY 4.0",
+    "in": 26.7,
+    "targetLufs": -18,
+    "fadeIn": 0.4,
+    "fadeOut": 2,
+    "credit": "Music: \"L'Etoile danse (Pt. 1)\" by Meydän (freemusicarchive.org), licensed under CC BY 4.0, https://creativecommons.org/licenses/by/4.0/"
+  },
+  "audioMeasurements": {
+    "integratedLufs": -16.3,
+    "truePeakDbfs": -2
+  },
+  "previousLocalSelection": {
+    "duration": 57.1,
+    "sha256": "533e2b129a39cb7c2e53a086ee29e78d8d1d4decd56fa9df4696e5b6760ac277",
+    "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/intertitles-and-piano-trailer/"
+  },
+  "audioValidation": {
+    "minimumTransitionAboveDuckedMusicDb": 8.40974303728154,
+    "allMusicSecondsPresent": true
+  }
+}

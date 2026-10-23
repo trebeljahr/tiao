@@ -1,0 +1,5835 @@
+{
+  "title": "Next Move",
+  "provenance": "Original composition and explicit programmed performance made for Tiao; not a text-to-audio model output or a stock loop.",
+  "tempoBpm": 99.58506224066389,
+  "key": "D major",
+  "meter": "4/4",
+  "duration": 54,
+  "trailerDuration": 50.2,
+  "resolveAt": 48.2,
+  "instrument": "/Library/Application Support/Logic/EXS Factory Samples/01 Acoustic Pianos/Yamaha Grand Piano",
+  "bars": [
+    {
+      "bar": 1,
+      "start": 0,
+      "chord": "Dadd9"
+    },
+    {
+      "bar": 2,
+      "start": 2.41,
+      "chord": "Aadd9/C#"
+    },
+    {
+      "bar": 3,
+      "start": 4.82,
+      "chord": "Bm7"
+    },
+    {
+      "bar": 4,
+      "start": 7.23,
+      "chord": "Gmaj9"
+    },
+    {
+      "bar": 5,
+      "start": 9.64,
+      "chord": "Dadd9/F#"
+    },
+    {
+      "bar": 6,
+      "start": 12.05,
+      "chord": "Em9"
+    },
+    {
+      "bar": 7,
+      "start": 14.46,
+      "chord": "Gmaj9"
+    },
+    {
+      "bar": 8,
+      "start": 16.87,
+      "chord": "Asus4 → A"
+    },
+    {
+      "bar": 9,
+      "start": 19.28,
+      "chord": "Dadd9"
+    },
+    {
+      "bar": 10,
+      "start": 21.69,
+      "chord": "Aadd9/C#"
+    },
+    {
+      "bar": 11,
+      "start": 24.1,
+      "chord": "Bm7"
+    },
+    {
+      "bar": 12,
+      "start": 26.51,
+      "chord": "Gmaj9"
+    },
+    {
+      "bar": 13,
+      "start": 28.92,
+      "chord": "Dadd9/F#"
+    },
+    {
+      "bar": 14,
+      "start": 31.330000000000002,
+      "chord": "Em9"
+    },
+    {
+      "bar": 15,
+      "start": 33.74,
+      "chord": "Gmaj9"
+    },
+    {
+      "bar": 16,
+      "start": 36.150000000000006,
+      "chord": "Asus4 → A"
+    },
+    {
+      "bar": 17,
+      "start": 38.56,
+      "chord": "Bm7"
+    },
+    {
+      "bar": 18,
+      "start": 40.97,
+      "chord": "Gmaj9"
+    },
+    {
+      "bar": 19,
+      "start": 43.38,
+      "chord": "Asus4 → A"
+    },
+    {
+      "bar": 20,
+      "start": 45.790000000000006,
+      "chord": "Dadd9"
+    }
+  ],
+  "notes": [
+    {
+      "part": "left",
+      "midi": 50,
+      "beat": 0,
+      "time": 0.0037905700351111593,
+      "off": 0.9075405700351112,
+      "durationBeats": 1.5,
+      "velocity": 51
+    },
+    {
+      "part": "left",
+      "midi": 62,
+      "beat": 2,
+      "time": 1.2012600306072274,
+      "off": 2.0146350306072276,
+      "durationBeats": 1.35,
+      "velocity": 43
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 0,
+      "time": 0,
+      "off": 0.259075,
+      "durationBeats": 0.43,
+      "velocity": 50
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 0.5,
+      "time": 0.2957220306475647,
+      "off": 0.5547970306475647,
+      "durationBeats": 0.43,
+      "velocity": 43
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 1,
+      "time": 0.6085226678359322,
+      "off": 0.8675976678359323,
+      "durationBeats": 0.43,
+      "velocity": 47
+    },
+    {
+      "part": "pulse",
+      "midi": 66,
+      "beat": 1.5,
+      "time": 0.8998070420087315,
+      "off": 1.1588820420087316,
+      "durationBeats": 0.43,
+      "velocity": 41
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 2,
+      "time": 1.2114140801369213,
+      "off": 1.4704890801369213,
+      "durationBeats": 0.43,
+      "velocity": 52
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 2.5,
+      "time": 1.5049367103320548,
+      "off": 1.7640117103320547,
+      "durationBeats": 0.43,
+      "velocity": 45
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 3,
+      "time": 1.8048789167474024,
+      "off": 2.0639539167474026,
+      "durationBeats": 0.43,
+      "velocity": 49
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 3.5,
+      "time": 2.1031550491177478,
+      "off": 2.362230049117748,
+      "durationBeats": 0.43,
+      "velocity": 41
+    },
+    {
+      "part": "left",
+      "midi": 49,
+      "beat": 4,
+      "time": 2.4112114162347282,
+      "off": 3.3149614162347283,
+      "durationBeats": 1.5,
+      "velocity": 53
+    },
+    {
+      "part": "left",
+      "midi": 61,
+      "beat": 6,
+      "time": 3.6160951145295988,
+      "off": 4.4294701145295985,
+      "durationBeats": 1.35,
+      "velocity": 45
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 4,
+      "time": 2.416136839810293,
+      "off": 2.6752118398102933,
+      "durationBeats": 0.43,
+      "velocity": 49
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 4.5,
+      "time": 2.705678102074657,
+      "off": 2.964753102074657,
+      "durationBeats": 0.43,
+      "velocity": 44
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 5,
+      "time": 3.0133338101967237,
+      "off": 3.272408810196724,
+      "durationBeats": 0.43,
+      "velocity": 45
+    },
+    {
+      "part": "pulse",
+      "midi": 69,
+      "beat": 5.5,
+      "time": 3.308013615157921,
+      "off": 3.567088615157921,
+      "durationBeats": 0.43,
+      "velocity": 42
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 6,
+      "time": 3.6162046973700637,
+      "off": 3.875279697370064,
+      "durationBeats": 0.43,
+      "velocity": 53
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 6.5,
+      "time": 3.919219855512027,
+      "off": 4.178294855512027,
+      "durationBeats": 0.43,
+      "velocity": 45
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 7,
+      "time": 4.217112801176961,
+      "off": 4.476187801176962,
+      "durationBeats": 0.43,
+      "velocity": 49
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 7.5,
+      "time": 4.519382485501935,
+      "off": 4.778457485501935,
+      "durationBeats": 0.43,
+      "velocity": 45
+    },
+    {
+      "part": "left",
+      "midi": 47,
+      "beat": 8,
+      "time": 4.81430508082686,
+      "off": 5.7180550808268595,
+      "durationBeats": 1.5,
+      "velocity": 51
+    },
+    {
+      "part": "left",
+      "midi": 59,
+      "beat": 10,
+      "time": 6.020620912304614,
+      "off": 6.833995912304614,
+      "durationBeats": 1.35,
+      "velocity": 44
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 8,
+      "time": 4.814239181259182,
+      "off": 5.073314181259182,
+      "durationBeats": 0.43,
+      "velocity": 50
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 8.5,
+      "time": 5.1277307439637365,
+      "off": 5.386805743963737,
+      "durationBeats": 0.43,
+      "velocity": 42
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 9,
+      "time": 5.418533506385517,
+      "off": 5.677608506385517,
+      "durationBeats": 0.43,
+      "velocity": 48
+    },
+    {
+      "part": "pulse",
+      "midi": 66,
+      "beat": 9.5,
+      "time": 5.718371167319362,
+      "off": 5.977446167319362,
+      "durationBeats": 0.43,
+      "velocity": 42
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 10,
+      "time": 6.028259089206811,
+      "off": 6.287334089206811,
+      "durationBeats": 0.43,
+      "velocity": 54
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 10.5,
+      "time": 6.3210159978126175,
+      "off": 6.580090997812618,
+      "durationBeats": 0.43,
+      "velocity": 46
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 11,
+      "time": 6.621292008805555,
+      "off": 6.880367008805555,
+      "durationBeats": 0.43,
+      "velocity": 49
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 11.5,
+      "time": 6.922387151165401,
+      "off": 7.181462151165401,
+      "durationBeats": 0.43,
+      "velocity": 41
+    },
+    {
+      "part": "left",
+      "midi": 43,
+      "beat": 12,
+      "time": 7.226445104212966,
+      "off": 8.130195104212966,
+      "durationBeats": 1.5,
+      "velocity": 53
+    },
+    {
+      "part": "left",
+      "midi": 55,
+      "beat": 14,
+      "time": 8.44183928693505,
+      "off": 9.25521428693505,
+      "durationBeats": 1.35,
+      "velocity": 42
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 12,
+      "time": 7.223597735151183,
+      "off": 7.4826727351511835,
+      "durationBeats": 0.43,
+      "velocity": 52
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 12.5,
+      "time": 7.5266643739440475,
+      "off": 7.785739373944048,
+      "durationBeats": 0.43,
+      "velocity": 41
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 13,
+      "time": 7.832542339650449,
+      "off": 8.09161733965045,
+      "durationBeats": 0.43,
+      "velocity": 47
+    },
+    {
+      "part": "pulse",
+      "midi": 66,
+      "beat": 13.5,
+      "time": 8.128784927584697,
+      "off": 8.387859927584696,
+      "durationBeats": 0.43,
+      "velocity": 42
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 14,
+      "time": 8.434766538541298,
+      "off": 8.693841538541298,
+      "durationBeats": 0.43,
+      "velocity": 52
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 14.5,
+      "time": 8.730554668998812,
+      "off": 8.98962966899881,
+      "durationBeats": 0.43,
+      "velocity": 43
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 15,
+      "time": 9.03738953682175,
+      "off": 9.29646453682175,
+      "durationBeats": 0.43,
+      "velocity": 46
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 15.5,
+      "time": 9.336885356132408,
+      "off": 9.595960356132407,
+      "durationBeats": 0.43,
+      "velocity": 43
+    },
+    {
+      "part": "left",
+      "midi": 42,
+      "beat": 16,
+      "time": 9.642471571899485,
+      "off": 10.546221571899485,
+      "durationBeats": 1.5,
+      "velocity": 51
+    },
+    {
+      "part": "left",
+      "midi": 54,
+      "beat": 18,
+      "time": 10.846668536665385,
+      "off": 11.660043536665386,
+      "durationBeats": 1.35,
+      "velocity": 45
+    },
+    {
+      "part": "left",
+      "midi": 49,
+      "beat": 17.5,
+      "time": 10.550165158709046,
+      "off": 10.881540158709045,
+      "durationBeats": 0.55,
+      "velocity": 37
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 16,
+      "time": 9.635710972816218,
+      "off": 9.894785972816218,
+      "durationBeats": 0.43,
+      "velocity": 50
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 16.5,
+      "time": 9.942426881704014,
+      "off": 10.201501881704013,
+      "durationBeats": 0.43,
+      "velocity": 43
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 17,
+      "time": 10.244652488021645,
+      "off": 10.503727488021644,
+      "durationBeats": 0.43,
+      "velocity": 44
+    },
+    {
+      "part": "pulse",
+      "midi": 66,
+      "beat": 17.5,
+      "time": 10.545258483724204,
+      "off": 10.804333483724204,
+      "durationBeats": 0.43,
+      "velocity": 42
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 18,
+      "time": 10.846334985491355,
+      "off": 11.105409985491354,
+      "durationBeats": 0.43,
+      "velocity": 51
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 18.5,
+      "time": 11.140196001737845,
+      "off": 11.399271001737844,
+      "durationBeats": 0.43,
+      "velocity": 45
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 19,
+      "time": 11.442341388637667,
+      "off": 11.701416388637666,
+      "durationBeats": 0.43,
+      "velocity": 47
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 19.5,
+      "time": 11.754015699458776,
+      "off": 12.013090699458775,
+      "durationBeats": 0.43,
+      "velocity": 41
+    },
+    {
+      "part": "left",
+      "midi": 40,
+      "beat": 20,
+      "time": 12.05267325338023,
+      "off": 12.95642325338023,
+      "durationBeats": 1.5,
+      "velocity": 51
+    },
+    {
+      "part": "left",
+      "midi": 52,
+      "beat": 22,
+      "time": 13.257625546838623,
+      "off": 14.071000546838624,
+      "durationBeats": 1.35,
+      "velocity": 41
+    },
+    {
+      "part": "left",
+      "midi": 47,
+      "beat": 21.5,
+      "time": 12.9470358023257,
+      "off": 13.2784108023257,
+      "durationBeats": 0.55,
+      "velocity": 37
+    },
+    {
+      "part": "pulse",
+      "midi": 55,
+      "beat": 20,
+      "time": 12.046610996434,
+      "off": 12.305685996433999,
+      "durationBeats": 0.43,
+      "velocity": 50
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 20.5,
+      "time": 12.351699130822439,
+      "off": 12.610774130822438,
+      "durationBeats": 0.43,
+      "velocity": 44
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 21,
+      "time": 12.646403806648683,
+      "off": 12.905478806648683,
+      "durationBeats": 0.43,
+      "velocity": 44
+    },
+    {
+      "part": "pulse",
+      "midi": 66,
+      "beat": 21.5,
+      "time": 12.952154334890192,
+      "off": 13.211229334890191,
+      "durationBeats": 0.43,
+      "velocity": 44
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 22,
+      "time": 13.250792661850808,
+      "off": 13.509867661850807,
+      "durationBeats": 0.43,
+      "velocity": 53
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 22.5,
+      "time": 13.562533311024774,
+      "off": 13.821608311024773,
+      "durationBeats": 0.43,
+      "velocity": 45
+    },
+    {
+      "part": "pulse",
+      "midi": 55,
+      "beat": 23,
+      "time": 13.861744339365048,
+      "off": 14.120819339365047,
+      "durationBeats": 0.43,
+      "velocity": 49
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 23.5,
+      "time": 14.15901097787777,
+      "off": 14.41808597787777,
+      "durationBeats": 0.43,
+      "velocity": 44
+    },
+    {
+      "part": "left",
+      "midi": 43,
+      "beat": 24,
+      "time": 14.460754173339812,
+      "off": 15.364504173339812,
+      "durationBeats": 1.5,
+      "velocity": 54
+    },
+    {
+      "part": "left",
+      "midi": 55,
+      "beat": 26,
+      "time": 15.664408669811209,
+      "off": 16.47778366981121,
+      "durationBeats": 1.35,
+      "velocity": 44
+    },
+    {
+      "part": "left",
+      "midi": 50,
+      "beat": 25.5,
+      "time": 15.370444565489423,
+      "off": 15.701819565489423,
+      "durationBeats": 0.55,
+      "velocity": 37
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 24,
+      "time": 14.454717452327255,
+      "off": 14.713792452327255,
+      "durationBeats": 0.43,
+      "velocity": 49
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 24.5,
+      "time": 14.762630292711314,
+      "off": 15.021705292711314,
+      "durationBeats": 0.43,
+      "velocity": 40
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 25,
+      "time": 15.058760109372903,
+      "off": 15.317835109372902,
+      "durationBeats": 0.43,
+      "velocity": 47
+    },
+    {
+      "part": "pulse",
+      "midi": 66,
+      "beat": 25.5,
+      "time": 15.359319361578208,
+      "off": 15.618394361578208,
+      "durationBeats": 0.43,
+      "velocity": 43
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 26,
+      "time": 15.665960552519653,
+      "off": 15.925035552519653,
+      "durationBeats": 0.43,
+      "velocity": 51
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 26.5,
+      "time": 15.967868159705308,
+      "off": 16.226943159705307,
+      "durationBeats": 0.43,
+      "velocity": 43
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 27,
+      "time": 16.26243940201821,
+      "off": 16.52151440201821,
+      "durationBeats": 0.43,
+      "velocity": 48
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 27.5,
+      "time": 16.563759653992488,
+      "off": 16.822834653992487,
+      "durationBeats": 0.43,
+      "velocity": 42
+    },
+    {
+      "part": "left",
+      "midi": 45,
+      "beat": 28,
+      "time": 16.86590448972816,
+      "off": 17.769654489728158,
+      "durationBeats": 1.5,
+      "velocity": 52
+    },
+    {
+      "part": "left",
+      "midi": 57,
+      "beat": 30,
+      "time": 18.06847338574147,
+      "off": 18.88184838574147,
+      "durationBeats": 1.35,
+      "velocity": 42
+    },
+    {
+      "part": "left",
+      "midi": 52,
+      "beat": 29.5,
+      "time": 17.77830503392266,
+      "off": 18.10968003392266,
+      "durationBeats": 0.55,
+      "velocity": 38
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 28,
+      "time": 16.875416012648028,
+      "off": 17.134491012648027,
+      "durationBeats": 0.43,
+      "velocity": 52
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 28.5,
+      "time": 17.174718235968147,
+      "off": 17.433793235968146,
+      "durationBeats": 0.43,
+      "velocity": 42
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 29,
+      "time": 17.467381147669162,
+      "off": 17.72645614766916,
+      "durationBeats": 0.43,
+      "velocity": 47
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 29.5,
+      "time": 17.779187048878985,
+      "off": 18.038262048878984,
+      "durationBeats": 0.43,
+      "velocity": 44
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 30,
+      "time": 18.074757244765294,
+      "off": 18.333832244765293,
+      "durationBeats": 0.43,
+      "velocity": 52
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 30.5,
+      "time": 18.378977867747192,
+      "off": 18.63805286774719,
+      "durationBeats": 0.43,
+      "velocity": 44
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 31,
+      "time": 18.674952281517445,
+      "off": 18.934027281517444,
+      "durationBeats": 0.43,
+      "velocity": 48
+    },
+    {
+      "part": "pulse",
+      "midi": 61,
+      "beat": 31.5,
+      "time": 18.972976892047097,
+      "off": 19.232051892047096,
+      "durationBeats": 0.43,
+      "velocity": 41
+    },
+    {
+      "part": "left",
+      "midi": 50,
+      "beat": 32,
+      "time": 19.27775398861943,
+      "off": 20.18150398861943,
+      "durationBeats": 1.5,
+      "velocity": 53
+    },
+    {
+      "part": "left",
+      "midi": 62,
+      "beat": 34,
+      "time": 20.489943909815047,
+      "off": 21.303318909815047,
+      "durationBeats": 1.35,
+      "velocity": 44
+    },
+    {
+      "part": "left",
+      "midi": 57,
+      "beat": 33.5,
+      "time": 20.18984437624505,
+      "off": 20.52121937624505,
+      "durationBeats": 0.55,
+      "velocity": 39
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 32,
+      "time": 19.28184225370409,
+      "off": 19.54091725370409,
+      "durationBeats": 0.43,
+      "velocity": 56
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 32.5,
+      "time": 19.575187307290268,
+      "off": 19.834262307290267,
+      "durationBeats": 0.43,
+      "velocity": 43
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 33,
+      "time": 19.887963678913657,
+      "off": 20.147038678913656,
+      "durationBeats": 0.43,
+      "velocity": 51
+    },
+    {
+      "part": "pulse",
+      "midi": 66,
+      "beat": 33.5,
+      "time": 20.186257867490408,
+      "off": 20.445332867490407,
+      "durationBeats": 0.43,
+      "velocity": 47
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 34,
+      "time": 20.485316912994254,
+      "off": 20.744391912994253,
+      "durationBeats": 0.43,
+      "velocity": 57
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 34.5,
+      "time": 20.791832282412333,
+      "off": 21.050907282412332,
+      "durationBeats": 0.43,
+      "velocity": 46
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 35,
+      "time": 21.093998627527153,
+      "off": 21.353073627527152,
+      "durationBeats": 0.43,
+      "velocity": 51
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 35.5,
+      "time": 21.389307131321637,
+      "off": 21.648382131321636,
+      "durationBeats": 0.43,
+      "velocity": 47
+    },
+    {
+      "part": "left",
+      "midi": 49,
+      "beat": 36,
+      "time": 21.696515581679066,
+      "off": 22.600265581679064,
+      "durationBeats": 1.5,
+      "velocity": 55
+    },
+    {
+      "part": "left",
+      "midi": 61,
+      "beat": 38,
+      "time": 22.897516607924832,
+      "off": 23.710891607924832,
+      "durationBeats": 1.35,
+      "velocity": 48
+    },
+    {
+      "part": "left",
+      "midi": 56,
+      "beat": 37.5,
+      "time": 22.59252668763185,
+      "off": 22.92390168763185,
+      "durationBeats": 0.55,
+      "velocity": 39
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 36,
+      "time": 21.687516577986536,
+      "off": 21.946591577986535,
+      "durationBeats": 0.43,
+      "velocity": 52
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 36.5,
+      "time": 21.995973747887184,
+      "off": 22.255048747887184,
+      "durationBeats": 0.43,
+      "velocity": 43
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 37,
+      "time": 22.29130418382166,
+      "off": 22.550379183821658,
+      "durationBeats": 0.43,
+      "velocity": 49
+    },
+    {
+      "part": "pulse",
+      "midi": 69,
+      "beat": 37.5,
+      "time": 22.593819614446257,
+      "off": 22.852894614446257,
+      "durationBeats": 0.43,
+      "velocity": 46
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 38,
+      "time": 22.8981917456626,
+      "off": 23.1572667456626,
+      "durationBeats": 0.43,
+      "velocity": 53
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 38.5,
+      "time": 23.19236251986446,
+      "off": 23.45143751986446,
+      "durationBeats": 0.43,
+      "velocity": 45
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 39,
+      "time": 23.495803709901406,
+      "off": 23.754878709901405,
+      "durationBeats": 0.43,
+      "velocity": 52
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 39.5,
+      "time": 23.795345330181068,
+      "off": 24.054420330181067,
+      "durationBeats": 0.43,
+      "velocity": 47
+    },
+    {
+      "part": "left",
+      "midi": 47,
+      "beat": 40,
+      "time": 24.106915394206997,
+      "off": 25.010665394206995,
+      "durationBeats": 1.5,
+      "velocity": 53
+    },
+    {
+      "part": "left",
+      "midi": 59,
+      "beat": 42,
+      "time": 25.29807846972393,
+      "off": 26.11145346972393,
+      "durationBeats": 1.35,
+      "velocity": 48
+    },
+    {
+      "part": "left",
+      "midi": 54,
+      "beat": 41.5,
+      "time": 25.007852279517333,
+      "off": 25.339227279517335,
+      "durationBeats": 0.55,
+      "velocity": 40
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 40,
+      "time": 24.09729526778916,
+      "off": 24.35637026778916,
+      "durationBeats": 0.43,
+      "velocity": 54
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 40.5,
+      "time": 24.395668598906603,
+      "off": 24.654743598906602,
+      "durationBeats": 0.43,
+      "velocity": 43
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 41,
+      "time": 24.702958477195818,
+      "off": 24.962033477195817,
+      "durationBeats": 0.43,
+      "velocity": 48
+    },
+    {
+      "part": "pulse",
+      "midi": 66,
+      "beat": 41.5,
+      "time": 24.99757397332741,
+      "off": 25.256648973327408,
+      "durationBeats": 0.43,
+      "velocity": 45
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 42,
+      "time": 25.309986714715603,
+      "off": 25.569061714715602,
+      "durationBeats": 0.43,
+      "velocity": 55
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 42.5,
+      "time": 25.606826844227967,
+      "off": 25.865901844227967,
+      "durationBeats": 0.43,
+      "velocity": 47
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 43,
+      "time": 25.90511957337754,
+      "off": 26.16419457337754,
+      "durationBeats": 0.43,
+      "velocity": 51
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 43.5,
+      "time": 26.20956345304428,
+      "off": 26.468638453044278,
+      "durationBeats": 0.43,
+      "velocity": 48
+    },
+    {
+      "part": "left",
+      "midi": 43,
+      "beat": 44,
+      "time": 26.51239015664766,
+      "off": 27.416140156647657,
+      "durationBeats": 1.5,
+      "velocity": 55
+    },
+    {
+      "part": "left",
+      "midi": 55,
+      "beat": 46,
+      "time": 27.71703111756733,
+      "off": 28.53040611756733,
+      "durationBeats": 1.35,
+      "velocity": 47
+    },
+    {
+      "part": "left",
+      "midi": 50,
+      "beat": 45.5,
+      "time": 27.41917378448369,
+      "off": 27.75054878448369,
+      "durationBeats": 0.55,
+      "velocity": 40
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 44,
+      "time": 26.50319455518527,
+      "off": 26.76226955518527,
+      "durationBeats": 0.43,
+      "velocity": 56
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 44.5,
+      "time": 26.80628162126476,
+      "off": 27.06535662126476,
+      "durationBeats": 0.43,
+      "velocity": 43
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 45,
+      "time": 27.112184003000614,
+      "off": 27.371259003000613,
+      "durationBeats": 0.43,
+      "velocity": 48
+    },
+    {
+      "part": "pulse",
+      "midi": 66,
+      "beat": 45.5,
+      "time": 27.41381797559606,
+      "off": 27.67289297559606,
+      "durationBeats": 0.43,
+      "velocity": 47
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 46,
+      "time": 27.71380388482241,
+      "off": 27.97287888482241,
+      "durationBeats": 0.43,
+      "velocity": 53
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 46.5,
+      "time": 28.01527002198855,
+      "off": 28.274345021988548,
+      "durationBeats": 0.43,
+      "velocity": 48
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 47,
+      "time": 28.31457077503344,
+      "off": 28.57364577503344,
+      "durationBeats": 0.43,
+      "velocity": 50
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 47.5,
+      "time": 28.614548694413624,
+      "off": 28.873623694413624,
+      "durationBeats": 0.43,
+      "velocity": 44
+    },
+    {
+      "part": "left",
+      "midi": 42,
+      "beat": 48,
+      "time": 28.91999940933241,
+      "off": 29.823749409332407,
+      "durationBeats": 1.5,
+      "velocity": 55
+    },
+    {
+      "part": "left",
+      "midi": 54,
+      "beat": 50,
+      "time": 30.12669950173283,
+      "off": 30.94007450173283,
+      "durationBeats": 1.35,
+      "velocity": 45
+    },
+    {
+      "part": "left",
+      "midi": 49,
+      "beat": 49.5,
+      "time": 29.82435549235111,
+      "off": 30.15573049235111,
+      "durationBeats": 0.55,
+      "velocity": 39
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 48,
+      "time": 28.92250201500254,
+      "off": 29.18157701500254,
+      "durationBeats": 0.43,
+      "velocity": 56
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 48.5,
+      "time": 29.225594052146654,
+      "off": 29.484669052146653,
+      "durationBeats": 0.43,
+      "velocity": 44
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 49,
+      "time": 29.51567677665362,
+      "off": 29.77475177665362,
+      "durationBeats": 0.43,
+      "velocity": 47
+    },
+    {
+      "part": "pulse",
+      "midi": 66,
+      "beat": 49.5,
+      "time": 29.823452091568615,
+      "off": 30.082527091568615,
+      "durationBeats": 0.43,
+      "velocity": 44
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 50,
+      "time": 30.123168381546158,
+      "off": 30.382243381546157,
+      "durationBeats": 0.43,
+      "velocity": 53
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 50.5,
+      "time": 30.42341428650124,
+      "off": 30.68248928650124,
+      "durationBeats": 0.43,
+      "velocity": 47
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 51,
+      "time": 30.726223479899115,
+      "off": 30.985298479899114,
+      "durationBeats": 0.43,
+      "velocity": 49
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 51.5,
+      "time": 31.02552048098063,
+      "off": 31.28459548098063,
+      "durationBeats": 0.43,
+      "velocity": 45
+    },
+    {
+      "part": "left",
+      "midi": 40,
+      "beat": 52,
+      "time": 31.33023245209502,
+      "off": 32.23398245209502,
+      "durationBeats": 1.5,
+      "velocity": 53
+    },
+    {
+      "part": "left",
+      "midi": 52,
+      "beat": 54,
+      "time": 32.53498372918694,
+      "off": 33.34835872918694,
+      "durationBeats": 1.35,
+      "velocity": 45
+    },
+    {
+      "part": "left",
+      "midi": 47,
+      "beat": 53.5,
+      "time": 32.23380350535968,
+      "off": 32.56517850535968,
+      "durationBeats": 0.55,
+      "velocity": 38
+    },
+    {
+      "part": "pulse",
+      "midi": 55,
+      "beat": 52,
+      "time": 31.333087634311525,
+      "off": 31.592162634311524,
+      "durationBeats": 0.43,
+      "velocity": 56
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 52.5,
+      "time": 31.62903794231685,
+      "off": 31.888112942316848,
+      "durationBeats": 0.43,
+      "velocity": 47
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 53,
+      "time": 31.929331734299193,
+      "off": 32.18840673429919,
+      "durationBeats": 0.43,
+      "velocity": 51
+    },
+    {
+      "part": "pulse",
+      "midi": 66,
+      "beat": 53.5,
+      "time": 32.231225351417905,
+      "off": 32.49030035141791,
+      "durationBeats": 0.43,
+      "velocity": 46
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 54,
+      "time": 32.535543684465345,
+      "off": 32.79461868446535,
+      "durationBeats": 0.43,
+      "velocity": 57
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 54.5,
+      "time": 32.832927469246556,
+      "off": 33.09200246924656,
+      "durationBeats": 0.43,
+      "velocity": 48
+    },
+    {
+      "part": "pulse",
+      "midi": 55,
+      "beat": 55,
+      "time": 33.13192698698817,
+      "off": 33.39100198698817,
+      "durationBeats": 0.43,
+      "velocity": 49
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 55.5,
+      "time": 33.44166946469853,
+      "off": 33.70074446469853,
+      "durationBeats": 0.43,
+      "velocity": 46
+    },
+    {
+      "part": "left",
+      "midi": 43,
+      "beat": 56,
+      "time": 33.73526301727584,
+      "off": 34.63901301727584,
+      "durationBeats": 1.5,
+      "velocity": 57
+    },
+    {
+      "part": "left",
+      "midi": 55,
+      "beat": 58,
+      "time": 34.94045739503624,
+      "off": 35.75383239503624,
+      "durationBeats": 1.35,
+      "velocity": 45
+    },
+    {
+      "part": "left",
+      "midi": 50,
+      "beat": 57.5,
+      "time": 34.649986097208696,
+      "off": 34.9813610972087,
+      "durationBeats": 0.55,
+      "velocity": 38
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 56,
+      "time": 33.7458405838185,
+      "off": 34.0049155838185,
+      "durationBeats": 0.43,
+      "velocity": 56
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 56.5,
+      "time": 34.03635036525643,
+      "off": 34.295425365256435,
+      "durationBeats": 0.43,
+      "velocity": 45
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 57,
+      "time": 34.34673767070519,
+      "off": 34.60581267070519,
+      "durationBeats": 0.43,
+      "velocity": 47
+    },
+    {
+      "part": "pulse",
+      "midi": 66,
+      "beat": 57.5,
+      "time": 34.64615719347029,
+      "off": 34.90523219347029,
+      "durationBeats": 0.43,
+      "velocity": 44
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 58,
+      "time": 34.94099508313695,
+      "off": 35.20007008313695,
+      "durationBeats": 0.43,
+      "velocity": 55
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 58.5,
+      "time": 35.24126190135023,
+      "off": 35.50033690135023,
+      "durationBeats": 0.43,
+      "velocity": 47
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 59,
+      "time": 35.541896679889874,
+      "off": 35.80097167988988,
+      "durationBeats": 0.43,
+      "velocity": 52
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 59.5,
+      "time": 35.84232851658715,
+      "off": 36.101403516587155,
+      "durationBeats": 0.43,
+      "velocity": 47
+    },
+    {
+      "part": "left",
+      "midi": 45,
+      "beat": 60,
+      "time": 36.151093316505204,
+      "off": 37.054843316505206,
+      "durationBeats": 1.5,
+      "velocity": 54
+    },
+    {
+      "part": "left",
+      "midi": 57,
+      "beat": 62,
+      "time": 37.35330133268005,
+      "off": 38.16667633268005,
+      "durationBeats": 1.35,
+      "velocity": 45
+    },
+    {
+      "part": "left",
+      "midi": 52,
+      "beat": 61.5,
+      "time": 37.056921082593966,
+      "off": 37.38829608259397,
+      "durationBeats": 0.55,
+      "velocity": 39
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 60,
+      "time": 36.146562013428195,
+      "off": 36.4056370134282,
+      "durationBeats": 0.43,
+      "velocity": 54
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 60.5,
+      "time": 36.45057696101675,
+      "off": 36.70965196101675,
+      "durationBeats": 0.43,
+      "velocity": 43
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 61,
+      "time": 36.756240994298366,
+      "off": 37.01531599429837,
+      "durationBeats": 0.43,
+      "velocity": 51
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 61.5,
+      "time": 37.054870658938306,
+      "off": 37.31394565893831,
+      "durationBeats": 0.43,
+      "velocity": 44
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 62,
+      "time": 37.348901930667,
+      "off": 37.607976930667,
+      "durationBeats": 0.43,
+      "velocity": 57
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 62.5,
+      "time": 37.6570213607573,
+      "off": 37.9160963607573,
+      "durationBeats": 0.43,
+      "velocity": 46
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 63,
+      "time": 37.958067942937376,
+      "off": 38.21714294293738,
+      "durationBeats": 0.43,
+      "velocity": 48
+    },
+    {
+      "part": "pulse",
+      "midi": 61,
+      "beat": 63.5,
+      "time": 38.25721815291094,
+      "off": 38.51629315291094,
+      "durationBeats": 0.43,
+      "velocity": 45
+    },
+    {
+      "part": "left",
+      "midi": 47,
+      "beat": 64,
+      "time": 38.55930840853183,
+      "off": 39.46305840853183,
+      "durationBeats": 1.5,
+      "velocity": 59
+    },
+    {
+      "part": "left",
+      "midi": 59,
+      "beat": 66,
+      "time": 39.76866287055472,
+      "off": 40.58203787055472,
+      "durationBeats": 1.35,
+      "velocity": 51
+    },
+    {
+      "part": "left",
+      "midi": 54,
+      "beat": 65.5,
+      "time": 39.46310505075893,
+      "off": 39.79448005075893,
+      "durationBeats": 0.55,
+      "velocity": 45
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 64,
+      "time": 38.55831411611708,
+      "off": 38.817389116117084,
+      "durationBeats": 0.43,
+      "velocity": 57
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 64.5,
+      "time": 38.86621607455565,
+      "off": 39.125291074555655,
+      "durationBeats": 0.43,
+      "velocity": 49
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 65,
+      "time": 39.15605119972909,
+      "off": 39.415126199729094,
+      "durationBeats": 0.43,
+      "velocity": 56
+    },
+    {
+      "part": "pulse",
+      "midi": 66,
+      "beat": 65.5,
+      "time": 39.46450709910459,
+      "off": 39.72358209910459,
+      "durationBeats": 0.43,
+      "velocity": 52
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 66,
+      "time": 39.771726751529144,
+      "off": 40.03080175152915,
+      "durationBeats": 0.43,
+      "velocity": 60
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 66.5,
+      "time": 40.07296763732611,
+      "off": 40.33204263732611,
+      "durationBeats": 0.43,
+      "velocity": 54
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 67,
+      "time": 40.36682675584266,
+      "off": 40.62590175584266,
+      "durationBeats": 0.43,
+      "velocity": 56
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 67.5,
+      "time": 40.66888187224558,
+      "off": 40.92795687224558,
+      "durationBeats": 0.43,
+      "velocity": 52
+    },
+    {
+      "part": "lift",
+      "midi": 74,
+      "beat": 65.75,
+      "time": 39.61608175723674,
+      "off": 39.73658175723674,
+      "durationBeats": 0.2,
+      "velocity": 44
+    },
+    {
+      "part": "lift",
+      "midi": 71,
+      "beat": 67.25,
+      "time": 40.513247480235535,
+      "off": 40.633747480235535,
+      "durationBeats": 0.2,
+      "velocity": 47
+    },
+    {
+      "part": "lift",
+      "midi": 78,
+      "beat": 67.75,
+      "time": 40.81549798844988,
+      "off": 40.93599798844988,
+      "durationBeats": 0.2,
+      "velocity": 48
+    },
+    {
+      "part": "left",
+      "midi": 43,
+      "beat": 68,
+      "time": 40.97003625113284,
+      "off": 41.87378625113284,
+      "durationBeats": 1.5,
+      "velocity": 62
+    },
+    {
+      "part": "left",
+      "midi": 55,
+      "beat": 70,
+      "time": 42.17602717019665,
+      "off": 42.98940217019665,
+      "durationBeats": 1.35,
+      "velocity": 52
+    },
+    {
+      "part": "left",
+      "midi": 50,
+      "beat": 69.5,
+      "time": 41.87014025523094,
+      "off": 42.201515255230944,
+      "durationBeats": 0.55,
+      "velocity": 44
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 68,
+      "time": 40.97509373284736,
+      "off": 41.234168732847365,
+      "durationBeats": 0.43,
+      "velocity": 58
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 68.5,
+      "time": 41.273847307146994,
+      "off": 41.532922307147,
+      "durationBeats": 0.43,
+      "velocity": 51
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 69,
+      "time": 41.57744820998283,
+      "off": 41.836523209982836,
+      "durationBeats": 0.43,
+      "velocity": 53
+    },
+    {
+      "part": "pulse",
+      "midi": 66,
+      "beat": 69.5,
+      "time": 41.86893947656406,
+      "off": 42.12801447656406,
+      "durationBeats": 0.43,
+      "velocity": 50
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 70,
+      "time": 42.17306555382395,
+      "off": 42.432140553823956,
+      "durationBeats": 0.43,
+      "velocity": 60
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 70.5,
+      "time": 42.47200839584833,
+      "off": 42.73108339584833,
+      "durationBeats": 0.43,
+      "velocity": 53
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 71,
+      "time": 42.77330712253647,
+      "off": 43.032382122536475,
+      "durationBeats": 0.43,
+      "velocity": 53
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 71.5,
+      "time": 43.08408111454127,
+      "off": 43.34315611454127,
+      "durationBeats": 0.43,
+      "velocity": 52
+    },
+    {
+      "part": "lift",
+      "midi": 74,
+      "beat": 69.75,
+      "time": 42.023440089410634,
+      "off": 42.143940089410634,
+      "durationBeats": 0.2,
+      "velocity": 48
+    },
+    {
+      "part": "lift",
+      "midi": 71,
+      "beat": 71.25,
+      "time": 42.93152525072685,
+      "off": 43.05202525072685,
+      "durationBeats": 0.2,
+      "velocity": 45
+    },
+    {
+      "part": "lift",
+      "midi": 78,
+      "beat": 71.75,
+      "time": 43.22385802391591,
+      "off": 43.34435802391591,
+      "durationBeats": 0.2,
+      "velocity": 48
+    },
+    {
+      "part": "left",
+      "midi": 45,
+      "beat": 72,
+      "time": 43.37432718927367,
+      "off": 44.278077189273674,
+      "durationBeats": 1.5,
+      "velocity": 62
+    },
+    {
+      "part": "left",
+      "midi": 57,
+      "beat": 74,
+      "time": 44.589721394630615,
+      "off": 45.403096394630616,
+      "durationBeats": 1.35,
+      "velocity": 50
+    },
+    {
+      "part": "left",
+      "midi": 52,
+      "beat": 73.5,
+      "time": 44.28708707695222,
+      "off": 44.61846207695222,
+      "durationBeats": 0.55,
+      "velocity": 43
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 72,
+      "time": 43.38573674404668,
+      "off": 43.644811744046685,
+      "durationBeats": 0.43,
+      "velocity": 61
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 72.5,
+      "time": 43.67907436442702,
+      "off": 43.93814936442702,
+      "durationBeats": 0.43,
+      "velocity": 49
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 73,
+      "time": 43.986043285249266,
+      "off": 44.24511828524927,
+      "durationBeats": 0.43,
+      "velocity": 53
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 73.5,
+      "time": 44.27693764512381,
+      "off": 44.53601264512381,
+      "durationBeats": 0.43,
+      "velocity": 50
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 74,
+      "time": 44.59142567047151,
+      "off": 44.85050067047151,
+      "durationBeats": 0.43,
+      "velocity": 60
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 74.5,
+      "time": 44.89016254097177,
+      "off": 45.149237540971775,
+      "durationBeats": 0.43,
+      "velocity": 54
+    },
+    {
+      "part": "pulse",
+      "midi": 59,
+      "beat": 75,
+      "time": 45.183571681524164,
+      "off": 45.44264668152417,
+      "durationBeats": 0.43,
+      "velocity": 56
+    },
+    {
+      "part": "pulse",
+      "midi": 61,
+      "beat": 75.5,
+      "time": 45.48287138502067,
+      "off": 45.741946385020675,
+      "durationBeats": 0.43,
+      "velocity": 53
+    },
+    {
+      "part": "lift",
+      "midi": 74,
+      "beat": 73.75,
+      "time": 44.438968592100316,
+      "off": 44.559468592100316,
+      "durationBeats": 0.2,
+      "velocity": 45
+    },
+    {
+      "part": "lift",
+      "midi": 71,
+      "beat": 75.25,
+      "time": 45.337433450933084,
+      "off": 45.45793345093308,
+      "durationBeats": 0.2,
+      "velocity": 45
+    },
+    {
+      "part": "lift",
+      "midi": 76,
+      "beat": 75.75,
+      "time": 45.64128195195506,
+      "off": 45.76178195195506,
+      "durationBeats": 0.2,
+      "velocity": 44
+    },
+    {
+      "part": "left",
+      "midi": 50,
+      "beat": 76,
+      "time": 45.796479479351554,
+      "off": 46.700229479351556,
+      "durationBeats": 1.5,
+      "velocity": 58
+    },
+    {
+      "part": "left",
+      "midi": 62,
+      "beat": 78,
+      "time": 46.99643554296019,
+      "off": 47.80981054296019,
+      "durationBeats": 1.35,
+      "velocity": 49
+    },
+    {
+      "part": "left",
+      "midi": 57,
+      "beat": 77.5,
+      "time": 46.68916425114079,
+      "off": 47.02053925114079,
+      "durationBeats": 0.55,
+      "velocity": 45
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 76,
+      "time": 45.787611257033895,
+      "off": 46.0466862570339,
+      "durationBeats": 0.43,
+      "velocity": 61
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 76.5,
+      "time": 46.09252095750487,
+      "off": 46.35159595750487,
+      "durationBeats": 0.43,
+      "velocity": 51
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 77,
+      "time": 46.38863764594542,
+      "off": 46.647712645945425,
+      "durationBeats": 0.43,
+      "velocity": 54
+    },
+    {
+      "part": "pulse",
+      "midi": 66,
+      "beat": 77.5,
+      "time": 46.7000011169794,
+      "off": 46.9590761169794,
+      "durationBeats": 0.43,
+      "velocity": 49
+    },
+    {
+      "part": "pulse",
+      "midi": 62,
+      "beat": 78,
+      "time": 46.9904858929948,
+      "off": 47.2495608929948,
+      "durationBeats": 0.43,
+      "velocity": 60
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 78.5,
+      "time": 47.29979378929874,
+      "off": 47.55886878929874,
+      "durationBeats": 0.43,
+      "velocity": 51
+    },
+    {
+      "part": "pulse",
+      "midi": 57,
+      "beat": 79,
+      "time": 47.60309195656749,
+      "off": 47.86216695656749,
+      "durationBeats": 0.43,
+      "velocity": 55
+    },
+    {
+      "part": "pulse",
+      "midi": 64,
+      "beat": 79.5,
+      "time": 47.90501783613814,
+      "off": 48.164092836138146,
+      "durationBeats": 0.43,
+      "velocity": 53
+    },
+    {
+      "part": "lift",
+      "midi": 76,
+      "beat": 77.75,
+      "time": 46.84159863556409,
+      "off": 46.96209863556409,
+      "durationBeats": 0.2,
+      "velocity": 48
+    },
+    {
+      "part": "lift",
+      "midi": 74,
+      "beat": 79.25,
+      "time": 47.749755978730974,
+      "off": 47.870255978730974,
+      "durationBeats": 0.2,
+      "velocity": 45
+    },
+    {
+      "part": "lift",
+      "midi": 78,
+      "beat": 79.75,
+      "time": 48.05036130670505,
+      "off": 48.17086130670505,
+      "durationBeats": 0.2,
+      "velocity": 45
+    },
+    {
+      "part": "melody",
+      "midi": 78,
+      "beat": 8,
+      "time": 4.814024402360898,
+      "off": 5.296024402360898,
+      "durationBeats": 0.8,
+      "velocity": 57
+    },
+    {
+      "part": "melody",
+      "midi": 76,
+      "beat": 9.5,
+      "time": 5.728186083710288,
+      "off": 5.999311083710287,
+      "durationBeats": 0.45,
+      "velocity": 58
+    },
+    {
+      "part": "melody",
+      "midi": 74,
+      "beat": 10.5,
+      "time": 6.330521657729055,
+      "off": 6.993271657729055,
+      "durationBeats": 1.1,
+      "velocity": 61
+    },
+    {
+      "part": "melody",
+      "midi": 71,
+      "beat": 12,
+      "time": 7.2292691483539535,
+      "off": 7.8920191483539535,
+      "durationBeats": 1.1,
+      "velocity": 58
+    },
+    {
+      "part": "melody",
+      "midi": 73,
+      "beat": 13.5,
+      "time": 8.127500609196257,
+      "off": 8.398625609196257,
+      "durationBeats": 0.45,
+      "velocity": 60
+    },
+    {
+      "part": "melody",
+      "midi": 74,
+      "beat": 14.5,
+      "time": 8.73830600339407,
+      "off": 9.401056003394071,
+      "durationBeats": 1.1,
+      "velocity": 59
+    },
+    {
+      "part": "melody",
+      "midi": 78,
+      "beat": 24,
+      "time": 14.453607179900166,
+      "off": 15.206732179900166,
+      "durationBeats": 1.25,
+      "velocity": 60
+    },
+    {
+      "part": "melody",
+      "midi": 76,
+      "beat": 25.5,
+      "time": 15.365239397377243,
+      "off": 15.817114397377242,
+      "durationBeats": 0.75,
+      "velocity": 57
+    },
+    {
+      "part": "melody",
+      "midi": 74,
+      "beat": 27,
+      "time": 16.26227964374749,
+      "off": 16.62377964374749,
+      "durationBeats": 0.6,
+      "velocity": 58
+    },
+    {
+      "part": "melody",
+      "midi": 73,
+      "beat": 28,
+      "time": 16.868614671318326,
+      "off": 17.531364671318325,
+      "durationBeats": 1.1,
+      "velocity": 59
+    },
+    {
+      "part": "melody",
+      "midi": 71,
+      "beat": 29.5,
+      "time": 17.771802214281166,
+      "off": 18.042927214281168,
+      "durationBeats": 0.45,
+      "velocity": 59
+    },
+    {
+      "part": "melody",
+      "midi": 73,
+      "beat": 30.5,
+      "time": 18.378261277255138,
+      "off": 18.83013627725514,
+      "durationBeats": 0.75,
+      "velocity": 61
+    },
+    {
+      "part": "melody",
+      "midi": 78,
+      "beat": 40,
+      "time": 24.096856680422558,
+      "off": 24.578856680422557,
+      "durationBeats": 0.8,
+      "velocity": 61
+    },
+    {
+      "part": "melody",
+      "midi": 76,
+      "beat": 41.5,
+      "time": 25.00114421867812,
+      "off": 25.272269218678122,
+      "durationBeats": 0.45,
+      "velocity": 58
+    },
+    {
+      "part": "melody",
+      "midi": 74,
+      "beat": 42.5,
+      "time": 25.611290839088618,
+      "off": 26.274040839088617,
+      "durationBeats": 1.1,
+      "velocity": 59
+    },
+    {
+      "part": "melody",
+      "midi": 71,
+      "beat": 44,
+      "time": 26.508604162835052,
+      "off": 27.17135416283505,
+      "durationBeats": 1.1,
+      "velocity": 57
+    },
+    {
+      "part": "melody",
+      "midi": 73,
+      "beat": 45.5,
+      "time": 27.4070724746841,
+      "off": 27.6781974746841,
+      "durationBeats": 0.45,
+      "velocity": 60
+    },
+    {
+      "part": "melody",
+      "midi": 74,
+      "beat": 46.5,
+      "time": 28.01270497491071,
+      "off": 28.67545497491071,
+      "durationBeats": 1.1,
+      "velocity": 58
+    },
+    {
+      "part": "melody",
+      "midi": 78,
+      "beat": 56,
+      "time": 33.73364763546875,
+      "off": 34.486772635468746,
+      "durationBeats": 1.25,
+      "velocity": 60
+    },
+    {
+      "part": "melody",
+      "midi": 81,
+      "beat": 57.5,
+      "time": 34.647157424081584,
+      "off": 35.099032424081585,
+      "durationBeats": 0.75,
+      "velocity": 58
+    },
+    {
+      "part": "melody",
+      "midi": 78,
+      "beat": 59,
+      "time": 35.55167195679946,
+      "off": 35.91317195679946,
+      "durationBeats": 0.6,
+      "velocity": 57
+    },
+    {
+      "part": "melody",
+      "midi": 76,
+      "beat": 60,
+      "time": 36.153537811445545,
+      "off": 36.81628781144555,
+      "durationBeats": 1.1,
+      "velocity": 59
+    },
+    {
+      "part": "melody",
+      "midi": 74,
+      "beat": 61.5,
+      "time": 37.05683378124749,
+      "off": 37.32795878124749,
+      "durationBeats": 0.45,
+      "velocity": 61
+    },
+    {
+      "part": "melody",
+      "midi": 73,
+      "beat": 62.5,
+      "time": 37.65502026982652,
+      "off": 38.10689526982652,
+      "durationBeats": 0.75,
+      "velocity": 59
+    },
+    {
+      "part": "melody",
+      "midi": 78,
+      "beat": 64,
+      "time": 38.564987825590656,
+      "off": 39.01686282559066,
+      "durationBeats": 0.75,
+      "velocity": 66
+    },
+    {
+      "part": "melody",
+      "midi": 76,
+      "beat": 65,
+      "time": 39.15834148545424,
+      "off": 39.45959148545424,
+      "durationBeats": 0.5,
+      "velocity": 67
+    },
+    {
+      "part": "melody",
+      "midi": 74,
+      "beat": 66,
+      "time": 39.764068144680465,
+      "off": 40.215943144680466,
+      "durationBeats": 0.75,
+      "velocity": 64
+    },
+    {
+      "part": "melody",
+      "midi": 73,
+      "beat": 67,
+      "time": 40.373466591518834,
+      "off": 40.67471659151884,
+      "durationBeats": 0.5,
+      "velocity": 66
+    },
+    {
+      "part": "melody",
+      "midi": 71,
+      "beat": 68,
+      "time": 40.97374914218439,
+      "off": 41.42562414218439,
+      "durationBeats": 0.75,
+      "velocity": 67
+    },
+    {
+      "part": "melody",
+      "midi": 73,
+      "beat": 69,
+      "time": 41.57917498360062,
+      "off": 41.880424983600626,
+      "durationBeats": 0.5,
+      "velocity": 66
+    },
+    {
+      "part": "melody",
+      "midi": 74,
+      "beat": 70,
+      "time": 42.175073378202974,
+      "off": 42.77757337820297,
+      "durationBeats": 1,
+      "velocity": 64
+    },
+    {
+      "part": "melody",
+      "midi": 76,
+      "beat": 72,
+      "time": 43.3807848069747,
+      "off": 43.8326598069747,
+      "durationBeats": 0.75,
+      "velocity": 64
+    },
+    {
+      "part": "melody",
+      "midi": 78,
+      "beat": 73,
+      "time": 43.982014923762065,
+      "off": 44.28326492376207,
+      "durationBeats": 0.5,
+      "velocity": 67
+    },
+    {
+      "part": "melody",
+      "midi": 81,
+      "beat": 74,
+      "time": 44.5879848657907,
+      "off": 45.0699848657907,
+      "durationBeats": 0.8,
+      "velocity": 65
+    },
+    {
+      "part": "melody",
+      "midi": 78,
+      "beat": 75.5,
+      "time": 45.49019701218,
+      "off": 45.73119701218,
+      "durationBeats": 0.4,
+      "velocity": 67
+    },
+    {
+      "part": "melody",
+      "midi": 78,
+      "beat": 76,
+      "time": 45.787992704127454,
+      "off": 46.239867704127455,
+      "durationBeats": 0.75,
+      "velocity": 64
+    },
+    {
+      "part": "melody",
+      "midi": 76,
+      "beat": 77,
+      "time": 46.39748273730977,
+      "off": 46.698732737309776,
+      "durationBeats": 0.5,
+      "velocity": 66
+    },
+    {
+      "part": "melody",
+      "midi": 74,
+      "beat": 78,
+      "time": 46.99675760892267,
+      "off": 47.74988260892267,
+      "durationBeats": 1.25,
+      "velocity": 64
+    },
+    {
+      "part": "resolve",
+      "midi": 38,
+      "beat": 80,
+      "time": 48.205407548656225,
+      "off": 50.916657548656225,
+      "durationBeats": 4.5,
+      "velocity": 55
+    },
+    {
+      "part": "resolve",
+      "midi": 50,
+      "beat": 80.018,
+      "time": 48.20752228477764,
+      "off": 50.91877228477764,
+      "durationBeats": 4.5,
+      "velocity": 56
+    },
+    {
+      "part": "resolve",
+      "midi": 57,
+      "beat": 80.036,
+      "time": 48.228612293368265,
+      "off": 50.939862293368265,
+      "durationBeats": 4.5,
+      "velocity": 53
+    },
+    {
+      "part": "resolve",
+      "midi": 62,
+      "beat": 80.054,
+      "time": 48.2378319506369,
+      "off": 50.9490819506369,
+      "durationBeats": 4.5,
+      "velocity": 54
+    },
+    {
+      "part": "resolve",
+      "midi": 66,
+      "beat": 80.072,
+      "time": 48.24629555510601,
+      "off": 50.95754555510601,
+      "durationBeats": 4.5,
+      "velocity": 52
+    },
+    {
+      "part": "resolve",
+      "midi": 69,
+      "beat": 80.09,
+      "time": 48.25068460834297,
+      "off": 50.96193460834297,
+      "durationBeats": 4.5,
+      "velocity": 48
+    },
+    {
+      "part": "resolve",
+      "midi": 76,
+      "beat": 80.108,
+      "time": 48.26955403978302,
+      "off": 50.98080403978302,
+      "durationBeats": 4.5,
+      "velocity": 47
+    }
+  ],
+  "events": [
+    {
+      "time": 0,
+      "type": "cc",
+      "controller": 64,
+      "value": 0
+    },
+    {
+      "time": 0,
+      "type": "on",
+      "note": 57,
+      "velocity": 50
+    },
+    {
+      "time": 0.0037905700351111593,
+      "type": "on",
+      "note": 50,
+      "velocity": 51
+    },
+    {
+      "time": 0.045,
+      "type": "cc",
+      "controller": 64,
+      "value": 83
+    },
+    {
+      "time": 0.259075,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 0.2957220306475647,
+      "type": "on",
+      "note": 64,
+      "velocity": 43
+    },
+    {
+      "time": 0.5547970306475647,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 0.6085226678359322,
+      "type": "on",
+      "note": 62,
+      "velocity": 47
+    },
+    {
+      "time": 0.8675976678359323,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 0.8998070420087315,
+      "type": "on",
+      "note": 66,
+      "velocity": 41
+    },
+    {
+      "time": 0.9075405700351112,
+      "type": "off",
+      "note": 50
+    },
+    {
+      "time": 1.1588820420087316,
+      "type": "off",
+      "note": 66
+    },
+    {
+      "time": 1.2012600306072274,
+      "type": "on",
+      "note": 62,
+      "velocity": 43
+    },
+    {
+      "time": 1.2114140801369213,
+      "type": "on",
+      "note": 57,
+      "velocity": 52
+    },
+    {
+      "time": 1.4704890801369213,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 1.5049367103320548,
+      "type": "on",
+      "note": 64,
+      "velocity": 45
+    },
+    {
+      "time": 1.7640117103320547,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 1.8048789167474024,
+      "type": "on",
+      "note": 62,
+      "velocity": 49
+    },
+    {
+      "time": 2.0146350306072276,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 2.0639539167474026,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 2.1031550491177478,
+      "type": "on",
+      "note": 64,
+      "velocity": 41
+    },
+    {
+      "time": 2.362230049117748,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 2.3850000000000002,
+      "type": "cc",
+      "controller": 64,
+      "value": 0
+    },
+    {
+      "time": 2.4112114162347282,
+      "type": "on",
+      "note": 49,
+      "velocity": 53
+    },
+    {
+      "time": 2.416136839810293,
+      "type": "on",
+      "note": 57,
+      "velocity": 49
+    },
+    {
+      "time": 2.455,
+      "type": "cc",
+      "controller": 64,
+      "value": 83
+    },
+    {
+      "time": 2.6752118398102933,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 2.705678102074657,
+      "type": "on",
+      "note": 64,
+      "velocity": 44
+    },
+    {
+      "time": 2.964753102074657,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 3.0133338101967237,
+      "type": "on",
+      "note": 59,
+      "velocity": 45
+    },
+    {
+      "time": 3.272408810196724,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 3.308013615157921,
+      "type": "on",
+      "note": 69,
+      "velocity": 42
+    },
+    {
+      "time": 3.3149614162347283,
+      "type": "off",
+      "note": 49
+    },
+    {
+      "time": 3.567088615157921,
+      "type": "off",
+      "note": 69
+    },
+    {
+      "time": 3.6160951145295988,
+      "type": "on",
+      "note": 61,
+      "velocity": 45
+    },
+    {
+      "time": 3.6162046973700637,
+      "type": "on",
+      "note": 59,
+      "velocity": 53
+    },
+    {
+      "time": 3.875279697370064,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 3.919219855512027,
+      "type": "on",
+      "note": 64,
+      "velocity": 45
+    },
+    {
+      "time": 4.178294855512027,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 4.217112801176961,
+      "type": "on",
+      "note": 57,
+      "velocity": 49
+    },
+    {
+      "time": 4.4294701145295985,
+      "type": "off",
+      "note": 61
+    },
+    {
+      "time": 4.476187801176962,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 4.519382485501935,
+      "type": "on",
+      "note": 64,
+      "velocity": 45
+    },
+    {
+      "time": 4.778457485501935,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 4.795,
+      "type": "cc",
+      "controller": 64,
+      "value": 0
+    },
+    {
+      "time": 4.814024402360898,
+      "type": "on",
+      "note": 78,
+      "velocity": 57
+    },
+    {
+      "time": 4.814239181259182,
+      "type": "on",
+      "note": 57,
+      "velocity": 50
+    },
+    {
+      "time": 4.81430508082686,
+      "type": "on",
+      "note": 47,
+      "velocity": 51
+    },
+    {
+      "time": 4.865,
+      "type": "cc",
+      "controller": 64,
+      "value": 83
+    },
+    {
+      "time": 5.073314181259182,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 5.1277307439637365,
+      "type": "on",
+      "note": 62,
+      "velocity": 42
+    },
+    {
+      "time": 5.296024402360898,
+      "type": "off",
+      "note": 78
+    },
+    {
+      "time": 5.386805743963737,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 5.418533506385517,
+      "type": "on",
+      "note": 59,
+      "velocity": 48
+    },
+    {
+      "time": 5.677608506385517,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 5.7180550808268595,
+      "type": "off",
+      "note": 47
+    },
+    {
+      "time": 5.718371167319362,
+      "type": "on",
+      "note": 66,
+      "velocity": 42
+    },
+    {
+      "time": 5.728186083710288,
+      "type": "on",
+      "note": 76,
+      "velocity": 58
+    },
+    {
+      "time": 5.977446167319362,
+      "type": "off",
+      "note": 66
+    },
+    {
+      "time": 5.999311083710287,
+      "type": "off",
+      "note": 76
+    },
+    {
+      "time": 6.020620912304614,
+      "type": "on",
+      "note": 59,
+      "velocity": 44
+    },
+    {
+      "time": 6.028259089206811,
+      "type": "on",
+      "note": 57,
+      "velocity": 54
+    },
+    {
+      "time": 6.287334089206811,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 6.3210159978126175,
+      "type": "on",
+      "note": 62,
+      "velocity": 46
+    },
+    {
+      "time": 6.330521657729055,
+      "type": "on",
+      "note": 74,
+      "velocity": 61
+    },
+    {
+      "time": 6.580090997812618,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 6.621292008805555,
+      "type": "on",
+      "note": 59,
+      "velocity": 49
+    },
+    {
+      "time": 6.833995912304614,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 6.880367008805555,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 6.922387151165401,
+      "type": "on",
+      "note": 62,
+      "velocity": 41
+    },
+    {
+      "time": 6.993271657729055,
+      "type": "off",
+      "note": 74
+    },
+    {
+      "time": 7.181462151165401,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 7.205,
+      "type": "cc",
+      "controller": 64,
+      "value": 0
+    },
+    {
+      "time": 7.223597735151183,
+      "type": "on",
+      "note": 57,
+      "velocity": 52
+    },
+    {
+      "time": 7.226445104212966,
+      "type": "on",
+      "note": 43,
+      "velocity": 53
+    },
+    {
+      "time": 7.2292691483539535,
+      "type": "on",
+      "note": 71,
+      "velocity": 58
+    },
+    {
+      "time": 7.275,
+      "type": "cc",
+      "controller": 64,
+      "value": 83
+    },
+    {
+      "time": 7.4826727351511835,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 7.5266643739440475,
+      "type": "on",
+      "note": 62,
+      "velocity": 41
+    },
+    {
+      "time": 7.785739373944048,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 7.832542339650449,
+      "type": "on",
+      "note": 59,
+      "velocity": 47
+    },
+    {
+      "time": 7.8920191483539535,
+      "type": "off",
+      "note": 71
+    },
+    {
+      "time": 8.09161733965045,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 8.127500609196257,
+      "type": "on",
+      "note": 73,
+      "velocity": 60
+    },
+    {
+      "time": 8.128784927584697,
+      "type": "on",
+      "note": 66,
+      "velocity": 42
+    },
+    {
+      "time": 8.130195104212966,
+      "type": "off",
+      "note": 43
+    },
+    {
+      "time": 8.387859927584696,
+      "type": "off",
+      "note": 66
+    },
+    {
+      "time": 8.398625609196257,
+      "type": "off",
+      "note": 73
+    },
+    {
+      "time": 8.434766538541298,
+      "type": "on",
+      "note": 59,
+      "velocity": 52
+    },
+    {
+      "time": 8.44183928693505,
+      "type": "on",
+      "note": 55,
+      "velocity": 42
+    },
+    {
+      "time": 8.693841538541298,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 8.730554668998812,
+      "type": "on",
+      "note": 62,
+      "velocity": 43
+    },
+    {
+      "time": 8.73830600339407,
+      "type": "on",
+      "note": 74,
+      "velocity": 59
+    },
+    {
+      "time": 8.98962966899881,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 9.03738953682175,
+      "type": "on",
+      "note": 57,
+      "velocity": 46
+    },
+    {
+      "time": 9.25521428693505,
+      "type": "off",
+      "note": 55
+    },
+    {
+      "time": 9.29646453682175,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 9.336885356132408,
+      "type": "on",
+      "note": 62,
+      "velocity": 43
+    },
+    {
+      "time": 9.401056003394071,
+      "type": "off",
+      "note": 74
+    },
+    {
+      "time": 9.595960356132407,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 9.615,
+      "type": "cc",
+      "controller": 64,
+      "value": 0
+    },
+    {
+      "time": 9.635710972816218,
+      "type": "on",
+      "note": 57,
+      "velocity": 50
+    },
+    {
+      "time": 9.642471571899485,
+      "type": "on",
+      "note": 42,
+      "velocity": 51
+    },
+    {
+      "time": 9.685,
+      "type": "cc",
+      "controller": 64,
+      "value": 83
+    },
+    {
+      "time": 9.894785972816218,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 9.942426881704014,
+      "type": "on",
+      "note": 64,
+      "velocity": 43
+    },
+    {
+      "time": 10.201501881704013,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 10.244652488021645,
+      "type": "on",
+      "note": 62,
+      "velocity": 44
+    },
+    {
+      "time": 10.503727488021644,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 10.545258483724204,
+      "type": "on",
+      "note": 66,
+      "velocity": 42
+    },
+    {
+      "time": 10.546221571899485,
+      "type": "off",
+      "note": 42
+    },
+    {
+      "time": 10.550165158709046,
+      "type": "on",
+      "note": 49,
+      "velocity": 37
+    },
+    {
+      "time": 10.804333483724204,
+      "type": "off",
+      "note": 66
+    },
+    {
+      "time": 10.846334985491355,
+      "type": "on",
+      "note": 57,
+      "velocity": 51
+    },
+    {
+      "time": 10.846668536665385,
+      "type": "on",
+      "note": 54,
+      "velocity": 45
+    },
+    {
+      "time": 10.881540158709045,
+      "type": "off",
+      "note": 49
+    },
+    {
+      "time": 11.105409985491354,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 11.140196001737845,
+      "type": "on",
+      "note": 64,
+      "velocity": 45
+    },
+    {
+      "time": 11.399271001737844,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 11.442341388637667,
+      "type": "on",
+      "note": 62,
+      "velocity": 47
+    },
+    {
+      "time": 11.660043536665386,
+      "type": "off",
+      "note": 54
+    },
+    {
+      "time": 11.701416388637666,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 11.754015699458776,
+      "type": "on",
+      "note": 64,
+      "velocity": 41
+    },
+    {
+      "time": 12.013090699458775,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 12.025,
+      "type": "cc",
+      "controller": 64,
+      "value": 0
+    },
+    {
+      "time": 12.046610996434,
+      "type": "on",
+      "note": 55,
+      "velocity": 50
+    },
+    {
+      "time": 12.05267325338023,
+      "type": "on",
+      "note": 40,
+      "velocity": 51
+    },
+    {
+      "time": 12.095,
+      "type": "cc",
+      "controller": 64,
+      "value": 83
+    },
+    {
+      "time": 12.305685996433999,
+      "type": "off",
+      "note": 55
+    },
+    {
+      "time": 12.351699130822439,
+      "type": "on",
+      "note": 62,
+      "velocity": 44
+    },
+    {
+      "time": 12.610774130822438,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 12.646403806648683,
+      "type": "on",
+      "note": 59,
+      "velocity": 44
+    },
+    {
+      "time": 12.905478806648683,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 12.9470358023257,
+      "type": "on",
+      "note": 47,
+      "velocity": 37
+    },
+    {
+      "time": 12.952154334890192,
+      "type": "on",
+      "note": 66,
+      "velocity": 44
+    },
+    {
+      "time": 12.95642325338023,
+      "type": "off",
+      "note": 40
+    },
+    {
+      "time": 13.211229334890191,
+      "type": "off",
+      "note": 66
+    },
+    {
+      "time": 13.250792661850808,
+      "type": "on",
+      "note": 59,
+      "velocity": 53
+    },
+    {
+      "time": 13.257625546838623,
+      "type": "on",
+      "note": 52,
+      "velocity": 41
+    },
+    {
+      "time": 13.2784108023257,
+      "type": "off",
+      "note": 47
+    },
+    {
+      "time": 13.509867661850807,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 13.562533311024774,
+      "type": "on",
+      "note": 62,
+      "velocity": 45
+    },
+    {
+      "time": 13.821608311024773,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 13.861744339365048,
+      "type": "on",
+      "note": 55,
+      "velocity": 49
+    },
+    {
+      "time": 14.071000546838624,
+      "type": "off",
+      "note": 52
+    },
+    {
+      "time": 14.120819339365047,
+      "type": "off",
+      "note": 55
+    },
+    {
+      "time": 14.15901097787777,
+      "type": "on",
+      "note": 62,
+      "velocity": 44
+    },
+    {
+      "time": 14.41808597787777,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 14.435,
+      "type": "cc",
+      "controller": 64,
+      "value": 0
+    },
+    {
+      "time": 14.453607179900166,
+      "type": "on",
+      "note": 78,
+      "velocity": 60
+    },
+    {
+      "time": 14.454717452327255,
+      "type": "on",
+      "note": 57,
+      "velocity": 49
+    },
+    {
+      "time": 14.460754173339812,
+      "type": "on",
+      "note": 43,
+      "velocity": 54
+    },
+    {
+      "time": 14.505,
+      "type": "cc",
+      "controller": 64,
+      "value": 83
+    },
+    {
+      "time": 14.713792452327255,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 14.762630292711314,
+      "type": "on",
+      "note": 62,
+      "velocity": 40
+    },
+    {
+      "time": 15.021705292711314,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 15.058760109372903,
+      "type": "on",
+      "note": 59,
+      "velocity": 47
+    },
+    {
+      "time": 15.206732179900166,
+      "type": "off",
+      "note": 78
+    },
+    {
+      "time": 15.317835109372902,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 15.359319361578208,
+      "type": "on",
+      "note": 66,
+      "velocity": 43
+    },
+    {
+      "time": 15.364504173339812,
+      "type": "off",
+      "note": 43
+    },
+    {
+      "time": 15.365239397377243,
+      "type": "on",
+      "note": 76,
+      "velocity": 57
+    },
+    {
+      "time": 15.370444565489423,
+      "type": "on",
+      "note": 50,
+      "velocity": 37
+    },
+    {
+      "time": 15.618394361578208,
+      "type": "off",
+      "note": 66
+    },
+    {
+      "time": 15.664408669811209,
+      "type": "on",
+      "note": 55,
+      "velocity": 44
+    },
+    {
+      "time": 15.665960552519653,
+      "type": "on",
+      "note": 57,
+      "velocity": 51
+    },
+    {
+      "time": 15.701819565489423,
+      "type": "off",
+      "note": 50
+    },
+    {
+      "time": 15.817114397377242,
+      "type": "off",
+      "note": 76
+    },
+    {
+      "time": 15.925035552519653,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 15.967868159705308,
+      "type": "on",
+      "note": 62,
+      "velocity": 43
+    },
+    {
+      "time": 16.226943159705307,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 16.26227964374749,
+      "type": "on",
+      "note": 74,
+      "velocity": 58
+    },
+    {
+      "time": 16.26243940201821,
+      "type": "on",
+      "note": 59,
+      "velocity": 48
+    },
+    {
+      "time": 16.47778366981121,
+      "type": "off",
+      "note": 55
+    },
+    {
+      "time": 16.52151440201821,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 16.563759653992488,
+      "type": "on",
+      "note": 62,
+      "velocity": 42
+    },
+    {
+      "time": 16.62377964374749,
+      "type": "off",
+      "note": 74
+    },
+    {
+      "time": 16.822834653992487,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 16.845000000000002,
+      "type": "cc",
+      "controller": 64,
+      "value": 0
+    },
+    {
+      "time": 16.86590448972816,
+      "type": "on",
+      "note": 45,
+      "velocity": 52
+    },
+    {
+      "time": 16.868614671318326,
+      "type": "on",
+      "note": 73,
+      "velocity": 59
+    },
+    {
+      "time": 16.875416012648028,
+      "type": "on",
+      "note": 57,
+      "velocity": 52
+    },
+    {
+      "time": 16.915000000000003,
+      "type": "cc",
+      "controller": 64,
+      "value": 83
+    },
+    {
+      "time": 17.134491012648027,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 17.174718235968147,
+      "type": "on",
+      "note": 62,
+      "velocity": 42
+    },
+    {
+      "time": 17.433793235968146,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 17.467381147669162,
+      "type": "on",
+      "note": 59,
+      "velocity": 47
+    },
+    {
+      "time": 17.531364671318325,
+      "type": "off",
+      "note": 73
+    },
+    {
+      "time": 17.72645614766916,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 17.769654489728158,
+      "type": "off",
+      "note": 45
+    },
+    {
+      "time": 17.771802214281166,
+      "type": "on",
+      "note": 71,
+      "velocity": 59
+    },
+    {
+      "time": 17.77830503392266,
+      "type": "on",
+      "note": 52,
+      "velocity": 38
+    },
+    {
+      "time": 17.779187048878985,
+      "type": "on",
+      "note": 64,
+      "velocity": 44
+    },
+    {
+      "time": 18.038262048878984,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 18.042927214281168,
+      "type": "off",
+      "note": 71
+    },
+    {
+      "time": 18.06847338574147,
+      "type": "on",
+      "note": 57,
+      "velocity": 42
+    },
+    {
+      "time": 18.074757244765294,
+      "type": "on",
+      "note": 59,
+      "velocity": 52
+    },
+    {
+      "time": 18.10968003392266,
+      "type": "off",
+      "note": 52
+    },
+    {
+      "time": 18.333832244765293,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 18.378261277255138,
+      "type": "on",
+      "note": 73,
+      "velocity": 61
+    },
+    {
+      "time": 18.378977867747192,
+      "type": "on",
+      "note": 62,
+      "velocity": 44
+    },
+    {
+      "time": 18.63805286774719,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 18.674952281517445,
+      "type": "on",
+      "note": 57,
+      "velocity": 48
+    },
+    {
+      "time": 18.83013627725514,
+      "type": "off",
+      "note": 73
+    },
+    {
+      "time": 18.88184838574147,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 18.934027281517444,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 18.972976892047097,
+      "type": "on",
+      "note": 61,
+      "velocity": 41
+    },
+    {
+      "time": 19.232051892047096,
+      "type": "off",
+      "note": 61
+    },
+    {
+      "time": 19.255000000000003,
+      "type": "cc",
+      "controller": 64,
+      "value": 0
+    },
+    {
+      "time": 19.27775398861943,
+      "type": "on",
+      "note": 50,
+      "velocity": 53
+    },
+    {
+      "time": 19.28184225370409,
+      "type": "on",
+      "note": 57,
+      "velocity": 56
+    },
+    {
+      "time": 19.325000000000003,
+      "type": "cc",
+      "controller": 64,
+      "value": 83
+    },
+    {
+      "time": 19.54091725370409,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 19.575187307290268,
+      "type": "on",
+      "note": 64,
+      "velocity": 43
+    },
+    {
+      "time": 19.834262307290267,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 19.887963678913657,
+      "type": "on",
+      "note": 62,
+      "velocity": 51
+    },
+    {
+      "time": 20.147038678913656,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 20.18150398861943,
+      "type": "off",
+      "note": 50
+    },
+    {
+      "time": 20.186257867490408,
+      "type": "on",
+      "note": 66,
+      "velocity": 47
+    },
+    {
+      "time": 20.18984437624505,
+      "type": "on",
+      "note": 57,
+      "velocity": 39
+    },
+    {
+      "time": 20.445332867490407,
+      "type": "off",
+      "note": 66
+    },
+    {
+      "time": 20.485316912994254,
+      "type": "on",
+      "note": 57,
+      "velocity": 57
+    },
+    {
+      "time": 20.489943909815047,
+      "type": "on",
+      "note": 62,
+      "velocity": 44
+    },
+    {
+      "time": 20.52121937624505,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 20.744391912994253,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 20.791832282412333,
+      "type": "on",
+      "note": 64,
+      "velocity": 46
+    },
+    {
+      "time": 21.050907282412332,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 21.093998627527153,
+      "type": "on",
+      "note": 62,
+      "velocity": 51
+    },
+    {
+      "time": 21.303318909815047,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 21.353073627527152,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 21.389307131321637,
+      "type": "on",
+      "note": 64,
+      "velocity": 47
+    },
+    {
+      "time": 21.648382131321636,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 21.665000000000003,
+      "type": "cc",
+      "controller": 64,
+      "value": 0
+    },
+    {
+      "time": 21.687516577986536,
+      "type": "on",
+      "note": 57,
+      "velocity": 52
+    },
+    {
+      "time": 21.696515581679066,
+      "type": "on",
+      "note": 49,
+      "velocity": 55
+    },
+    {
+      "time": 21.735000000000003,
+      "type": "cc",
+      "controller": 64,
+      "value": 83
+    },
+    {
+      "time": 21.946591577986535,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 21.995973747887184,
+      "type": "on",
+      "note": 64,
+      "velocity": 43
+    },
+    {
+      "time": 22.255048747887184,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 22.29130418382166,
+      "type": "on",
+      "note": 59,
+      "velocity": 49
+    },
+    {
+      "time": 22.550379183821658,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 22.59252668763185,
+      "type": "on",
+      "note": 56,
+      "velocity": 39
+    },
+    {
+      "time": 22.593819614446257,
+      "type": "on",
+      "note": 69,
+      "velocity": 46
+    },
+    {
+      "time": 22.600265581679064,
+      "type": "off",
+      "note": 49
+    },
+    {
+      "time": 22.852894614446257,
+      "type": "off",
+      "note": 69
+    },
+    {
+      "time": 22.897516607924832,
+      "type": "on",
+      "note": 61,
+      "velocity": 48
+    },
+    {
+      "time": 22.8981917456626,
+      "type": "on",
+      "note": 59,
+      "velocity": 53
+    },
+    {
+      "time": 22.92390168763185,
+      "type": "off",
+      "note": 56
+    },
+    {
+      "time": 23.1572667456626,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 23.19236251986446,
+      "type": "on",
+      "note": 64,
+      "velocity": 45
+    },
+    {
+      "time": 23.45143751986446,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 23.495803709901406,
+      "type": "on",
+      "note": 57,
+      "velocity": 52
+    },
+    {
+      "time": 23.710891607924832,
+      "type": "off",
+      "note": 61
+    },
+    {
+      "time": 23.754878709901405,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 23.795345330181068,
+      "type": "on",
+      "note": 64,
+      "velocity": 47
+    },
+    {
+      "time": 24.054420330181067,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 24.075000000000003,
+      "type": "cc",
+      "controller": 64,
+      "value": 0
+    },
+    {
+      "time": 24.096856680422558,
+      "type": "on",
+      "note": 78,
+      "velocity": 61
+    },
+    {
+      "time": 24.09729526778916,
+      "type": "on",
+      "note": 57,
+      "velocity": 54
+    },
+    {
+      "time": 24.106915394206997,
+      "type": "on",
+      "note": 47,
+      "velocity": 53
+    },
+    {
+      "time": 24.145000000000003,
+      "type": "cc",
+      "controller": 64,
+      "value": 83
+    },
+    {
+      "time": 24.35637026778916,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 24.395668598906603,
+      "type": "on",
+      "note": 62,
+      "velocity": 43
+    },
+    {
+      "time": 24.578856680422557,
+      "type": "off",
+      "note": 78
+    },
+    {
+      "time": 24.654743598906602,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 24.702958477195818,
+      "type": "on",
+      "note": 59,
+      "velocity": 48
+    },
+    {
+      "time": 24.962033477195817,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 24.99757397332741,
+      "type": "on",
+      "note": 66,
+      "velocity": 45
+    },
+    {
+      "time": 25.00114421867812,
+      "type": "on",
+      "note": 76,
+      "velocity": 58
+    },
+    {
+      "time": 25.007852279517333,
+      "type": "on",
+      "note": 54,
+      "velocity": 40
+    },
+    {
+      "time": 25.010665394206995,
+      "type": "off",
+      "note": 47
+    },
+    {
+      "time": 25.256648973327408,
+      "type": "off",
+      "note": 66
+    },
+    {
+      "time": 25.272269218678122,
+      "type": "off",
+      "note": 76
+    },
+    {
+      "time": 25.29807846972393,
+      "type": "on",
+      "note": 59,
+      "velocity": 48
+    },
+    {
+      "time": 25.309986714715603,
+      "type": "on",
+      "note": 57,
+      "velocity": 55
+    },
+    {
+      "time": 25.339227279517335,
+      "type": "off",
+      "note": 54
+    },
+    {
+      "time": 25.569061714715602,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 25.606826844227967,
+      "type": "on",
+      "note": 62,
+      "velocity": 47
+    },
+    {
+      "time": 25.611290839088618,
+      "type": "on",
+      "note": 74,
+      "velocity": 59
+    },
+    {
+      "time": 25.865901844227967,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 25.90511957337754,
+      "type": "on",
+      "note": 59,
+      "velocity": 51
+    },
+    {
+      "time": 26.11145346972393,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 26.16419457337754,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 26.20956345304428,
+      "type": "on",
+      "note": 62,
+      "velocity": 48
+    },
+    {
+      "time": 26.274040839088617,
+      "type": "off",
+      "note": 74
+    },
+    {
+      "time": 26.468638453044278,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 26.485000000000003,
+      "type": "cc",
+      "controller": 64,
+      "value": 0
+    },
+    {
+      "time": 26.50319455518527,
+      "type": "on",
+      "note": 57,
+      "velocity": 56
+    },
+    {
+      "time": 26.508604162835052,
+      "type": "on",
+      "note": 71,
+      "velocity": 57
+    },
+    {
+      "time": 26.51239015664766,
+      "type": "on",
+      "note": 43,
+      "velocity": 55
+    },
+    {
+      "time": 26.555000000000003,
+      "type": "cc",
+      "controller": 64,
+      "value": 83
+    },
+    {
+      "time": 26.76226955518527,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 26.80628162126476,
+      "type": "on",
+      "note": 62,
+      "velocity": 43
+    },
+    {
+      "time": 27.06535662126476,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 27.112184003000614,
+      "type": "on",
+      "note": 59,
+      "velocity": 48
+    },
+    {
+      "time": 27.17135416283505,
+      "type": "off",
+      "note": 71
+    },
+    {
+      "time": 27.371259003000613,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 27.4070724746841,
+      "type": "on",
+      "note": 73,
+      "velocity": 60
+    },
+    {
+      "time": 27.41381797559606,
+      "type": "on",
+      "note": 66,
+      "velocity": 47
+    },
+    {
+      "time": 27.416140156647657,
+      "type": "off",
+      "note": 43
+    },
+    {
+      "time": 27.41917378448369,
+      "type": "on",
+      "note": 50,
+      "velocity": 40
+    },
+    {
+      "time": 27.67289297559606,
+      "type": "off",
+      "note": 66
+    },
+    {
+      "time": 27.6781974746841,
+      "type": "off",
+      "note": 73
+    },
+    {
+      "time": 27.71380388482241,
+      "type": "on",
+      "note": 59,
+      "velocity": 53
+    },
+    {
+      "time": 27.71703111756733,
+      "type": "on",
+      "note": 55,
+      "velocity": 47
+    },
+    {
+      "time": 27.75054878448369,
+      "type": "off",
+      "note": 50
+    },
+    {
+      "time": 27.97287888482241,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 28.01270497491071,
+      "type": "on",
+      "note": 74,
+      "velocity": 58
+    },
+    {
+      "time": 28.01527002198855,
+      "type": "on",
+      "note": 62,
+      "velocity": 48
+    },
+    {
+      "time": 28.274345021988548,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 28.31457077503344,
+      "type": "on",
+      "note": 57,
+      "velocity": 50
+    },
+    {
+      "time": 28.53040611756733,
+      "type": "off",
+      "note": 55
+    },
+    {
+      "time": 28.57364577503344,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 28.614548694413624,
+      "type": "on",
+      "note": 62,
+      "velocity": 44
+    },
+    {
+      "time": 28.67545497491071,
+      "type": "off",
+      "note": 74
+    },
+    {
+      "time": 28.873623694413624,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 28.895000000000003,
+      "type": "cc",
+      "controller": 64,
+      "value": 0
+    },
+    {
+      "time": 28.91999940933241,
+      "type": "on",
+      "note": 42,
+      "velocity": 55
+    },
+    {
+      "time": 28.92250201500254,
+      "type": "on",
+      "note": 57,
+      "velocity": 56
+    },
+    {
+      "time": 28.965000000000003,
+      "type": "cc",
+      "controller": 64,
+      "value": 83
+    },
+    {
+      "time": 29.18157701500254,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 29.225594052146654,
+      "type": "on",
+      "note": 64,
+      "velocity": 44
+    },
+    {
+      "time": 29.484669052146653,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 29.51567677665362,
+      "type": "on",
+      "note": 62,
+      "velocity": 47
+    },
+    {
+      "time": 29.77475177665362,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 29.823452091568615,
+      "type": "on",
+      "note": 66,
+      "velocity": 44
+    },
+    {
+      "time": 29.823749409332407,
+      "type": "off",
+      "note": 42
+    },
+    {
+      "time": 29.82435549235111,
+      "type": "on",
+      "note": 49,
+      "velocity": 39
+    },
+    {
+      "time": 30.082527091568615,
+      "type": "off",
+      "note": 66
+    },
+    {
+      "time": 30.123168381546158,
+      "type": "on",
+      "note": 57,
+      "velocity": 53
+    },
+    {
+      "time": 30.12669950173283,
+      "type": "on",
+      "note": 54,
+      "velocity": 45
+    },
+    {
+      "time": 30.15573049235111,
+      "type": "off",
+      "note": 49
+    },
+    {
+      "time": 30.382243381546157,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 30.42341428650124,
+      "type": "on",
+      "note": 64,
+      "velocity": 47
+    },
+    {
+      "time": 30.68248928650124,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 30.726223479899115,
+      "type": "on",
+      "note": 62,
+      "velocity": 49
+    },
+    {
+      "time": 30.94007450173283,
+      "type": "off",
+      "note": 54
+    },
+    {
+      "time": 30.985298479899114,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 31.02552048098063,
+      "type": "on",
+      "note": 64,
+      "velocity": 45
+    },
+    {
+      "time": 31.28459548098063,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 31.305000000000003,
+      "type": "cc",
+      "controller": 64,
+      "value": 0
+    },
+    {
+      "time": 31.33023245209502,
+      "type": "on",
+      "note": 40,
+      "velocity": 53
+    },
+    {
+      "time": 31.333087634311525,
+      "type": "on",
+      "note": 55,
+      "velocity": 56
+    },
+    {
+      "time": 31.375000000000004,
+      "type": "cc",
+      "controller": 64,
+      "value": 83
+    },
+    {
+      "time": 31.592162634311524,
+      "type": "off",
+      "note": 55
+    },
+    {
+      "time": 31.62903794231685,
+      "type": "on",
+      "note": 62,
+      "velocity": 47
+    },
+    {
+      "time": 31.888112942316848,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 31.929331734299193,
+      "type": "on",
+      "note": 59,
+      "velocity": 51
+    },
+    {
+      "time": 32.18840673429919,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 32.231225351417905,
+      "type": "on",
+      "note": 66,
+      "velocity": 46
+    },
+    {
+      "time": 32.23380350535968,
+      "type": "on",
+      "note": 47,
+      "velocity": 38
+    },
+    {
+      "time": 32.23398245209502,
+      "type": "off",
+      "note": 40
+    },
+    {
+      "time": 32.49030035141791,
+      "type": "off",
+      "note": 66
+    },
+    {
+      "time": 32.53498372918694,
+      "type": "on",
+      "note": 52,
+      "velocity": 45
+    },
+    {
+      "time": 32.535543684465345,
+      "type": "on",
+      "note": 59,
+      "velocity": 57
+    },
+    {
+      "time": 32.56517850535968,
+      "type": "off",
+      "note": 47
+    },
+    {
+      "time": 32.79461868446535,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 32.832927469246556,
+      "type": "on",
+      "note": 62,
+      "velocity": 48
+    },
+    {
+      "time": 33.09200246924656,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 33.13192698698817,
+      "type": "on",
+      "note": 55,
+      "velocity": 49
+    },
+    {
+      "time": 33.34835872918694,
+      "type": "off",
+      "note": 52
+    },
+    {
+      "time": 33.39100198698817,
+      "type": "off",
+      "note": 55
+    },
+    {
+      "time": 33.44166946469853,
+      "type": "on",
+      "note": 62,
+      "velocity": 46
+    },
+    {
+      "time": 33.70074446469853,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 33.715,
+      "type": "cc",
+      "controller": 64,
+      "value": 0
+    },
+    {
+      "time": 33.73364763546875,
+      "type": "on",
+      "note": 78,
+      "velocity": 60
+    },
+    {
+      "time": 33.73526301727584,
+      "type": "on",
+      "note": 43,
+      "velocity": 57
+    },
+    {
+      "time": 33.7458405838185,
+      "type": "on",
+      "note": 57,
+      "velocity": 56
+    },
+    {
+      "time": 33.785000000000004,
+      "type": "cc",
+      "controller": 64,
+      "value": 83
+    },
+    {
+      "time": 34.0049155838185,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 34.03635036525643,
+      "type": "on",
+      "note": 62,
+      "velocity": 45
+    },
+    {
+      "time": 34.295425365256435,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 34.34673767070519,
+      "type": "on",
+      "note": 59,
+      "velocity": 47
+    },
+    {
+      "time": 34.486772635468746,
+      "type": "off",
+      "note": 78
+    },
+    {
+      "time": 34.60581267070519,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 34.63901301727584,
+      "type": "off",
+      "note": 43
+    },
+    {
+      "time": 34.64615719347029,
+      "type": "on",
+      "note": 66,
+      "velocity": 44
+    },
+    {
+      "time": 34.647157424081584,
+      "type": "on",
+      "note": 81,
+      "velocity": 58
+    },
+    {
+      "time": 34.649986097208696,
+      "type": "on",
+      "note": 50,
+      "velocity": 38
+    },
+    {
+      "time": 34.90523219347029,
+      "type": "off",
+      "note": 66
+    },
+    {
+      "time": 34.94045739503624,
+      "type": "on",
+      "note": 55,
+      "velocity": 45
+    },
+    {
+      "time": 34.94099508313695,
+      "type": "on",
+      "note": 57,
+      "velocity": 55
+    },
+    {
+      "time": 34.9813610972087,
+      "type": "off",
+      "note": 50
+    },
+    {
+      "time": 35.099032424081585,
+      "type": "off",
+      "note": 81
+    },
+    {
+      "time": 35.20007008313695,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 35.24126190135023,
+      "type": "on",
+      "note": 62,
+      "velocity": 47
+    },
+    {
+      "time": 35.50033690135023,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 35.541896679889874,
+      "type": "on",
+      "note": 59,
+      "velocity": 52
+    },
+    {
+      "time": 35.55167195679946,
+      "type": "on",
+      "note": 78,
+      "velocity": 57
+    },
+    {
+      "time": 35.75383239503624,
+      "type": "off",
+      "note": 55
+    },
+    {
+      "time": 35.80097167988988,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 35.84232851658715,
+      "type": "on",
+      "note": 62,
+      "velocity": 47
+    },
+    {
+      "time": 35.91317195679946,
+      "type": "off",
+      "note": 78
+    },
+    {
+      "time": 36.101403516587155,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 36.12500000000001,
+      "type": "cc",
+      "controller": 64,
+      "value": 0
+    },
+    {
+      "time": 36.146562013428195,
+      "type": "on",
+      "note": 57,
+      "velocity": 54
+    },
+    {
+      "time": 36.151093316505204,
+      "type": "on",
+      "note": 45,
+      "velocity": 54
+    },
+    {
+      "time": 36.153537811445545,
+      "type": "on",
+      "note": 76,
+      "velocity": 59
+    },
+    {
+      "time": 36.19500000000001,
+      "type": "cc",
+      "controller": 64,
+      "value": 83
+    },
+    {
+      "time": 36.4056370134282,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 36.45057696101675,
+      "type": "on",
+      "note": 62,
+      "velocity": 43
+    },
+    {
+      "time": 36.70965196101675,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 36.756240994298366,
+      "type": "on",
+      "note": 59,
+      "velocity": 51
+    },
+    {
+      "time": 36.81628781144555,
+      "type": "off",
+      "note": 76
+    },
+    {
+      "time": 37.01531599429837,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 37.054843316505206,
+      "type": "off",
+      "note": 45
+    },
+    {
+      "time": 37.054870658938306,
+      "type": "on",
+      "note": 64,
+      "velocity": 44
+    },
+    {
+      "time": 37.05683378124749,
+      "type": "on",
+      "note": 74,
+      "velocity": 61
+    },
+    {
+      "time": 37.056921082593966,
+      "type": "on",
+      "note": 52,
+      "velocity": 39
+    },
+    {
+      "time": 37.31394565893831,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 37.32795878124749,
+      "type": "off",
+      "note": 74
+    },
+    {
+      "time": 37.348901930667,
+      "type": "on",
+      "note": 59,
+      "velocity": 57
+    },
+    {
+      "time": 37.35330133268005,
+      "type": "on",
+      "note": 57,
+      "velocity": 45
+    },
+    {
+      "time": 37.38829608259397,
+      "type": "off",
+      "note": 52
+    },
+    {
+      "time": 37.607976930667,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 37.65502026982652,
+      "type": "on",
+      "note": 73,
+      "velocity": 59
+    },
+    {
+      "time": 37.6570213607573,
+      "type": "on",
+      "note": 62,
+      "velocity": 46
+    },
+    {
+      "time": 37.9160963607573,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 37.958067942937376,
+      "type": "on",
+      "note": 57,
+      "velocity": 48
+    },
+    {
+      "time": 38.10689526982652,
+      "type": "off",
+      "note": 73
+    },
+    {
+      "time": 38.16667633268005,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 38.21714294293738,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 38.25721815291094,
+      "type": "on",
+      "note": 61,
+      "velocity": 45
+    },
+    {
+      "time": 38.51629315291094,
+      "type": "off",
+      "note": 61
+    },
+    {
+      "time": 38.535000000000004,
+      "type": "cc",
+      "controller": 64,
+      "value": 0
+    },
+    {
+      "time": 38.55831411611708,
+      "type": "on",
+      "note": 57,
+      "velocity": 57
+    },
+    {
+      "time": 38.55930840853183,
+      "type": "on",
+      "note": 47,
+      "velocity": 59
+    },
+    {
+      "time": 38.564987825590656,
+      "type": "on",
+      "note": 78,
+      "velocity": 66
+    },
+    {
+      "time": 38.605000000000004,
+      "type": "cc",
+      "controller": 64,
+      "value": 83
+    },
+    {
+      "time": 38.817389116117084,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 38.86621607455565,
+      "type": "on",
+      "note": 62,
+      "velocity": 49
+    },
+    {
+      "time": 39.01686282559066,
+      "type": "off",
+      "note": 78
+    },
+    {
+      "time": 39.125291074555655,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 39.15605119972909,
+      "type": "on",
+      "note": 59,
+      "velocity": 56
+    },
+    {
+      "time": 39.15834148545424,
+      "type": "on",
+      "note": 76,
+      "velocity": 67
+    },
+    {
+      "time": 39.415126199729094,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 39.45959148545424,
+      "type": "off",
+      "note": 76
+    },
+    {
+      "time": 39.46305840853183,
+      "type": "off",
+      "note": 47
+    },
+    {
+      "time": 39.46310505075893,
+      "type": "on",
+      "note": 54,
+      "velocity": 45
+    },
+    {
+      "time": 39.46450709910459,
+      "type": "on",
+      "note": 66,
+      "velocity": 52
+    },
+    {
+      "time": 39.61608175723674,
+      "type": "on",
+      "note": 74,
+      "velocity": 44
+    },
+    {
+      "time": 39.72358209910459,
+      "type": "off",
+      "note": 66
+    },
+    {
+      "time": 39.73658175723674,
+      "type": "off",
+      "note": 74
+    },
+    {
+      "time": 39.764068144680465,
+      "type": "on",
+      "note": 74,
+      "velocity": 64
+    },
+    {
+      "time": 39.76866287055472,
+      "type": "on",
+      "note": 59,
+      "velocity": 51
+    },
+    {
+      "time": 39.771726751529144,
+      "type": "on",
+      "note": 57,
+      "velocity": 60
+    },
+    {
+      "time": 39.79448005075893,
+      "type": "off",
+      "note": 54
+    },
+    {
+      "time": 40.03080175152915,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 40.07296763732611,
+      "type": "on",
+      "note": 62,
+      "velocity": 54
+    },
+    {
+      "time": 40.215943144680466,
+      "type": "off",
+      "note": 74
+    },
+    {
+      "time": 40.33204263732611,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 40.36682675584266,
+      "type": "on",
+      "note": 59,
+      "velocity": 56
+    },
+    {
+      "time": 40.373466591518834,
+      "type": "on",
+      "note": 73,
+      "velocity": 66
+    },
+    {
+      "time": 40.513247480235535,
+      "type": "on",
+      "note": 71,
+      "velocity": 47
+    },
+    {
+      "time": 40.58203787055472,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 40.62590175584266,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 40.633747480235535,
+      "type": "off",
+      "note": 71
+    },
+    {
+      "time": 40.66888187224558,
+      "type": "on",
+      "note": 62,
+      "velocity": 52
+    },
+    {
+      "time": 40.67471659151884,
+      "type": "off",
+      "note": 73
+    },
+    {
+      "time": 40.81549798844988,
+      "type": "on",
+      "note": 78,
+      "velocity": 48
+    },
+    {
+      "time": 40.92795687224558,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 40.93599798844988,
+      "type": "off",
+      "note": 78
+    },
+    {
+      "time": 40.945,
+      "type": "cc",
+      "controller": 64,
+      "value": 0
+    },
+    {
+      "time": 40.97003625113284,
+      "type": "on",
+      "note": 43,
+      "velocity": 62
+    },
+    {
+      "time": 40.97374914218439,
+      "type": "on",
+      "note": 71,
+      "velocity": 67
+    },
+    {
+      "time": 40.97509373284736,
+      "type": "on",
+      "note": 57,
+      "velocity": 58
+    },
+    {
+      "time": 41.015,
+      "type": "cc",
+      "controller": 64,
+      "value": 83
+    },
+    {
+      "time": 41.234168732847365,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 41.273847307146994,
+      "type": "on",
+      "note": 62,
+      "velocity": 51
+    },
+    {
+      "time": 41.42562414218439,
+      "type": "off",
+      "note": 71
+    },
+    {
+      "time": 41.532922307147,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 41.57744820998283,
+      "type": "on",
+      "note": 59,
+      "velocity": 53
+    },
+    {
+      "time": 41.57917498360062,
+      "type": "on",
+      "note": 73,
+      "velocity": 66
+    },
+    {
+      "time": 41.836523209982836,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 41.86893947656406,
+      "type": "on",
+      "note": 66,
+      "velocity": 50
+    },
+    {
+      "time": 41.87014025523094,
+      "type": "on",
+      "note": 50,
+      "velocity": 44
+    },
+    {
+      "time": 41.87378625113284,
+      "type": "off",
+      "note": 43
+    },
+    {
+      "time": 41.880424983600626,
+      "type": "off",
+      "note": 73
+    },
+    {
+      "time": 42.023440089410634,
+      "type": "on",
+      "note": 74,
+      "velocity": 48
+    },
+    {
+      "time": 42.12801447656406,
+      "type": "off",
+      "note": 66
+    },
+    {
+      "time": 42.143940089410634,
+      "type": "off",
+      "note": 74
+    },
+    {
+      "time": 42.17306555382395,
+      "type": "on",
+      "note": 59,
+      "velocity": 60
+    },
+    {
+      "time": 42.175073378202974,
+      "type": "on",
+      "note": 74,
+      "velocity": 64
+    },
+    {
+      "time": 42.17602717019665,
+      "type": "on",
+      "note": 55,
+      "velocity": 52
+    },
+    {
+      "time": 42.201515255230944,
+      "type": "off",
+      "note": 50
+    },
+    {
+      "time": 42.432140553823956,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 42.47200839584833,
+      "type": "on",
+      "note": 62,
+      "velocity": 53
+    },
+    {
+      "time": 42.73108339584833,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 42.77330712253647,
+      "type": "on",
+      "note": 57,
+      "velocity": 53
+    },
+    {
+      "time": 42.77757337820297,
+      "type": "off",
+      "note": 74
+    },
+    {
+      "time": 42.93152525072685,
+      "type": "on",
+      "note": 71,
+      "velocity": 45
+    },
+    {
+      "time": 42.98940217019665,
+      "type": "off",
+      "note": 55
+    },
+    {
+      "time": 43.032382122536475,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 43.05202525072685,
+      "type": "off",
+      "note": 71
+    },
+    {
+      "time": 43.08408111454127,
+      "type": "on",
+      "note": 62,
+      "velocity": 52
+    },
+    {
+      "time": 43.22385802391591,
+      "type": "on",
+      "note": 78,
+      "velocity": 48
+    },
+    {
+      "time": 43.34315611454127,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 43.34435802391591,
+      "type": "off",
+      "note": 78
+    },
+    {
+      "time": 43.355000000000004,
+      "type": "cc",
+      "controller": 64,
+      "value": 0
+    },
+    {
+      "time": 43.37432718927367,
+      "type": "on",
+      "note": 45,
+      "velocity": 62
+    },
+    {
+      "time": 43.3807848069747,
+      "type": "on",
+      "note": 76,
+      "velocity": 64
+    },
+    {
+      "time": 43.38573674404668,
+      "type": "on",
+      "note": 57,
+      "velocity": 61
+    },
+    {
+      "time": 43.425000000000004,
+      "type": "cc",
+      "controller": 64,
+      "value": 83
+    },
+    {
+      "time": 43.644811744046685,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 43.67907436442702,
+      "type": "on",
+      "note": 62,
+      "velocity": 49
+    },
+    {
+      "time": 43.8326598069747,
+      "type": "off",
+      "note": 76
+    },
+    {
+      "time": 43.93814936442702,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 43.982014923762065,
+      "type": "on",
+      "note": 78,
+      "velocity": 67
+    },
+    {
+      "time": 43.986043285249266,
+      "type": "on",
+      "note": 59,
+      "velocity": 53
+    },
+    {
+      "time": 44.24511828524927,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 44.27693764512381,
+      "type": "on",
+      "note": 64,
+      "velocity": 50
+    },
+    {
+      "time": 44.278077189273674,
+      "type": "off",
+      "note": 45
+    },
+    {
+      "time": 44.28326492376207,
+      "type": "off",
+      "note": 78
+    },
+    {
+      "time": 44.28708707695222,
+      "type": "on",
+      "note": 52,
+      "velocity": 43
+    },
+    {
+      "time": 44.438968592100316,
+      "type": "on",
+      "note": 74,
+      "velocity": 45
+    },
+    {
+      "time": 44.53601264512381,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 44.559468592100316,
+      "type": "off",
+      "note": 74
+    },
+    {
+      "time": 44.5879848657907,
+      "type": "on",
+      "note": 81,
+      "velocity": 65
+    },
+    {
+      "time": 44.589721394630615,
+      "type": "on",
+      "note": 57,
+      "velocity": 50
+    },
+    {
+      "time": 44.59142567047151,
+      "type": "on",
+      "note": 57,
+      "velocity": 60
+    },
+    {
+      "time": 44.61846207695222,
+      "type": "off",
+      "note": 52
+    },
+    {
+      "time": 44.85050067047151,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 44.89016254097177,
+      "type": "on",
+      "note": 62,
+      "velocity": 54
+    },
+    {
+      "time": 45.0699848657907,
+      "type": "off",
+      "note": 81
+    },
+    {
+      "time": 45.149237540971775,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 45.183571681524164,
+      "type": "on",
+      "note": 59,
+      "velocity": 56
+    },
+    {
+      "time": 45.337433450933084,
+      "type": "on",
+      "note": 71,
+      "velocity": 45
+    },
+    {
+      "time": 45.403096394630616,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 45.44264668152417,
+      "type": "off",
+      "note": 59
+    },
+    {
+      "time": 45.45793345093308,
+      "type": "off",
+      "note": 71
+    },
+    {
+      "time": 45.48287138502067,
+      "type": "on",
+      "note": 61,
+      "velocity": 53
+    },
+    {
+      "time": 45.49019701218,
+      "type": "on",
+      "note": 78,
+      "velocity": 67
+    },
+    {
+      "time": 45.64128195195506,
+      "type": "on",
+      "note": 76,
+      "velocity": 44
+    },
+    {
+      "time": 45.73119701218,
+      "type": "off",
+      "note": 78
+    },
+    {
+      "time": 45.741946385020675,
+      "type": "off",
+      "note": 61
+    },
+    {
+      "time": 45.76178195195506,
+      "type": "off",
+      "note": 76
+    },
+    {
+      "time": 45.76500000000001,
+      "type": "cc",
+      "controller": 64,
+      "value": 0
+    },
+    {
+      "time": 45.787611257033895,
+      "type": "on",
+      "note": 57,
+      "velocity": 61
+    },
+    {
+      "time": 45.787992704127454,
+      "type": "on",
+      "note": 78,
+      "velocity": 64
+    },
+    {
+      "time": 45.796479479351554,
+      "type": "on",
+      "note": 50,
+      "velocity": 58
+    },
+    {
+      "time": 45.83500000000001,
+      "type": "cc",
+      "controller": 64,
+      "value": 83
+    },
+    {
+      "time": 46.0466862570339,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 46.09252095750487,
+      "type": "on",
+      "note": 64,
+      "velocity": 51
+    },
+    {
+      "time": 46.239867704127455,
+      "type": "off",
+      "note": 78
+    },
+    {
+      "time": 46.35159595750487,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 46.38863764594542,
+      "type": "on",
+      "note": 62,
+      "velocity": 54
+    },
+    {
+      "time": 46.39748273730977,
+      "type": "on",
+      "note": 76,
+      "velocity": 66
+    },
+    {
+      "time": 46.647712645945425,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 46.68916425114079,
+      "type": "on",
+      "note": 57,
+      "velocity": 45
+    },
+    {
+      "time": 46.698732737309776,
+      "type": "off",
+      "note": 76
+    },
+    {
+      "time": 46.7000011169794,
+      "type": "on",
+      "note": 66,
+      "velocity": 49
+    },
+    {
+      "time": 46.700229479351556,
+      "type": "off",
+      "note": 50
+    },
+    {
+      "time": 46.84159863556409,
+      "type": "on",
+      "note": 76,
+      "velocity": 48
+    },
+    {
+      "time": 46.9590761169794,
+      "type": "off",
+      "note": 66
+    },
+    {
+      "time": 46.96209863556409,
+      "type": "off",
+      "note": 76
+    },
+    {
+      "time": 46.9904858929948,
+      "type": "on",
+      "note": 62,
+      "velocity": 60
+    },
+    {
+      "time": 46.99643554296019,
+      "type": "on",
+      "note": 62,
+      "velocity": 49
+    },
+    {
+      "time": 46.99675760892267,
+      "type": "on",
+      "note": 74,
+      "velocity": 64
+    },
+    {
+      "time": 47.02053925114079,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 47.2495608929948,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 47.29979378929874,
+      "type": "on",
+      "note": 64,
+      "velocity": 51
+    },
+    {
+      "time": 47.55886878929874,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 47.60309195656749,
+      "type": "on",
+      "note": 57,
+      "velocity": 55
+    },
+    {
+      "time": 47.749755978730974,
+      "type": "on",
+      "note": 74,
+      "velocity": 45
+    },
+    {
+      "time": 47.74988260892267,
+      "type": "off",
+      "note": 74
+    },
+    {
+      "time": 47.80981054296019,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 47.86216695656749,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 47.870255978730974,
+      "type": "off",
+      "note": 74
+    },
+    {
+      "time": 47.90501783613814,
+      "type": "on",
+      "note": 64,
+      "velocity": 53
+    },
+    {
+      "time": 48.05036130670505,
+      "type": "on",
+      "note": 78,
+      "velocity": 45
+    },
+    {
+      "time": 48.164092836138146,
+      "type": "off",
+      "note": 64
+    },
+    {
+      "time": 48.17,
+      "type": "cc",
+      "controller": 64,
+      "value": 0
+    },
+    {
+      "time": 48.17086130670505,
+      "type": "off",
+      "note": 78
+    },
+    {
+      "time": 48.205407548656225,
+      "type": "on",
+      "note": 38,
+      "velocity": 55
+    },
+    {
+      "time": 48.20752228477764,
+      "type": "on",
+      "note": 50,
+      "velocity": 56
+    },
+    {
+      "time": 48.228612293368265,
+      "type": "on",
+      "note": 57,
+      "velocity": 53
+    },
+    {
+      "time": 48.2378319506369,
+      "type": "on",
+      "note": 62,
+      "velocity": 54
+    },
+    {
+      "time": 48.24629555510601,
+      "type": "on",
+      "note": 66,
+      "velocity": 52
+    },
+    {
+      "time": 48.25068460834297,
+      "type": "on",
+      "note": 69,
+      "velocity": 48
+    },
+    {
+      "time": 48.26955403978302,
+      "type": "on",
+      "note": 76,
+      "velocity": 47
+    },
+    {
+      "time": 48.27,
+      "type": "cc",
+      "controller": 64,
+      "value": 100
+    },
+    {
+      "time": 50.916657548656225,
+      "type": "off",
+      "note": 38
+    },
+    {
+      "time": 50.91877228477764,
+      "type": "off",
+      "note": 50
+    },
+    {
+      "time": 50.939862293368265,
+      "type": "off",
+      "note": 57
+    },
+    {
+      "time": 50.9490819506369,
+      "type": "off",
+      "note": 62
+    },
+    {
+      "time": 50.95754555510601,
+      "type": "off",
+      "note": 66
+    },
+    {
+      "time": 50.96193460834297,
+      "type": "off",
+      "note": 69
+    },
+    {
+      "time": 50.98080403978302,
+      "type": "off",
+      "note": 76
+    },
+    {
+      "time": 52.1,
+      "type": "cc",
+      "controller": 64,
+      "value": 0
+    }
+  ]
+}
