@@ -359,8 +359,12 @@ Stop the foreground server with Ctrl+C when finished.
 Preparation writes `scripts/app_build_local.vdf`, per-platform depot VDFs,
 and `steam_dev.cfg`. Use Valve's SteamCMD with your existing authorized login
 to run that VDF. Its `local` field builds chunks into `htdocs`, and `setlive`
-is empty. After creating the metadata build, select the **local** branch in
-Steamworks. Never select **default** for local content. To test locally,
+is empty. Steam automatically assigns the metadata build to **local**. This
+can also overwrite that branch's description and clear its beta password,
+even with `setlive` empty. After every metadata upload, verify the branch's
+access code and restore it in Steamworks before considering it protected.
+Keep passwords out of VDFs and Git. Never select **default** or **internal**
+for a local content-server build. To test locally,
 back up any existing Steam client `steam_dev.cfg` before installing the
 prepared file; restore it after testing. The tool never overwrites another
 game's local-server configuration. Use one target/server configuration at a time.

@@ -171,6 +171,7 @@ async function main() {
     const platforms = args.flatMap((arg,i) => arg === "--platform" ? [args[i+1]] : []);
     console.log(`Local build VDF: ${await prepare(target,platforms.length?platforms:[platform],root,Number(option(args,"--port","52871")))}`);
     console.log(`Steam client config, not installed: ${join(root,"steam_dev.cfg")}`);
+    console.log("After the SteamCMD local metadata upload, verify and restore the local branch beta password in Steamworks; Steam can clear it even with setlive empty.");
   } else if (command === "serve") {
     const config = JSON.parse(await readFile(join(root,"local.json"),"utf8"));
     const server = makeServer(root);
