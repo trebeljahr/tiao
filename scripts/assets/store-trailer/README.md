@@ -1,48 +1,48 @@
 # Trailer build recipe
 
-`scripts/store-trailer-current.json` records the selected local export, checksum, archive and upload state. Stable export: `build/store-trailer/tiao-gameplay-current.mp4`; distinct review copy: `build/store-trailer/tiao-ai-match.mp4`. The new revision is local review only.
+`scripts/store-trailer-current.json` records the selected local export, checksum, archive and upload state. Stable export: `build/store-trailer/tiao-gameplay-current.mp4`; distinct review copy: `build/store-trailer/tiao-friends-cadence.mp4`. This is a local review cut.
 
 ## Rebuild
 
-Requires Node 24+, FFmpeg, Sharp and the archived raw recordings. Set `SHARP_MODULE` when Sharp is installed separately. Run one heavy job at a time; the renderer caps FFmpeg/Sharp threads.
+Requires Node 24+, FFmpeg, Sharp and the archived source recordings. Set `SHARP_MODULE` when installed separately. Run one heavy job at a time; FFmpeg and Sharp use bounded threads.
 
 ```sh
-SHARP_MODULE=/absolute/path/to/sharp node scripts/store-trailer.mjs /absolute/path/to/trailer-bundle
+SHARP_MODULE=/absolute/path/to/sharp node scripts/store-trailer.mjs /absolute/path/to/bundle
 ```
 
-`edit.json` contains all title cards, crops, speeds and sound settings. The bundle's `raw/` contains actual app recordings and screenshots. `--edit=<archived-edit.json>` selects an earlier recipe, `--audio-only` remixes an existing picture, and `--shot=N` replaces one shot before reassembly. None selects or uploads the candidate. Preserve the previous selection first.
+`edit.json` contains cards, crops, source dimensions and time maps. `raw/` holds actual UI frames and screenshots. `--edit=<archived-edit.json>` selects another recipe; `--audio-only` remixes an existing picture; `--shot=N[,M]` replaces selected shots before reassembly. None uploads or selects the candidate. Preserve the previous selection first.
 
-## Actual AI match
+The selected 53-second edit uses 22 shots. The opening teaser shows White's first genuine two-capture AI exchange. “Take turns.” gets six alternating decisions over 4.1 seconds. The complete legal instructional example follows “Jump to capture.”: White captures first, then Black captures both Whites. The separate chain card is absent.
 
-`ai-match.json` is the complete recorded decision ledger: White runs the shipped Intermediate engine (level 2), Black runs Hard (level 3), both at their normal search settings. They start from an empty 19×19 board with the normal ten-capture goal. There are no seeded positions or chosen/suppressed moves. The log preserves every search depth, node count, elapsed time, score change and board hash, plus the engine source hash. White wins 13–5 after a five-capture chain; capture chains can exceed the target when confirmed.
+“Play with friends.” shows an actual long list, a received game invitation, acceptance, and the resulting multiplayer route. These use isolated fictional fixtures and native WebSocket/UI handlers. No live invitation or account write occurs. Tournament stills show the real bracket and completed-result UI with sample data. “Make it yours.” cuts directly among four full native board themes; badge and theme-selector shots are absent.
 
-`generate-trailer-ai-match.ts` regenerates a match using the client engine. Run it with an installed `tsx` and `--tsconfig client/tsconfig.json`. Runtime search budgets can affect the resulting decisions; the committed ledger reproduces this exact match without rerunning search. Every generated decision is validated through public `placePiece`, `jumpPiece` and `confirmPendingJump` rules. The replay test independently reconstructs all 45 turns and verifies every board hash and the final result.
+## Genuine AI match and final cadence
 
-The full match is clicked through the actual UI, and its final board is checked against the ledger. The opening teaser comes from Black's real three-capture comeback; the placement example uses the match's first four decisions. After the goal card at 29.7 seconds, all 45 turns appear in order from 31.2–46.8. Six contiguous source ranges accelerate from about 1.1× to 3.5×. The board framing stays fixed, and no turn is skipped or replaced. The genuine settled result holds before the logo at 48.2.
+`ai-match.json` preserves all 45 decisions from the shipped Intermediate White engine (level 2) versus Hard Black (level 3), including normal search settings, depths, node counts, scores, board hashes and engine source hash. They start from an empty 19×19 board with the normal ten-capture goal. No moves are selected, suppressed or seeded. White wins 13–5 after a five-capture chain; chains can exceed ten when confirmed together.
 
-The separate rules recording illustrates Black's legal double capture, immediately after “Jump to capture.” White's preceding single capture establishes that position before the excerpt. This instructional example is composed legal play; it is not attributed to the AI match. The chain intertitle and the older composed final-game fixture are absent from this cut.
+`generate-trailer-ai-match.ts` regenerates a match through the client engine. Use an installed `tsx` with `--tsconfig client/tsconfig.json`. Search budgets can affect new decisions; the committed ledger reproduces this exact match without another search. The replay test reconstructs every turn through public rules and verifies all hashes and the result.
 
-## UI and camera
+The match is clicked through the real UI and the final DOM board is checked against the ledger. Every committed action has an equal 18-frame source interval, including jump selection and confirmation. This removes the extra selection/hover waits around the earlier recording's first capture.
 
-“Play with friends.” begins at 12.5 seconds, “Win tournaments.” at 17.5, and “Make it yours.” at 22. The badge picker now occupies a full-width settings row above account management, with inline selection feedback and accessible pressed states. Theme previews use three columns inside the drawer and explicit square SVG dimensions. These are actual client fixes, rebuilt and recaptured; the trailer does not substitute mock controls.
+The full replay begins at 30.7 seconds. A continuous logarithmic time map accelerates from approximately 1× to 4×, with no step changes or slowing. The last confirmation lands exactly on the original piano cadence at 48.2 seconds. Native victory confetti continues into a 0.6-second crossfade at 49.5 seconds. The closing card reuses the approved vector Steam artwork with “Free to Play on Steam,” holding through 53 seconds. The original piano's tail continues beneath it.
 
-All footage uses static framing. Fill and contain modes preserve source proportions. Tournament shots have no sinusoidal pan or animated camera crop. Matching full-frame theme screenshots show the actual AI position after Black's comeback, with all four board edges visible. Desktop/mobile browser QA checks picker bounds, square previews, badge wrapping and mobile drawer scrolling.
+## Capture quality and sound
 
-## Sound and QA
+New gameplay, rule, friend and tournament detail sources are lossless 3840×2160 PNG captures at 2× device density. The winning confirmation and confetti use a separate native 1920×1080, 30 fps real-time recording of the same ledger position. No selected crop is smaller than the 1920×1080 output. Theme stills retain their full native 1920×1080 dimensions. This avoids enlarging compressed small UI regions. The final H.264 target is 14 Mbps, with stereo AAC 256 kbps at 48 kHz. Footage cameras remain static; the friend list uses actual page scrolling.
 
-The original Next Move piano and 48.2-second cadence remain. Its MIDI, score and production MP3 are tracked; the installed Apple Yamaha samples are not redistributed. Five restrained Raptor Runner swooshes retain −14 dBFS pre-master peaks and 2 dB music ducks.
+Initialize an isolated muted Playwright CLI session with the archived capture configuration and `store-trailer-capture.mjs setup`. `store-trailer-capture-hq.mjs` steps browser time for the complete AI replay. Record the White/Black rule example with `prepare-counter-real` and `counter-real` in a fresh normal-clock browser context; `store-trailer-capture-friends.mjs` records the list, native invitation update and acceptance. The renderer reads the original PNG sequences directly. AI browser-clock stepping sets move and particle timing; CSS transitions can settle during screenshot capture. Opening source frames 0–143 and the rule demo are recorded in fresh normal-clock contexts to avoid a capture-clock opacity fault. Every active stone is checked after all 63 AI actions, and the encoded cue audit also checks the moving stone is visible. `store-trailer-capture-victory.mjs` replays the same decisions to the pending winning confirmation and validates the DOM before and after recording it. The selected lossless `victory-clean.mkv` omits two non-move frames of the native result-dialog flash; the original `victory-cadence.webm` remains archived. No game position, win effect or UI control is drawn for the trailer.
 
-`move-events.json` records source-frame placements, jump-origin vacancy and captured-stone removal. There are 63 actual actions in the full AI replay; the teaser, opening reuse and Black double example bring the cut to 74 cues. The projection helper applies each shot's trim, speed and crop, rejecting unrelated manual taps. No click pulse is synthesized. Stems include moves, transitions, effects, music, ducked music and the master.
+`store-trailer-frame-manifest.mjs <bundle>` fingerprints every source frame and records committed event anchors. `move-events.json` contains those hashes, measured source grids and action positions. The projection helper uses the same linear/logarithmic time maps as the renderer. Hover and selection previews remain silent. The full match contributes 63 actions; teaser, opening and rule reuse bring the total to 77 cues.
+
+The original Next Move piano, its pitch and tempo remain. MIDI, score, production MP3 and licence are tracked; installed Apple samples are not redistributed. Five restrained Raptor Runner swooshes retain −14 dBFS pre-master peaks and 2 dB music ducking. Stems include moves, transitions, effects, music, ducked music and the master. Master target is −16 LUFS, constrained by −2 dBFS true peak.
 
 ```sh
 node --test scripts/store-trailer-ai-match.test.mjs scripts/store-trailer-move-sounds.test.mjs
-python3 scripts/verify-trailer-move-sounds.py /absolute/path/to/trailer-bundle
+python3 scripts/verify-trailer-move-sounds.py /absolute/path/to/bundle
 ```
 
-The visual verifier exports before/cue/after sheets, checks frame offsets and verifies silence between cues. Its geometry matches fixed fill/contain framing. Inspect the final encoded AAC, full decode and FFprobe metadata as well as stems. Master target is −16 LUFS, constrained by −2 dBFS true peak.
+The verifier checks committed pixel changes independently of scheduled inputs, exports every before/cue/after contact sheet, and verifies exact move-track silence between cues. Tests cover continuous acceleration, the final cadence, both rule colors, complete replay, and minimum crop resolution. Decode the final video/audio and inspect FFprobe, native theme geometry, invitation acceptance and end-card transition too.
 
-## Capture and preservation
+## Preservation
 
-Serve the built/finalized client export with `store-trailer-preview.mjs <client/out>` on an ephemeral loopback port. Use an isolated muted Playwright CLI session named `tiao-trailer` and set `PLAYWRIGHT_CLI` to its installed entry point. Capture phases include `setup`, `prepare-opening` → `ai-match`, `ai-result` → `ai-result-hold`, `prepare-counter` → `counter`, `prepare-customization` → `customization`, and `prepare-ai-theme` → `themes`. Re-recording changes native frame anchors; inspect them again rather than reusing old times. Close the browser and server afterward.
-
-Social/tournament/profile footage uses isolated fictional accounts and owned-item fixtures. No live invitation or account write occurs. Runtime gameplay and UI recordings, all useful prior iterations, recipes, visual/frame QA, source logs, stems and checksums are preserved in the project vault. Production audio, licences, selected edit, AI ledger, generator, tests and selection metadata are tracked in Tiao. `safe-opening-current.json` retains the preceding selection. Large vault media is ignored/local-only and requires the normal vault backup; Git alone cannot reproduce it.
+The project vault holds source PNG sequences, capture code/logs and fixtures, selected and prior exports, editable cards, stems, frame QA and checksums. `ai-match-current.json` preserves the preceding selection; older histories remain. Production audio, approved store-art vectors, the ledger, renderer, tests and current metadata remain tracked in Tiao. Large archive media is ignored/local-only and needs normal vault backup. Git alone cannot reproduce the footage. Close the isolated browser and preview server after capture.

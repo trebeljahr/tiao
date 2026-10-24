@@ -1,0 +1,94 @@
+{
+  "title": "Tiao — real AI match and accelerating finale",
+  "selectedOn": "2026-10-23",
+  "duration": 50.2,
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "shotCount": 29,
+  "output": "build/store-trailer/tiao-gameplay-current.mp4",
+  "candidate": "build/store-trailer/tiao-ai-match.mp4",
+  "sha256": "f8811139f873d80514aa72fca492ace56a70003b4525751b7c8034c974b2a249",
+  "bytes": 36662580,
+  "videoBitrate": "6 Mbps CBR target",
+  "audio": true,
+  "audioDescription": "Original Next Move piano buildup retained. Five restrained Raptor Runner swooshes and 74 clicks aligned to committed gameplay actions.",
+  "approval": "Local review revision; not approved or uploaded",
+  "source": "Actual shipped engine self-play: Intermediate White versus Hard Black, replayed through the real UI. Separate legal instructional double capture. Isolated fictional social, tournament and profile data.",
+  "note": "Complete 45-turn AI match accelerates from 1.1× to 3.5×, with all 63 actions and a genuine 13–5 finish. Jump to capture leads directly to Black capturing two Whites; chain card removed. Static tournament framing. Actual badge picker and square theme-preview layout bugs fixed and recaptured. Existing piano buildup and 48.2-second logo cadence retained.",
+  "uploadState": {
+    "steam": "New cut is local only. Previous 30-second cut remains uploaded in the store draft.",
+    "googlePlay": "not uploaded",
+    "apple": "not uploaded"
+  },
+  "previousSteamUpload": {
+    "sha256": "f2257223a6ba8364a998327943549dc262473a876866abf231de3ed1488a94ae",
+    "uploadedOn": "2026-10-23",
+    "entryId": 1399906,
+    "assetId": 1404839554,
+    "viewUrl": "https://store.steampowered.com/trailer/assets/?trailer=5035580/1404839554/ba4083cc48118e0606d0f31b62bda4648f06af6e/1792682318",
+    "category": "Gameplay",
+    "language": "English",
+    "suitableForAllAges": true,
+    "countryRestrictions": []
+  },
+  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/ai-match-trailer/",
+  "files": "Selected edit, complete AI decision ledger, generator, move manifest, renderer, UI fixes, tests and production audio tracked. Local video, raw recordings, stems, capture recipes and visual/frame QA preserved in the vault; previous cut retained.",
+  "intertitleCount": 6,
+  "brandCardCount": 2,
+  "reviewCopy": "build/store-trailer/tiao-ai-match.mp4",
+  "music": {
+    "file": "scripts/assets/store-trailer/audio/next-move-original.mp3",
+    "title": "Next Move",
+    "creator": "Original composition made for Tiao in this chat",
+    "method": "Explicit MIDI composition rendered locally with installed Apple Yamaha piano multisamples; no text-to-audio service",
+    "key": "D major",
+    "tempoBpm": 99.58506224066389,
+    "in": 0,
+    "targetLufs": -18,
+    "fadeIn": 0.12,
+    "fadeOut": 1.5,
+    "resolveAt": 48.2,
+    "licence": "Original arrangement; Apple sample content used in finished soundtrack under Logic Pro licence",
+    "licenceUrl": "https://www.apple.com/legal/sla/docs/LogicPro.pdf",
+    "ending": "Original D-major ninth resolves on the logo; replaces the previous stock piano impact to keep the cadence in key."
+  },
+  "audioMeasurements": {
+    "integratedLufs": -16.6,
+    "truePeakDbfs": -2
+  },
+  "previousLocalSelection": {
+    "duration": 50.2,
+    "sha256": "8d4d308c7682616bac170549a01ecdeb7da0e6b8df36e472a13301e26957133c",
+    "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/safe-opening-native-themes/"
+  },
+  "audioValidation": {
+    "transitionCount": 5,
+    "transitionPeakDb": -14,
+    "musicDuckDb": 2,
+    "allMusicSecondsPresent": true
+  },
+  "moveSoundValidation": {
+    "cueCount": 74,
+    "fullAiMatchActions": 63,
+    "maximumVisualOffsetFrames": 1,
+    "silentPreviewsAndHolds": true,
+    "lateCaptureConfirmations": 2
+  },
+  "pictureValidation": {
+    "completeAiTurns": 45,
+    "engineLevels": {
+      "white": 2,
+      "black": 3
+    },
+    "replayBoardHashesVerified": true,
+    "finalScore": {
+      "white": 13,
+      "black": 5
+    },
+    "fullNativeThemeFrames": 4,
+    "aspectRatioPreserved": true,
+    "staticFootageCamera": true,
+    "desktopAndMobilePickersVerified": true
+  }
+}

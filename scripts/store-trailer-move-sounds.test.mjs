@@ -1,54 +1,66 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { projectMoveSounds } from "./store-trailer-move-sounds.mjs";
+import { projectMoveSounds, sourceToTimeline } from "./store-trailer-move-sounds.mjs";
 
 const edit = JSON.parse(readFileSync("scripts/assets/store-trailer/edit.json", "utf8"));
 const manifest = JSON.parse(readFileSync(edit.moveSounds.file, "utf8"));
 
-test("move sounds cover the real replay and Black double capture, with UI shots silent", () => {
+test("committed cues cover both rule colors, the real teaser and complete AI win", () => {
   const cues = projectMoveSounds(edit, manifest);
-  assert.equal(cues.length, 74);
-  const counter = cues.filter((c) => c.sourceFile === "counter.webm");
+  assert.equal(cues.length, 77);
+  const counter = cues.filter((c) => c.sourceFile === "counter-hq");
   assert.deepEqual(
     counter.map((c) => c.action),
-    ["jump", "jump", "confirm"],
+    ["jump", "confirm", "jump", "jump", "confirm"],
   );
-  assert(
-    counter.every(
-      (c) =>
-        manifest.sources
-          .find((s) => s.file === c.sourceFile)
-          .events.find((e) => e.id === c.actionId).color === "black",
-    ),
+  const source = manifest.sources.find((s) => s.file === "counter-hq");
+  assert.deepEqual(
+    counter.map((c) => source.events.find((e) => e.id === c.actionId).color),
+    ["white", "white", "black", "black", "black"],
   );
-  assert(!cues.some((c) => c.time >= 12.5 && c.time < 31.2));
-  assert(!cues.some((c) => c.time >= 46.8));
+  assert(!cues.some((c) => c.time >= 15.3 && c.time < 30.7));
+  assert(!cues.some((c) => c.time > 48.2));
   assert(!edit.shots.some((s) => s.title?.toLowerCase().includes("chain")));
 });
 
-test("every AI action survives the continuous, progressively faster ending", () => {
-  const cues = projectMoveSounds(edit, manifest).filter((c) => c.time >= 31.2);
-  const source = manifest.sources.find((s) => s.file === "ai-match.webm");
+test("continuous acceleration never slows and the final confirmation hits the piano cadence", () => {
+  const source = manifest.sources.find((s) => s.file === "ai-hq");
+  const cues = projectMoveSounds(edit, manifest).filter((c) => c.time >= 30.7);
   assert.equal(cues.length, source.events.length);
   assert.equal(new Set(cues.map((c) => c.actionId)).size, 63);
-  const shots = edit.shots.filter((s) => s.name?.includes("accelerating full match"));
-  assert.equal(shots.length, 6);
-  for (let i = 1; i < shots.length; i++) {
-    assert(
-      Math.abs(shots[i - 1].start + shots[i - 1].duration * shots[i - 1].speed - shots[i].start) <
-        1e-8,
-    );
-    assert(shots[i].speed > shots[i - 1].speed);
-  }
-  for (const shot of shots) {
-    assert.equal(shot.framing, "native");
-    assert.deepEqual(shot.crop, [0, 0, 1920, 1080]);
-  }
+  const shot = edit.shots.find((s) => s.acceleration);
+  const steps = source.events.slice(0, -1).map((e) => sourceToTimeline(shot, e.frame / source.fps));
+  const gaps = steps.slice(1).map((v, i) => v - steps[i]);
+  for (let i = 1; i < gaps.length; i++) assert(gaps[i] < gaps[i - 1]);
+  assert.equal(cues.at(-1).time, edit.music.resolveAt);
+  assert.equal(cues.at(-1).action, "confirm");
+  const win = edit.shots.find((s) => s.name?.includes("native confetti"));
+  assert.equal(win.timelineStart, edit.music.resolveAt);
+  assert.equal(
+    source.events.at(-1).frame / source.fps,
+    shot.start + shot.acceleration.sourceDuration,
+  );
+  const victory = manifest.sources.find((s) => s.file === win.file);
+  assert.equal(victory.events[0].id, source.events.at(-1).id);
+  assert.equal(win.start, victory.events[0].frame / victory.fps);
+  assert.deepEqual(shot.crop, [0, 0, 3840, 2160]);
+  assert.equal(shot.framing, "native");
   assert(edit.sounds.length <= 5);
   assert(edit.transition.targetPeakDb <= -14);
   assert.equal(edit.shots[0].kind, "brand");
   assert(edit.shots.every((s) => !s.label && !s.sub));
+});
+
+test("detail crops never enlarge source pixels and selection flashes are absent", () => {
+  for (const shot of edit.shots.filter((s) => s.kind === "footage")) {
+    assert(shot.crop[2] >= 1920 && shot.crop[3] >= 1080, shot.name);
+    assert(!/badge|selector/i.test(shot.file));
+  }
+  assert(edit.shots.find((s) => s.name?.includes("opening placements")).duration >= 4);
+  const card = edit.shots.at(-1);
+  assert.equal(card.kind, "endcard");
+  assert(card.fadeIn > 0 && card.background);
 });
 
 test("source events follow shot trims and speed changes, including repeated footage", () => {
@@ -94,7 +106,7 @@ test("uncorrelated global taps and preview events cannot enter the move track", 
     projectMoveSounds({ ...edit, sounds: [{ type: "tap", time: 9.4 }] }, manifest),
   );
   const invalid = structuredClone(manifest);
-  invalid.sources.find((source) => source.file === "ai-match.webm").events[0].kind = "hover";
+  invalid.sources.find((source) => source.file === "ai-hq").events[0].kind = "hover";
   assert.throws(() => projectMoveSounds(edit, invalid));
 });
 

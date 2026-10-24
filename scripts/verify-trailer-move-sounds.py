@@ -7,7 +7,7 @@ from pathlib import Path
 import json, subprocess, math, sys
 import numpy as np
 from PIL import Image, ImageDraw
-root = Path(sys.argv[1] if len(sys.argv) > 1 else 'build/store-trailer-v9')
+root = Path(sys.argv[1] if len(sys.argv) > 1 else 'build/store-trailer-v10')
 (root / 'qa').mkdir(exist_ok=True)
 e = json.loads((root / 'edit.json').read_text())
 cues = e['resolvedMoveSounds']
@@ -36,6 +36,7 @@ for i, c in enumerate(cues):
     grid = grids[c['sourceFile']]
     x0, y0 = grid['origin']
     spacing = grid['spacing']
+    pixel_ratio = grid.get('pixelRatio', 1)
     points = event['captures'] if event['kind'] == 'confirm' else [event.get('position', event.get('from'))]
 
     def pos(point, frame):
@@ -43,18 +44,22 @@ for i, c in enumerate(cues):
         dy = (crop[3] * scale - 1080) / 2
         return (((x0 + point['x'] * spacing - crop[0]) * scale - dx) / 2, ((y0 + point['y'] * spacing - crop[1]) * scale - dy) / 2)
 
-    def color(frame):
+    def color(frame, sample_points=None):
         values = []
-        for point in points:
+        for point in (sample_points if sample_points is not None else points):
             x, y = pos(point, frame)
-            off = 4 * scale
-            r = max(1, round(scale))
+            off = 4 * pixel_ratio * scale
+            r = max(1, round(pixel_ratio * scale))
             for dx in [-off, off]:
                 for dy in [-off, off]:
                     xx = round(x + dx)
                     yy = round(y + dy)
                     values.extend(saved[frame][yy - r:yy + r + 1, xx - r:xx + r + 1].reshape(-1, 3))
         return np.median(values, axis=0)
+    if event['kind'] in ['place', 'jump']:
+        destination = event['position'] if event['kind'] == 'place' else event['to']
+        red, green, blue = color(c['frame'] + 3, [destination])
+        assert (blue > 205 and green > 210 if event['color'] == 'white' else red < 100), ('Committed mover is invisible', i, c, [red, green, blue])
     first = max(round(shot['timelineStart'] * 30), c['frame'] - 3)
     before = color(first)
     delta = [float(np.linalg.norm(color(frame) - before)) for frame in range(first, c['frame'] + 5)]
@@ -67,8 +72,8 @@ for i, c in enumerate(cues):
             x, y = pos(point, frame)
             count = 0
             for angle in np.linspace(0, 2 * np.pi, 64, endpoint=False):
-                xx = round(x + 24.1 * scale / 2 * np.cos(angle))
-                yy = round(y + 24.1 * scale / 2 * np.sin(angle))
+                xx = round(x + 24.1 * pixel_ratio * scale / 2 * np.cos(angle))
+                yy = round(y + 24.1 * pixel_ratio * scale / 2 * np.sin(angle))
                 patch = saved[frame][max(0, yy-1):yy+2, max(0, xx-1):xx+2].astype(float).reshape(-1, 3)
                 count += bool(np.any((patch[:,2]-patch[:,0] > -30) & (patch[:,1]-patch[:,0] > -10)))
             return count / 64
@@ -81,14 +86,14 @@ for i, c in enumerate(cues):
         channel, direction = (2, -1) if event['color'] == 'white' else (0, 1)
         candidates = [(frame, direction * (color(frame)[channel] - color(frame-1)[channel]))
                       for frame in range(first+1, ring_frames[0]+1)]
-        onset = max(candidates, key=lambda item: item[1])
+        onset = max(candidates, key=lambda item: item[1], default=(ring_frames[0], 0))
         changed = [onset[0]] if onset[1] > 15 else ring_frames
         method = 'committed opacity reset followed by last-move ring; hover excluded'
     elif event['kind'] == 'confirm':
         changed = []
         for frame in range(first, c['frame']+5):
             red, green, blue = color(frame)
-            if (red-blue > 60 if event['color'] == 'white' else blue < 155): changed.append(frame)
+            if (red > 200 and red-blue > 60 if event['color'] == 'white' else blue < 155): changed.append(frame)
         method = 'captured-stone removal; pending fade excluded'
     else:
         changed = [first + j for j, d in enumerate(delta) if d > 25]

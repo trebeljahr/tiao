@@ -1,21 +1,21 @@
 {
-  "title": "Tiao — real AI match and accelerating finale",
-  "selectedOn": "2026-10-23",
-  "duration": 50.2,
+  "title": "Tiao — clear rules, friends and piano finale",
+  "selectedOn": "2026-10-24",
+  "duration": 53,
   "width": 1920,
   "height": 1080,
   "fps": 30,
-  "shotCount": 29,
+  "shotCount": 22,
   "output": "build/store-trailer/tiao-gameplay-current.mp4",
-  "candidate": "build/store-trailer/tiao-ai-match.mp4",
-  "sha256": "f8811139f873d80514aa72fca492ace56a70003b4525751b7c8034c974b2a249",
-  "bytes": 36662580,
-  "videoBitrate": "6 Mbps CBR target",
+  "candidate": "build/store-trailer/tiao-friends-cadence.mp4",
+  "sha256": "ec75915ae923ffd9db1a1ae9da82b73d8aa81dc95a7c2fce56f6f166e5ea8426",
+  "bytes": 87454302,
+  "videoBitrate": "14 Mbps CBR target",
   "audio": true,
-  "audioDescription": "Original Next Move piano buildup retained. Five restrained Raptor Runner swooshes and 74 clicks aligned to committed gameplay actions.",
+  "audioDescription": "Original Next Move piano; final winning capture and native confetti hit its 48.2-second cadence. Five restrained transition accents; committed moves only.",
   "approval": "Local review revision; not approved or uploaded",
-  "source": "Actual shipped engine self-play: Intermediate White versus Hard Black, replayed through the real UI. Separate legal instructional double capture. Isolated fictional social, tournament and profile data.",
-  "note": "Complete 45-turn AI match accelerates from 1.1× to 3.5×, with all 63 actions and a genuine 13–5 finish. Jump to capture leads directly to Black capturing two Whites; chain card removed. Static tournament framing. Actual badge picker and square theme-preview layout bugs fixed and recaptured. Existing piano buildup and 48.2-second logo cadence retained.",
+  "source": "Actual Intermediate-versus-Hard engine decisions replayed through the shipped UI, captured as lossless 2× PNG sequences. Separate legal instructional example. Social/tournament UI uses isolated fictional fixtures.",
+  "note": "Six real opening placements; White capture before Black double reply; long friend list, received invitation and acceptance. Badge/selector shots removed. No enlarged source pixels. Continuous logarithmic acceleration has no slow patch; actual winning confirmation and native confetti land on the original piano cadence at 48.2 seconds. A 0.6-second crossfade leads into approved Steam artwork and Free to Play on Steam.",
   "uploadState": {
     "steam": "New cut is local only. Previous 30-second cut remains uploaded in the store draft.",
     "googlePlay": "not uploaded",
@@ -32,11 +32,11 @@
     "suitableForAllAges": true,
     "countryRestrictions": []
   },
-  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/ai-match-trailer/",
-  "files": "Selected edit, complete AI decision ledger, generator, move manifest, renderer, UI fixes, tests and production audio tracked. Local video, raw recordings, stems, capture recipes and visual/frame QA preserved in the vault; previous cut retained.",
+  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-24/friends-cadence-trailer/",
+  "files": "Renderer, capture and frame-fingerprint scripts, complete AI ledger, per-frame hashes, sound projection/tests, production audio and approved store-art vectors tracked. Lossless PNG sources, video, stems and QA are local-only in the vault; the preceding selection is preserved.",
   "intertitleCount": 6,
-  "brandCardCount": 2,
-  "reviewCopy": "build/store-trailer/tiao-ai-match.mp4",
+  "brandCardCount": 1,
+  "reviewCopy": "build/store-trailer/tiao-friends-cadence.mp4",
   "music": {
     "file": "scripts/assets/store-trailer/audio/next-move-original.mp3",
     "title": "Next Move",
@@ -51,16 +51,16 @@
     "resolveAt": 48.2,
     "licence": "Original arrangement; Apple sample content used in finished soundtrack under Logic Pro licence",
     "licenceUrl": "https://www.apple.com/legal/sla/docs/LogicPro.pdf",
-    "ending": "Original D-major ninth resolves on the logo; replaces the previous stock piano impact to keep the cadence in key."
+    "ending": "Original D-major ninth lands on the genuine final capture and confetti at 48.2 seconds; its tail continues under the store-art end card."
   },
   "audioMeasurements": {
-    "integratedLufs": -16.6,
-    "truePeakDbfs": -2
+    "integratedLufs": -16.7,
+    "truePeakDbfs": -2.1
   },
   "previousLocalSelection": {
     "duration": 50.2,
-    "sha256": "8d4d308c7682616bac170549a01ecdeb7da0e6b8df36e472a13301e26957133c",
-    "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/safe-opening-native-themes/"
+    "sha256": "f8811139f873d80514aa72fca492ace56a70003b4525751b7c8034c974b2a249",
+    "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/ai-match-trailer/"
   },
   "audioValidation": {
     "transitionCount": 5,
@@ -69,11 +69,11 @@
     "allMusicSecondsPresent": true
   },
   "moveSoundValidation": {
-    "cueCount": 74,
+    "cueCount": 77,
     "fullAiMatchActions": 63,
     "maximumVisualOffsetFrames": 1,
     "silentPreviewsAndHolds": true,
-    "lateCaptureConfirmations": 2
+    "winningConfirmation": 48.2
   },
   "pictureValidation": {
     "completeAiTurns": 45,
@@ -89,6 +89,17 @@
     "fullNativeThemeFrames": 4,
     "aspectRatioPreserved": true,
     "staticFootageCamera": true,
-    "desktopAndMobilePickersVerified": true
-  }
+    "minimumCropPixels": [1920, 1080],
+    "newCapturePixels": [3840, 2160],
+    "openingPlacements": 6,
+    "openingSeconds": 4.1,
+    "friendListEntries": 16,
+    "receivedInvitationAccepted": true,
+    "nativeVictoryConfetti": true,
+    "pianoWinSeconds": 48.2,
+    "endCardCrossfadeSeconds": 0.6,
+    "victoryCapturePixels": [1920, 1080],
+    "allAiActionsStoneVisibilityVerified": true
+  },
+  "storeArtworkEndCardCount": 1
 }

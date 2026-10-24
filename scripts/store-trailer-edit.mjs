@@ -13,7 +13,7 @@ const require = createRequire(import.meta.url);
 const sharp = require(process.env.SHARP_MODULE || "sharp");
 sharp.concurrency(1);
 const root = resolve(
-  process.argv.slice(2).find((a) => !a.startsWith("--")) || "build/store-trailer-v9",
+  process.argv.slice(2).find((a) => !a.startsWith("--")) || "build/store-trailer-v10",
 );
 const editPath =
   process.argv.find((a) => a.startsWith("--edit="))?.slice(7) ||
@@ -25,11 +25,28 @@ const moveManifest = edit.moveSounds
 const moveCues = moveManifest ? projectMoveSounds(edit, moveManifest) : [];
 const sounds = [...edit.sounds, ...moveCues].sort((a, b) => a.time - b.time);
 const audioOnly = process.argv.includes("--audio-only");
-const outputName = edit.outputName || "tiao-ai-match.mp4";
-const selectedShot = process.argv.find((a) => a.startsWith("--shot="))?.slice(7);
+const outputName = edit.outputName || "tiao-friends-cadence.mp4";
+const selectedShot = process.argv
+  .find((a) => a.startsWith("--shot="))
+  ?.slice(7)
+  .split(",")
+  .map(Number);
 for (const source of moveManifest?.sources || []) {
   const file = resolve(root, "raw", source.file);
-  if (existsSync(file))
+  if (source.frames) {
+    assert.equal(
+      createHash("sha256").update(JSON.stringify(source.frames)).digest("hex"),
+      source.sha256,
+    );
+    for (const frame of source.frames)
+      assert.equal(
+        createHash("sha256")
+          .update(readFileSync(resolve(file, frame.file)))
+          .digest("hex"),
+        frame.sha256,
+        "Source frame changed: " + frame.file,
+      );
+  } else if (existsSync(file))
     assert.equal(
       createHash("sha256").update(readFileSync(file)).digest("hex"),
       source.sha256,
@@ -57,11 +74,16 @@ const sourceSvg = (file) => {
 };
 const icon = sourceSvg("scripts/assets/tiao-icon.svg"),
   wordmark = sourceSvg("scripts/assets/tiao-wordmark.svg");
+const storeArt = sourceSvg("scripts/assets/store-art/steam-main.svg");
 const brand = `<svg x="558" y="440" width="185" height="185" viewBox="${icon.viewBox}">${icon.body}</svg><svg x="783" y="452" width="579" height="169" viewBox="${wordmark.viewBox}" fill="#f4ede1" color="#f4ede1">${wordmark.body}</svg>`;
 const cardSvg = (shot) => {
   const { intertitleBackground: background, ink } = edit.style;
   if (shot.kind === "brand")
     return svg(`<rect width="1920" height="1080" fill="${background}"/>${brand}`);
+  if (shot.kind === "endcard")
+    return svg(
+      `<rect width="1920" height="1080" fill="#f4eddd"/><svg x="0" y="-10" width="1920" height="1100" viewBox="${storeArt.viewBox}">${storeArt.body}</svg><text x="116" y="790" font-family="Georgia,serif" font-size="56" fill="#28170e">Free to Play on Steam</text>`,
+    );
   const lines = shot.title.split("\n");
   const top = lines.length === 1 ? 578 : 514;
   return svg(
@@ -76,13 +98,13 @@ const encoder = [
   "-preset",
   "fast",
   "-b:v",
-  "6M",
+  "14M",
   "-minrate",
-  "6M",
+  "14M",
   "-maxrate",
-  "6M",
+  "14M",
   "-bufsize",
-  "12M",
+  "28M",
   "-x264-params",
   "nal-hrd=cbr:force-cfr=1",
   "-pix_fmt",
@@ -91,8 +113,26 @@ const encoder = [
   "+faststart",
 ];
 if (!audioOnly) {
+  const input = (shot, args) => {
+    args.push("-threads", "2");
+    if (shot.sequence) {
+      const first = Math.floor((shot.start || 0) * 30 + 1e-7);
+      args.push(
+        "-framerate",
+        "30",
+        "-start_number",
+        String(first),
+        "-i",
+        resolve(root, "raw", shot.file, "f%06d.png"),
+      );
+      return (shot.start || 0) - first / 30;
+    }
+    if (shot.still) args.push("-loop", "1", "-framerate", "30");
+    args.push("-i", resolve(root, "raw", shot.file));
+    return shot.start || 0;
+  };
   for (const [i, shot] of edit.shots.entries()) {
-    if (selectedShot !== undefined && i !== Number(selectedShot)) continue;
+    if (selectedShot !== undefined && !selectedShot.includes(i)) continue;
     const id = String(i).padStart(2, "0"),
       frames = Math.round(shot.duration * 30);
     const args = ["-threads", "2"];
@@ -106,15 +146,25 @@ if (!audioOnly) {
       args.push("-loop", "1", "-framerate", "30", "-i", resolve(root, "graphics", `${id}.png`));
       const fadeOut = shot.end ? 0.5 : edit.style.fadeOut;
       filter = `scale=1920:1080,fade=t=in:st=0:d=${edit.style.fadeIn},fade=t=out:st=${shot.duration - fadeOut}:d=${fadeOut},setsar=1`;
+      if (shot.kind === "endcard" && shot.background) {
+        const start = input(shot.background, args);
+        filter = `[0:v]scale=1920:1080,setsar=1[art];[1:v]trim=start=${start},setpts=PTS-STARTPTS,scale=1920:1080:flags=lanczos,fps=30,tpad=stop_mode=clone:stop_duration=${shot.duration},setsar=1[game];[game][art]blend=all_expr='A*(1-min(T/${shot.fadeIn},1))+B*min(T/${shot.fadeIn},1)',trim=end_frame=${frames}[out]`;
+      }
     } else {
-      if (shot.still) args.push("-loop", "1", "-framerate", "30");
-      args.push("-i", resolve(root, "raw", shot.file));
+      const start = input(shot, args);
       const [x, y, w, h] = shot.crop || [0, 0, 1920, 1080];
-      assert(x >= 0 && y >= 0 && x + w <= 1920 && y + h <= 1080, `Invalid crop ${shot.file}`);
+      const [sourceWidth, sourceHeight] = shot.sourceSize || [1920, 1080];
+      assert(
+        x >= 0 && y >= 0 && x + w <= sourceWidth && y + h <= sourceHeight,
+        `Invalid crop ${shot.file}`,
+      );
       const speed = shot.speed || 1;
+      const timeMap = shot.acceleration
+        ? `${shot.duration}*log(1+${shot.acceleration.strength}*(PTS-STARTPTS)*TB/${shot.acceleration.sourceDuration})/log(1+${shot.acceleration.strength})/TB`
+        : `(PTS-STARTPTS)/${speed}`;
       const time = shot.still
         ? ""
-        : `trim=start=${shot.start || 0}:duration=${shot.duration * speed},setpts=(PTS-STARTPTS)/${speed},`;
+        : `trim=start=${start}:duration=${shot.acceleration?.sourceDuration || shot.duration * speed},setpts=${timeMap},`;
       const camera =
         shot.framing === "native"
           ? "scale=1920:1080:force_original_aspect_ratio=decrease:flags=lanczos,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=0xf4eddd"
@@ -122,14 +172,17 @@ if (!audioOnly) {
             ? "scale=1760:850:force_original_aspect_ratio=decrease:flags=lanczos,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=0xf4eddd"
             : "scale=1920:1080:force_original_aspect_ratio=increase:flags=lanczos,crop=1920:1080";
       filter = `${time}crop=${w}:${h}:${x}:${y},${camera},fps=30,tpad=stop_mode=clone:stop_duration=${shot.duration},trim=end_frame=${frames},setsar=1`;
-      if (edit.shots[i + 1]?.kind !== "footage")
+      if (shot.fadeOut !== false && edit.shots[i + 1]?.kind !== "footage")
         filter += `,fade=t=out:st=${shot.duration - edit.style.fadeOut}:d=${edit.style.fadeOut}`;
     }
     run([
       ...args,
-      "-vf",
-      filter,
+      ...(shot.kind === "endcard" && shot.background
+        ? ["-filter_complex", filter, "-map", "[out]"]
+        : ["-vf", filter]),
       "-filter_threads",
+      "1",
+      "-filter_complex_threads",
       "1",
       "-an",
       "-t",
@@ -166,7 +219,7 @@ const duration = Number(edit.shots.reduce((n, s) => n + s.duration, 0).toFixed(4
 const measure = (file) => {
   const r = spawnSync(
     "ffmpeg",
-    ["-hide_banner", "-i", file, "-af", "ebur128=peak=true", "-f", "null", "-"],
+    ["-hide_banner", "-threads", "2", "-i", file, "-af", "ebur128=peak=true", "-f", "null", "-"],
     { encoding: "utf8", maxBuffer: 4 * 1024 * 1024 },
   );
   assert.equal(r.status, 0, r.stderr);

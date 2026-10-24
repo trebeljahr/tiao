@@ -1,7 +1,7 @@
 {
-  "title": "Tiao \u2014 genuine AI match and Black double capture",
+  "title": "Tiao \u2014 friends, clear captures and piano cadence",
   "source": "Shipped Tiao UI; legal local match replays and isolated sample social/tournament accounts",
-  "duration": 50.2,
+  "duration": 53.0,
   "style": {
     "intertitleBackground": "#17120f",
     "ink": "#f4ede1",
@@ -12,289 +12,246 @@
   "shots": [
     {
       "kind": "brand",
-      "duration": 1.6,
+      "duration": 1.4,
       "timelineStart": 0
     },
     {
       "kind": "footage",
-      "file": "ai-match.webm",
-      "start": 25.7,
-      "speed": 0.8083333333333336,
-      "duration": 2,
-      "crop": [400, 300, 880, 495],
-      "name": "Hard Black three-capture comeback from the real AI match",
-      "timelineStart": 1.6
-    },
-    {
-      "kind": "intertitle",
-      "title": "Take turns.",
-      "duration": 1.5,
-      "timelineStart": 3.6
-    },
-    {
-      "kind": "footage",
-      "file": "ai-match.webm",
-      "start": 0.5,
-      "speed": 0.8,
       "duration": 2.6,
-      "crop": [380, 330, 650, 366],
-      "name": "The actual AI opening \u2014 four alternating placements",
-      "timelineStart": 5.1
+      "file": "ai-hq",
+      "sequence": true,
+      "sourceSize": [3840, 2160],
+      "start": 4.7,
+      "crop": [600, 500, 1920, 1080],
+      "name": "Real AI opening exchange \u2014 White captures two",
+      "speed": 0.75,
+      "timelineStart": 1.4
     },
     {
       "kind": "intertitle",
+      "duration": 1.2,
+      "title": "Take turns.",
+      "timelineStart": 4.0
+    },
+    {
+      "kind": "footage",
+      "duration": 4.1,
+      "file": "ai-hq",
+      "sequence": true,
+      "sourceSize": [3840, 2160],
+      "start": 0,
+      "crop": [700, 450, 1920, 1080],
+      "name": "Six genuine alternating AI opening placements",
+      "speed": 0.878048780487805,
+      "timelineStart": 5.2
+    },
+    {
+      "kind": "intertitle",
+      "duration": 1.2,
       "title": "Jump to capture.",
-      "duration": 1.5,
-      "timelineStart": 7.7
+      "timelineStart": 9.3
     },
     {
       "kind": "footage",
-      "file": "counter.webm",
-      "start": 2.5,
-      "speed": 0.8,
-      "duration": 3.3,
-      "crop": [600, 380, 650, 366],
-      "name": "Black captures both White stones in one continuous two-hop reply",
-      "timelineStart": 9.2
+      "duration": 4.8,
+      "file": "counter-hq",
+      "sequence": true,
+      "sourceSize": [3840, 2160],
+      "start": 0,
+      "crop": [600, 550, 1920, 1080],
+      "name": "White captures first; Black captures both Whites in reply",
+      "timelineStart": 10.5
     },
     {
       "kind": "intertitle",
+      "duration": 1.2,
       "title": "Play with friends.",
-      "duration": 1.2,
-      "timelineStart": 12.5
+      "timelineStart": 15.3
     },
     {
       "kind": "footage",
-      "file": "friends.webm",
-      "start": 1.5,
-      "duration": 1.4,
-      "crop": [360, 80, 1200, 675],
-      "name": "Choose your opponent",
-      "timelineStart": 13.7
-    },
-    {
-      "kind": "footage",
-      "file": "friends.webm",
-      "start": 3.5,
       "duration": 2.4,
-      "crop": [320, 170, 1280, 720],
-      "name": "Choose a side and board size",
-      "timelineStart": 15.1
+      "file": "friends-hq",
+      "sequence": true,
+      "sourceSize": [3840, 2160],
+      "start": 0,
+      "crop": [960, 0, 1920, 1080],
+      "name": "Scroll through a long friend list",
+      "moveSounds": false,
+      "timelineStart": 16.5
+    },
+    {
+      "kind": "footage",
+      "duration": 1.8,
+      "file": "invite-hq",
+      "sequence": true,
+      "sourceSize": [3840, 2160],
+      "start": 0,
+      "crop": [1720, 480, 1920, 1080],
+      "name": "Receive a game invitation and accept",
+      "moveSounds": false,
+      "timelineStart": 18.9
+    },
+    {
+      "kind": "footage",
+      "duration": 1.1,
+      "file": "invite-hq",
+      "sequence": true,
+      "sourceSize": [3840, 2160],
+      "start": 1.8,
+      "crop": [1920, 180, 1920, 1080],
+      "framing": "native",
+      "name": "Join the actual friend game route",
+      "moveSounds": false,
+      "timelineStart": 20.7
     },
     {
       "kind": "intertitle",
+      "duration": 1.1,
       "title": "Win tournaments.",
-      "duration": 1.2,
-      "timelineStart": 17.5
+      "timelineStart": 21.8
     },
     {
       "kind": "footage",
-      "file": "tournament.webm",
-      "start": 2.3,
       "duration": 1.6,
-      "crop": [460, 190, 1000, 563],
+      "file": "bracket-hq.png",
+      "still": true,
+      "sourceSize": [3840, 2160],
+      "crop": [920, 380, 2000, 1126],
       "name": "Follow the bracket",
-      "timelineStart": 18.7
+      "moveSounds": false,
+      "timelineStart": 22.9
     },
     {
       "kind": "footage",
-      "file": "winner.webm",
-      "start": 4.5,
-      "duration": 1.7,
-      "crop": [795, 250, 640, 360],
-      "name": "A final won by one capture",
-      "timelineStart": 20.3
+      "duration": 1.3,
+      "file": "winner-hq.png",
+      "still": true,
+      "sourceSize": [3840, 2160],
+      "crop": [1500, 300, 1920, 1080],
+      "name": "Win the final",
+      "moveSounds": false,
+      "timelineStart": 24.5
     },
     {
       "kind": "intertitle",
+      "duration": 1.1,
       "title": "Make it yours.",
-      "duration": 1.2,
-      "timelineStart": 22.0
+      "timelineStart": 25.8
     },
     {
       "kind": "footage",
-      "file": "customization.webm",
-      "start": 0.3,
-      "duration": 1.8,
-      "crop": [480, 555, 960, 210],
-      "name": "Choose Champion, One Jump Wonder and Flawless in the badge panel",
-      "timelineStart": 23.2,
-      "speed": 1.4,
-      "framing": "native"
-    },
-    {
-      "kind": "footage",
-      "file": "achievements-rich.webm",
-      "start": 1.7,
-      "duration": 1.8,
-      "crop": [420, 325, 1080, 608],
-      "name": "Capture challenges and achievement tiers",
-      "timelineStart": 25.0,
-      "speed": 0.6
-    },
-    {
-      "kind": "footage",
-      "file": "themes.webm",
-      "start": 0.35,
-      "duration": 0.7,
-      "crop": [15, 700, 300, 280],
-      "name": "Select a board theme",
-      "timelineStart": 26.8,
-      "framing": "native"
-    },
-    {
-      "kind": "footage",
+      "duration": 0.8,
       "file": "ai-theme-night.png",
+      "still": true,
       "start": 0,
-      "duration": 0.7,
       "crop": [0, 0, 1920, 1080],
+      "framing": "native",
       "name": "Night board",
-      "timelineStart": 27.5,
-      "still": true,
-      "framing": "native"
+      "timelineStart": 26.9
     },
     {
       "kind": "footage",
+      "duration": 0.7,
       "file": "ai-theme-sakura.png",
+      "still": true,
       "start": 0,
-      "duration": 0.6,
       "crop": [0, 0, 1920, 1080],
+      "framing": "native",
       "name": "Sakura board",
-      "timelineStart": 28.2,
-      "still": true,
-      "framing": "native"
+      "timelineStart": 27.7
     },
     {
       "kind": "footage",
+      "duration": 0.6,
       "file": "ai-theme-ocean.png",
-      "start": 0,
-      "duration": 0.5,
-      "crop": [0, 0, 1920, 1080],
-      "name": "Ocean board",
-      "timelineStart": 28.8,
       "still": true,
-      "framing": "native"
+      "start": 0,
+      "crop": [0, 0, 1920, 1080],
+      "framing": "native",
+      "name": "Ocean board",
+      "timelineStart": 28.4
     },
     {
       "kind": "footage",
+      "duration": 0.5,
       "file": "ai-theme-marble.png",
-      "start": 0,
-      "duration": 0.4,
-      "crop": [0, 0, 1920, 1080],
-      "name": "Marble board",
-      "timelineStart": 29.3,
       "still": true,
-      "framing": "native"
+      "start": 0,
+      "crop": [0, 0, 1920, 1080],
+      "framing": "native",
+      "name": "Marble board",
+      "timelineStart": 29.0
     },
     {
       "kind": "intertitle",
+      "duration": 1.2,
       "title": "Capture ten.\nWin the game.",
-      "duration": 1.5,
-      "timelineStart": 29.7
+      "timelineStart": 29.5
     },
     {
       "kind": "footage",
-      "file": "ai-match.webm",
-      "start": 0.35,
-      "speed": 1.1492248062015504,
-      "duration": 4.3,
-      "crop": [0, 0, 1920, 1080],
+      "duration": 17.5,
+      "file": "ai-hq",
+      "sequence": true,
+      "sourceSize": [3840, 2160],
+      "start": 0,
+      "crop": [0, 0, 3840, 2160],
+      "name": "Complete real AI match \u2014 continuously accelerating",
       "framing": "native",
-      "name": "Medium versus Hard \u2014 accelerating full match 1",
-      "timelineStart": 31.2
+      "acceleration": {
+        "strength": 3,
+        "sourceDuration": 37.4
+      },
+      "fadeOut": false,
+      "timelineStart": 30.7
     },
     {
       "kind": "footage",
-      "file": "ai-match.webm",
-      "start": 5.291666666666666,
-      "speed": 1.4974747474747474,
-      "duration": 3.3,
+      "duration": 1.3,
+      "file": "victory-clean.mkv",
+      "sequence": false,
+      "sourceSize": [1920, 1080],
+      "start": 0.6666666666666666,
       "crop": [0, 0, 1920, 1080],
+      "name": "Winning capture on the piano cadence and native confetti",
       "framing": "native",
-      "name": "Medium versus Hard \u2014 accelerating full match 2",
-      "timelineStart": 35.5
-    },
-    {
-      "kind": "footage",
-      "file": "ai-match.webm",
-      "start": 10.233333333333333,
-      "speed": 1.8302469135802466,
-      "duration": 2.7,
-      "crop": [0, 0, 1920, 1080],
-      "framing": "native",
-      "name": "Medium versus Hard \u2014 accelerating full match 3",
-      "timelineStart": 38.8
-    },
-    {
-      "kind": "footage",
-      "file": "ai-match.webm",
-      "start": 15.174999999999999,
-      "speed": 2.353174603174603,
-      "duration": 2.1,
-      "crop": [0, 0, 1920, 1080],
-      "framing": "native",
-      "name": "Medium versus Hard \u2014 accelerating full match 4",
-      "timelineStart": 41.5
-    },
-    {
-      "kind": "footage",
-      "file": "ai-match.webm",
-      "start": 20.116666666666667,
-      "speed": 2.7453703703703702,
-      "duration": 1.8,
-      "crop": [0, 0, 1920, 1080],
-      "framing": "native",
-      "name": "Medium versus Hard \u2014 accelerating full match 5",
-      "timelineStart": 43.6
-    },
-    {
-      "kind": "footage",
-      "file": "ai-match.webm",
-      "start": 25.058333333333334,
-      "speed": 3.5297619047619047,
-      "duration": 1.4,
-      "crop": [0, 0, 1920, 1080],
-      "framing": "native",
-      "name": "Medium versus Hard \u2014 accelerating full match 6",
-      "timelineStart": 45.4
-    },
-    {
-      "kind": "footage",
-      "file": "ai-result-hold.webm",
-      "start": 0.2,
-      "duration": 1.4,
-      "crop": [0, 0, 1920, 1080],
-      "framing": "native",
-      "name": "Actual result \u2014 White wins 13\u20135",
-      "timelineStart": 46.8
-    },
-    {
-      "kind": "brand",
-      "duration": 2,
-      "end": true,
+      "fadeOut": false,
       "timelineStart": 48.2
+    },
+    {
+      "kind": "endcard",
+      "duration": 3.5,
+      "end": true,
+      "fadeIn": 0.6,
+      "background": {
+        "file": "victory-clean.mkv",
+        "start": 1.9666666666666668
+      },
+      "name": "Approved Steam artwork \u2014 Free to Play on Steam",
+      "timelineStart": 49.5
     }
   ],
   "sounds": [
     {
       "type": "whoosh",
-      "time": 3.6
+      "time": 4
     },
     {
       "type": "whoosh",
-      "time": 12.5
+      "time": 15.3
     },
     {
       "type": "whoosh",
-      "time": 17.5
+      "time": 21.8
     },
     {
       "type": "whoosh",
-      "time": 22.0
+      "time": 25.8
     },
     {
       "type": "whoosh",
-      "time": 29.7
+      "time": 29.5
     }
   ],
   "music": {
@@ -311,7 +268,7 @@
     "resolveAt": 48.2,
     "licence": "Original arrangement; Apple sample content used in finished soundtrack under Logic Pro licence",
     "licenceUrl": "https://www.apple.com/legal/sla/docs/LogicPro.pdf",
-    "ending": "Original D-major ninth resolves on the logo; replaces the previous stock piano impact to keep the cadence in key."
+    "ending": "Original D-major ninth lands on the genuine final capture and confetti at 48.2 seconds; its tail continues under the store-art end card."
   },
   "transition": {
     "file": "scripts/assets/store-trailer/audio/clean-woosh-8.mp3",
@@ -329,12 +286,12 @@
     "fadeOut": 1.2,
     "targetPeakDb": -8
   },
-  "outputName": "tiao-ai-match.mp4",
-  "audioDescription": "Original piano buildup retained; sparse restrained swooshes, source-frame move clicks and captures throughout a progressively accelerating real medium-versus-hard AI match.",
+  "outputName": "tiao-friends-cadence.mp4",
+  "audioDescription": "Original Next Move piano; final winning capture and native confetti hit its 48.2-second cadence. Five restrained transition accents; committed moves only.",
   "moveSounds": {
     "file": "scripts/assets/store-trailer/move-events.json",
     "gain": 0.5,
-    "timing": "Source frame mapped through shot trim and playback speed, rounded to output frame",
-    "ending": "All 45 actual engine-chosen turns, starting from an empty board and ending in the genuine 13\u20135 result. Six contiguous source spans accelerate without changing camera framing."
+    "timing": "Committed native source frames mapped through trims and linear or logarithmic time maps, rounded to output frames.",
+    "ending": "All 45 genuine engine-chosen turns replay with evenly spaced source actions and a continuous logarithmic acceleration. Winning confirmation and native confetti meet the piano cadence at 48.2 seconds."
   }
 }

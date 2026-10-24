@@ -1,5 +1,15 @@
 import assert from "node:assert/strict";
 
+// Match the renderer's continuous logarithmic time map. Its slope decreases
+// smoothly, so equally spaced source moves become progressively faster.
+export function sourceToTimeline(shot, sourceSeconds) {
+  const elapsed = sourceSeconds - (shot.start || 0);
+  if (!shot.acceleration) return elapsed / (shot.speed || 1);
+  const { strength, sourceDuration } = shot.acceleration;
+  assert(strength > 0 && sourceDuration > 0);
+  return (shot.duration * Math.log1p((strength * elapsed) / sourceDuration)) / Math.log1p(strength);
+}
+
 // Cue sounds from committed source-frame events, never from evenly spaced beats.
 export function projectMoveSounds(edit, manifest) {
   assert(!edit.sounds.some((sound) => sound.type === "tap"), "Use source move events for taps");
@@ -11,7 +21,7 @@ export function projectMoveSounds(edit, manifest) {
     if (!source) continue;
     const speed = shot.speed || 1;
     const sourceStart = shot.start || 0;
-    const sourceEnd = sourceStart + shot.duration * speed;
+    const sourceEnd = sourceStart + (shot.acceleration?.sourceDuration || shot.duration * speed);
     const firstFrame = Math.round(shot.timelineStart * fps);
     const endFrame = firstFrame + Math.round(shot.duration * fps);
     for (const event of source.events) {
@@ -34,7 +44,7 @@ export function projectMoveSounds(edit, manifest) {
       }
       const sourceTime = event.frame / source.fps;
       if (sourceTime < sourceStart || sourceTime >= sourceEnd) continue;
-      const frame = firstFrame + Math.round(((sourceTime - sourceStart) / speed) * fps);
+      const frame = firstFrame + Math.round(sourceToTimeline(shot, sourceTime) * fps);
       if (frame < firstFrame || frame >= endFrame) continue;
       cues.push({
         type: "tap",
