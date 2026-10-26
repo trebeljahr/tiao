@@ -72,6 +72,10 @@ function createBuilderConfig({ base, channel, signed, env = {} }) {
     linux: ["win64", "osx"],
   })) {
     config[platform].files = [
+      // Platform filters form a separate matcher after electron-builder
+      // normalizes the shared files list. A negative-only matcher adds
+      // **/* and includes other channels' dist output in the app archive.
+      "package.json",
       ...(base[platform].files ?? []),
       ...unused.map((directory) => `!node_modules/steamworks.js/dist/${directory}/**`),
     ];

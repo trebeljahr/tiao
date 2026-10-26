@@ -70,6 +70,10 @@ test("packages only supported Chromium locales and native libraries for the targ
       ["win", "win64", ["linux64", "osx"]],
       ["linux", "linux64", ["win64", "osx"]],
     ]) {
+      assert.ok(
+        c[platform].files.some((pattern) => !pattern.startsWith("!")),
+        `${platform} must not create electron-builder's implicit **/* matcher`,
+      );
       assert.ok(!c[platform].files.includes(`!node_modules/steamworks.js/dist/${keep}/**`));
       for (const directory of drop) {
         assert.ok(c[platform].files.includes(`!node_modules/steamworks.js/dist/${directory}/**`));
