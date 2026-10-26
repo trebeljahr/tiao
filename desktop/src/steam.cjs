@@ -46,10 +46,8 @@
  *      switches.  Chromium reads its command line once, during app
  *      startup — switches appended after `whenReady()` are simply
  *      ignored, and the overlay then attaches but never renders.
- *      The failure mode looks exactly like "Valve's Electron
- *      overlay support is broken on this platform", which is why
- *      it is worth being explicit: it is an ordering bug, not a
- *      platform bug.
+ *      macOS uses a separate native Metal view instead: Chromium's
+ *      CALayers do not present a drawable that Steam can hook.
  *   3. `initSteam()` — post-ready.  Opens the actual SDK
  *      connection.  Needs a running Steam client.
  *
@@ -195,8 +193,8 @@ function maybeRestartForSteam(isPackaged) {
 }
 
 /**
- * Install the Chromium switches Steam's in-game overlay needs, and
- * hook up the per-window frame invalidation it relies on.
+ * On Windows/Linux, install Chromium switches and per-window frame
+ * invalidation. macOS waits for attachSteamOverlay() after window creation.
  *
  * MUST be called before `app.whenReady()`.  `electronEnableSteamOverlay`
  * appends `in-process-gpu` and `disable-direct-composition` to the
@@ -209,6 +207,10 @@ function maybeRestartForSteam(isPackaged) {
  * @returns {boolean} true if the overlay hooks were installed
  */
 function prepareSteamOverlay() {
+  // Chromium's macOS CALayers do not provide a native drawable for Steam.
+  // Keep its GPU process separate; attach a Metal view after window creation.
+  if (!STEAM_ENABLED) return false;
+  if (process.platform === "darwin") return true;
   const steamworks = loadSteamworks();
   if (!steamworks) return false;
   try {
@@ -219,6 +221,12 @@ function prepareSteamOverlay() {
     console.warn("[steam] electronEnableSteamOverlay failed:", err);
     return false;
   }
+}
+
+/** @param {Electron.BrowserWindow} win @returns {boolean} */
+function attachSteamOverlay(win) {
+  if (!client || process.platform !== "darwin") return false;
+  return require("./steamOverlayMac.cjs").attachMacSteamOverlay(win);
 }
 
 /**
@@ -603,6 +611,7 @@ module.exports = {
   OVERLAY_DIALOG_CODES,
   maybeRestartForSteam,
   prepareSteamOverlay,
+  attachSteamOverlay,
   initSteam,
   shutdownSteam,
   isSteamActive,

@@ -53,6 +53,7 @@ const {
   STEAM_APPID,
   maybeRestartForSteam,
   prepareSteamOverlay,
+  attachSteamOverlay,
   initSteam,
   shutdownSteam,
   isSteamActive,
@@ -312,6 +313,7 @@ function bootstrap() {
     },
   });
 
+  attachSteamOverlay(mainWindow);
   Menu.setApplicationMenu(buildMenu());
 
   if (!bundleRoot) {

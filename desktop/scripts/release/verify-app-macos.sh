@@ -20,6 +20,30 @@ verify_app() {
   binary="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Contents/Info.plist")"
   archs="$(lipo -archs "$app/Contents/MacOS/$binary")"
   [[ "$archs" == *x86_64* && "$archs" == *arm64* ]] || { echo "Not universal: $archs" >&2; exit 1; }
+  # The Steam channels use a dedicated entitlement set. Verify the actual
+  # signed artifact and unpacked native surface, rather than just its config.
+  local steam
+  steam="$(node --input-type=module - "$app/Contents/Resources/app.asar" "$(dirname "$0")/lib.mjs" <<'JS'
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+const { readAsarFile } = await import(pathToFileURL(resolve(process.argv[3])));
+const meta = JSON.parse(readAsarFile(process.argv[2], 'package.json'));
+console.log(meta.steamBuild === true);
+JS
+)"
+  if [[ "$steam" == true ]]; then
+    local entitlements
+    entitlements="$(codesign -d --entitlements - --xml "$app" 2>/dev/null)"
+    for key in allow-dyld-environment-variables disable-library-validation; do
+      [[ "$(plutil -extract "com\\.apple\\.security\\.cs\\.$key" raw -o - - <<< "$entitlements")" == true ]] || {
+        echo "Missing Steam entitlement: $key" >&2; exit 1;
+      }
+    done
+    local presenter="$app/Contents/Resources/app.asar.unpacked/src/steamOverlayMac.node"
+    [[ -f "$presenter" ]] || { echo 'Missing Steam Metal presenter.' >&2; exit 1; }
+    lipo "$presenter" -verify_arch arm64 x86_64
+    codesign --verify --strict "$presenter"
+  fi
 }
 [[ $# -eq 1 ]] || { echo "Usage: verify-app-macos.sh <app>" >&2; exit 1; }
 verify_app "$1"

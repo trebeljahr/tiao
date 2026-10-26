@@ -155,6 +155,33 @@ wins.
 
 ## Architecture
 
+### Steam overlay
+
+Windows/Linux install `steamworks.js` GPU switches before Electron becomes
+ready and keep its frame invalidator for idle board screens. On macOS,
+Chromium presents through Core Animation; those switches alone do not provide
+a drawable Steam can hook. After Steam initializes, `attachSteamOverlay()`
+adds a transparent, input-passive native Metal view to the game window.
+It keeps presenting through window occlusion (Steam can occlude the game
+while opening) and detaches when the window closes.
+
+Steam and Steam demo packaging compile this Node-API addon for arm64 and
+x86_64 in `beforePack`, unpack it from ASAR, and sign with
+`build/entitlements.steam.plist`, including Valve's DYLD injection entitlement.
+The Mac App Store and other channels do not package the native addon.
+For an unpackaged Mac Steam run, build it first:
+
+```bash
+node scripts/release/build-steam-overlay.cjs
+STEAM_BUILD=true npm run dev
+```
+
+Use an official Node installation with Node-API headers, or set
+`NODE_INCLUDE_DIR` to their directory. A successful SDK init or native
+attachment log does not prove Steam drew anything. Verify Shift+Tab,
+Friends/Achievements, windowed/fullscreen transitions and input recovery in
+a game launched through Steam. See [Valve's overlay requirements](https://partner.steamgames.com/doc/features/overlay).
+
 ```
 desktop/
 ├── main.cjs          ← entry: preflight, protocol reg, bootstrap

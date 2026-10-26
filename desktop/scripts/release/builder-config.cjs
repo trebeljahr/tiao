@@ -88,6 +88,11 @@ function createBuilderConfig({ base, channel, signed, env = {} }) {
     config.extraMetadata.steamBuild = true;
     config.extraMetadata.steamAppId = product.appId;
     config.extraMetadata.steamDemo = channel === "steam-demo";
+    config.beforePack = "./scripts/release/build-steam-overlay.cjs";
+    config.files = [...base.files, "src/steamOverlayMac.node"];
+    config.asarUnpack = [...(base.asarUnpack ?? []), "src/steamOverlayMac.node"];
+    config.mac.entitlements = "build/entitlements.steam.plist";
+    config.mac.entitlementsInherit = "build/entitlements.steam.plist";
     if (channel === "steam-demo") {
       config.appId = base.appId + ".demo";
       config.productName = product.productName;

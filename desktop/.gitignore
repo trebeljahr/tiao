@@ -25,3 +25,6 @@ node_modules/
 .env.test
 .envrc.local
 .vercel/
+
+# Built native Steam Metal presenter
+src/steamOverlayMac.node

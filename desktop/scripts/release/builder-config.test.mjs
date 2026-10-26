@@ -153,3 +153,21 @@ test("demo identity and app id cannot cross into the full game", () => {
   assert.throws(() => config("steam-demo", false, { TIAO_STEAM_APPID: "5035580" }));
   assert.throws(() => config("steam", false, { TIAO_STEAM_APPID: "5491870" }));
 });
+
+test("Steam Mac builds compile and unpack a universal Metal presenter with injection entitlements", () => {
+  for (const channel of ["steam", "steam-demo"]) {
+    const c = config(channel);
+    assert.equal(c.beforePack, "./scripts/release/build-steam-overlay.cjs");
+    assert.ok(c.files.includes("src/steamOverlayMac.node"));
+    assert.ok(c.asarUnpack.includes("src/steamOverlayMac.node"));
+    assert.equal(c.mac.entitlements, "build/entitlements.steam.plist");
+    assert.equal(c.mac.entitlementsInherit, c.mac.entitlements);
+  }
+  for (const channel of ["direct", "itch", "mas", "msstore"]) {
+    const c = config(channel);
+    assert.equal(c.beforePack, undefined);
+    assert.ok(!c.files.includes("src/steamOverlayMac.node"));
+    assert.ok(!c.asarUnpack.includes("src/steamOverlayMac.node"));
+    assert.notEqual(c.mac.entitlements, "build/entitlements.steam.plist");
+  }
+});
