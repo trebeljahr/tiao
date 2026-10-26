@@ -1,6 +1,26 @@
 #!/usr/bin/env bash
 # Shared signed-app gate for hosted builds and local SteamPipe staging.
 set -euo pipefail
+validate_staple() {
+  local app="$1" attempt=1 output status
+  while true; do
+    if output="$(xcrun stapler validate "$app" 2>&1)"; then
+      printf '%s\n' "$output"
+      return 0
+    else
+      status=$?
+    fi
+    printf '%s\n' "$output" >&2
+    # Ticket validation contacts Apple even for an already stapled app.
+    # Retry transport failures only; invalid tickets fail immediately.
+    if [[ "$attempt" -ge 3 ]] || ! grep -Eq 'NSURLErrorDomain Code=-(1001|1004|1005|1009)|network connection was lost|ECONNRESET|ETIMEDOUT|ENOTFOUND|EAI_AGAIN' <<< "$output"; then
+      return "$status"
+    fi
+    attempt=$((attempt + 1))
+    echo "Temporary Apple ticket lookup failure; retry $attempt/3 in 20 seconds." >&2
+    sleep 20
+  done
+}
 verify_app() {
   local app="$1"
   echo "Verifying $app"
@@ -14,7 +34,7 @@ verify_app() {
   grep -Eq 'flags=0x[0-9a-f]*\(runtime\)' <<< "$signature"
   assessment="$(spctl --assess --type execute --verbose=2 "$app" 2>&1)"
   grep -F 'source=Notarized Developer ID' <<< "$assessment"
-  xcrun stapler validate "$app"
+  validate_staple "$app"
   local archs
   local binary
   binary="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Contents/Info.plist")"
