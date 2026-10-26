@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // The whole point of the 2026-04-16 cold-compile refactor is that
 // `@sentry/browser` must NOT enter the module graph when glitchtip is
@@ -77,5 +77,56 @@ describe("glitchtip — disabled in dev / test", () => {
     await Promise.resolve();
 
     expect(sentryInit).not.toHaveBeenCalled();
+  });
+});
+
+describe("glitchtip — production lazy SDK", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("NEXT_PUBLIC_GLITCHTIP_DSN", "https://public@example.test/1");
+    vi.stubEnv("NEXT_PUBLIC_PLATFORM", "web");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it("initializes once before queued reports and user updates", async () => {
+    const { captureException, setUser, glitchtipEnabled } = await import("./glitchtip");
+    expect(glitchtipEnabled).toBe(true);
+    const error = new Error("production report");
+    const user = { id: "player-1", username: "rico" };
+    captureException(error, { digest: "abc123" });
+    setUser(user);
+    setUser(null);
+
+    await vi.waitFor(() => expect(sentryCapture).toHaveBeenCalledWith(error));
+    expect(sentryInit).toHaveBeenCalledTimes(1);
+    expect(sentryInit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dsn: "https://public@example.test/1",
+        tunnel: "/api/_e",
+      }),
+    );
+    expect(sentryWithScope).toHaveBeenCalledTimes(1);
+    expect(sentrySetUser.mock.calls).toEqual([[user], [null]]);
+    expect(sentryInit.mock.invocationCallOrder[0]).toBeLessThan(
+      sentryCapture.mock.invocationCallOrder[0],
+    );
+  });
+
+  it.each(["desktop", "no DSN"])("keeps reporting disabled for %s", async (mode) => {
+    if (mode === "desktop") vi.stubEnv("NEXT_PUBLIC_PLATFORM", "desktop");
+    else vi.stubEnv("NEXT_PUBLIC_GLITCHTIP_DSN", "");
+    const { captureException, setUser, glitchtipEnabled } = await import("./glitchtip");
+    expect(glitchtipEnabled).toBe(false);
+    captureException(new Error("ignored"));
+    setUser({ id: "player-1" });
+    await Promise.resolve();
+    expect(sentryInit).not.toHaveBeenCalled();
+    expect(sentryCapture).not.toHaveBeenCalled();
+    expect(sentrySetUser).not.toHaveBeenCalled();
   });
 });

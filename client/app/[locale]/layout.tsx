@@ -2,10 +2,11 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { notFound } from "next/navigation";
 import Script from "next/script";
-import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { getMessages, setRequestLocale } from "next-intl/server";
+import { hasLocale } from "next-intl";
+import { getNow, getTimeZone, setRequestLocale } from "next-intl/server";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { ReleaseRecovery } from "@/components/ReleaseRecovery";
+import { LocaleProvider } from "@/i18n/LocaleProvider";
 import { routing } from "@/i18n/routing";
 import { OG_IMAGES, TWITTER_IMAGES } from "@/lib/metadata";
 import { RELEASE_RECOVERY_INLINE_SCRIPT } from "@/lib/releaseRecovery";
@@ -92,7 +93,8 @@ export default async function RootLayout({
   }
 
   setRequestLocale(locale);
-  const messages = await getMessages();
+  const now = await getNow();
+  const timeZone = await getTimeZone();
 
   return (
     <html
@@ -122,11 +124,11 @@ export default async function RootLayout({
               })();
             `}
         </Script>
-        <NextIntlClientProvider messages={messages}>
+        <LocaleProvider locale={locale} now={now} timeZone={timeZone}>
           <OfflineBanner />
           <ReleaseRecovery />
           <Providers>{children}</Providers>
-        </NextIntlClientProvider>
+        </LocaleProvider>
       </body>
     </html>
   );

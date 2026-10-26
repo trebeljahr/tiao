@@ -56,16 +56,34 @@ function createBuilderConfig({ base, channel, signed, env = {} }) {
     // Only direct downloads carry an update feed. Explicit null: left
     // undefined, electron-builder writes app-update.yml for a GitHub feed.
     publish: channel === "direct" ? base.publish : null,
+    // Chromium ships dozens of translations; Tiao supports these three.
+    // Bare language codes retain regional variants and English fallback.
+    electronLanguages: ["en", "de", "es"],
     mac: { ...base.mac },
     win: { ...base.win },
     linux: { ...base.linux },
   };
 
+  // steamworks.js publishes every OS binary in one package. Keep both Mac
+  // architectures for the universal app, but exclude the other OS payloads.
+  for (const [platform, unused] of Object.entries({
+    mac: ["linux64", "win64"],
+    win: ["linux64", "osx"],
+    linux: ["win64", "osx"],
+  })) {
+    config[platform].files = [
+      ...(base[platform].files ?? []),
+      ...unused.map((directory) => `!node_modules/steamworks.js/dist/${directory}/**`),
+    ];
+  }
+
   if (channel === "steam" || channel === "steam-demo") {
     const product = STEAM_PRODUCTS[channel];
     const override = envValue(env, "TIAO_STEAM_APPID");
     if (override !== undefined && override !== String(product.appId)) {
-      throw new Error("TIAO_STEAM_APPID must match the selected Tiao product (never Spacewar 480).");
+      throw new Error(
+        "TIAO_STEAM_APPID must match the selected Tiao product (never Spacewar 480).",
+      );
     }
     config.extraMetadata.steamBuild = true;
     config.extraMetadata.steamAppId = product.appId;

@@ -61,6 +61,23 @@ test("store builds drop steamworks.js; desktop channels keep it unpacked", () =>
   assert.ok(config("steam").asarUnpack.some((p) => p.includes("steamworks")));
 });
 
+test("packages only supported Chromium locales and native libraries for the target OS", () => {
+  for (const channel of ["direct", "itch", "steam", "steam-demo", "mas", "msstore"]) {
+    const c = config(channel);
+    assert.deepEqual(c.electronLanguages, ["en", "de", "es"]);
+    for (const [platform, keep, drop] of [
+      ["mac", "osx", ["linux64", "win64"]],
+      ["win", "win64", ["linux64", "osx"]],
+      ["linux", "linux64", ["win64", "osx"]],
+    ]) {
+      assert.ok(!c[platform].files.includes(`!node_modules/steamworks.js/dist/${keep}/**`));
+      for (const directory of drop) {
+        assert.ok(c[platform].files.includes(`!node_modules/steamworks.js/dist/${directory}/**`));
+      }
+    }
+  }
+});
+
 test("only the Microsoft Store build ships the Windows.Services.Store addon, unpacked", () => {
   const addon = "native/msstore/build/Release/tiao_msstore.node";
   const store = config("msstore");

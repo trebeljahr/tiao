@@ -35,7 +35,7 @@
  *   to `import * as Sentry from "@sentry/browser"` at module-top, which
  *   forced Turbopack to compile the entire SDK module graph into every
  *   route's cold compile — even in dev where glitchtip is always disabled.
- *   It's now `import("@sentry/browser")` inside an `if (process.env.NODE_ENV
+ *   It's now `import("./glitchtip-sdk")` inside an `if (process.env.NODE_ENV
  *   !== "production") return` branch so Turbopack dead-code-eliminates
  *   the expression in dev builds and the SDK never enters the critical
  *   path. Keep the production check BEFORE the glitchtipEnabled check so
@@ -51,7 +51,7 @@ export const glitchtipEnabled = Boolean(dsn) && isProd && !isDesktop;
 // Cached lazy import. Populated on first `getSentry()` call and reused
 // for subsequent calls. Stays null for the entire process lifetime when
 // glitchtip is disabled so the SDK never loads.
-let sentryPromise: Promise<typeof import("@sentry/browser")> | null = null;
+let sentryPromise: Promise<typeof import("./glitchtip-sdk")> | null = null;
 
 /**
  * Lazy-load @sentry/browser. Returns null (without touching the SDK)
@@ -61,15 +61,15 @@ let sentryPromise: Promise<typeof import("@sentry/browser")> | null = null;
  * The `process.env.NODE_ENV !== "production"` check is first on purpose:
  * Next.js inlines that env var at build time, so Turbopack/webpack can
  * statically prove the branch is taken in dev and dead-code-eliminate
- * everything below — including the `import("@sentry/browser")`
+ * everything below — including the `import("./glitchtip-sdk")`
  * expression. In a production build the env check is a no-op and the
  * glitchtipEnabled runtime gate still applies.
  */
-function getSentry(): Promise<typeof import("@sentry/browser")> | null {
+function getSentry(): Promise<typeof import("./glitchtip-sdk")> | null {
   if (process.env.NODE_ENV !== "production") return null;
   if (!glitchtipEnabled) return null;
   // biome-ignore lint/suspicious/noAssignInExpressions: lazy-init singleton via ??=
-  return (sentryPromise ??= import("@sentry/browser"));
+  return (sentryPromise ??= import("./glitchtip-sdk"));
 }
 
 // Kick off async init at module load when enabled. Fire-and-forget —
