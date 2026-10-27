@@ -15,6 +15,8 @@ export type SteamFlow = {
   targetSessionId?: string;
   returnPath: string;
   returnTo?: string;
+  nativeCallback?: string;
+  linkSecurityState?: string;
   expiresAt: Date;
 };
 function flows() {

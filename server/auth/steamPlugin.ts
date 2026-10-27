@@ -2,6 +2,7 @@ import type { BetterAuthPlugin, GenericEndpointContext } from "better-auth";
 import { APIError, createAuthEndpoint, getSessionFromCtx } from "better-auth/api";
 import { setSessionCookie } from "better-auth/cookies";
 import { FRONTEND_URL } from "../config/envVars";
+import { desktopSessionStore } from "./desktopSessionStore";
 import {
   createSteamAccount,
   findSteamAccount,
@@ -80,8 +81,12 @@ export function steamIdentityPlugin(): BetterAuthPlugin {
         "/steam/start",
         { method: "POST", body: objectBody },
         async (ctx) => {
-          requireBrowserOrigin(ctx);
+          if (ctx.request) requireBrowserOrigin(ctx);
           const body = (ctx.body ?? {}) as Record<string, unknown>;
+          const nativeCallback =
+            !ctx.request && typeof body.nativeCallback === "string"
+              ? body.nativeCallback
+              : undefined;
           const intent = body.intent === "link" ? "link" : "sign-in";
           const current = intent === "link" ? await getSessionFromCtx(ctx) : null;
           if (intent === "link" && (!current || current.user.isAnonymous))
@@ -98,6 +103,20 @@ export function steamIdentityPlugin(): BetterAuthPlugin {
             kind: "state",
             returnTo,
             returnPath: steamReturnPath(body.returnPath),
+            ...(nativeCallback
+              ? {
+                  nativeCallback,
+                  ...(current
+                    ? {
+                        linkSecurityState:
+                          (await desktopSessionStore.securityState(
+                            current.user.id,
+                            current.session.id,
+                          )) ?? "",
+                      }
+                    : {}),
+                }
+              : {}),
             ...(current
               ? { targetUserId: current.user.id, targetSessionId: current.session.id }
               : {}),
@@ -129,17 +148,28 @@ export function steamIdentityPlugin(): BetterAuthPlugin {
           });
         const redirectError = (reason: string) => {
           const path = new URL(
-            flow.returnPath,
-            new URL(FRONTEND_URL || ctx.context.baseURL).origin,
+            flow.nativeCallback || flow.returnPath,
+            new URL(flow.nativeCallback ? ctx.context.baseURL : FRONTEND_URL || ctx.context.baseURL)
+              .origin,
           );
           path.searchParams.set("error", reason);
           return ctx.redirect(path.href);
         };
         if (query.get("openid.mode") === "cancel") throw redirectError("steam_cancelled");
+        let completed = false;
         try {
           const steamId = await verifySteamOpenId(query, flow.returnTo);
           let account: { id: string } | null;
-          if (flow.targetUserId) {
+          if (flow.targetUserId && flow.nativeCallback) {
+            if (
+              !flow.targetSessionId ||
+              !flow.linkSecurityState ||
+              (await desktopSessionStore.securityState(flow.targetUserId, flow.targetSessionId)) !==
+                flow.linkSecurityState
+            )
+              throw new Error("Link session changed");
+            account = await linkSteamAccount(steamId, flow.targetUserId);
+          } else if (flow.targetUserId) {
             const current = await getSessionFromCtx(ctx);
             if (
               !current ||
@@ -151,7 +181,9 @@ export function steamIdentityPlugin(): BetterAuthPlugin {
             account = await linkSteamAccount(steamId, current.user.id);
           } else account = await findSteamAccount(steamId);
           if (account) {
-            await setSteamBrowserSession(ctx, account.id);
+            completed = true;
+            if (!flow.nativeCallback || !flow.targetUserId)
+              await setSteamBrowserSession(ctx, account.id);
           } else {
             // No permanent account until the player chooses new or existing.
             const pending = steamProof();
@@ -159,6 +191,7 @@ export function steamIdentityPlugin(): BetterAuthPlugin {
               kind: "pending",
               steamId,
               returnPath: flow.returnPath,
+              ...(flow.nativeCallback ? { nativeCallback: flow.nativeCallback } : {}),
             });
             const cookie = ctx.context.createAuthCookie("steam_pending", {
               maxAge: 600,
@@ -172,7 +205,14 @@ export function steamIdentityPlugin(): BetterAuthPlugin {
           );
         }
         throw ctx.redirect(
-          new URL(flow.returnPath, new URL(FRONTEND_URL || ctx.context.baseURL).origin).href,
+          new URL(
+            flow.nativeCallback && completed ? flow.nativeCallback : flow.returnPath,
+            new URL(
+              flow.nativeCallback && completed
+                ? ctx.context.baseURL
+                : FRONTEND_URL || ctx.context.baseURL,
+            ).origin,
+          ).href,
         );
       }),
       steamPending: createAuthEndpoint("/steam/pending", { method: "GET" }, async (ctx) => {
@@ -199,7 +239,14 @@ export function steamIdentityPlugin(): BetterAuthPlugin {
           if (body.action === "cancel") {
             await readSteamFlow(pending as string, true);
             ctx.setCookie(cookie.name, "", { ...cookie.attributes, maxAge: 0 });
-            return ctx.json({ status: "cancelled" });
+            return ctx.json({
+              status: "cancelled",
+              ...(flow.nativeCallback
+                ? {
+                    redirectPath: `${flow.nativeCallback}&error=steam_cancelled`,
+                  }
+                : {}),
+            });
           }
           try {
             let account: { id: string } | null;
@@ -221,7 +268,14 @@ export function steamIdentityPlugin(): BetterAuthPlugin {
             await setSteamBrowserSession(ctx, account.id);
             await readSteamFlow(pending as string, true);
             ctx.setCookie(cookie.name, "", { ...cookie.attributes, maxAge: 0 });
-            return ctx.json({ status: "signed_in" });
+            return ctx.json({
+              status: "signed_in",
+              ...(flow.nativeCallback
+                ? {
+                    redirectPath: flow.nativeCallback,
+                  }
+                : {}),
+            });
           } catch (error) {
             if (error instanceof SteamAccountError)
               throw new APIError(error.status === 409 ? "CONFLICT" : "BAD_REQUEST", {

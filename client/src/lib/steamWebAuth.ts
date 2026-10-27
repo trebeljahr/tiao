@@ -38,5 +38,15 @@ export async function finishSteamWebAccount(
   action: "create" | "link" | "cancel",
   username?: string,
 ) {
-  return steamRequest("finish", { action, username });
+  const result = await steamRequest("finish", { action, username });
+  if (result.redirectPath) {
+    const target = new URL(`${API_BASE_URL}${result.redirectPath}`, window.location.origin);
+    if (
+      target.origin !== new URL(API_BASE_URL || window.location.origin).origin ||
+      target.pathname !== "/api/auth/desktop/flow/callback"
+    )
+      throw new Error("Invalid desktop sign-in callback.");
+    window.location.assign(target.href);
+  }
+  return result;
 }

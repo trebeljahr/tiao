@@ -121,6 +121,7 @@ test("auth IPC blocks other frames before touching mocked credentials", () => {
     "auth:getToken",
     "auth:logout",
     "auth:startOAuth",
+    "auth:linkOAuth",
     "auth:getPersistenceStatus",
   ]) {
     assert.throws(() => h.untrusted(name), /Untrusted/);
@@ -239,4 +240,49 @@ test("Steam setup returns profile defaults without creating a renderer-chosen id
   assert.equal(result.profile.displayName, "Mäia Jump!");
   assert.equal(result.profile.suggestedUsername, "maia-jump");
   assert.equal(await h.call("auth:getToken"), null);
+});
+
+test("standalone desktop Steam uses the system-browser OAuth exchange", async () => {
+  const h = harness();
+  assert.equal((await h.call("auth:startOAuth", "steam")).ok, true);
+  const target = new URL(h.opened[0]);
+  assert.equal(target.searchParams.get("provider"), "steam");
+  await h.bridge.handleAuthDeepLink(
+    new URL(`tiao://auth/complete?state=${target.searchParams.get("state")}&code=verified`),
+  );
+  assert.equal(await h.call("auth:getToken"), "fake-new-token");
+});
+
+test("desktop linking carries the app session only in the authorization header", async () => {
+  const calls = /** @type {any[]} */ ([]);
+  const h = harness({
+    fetcher: async (url, init) => {
+      calls.push({ url, init });
+      const body = JSON.parse(init.body);
+      return {
+        ok: true,
+        json: async () => ({
+          path: `/api/auth/desktop/link/begin?state=${body.state}&ticket=once`,
+        }),
+      };
+    },
+  });
+  assert.equal((await h.call("auth:linkOAuth", "steam")).ok, false);
+  h.bridge.loadPersistedToken();
+  assert.equal((await h.call("auth:linkOAuth", "steam")).ok, true);
+  assert.equal(calls[0].init.headers.Authorization, "Bearer fake-token");
+  assert.equal(JSON.parse(calls[0].init.body).provider, "steam");
+  assert.equal(h.opened[0].includes("fake-token"), false);
+});
+
+test("desktop linking rejects external begin URLs", async () => {
+  const h = harness({
+    fetcher: async () => ({
+      ok: true,
+      json: async () => ({ path: "https://attacker.invalid/api/auth/desktop/link/begin" }),
+    }),
+  });
+  h.bridge.loadPersistedToken();
+  assert.equal((await h.call("auth:linkOAuth", "apple")).ok, false);
+  assert.equal(h.opened.length, 0);
 });

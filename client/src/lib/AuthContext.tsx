@@ -367,6 +367,7 @@ export function AuthProvider({
           isElectron?: boolean;
           auth?: {
             onAuthComplete?: (cb: (payload: { sessionToken: string }) => void) => () => void;
+            onAuthError?: (cb: (payload: { reason: string }) => void) => () => void;
           };
         };
       }
@@ -374,6 +375,9 @@ export function AuthProvider({
     if (!electron?.isElectron || typeof electron.auth?.onAuthComplete !== "function") {
       return;
     }
+    const unsubscribeError = electron.auth.onAuthError?.(({ reason }) => {
+      toastError(getOAuthErrorMessage(reason, t));
+    });
     const unsubscribe = electron.auth.onAuthComplete(async (payload) => {
       // The main process has already exchanged the code and stored
       // the token via safeStorage.  Update our module cache and
@@ -394,11 +398,12 @@ export function AuthProvider({
     return () => {
       try {
         unsubscribe?.();
+        unsubscribeError?.();
       } catch {
         /* best-effort cleanup */
       }
     };
-  }, []);
+  }, [t]);
 
   // Native mobile: OAuth finishes in the system browser and comes back as
   // a tiao://auth/complete deep link; mobileAuth exchanges it for a bearer
@@ -640,12 +645,13 @@ export function AuthProvider({
         window as unknown as {
           electron?: {
             isElectron?: boolean;
-            auth?: { startOAuth?: (p: string) => Promise<void> };
+            auth?: { startOAuth?: (p: string) => Promise<{ ok: boolean; reason?: string }> };
           };
         }
       ).electron;
       if (electron?.isElectron && typeof electron.auth?.startOAuth === "function") {
-        await electron.auth.startOAuth(provider);
+        const result = await electron.auth.startOAuth(provider);
+        if (!result.ok) throw new Error("Could not start sign-in. Please try again.");
         return;
       }
 

@@ -4,7 +4,11 @@ import { isSteamBuild } from "./SteamBridge";
 import { safeLocalStorage } from "./safeLocalStorage";
 import type { SteamProfileDefaults } from "./steamWebAuth";
 
+type DesktopProvider = "github" | "google" | "discord" | "apple" | "steam";
 type DesktopAuth = {
+  startOAuth?: (provider: DesktopProvider) => Promise<{ ok: boolean; reason?: string }>;
+  linkOAuth?: (provider: DesktopProvider) => Promise<{ ok: boolean; reason?: string }>;
+  onAuthComplete?: (cb: () => void) => () => void;
   steam?: (input: { action: "check" | "create" | "link"; username?: string }) => Promise<{
     status: "signed_in" | "needs_setup" | "unavailable";
     profile?: SteamProfileDefaults;

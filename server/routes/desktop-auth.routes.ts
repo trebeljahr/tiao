@@ -16,6 +16,7 @@ import {
   verifySessionToken,
 } from "../auth/desktopSessionManager";
 import { desktopSessionStore } from "../auth/desktopSessionStore";
+import desktopProviderRoutes, { startDesktopSteam } from "./desktop-provider.routes";
 
 /**
  * OAuth bridge for desktop Electron clients.
@@ -85,6 +86,7 @@ export function verifierMatchesChallenge(verifier: unknown, challenge: string): 
 }
 
 const router = express.Router();
+router.use(desktopProviderRoutes);
 
 // -----------------------------------------------------------------------------
 // GET /api/auth/desktop/start?provider=<google|github|discord>&state=<UUID>
@@ -96,10 +98,10 @@ router.get("/start", async (req: Request, res: Response) => {
     const provider = req.query.provider;
     const state = req.query.state;
 
-    if (!isValidDesktopProvider(provider)) {
+    if (provider !== "steam" && !isValidDesktopProvider(provider)) {
       return res.status(400).json({
         code: "INVALID_PROVIDER",
-        message: "provider must be one of: google, github, discord, apple",
+        message: "provider must be one of: google, github, discord, apple, steam",
       });
     }
     if (typeof state !== "string" || state.length === 0 || state.length > 256) {
@@ -130,21 +132,21 @@ router.get("/start", async (req: Request, res: Response) => {
       `/api/auth/desktop/callback?tiao_state=${encodeURIComponent(state)}` +
       (typeof challenge === "string" ? `&tiao_challenge=${encodeURIComponent(challenge)}` : "");
 
-    const baResponse = await auth.api.signInSocial({
-      body: {
-        provider: provider as "google" | "github" | "discord" | "apple",
-        callbackURL,
-      },
-      asResponse: true,
-    });
+    const baResponse =
+      provider === "steam"
+        ? await startDesktopSteam(state, typeof challenge === "string" ? challenge : undefined)
+        : await auth.api.signInSocial({
+            body: {
+              provider: provider as "google" | "github" | "discord" | "apple",
+              callbackURL,
+            },
+            asResponse: true,
+          });
 
     // Forward any Set-Cookie headers better-auth set for CSRF state
     // (these are critical — without them the OAuth callback will
     // fail verification when the user returns).
-    const setCookie = baResponse.headers.get("set-cookie");
-    if (setCookie) {
-      res.setHeader("set-cookie", setCookie);
-    }
+    for (const cookie of baResponse.headers.getSetCookie()) res.append("set-cookie", cookie);
 
     if (!baResponse.ok) {
       console.error("[desktop-auth] /start: better-auth rejected sign-in", baResponse.status);
@@ -155,7 +157,7 @@ router.get("/start", async (req: Request, res: Response) => {
     }
 
     const body = (await baResponse.json()) as { url?: string; redirect?: boolean };
-    if (!body?.redirect || typeof body.url !== "string") {
+    if ((provider !== "steam" && !body?.redirect) || typeof body.url !== "string") {
       return res.status(500).json({
         code: "OAUTH_INIT_FAILED",
         message: "Could not start the OAuth flow.",

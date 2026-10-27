@@ -23,9 +23,10 @@ import {
   updateAccountProfile,
   uploadAccountProfilePicture,
 } from "@/lib/api";
+import { SOCIAL_PROVIDERS } from "@/lib/authProviders";
 import { isNetworkError, readableError, toastError } from "@/lib/errors";
 import { DataExportCard } from "./profile/DataExportCard";
-import { LinkedAccounts, SOCIAL_PROVIDERS } from "./profile/LinkedAccounts";
+import { LinkedAccounts } from "./profile/LinkedAccounts";
 import { formatTimestamp, resizeImage } from "./profile/profileHelpers";
 
 export function ProfilePage() {

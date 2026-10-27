@@ -170,7 +170,12 @@ async function startOAuth(provider) {
     provider,
   )}&state=${encodeURIComponent(state)}`;
   if (!isSafeExternalUrl(url)) throw new Error("Unsafe OAuth URL");
-  await shell.openExternal(url);
+  try {
+    await shell.openExternal(url);
+  } catch (error) {
+    pendingAuth.delete(state);
+    throw error;
+  }
 }
 
 /**
@@ -288,8 +293,41 @@ async function revokeToken(token) {
  * @param {{ getTicket: () => Promise<{ ticket: string; cancel: () => void } | null>; appId: number; getUser?: () => { displayName: string } | null } | null} steam
  */
 function registerAuthIpc(steam = null) {
+  handleTrustedIpc(ipcMain, "auth:linkOAuth", async (_event, provider) => {
+    if (!["google", "github", "discord", "apple", "steam"].includes(provider))
+      return { ok: false, reason: "bad_provider" };
+    if (!cachedToken) return { ok: false, reason: "not_authenticated" };
+    evictStaleFlows();
+    const state = randomUUID();
+    const generation = authGeneration;
+    pendingAuth.set(state, { provider, createdAt: Date.now() });
+    try {
+      const response = await fetch(`${resolveApiUrl()}/api/auth/desktop/link/start`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${cachedToken}` },
+        body: JSON.stringify({ provider, state }),
+        redirect: "error",
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!response.ok) throw new Error("Could not start account linking.");
+      const result = /** @type {{ path?: string }} */ (await response.json());
+      const target = new URL(result.path || "", resolveApiUrl());
+      if (
+        target.origin !== new URL(resolveApiUrl()).origin ||
+        target.pathname !== "/api/auth/desktop/link/begin" ||
+        !isSafeExternalUrl(target.href)
+      )
+        throw new Error("Invalid account-link URL.");
+      if (generation !== authGeneration) throw new Error("Linking cancelled.");
+      await shell.openExternal(target.href);
+      return { ok: true };
+    } catch {
+      pendingAuth.delete(state);
+      return { ok: false, reason: "link_start_failed" };
+    }
+  });
   handleTrustedIpc(ipcMain, "auth:startOAuth", async (_event, provider) => {
-    if (!["google", "github", "discord", "apple"].includes(provider))
+    if (!["google", "github", "discord", "apple", "steam"].includes(provider))
       return { ok: false, reason: "bad_provider" };
     try {
       await startOAuth(provider);

@@ -1,7 +1,16 @@
 import { useEffect, useState } from "react";
+import { FaApple, FaDiscord, FaGithub, FaGoogle } from "react-icons/fa";
 import { API_BASE_URL } from "./api";
 
 export type SocialProvider = "github" | "google" | "discord" | "apple";
+
+/** Shared order and presentation for sign-in and explicit account linking. */
+export const SOCIAL_PROVIDERS = [
+  { id: "github", label: "GitHub", icon: FaGithub },
+  { id: "google", label: "Google", icon: FaGoogle },
+  { id: "discord", label: "Discord", icon: FaDiscord },
+  { id: "apple", label: "Apple", icon: FaApple },
+] as const;
 
 let providersPromise: Promise<SocialProvider[] | null> | null = null;
 

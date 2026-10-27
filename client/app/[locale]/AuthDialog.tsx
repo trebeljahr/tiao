@@ -16,12 +16,11 @@
  * Turbopack pull it in as a separate chunk via `next/dynamic`.
  */
 
-import { useTranslations } from "next-intl";
 import { useState } from "react";
 // Barrel import is fine — Next.js's `optimizePackageImports` includes
 // `react-icons/*` by default and rewrites this into per-icon imports
 // at compile time. No manual sub-path imports needed.
-import { FaApple, FaDiscord, FaGithub, FaGoogle } from "react-icons/fa";
+import { FaSteam } from "react-icons/fa";
 import { toast } from "sonner";
 import type { AuthDialogMode } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -29,94 +28,62 @@ import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { useAuth } from "@/lib/AuthContext";
-import { useAppleSignInEnabled } from "@/lib/authProviders";
+import { SOCIAL_PROVIDERS, useAppleSignInEnabled } from "@/lib/authProviders";
 import { desktopAuthBridge } from "@/lib/desktopAuth";
 import { isNativeMobileApp } from "@/lib/mobileAuth";
 import { isSteamBuild } from "@/lib/SteamBridge";
 import { startSteamWebSignIn } from "@/lib/steamWebAuth";
 
-/**
- * Sign in with Apple, styled per Apple's HIG: black fill, white Apple
- * logo, Apple's own button title, at least as prominent as the other
- * provider buttons (it gets its own full-width row above them).
- */
-export function AppleSignInButton({ onClick }: { onClick: () => void }) {
-  const t = useTranslations("common");
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-black px-4 text-[15px] font-medium text-white transition-colors hover:bg-black/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40 focus-visible:ring-offset-2"
-    >
-      <FaApple aria-hidden="true" className="h-[18px] w-[18px]" />
-      {t("continueWithApple")}
-    </button>
-  );
-}
-
-function OAuthButtons() {
+export function OAuthButtons() {
   const { handleOAuthSignIn, finishSteamSetup, setAuthDialogOpen, steamSetupRequired } = useAuth();
-  const tSteam = useTranslations("steamAccount");
   const appleEnabled = useAppleSignInEnabled();
+  const showSteam = !isNativeMobileApp() && !steamSetupRequired;
+
+  async function handleSteam() {
+    try {
+      if (isSteamBuild() && finishSteamSetup) {
+        await finishSteamSetup("check");
+        setAuthDialogOpen(false);
+      } else if (desktopAuthBridge()) {
+        const result = await desktopAuthBridge()!.startOAuth?.("steam");
+        if (!result?.ok) throw new Error("Could not start Steam sign-in.");
+      } else await startSteamWebSignIn();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : String(error));
+    }
+  }
 
   return (
     <div className="space-y-2">
       <p className="text-center text-xs font-semibold uppercase tracking-wider text-[#7b6550]">
         Or continue with
       </p>
-      {isSteamBuild() && !steamSetupRequired && finishSteamSetup && (
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          onClick={() => {
-            void finishSteamSetup("check")
-              .then(() => setAuthDialogOpen(false))
-              .catch((error) => toast.error(String(error.message)));
-          }}
-        >
-          {tSteam("continueSteam")}
-        </Button>
-      )}
-      {!desktopAuthBridge() && !isNativeMobileApp() && !steamSetupRequired && (
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          onClick={() => void startSteamWebSignIn().catch((error) => toast.error(error.message))}
-        >
-          {tSteam("continueSteam")}
-        </Button>
-      )}
-      {appleEnabled && <AppleSignInButton onClick={() => void handleOAuthSignIn("apple")} />}
-      <div className="flex gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          className="flex-1 gap-2"
-          onClick={() => void handleOAuthSignIn("github")}
-        >
-          <FaGithub className="h-4 w-4" />
-          GitHub
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          className="flex-1 gap-2"
-          onClick={() => void handleOAuthSignIn("google")}
-        >
-          <FaGoogle className="h-4 w-4" />
-          Google
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          className="flex-1 gap-2"
-          onClick={() => void handleOAuthSignIn("discord")}
-        >
-          <FaDiscord className="h-4 w-4" />
-          Discord
-        </Button>
+      <div className="grid grid-cols-2 gap-2">
+        {SOCIAL_PROVIDERS.filter((p) => p.id !== "apple" || appleEnabled).map(
+          ({ id, label, icon: Icon }) => (
+            <Button
+              key={id}
+              type="button"
+              variant="outline"
+              className="gap-2"
+              onClick={() => void handleOAuthSignIn(id)}
+            >
+              <Icon aria-hidden="true" className="h-4 w-4" />
+              {label}
+            </Button>
+          ),
+        )}
+        {showSteam && (
+          <Button
+            type="button"
+            variant="outline"
+            className="gap-2"
+            onClick={() => void handleSteam()}
+          >
+            <FaSteam aria-hidden="true" className="h-4 w-4" />
+            Steam
+          </Button>
+        )}
       </div>
     </div>
   );
