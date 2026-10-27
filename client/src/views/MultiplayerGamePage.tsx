@@ -40,6 +40,7 @@ import { InviteFriendsModal } from "@/components/InviteFriendsModal";
 import { Navbar } from "@/components/Navbar";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { ReportPlayerButton } from "@/components/ReportPlayerButton";
+import { SteamInviteButton } from "@/components/SteamInviteButton";
 import { TournamentContextBar } from "@/components/tournament/TournamentContextBar";
 import { TournamentWaitingSpectatorBanner } from "@/components/tournament/TournamentWaitingSpectatorBanner";
 import { Badge } from "@/components/ui/badge";
@@ -1351,6 +1352,15 @@ export function MultiplayerGamePage() {
                                 >
                                   {t("inviteFriend")}
                                 </Button>
+                              )}
+                            {isInPlayerList &&
+                              !isTournamentGame &&
+                              multiplayerSnapshot.status === "waiting" &&
+                              multiplayerSnapshot.players.length < 2 && (
+                                <SteamInviteButton
+                                  key={multiplayerSnapshot.gameId}
+                                  gameId={multiplayerSnapshot.gameId}
+                                />
                               )}
                             <p className="mt-2 text-xs leading-relaxed text-[#7a6656]">
                               {t("lobbyShareHint")}

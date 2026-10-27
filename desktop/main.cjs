@@ -67,7 +67,23 @@ const {
   getWebApiTicket: getSteamWebApiTicket,
   getAuthWebApiTicket: getSteamAuthWebApiTicket,
   onMicroTxnAuthorization,
+  getSteamClient,
 } = require("./src/steam.cjs");
+const { createSteamInvites, lobbyIdFromArgs } = require("./src/steamInvites.cjs");
+const steamInvites = createSteamInvites({
+  getClient: getSteamClient,
+  notify: () => {
+    if ((!mainWindow || mainWindow.isDestroyed()) && app.isReady()) bootstrap();
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+    mainWindow.webContents.send("steam:joinRequested");
+  },
+});
+app.on("second-instance", (_event, argv) => {
+  const lobbyId = lobbyIdFromArgs(argv);
+  if (lobbyId) void steamInvites.joinLobby(lobbyId);
+});
 
 // HMR dev mode: if TIAO_DEV_RENDERER_URL is set and we're unpackaged,
 // the renderer loads from that URL instead of `app://tiao/en/`.  Used
@@ -204,6 +220,7 @@ installDeepLinkHandler({ onAuth: handleAuthDeepLink });
 
 /** @type {BrowserWindow | null} */
 let mainWindow = null;
+let desktopServicesRegistered = false;
 
 /**
  * Check the on-disk locations the protocol handler will look at for
@@ -255,7 +272,10 @@ npm run dev                # launches Electron again</pre>
   void win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
 }
 
-function bootstrap() {
+function initializeDesktopServices() {
+  // Reopening the last macOS window must keep the existing Steam callbacks
+  // and IPC handlers, including an invite waiting for the new renderer.
+  if (desktopServicesRegistered) return;
   // Initialize crash reporting FIRST so any failure in subsequent
   // setup (protocol registration, token load, IPC wiring) still gets
   // captured.  `initGlitchtip` is a no-op without a DSN and in dev
@@ -277,9 +297,17 @@ function bootstrap() {
   // warning and leaves `isSteamActive() === false` — the rest of
   // the app keeps working as if we were a standalone build.
   initSteam();
+  steamInvites.start();
+  const invitedLobby = lobbyIdFromArgs(process.argv);
+  if (invitedLobby) void steamInvites.joinLobby(invitedLobby);
   registerSteamIpc();
   registerMsStoreIpc();
   registerInAppPurchaseIpc();
+  desktopServicesRegistered = true;
+}
+
+function bootstrap() {
+  initializeDesktopServices();
 
   // Check whether the bundled static export is reachable BEFORE we
   // create the window — if it's missing we'll spawn the window
@@ -322,6 +350,11 @@ function bootstrap() {
   }
 
   const win = mainWindow;
+  win.on("closed", () => steamInvites.setGame(null));
+  win.webContents.on("render-process-gone", () => steamInvites.setGame(null));
+  win.webContents.on("did-start-navigation", (_event, _url, isInPlace, isMainFrame) => {
+    if (isMainFrame && !isInPlace) steamInvites.setGame(null);
+  });
 
   // A `did-fail-load` with a bundled client shell indicates a
   // corrupted install (missing index.html, wrong protocol handler
@@ -405,6 +438,14 @@ function registerMsStoreIpc() {
 let microTxnForwarding = false;
 
 function registerSteamIpc() {
+  handleTrustedIpc(ipcMain, "steam:setInviteGame", async (_event, gameId) => {
+    steamInvites.setGame(gameId);
+  });
+  handleTrustedIpc(ipcMain, "steam:openInviteDialog", async () => steamInvites.openInviteDialog());
+  handleTrustedIpc(ipcMain, "steam:getPendingJoin", async () => steamInvites.getPendingJoin());
+  handleTrustedIpc(ipcMain, "steam:acknowledgeJoin", async (_event, id) => {
+    steamInvites.acknowledgeJoin(id);
+  });
   handleTrustedIpc(ipcMain, "steam:isActive", async () => {
     return isSteamActive();
   });
@@ -538,6 +579,7 @@ app.on("before-quit", async (event) => {
   if (glitchtipFlushed) return;
   event.preventDefault();
   try {
+    steamInvites.stop();
     shutdownSteam();
     await flushGlitchtip(2000);
   } catch {

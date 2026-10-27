@@ -150,6 +150,9 @@
     "footerAbout": "Acerca de Tiao"
   },
   "game": {
+    "steamJoinFailed": "Esta invitación de Steam ya no está disponible. Pide a tu amigo una nueva invitación o el enlace de la sala.",
+    "inviteSteamFriends": "Invitar a amigos de Steam",
+    "steamInviteFailed": "Las invitaciones de Steam no están disponibles. Comprueba que la interfaz de Steam esté activada o comparte el enlace de la sala.",
     "white": "Blancas",
     "black": "Negras",
     "draw": "¡Empate!",

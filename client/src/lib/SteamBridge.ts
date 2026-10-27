@@ -25,6 +25,11 @@ export type SteamOverlayDialog =
   | "Achievements";
 
 type SteamBridge = {
+  setInviteGame?: (gameId: string | null) => Promise<void>;
+  openInviteDialog?: () => Promise<boolean>;
+  getPendingJoin?: () => Promise<SteamJoinRequest | null>;
+  acknowledgeJoin?: (id: number) => Promise<void>;
+  onJoinRequested?: (cb: () => void) => () => void;
   isActive: () => Promise<boolean>;
   getUser: () => Promise<{ steamId: string; displayName: string; country?: string } | null>;
   unlockAchievement: (apiName: string) => Promise<{ ok: true } | { ok: false; reason: string }>;
@@ -53,6 +58,57 @@ function getBridge(): SteamBridge | null {
   if (typeof window === "undefined") return null;
   const w = window as unknown as { electron?: { steam?: SteamBridge } };
   return w.electron?.steam ?? null;
+}
+
+export function hasSteamInviteBridge(): boolean {
+  const bridge = getBridge();
+  return (
+    typeof bridge?.setInviteGame === "function" && typeof bridge?.openInviteDialog === "function"
+  );
+}
+
+export async function setSteamInviteGame(gameId: string | null): Promise<void> {
+  try {
+    await getBridge()?.setInviteGame?.(gameId);
+  } catch {
+    // Older desktop builds and disconnected Steam clients keep normal room sharing.
+  }
+}
+
+export async function openSteamInviteDialog(): Promise<boolean> {
+  try {
+    return (await getBridge()?.openInviteDialog?.()) ?? false;
+  } catch {
+    return false;
+  }
+}
+
+/** Subscribe before checking the pending invite so cold-start invites cannot be lost. */
+export function onSteamJoinRequested(cb: () => void): () => void {
+  return getBridge()?.onJoinRequested?.(cb) ?? (() => {});
+}
+
+export type SteamJoinRequest = { id: number; gameId: string | null };
+
+export async function getPendingSteamJoin(): Promise<SteamJoinRequest | null> {
+  try {
+    const request = await getBridge()?.getPendingJoin?.();
+    if (!request || !Number.isSafeInteger(request.id)) return null;
+    return request.gameId === null ||
+      (typeof request.gameId === "string" && /^[A-Z0-9]{6}$/.test(request.gameId))
+      ? request
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function acknowledgeSteamJoin(id: number): Promise<void> {
+  try {
+    await getBridge()?.acknowledgeJoin?.(id);
+  } catch {
+    // A reload can retry delivery if acknowledgement fails.
+  }
 }
 
 /** The demo has no commerce, even when the full game enables its shop. */

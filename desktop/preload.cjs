@@ -264,6 +264,18 @@ contextBridge.exposeInMainWorld("electron", {
   },
 
   steam: {
+    /** @param {string | null} gameId */
+    setInviteGame: (gameId) => ipcRenderer.invoke("steam:setInviteGame", gameId),
+    openInviteDialog: () => ipcRenderer.invoke("steam:openInviteDialog"),
+    getPendingJoin: () => ipcRenderer.invoke("steam:getPendingJoin"),
+    /** @param {number} id */
+    acknowledgeJoin: (id) => ipcRenderer.invoke("steam:acknowledgeJoin", id),
+    /** @param {() => void} cb */
+    onJoinRequested: (cb) => {
+      const listener = () => cb();
+      ipcRenderer.on("steam:joinRequested", listener);
+      return () => ipcRenderer.off("steam:joinRequested", listener);
+    },
     /** @returns {Promise<boolean>} */
     isActive: () => ipcRenderer.invoke("steam:isActive"),
 

@@ -37,6 +37,7 @@ import { Toaster } from "sonner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { NativeDeepLinkHandler } from "@/components/NativeDeepLinkHandler";
 import { SteamAccountSetup } from "@/components/SteamAccountSetup";
+import { SteamInviteHandler } from "@/components/SteamInviteHandler";
 import { AuthProvider, useAuth } from "@/lib/AuthContext";
 import { toastError } from "@/lib/errors";
 import { isEmbedPath } from "@/lib/frameHeaders";
@@ -197,6 +198,7 @@ function AppShell({ children, publicPage }: { children: React.ReactNode; publicP
       )}
       <AuthDialog />
       <OAuthErrorHandler />
+      <SteamInviteHandler />
       {process.env.NEXT_PUBLIC_PLATFORM === "mobile" && <NativeDeepLinkHandler />}
       {!publicPage && <DumpInstaller />}
       {/* Sonner hardcodes z-index:999999999 on [data-sonner-toaster].

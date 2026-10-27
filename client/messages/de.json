@@ -150,6 +150,9 @@
     "footerAbout": "Über Tiao"
   },
   "game": {
+    "steamJoinFailed": "Diese Steam-Einladung ist nicht mehr verfügbar. Bitte deinen Freund um eine neue Einladung oder den Raumlink.",
+    "inviteSteamFriends": "Steam-Freunde einladen",
+    "steamInviteFailed": "Steam-Einladungen sind nicht verfügbar. Prüfe, ob das Steam-Overlay aktiviert ist, oder teile den Raumlink.",
     "white": "Weiß",
     "black": "Schwarz",
     "draw": "Unentschieden!",

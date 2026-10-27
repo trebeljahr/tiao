@@ -155,6 +155,32 @@ wins.
 
 ## Architecture
 
+### Steam game invites
+
+In a waiting multiplayer room, choose **Invite Steam friends** to open Steam's
+friend picker. Accepting an invite opens that Tiao room, including when Steam
+first launches the game. Account setup finishes before the room opens.
+
+`src/steamInvites.cjs` creates a private two-member Steam lobby on demand,
+with the room code in `tiao_game_id`. It uses the installed `steamworks.js`
+lobby APIs and `GameLobbyJoinRequested` callback. Cold launches and second
+instances accept only `+connect_lobby <unsigned-64-bit-id>` arguments.
+See [Valve's lobby invite lifecycle](https://partner.steamgames.com/doc/features/multiplayer/matchmaking#5).
+
+The recipient reads the room code and leaves the Steam lobby immediately.
+Gameplay continues through Tiao's existing API and WebSocket connection.
+The sender closes the invite lobby when the room fills, the page changes,
+or the window closes. Tournament rooms and spectators cannot send these invites.
+The full game and demo use their respective Steam AppIDs.
+
+Pending invites remain in the main process until the authenticated renderer
+acknowledges delivery. Expired or invalid invites report an error. Web, mobile,
+and other desktop channels keep their existing room-sharing flow.
+
+Focused checks: `node --test desktop/src/steamInvites.test.cjs` and the client
+`src/components/SteamInvites.test.tsx` tests. A live invite exchange needs two
+Steam accounts with access to the same AppID and the Steam overlay enabled.
+
 ### Steam overlay
 
 Windows/Linux install `steamworks.js` GPU switches before Electron becomes

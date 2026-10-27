@@ -615,6 +615,7 @@ module.exports = {
   initSteam,
   shutdownSteam,
   isSteamActive,
+  getSteamClient: () => client,
   getSteamUser,
   unlockAchievement,
   indicateAchievementProgress,

@@ -150,6 +150,9 @@
     "footerAbout": "About Tiao"
   },
   "game": {
+    "steamJoinFailed": "This Steam invite is no longer available. Ask your friend for a new invite or room link.",
+    "inviteSteamFriends": "Invite Steam friends",
+    "steamInviteFailed": "Steam invites are unavailable. Check that the Steam overlay is enabled, or share the room link.",
     "white": "White",
     "black": "Black",
     "draw": "Draw!",
