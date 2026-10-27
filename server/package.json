@@ -33,7 +33,7 @@
     "mongodb": "^6.21.0",
     "mongoose": "^8.24.4",
     "morgan": "^1.12.1",
-    "multer": "^2.4.0",
+    "multer": "^2.5.0",
     "rate-limit-redis": "^4.3.1",
     "satori": "0.33.5",
     "stripe": "^22.6.2",
@@ -53,5 +53,12 @@
     "tsx": "^4.23.15",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.71.0"
-  }
+  },
+  "pnpm": {
+    "overrides": {
+      "body-parser@2": "2.4.0",
+      "zod@4": "4.6.6"
+    }
+  },
+  "packageManager": "pnpm@10.33.2"
 }

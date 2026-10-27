@@ -14,6 +14,16 @@ COPY shared ./shared
 COPY server ./server
 
 RUN pnpm --dir server run build
+# Test the Linux/native dependency closure before removing dev dependencies or
+# publishing the runtime image. Fixtures use no production credentials.
+RUN cd /app/server && NODE_ENV=test \
+    TOKEN_SECRET=synthetic-image-tests \
+    MONGODB_URI=mongodb://127.0.0.1:9/synthetic-image-tests \
+    S3_BUCKET_NAME=synthetic-image-tests \
+    S3_PUBLIC_URL=https://assets.example.invalid \
+    AWS_ACCESS_KEY_ID=synthetic AWS_SECRET_ACCESS_KEY=synthetic \
+    AWS_REGION=eu-central-1 \
+    node --test --test-concurrency=2 dist/server/tests/*.test.js
 RUN pnpm --dir server install --prod --frozen-lockfile --ignore-scripts
 
 FROM node:24.22.1-bookworm-slim AS runtime
