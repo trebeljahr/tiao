@@ -1,5 +1,6 @@
 {
   "desktopWindow": {
+    "rememberFullScreen": "Der Vollbildmodus wird für den nächsten Start gespeichert.",
     "enterFullScreen": "Vollbild aktivieren",
     "exitFullScreen": "Vollbild verlassen",
     "quit": "Tiao beenden",

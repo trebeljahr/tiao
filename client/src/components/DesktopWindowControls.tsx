@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { isSteamBuild } from "@/lib/SteamBridge";
 
 type WindowControls = {
   isFullScreen: () => Promise<boolean>;
@@ -12,14 +11,13 @@ type WindowControls = {
   quit: () => Promise<void>;
 };
 
-export function SteamWindowControls() {
+export function DesktopWindowControls() {
   const t = useTranslations("desktopWindow");
   const [controls, setControls] = useState<WindowControls | null>(null);
   const [fullScreen, setFullScreen] = useState<boolean | null>(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    if (!isSteamBuild()) return;
     const bridge = (window as unknown as { electron?: { windowControls?: WindowControls } })
       .electron?.windowControls;
     if (!bridge) return;
@@ -57,6 +55,7 @@ export function SteamWindowControls() {
 
   return (
     <div className="mt-6 grid gap-2 border-t border-[#b69261]/22 pt-4">
+      <p className="px-3 text-xs text-[#7a6a58]">{t("rememberFullScreen")}</p>
       <Button
         variant="ghost"
         className="justify-start text-[#28170e]"

@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { SteamWindowControls } from "./SteamWindowControls";
+import { DesktopWindowControls } from "./DesktopWindowControls";
 
 const electronWindow = window as unknown as { electron?: unknown };
 afterEach(() => {
@@ -24,21 +24,26 @@ function installBridge(isSteamBuild = true) {
   return { controls, unsubscribe, change: (enabled: boolean) => act(() => onChange(enabled)) };
 }
 
-describe("Steam window controls", () => {
-  it("stays hidden on web, other desktop channels, and older preloads", () => {
-    const { rerender } = render(<SteamWindowControls />);
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
-    installBridge(false);
-    rerender(<SteamWindowControls key="direct" />);
+describe("Desktop window controls", () => {
+  it("stays hidden on web, mobile, and older preloads", () => {
+    const { rerender } = render(<DesktopWindowControls />);
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
     electronWindow.electron = { config: { isSteamBuild: true } };
-    rerender(<SteamWindowControls key="old" />);
+    rerender(<DesktopWindowControls key="old" />);
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it("shows fullscreen and quit controls in non-Steam desktop builds", async () => {
+    installBridge(false);
+    render(<DesktopWindowControls />);
+    expect(await screen.findByRole("button", { name: "Exit fullscreen" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Quit Tiao" })).toBeInTheDocument();
+    expect(screen.getByText("Fullscreen is remembered for your next launch.")).toBeInTheDocument();
   });
 
   it("toggles native fullscreen, follows native state changes, quits, and unsubscribes", async () => {
     const { controls, change, unsubscribe } = installBridge();
-    const { unmount } = render(<SteamWindowControls />);
+    const { unmount } = render(<DesktopWindowControls />);
     fireEvent.click(await screen.findByRole("button", { name: "Exit fullscreen" }));
     expect(controls.setFullScreen).toHaveBeenCalledWith(false);
     change(false);
@@ -55,7 +60,7 @@ describe("Steam window controls", () => {
   it("reports a failed action without falsely changing fullscreen state", async () => {
     const { controls } = installBridge();
     controls.setFullScreen.mockRejectedValue(new Error("IPC failed"));
-    render(<SteamWindowControls />);
+    render(<DesktopWindowControls />);
     fireEvent.click(await screen.findByRole("button", { name: "Exit fullscreen" }));
     expect(await screen.findByRole("status")).toHaveTextContent("Could not complete this action");
     expect(screen.getByRole("button", { name: "Exit fullscreen" })).toBeInTheDocument();

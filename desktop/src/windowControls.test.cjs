@@ -8,6 +8,7 @@ const { registerTrustedContents } = require("./trust.cjs");
 
 function setup() {
   const handlers = new Map();
+  const saved = /** @type {boolean[]} */ ([]);
   const sent = /** @type {any[][]} */ ([]);
   let fullScreen = true;
   let quit = false;
@@ -44,14 +45,14 @@ function setup() {
     handle: (/** @type {string} */ channel, /** @type {Function} */ fn) =>
       handlers.set(channel, fn),
   });
-  mod.exports.installFullScreenEvents(win);
+  mod.exports.installFullScreenEvents(win, (/** @type {boolean} */ enabled) => saved.push(enabled));
   registerTrustedContents(/** @type {any} */ (wc), (url) => url.startsWith("app://tiao/"));
   const event = { sender: wc, senderFrame: wc.mainFrame };
-  return { handlers, event, win, wc, sent, didQuit: () => quit };
+  return { handlers, event, win, wc, sent, saved, didQuit: () => quit };
 }
 
 test("fullscreen IPC controls its sender's window, validates input, and broadcasts native changes", () => {
-  const { handlers, event, win, sent } = setup();
+  const { handlers, event, win, sent, saved } = setup();
   assert.equal(handlers.get("window:isFullScreen")(event), true);
   assert.throws(() => handlers.get("window:setFullScreen")(event, "false"));
   handlers.get("window:setFullScreen")(event, false);
@@ -59,6 +60,7 @@ test("fullscreen IPC controls its sender's window, validates input, and broadcas
   assert.equal(handlers.get("window:isFullScreen")(event), false);
   handlers.get("window:setFullScreen")(event, true);
   win.emit("enter-full-screen");
+  assert.deepEqual(saved, [false, true]);
   assert.deepEqual(sent, [
     ["window:fullScreenChanged", false],
     ["window:fullScreenChanged", true],

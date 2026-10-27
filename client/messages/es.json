@@ -1,5 +1,6 @@
 {
   "desktopWindow": {
+    "rememberFullScreen": "El modo de pantalla completa se recuerda para el próximo inicio.",
     "enterFullScreen": "Activar pantalla completa",
     "exitFullScreen": "Salir de pantalla completa",
     "quit": "Salir de Tiao",

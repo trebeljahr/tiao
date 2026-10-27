@@ -2,9 +2,9 @@
 import type { AuthResponse } from "@shared";
 import { useLocale, useTranslations } from "next-intl";
 import { lazy, Suspense, useCallback, useRef, useState } from "react";
+import { DesktopWindowControls } from "@/components/DesktopWindowControls";
 import { ThemePicker } from "@/components/game/ThemePicker";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
-import { SteamWindowControls } from "@/components/SteamWindowControls";
 import { Button } from "@/components/ui/button";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
 import {
@@ -518,7 +518,7 @@ export function Navbar({
         ))}
       </div>
 
-      <SteamWindowControls />
+      <DesktopWindowControls />
 
       <div className="mt-6 rounded-3xl border border-[#b69261]/22 bg-[rgba(255,248,232,0.94)] p-4 text-left">
         <div className="flex items-center gap-3 text-left">

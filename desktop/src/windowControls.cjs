@@ -16,9 +16,13 @@ function registerWindowControlsIpc(ipcMain) {
   });
 }
 
-/** @param {Electron.BrowserWindow} win */
-function installFullScreenEvents(win) {
+/**
+ * @param {Electron.BrowserWindow} win
+ * @param {(enabled: boolean) => void} [onChange]
+ */
+function installFullScreenEvents(win, onChange) {
   const notify = () => {
+    onChange?.(win.isFullScreen());
     if (!win.webContents.isDestroyed()) {
       win.webContents.send("window:fullScreenChanged", win.isFullScreen());
     }

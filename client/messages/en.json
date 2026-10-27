@@ -1,5 +1,6 @@
 {
   "desktopWindow": {
+    "rememberFullScreen": "Fullscreen is remembered for your next launch.",
     "enterFullScreen": "Enter fullscreen",
     "exitFullScreen": "Exit fullscreen",
     "quit": "Quit Tiao",
