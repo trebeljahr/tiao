@@ -43,11 +43,11 @@ The iOS app and the Mac App Store build share one App Store Connect record
 builds (`1.0.0`). After pushing `main`:
 
 ```sh
-gh workflow run build-mobile.yml --ref main -f platform=ios -f mode=signed -f build_number=2
-gh workflow run build-desktop.yml --ref main -f platform=mas -f mode=signed
+HATCHKIT_KEYCHAIN_ACCESS=deny hatchkit mac-runner run build-mobile.yml --repo trebeljahr/tiao --allow-public --ref main -f platform=ios -f mode=signed -f build_number=BUILD_NUMBER
+HATCHKIT_KEYCHAIN_ACCESS=deny hatchkit mac-runner run build-desktop.yml --repo trebeljahr/tiao --allow-public --ref main -f platform=mas -f mode=signed
 # when both runs are green, with their run IDs:
-gh workflow run publish-mobile.yml --ref main -f run_id=MOBILE_RUN_ID -f destination=testflight
-gh workflow run publish-desktop.yml --ref main -f run_id=DESKTOP_RUN_ID -f destination=mas
+HATCHKIT_KEYCHAIN_ACCESS=deny hatchkit mac-runner run publish-mobile.yml --repo trebeljahr/tiao --allow-public --ref main -f run_id=MOBILE_RUN_ID -f destination=testflight
+HATCHKIT_KEYCHAIN_ACCESS=deny hatchkit mac-runner run publish-desktop.yml --repo trebeljahr/tiao --allow-public --ref main -f run_id=DESKTOP_RUN_ID -f destination=mas
 ```
 
 Use a `build_number` above every build in TestFlight and Play (build 1
@@ -117,8 +117,27 @@ other Ricos Labs apps. The provisioning profile is per app.
 
 ### Variables
 
-No repository variables are required. The API URL, GlitchTip DSN and creator IDs are public values set in the
-workflow `env`, matching the web build.
+`APPLE_RUNNER=hatchkit-mac` sends main-branch iOS builds and TestFlight uploads
+to this Mac. Android stays on GitHub. Without that variable, Apple jobs use
+GitHub's `macos-15` runners. The API URL, GlitchTip DSN and creator IDs are
+public values set in the workflow `env`, matching the web build.
+
+Use `hatchkit mac-runner run` as shown above to dispatch and serve each Apple
+workflow. Check `hatchkit mac-runner status --repo trebeljahr/tiao` first.
+Tiao is public, so enable it with `hatchkit mac-runner on --repo
+trebeljahr/tiao --allow-public`, and include `--allow-public` when serving.
+Serve only reviewed main-branch runs: a public PR could change its workflow
+to take an active runner. See [desktop runner setup](RELEASING-desktop.md#running-apple-jobs-on-this-mac).
+
+The local runner uses the Mac's selected Xcode (`xcode-select -p`); hosted
+runners retain the pinned Xcode app. Signing uses a temporary keychain and
+a unique provisioning-profile file. Cleanup removes only this job's files
+and its keychain search-list entry, preserving existing profiles and other
+keychains. TestFlight API keys stay under `RUNNER_TEMP`.
+
+Publishers accept self-hosted iOS provenance only when `APPLE_RUNNER` is
+set. They still check the source workflow, repository, main ref, exact
+commit and every artifact checksum. Android requires hosted provenance.
 
 ## One-time store setup
 

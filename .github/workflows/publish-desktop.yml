@@ -43,6 +43,7 @@ jobs:
       attestations: read
     env:
       GH_TOKEN: ${{ github.token }}
+      APPLE_RUNNER: ${{ vars.APPLE_RUNNER }}
     defaults:
       run:
         working-directory: desktop
@@ -142,8 +143,8 @@ jobs:
           msstore publish "$(dirname "$PACKAGE")" --inputFile "$PACKAGE" --appId "$MSSTORE_PRODUCT_ID" --noCommit
 
   publish-mas:
-    if: inputs.destination == 'mas'
-    runs-on: macos-15
+    if: inputs.destination == 'mas' && github.ref == 'refs/heads/main' && github.repository == 'trebeljahr/tiao'
+    runs-on: ${{ vars.APPLE_RUNNER || 'macos-15' }}
     timeout-minutes: 40
     environment: release-mas
     permissions:
@@ -152,6 +153,7 @@ jobs:
       attestations: read
     env:
       GH_TOKEN: ${{ github.token }}
+      APPLE_RUNNER: ${{ vars.APPLE_RUNNER }}
     defaults:
       run:
         working-directory: desktop

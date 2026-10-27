@@ -5,6 +5,7 @@
 import { execFileSync } from "node:child_process";
 import { appendFileSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { attestationRunnerArgs } from "../../../scripts/ci/release-runners.mjs";
 import {
   buildWorkflow,
   desktopTargets,
@@ -56,6 +57,8 @@ for (const directory of readdirSync("artifacts", { withFileTypes: true }).filter
   const found = readdirSync(path).filter((name) => /^manifest-[a-z]+-[a-z0-9]+\.json$/.test(name));
   if (found.length !== 1) throw new Error("Expected exactly one manifest in " + path);
   const file = join(path, found[0]);
+  const manifest = JSON.parse(readFileSync(file, "utf8"));
+  validateManifest(manifest, run, path);
   gh([
     "attestation",
     "verify",
@@ -68,10 +71,8 @@ for (const directory of readdirSync("artifacts", { withFileTypes: true }).filter
     "refs/heads/main",
     "--source-digest",
     run.head_sha,
-    "--deny-self-hosted-runners",
+    ...attestationRunnerArgs(manifest.platform),
   ]);
-  const manifest = JSON.parse(readFileSync(file, "utf8"));
-  validateManifest(manifest, run, path);
   manifests.push({ ...manifest, directory: resolve(path), manifest: resolve(file) });
 }
 requireDestinationSet(manifests, destination);

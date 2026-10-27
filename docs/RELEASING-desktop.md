@@ -66,6 +66,31 @@ gh workflow run build-desktop.yml --ref main -f platform=all -f mode=smoke
 
 Pull requests touching `desktop/**` run every leg in smoke mode.
 
+### Running Apple jobs on this Mac
+
+Set the repository variable `APPLE_RUNNER` to `hatchkit-mac` to run the
+`macos` and `mas` build legs and the Mac App Store upload on this Mac.
+Windows, Linux and pull-request smoke builds keep GitHub-hosted runners.
+Deleting the variable restores hosted Apple jobs too.
+
+```sh
+HATCHKIT_KEYCHAIN_ACCESS=deny hatchkit mac-runner status --repo trebeljahr/tiao
+# One-time opt-in; Tiao is public, so Hatchkit requires --allow-public.
+HATCHKIT_KEYCHAIN_ACCESS=deny hatchkit mac-runner on --repo trebeljahr/tiao --allow-public
+HATCHKIT_KEYCHAIN_ACCESS=deny hatchkit mac-runner run build-desktop.yml --repo trebeljahr/tiao --allow-public --ref main -f platform=desktop -f mode=signed
+# Mac App Store upload, after testing the signed source run:
+HATCHKIT_KEYCHAIN_ACCESS=deny hatchkit mac-runner run publish-desktop.yml --repo trebeljahr/tiao --allow-public --ref main -f run_id=RUN_ID -f destination=mas
+```
+
+The runner exists only while `run` or `serve` is active; jobs run one at a
+time by default. A plain `gh workflow run` queues Apple jobs until someone
+serves them. For an already queued run, use `hatchkit mac-runner serve
+--repo trebeljahr/tiao --allow-public --run RUN_ID`.
+
+Only reviewed main-branch manual runs should be served. Normal PR builds
+use hosted runners, but a malicious PR can modify its own workflow to name
+the local label. An active public-repository runner can pick up that job.
+
 The plan job checks the version, runs the release-tool tests and validates the
 Steam achievement API names. Each build leg then:
 
@@ -95,8 +120,10 @@ the evidence.
 Inputs: `run_id` (a successful signed build run), `destination`, and
 `steam_branch`. The publisher checks the run is a successful `main` dispatch of
 build-desktop.yml in `trebeljahr/tiao`, verifies the signed provenance of every
-manifest (signer workflow, `main`, exact commit, hosted runners), and re-hashes
+manifest (signer workflow, `main`, exact commit), and re-hashes
 every file. It never rebuilds.
+Self-hosted provenance is accepted only for Apple artifacts while
+`APPLE_RUNNER` is set; Windows and Linux still require hosted provenance.
 
 ```sh
 gh workflow run publish-desktop.yml --ref main -f run_id=RUN_ID -f destination=downloads-draft
@@ -301,8 +328,8 @@ actionlint
 shellcheck -x scripts/release/*.sh
 ```
 
-Local tests use fake credentials and never touch the real keychain. Only a
-hosted signed run plus installed-app testing establishes release readiness.
+Local tests use fake credentials and never touch the real keychain. A signed
+workflow run plus installed-app testing establishes release readiness.
 
 ## Known constraints
 
@@ -314,10 +341,9 @@ hosted signed run plus installed-app testing establishes release readiness.
   release tool tests check it against `desktop/pnpm-lock.yaml`. npm's `latest`
   tag for electron-builder still points below the fix, so update with an
   explicit `^26.17.0`-or-newer range.
-- The Apple legs still run on `macos-15`. With 26.17 the keychain bug no longer
-  blocks `macos-latest` (macOS 26), and Track Your Time signs and notarizes on
-  it. Move only after one signed `macos` and `mas` run there passes
-  `verify-macos.sh` and `verify-mas.sh`.
+- Apple jobs use `APPLE_RUNNER` for main-branch manual dispatches when set,
+  with `macos-15` as the hosted fallback. Keep the signature, notarization
+  and provisioning checks enabled on either runner type.
 - electron-builder drops a `mas.extendInfo` block (still true in 26.17), so the
   store keys live in `mac.extendInfo` (harmless in the Developer ID build).
 - A signed Apple leg must keep `CSC_IDENTITY_AUTO_DISCOVERY=true`. With `false`,

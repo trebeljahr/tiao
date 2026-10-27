@@ -62,7 +62,7 @@ jobs:
           RELEASE_MODE: ${{ inputs.mode }}
           RELEASE_BUILD_NUMBER: ${{ inputs.build_number }}
         run: node scripts/release/plan.mjs mobile
-      - run: node --test scripts/*.test.mjs scripts/release/*.test.mjs
+      - run: node --test scripts/*.test.mjs scripts/release/*.test.mjs '../scripts/ci/*.test.mjs'
       - run: python3 -m unittest discover -s scripts/release -p '*_test.py'
 
   android:
@@ -149,20 +149,20 @@ jobs:
   ios:
     needs: plan
     if: inputs.platform == 'all' || inputs.platform == 'ios'
-    runs-on: macos-15
+    runs-on: ${{ github.ref == 'refs/heads/main' && github.repository == 'trebeljahr/tiao' && vars.APPLE_RUNNER || 'macos-15' }}
     timeout-minutes: 60
     permissions:
       contents: read
       id-token: write
       attestations: write
     env:
-      # Pin the toolchain; App Store uploads require a current Xcode SDK.
-      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
       RELEASE_BUILD_NUMBER: ${{ needs.plan.outputs.build_number }}
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+      - name: Select the Apple toolchain
+        run: bash ../scripts/ci/apple-xcode.sh
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc

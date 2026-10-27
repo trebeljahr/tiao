@@ -32,6 +32,7 @@ on:
   pull_request:
     paths:
       - "desktop/**"
+      - "scripts/ci/**"
       - ".github/workflows/build-desktop.yml"
 
 permissions:
@@ -66,7 +67,7 @@ jobs:
         run: node scripts/release/version.mjs --check
       - name: Release tool tests
         working-directory: desktop
-        run: node --test 'scripts/release/*.test.mjs'
+        run: node --test 'scripts/release/*.test.mjs' '../scripts/ci/*.test.mjs'
       - name: Validate Steam achievement API names
         # Steam silently discards unlocks for names it does not know.
         run: node scripts/steam-achievements.mjs --check
@@ -74,7 +75,9 @@ jobs:
   build:
     needs: plan
     name: ${{ matrix.platform }}-${{ matrix.arch }} (${{ needs.plan.outputs.mode }})
-    runs-on: ${{ matrix.runner }}
+    # Only a main-branch manual dispatch may use this Mac. PR smoke builds
+    # keep their hosted runner even when APPLE_RUNNER is configured.
+    runs-on: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.repository == 'trebeljahr/tiao' && (matrix.platform == 'macos' || matrix.platform == 'mas') && vars.APPLE_RUNNER || matrix.runner }}
     # No `environment:` on this job: Azure's federated credential trusts the
     # exact subject repo:trebeljahr/tiao:ref:refs/heads/main.
     timeout-minutes: 90
@@ -95,7 +98,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
-          cache: pnpm
+          cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
           cache-dependency-path: |
             client/pnpm-lock.yaml
             desktop/pnpm-lock.yaml

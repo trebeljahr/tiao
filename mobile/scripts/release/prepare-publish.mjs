@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { appendFileSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { attestationRunnerArgs } from "../../../scripts/ci/release-runners.mjs";
 import { buildWorkflow, repository, requireMain, validateManifest, validateRun } from "./lib.mjs";
 
 // Download one signed build-mobile.yml artifact, prove its provenance and
@@ -37,6 +38,8 @@ for (const directory of readdirSync("artifacts", { withFileTypes: true }).filter
   const names = readdirSync(path).filter((name) => /^manifest-[a-z]+-[a-z0-9]+\.json$/.test(name));
   if (names.length !== 1) throw new Error(`Expected exactly one manifest in ${path}`);
   const file = join(path, names[0]);
+  const manifest = JSON.parse(readFileSync(file));
+  validateManifest(manifest, run, path);
   gh([
     "attestation",
     "verify",
@@ -49,10 +52,8 @@ for (const directory of readdirSync("artifacts", { withFileTypes: true }).filter
     "refs/heads/main",
     "--source-digest",
     run.head_sha,
-    "--deny-self-hosted-runners",
+    ...attestationRunnerArgs(target),
   ]);
-  const manifest = JSON.parse(readFileSync(file));
-  validateManifest(manifest, run, path);
   manifests.push({ ...manifest, directory: resolve(path), manifest: resolve(file) });
 }
 if (manifests.length !== 1 || manifests[0].platform !== target)

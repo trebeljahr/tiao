@@ -84,17 +84,19 @@ jobs:
           changesNotSentForReview: ${{ inputs.play_track != 'internal' }}
 
   testflight:
-    if: inputs.destination == 'testflight' && github.ref == 'refs/heads/main'
-    runs-on: macos-15
+    if: inputs.destination == 'testflight' && github.ref == 'refs/heads/main' && github.repository == 'trebeljahr/tiao'
+    runs-on: ${{ vars.APPLE_RUNNER || 'macos-15' }}
     timeout-minutes: 30
     environment: release-testflight
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
       GH_TOKEN: ${{ github.token }}
+      APPLE_RUNNER: ${{ vars.APPLE_RUNNER }}
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+      - name: Select the Apple toolchain
+        run: bash ../scripts/ci/apple-xcode.sh
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
@@ -112,10 +114,10 @@ jobs:
         run: |
           node scripts/release/plan.mjs credentials testflight
           umask 077
-          key_dir="$HOME/.appstoreconnect/private_keys"
-          mkdir -p "$key_dir"
-          key="$key_dir/AuthKey_$APPLE_API_KEY_ID.p8"
-          trap 'rm -f "$key"' EXIT
+          export API_PRIVATE_KEYS_DIR
+          API_PRIVATE_KEYS_DIR=$(mktemp -d "$RUNNER_TEMP/tiao-appstore-key.XXXXXX")
+          key="$API_PRIVATE_KEYS_DIR/AuthKey_$APPLE_API_KEY_ID.p8"
+          trap 'rm -rf "$API_PRIVATE_KEYS_DIR"' EXIT
           printf '%s' "$APPLE_API_KEY_BASE64" | base64 --decode > "$key"
           [ -s "$key" ] || { echo "::error::Decoded App Store Connect key is empty."; exit 1; }
           xcrun altool --upload-app --file "$IPA" --type ios --apiKey "$APPLE_API_KEY_ID" --apiIssuer "$APPLE_API_ISSUER_ID"
