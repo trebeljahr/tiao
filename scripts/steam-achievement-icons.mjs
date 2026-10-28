@@ -1,45 +1,19 @@
 #!/usr/bin/env node
 /*
- * steam-achievement-icons — render the 60 PNG icons Steam wants.
+ * Export Steam achievement icons from the selected open-line PNG masters.
+ * The default validates scripts/assets/achievement-icons/manifest.json and
+ * renders 256px/64px unlocked and grayscale locked files. bulk/ uses Steam's
+ * API_NAME_ACHIEVED / API_NAME_UNACHIEVED naming. ImageMagick is required.
  *
- * Steam requires a locked AND an unlocked icon for every achievement,
- * 64x64 PNG each. With 30 achievements that is 60 files, and they have
- * to be uploaded one at a time through the Partner Portal.
+ * node scripts/steam-achievement-icons.mjs [--out directory]
+ * node scripts/steam-achievement-icons.mjs --source app [--svg]
  *
- * The art is not invented here. `client/src/components/AchievementIcon.tsx`
- * already carries a bespoke hand-drawn icon for all 30 achievements plus
- * the tier colour scheme, and that component is what the in-game
- * achievements page renders. This script drives those same components
- * through react-dom/server and rasterises the result, so the Steam
- * overlay and the web app cannot show different art for the same
- * achievement.
- *
- * The Partner Portal's own guidance, quoted from the achievement
- * configuration page:
- *
- *   "For best results, achievement icons should be 256x256 px JPG
- *    images. They can be as small as 64x64, but it is recommended you
- *    use the larger size. We recommend that achieved icons be colorful;
- *    unachieved icons should be grayscale."
- *
- * Hence 256x256 JPG as the primary output. PNG is written alongside
- * because the upload endpoint accepts it and it is the better format
- * for flat-colour line art; the JPGs exist to match Valve's stated
- * expectation. 64x64 is kept as a fallback.
- *
- * Usage:
- *   node scripts/steam-achievement-icons.mjs
- *   node scripts/steam-achievement-icons.mjs --out some/dir
- *   node scripts/steam-achievement-icons.mjs --svg     # keep the SVG sources too
- *
- * Output lands in `build/steam-achievement-icons/` (git-ignored) named
- * `<ACH_API_NAME>-unlocked.png` / `-locked.png`. Named by API name
- * rather than internal id so that when you are 40 rows into the Partner
- * Portal form, the filename matches the field you just typed.
+ * --source app preserves the legacy renderer of the in-game SVG component.
  */
 
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -104,15 +78,23 @@ const TILES = {
 };
 
 function parseArgs(argv) {
-  const args = { out: join(REPO_ROOT, "build/steam-achievement-icons"), svg: false };
+  const args = {
+    out: join(REPO_ROOT, "build/steam-achievement-icons"),
+    svg: false,
+    source: "curated",
+  };
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === "--out") args.out = argv[++i];
     else if (argv[i] === "--svg") args.svg = true;
+    else if (argv[i] === "--source") args.source = argv[++i];
     else {
       console.error(`unknown argument: ${argv[i]}`);
       process.exit(2);
     }
   }
+  if (!["curated", "app"].includes(args.source)) throw new Error("--source must be curated or app");
+  if (args.svg && args.source !== "app")
+    throw new Error("SVG sources require --source app --svg; curated masters are PNG files.");
   return args;
 }
 
@@ -205,9 +187,83 @@ function toJpeg(png, jpg) {
   execFileSync("magick", [png, "-background", "white", "-flatten", "-quality", "92", jpg]);
 }
 
+function renderCurated(args, achievements) {
+  const sourceDir = join(REPO_ROOT, "scripts/assets/achievement-icons");
+  const manifest = JSON.parse(readFileSync(join(sourceDir, "manifest.json"), "utf8"));
+  if (!Array.isArray(manifest.icons) || manifest.icons.length !== achievements.length) {
+    throw new Error("Curated artwork must contain exactly one master for every achievement");
+  }
+  const byId = new Map(manifest.icons.map((icon) => [icon.id, icon]));
+  if (byId.size !== achievements.length) throw new Error("Duplicate curated achievement IDs");
+  for (const achievement of achievements) {
+    const icon = byId.get(achievement.id);
+    if (!icon || icon.steamKey !== achievement.steamKey || icon.tier !== achievement.tier) {
+      throw new Error(`Curated artwork mapping mismatch: ${achievement.id}`);
+    }
+    const bytes = readFileSync(join(sourceDir, icon.master));
+    if (createHash("sha256").update(bytes).digest("hex") !== icon.sha256) {
+      throw new Error(`Curated artwork checksum mismatch: ${achievement.id}`);
+    }
+  }
+  const env = { ...process.env, MAGICK_THREAD_LIMIT: "1", OMP_NUM_THREADS: "1" };
+  const bulk = join(args.out, "bulk");
+  mkdirSync(bulk, { recursive: true });
+  for (const size of SIZES) mkdirSync(join(args.out, `${size}x${size}`), { recursive: true });
+  for (const achievement of achievements) {
+    const icon = byId.get(achievement.id);
+    for (const state of ["unlocked", "locked"]) {
+      for (const size of SIZES) {
+        const dir = join(args.out, `${size}x${size}`);
+        const png = join(dir, `${achievement.steamKey}-${state}.png`);
+        const transform = state === "locked" ? ["-colorspace", "Gray", "-colorspace", "sRGB"] : [];
+        execFileSync(
+          "magick",
+          [
+            "-limit",
+            "thread",
+            "1",
+            "-limit",
+            "memory",
+            "128MiB",
+            join(sourceDir, icon.master),
+            "-resize",
+            `${size}x${size}`,
+            "-background",
+            "white",
+            "-gravity",
+            "center",
+            "-extent",
+            `${size}x${size}`,
+            "-alpha",
+            "remove",
+            "-alpha",
+            "off",
+            ...transform,
+            "-strip",
+            png,
+          ],
+          { env },
+        );
+        toJpeg(png, join(dir, `${achievement.steamKey}-${state}.jpg`));
+        if (size === 256) {
+          const suffix = state === "unlocked" ? "ACHIEVED" : "UNACHIEVED";
+          copyFileSync(png, join(bulk, `${achievement.steamKey}_${suffix}.png`));
+        }
+      }
+    }
+  }
+  console.log(
+    `Exported ${achievements.length} curated achievements in both states; bulk PNGs: ${bulk}`,
+  );
+}
+
 function main() {
   const args = parseArgs(process.argv.slice(2));
   const achievements = parseAchievements();
+  if (args.source === "curated") {
+    renderCurated(args, achievements);
+    return;
+  }
 
   if (!existsSync(TSX)) {
     console.error(`tsx not found at ${TSX}`);
