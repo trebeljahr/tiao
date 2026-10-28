@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { after, afterEach, before, beforeEach, describe, test } from "node:test";
+import { after, afterEach, before, beforeEach, describe, mock, test } from "node:test";
+import { Worker } from "bullmq";
 import Redis from "ioredis";
 import type { TimerHandlers } from "../../game/timerQueue";
 import { BullMQTimerScheduler } from "../../game/timerQueue";
@@ -191,9 +192,11 @@ describe("BullMQTimerScheduler", () => {
 
   test("cancelling one abandon timer doesn't cancel another for the same room", async (t) => {
     if (!redisAvailable) return t.skip();
-    await scheduler!.scheduleAbandonTimer("ROOM01", "p1", SHORT_DELAY_MS);
+    // Keep this job delayed until cancellation, even on a busy test runner.
+    await scheduler!.scheduleAbandonTimer("ROOM01", "p1", 60_000);
     await scheduler!.scheduleAbandonTimer("ROOM01", "p2", SHORT_DELAY_MS);
     await scheduler!.cancelAbandonTimer("ROOM01", "p1");
+    assert.equal(await redis!.exists("bull:tiao-timer-abandon:abandon-ROOM01-p1"), 0);
     await waitFor(() => calls.length > 0, WAIT_FOR_FIRE_MS);
     // Only p2 should fire
     await new Promise((r) => setTimeout(r, 200));
@@ -277,4 +280,66 @@ describe("BullMQTimerScheduler", () => {
     // Mark as closed so afterEach doesn't double-close
     scheduler = null;
   });
+});
+
+test("shutdown waits for Redis initialization before closing workers", async (t) => {
+  const redis = createClient();
+  try {
+    await redis.ping();
+  } catch (error) {
+    redis.disconnect();
+    if (process.env.CI) throw error;
+    return t.skip("Redis is unavailable");
+  }
+
+  let releaseInitialization!: () => void;
+  const initialization = new Promise<void>((resolve) => {
+    releaseInitialization = resolve;
+  });
+  let initializationReleased = false;
+  let initializationStarted = false;
+  let closedBeforeInitialization = false;
+  const originalInfo = Redis.prototype.info;
+  const info = mock.method(
+    Redis.prototype,
+    "info",
+    function (this: Redis, ...args: Parameters<Redis["info"]>) {
+      initializationStarted = true;
+      return initialization.then(() => originalInfo.apply(this, args));
+    },
+  );
+  const originalClose = Worker.prototype.close;
+  const close = mock.method(
+    Worker.prototype,
+    "close",
+    function (this: Worker, ...args: Parameters<Worker["close"]>) {
+      if (!initializationReleased) closedBeforeInitialization = true;
+      return originalClose.apply(this, args);
+    },
+  );
+  const scheduler = new BullMQTimerScheduler(redis, {
+    onClockExpired: async () => {},
+    onAbandonExpired: async () => {},
+    onFirstMoveExpired: async () => {},
+  });
+  let closing: Promise<void> | undefined;
+  try {
+    await waitFor(() => initializationStarted, WAIT_FOR_FIRE_MS);
+    closing = scheduler.close();
+    assert.equal(
+      closedBeforeInitialization,
+      false,
+      "shutdown closed a worker while Redis INFO was still pending",
+    );
+  } finally {
+    initializationReleased = true;
+    releaseInitialization();
+    try {
+      await (closing ?? scheduler.close());
+    } finally {
+      info.mock.restore();
+      close.mock.restore();
+      await redis.quit();
+    }
+  }
 });

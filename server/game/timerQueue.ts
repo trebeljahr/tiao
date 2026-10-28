@@ -260,6 +260,16 @@ export class BullMQTimerScheduler implements TimerScheduler {
   }
 
   async close(): Promise<void> {
+    // BullMQ can detach its error listeners while Redis INFO is still
+    // pending. Let every startup promise settle before closing shared clients.
+    await Promise.allSettled([
+      this.clockQueue.waitUntilReady(),
+      this.abandonQueue.waitUntilReady(),
+      this.firstMoveQueue.waitUntilReady(),
+      this.clockWorker.waitUntilReady(),
+      this.abandonWorker.waitUntilReady(),
+      this.firstMoveWorker.waitUntilReady(),
+    ]);
     await Promise.all([
       this.clockWorker.close(),
       this.abandonWorker.close(),
