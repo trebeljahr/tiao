@@ -505,11 +505,19 @@ export function AuthProvider({
   const finishSteamSetup = useCallback(
     async (action: "check" | "create" | "link", username?: string) => {
       safeLocalStorage.removeItem("tiao:steam-signed-out");
-      const result = desktopAuthBridge()
+      const desktop = desktopAuthBridge();
+      const result = desktop
         ? await signInWithSteam(action, username)
         : action === "check"
           ? await getPendingSteamWebAccount()
           : await finishSteamWebAccount(action, username);
+      // An explicit login can use Steam OpenID when the native client cannot
+      // issue a ticket. Bootstrap never opens a browser or trusts a stale token.
+      if (result.status === "unavailable" && action === "check" && desktop?.startOAuth) {
+        const started = await desktop.startOAuth("steam");
+        if (!started.ok) throw new Error("Could not start Steam sign-in. Please try again.");
+        return;
+      }
       if (result.status === "needs_setup") {
         if (result.profile) setSteamProfileDefaults(result.profile);
         setSteamSetupRequired(true);

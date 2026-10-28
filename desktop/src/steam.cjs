@@ -541,7 +541,9 @@ async function getWebApiTicket() {
  * @returns {Promise<{ ticket: string; cancel: () => void } | null>}
  */
 async function getAuthWebApiTicket() {
-  if (!client || typeof client.auth?.getAuthTicketForWebApi !== "function") return null;
+  // Steam may have started after the app, or its first connection may have
+  // failed. Retry initialization instead of remaining signed out until restart.
+  if (!initSteam() || typeof client.auth?.getAuthTicketForWebApi !== "function") return null;
   try {
     const ticket = await client.auth.getAuthTicketForWebApi("tiao-auth", 8);
     return {

@@ -1,4 +1,5 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { useState } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { AuthProvider, useAuth } from "./AuthContext";
 
@@ -8,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   identity: vi.fn(),
   anonymous: vi.fn(),
   session: vi.fn(),
+  startOAuth: vi.fn(),
 }));
 vi.mock("@/lib/auth-client", () => ({
   getAuthClient: async () => ({
@@ -27,7 +29,7 @@ vi.mock("@/lib/api", () => ({
 }));
 vi.mock("@/lib/desktopAuth", () => ({
   signInWithSteam: mocks.check,
-  desktopAuthBridge: () => ({}),
+  desktopAuthBridge: () => ({ startOAuth: mocks.startOAuth }),
 }));
 vi.mock("@/lib/glitchtip", () => ({ setUser: vi.fn() }));
 vi.mock("@/lib/useActiveBadge", () => ({ resetActiveBadges: vi.fn() }));
@@ -45,10 +47,26 @@ function Identity() {
     </output>
   );
 }
+function SteamLogin() {
+  const { finishSteamSetup } = useAuth();
+  const [error, setError] = useState("");
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => void finishSteamSetup!("check").catch((err) => setError(err.message))}
+      >
+        Steam login
+      </button>
+      {error && <output>{error}</output>}
+    </>
+  );
+}
 beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
   mocks.token = null;
+  mocks.startOAuth.mockResolvedValue({ ok: true });
   Object.defineProperty(window, "electron", {
     configurable: true,
     value: { isElectron: true, config: { isSteamBuild: true } },
@@ -104,4 +122,52 @@ it("offline Steam never inherits another player's cached identity or saved beare
   expect(mocks.identity).not.toHaveBeenCalled();
   expect(mocks.anonymous).not.toHaveBeenCalled();
   expect(localStorage.getItem("tiao:auth-cache")).toBeNull();
+  expect(mocks.startOAuth).not.toHaveBeenCalled();
+});
+
+it("explicit Steam login opens browser authentication when native Steam is unavailable", async () => {
+  mocks.check.mockResolvedValue({ status: "unavailable" });
+  render(
+    <AuthProvider>
+      <Identity />
+      <SteamLogin />
+    </AuthProvider>,
+  );
+  await screen.findByText("local");
+  expect(mocks.startOAuth).not.toHaveBeenCalled();
+  localStorage.setItem("tiao:steam-signed-out", "1");
+  fireEvent.click(screen.getByRole("button", { name: "Steam login" }));
+  await waitFor(() => expect(mocks.startOAuth).toHaveBeenCalledWith("steam"));
+  expect(mocks.identity).not.toHaveBeenCalled();
+  expect(localStorage.getItem("tiao:steam-signed-out")).toBeNull();
+});
+
+it("reports browser launch failure without adopting a cached identity", async () => {
+  mocks.check.mockResolvedValue({ status: "unavailable" });
+  mocks.startOAuth.mockResolvedValue({ ok: false });
+  render(
+    <AuthProvider>
+      <Identity />
+      <SteamLogin />
+    </AuthProvider>,
+  );
+  await screen.findByText("local");
+  fireEvent.click(screen.getByRole("button", { name: "Steam login" }));
+  await screen.findByText("Could not start Steam sign-in. Please try again.");
+  expect(mocks.identity).not.toHaveBeenCalled();
+});
+
+it("keeps native verification errors visible instead of switching login methods", async () => {
+  mocks.check.mockResolvedValueOnce({ status: "unavailable" });
+  render(
+    <AuthProvider>
+      <Identity />
+      <SteamLogin />
+    </AuthProvider>,
+  );
+  await screen.findByText("local");
+  mocks.check.mockRejectedValueOnce(new Error("Steam ticket rejected."));
+  fireEvent.click(screen.getByRole("button", { name: "Steam login" }));
+  await screen.findByText("Steam ticket rejected.");
+  expect(mocks.startOAuth).not.toHaveBeenCalled();
 });
