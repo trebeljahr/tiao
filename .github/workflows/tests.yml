@@ -121,6 +121,15 @@ jobs:
   integration:
     runs-on: ubuntu-latest
     services:
+      mongo-integration:
+        image: mongo:7.0.45
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'quit(db.adminCommand({ping:1}).ok ? 0 : 1)'"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
       redis-integration:
         image: redis:7-alpine
         ports:

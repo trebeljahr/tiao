@@ -4,7 +4,10 @@ import mongoose from "mongoose";
 
 const DB_NAME = `tiao_test_steam_accounts_${process.pid}`;
 process.env.TOKEN_SECRET = "steam-test-secret";
-process.env.MONGODB_URI = `mongodb://127.0.0.1:27017/${DB_NAME}`;
+const mongoUrl = new URL(process.env.MONGODB_TEST_URI ?? "mongodb://127.0.0.1:27017");
+assert.ok(["127.0.0.1", "localhost", "[::1]"].includes(mongoUrl.hostname), "Use a local disposable MongoDB fixture");
+mongoUrl.pathname = `/${DB_NAME}`;
+process.env.MONGODB_URI = mongoUrl.toString();
 process.env.S3_BUCKET_NAME = "test";
 process.env.S3_PUBLIC_URL = "https://assets.test.local";
 process.env.NODE_ENV = "test";
