@@ -8,7 +8,10 @@ const FRONTEND = "https://tiao.test";
 const DB = `tiao_test_steam_openid_${process.pid}`;
 process.env.NODE_ENV = "test";
 const mongoUrl = new URL(process.env.MONGODB_TEST_URI ?? "mongodb://127.0.0.1:27017");
-assert.ok(["127.0.0.1", "localhost", "[::1]"].includes(mongoUrl.hostname), "Use a local disposable MongoDB fixture");
+assert.ok(
+  ["127.0.0.1", "localhost", "[::1]"].includes(mongoUrl.hostname),
+  "Use a local disposable MongoDB fixture",
+);
 mongoUrl.pathname = `/${DB}`;
 process.env.MONGODB_URI = mongoUrl.toString();
 process.env.BETTER_AUTH_URL = BASE;
@@ -63,9 +66,15 @@ before(async () => {
 });
 after(async () => {
   globalThis.fetch = fetchOriginal;
-  if (mongoose.connection.readyState) await mongoose.connection.dropDatabase();
-  await mongoose.disconnect();
-  if (auth) await (await import("../../auth/auth")).closeAuthDatabaseForTests();
+  try {
+    if (auth) await (await import("../../auth/auth")).closeAuthDatabaseForTests();
+    if (mongoose.connection.readyState === 1) {
+      await Promise.all(Object.values(mongoose.models).map((model) => model.init()));
+      await mongoose.connection.dropDatabase();
+    }
+  } finally {
+    await mongoose.disconnect();
+  }
 });
 
 class Browser {

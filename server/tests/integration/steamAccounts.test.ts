@@ -5,7 +5,10 @@ import mongoose from "mongoose";
 const DB_NAME = `tiao_test_steam_accounts_${process.pid}`;
 process.env.TOKEN_SECRET = "steam-test-secret";
 const mongoUrl = new URL(process.env.MONGODB_TEST_URI ?? "mongodb://127.0.0.1:27017");
-assert.ok(["127.0.0.1", "localhost", "[::1]"].includes(mongoUrl.hostname), "Use a local disposable MongoDB fixture");
+assert.ok(
+  ["127.0.0.1", "localhost", "[::1]"].includes(mongoUrl.hostname),
+  "Use a local disposable MongoDB fixture",
+);
 mongoUrl.pathname = `/${DB_NAME}`;
 process.env.MONGODB_URI = mongoUrl.toString();
 process.env.S3_BUCKET_NAME = "test";
@@ -27,10 +30,17 @@ before(async () => {
   await GameAccount.init();
 });
 after(async () => {
-  if (mongoose.connection.readyState) await mongoose.connection.dropDatabase();
-  await mongoose.disconnect();
-  // Better Auth owns a separate MongoClient. Close its adapter's pool too.
-  if (auth) await (await import("../../auth/auth")).closeAuthDatabaseForTests();
+  try {
+    // Close Better Auth's separate pool before removing its database.
+    if (auth) await (await import("../../auth/auth")).closeAuthDatabaseForTests();
+    if (mongoose.connection.readyState === 1) {
+      // Route imports can still be creating collections in the background.
+      await Promise.all(Object.values(mongoose.models).map((model) => model.init()));
+      await mongoose.connection.dropDatabase();
+    }
+  } finally {
+    await mongoose.disconnect();
+  }
 });
 
 test("concurrent full-game/demo signups converge on one account and valid revocable sessions", async () => {
