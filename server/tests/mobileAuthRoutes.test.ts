@@ -13,6 +13,7 @@ import * as authModule from "../auth/auth";
 import { resetExchangeCodeStoreForTests } from "../auth/desktopExchangeStore";
 
 type SessionStub = { user: { id: string; isAnonymous?: boolean } } | null;
+let browserOrigin = "";
 let sessionForToken: Record<string, SessionStub> = {};
 const linkCalls: Array<{ headers: Headers; body: Record<string, unknown> }> = [];
 let linkResponse: () => Response = () =>
@@ -29,6 +30,9 @@ let linkResponse: () => Response = () =>
   );
 
 (authModule as Record<string, unknown>).auth = {
+  get $context() {
+    return Promise.resolve({ baseURL: browserOrigin });
+  },
   api: {
     getSession: async ({ headers }: { headers: Headers }) => {
       const token = headers.get("authorization")?.slice(7) ?? "";
@@ -53,8 +57,9 @@ function startServer() {
     const server = createServer(app);
     server.listen(0, "127.0.0.1", () => {
       const { port } = server.address() as AddressInfo;
+      browserOrigin = `http://127.0.0.1:${port}`;
       resolve({
-        url: `http://127.0.0.1:${port}`,
+        url: browserOrigin,
         close: () => new Promise((res) => server.close(() => res())),
       });
     });

@@ -16,6 +16,7 @@ import {
   verifySessionToken,
 } from "../auth/desktopSessionManager";
 import { desktopSessionStore } from "../auth/desktopSessionStore";
+import { redirectNativeBrowserToAuthOrigin } from "../auth/nativeBrowserOrigin";
 import desktopProviderRoutes, { startDesktopSteam } from "./desktop-provider.routes";
 
 /**
@@ -121,6 +122,8 @@ router.get("/start", async (req: Request, res: Response) => {
         });
       }
     }
+
+    if (await redirectNativeBrowserToAuthOrigin(req, res)) return;
 
     // better-auth's social sign-in accepts a callbackURL that it will
     // redirect to once the OAuth round-trip finishes.  Echo the

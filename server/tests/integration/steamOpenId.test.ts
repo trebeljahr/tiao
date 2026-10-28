@@ -376,6 +376,7 @@ async function desktopServer() {
   const express = (await import("express")).default;
   const { createServer } = await import("node:http");
   const app = express();
+  app.set("trust proxy", 1);
   app.use(express.json());
   app.use("/api/auth/desktop", (await import("../../routes/desktop-auth.routes")).default);
   const server = createServer(app);
@@ -387,6 +388,8 @@ async function desktopServer() {
         redirect: "manual",
         method: body ? "POST" : "GET",
         headers: {
+          "x-forwarded-host": new URL(BASE).host,
+          "x-forwarded-proto": "https",
           cookie: [...browser.cookies].map(([key, value]) => `${key}=${value}`).join("; "),
           ...(body ? { "content-type": "application/json" } : {}),
           ...(token ? { authorization: `Bearer ${token}` } : {}),

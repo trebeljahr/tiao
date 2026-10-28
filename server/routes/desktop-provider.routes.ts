@@ -9,6 +9,7 @@ import {
 } from "../auth/desktopExchangeStore";
 import { verifySessionToken } from "../auth/desktopSessionManager";
 import { desktopSessionStore } from "../auth/desktopSessionStore";
+import { redirectNativeBrowserToAuthOrigin } from "../auth/nativeBrowserOrigin";
 
 const PROVIDERS = new Set(["github", "google", "discord", "apple", "steam"]);
 const STATE_RE = /^[A-Za-z0-9_-]{16,128}$/;
@@ -132,6 +133,8 @@ router.get("/link/begin", async (req, res) => {
   if (typeof state !== "string" || !STATE_RE.test(state) || typeof ticket !== "string")
     return res.status(400).send("Invalid link request.");
   try {
+    if (await redirectNativeBrowserToAuthOrigin(req, res)) return;
+
     const stored = await getExchangeCodeStore().consume(`native-begin:${state}`, ticket);
     if (!stored) return res.redirect(errorLink(state, "link_expired"));
     const { url, cookies } = JSON.parse(stored) as { url: string; cookies: string[] };

@@ -1,6 +1,7 @@
 import express, { type Request, type Response } from "express";
 import { auth } from "../auth/auth";
 import { generateCode, getExchangeCodeStore } from "../auth/desktopExchangeStore";
+import { redirectNativeBrowserToAuthOrigin } from "../auth/nativeBrowserOrigin";
 import { isValidDesktopProvider } from "./desktop-auth.routes";
 
 /**
@@ -121,6 +122,8 @@ router.get("/link/begin", async (req: Request, res: Response) => {
     return res.status(400).send("Invalid link request.");
   }
   try {
+    if (await redirectNativeBrowserToAuthOrigin(req, res)) return;
+
     const stored = await getExchangeCodeStore().consume(ticketKey(state), ticket);
     if (!stored) return res.redirect(deepLinkError(state, "link_expired"));
     const { url, cookies } = JSON.parse(stored) as { url?: unknown; cookies?: unknown };
