@@ -24,6 +24,8 @@ function harness({ steam = false, fetcher } = {}) {
     failLogout = false;
   const opened = /** @type {string[]} */ ([]);
   let credentialCalls = 0;
+  let tokenReads = 0;
+  let tokenWrites = 0;
   const electron = {
     app: { getPath: () => "/fake-only" },
     ipcMain: {
@@ -40,15 +42,25 @@ function harness({ steam = false, fetcher } = {}) {
         credentialCalls++;
         return true;
       },
-      encryptString: () => Buffer.from("fake-encrypted"),
-      decryptString: () => "fake-token",
+      encryptString: () => {
+        credentialCalls++;
+        return Buffer.from("fake-encrypted");
+      },
+      decryptString: () => {
+        credentialCalls++;
+        return "fake-token";
+      },
     },
     BrowserWindow: { getAllWindows: () => [{ webContents: wc }] },
   };
   const fakeFs = {
     existsSync: () => stored,
-    readFileSync: () => Buffer.from("fake-encrypted"),
+    readFileSync: () => {
+      tokenReads++;
+      return Buffer.from("fake-encrypted");
+    },
     writeFileSync: () => {
+      tokenWrites++;
       stored = true;
     },
     unlinkSync: () => {
@@ -66,6 +78,8 @@ function harness({ steam = false, fetcher } = {}) {
       if (name === "electron") return electron;
       if (name === "node:fs") return fakeFs;
       if (name === "./trust.cjs") return trust;
+      if (name === "./distribution.cjs")
+        return { DISTRIBUTION_CHANNEL: steam ? "steam" : "direct" };
       if (name === "./config.cjs") return { resolveApiUrl: () => "https://example.invalid" };
       if (name === "./glitchtip.cjs") return { captureException: () => {} };
       if (name === "node:path" || name === "node:crypto") return require(name);
@@ -106,7 +120,7 @@ function harness({ steam = false, fetcher } = {}) {
       handlers.get(name)?.(event, ...args),
     untrusted: /** @param {string} name */ (name) =>
       handlers.get(name)?.({ ...event, senderFrame: {} }),
-    state: () => ({ stored, revoked, credentialCalls }),
+    state: () => ({ stored, revoked, credentialCalls, tokenReads, tokenWrites }),
     failLogout: () => {
       failLogout = true;
     },
@@ -155,7 +169,7 @@ test("ordinary system-browser OAuth callback still exchanges with mocked network
   assert.equal((await h.call("auth:startOAuth", "unknown")).reason, "bad_provider");
 });
 
-test("Steam sign-in gets the ticket and demo AppID from main and persists only verified sessions", async () => {
+test("Steam sign-in keeps verified sessions in memory without accessing OS credentials", async () => {
   const calls = /** @type {any[]} */ ([]);
   const h = harness({
     steam: true,
@@ -167,6 +181,10 @@ test("Steam sign-in gets the ticket and demo AppID from main and persists only v
       };
     },
   });
+  h.bridge.loadPersistedToken();
+  assert.equal(await h.call("auth:getToken"), null, "ignore legacy disk token");
+  assert.equal(h.bridge.isPersistenceAvailable(), false);
+  assert.equal((await h.call("auth:getPersistenceStatus")).available, true);
   await h.call("auth:steam", {
     action: "create",
     username: "player",
@@ -182,14 +200,30 @@ test("Steam sign-in gets the ticket and demo AppID from main and persists only v
   });
   await h.call("auth:steam", { action: "link" });
   assert.equal(calls[1].init.headers.Authorization, "Bearer steam-session");
+  assert.equal(h.state().credentialCalls, 0);
+  assert.equal(h.state().tokenReads, 0);
+  assert.equal(h.state().tokenWrites, 0);
+  await h.call("auth:logout");
+  assert.equal(await h.call("auth:getToken"), null);
+  assert.equal(h.state().credentialCalls, 0);
+  const relaunched = harness({ steam: true });
+  relaunched.bridge.loadPersistedToken();
+  assert.equal(await relaunched.call("auth:getToken"), null);
+  assert.equal(relaunched.state().credentialCalls, 0);
 });
 
-test("an unlinked Steam player clears another player's saved desktop identity", async () => {
+test("an unlinked Steam player clears another player's current desktop identity", async () => {
   const h = harness({
     steam: true,
-    fetcher: async () => ({ ok: true, json: async () => ({ status: "needs_setup" }) }),
+    fetcher: async (url) => ({
+      ok: true,
+      json: async () =>
+        url.endsWith("/exchange") ? { sessionToken: "fake-token" } : { status: "needs_setup" },
+    }),
   });
-  h.bridge.loadPersistedToken();
+  await h.call("auth:startOAuth", "google");
+  const state = new URL(h.opened[0]).searchParams.get("state");
+  await h.bridge.handleAuthDeepLink(new URL(`tiao://auth/complete?state=${state}&code=fake-code`));
   assert.equal(await h.call("auth:getToken"), "fake-token");
   assert.equal((await h.call("auth:steam", { action: "check" })).status, "needs_setup");
   assert.equal(await h.call("auth:getToken"), null);
@@ -198,9 +232,15 @@ test("an unlinked Steam player clears another player's saved desktop identity", 
 test("Steam link conflicts preserve the existing account and standalone builds do not fetch tickets", async () => {
   const h = harness({
     steam: true,
-    fetcher: async () => ({ ok: false, json: async () => ({ message: "Already linked" }) }),
+    fetcher: async (url) => ({
+      ok: url.endsWith("/exchange"),
+      json: async () =>
+        url.endsWith("/exchange") ? { sessionToken: "fake-token" } : { message: "Already linked" },
+    }),
   });
-  h.bridge.loadPersistedToken();
+  await h.call("auth:startOAuth", "google");
+  const state = new URL(h.opened[0]).searchParams.get("state");
+  await h.bridge.handleAuthDeepLink(new URL(`tiao://auth/complete?state=${state}&code=fake-code`));
   await assert.rejects(h.call("auth:steam", { action: "link" }), /Already linked/);
   assert.equal(await h.call("auth:getToken"), "fake-token");
   assert.equal((await harness().call("auth:steam", { action: "check" })).status, "unavailable");

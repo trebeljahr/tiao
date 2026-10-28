@@ -132,8 +132,8 @@ contextBridge.exposeInMainWorld("electron", {
     logout: () => ipcRenderer.invoke("auth:logout"),
 
     /**
-     * Returns whether the OS provides credential encryption for
-     * persisting the bearer token across app restarts.
+     * Returns whether sign-in can be restored across app restarts,
+     * through OS-encrypted tokens or fresh Steam authentication.
      *
      * The renderer should call this once on bootstrap and, if
      * `available === false`, surface a one-time toast explaining

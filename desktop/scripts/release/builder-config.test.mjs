@@ -49,6 +49,15 @@ test("Steam builds bake the real appid and refuse Spacewar", () => {
   assert.deepEqual(config("steam").mac.target, [{ target: "dir", arch: ["universal"] }]);
 });
 
+test("Steam full game and demo disable Keychain-backed cookie encryption", () => {
+  for (const channel of ["steam", "steam-demo"]) {
+    for (const signed of [false, true]) {
+      assert.equal(config(channel, signed).electronFuses.enableCookieEncryption, false);
+    }
+  }
+  assert.equal(config("direct").electronFuses, base.electronFuses);
+});
+
 test("store builds drop steamworks.js; desktop channels keep it unpacked", () => {
   for (const channel of ["mas", "msstore"]) {
     const c = config(channel);

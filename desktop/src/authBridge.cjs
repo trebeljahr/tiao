@@ -19,6 +19,7 @@
  *     `app.getPath("userData")/tiao-desktop-auth.enc`.  `safeStorage`
  *     wraps the platform keychain (macOS Keychain, Windows DPAPI,
  *     Linux libsecret) so the token-at-rest is encrypted by the OS.
+ *     Steam builds keep tokens in memory and reauthenticate through Steam.
  *
  *   - Expose `auth:getToken` / `auth:logout` IPC so AuthContext can
  *     rehydrate on launch and flush on logout.
@@ -34,6 +35,11 @@ const fs = require("node:fs");
 const { randomUUID } = require("node:crypto");
 const { captureException: captureGlitchtipException } = require("./glitchtip.cjs");
 const { resolveApiUrl } = require("./config.cjs");
+const { DISTRIBUTION_CHANNEL } = require("./distribution.cjs");
+
+// Steam verifies the active player and issues a fresh session on each launch.
+// Never read or write OS credentials, including legacy tokens, in Steam builds.
+const PERSIST_TOKEN = DISTRIBUTION_CHANNEL !== "steam";
 
 const { handleTrustedIpc, isTrustedContents, isSafeExternalUrl } = require("./trust.cjs");
 
@@ -72,6 +78,7 @@ function getTokenFilePath() {
  */
 function persistToken(token) {
   cachedToken = token;
+  if (!PERSIST_TOKEN) return;
   if (!safeStorage.isEncryptionAvailable()) {
     console.warn("[authBridge] safeStorage unavailable — token will not survive app restart.");
     return;
@@ -96,6 +103,7 @@ function persistToken(token) {
  * deserves to know why.
  */
 function loadPersistedToken() {
+  if (!PERSIST_TOKEN) return;
   try {
     const file = getTokenFilePath();
     if (!fs.existsSync(file)) return;
@@ -126,6 +134,7 @@ function loadPersistedToken() {
  *   - Older macOS releases where Keychain access is denied
  */
 function isPersistenceAvailable() {
+  if (!PERSIST_TOKEN) return false;
   try {
     return safeStorage.isEncryptionAvailable();
   } catch {
@@ -432,7 +441,8 @@ function registerAuthIpc(steam = null) {
   // user will be signed out on every restart.  No "warning" event
   // — the renderer pulls when it's ready.
   handleTrustedIpc(ipcMain, "auth:getPersistenceStatus", async () => {
-    return { available: isPersistenceAvailable() };
+    // Steam restores sign-in through a fresh native ticket, without disk storage.
+    return { available: !PERSIST_TOKEN || isPersistenceAvailable() };
   });
 }
 

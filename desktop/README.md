@@ -3,7 +3,7 @@
 Electron wrapper around the Tiao client, shipped as standalone macOS / Windows / Linux
 binaries. The renderer is a Next.js static export served from a custom `app://tiao/`
 privileged protocol; the main process handles OAuth via a system-browser bridge,
-encrypted token persistence via `safeStorage`, and auto-updates via `electron-updater`.
+encrypted token persistence via `safeStorage` outside Steam, and auto-updates via `electron-updater`.
 
 The web build at [playtiao.com](https://playtiao.com) is unaffected by anything in this
 directory.
@@ -585,6 +585,13 @@ username. Existing players sign into Tiao with their usual password or social
 provider, then explicitly link the shown account. A unique sparse `steamId`
 index on GameAccount prevents competing links. Full game and demo share that
 mapping. Conflicts preserve both accounts and never merge or move progress.
+
+Steam builds never call `safeStorage`, including its availability check, and
+ignore legacy `tiao-desktop-auth.enc` files. Tokens stay in memory; Chromium
+cookie encryption is explicitly disabled for the full game and demo. Steam
+reauthenticates on each launch, so no Keychain access is needed. The persistence
+status IPC reports sign-in restoration as available through Steam. Other desktop
+channels retain OS-encrypted token storage.
 
 Returning players receive a fresh revocable desktop session for the verified
 Steam player. A Steam account switch discards the previous desktop identity.

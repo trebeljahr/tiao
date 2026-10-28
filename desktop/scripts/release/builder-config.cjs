@@ -89,6 +89,9 @@ function createBuilderConfig({ base, channel, signed, env = {} }) {
         "TIAO_STEAM_APPID must match the selected Tiao product (never Spacewar 480).",
       );
     }
+    // This renderer uses bearer tokens, not persistent authentication cookies.
+    // Keep Chromium from requesting its own Keychain encryption key at startup.
+    config.electronFuses = { ...base.electronFuses, enableCookieEncryption: false };
     config.extraMetadata.steamBuild = true;
     config.extraMetadata.steamAppId = product.appId;
     config.extraMetadata.steamDemo = channel === "steam-demo";
