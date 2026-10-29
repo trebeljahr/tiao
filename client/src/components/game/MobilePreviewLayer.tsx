@@ -68,11 +68,8 @@ export function MobilePreviewLayer({
       </svg>
 
       {/* Ghost stone */}
-      <motion.span
+      <span
         data-testid="mobile-preview-loupe"
-        key={shaking ? `mobile-shake-${invalidShake.nonce}` : "mobile-ghost"}
-        animate={shaking ? { x: [0, -4, 4, -4, 4, -2, 2, 0] } : { x: 0 }}
-        transition={shaking ? { duration: 0.42, ease: "easeInOut" } : { duration: 0 }}
         className="pointer-events-none absolute z-30"
         style={{
           left: `${pp(mobilePreview.x)}%`,
@@ -86,33 +83,39 @@ export function MobilePreviewLayer({
             : "left 70ms ease-out, top 70ms ease-out, transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 120ms ease-out",
         }}
       >
-        {/* Hovering shadow */}
-        <span
-          className="absolute inset-[-4%] rounded-full"
-          style={{
-            background: "radial-gradient(circle, rgba(0,0,0,0.18) 0%, transparent 70%)",
-            transform: mobilePreviewDragging
-              ? "translateY(12%) scale(1.1)"
-              : "translateY(8%) scale(1.05)",
-            opacity: mobilePreviewDragging ? 0.5 : 0.7,
-            transition: "transform 150ms ease-out, opacity 150ms ease-out",
-          }}
-        />
-        {/* Stone */}
-        <span
-          className={cn("relative block h-full w-full rounded-full", "border")}
-          style={{
-            ...getGhostStoneColors(theme, mobilePreviewValid, currentTurn),
-            opacity: !mobilePreviewValid ? 0.45 : mobilePreviewDragging ? 0.6 : 0.8,
-            transform: mobilePreviewDragging ? "translateY(-3px)" : "translateY(-1px)",
-            boxShadow: mobilePreviewDragging
-              ? "0 6px 16px rgba(0,0,0,0.25), inset 0 2px 10px rgba(255,255,255,0.18)"
-              : "0 3px 8px rgba(0,0,0,0.2), inset 0 2px 10px rgba(255,255,255,0.18)",
-            transition:
-              "opacity 150ms ease-out, transform 150ms ease-out, box-shadow 150ms ease-out",
-          }}
-        />
-      </motion.span>
+        {/* Keep shake transforms separate from the intersection-centering transform. */}
+        <motion.span
+          key={shaking ? `mobile-shake-${invalidShake.nonce}` : "mobile-ghost"}
+          animate={shaking ? { x: [0, -4, 4, -4, 4, -2, 2, 0] } : { x: 0 }}
+          transition={shaking ? { duration: 0.42, ease: "easeInOut" } : { duration: 0 }}
+          className="relative block h-full w-full"
+        >
+          {/* Hovering shadow */}
+          <span
+            className="absolute inset-[-4%] rounded-full"
+            style={{
+              background: "radial-gradient(circle, rgba(0,0,0,0.18) 0%, transparent 70%)",
+              transform: mobilePreviewDragging
+                ? "translateY(12%) scale(1.1)"
+                : "translateY(8%) scale(1.05)",
+              opacity: mobilePreviewDragging ? 0.5 : 0.7,
+              transition: "transform 150ms ease-out, opacity 150ms ease-out",
+            }}
+          />
+          {/* Stone */}
+          <span
+            className={cn("relative block h-full w-full rounded-full", "border")}
+            style={{
+              ...getGhostStoneColors(theme, mobilePreviewValid, currentTurn),
+              opacity: !mobilePreviewValid ? 0.45 : mobilePreviewDragging ? 0.6 : 0.8,
+              boxShadow: mobilePreviewDragging
+                ? "0 6px 16px rgba(0,0,0,0.25), inset 0 2px 10px rgba(255,255,255,0.18)"
+                : "0 3px 8px rgba(0,0,0,0.2), inset 0 2px 10px rgba(255,255,255,0.18)",
+              transition: "opacity 150ms ease-out, box-shadow 150ms ease-out",
+            }}
+          />
+        </motion.span>
+      </span>
     </>
   );
 }
