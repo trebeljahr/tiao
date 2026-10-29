@@ -13,11 +13,11 @@
   "videoBitrate": "14 Mbps CBR target",
   "audio": true,
   "audioDescription": "Original Next Move piano opening; repeated two-bar passage removed later. Pitch and tempo unchanged. Winning capture and confetti meet the final cadence; five restrained transitions and committed move sounds.",
-  "approval": "Original music opening restored at Rico’s request; local review only, not uploaded",
+  "approval": "Approved by Rico in chat on 2026-10-29; uploaded, converted and published to Steam on 2026-10-29.",
   "source": "Actual Intermediate-versus-Hard engine decisions replayed through the shipped UI, captured as lossless 2× PNG sequences. Separate legal instructional example. Social/tournament UI uses isolated fictional fixtures.",
   "note": "Faster picture edit unchanged. Original piano opening retained; repeated bars 11–12 removed later with a short 640-sample crossfade. Pitch and tempo unchanged. The final chord still meets the genuine winning capture at 43.3667 seconds.",
   "uploadState": {
-    "steam": "Original silent 30-second cut remains on the live Coming Soon page. This revised cut is local only.",
+    "steam": "Published to the live Coming Soon store page on 2026-10-29 (store revision 2). Replaces the original silent 30-second trailer. Automatic Steam cover retained.",
     "googlePlay": "not uploaded",
     "apple": "not uploaded"
   },
@@ -125,5 +125,31 @@
     "finaleStartSpeed": 1.3136449071512175,
     "finaleEndSpeed": 4.597757175029261
   },
-  "storeArtworkEndCardCount": 1
+  "storeArtworkEndCardCount": 1,
+  "steamUpload": {
+    "sha256": "ee8743bc5f6732423cd2d69368a3ff3126e563c46ed101f16a69437d4bbe716b",
+    "uploadedOn": "2026-10-29",
+    "publishedOn": "2026-10-29",
+    "entryId": 1399906,
+    "assetId": 1921116221,
+    "viewUrl": "https://store.steampowered.com/trailer/assets/?trailer=5035580/1921116221/e113f82e0b1d148e6f52129c3d30a0bf9009a278/1793235168",
+    "storeUrl": "https://store.steampowered.com/app/5035580/Tiao/",
+    "storeRevision": 2,
+    "category": "Gameplay",
+    "language": "English",
+    "suitableForAllAges": true,
+    "countryRestrictions": [],
+    "fileDrop": "Completed manually by Rico; conversion, settings save and public publication completed afterward",
+    "thumbnail": "Steam-generated; custom extracted options preserved but not applied",
+    "convertedAudio": {
+      "codec": "AAC",
+      "sampleRate": 48000,
+      "channels": 2,
+      "firstSegmentDecodePassed": true,
+      "firstSegmentMeanDbfs": -21.9,
+      "firstSegmentPeakDbfs": -8.2
+    },
+    "gameReleaseState": "Coming Soon; no playable build released",
+    "proof": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-29/faster-trailer-pacing/revisions/original-opening/steam-publication/README.md"
+  }
 }

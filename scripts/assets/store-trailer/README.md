@@ -1,6 +1,6 @@
 # Trailer build recipe
 
-`scripts/store-trailer-current.json` records the selected local export, checksum, archive and upload state. Stable export: `build/store-trailer/tiao-gameplay-current.mp4`; distinct review copy: `build/store-trailer/tiao-original-opening.mp4`. This is a local review cut.
+`scripts/store-trailer-current.json` records the selected local export, checksum, archive and upload state. Stable export: `build/store-trailer/tiao-gameplay-current.mp4`; distinct review copy: `build/store-trailer/tiao-original-opening.mp4`. Rico approved this cut on 29 October 2026. It is published on Steam’s Coming Soon store page; `scripts/store-trailer-current.json` records asset 1921116221 and verification.
 
 ## Rebuild
 
