@@ -1,0 +1,46 @@
+.lab { min-height: 100svh; background: #f4ead9; color: #38291c; padding: 32px 24px 60px; }
+.sheet { max-width: 920px; margin: 0 auto; }
+.header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 38px; }
+.brand { display: flex; align-items: center; gap: 12px; font-family: var(--font-display), serif; font-size: 34px; text-decoration: none; }
+.brand span { font-size: 25px; }
+.eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: .16em; color: #7d6b56; }
+.titleRow { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+.titleRow h1 { font-family: var(--font-display), serif; font-size: clamp(34px, 6vw, 54px); line-height: 1.1; margin: 0 0 12px; font-weight: 500; }
+.titleRow p { color: #7d6b56; margin: 0; font-size: 14px; }
+.mute, .footer button { text-decoration: underline; text-underline-offset: 4px; font-size: 13px; cursor: pointer; }
+.transport { margin-top: 30px; padding: 22px 0; display: flex; gap: 24px; flex-wrap: wrap; justify-content: space-between; align-items: center; border-top: 1px solid #cdbb9e; }
+.controls { display: flex; gap: 10px; flex-wrap: wrap; }
+.volume { display: flex; gap: 12px; align-items: center; font-size: 12px; }
+.volume input { width: 100px; accent-color: #726446; }
+.volume output { min-width: 31px; font-variant-numeric: tabular-nums; }
+.stage { position: relative; min-height: 150px; background: #e8dcc6; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; margin-bottom: 24px; }
+.stageLabel { font-size: 12px; color: #756348; }
+.demoButtons { display: flex; gap: 12px; }
+.demo { min-width: 94px; padding: 12px 18px; border-radius: 10px; background: #f9f3e8; box-shadow: 0 4px 0 #c7b89b; font-size: 13px; transition: transform 120ms, box-shadow 120ms, background 120ms; cursor: pointer; }
+.demo:first-child { background: #625f43; color: #fff9ec; box-shadow: 0 4px 0 #45432f; }
+.demo:hover { transform: translateY(-2px); }
+.demo:active { transform: translateY(3px); box-shadow: none; }
+.struck { animation: strike 220ms ease-out; }
+@keyframes strike { 0%, 45% { transform: translateY(4px); box-shadow: 0 0 0 transparent; } 100% { transform: translateY(0); } }
+.tapCount { position: absolute; right: 18px; bottom: 12px; font-size: 11px; color: #756348; font-variant-numeric: tabular-nums; }
+.list { border-top: 1px solid #cdbb9e; }
+.row { display: flex; align-items: stretch; min-height: 70px; border-bottom: 1px solid #d8cab4; transition: background 180ms; }
+.active { background: #e4dfc7; }
+.audition { display: flex; align-items: center; gap: 20px; flex: 1; min-width: 0; padding: 12px 16px 12px 4px; text-align: left; cursor: pointer; }
+.audition:hover { background: #e9dfcd; }
+.number { font-size: 11px; color: #8b785e; font-variant-numeric: tabular-nums; }
+.soundName { font-size: 16px; flex: 1; }
+.material { display: block; font-size: 11px; color: #7d6b56; margin-top: 3px; }
+.duration { font-size: 11px; color: #7d6b56; font-variant-numeric: tabular-nums; }
+.playIcon { color: #746f4e; font-size: 10px; }
+.favourite { width: 46px; font-size: 24px; color: #786c46; cursor: pointer; }
+.use { width: 112px; text-align: center; font-size: 12px; cursor: pointer; }
+.use[aria-pressed="true"] { color: #4c5b38; font-weight: 600; }
+.use:hover, .favourite:hover { background: #e9dfcd; }
+.footer { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; padding-top: 26px; font-size: 12px; color: #756348; }
+.footer a { margin-left: auto; color: #38291c; text-decoration: underline; text-underline-offset: 4px; }
+.error { font-size: 13px; color: #9e3328; }
+.lab button:focus-visible, .lab a:focus-visible, .lab input:focus-visible { outline: 2px solid #625f43; outline-offset: 3px; }
+.lab button:disabled { opacity: .45; cursor: default; }
+@media (max-width: 560px) { .lab { padding: 22px 16px 40px; } .header { padding-bottom: 28px; } .eyebrow { font-size: 9px; } .audition { gap: 12px; padding-right: 8px; } .duration { display: none; } .use { width: 82px; font-size: 11px; } .favourite { width: 36px; } .demo { min-width: 78px; padding: 12px; } .demoButtons { gap: 10px; } }
+@media (prefers-reduced-motion: reduce) { .lab * { animation: none; transition: none; } }

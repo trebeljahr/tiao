@@ -497,6 +497,16 @@ export function Navbar({
         </div>
       </div>
 
+      {process.env.NODE_ENV === "development" && (
+        <Link
+          href="/sound-lab"
+          onClick={onCloseNav}
+          className="mt-5 block px-3 text-sm text-[#6e5b48] underline underline-offset-4"
+        >
+          Sound lab
+        </Link>
+      )}
+
       <div className="mt-6 space-y-2.5 text-left">
         {navItems.map((item) => (
           <Link

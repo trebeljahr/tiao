@@ -12,6 +12,7 @@ export function SoundToggle() {
     <button
       type="button"
       onClick={toggle}
+      data-ui-sound="off"
       className="relative flex h-8 w-8 items-center justify-center rounded-full text-[#6e5b48] transition-colors hover:bg-[rgba(0,0,0,0.06)] hover:text-[#28170e]"
       aria-label={enabled ? t("muteSounds") : t("unmuteSounds")}
     >

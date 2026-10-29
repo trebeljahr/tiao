@@ -468,6 +468,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
         {/* Board container — matches TiaoBoard styling */}
         <div
           ref={boardRef}
+          data-ui-sound="off"
           className="relative w-full overflow-hidden rounded-[1.2rem] border p-2 shadow-[0_32px_70px_-28px_rgba(66,39,11,0.75)]"
           style={{
             background: theme.boardBg,

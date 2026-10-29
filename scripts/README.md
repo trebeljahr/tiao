@@ -128,3 +128,19 @@ mailer or Coolify's task status will flag a broken run.
 
 Check the result with `mongosh <uri> --eval 'db.getCollectionNames()'` before
 pointing the server at it.
+
+### UI click audition
+
+In development, open `/sound-lab` (also linked in the game menu). Each of the 16
+procedural candidates plays three times. Favourites, volume and the optional
+“Use in game” selection stay in local storage. The game mute control applies to
+both the lab and UI feedback. The lab route is excluded from production builds.
+
+Export mono 44.1 kHz PCM WAVs and the montage with the same deterministic synth:
+
+```sh
+node --experimental-strip-types scripts/export-ui-clicks.ts /absolute/output/directory
+```
+
+Recipes and synthesis live in `client/src/lib/uiClickSynth.ts`. No external
+samples or network audio services are used.

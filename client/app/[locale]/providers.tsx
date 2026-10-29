@@ -38,6 +38,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { NativeDeepLinkHandler } from "@/components/NativeDeepLinkHandler";
 import { SteamAccountSetup } from "@/components/SteamAccountSetup";
 import { SteamInviteHandler } from "@/components/SteamInviteHandler";
+import { UiClickFeedback } from "@/components/UiClickFeedback";
 import { AuthProvider, useAuth } from "@/lib/AuthContext";
 import { toastError } from "@/lib/errors";
 import { isEmbedPath } from "@/lib/frameHeaders";
@@ -196,6 +197,7 @@ function AppShell({ children, publicPage }: { children: React.ReactNode; publicP
           <main className="min-h-screen">{children}</main>
         </UsernameOnboardingGuard>
       )}
+      <UiClickFeedback />
       <AuthDialog />
       <OAuthErrorHandler />
       <SteamInviteHandler />
@@ -238,6 +240,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const installed =
     process.env.NEXT_PUBLIC_PLATFORM === "desktop" || process.env.NEXT_PUBLIC_PLATFORM === "mobile";
   const publicPage = !installed && isPublicInfoPath(pathname ?? "");
+
+  // The local audio workbench needs no account or lobby connection.
+  if (process.env.NODE_ENV === "development" && pathname?.endsWith("/sound-lab")) {
+    return <ErrorBoundary>{children}</ErrorBoundary>;
+  }
 
   // `/embed/*` renders inside third-party iframes. It gets none of the
   // app shell: no auth bootstrap (would mint a guest session per host
