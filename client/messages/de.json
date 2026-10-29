@@ -332,7 +332,8 @@
     "guestUpgradeCtaSignUp": "Registrieren",
     "guestUpgradeCtaLogIn": "Anmelden",
     "guestUpgradeBanner": "Du spielst als {name}. <link>Erstelle ein Konto</link>, um dieses Spiel zu sichern und Freund*innen hinzuzufügen.",
-    "copyEmbedCode": "Einbettungscode kopieren"
+    "copyEmbedCode": "Einbettungscode kopieren",
+    "emptyIntersection": "Leer"
   },
   "config": {
     "difficulty": "Schwierigkeit",
@@ -1504,5 +1505,15 @@
     "linkExistingHint": "Melde dich einmal an, um Steam-Fortschritt, Freunde und Käufe mit deinem Webkonto zusammenzuführen.",
     "waitingBrowser": "Warte auf die Anmeldung im Browser…",
     "confirmExisting": "Steam mit {username} verknüpfen"
+  },
+  "input": {
+    "boardKeyboard": "Pfeile / WASD: bewegen · Enter / Leertaste: spielen · C: bestätigen · X: zurück · Tab: Menüs",
+    "boardGamepad": "Steuerkreuz / Stick: bewegen · A / ×: spielen · X / □: bestätigen · B / ○: zurück · LB / RB: Menüs · Start: Menü",
+    "textEntry": "Texteingabe",
+    "backspace": "Löschen",
+    "space": "Leerzeichen",
+    "done": "Fertig",
+    "choose": "Auswählen",
+    "shift": "Umschalten"
   }
 }

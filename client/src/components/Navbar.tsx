@@ -6,6 +6,7 @@ import { DesktopWindowControls } from "@/components/DesktopWindowControls";
 import { ThemePicker } from "@/components/game/ThemePicker";
 import { PlayerIdentityRow } from "@/components/PlayerIdentityRow";
 import { Button } from "@/components/ui/button";
+import { useFocusScope } from "@/hooks/useFocusScope";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
 import {
   Link,
@@ -244,6 +245,8 @@ export function Navbar({
   onOpenAuth,
   onLogout,
 }: NavbarProps) {
+  const navRef = useRef<HTMLDivElement>(null);
+  useFocusScope(navRef, navOpen, onCloseNav);
   const t = useTranslations("nav");
   const tLegal = useTranslations("legalFooter");
   const intlRouter = useIntlRouter();
@@ -666,6 +669,7 @@ export function Navbar({
     <>
       <button
         type="button"
+        data-game-menu
         className="fixed left-3 top-4 z-501 inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#af8a56]/35 bg-[rgba(255,248,232,0.88)] text-[#28170e] shadow-[0_14px_28px_-18px_rgba(75,49,20,0.46)] backdrop-blur-sm transition-colors hover:bg-[rgba(255,252,245,0.96)]"
         aria-label={t("openNavigation")}
         aria-expanded={navOpen}
@@ -677,6 +681,11 @@ export function Navbar({
       {navOpen && (
         // biome-ignore lint/a11y/useKeyWithClickEvents: event interceptor on container, not interactive (keyboard handled separately)
         <div
+          ref={navRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={t("openNavigation")}
+          tabIndex={-1}
           className="animate-nav-backdrop-in fixed inset-0 z-500 bg-[rgba(15,11,8,0.5)] backdrop-blur-xs"
           onClick={onCloseNav}
         >

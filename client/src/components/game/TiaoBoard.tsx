@@ -13,12 +13,14 @@ import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useBoardInput } from "@/hooks/useBoardInput";
 import { usePinchZoom } from "@/hooks/usePinchZoom";
 import { IS_TOUCH_DEVICE } from "@/lib/isTouchDevice";
 import { useBoardTheme } from "@/lib/useBoardTheme";
 import { cn } from "@/lib/utils";
 import { BoardArrowsLayer } from "./BoardArrowsLayer";
 import { BoardControls } from "./BoardControls";
+import { BoardInputHint } from "./BoardInputHint";
 import { MobilePreviewLayer } from "./MobilePreviewLayer";
 import {
   DRAG_THRESHOLD,
@@ -125,6 +127,22 @@ export function TiaoBoard({
   const isDraggingPreviewRef = useRef(false);
   const dragOffsetRef = useRef<{ dx: number; dy: number } | null>(null);
   const touchStartTimeRef = useRef(0);
+  const input = useBoardInput({
+    ref: boardRef,
+    size: bs,
+    disabled: disabled || !onPointClick,
+    onCancel: () => {
+      if (mobilePreview) setMobilePreview(null);
+      else if (hasPendingJump && onUndoLastJump) {
+        onUndoLastJump();
+        return lastPendingJump?.from;
+      } else if (selectedPiece) onPointClick?.(selectedPiece);
+      return undefined;
+    },
+    onConfirm: () => {
+      if (hasPendingJump && confirmReady) onConfirmJump?.();
+    },
+  });
 
   // -- Pinch-to-zoom --
   const zoom = usePinchZoom({
@@ -382,7 +400,10 @@ export function TiaoBoard({
   );
 
   const handleButtonClick = useCallback(
-    (position: Position) => {
+    (position: Position, keyboardActivation = false) => {
+      // Native keyboard and gamepad .click() activation has detail=0. A
+      // previous prevented touch must not swallow a new input surface.
+      if (keyboardActivation) suppressClickRef.current = false;
       if (IS_TOUCH_DEVICE && suppressClickRef.current) {
         suppressClickRef.current = false;
         return;
@@ -511,6 +532,7 @@ export function TiaoBoard({
         })}
       <div
         ref={boardRef}
+        {...input.boardProps}
         data-testid="tiao-board"
         className={cn(
           "relative aspect-square w-full rounded-[1.55rem] touch-none",
@@ -630,17 +652,14 @@ export function TiaoBoard({
           return (
             <button
               key={pieceKey}
+              {...input.cellProps(position)}
               type="button"
               data-testid={`cell-${position.x}-${position.y}`}
-              aria-label={
-                showCoordinates
-                  ? `${String.fromCharCode(65 + position.x)}${position.y + 1}: ${piece ?? "empty"}`
-                  : undefined
-              }
+              aria-label={`${String.fromCharCode(65 + position.x)}${position.y + 1}: ${piece ? t(piece) : t("emptyIntersection")}`}
               data-piece={piece ?? undefined}
               data-last-move={isLastMove || undefined}
               disabled={disabled}
-              onClick={() => handleButtonClick(position)}
+              onClick={(event) => handleButtonClick(position, event.detail === 0)}
               onPointerEnter={() => {
                 if (IS_TOUCH_DEVICE) return;
                 if (isJumpTarget && !disabled) {
@@ -670,6 +689,7 @@ export function TiaoBoard({
                 }
               }}
               onFocus={() => {
+                input.cellProps(position).onFocus();
                 if (IS_TOUCH_DEVICE) return;
                 if (isJumpTarget && !disabled) {
                   setHoveredJumpTargetKey(pieceKey);
@@ -678,8 +698,10 @@ export function TiaoBoard({
                 if (showConfirmAffordance && !disabled) {
                   setConfirmHovered(true);
                 }
+                if (!piece && !disabled) setHoveredEmptyKey(pieceKey);
               }}
               onBlur={() => {
+                if (hoveredEmptyKey === pieceKey) setHoveredEmptyKey(null);
                 if (IS_TOUCH_DEVICE) return;
                 if (hoveredJumpTargetKey === pieceKey) {
                   setHoveredJumpTargetKey(null);
@@ -690,7 +712,7 @@ export function TiaoBoard({
                 }
               }}
               className={cn(
-                "group absolute aspect-square -translate-x-1/2 -translate-y-1/2 transition-transform duration-150",
+                "board-cell group absolute aspect-square -translate-x-1/2 -translate-y-1/2 transition-transform duration-150",
                 isMarkedForCapture ? "z-0" : isForcedOrigin || isSelected ? "z-20" : "z-10",
                 disabled
                   ? "cursor-default"
@@ -931,6 +953,7 @@ export function TiaoBoard({
         onUndoLastJump={onUndoLastJump}
         onConfirmJump={onConfirmJump}
       />
+      <BoardInputHint visible={input.focused} />
     </div>
   );
 }

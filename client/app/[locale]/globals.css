@@ -499,3 +499,20 @@ html [data-sonner-toast][data-styled="true"] [data-button]:active {
     0 0 40px rgba(255, 215, 0, 0.15);
   border-color: rgba(255, 215, 0, 0.5);
 }
+
+/* Controller focus must remain visible after programmatic focus/clicks. */
+html[data-input-mode="gamepad"] :focus {
+  outline: 3px solid #486b9b !important;
+  outline-offset: 2px;
+}
+.board-cell:focus-visible,
+html[data-input-mode="gamepad"] .board-cell:focus {
+  outline: 3px solid #486b9b !important;
+  outline-offset: -2px;
+  border-radius: 50%;
+  z-index: 96 !important;
+}
+.gamepad-hint { display: none; }
+html[data-input-mode="pointer"] .input-hint { display: none; }
+html[data-input-mode="gamepad"] .gamepad-hint { display: inline; }
+html[data-input-mode="gamepad"] .keyboard-hint { display: none; }

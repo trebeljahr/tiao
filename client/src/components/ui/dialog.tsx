@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useFocusScope } from "@/hooks/useFocusScope";
 import { cn } from "@/lib/utils";
 
 type DialogProps = {
@@ -33,7 +34,9 @@ export function Dialog({
   // Next.js client components. Without the mount gate, `createPortal` would
   // throw on SSR.
   const [mounted, setMounted] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
   useEffect(() => setMounted(true), []);
+  useFocusScope(dialogRef, open && mounted, closeable ? () => onOpenChange(false) : undefined);
 
   useEffect(() => {
     if (!open) {
@@ -44,18 +47,10 @@ export function Dialog({
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && closeable) {
-        onOpenChange(false);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = prevOverflow;
     };
-  }, [open, onOpenChange, closeable]);
+  }, [open]);
 
   const handleBackdropMouseDown = useCallback((event: React.MouseEvent) => {
     // Only flag when the mousedown target is the backdrop itself
@@ -96,6 +91,8 @@ export function Dialog({
     >
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: event interceptor on container, not interactive (keyboard handled separately) */}
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         className={cn(
           "animate-dialog-content w-full max-w-lg max-h-[90dvh] overflow-y-auto rounded-[1.75rem] border border-white/70 bg-card p-6 text-card-foreground shadow-[0_34px_80px_-36px_rgba(63,37,17,0.45)]",
           className,

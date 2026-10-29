@@ -1,6 +1,8 @@
 import confetti from "canvas-confetti";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { BoardInputHint } from "@/components/game/BoardInputHint";
+import { useBoardInput } from "@/hooks/useBoardInput";
 import { IS_TOUCH_DEVICE } from "@/lib/isTouchDevice";
 import { useBoardTheme } from "@/lib/useBoardTheme";
 import { playMoveSoundIfEnabled } from "@/lib/useStonePlacementSound";
@@ -416,6 +418,22 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
   }
 
   const nudge = getNudge();
+  const input = useBoardInput({
+    ref: boardRef,
+    size,
+    disabled: !active || completed,
+    onCancel: () => {
+      if (showOverlay) setShowOverlay(false);
+      else if (hasPending) {
+        undoLastJump();
+        return lastJump?.from;
+      } else setSelected(null);
+      return undefined;
+    },
+    onConfirm: () => {
+      if (hasPending) confirmJump();
+    },
+  });
 
   // On mobile, show a prominent confirm circle the first time a confirm is needed
   const showMobileConfirmHint =
@@ -469,6 +487,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
         <div
           ref={boardRef}
           data-ui-sound="off"
+          {...input.boardProps}
           className="relative w-full overflow-hidden rounded-[1.2rem] border p-2 shadow-[0_32px_70px_-28px_rgba(66,39,11,0.75)]"
           style={{
             background: theme.boardBg,
@@ -548,19 +567,26 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
               return (
                 <button
                   key={key}
+                  {...input.cellProps(pos)}
                   type="button"
+                  aria-label={`${String.fromCharCode(65 + pos.x)}${pos.y + 1}: ${cell ?? "empty"}`}
                   disabled={!active || completed}
                   onClick={() => handleClick(pos)}
                   onPointerEnter={() => {
                     if (!active || completed) return;
                     setHoveredKey(key);
                   }}
+                  onFocus={() => {
+                    input.cellProps(pos).onFocus();
+                    setHoveredKey(key);
+                  }}
+                  onBlur={() => setHoveredKey(null)}
                   onPointerLeave={() => {
                     if (hoveredKey === key) setHoveredKey(null);
                     setUndoHovered(false);
                   }}
                   className={cn(
-                    "group absolute aspect-square -translate-x-1/2 -translate-y-1/2 transition-transform duration-150",
+                    "board-cell group absolute aspect-square -translate-x-1/2 -translate-y-1/2 transition-transform duration-150",
                     isCapture ? "z-0" : isForcedOrigin || isSelected ? "z-20" : "z-10",
                     active &&
                       !completed &&
@@ -1002,6 +1028,15 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
               exit={{ opacity: 0 }}
               transition={{ duration: 0.18 }}
               className="absolute inset-0 z-100 flex items-center justify-center rounded-[1.2rem] bg-black/45 backdrop-blur-[2px]"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setShowOverlay(false);
+                }
+              }}
               onClick={() => setShowOverlay(false)}
             >
               <div className="flex flex-col items-center gap-3 px-4 text-center">
@@ -1014,6 +1049,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
           )}
         </AnimatePresence>
       </div>
+      <BoardInputHint visible={input.focused} />
     </div>
   );
 }

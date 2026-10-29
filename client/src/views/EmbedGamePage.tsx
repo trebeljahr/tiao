@@ -110,6 +110,15 @@ export function EmbedGamePage() {
   useEffect(() => {
     if (!replay || moveIndex === null) return;
     const onKey = (event: KeyboardEvent) => {
+      if (
+        event.defaultPrevented ||
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey ||
+        (event.target instanceof Element &&
+          event.target.closest('input, textarea, select, [aria-modal="true"]'))
+      )
+        return;
       if (event.key === "ArrowLeft") {
         event.preventDefault();
         setMoveIndex((i) => (i === null ? i : findPrevBoardMove(history, i)));

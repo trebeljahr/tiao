@@ -332,7 +332,8 @@
     "guestUpgradeCtaSignUp": "Crear cuenta",
     "guestUpgradeCtaLogIn": "Iniciar sesión",
     "guestUpgradeBanner": "Estás jugando como {name}. <link>Crea una cuenta</link> para guardar esta partida y añadir amig@s.",
-    "copyEmbedCode": "Copiar código de inserción"
+    "copyEmbedCode": "Copiar código de inserción",
+    "emptyIntersection": "Vacío"
   },
   "config": {
     "difficulty": "Dificultad",
@@ -1504,5 +1505,15 @@
     "linkExistingHint": "Inicia sesión una vez para combinar tu progreso, amigos y compras de Steam con tu cuenta web.",
     "waitingBrowser": "Esperando el inicio de sesión en el navegador…",
     "confirmExisting": "Vincular Steam con {username}"
+  },
+  "input": {
+    "boardKeyboard": "Flechas / WASD: mover · Intro / Espacio: jugar · C: confirmar · X: deshacer · Tab: menús",
+    "boardGamepad": "Cruceta / stick: mover · A / ×: jugar · X / □: confirmar · B / ○: deshacer · LB / RB: menús · Start: menú",
+    "textEntry": "Introducir texto",
+    "backspace": "Borrar",
+    "space": "Espacio",
+    "done": "Listo",
+    "choose": "Elegir",
+    "shift": "Mayúsculas"
   }
 }

@@ -332,7 +332,8 @@
     "guestUpgradeCtaSignUp": "Sign up",
     "guestUpgradeCtaLogIn": "Log in",
     "guestUpgradeBanner": "You're playing as {name}. <link>Create an account</link> to save this game and add friends.",
-    "copyEmbedCode": "Copy embed code"
+    "copyEmbedCode": "Copy embed code",
+    "emptyIntersection": "Empty"
   },
   "config": {
     "difficulty": "Difficulty",
@@ -1504,5 +1505,15 @@
     "linkExistingHint": "Sign in once to combine your Steam progress, friends and purchases with your web account.",
     "waitingBrowser": "Waiting for browser sign-in…",
     "confirmExisting": "Link Steam to {username}"
+  },
+  "input": {
+    "boardKeyboard": "Arrows / WASD: move · Enter / Space: play · C: confirm · X: undo · Tab: menus",
+    "boardGamepad": "D-pad / stick: move · A / ×: play · X / □: confirm · B / ○: undo · LB / RB: menus · Start: menu",
+    "textEntry": "Text entry",
+    "backspace": "Delete",
+    "space": "Space",
+    "done": "Done",
+    "choose": "Choose",
+    "shift": "Shift"
   }
 }

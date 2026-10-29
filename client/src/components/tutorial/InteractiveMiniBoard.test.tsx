@@ -126,6 +126,25 @@ function clickPos(pos: Pos, size: number) {
   }
 }
 
+describe("tutorial keyboard controls", () => {
+  it("moves the board cursor and undoes pending captures without leaving the step", () => {
+    const { container, onComplete } = renderBoard(chainJumpConfig);
+    const at = (x: number, y: number) =>
+      container.querySelector<HTMLElement>(`[data-board-x="${x}"][data-board-y="${y}"]`)!;
+    act(() => at(1, 5).focus());
+    fireEvent.click(at(1, 5));
+    fireEvent.keyDown(document.activeElement!, { key: "ArrowUp" });
+    fireEvent.keyDown(document.activeElement!, { key: "ArrowUp" });
+    expect(at(1, 3)).toHaveFocus();
+    fireEvent.click(at(1, 3));
+    fireEvent.keyDown(document.activeElement!, { key: "c" });
+    expect(onComplete).not.toHaveBeenCalled(); // full chain is still required
+    fireEvent.keyDown(document.activeElement!, { key: "x" });
+    expect(at(1, 5)).toHaveFocus();
+    expect(onComplete).not.toHaveBeenCalled();
+  });
+});
+
 describe("InteractiveMiniBoard – chain-jump requires full chain", () => {
   beforeEach(() => {
     vi.useFakeTimers();

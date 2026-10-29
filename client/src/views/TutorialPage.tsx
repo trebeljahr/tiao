@@ -218,6 +218,15 @@ function TutorialPageInner() {
   // Keyboard navigation
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
+      if (
+        e.defaultPrevented ||
+        e.altKey ||
+        e.ctrlKey ||
+        e.metaKey ||
+        (e.target instanceof Element &&
+          e.target.closest('button, a, input, textarea, select, [tabindex], [aria-modal="true"]'))
+      )
+        return;
       if (e.key === "ArrowLeft") {
         e.preventDefault();
         goPrev();

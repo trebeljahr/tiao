@@ -35,6 +35,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 import { Toaster } from "sonner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { InputNavigation } from "@/components/InputNavigation";
 import { NativeDeepLinkHandler } from "@/components/NativeDeepLinkHandler";
 import { SteamAccountSetup } from "@/components/SteamAccountSetup";
 import { SteamInviteHandler } from "@/components/SteamInviteHandler";
@@ -251,11 +252,17 @@ export function Providers({ children }: { children: React.ReactNode }) {
   // page, and the cookie is blocked cross-site anyway), no lobby socket,
   // no toaster. Just the page.
   if (isEmbedPath(pathname ?? "")) {
-    return <ErrorBoundary>{children}</ErrorBoundary>;
+    return (
+      <ErrorBoundary>
+        <InputNavigation />
+        {children}
+      </ErrorBoundary>
+    );
   }
 
   return (
     <ErrorBoundary>
+      <InputNavigation />
       <AuthProvider createGuestSession={!publicPage}>
         <AppShell publicPage={publicPage}>{children}</AppShell>
       </AuthProvider>

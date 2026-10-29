@@ -64,6 +64,7 @@ function ToggleButton({
         className,
       )}
       onClick={onClick}
+      aria-pressed={active}
     >
       {children}
     </Button>
