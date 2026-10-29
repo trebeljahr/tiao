@@ -228,7 +228,23 @@ const measure = (file) => {
   assert(integrated && peak, "Loudness measurement missing");
   return { integratedLufs: Number(integrated[1]), truePeakDbfs: Number(peak[1]) };
 };
-// One continuous music excerpt, at its original tempo and pitch.
+// Preserve the performance's pitch and tempo while optionally removing a repeat.
+const musicFades = `afade=t=in:st=0:d=${edit.music.fadeIn},afade=t=out:st=${duration - edit.music.fadeOut}:d=${edit.music.fadeOut}`;
+const splice = edit.music.splice;
+if (splice) {
+  assert(Number.isFinite(splice.removeStart) && splice.removeStart > 0);
+  assert(Number.isFinite(splice.resumeAt) && splice.resumeAt > splice.removeStart);
+  assert(Number.isInteger(splice.crossfadeSamples) && splice.crossfadeSamples > 0);
+  assert(splice.crossfadeSamples / 48000 < splice.removeStart);
+}
+const musicFilter = splice
+  ? [
+      "-filter_complex",
+      `[0:a]aresample=48000,asplit=2[before][after];[before]atrim=end=${splice.removeStart},asetpts=PTS-STARTPTS[left];[after]atrim=start=${splice.resumeAt},asetpts=PTS-STARTPTS[right];[left][right]acrossfade=ns=${splice.crossfadeSamples}:c1=tri:c2=tri,${musicFades}[bed]`,
+      "-map",
+      "[bed]",
+    ]
+  : ["-af", `aresample=48000,${musicFades}`];
 run([
   "-ss",
   String(edit.music.in),
@@ -236,8 +252,7 @@ run([
   edit.music.file,
   "-t",
   String(duration),
-  "-af",
-  `aresample=48000,afade=t=in:st=0:d=${edit.music.fadeIn},afade=t=out:st=${duration - edit.music.fadeOut}:d=${edit.music.fadeOut}`,
+  ...musicFilter,
   "-ac",
   "2",
   "-c:a",

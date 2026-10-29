@@ -1,6 +1,6 @@
 # Trailer build recipe
 
-`scripts/store-trailer-current.json` records the selected local export, checksum, archive and upload state. Stable export: `build/store-trailer/tiao-gameplay-current.mp4`; distinct review copy: `build/store-trailer/tiao-faster-pacing.mp4`. This is a local review cut.
+`scripts/store-trailer-current.json` records the selected local export, checksum, archive and upload state. Stable export: `build/store-trailer/tiao-gameplay-current.mp4`; distinct review copy: `build/store-trailer/tiao-original-opening.mp4`. This is a local review cut.
 
 ## Rebuild
 
@@ -24,7 +24,7 @@ The selected 48.1667-second edit uses 22 shots. The opening teaser shows White's
 
 The match is clicked through the real UI and the final DOM board is checked against the ledger. Every committed action has an equal 18-frame source interval, including jump selection and confirmation. This removes the extra selection/hover waits around the earlier recording's first capture.
 
-The full replay begins at 29.1 seconds and lasts 14.2667 seconds. A continuous logarithmic time map accelerates from 1.31× to 4.60×, with no step changes or slowing. The last confirmation lands on the piano cadence at 43.3667 seconds. Native victory confetti continues into a 0.6-second crossfade at 44.6667 seconds. The closing card reuses the approved vector Steam artwork with “Free to Play on Steam,” holding through 48.1667 seconds. The original piano excerpt starts at 4.8333 seconds, near the third bar, preserving its pitch, tempo and tail.
+The full replay begins at 29.1 seconds and lasts 14.2667 seconds. A continuous logarithmic time map accelerates from 1.31× to 4.60×, with no step changes or slowing. The last confirmation lands on the piano cadence at 43.3667 seconds. Native victory confetti continues into a 0.6-second crossfade at 44.6667 seconds. The closing card reuses the approved vector Steam artwork with “Free to Play on Steam,” holding through 48.1667 seconds. The original piano opening is preserved. Repeated bars 11–12 are removed later: the source jumps from 24.08 to 28.9 seconds with a 640-sample (13.333 ms) crossfade, shortening it by 4.8333 seconds without changing pitch or tempo. The final chord and tail stay aligned with the win and end card.
 
 ## Capture quality and sound
 

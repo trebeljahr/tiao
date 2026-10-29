@@ -1,5 +1,5 @@
 {
-  "title": "Tiao \u2014 faster capture example and accelerating finale",
+  "title": "Tiao \u2014 faster pacing with original piano opening",
   "source": "Shipped Tiao UI; legal local match replays and isolated sample social/tournament accounts",
   "duration": 48.166666666666664,
   "style": {
@@ -262,14 +262,22 @@
     "method": "Explicit MIDI composition rendered locally with installed Apple Yamaha piano multisamples; no text-to-audio service",
     "key": "D major",
     "tempoBpm": 99.58506224066389,
-    "in": 4.8333333333,
+    "in": 0,
     "targetLufs": -18,
     "fadeIn": 0.12,
     "fadeOut": 1.5,
     "resolveAt": 43.36666666666667,
     "licence": "Original arrangement; Apple sample content used in finished soundtrack under Logic Pro licence",
     "licenceUrl": "https://www.apple.com/legal/sla/docs/LogicPro.pdf",
-    "ending": "The original piano excerpt starts at 4.8333 seconds, near the third bar. Pitch and tempo are unchanged. Its final D-major ninth meets the genuine final capture at 43.3667 seconds; the tail continues under the store-art end card."
+    "ending": "Original opening retained. Repeated bars 11\u201312 removed later with a short crossfade; pitch and tempo unchanged. The final D-major ninth meets the genuine final capture at 43.3667 seconds, with its tail beneath the end card.",
+    "splice": {
+      "removeStart": 24.08,
+      "resumeAt": 28.9,
+      "crossfadeSamples": 640,
+      "sourceResolveAt": 48.2,
+      "removedBars": [11, 12],
+      "description": "Remove the repeated two-bar Bm7/Gmaj9 melody later in the piece; splice just before downbeats with a 13.333 ms overlap. Preserve the original opening and all later performance timing."
+    }
   },
   "transition": {
     "file": "scripts/assets/store-trailer/audio/clean-woosh-8.mp3",
@@ -287,8 +295,8 @@
     "fadeOut": 1.2,
     "targetPeakDb": -8
   },
-  "outputName": "tiao-faster-pacing.mp4",
-  "audioDescription": "Original Next Move piano excerpt at its original pitch and tempo; winning capture and native confetti land on the final cadence. Five restrained transition accents and committed move sounds.",
+  "outputName": "tiao-original-opening.mp4",
+  "audioDescription": "Original Next Move piano opening; repeated two-bar passage removed later. Pitch and tempo unchanged. Winning capture and confetti meet the final cadence; five restrained transitions and committed move sounds.",
   "moveSounds": {
     "file": "scripts/assets/store-trailer/move-events.json",
     "gain": 0.5,
