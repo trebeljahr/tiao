@@ -748,23 +748,24 @@ export function AuthProvider({
     resetBoardTheme();
     resetActiveBadges();
 
-    // Desktop Electron: tell the main process to clear its persisted
-    // bearer token and flush the module cache, so the next Page reload
-    // doesn't re-attach the just-deleted token as Authorization.
-    const electron = (
-      window as unknown as {
-        electron?: { isElectron?: boolean; auth?: { logout?: () => Promise<void> } };
-      }
-    ).electron;
-    if (electron?.isElectron && typeof electron.auth?.logout === "function") {
+    // Desktop sessions are revoked by the main process. Finish here:
+    // browser sign-out uses cookies and cannot run from the app's origin.
+    const desktop = desktopAuthBridge();
+    if (desktop) {
       try {
-        await electron.auth.logout();
+        if (!desktop.logout) throw new Error("Desktop logout is unavailable.");
+        await desktop.logout();
       } catch {
         toastError(
           "Could not revoke your desktop session. Check your connection and retry logout.",
         );
         return;
       }
+      setElectronTokenCache(null);
+      safeLocalStorage.setItem("tiao:steam-signed-out", "1");
+      setCachedAuth(null);
+      window.location.assign("/");
+      return;
     }
     if (isNativeMobileApp()) {
       try {
@@ -775,12 +776,6 @@ export function AuthProvider({
       }
     }
     setElectronTokenCache(null);
-    if (desktopAuthBridge()) {
-      safeLocalStorage.setItem("tiao:steam-signed-out", "1");
-      setCachedAuth(null);
-      window.location.assign("/");
-      return;
-    }
 
     // Order matters for the rest: do the server-side signout + new-guest
     // session dance while React state is still "logged in", then navigate

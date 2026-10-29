@@ -6,6 +6,7 @@ import type { SteamProfileDefaults } from "./steamWebAuth";
 
 type DesktopProvider = "github" | "google" | "discord" | "apple" | "steam";
 type DesktopAuth = {
+  logout?: () => Promise<unknown>;
   startOAuth?: (
     provider: DesktopProvider,
     options?: { linkSteam?: boolean },
