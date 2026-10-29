@@ -1,13 +1,10 @@
 #!/usr/bin/env node
 // Starts client, server, and (optionally) docs for development.
 //
-// Infra (Redis + Mongo + MinIO) is auto-started on every invocation unless
-// you pass `--skip-infra`. The script first TCP-pings Redis (6379) and Mongo
-// (27017) — if both are already reachable (either docker-compose is already
-// up, or you run Redis/Mongo natively via brew/apt), we skip the docker
-// compose call entirely for a fast startup. If either port is unreachable,
-// we bring up docker-compose.dev.yml and poll both ports until they become
-// ready. If Docker isn't installed, the script falls through with a warning.
+// Missing Redis and Mongo services are auto-started unless `--skip-infra`
+// is passed. Existing native services are left alone. Startup stops before
+// launching workers if infrastructure fails; `pnpm dev:infra` starts the
+// full stack, including S3 storage.
 //
 // Usage:
 //   node scripts/dev.mjs                 Random ports (client 3100-3999, docs 4100-4999, server 5100-5999)
@@ -32,7 +29,8 @@
 //   npm run dev:docs:fixed               Fixed ports (client + server + docs)
 
 import { execSync, spawn } from "node:child_process";
-import { createServer, Socket } from "node:net";
+import { createServer } from "node:net";
+import { startDevInfra } from "./dev-infra.mjs";
 
 const args = process.argv.slice(2);
 const fixedMode = args.includes("--fixed");
@@ -41,107 +39,12 @@ const lanMode = args.includes("--lan");
 const skipInfra = args.includes("--skip-infra");
 const parallelMode = process.env.DEV_PARALLEL === "1";
 
-// ─── Auto-start dev infrastructure ────────────────────────────────────
-//
-// TCP-ping Redis (6379) and Mongo (27017) first. If both are already
-// reachable we skip docker compose entirely — that's the common case
-// when you ran `npm run dev` earlier in the session, or when you run
-// Redis/Mongo natively via brew/apt.
-//
-// If either port is unreachable we bring up docker-compose.dev.yml and
-// poll both ports until they come online (up to 30s) so the client +
-// server processes we spawn next don't race Redis's startup.
-//
-// We tolerate Docker being missing/unavailable: if the command fails,
-// we warn and continue. The server will still fail loudly later if
-// REDIS_URL isn't reachable — see createGameService() in
-// server/game/gameService.ts.
-
-/**
- * TCP-ping a host:port with a short timeout. Returns true if the
- * connection succeeds before the deadline, false otherwise (refused,
- * unreachable, timeout, DNS error, etc.).
- */
-function isPortOpen(host, port, timeoutMs = 500) {
-  return new Promise((resolve) => {
-    const socket = new Socket();
-    let settled = false;
-    const finish = (result) => {
-      if (settled) return;
-      settled = true;
-      socket.destroy();
-      resolve(result);
-    };
-    socket.setTimeout(timeoutMs);
-    socket.once("connect", () => finish(true));
-    socket.once("error", () => finish(false));
-    socket.once("timeout", () => finish(false));
-    socket.connect(port, host);
-  });
+try {
+  await startDevInfra({ skip: skipInfra });
+} catch (err) {
+  console.error(`  Infra:  ${err.message}`);
+  process.exit(1);
 }
-
-/** Poll both infra ports until they're reachable or deadline passes. */
-async function waitForInfraReady(timeoutMs = 30_000) {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    const [redis, mongo] = await Promise.all([
-      isPortOpen("127.0.0.1", 6379),
-      isPortOpen("127.0.0.1", 27017),
-    ]);
-    if (redis && mongo) return true;
-    await new Promise((r) => setTimeout(r, 500));
-  }
-  return false;
-}
-
-async function startDevInfra() {
-  if (skipInfra) {
-    console.log("  Infra:  skipped (--skip-infra)");
-    return;
-  }
-
-  // Fast path: if both ports are already reachable, don't touch docker.
-  // This is the common case after the first dev run in a session.
-  const [redisUp, mongoUp] = await Promise.all([
-    isPortOpen("127.0.0.1", 6379),
-    isPortOpen("127.0.0.1", 27017),
-  ]);
-
-  if (redisUp && mongoUp) {
-    console.log("  Infra:  up (Redis + Mongo reachable)");
-    return;
-  }
-
-  const missing = [];
-  if (!redisUp) missing.push("Redis:6379");
-  if (!mongoUp) missing.push("Mongo:27017");
-  console.log(`  Infra:  starting docker compose (${missing.join(", ")} unreachable)...`);
-
-  try {
-    execSync("docker compose -f docker-compose.dev.yml up -d", {
-      stdio: ["ignore", "pipe", "pipe"],
-    });
-  } catch (err) {
-    console.warn("  Infra:  ⚠  docker compose up failed — is Docker running? Continuing anyway.");
-    console.warn(`          ${err.message.split("\n")[0]}`);
-    console.warn("          If you run Redis/Mongo natively, pass --skip-infra to silence this.");
-    return;
-  }
-
-  // docker compose up -d returns as soon as the containers are CREATED,
-  // which is before the Redis server inside actually accepts connections.
-  // Poll the ports so the client + server we spawn next don't race the
-  // container startup.
-  const ready = await waitForInfraReady();
-  if (ready) {
-    console.log("  Infra:  up (Redis + Mongo ready)");
-  } else {
-    console.warn("  Infra:  ⚠  docker compose succeeded but ports are not reachable after 30s");
-    console.warn("          The server may fail on startup — check `docker compose ps`");
-  }
-}
-
-await startDevInfra();
 
 // Parallel mode: determine instance count from first positional integer arg,
 // then from DEV_PARALLEL_COUNT env var, then default to 2.
