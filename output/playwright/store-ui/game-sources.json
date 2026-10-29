@@ -1,0 +1,137 @@
+{
+  "Q7K2MP": {
+    "kind": "shipped AI versus AI; complete match replay",
+    "matchId": "classic",
+    "ledger": "scripts/assets/store-trailer/ai-match.json",
+    "ledgerSha256": "5a06caa5f79855b1be2af3fd9c60bd6b7167fed5324e0575efbd5106ab60743e",
+    "engineSha256": "aaea95ff52525186342e3d54c681f19cc19d1e66ce7b52af598145e57b3333eb",
+    "players": {
+      "white": {
+        "level": 2,
+        "label": "Intermediate"
+      },
+      "black": {
+        "level": 3,
+        "label": "Hard"
+      }
+    },
+    "matchDecisions": 45,
+    "completedDecisions": 45,
+    "phase": "match finished",
+    "boardSize": 19,
+    "scoreToWin": 10,
+    "score": {
+      "black": 5,
+      "white": 13
+    },
+    "boardSha256": "2ee97165a426df17637a735cedefc058abf906551e729009d22468e150b9acaa"
+  },
+  "H3R8VN": {
+    "kind": "shipped AI versus AI; complete match replay",
+    "matchId": "long",
+    "ledger": "scripts/assets/store-screenshots/long-match.json",
+    "ledgerSha256": "bacb2ed32d4fa0712dbbf986407856d4868ef32374f659ab53d7e2f377c109ac",
+    "engineSha256": "aaea95ff52525186342e3d54c681f19cc19d1e66ce7b52af598145e57b3333eb",
+    "players": {
+      "white": {
+        "level": 3,
+        "label": "Hard"
+      },
+      "black": {
+        "level": 2,
+        "label": "Intermediate"
+      }
+    },
+    "matchDecisions": 55,
+    "completedDecisions": 55,
+    "phase": "match finished",
+    "boardSize": 19,
+    "scoreToWin": 20,
+    "score": {
+      "black": 7,
+      "white": 23
+    },
+    "boardSha256": "273f4fc75dbcde2358cfa698abec7fc134e97f07f4a5ef07add3ed5cd0013d0f"
+  },
+  "D9S4LA": {
+    "kind": "shipped AI versus AI; complete match replay",
+    "matchId": "compact",
+    "ledger": "scripts/assets/store-screenshots/compact-match.json",
+    "ledgerSha256": "c77a6cbe7029e8a2d2737b8c677b2c24344cf5502c68b835ef28d9be56978cae",
+    "engineSha256": "aaea95ff52525186342e3d54c681f19cc19d1e66ce7b52af598145e57b3333eb",
+    "players": {
+      "white": {
+        "level": 2,
+        "label": "Intermediate"
+      },
+      "black": {
+        "level": 3,
+        "label": "Hard"
+      }
+    },
+    "matchDecisions": 37,
+    "completedDecisions": 37,
+    "phase": "match finished",
+    "boardSize": 13,
+    "scoreToWin": 15,
+    "score": {
+      "black": 1,
+      "white": 15
+    },
+    "boardSha256": "cd051290686cb9d4ba4278599727841a5e1464f615e00eac013940ff33c36ccb"
+  },
+  "W6N3RX": {
+    "kind": "shipped AI versus AI; complete match replay",
+    "matchId": "classic",
+    "ledger": "scripts/assets/store-trailer/ai-match.json",
+    "ledgerSha256": "5a06caa5f79855b1be2af3fd9c60bd6b7167fed5324e0575efbd5106ab60743e",
+    "engineSha256": "aaea95ff52525186342e3d54c681f19cc19d1e66ce7b52af598145e57b3333eb",
+    "players": {
+      "white": {
+        "level": 2,
+        "label": "Intermediate"
+      },
+      "black": {
+        "level": 3,
+        "label": "Hard"
+      }
+    },
+    "matchDecisions": 45,
+    "completedDecisions": 29,
+    "phase": "confirmed",
+    "boardSize": 19,
+    "scoreToWin": 10,
+    "score": {
+      "black": 0,
+      "white": 6
+    },
+    "boardSha256": "50784b75e9c9bca914e837086304242b5435c7374cd8020c3c91512290e7372d"
+  },
+  "bracket": {
+    "kind": "shipped AI versus AI; complete match replay",
+    "matchId": "classic",
+    "ledger": "scripts/assets/store-trailer/ai-match.json",
+    "ledgerSha256": "5a06caa5f79855b1be2af3fd9c60bd6b7167fed5324e0575efbd5106ab60743e",
+    "engineSha256": "aaea95ff52525186342e3d54c681f19cc19d1e66ce7b52af598145e57b3333eb",
+    "players": {
+      "white": {
+        "level": 2,
+        "label": "Intermediate"
+      },
+      "black": {
+        "level": 3,
+        "label": "Hard"
+      }
+    },
+    "matchDecisions": 45,
+    "completedDecisions": 45,
+    "phase": "match finished",
+    "boardSize": 19,
+    "scoreToWin": 10,
+    "score": {
+      "black": 5,
+      "white": 13
+    },
+    "boardSha256": "2ee97165a426df17637a735cedefc058abf906551e729009d22468e150b9acaa"
+  }
+}

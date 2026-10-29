@@ -48,7 +48,7 @@
         - /url: /impressum
       - link "Privacy policy":
         - /url: /privacy
-    - paragraph: v1.0.0-build.1207+5b9da9b7
+    - paragraph: v1.0.0-build.1211+3332362d
   - main:
     - button [disabled]
     - button [disabled]
@@ -427,7 +427,7 @@
       - /url: /profile/aki
     - text: (1580)
     - paragraph: Black
-    - paragraph: 2 / 10
+    - paragraph: 4 / 20
     - status "Player is online"
     - img "rowan"
     - link "rowan":
@@ -435,7 +435,7 @@
     - text: (1546) Friend
     - button "Report player"
     - paragraph: White
-    - paragraph: 6 / 10
+    - paragraph: 17 / 20
     - button "Rematch"
     - button "Lobby"
     - paragraph: Move History
@@ -446,124 +446,172 @@
           - columnheader "White"
           - columnheader "Black"
       - rowgroup:
-        - row "1 g6 f9":
+        - row "1 k10 l9":
           - cell "1"
-          - cell "g6":
-            - button "g6"
-          - cell "f9":
-            - button "f9"
-        - row "2 h8 j15":
-          - cell "2"
-          - cell "h8":
-            - button "h8"
-          - cell "j15":
-            - button "j15"
-        - row "3 f14 h5":
-          - cell "3"
-          - cell "f14":
-            - button "f14"
-          - cell "h5":
-            - button "h5"
-        - row "4 g6×j4 g16":
-          - cell "4"
-          - cell "g6×j4":
-            - button "g6×j4"
-          - cell "g16":
-            - button "g16"
-        - row "5 m12 g4":
-          - cell "5"
-          - cell "m12":
-            - button "m12"
-          - cell "g4":
-            - button "g4"
-        - row "6 h10 n10":
-          - cell "6"
-          - cell "h10":
-            - button "h10"
-          - cell "n10":
-            - button "n10"
-        - row "7 l11 n9":
-          - cell "7"
-          - cell "l11":
-            - button "l11"
-          - cell "n9":
-            - button "n9"
-        - row "8 e12 g11":
-          - cell "8"
-          - cell "e12":
-            - button "e12"
-          - cell "g11":
-            - button "g11"
-        - row "9 h10×f12 l9":
-          - cell "9"
-          - cell "h10×f12":
-            - button "h10×f12"
+          - cell "k10":
+            - button "k10"
           - cell "l9":
             - button "l9"
-        - row "10 o12 l13":
+        - row "2 k10×m8 k9":
+          - cell "2"
+          - cell "k10×m8":
+            - button "k10×m8"
+          - cell "k9":
+            - button "k9"
+        - row "3 m9 j10":
+          - cell "3"
+          - cell "m9":
+            - button "m9"
+          - cell "j10":
+            - button "j10"
+        - row "4 l9 j11":
+          - cell "4"
+          - cell "l9":
+            - button "l9"
+          - cell "j11":
+            - button "j11"
+        - row "5 h12 n10":
+          - cell "5"
+          - cell "h12":
+            - button "h12"
+          - cell "n10":
+            - button "n10"
+        - row "6 m9×o11 h13":
+          - cell "6"
+          - cell "m9×o11":
+            - button "m9×o11"
+          - cell "h13":
+            - button "h13"
+        - row "7 h12×k10×k8 m7":
+          - cell "7"
+          - cell "h12×k10×k8":
+            - button "h12×k10×k8"
+          - cell "m7":
+            - button "m7"
+        - row "8 m8×m6 l8":
+          - cell "8"
+          - cell "m8×m6":
+            - button "m8×m6"
+          - cell "l8":
+            - button "l8"
+        - row "9 l9×l7 k10":
+          - cell "9"
+          - cell "l9×l7":
+            - button "l9×l7"
+          - cell "k10":
+            - button "k10"
+        - row "10 j8 k6":
           - cell "10"
-          - cell "o12":
-            - button "o12"
-          - cell "l13":
-            - button "l13"
-        - row "11 m12×k14×h16×f16 d11":
+          - cell "j8":
+            - button "j8"
+          - cell "k6":
+            - button "k6"
+        - row "11 m8 m9":
           - cell "11"
-          - cell "m12×k14×h16×f16":
-            - button "m12×k14×h16×f16"
-          - cell "d11":
-            - button "d11"
-        - row "12 f6 p12":
+          - cell "m8":
+            - button "m8"
+          - cell "m9":
+            - button "m9"
+        - row "12 m7 h10":
           - cell "12"
-          - cell "f6":
-            - button "f6"
-          - cell "p12":
-            - button "p12"
-        - row "13 o12×q12 d11×f13×f11":
+          - cell "m7":
+            - button "m7"
+          - cell "h10":
+            - button "h10"
+        - row "13 n10 n7":
           - cell "13"
-          - cell "o12×q12":
-            - button "o12×q12"
-          - cell "d11×f13×f11":
-            - button "d11×f13×f11"
-        - row "14 e13 g5":
-          - cell "14"
-          - cell "e13":
-            - button "e13"
-          - cell "g5":
-            - button "g5"
-        - row "15 f6×h4×f4 q13":
-          - cell "15"
-          - cell "f6×h4×f4":
-            - button "f6×h4×f4"
-          - cell "q13":
-            - button "q13"
-        - row "16 g4 n7":
-          - cell "16"
-          - cell "g4":
-            - button "g4"
+          - cell "n10":
+            - button "n10"
           - cell "n7":
             - button "n7"
-        - row "17 q12×q14 m6":
+        - row "14 m6×o8 m11":
+          - cell "14"
+          - cell "m6×o8":
+            - button "m6×o8"
+          - cell "m11":
+            - button "m11"
+        - row "15 n10×l12 n8":
+          - cell "15"
+          - cell "n10×l12":
+            - button "n10×l12"
+          - cell "n8":
+            - button "n8"
+        - row "16 l7×j5 j9":
+          - cell "16"
+          - cell "l7×j5":
+            - button "l7×j5"
+          - cell "j9":
+            - button "j9"
+        - row "17 k12 l6":
           - cell "17"
-          - cell "q12×q14":
-            - button "q12×q14"
-          - cell "m6":
-            - button "m6"
-        - row "18 j6 d15":
+          - cell "k12":
+            - button "k12"
+          - cell "l6":
+            - button "l6"
+        - row "18 k11 j9×j7×l9×n7×l7":
           - cell "18"
-          - cell "j6":
-            - button "j6"
-          - cell "d15":
-            - button "d15"
-        - row "19 o8 p8":
+          - cell "k11":
+            - button "k11"
+          - cell "j9×j7×l9×n7×l7":
+            - button "j9×j7×l9×n7×l7"
+        - row "19 o8×m8×k6×m6 h11":
           - cell "19"
-          - cell "o8":
-            - button "o8"
-          - cell "p8":
-            - button "p8"
-        - row "20 o8×q8 wins":
+          - cell "o8×m8×k6×m6":
+            - button "o8×m8×k6×m6"
+          - cell "h11":
+            - button "h11"
+        - row "20 j9 h12":
           - cell "20"
-          - cell "o8×q8":
-            - button "o8×q8"
+          - cell "j9":
+            - button "j9"
+          - cell "h12":
+            - button "h12"
+        - row "21 j9×g11×j11×l9×n9 j13":
+          - cell "21"
+          - cell "j9×g11×j11×l9×n9":
+            - button "j9×g11×j11×l9×n9"
+          - cell "j13":
+            - button "j13"
+        - row "22 k12×h14 m7":
+          - cell "22"
+          - cell "k12×h14":
+            - button "k12×h14"
+          - cell "m7":
+            - button "m7"
+        - row "23 m6×m8 h13×h15":
+          - cell "23"
+          - cell "m6×m8":
+            - button "m6×m8"
+          - cell "h13×h15":
+            - button "h13×h15"
+        - row "24 k11×h9 j11":
+          - cell "24"
+          - cell "k11×h9":
+            - button "k11×h9"
+          - cell "j11":
+            - button "j11"
+        - row "25 k13 h13":
+          - cell "25"
+          - cell "k13":
+            - button "k13"
+          - cell "h13":
+            - button "h13"
+        - row "26 j9 j13":
+          - cell "26"
+          - cell "j9":
+            - button "j9"
+          - cell "j13":
+            - button "j13"
+        - row "27 j10 j13×l13×l11":
+          - cell "27"
+          - cell "j10":
+            - button "j10"
+          - cell "j13×l13×l11":
+            - button "j13×l13×l11"
+        - row "28 j10×j12×g12×j14×g16 wins":
+          - cell "28"
+          - cell "j10×j12×g12×j14×g16":
+            - button "j10×j12×g12×j14×g16"
           - cell "wins":
             - button "wins"
     - button "Copy game notation"

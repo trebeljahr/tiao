@@ -1,372 +1,372 @@
 - main:
   - button "Open navigation"
   - main:
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - button [disabled]
-    - text: AI is thinking... 跳 Tiao Vs AI — Hard
-    - heading "Computer thinking..." [level=3]
-    - paragraph: Black (You)
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - button
+    - text: 跳 Tiao Vs AI — Hard
+    - heading "White to move" [level=3]
+    - paragraph: Black (AI)
     - paragraph: 0 / 10
-    - paragraph: White (AI)
+    - paragraph: White (You)
     - paragraph: 0 / 10
     - button "Undo move" [disabled]
 - region "Notifications alt+T"

@@ -7,16 +7,8 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { chromium } from "@playwright/test";
 import { ACHIEVEMENTS } from "../shared/src/achievements.ts";
-import {
-  confirmPendingJump,
-  createInitialGameState,
-  getJumpTargets,
-  getSelectableJumpOrigins,
-  getWinner,
-  isGameOver,
-  jumpPiece,
-  placePiece,
-} from "../shared/src/tiao.ts";
+import { getWinner, isGameOver } from "../shared/src/tiao.ts";
+import { loadMatches, provenance } from "./store-ai-scenes.mjs";
 import { storeSize } from "./store-sizes.mjs";
 
 const baseURL = process.argv[2];
@@ -25,54 +17,11 @@ const size = storeSize();
 const shared = resolve("output/playwright/store-ui");
 const output = size.store ? resolve(shared, size.name) : shared;
 mkdirSync(output, { recursive: true });
-const unwrap = (r) => {
-  assert(r.ok, JSON.stringify(r));
-  return r.value;
-};
-const scenes = JSON.parse(
-  readFileSync("output/playwright/store-gameplay/legal-replays.json", "utf8"),
-);
-const victory = unwrap(confirmPendingJump(scenes.victory.pending));
-function sampleGame(seed) {
-  let state = createInitialGameState();
-  let n = seed;
-  const rng = () => {
-    n = (Math.imul(n, 1664525) + 1013904223) >>> 0;
-    return n / 4294967296;
-  };
-  for (let i = 0; i < 220 && !isGameOver(state); i++) {
-    const origins = getSelectableJumpOrigins(state, state.currentTurn).filter(
-      (p) => getJumpTargets(state, p).length,
-    );
-    if (origins.length && rng() < 0.6) {
-      let from = origins[Math.floor(rng() * origins.length)];
-      for (;;) {
-        const targets = getJumpTargets(state, from);
-        if (!targets.length) break;
-        const to = targets[Math.floor(rng() * targets.length)];
-        state = unwrap(jumpPiece(state, from, to));
-        from = to;
-      }
-      state = unwrap(confirmPendingJump(state));
-    } else {
-      let placed = false;
-      for (let j = 0; j < 400; j++) {
-        const r = placePiece(state, {
-          x: 3 + Math.floor(rng() * 13),
-          y: 3 + Math.floor(rng() * 13),
-        });
-        if (r.ok) {
-          state = r.value;
-          placed = true;
-          break;
-        }
-      }
-      assert(placed);
-    }
-  }
-  assert(isGameOver(state));
-  return state;
-}
+const matches = loadMatches();
+const victory = matches.classic.states.at(-1);
+const activeTurn = Math.floor(matches.classic.record.moves.length * 0.65);
+const activeState = matches.classic.states[activeTurn];
+const proof = {};
 const names = ["aki", "mira", "rowan", "sora", "jules", "niko", "rin", "kai"];
 const people = names.map((displayName, i) => ({
   playerId: `sample-${displayName}`,
@@ -108,11 +57,11 @@ function snapshot(gameId, state, opponent, h = 0) {
 }
 const games = [
   snapshot("Q7K2MP", victory, people[1], 1),
-  snapshot("H3R8VN", sampleGame(21), people[2], 3),
-  snapshot("D9S4LA", sampleGame(22), people[3], 23),
+  snapshot("H3R8VN", matches.long.states.at(-1), people[2], 3),
+  snapshot("D9S4LA", matches.compact.states.at(-1), people[3], 23),
 ];
 const active = {
-  ...snapshot("W6N3RX", scenes.combo.before, people[1]),
+  ...snapshot("W6N3RX", activeState, people[1]),
   roomType: "tournament",
   tournamentId: "AUTUMN8",
 };
@@ -150,7 +99,7 @@ const settings = {
 };
 const bracketGames = [];
 function match(roundIndex, matchIndex, a, b, done) {
-  const state = done ? sampleGame(30 + roundIndex * 4 + matchIndex) : null;
+  const state = done ? matches.classic.states.at(-1) : null;
   const color = state ? getWinner(state) : "black";
   const other = color === "black" ? "white" : "black";
   const gameId = `T${roundIndex}${matchIndex}CUP`;
@@ -207,7 +156,7 @@ const rounds = [
         ...match(2, 0, people[0], people[1], false),
         status: "active",
         roomId: active.gameId,
-        score: [3, 4],
+        score: [activeState.score.black, activeState.score.white],
       },
     ],
   },
@@ -415,14 +364,34 @@ try {
   // Review a different match and stop on a capture, with the native move controls visible.
   await open("/game/H3R8VN", "rowan");
   await page.getByTestId("review-nav-buttons").waitFor({ timeout: 30000 });
-  const captures = page.getByRole("table").getByRole("button").filter({ hasText: /×/ });
-  await captures.nth(Math.floor((await captures.count()) / 2)).click();
+  const reviewTurns = matches.long.record.moves
+    .map((move, turn) => ({ move, turn }))
+    .filter(({ move, turn }) => turn >= 20 && move.type === "jump");
+  const reviewTurn = reviewTurns[Math.floor(reviewTurns.length / 2)].turn;
+  await page.getByRole("table").getByRole("button").nth(reviewTurn).click();
+  const reviewState = matches.long.states[reviewTurn + 1];
+  const verifyReview = async () => {
+    const cells = await page
+      .locator('[data-testid^="cell-"]')
+      .evaluateAll((els) =>
+        els.map((el) => ({ id: el.dataset.testid, piece: el.dataset.piece || null })),
+      );
+    assert.equal(cells.length, reviewState.boardSize ** 2);
+    for (const cell of cells) {
+      const [, x, y] = cell.id.split("-").map(Number);
+      assert.equal(cell.piece, reviewState.positions[y][x], cell.id);
+    }
+  };
+  await verifyReview();
+  proof["10-game-review"] = provenance(matches.long, reviewState, reviewTurn + 1);
   await page.evaluate(() => window.scrollTo(0, 0));
   await shoot("10-game-review");
   await page.getByRole("button", { name: "Open navigation", exact: true }).click();
   const nightTheme = page.getByRole("button", { name: "Night board theme", exact: true });
   await nightTheme.click();
   await nightTheme.evaluate((el) => el.scrollIntoView({ block: "center", behavior: "instant" }));
+  await verifyReview();
+  proof["15-board-themes"] = provenance(matches.long, reviewState, reviewTurn + 1);
   await shoot("15-board-themes");
 
   await open("/tutorial", "Welcome to Tiao");
@@ -453,6 +422,41 @@ try {
   await open("/computer", "Difficulty");
   await page.getByRole("button", { name: "Hard", exact: true }).click();
   await shoot("14-computer-setup");
+  writeFileSync(resolve(output, "capture-provenance.json"), `${JSON.stringify(proof, null, 2)}\n`);
+  writeFileSync(
+    resolve(output, "game-sources.json"),
+    `${JSON.stringify(
+      {
+        Q7K2MP: provenance(
+          matches.classic,
+          victory,
+          matches.classic.record.moves.length,
+          "match finished",
+        ),
+        H3R8VN: provenance(
+          matches.long,
+          matches.long.states.at(-1),
+          matches.long.record.moves.length,
+          "match finished",
+        ),
+        D9S4LA: provenance(
+          matches.compact,
+          matches.compact.states.at(-1),
+          matches.compact.record.moves.length,
+          "match finished",
+        ),
+        W6N3RX: provenance(matches.classic, activeState, activeTurn),
+        bracket: provenance(
+          matches.classic,
+          victory,
+          matches.classic.record.moves.length,
+          "match finished",
+        ),
+      },
+      null,
+      2,
+    )}\n`,
+  );
   assert.deepEqual(errors, [], "Browser runtime errors");
   assert.deepEqual([...unexpected], [], "Missing sample API responses");
   console.log("Unexpected API paths:", [...unexpected]);

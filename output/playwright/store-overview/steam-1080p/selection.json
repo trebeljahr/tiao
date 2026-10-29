@@ -5,16 +5,43 @@
   "publication": "Local selection; not uploaded or published",
   "captures": [
     {
-      "file": "01-four-stone-chain.png",
-      "title": "A four-stone capture chain",
-      "sha256": "6a0064881e229b2387b223caa212a5645a1bcb69314477a19a24bf7189deb553",
-      "kind": "engine-validated local gameplay",
-      "source": "output/playwright/store-gameplay/02-four-stone-chain.png"
+      "file": "01-ai-capture-chain.png",
+      "title": "An AI capture chain",
+      "sha256": "89fa5a26af2cee4e366a842defb09e1efb503cc032dd05b641a6e9a8cdad5156",
+      "kind": "shipped AI self-play rendered through actual game UI",
+      "gameplay": {
+        "kind": "shipped AI versus AI; complete match replay",
+        "matchId": "compact",
+        "ledger": "scripts/assets/store-screenshots/compact-match.json",
+        "ledgerSha256": "c77a6cbe7029e8a2d2737b8c677b2c24344cf5502c68b835ef28d9be56978cae",
+        "engineSha256": "aaea95ff52525186342e3d54c681f19cc19d1e66ce7b52af598145e57b3333eb",
+        "players": {
+          "white": {
+            "level": 2,
+            "label": "Intermediate"
+          },
+          "black": {
+            "level": 3,
+            "label": "Hard"
+          }
+        },
+        "matchDecisions": 37,
+        "completedDecisions": 28,
+        "phase": "AI decision awaiting confirmation",
+        "boardSize": 13,
+        "scoreToWin": 15,
+        "score": {
+          "black": 1,
+          "white": 7
+        },
+        "boardSha256": "f9bdb5f9c418c6fcaffe4e9dfd73f7a8db347af78079b3d3a650f51eadbf509f"
+      },
+      "source": "output/playwright/store-gameplay/02-ai-capture-chain.png"
     },
     {
       "file": "02-tutorial-chain.png",
       "title": "Interactive chain-jump tutorial",
-      "sha256": "b93dd2a93b545c0fad0fb14d5c35ca7ba87a5a206a057308e52b1dce48714ef0",
+      "sha256": "bb75281ab56fb6984c7bd8dcbb61940ca12eb421aae52fa65bff5062d779649f",
       "kind": "shipped UI with isolated sample account data",
       "source": "output/playwright/store-ui/11-tutorial-chain.png"
     },
@@ -26,23 +53,50 @@
       "source": "output/playwright/store-ui/13-achievements.png"
     },
     {
-      "file": "04-opening-position.png",
-      "title": "Opening play",
-      "sha256": "bbe3dfa394f48b6bf7847f2136d4e7ce2a29d9c975b5d2e3f23df78239ed298f",
-      "kind": "engine-validated local gameplay",
-      "source": "output/playwright/store-gameplay/00-opening-position.png"
+      "file": "04-ai-developed-position.png",
+      "title": "A developed AI game",
+      "sha256": "a7f4a670ee00697fdf32d64ede5c2c7fd4db3c6dfb3da236dd460384816db8b8",
+      "kind": "shipped AI self-play rendered through actual game UI",
+      "gameplay": {
+        "kind": "shipped AI versus AI; complete match replay",
+        "matchId": "long",
+        "ledger": "scripts/assets/store-screenshots/long-match.json",
+        "ledgerSha256": "bacb2ed32d4fa0712dbbf986407856d4868ef32374f659ab53d7e2f377c109ac",
+        "engineSha256": "aaea95ff52525186342e3d54c681f19cc19d1e66ce7b52af598145e57b3333eb",
+        "players": {
+          "white": {
+            "level": 3,
+            "label": "Hard"
+          },
+          "black": {
+            "level": 2,
+            "label": "Intermediate"
+          }
+        },
+        "matchDecisions": 55,
+        "completedDecisions": 35,
+        "phase": "confirmed",
+        "boardSize": 19,
+        "scoreToWin": 20,
+        "score": {
+          "black": 0,
+          "white": 9
+        },
+        "boardSha256": "219438dfb6ce065642d3f1ed783a28372f1a35edcfc77eda6378e9e0de780cb5"
+      },
+      "source": "output/playwright/store-gameplay/00-ai-developed-position.png"
     },
     {
       "file": "05-computer-setup.png",
       "title": "Computer difficulty and game setup",
-      "sha256": "03a3f0bf29e93670f08a62b34bc405f0b566b396748095094b6626af57cce472",
+      "sha256": "702ec8e0406d818f7e7cf41e9cc45110a6a663f836ae20f0f01fbde31e39fe2c",
       "kind": "shipped UI with isolated sample account data",
       "source": "output/playwright/store-ui/14-computer-setup.png"
     },
     {
       "file": "06-tournament-bracket.png",
       "title": "Tournament bracket",
-      "sha256": "7fac2ba87b3ee2f7b8c4d0966417dbd652759f673bcaba25ac996b8dfb280cd0",
+      "sha256": "22885477cfc03c12f8240edcdb611b09f15843f2406e97089b3eca015035ff67",
       "kind": "shipped UI with isolated sample account data",
       "source": "output/playwright/store-ui/07-tournament-bracket.png"
     },
@@ -56,23 +110,104 @@
     {
       "file": "08-board-themes.png",
       "title": "Board themes and navigation",
-      "sha256": "9859086192faaf13362ad5c2b7202d23b94c5765ca38842bbd01bc54f4f51673",
-      "kind": "shipped UI with isolated sample account data",
+      "sha256": "bf9c23547d86f8fee544f35b8f4045c63121784d9874250932c20acb69935048",
+      "kind": "shipped AI self-play rendered through actual game UI",
+      "gameplay": {
+        "kind": "shipped AI versus AI; complete match replay",
+        "matchId": "long",
+        "ledger": "scripts/assets/store-screenshots/long-match.json",
+        "ledgerSha256": "bacb2ed32d4fa0712dbbf986407856d4868ef32374f659ab53d7e2f377c109ac",
+        "engineSha256": "aaea95ff52525186342e3d54c681f19cc19d1e66ce7b52af598145e57b3333eb",
+        "players": {
+          "white": {
+            "level": 3,
+            "label": "Hard"
+          },
+          "black": {
+            "level": 2,
+            "label": "Intermediate"
+          }
+        },
+        "matchDecisions": 55,
+        "completedDecisions": 43,
+        "phase": "confirmed",
+        "boardSize": 19,
+        "scoreToWin": 20,
+        "score": {
+          "black": 4,
+          "white": 17
+        },
+        "boardSha256": "75a7b468ab6b9e9daf2df6bfb23d58bb7e9158bb5c60093a35200c272d61e7e4"
+      },
       "source": "output/playwright/store-ui/15-board-themes.png"
     },
     {
       "file": "09-game-review.png",
       "title": "Review a capture with replay controls",
-      "sha256": "7f14b4697e584040a058caa38254ced126dffffc91248770d3495f6de0390c09",
-      "kind": "shipped UI with isolated sample account data",
+      "sha256": "4de185a7387954269d03a190922db0bcb5659d9ce7ce0d80819d5baa4db93b92",
+      "kind": "shipped AI self-play rendered through actual game UI",
+      "gameplay": {
+        "kind": "shipped AI versus AI; complete match replay",
+        "matchId": "long",
+        "ledger": "scripts/assets/store-screenshots/long-match.json",
+        "ledgerSha256": "bacb2ed32d4fa0712dbbf986407856d4868ef32374f659ab53d7e2f377c109ac",
+        "engineSha256": "aaea95ff52525186342e3d54c681f19cc19d1e66ce7b52af598145e57b3333eb",
+        "players": {
+          "white": {
+            "level": 3,
+            "label": "Hard"
+          },
+          "black": {
+            "level": 2,
+            "label": "Intermediate"
+          }
+        },
+        "matchDecisions": 55,
+        "completedDecisions": 43,
+        "phase": "confirmed",
+        "boardSize": 19,
+        "scoreToWin": 20,
+        "score": {
+          "black": 4,
+          "white": 17
+        },
+        "boardSha256": "75a7b468ab6b9e9daf2df6bfb23d58bb7e9158bb5c60093a35200c272d61e7e4"
+      },
       "source": "output/playwright/store-ui/10-game-review.png"
     },
     {
-      "file": "10-comeback-victory.png",
-      "title": "Comeback victory",
-      "sha256": "2aa0671230f45ba9e14cc258ea1c2f039db885d6c462710992be5d4ac1d31fed",
-      "kind": "engine-validated local gameplay",
-      "source": "output/playwright/store-gameplay/05-comeback-victory.png"
+      "file": "10-ai-victory.png",
+      "title": "AI match victory",
+      "sha256": "a23a70747c41e87ec8a7ac3c7451210ad24acc6cd948103d57774622f01ca013",
+      "kind": "shipped AI self-play rendered through actual game UI",
+      "gameplay": {
+        "kind": "shipped AI versus AI; complete match replay",
+        "matchId": "classic",
+        "ledger": "scripts/assets/store-trailer/ai-match.json",
+        "ledgerSha256": "5a06caa5f79855b1be2af3fd9c60bd6b7167fed5324e0575efbd5106ab60743e",
+        "engineSha256": "aaea95ff52525186342e3d54c681f19cc19d1e66ce7b52af598145e57b3333eb",
+        "players": {
+          "white": {
+            "level": 2,
+            "label": "Intermediate"
+          },
+          "black": {
+            "level": 3,
+            "label": "Hard"
+          }
+        },
+        "matchDecisions": 45,
+        "completedDecisions": 45,
+        "phase": "match finished",
+        "boardSize": 19,
+        "scoreToWin": 10,
+        "score": {
+          "black": 5,
+          "white": 13
+        },
+        "boardSha256": "2ee97165a426df17637a735cedefc058abf906551e729009d22468e150b9acaa"
+      },
+      "source": "output/playwright/store-gameplay/05-ai-victory.png"
     }
   ]
 }

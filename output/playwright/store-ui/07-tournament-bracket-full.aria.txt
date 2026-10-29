@@ -10,70 +10,70 @@
   - img "aki"
   - link "aki (you)":
     - /url: /profile/aki
-  - text: "(1580) 3 #2"
+  - text: "(1580) 0 #2"
   - img "mira"
   - link "mira":
     - /url: /profile/mira
-  - text: (1563) 4
+  - text: (1563) 6
   - button "Play"
   - heading "Bracket" [level=3]
   - heading "Quarterfinals" [level=4]
-  - text: "Quarterfinals Score reached () 65 moves #1"
+  - text: "Quarterfinals Score reached () 46 moves #1"
   - img "aki"
   - link "aki (you)":
     - /url: /profile/aki
-  - text: "(1580) Won 10 #8"
+  - text: "(1580) Won 13 #8"
   - img "kai"
   - link "kai":
     - /url: /profile/kai
-  - text: (1461) 8
+  - text: (1461) 5
   - button "Review"
-  - text: "Quarterfinals Score reached () 62 moves #4"
+  - text: "Quarterfinals Score reached () 46 moves #4"
   - img "sora"
   - link "sora":
     - /url: /profile/sora
-  - text: "(1529) Won 11 #5"
+  - text: "(1529) Won 13 #5"
   - img "jules"
   - link "jules":
     - /url: /profile/jules
-  - text: (1512) 7
+  - text: (1512) 5
   - button "Review"
-  - text: "Quarterfinals Score reached () 54 moves #2"
+  - text: "Quarterfinals Score reached () 46 moves #2"
   - img "mira"
   - link "mira":
     - /url: /profile/mira
-  - text: "(1563) Won 10 #7"
+  - text: "(1563) Won 13 #7"
   - img "rin"
   - link "rin":
     - /url: /profile/rin
-  - text: (1478) 2
+  - text: (1478) 5
   - button "Review"
-  - text: "Quarterfinals Score reached () 38 moves #3"
+  - text: "Quarterfinals Score reached () 46 moves #3"
   - img "rowan"
   - link "rowan":
     - /url: /profile/rowan
-  - text: "(1546) Won 11 #6"
+  - text: "(1546) Won 13 #6"
   - img "niko"
   - link "niko":
     - /url: /profile/niko
-  - text: (1495) 2
+  - text: (1495) 5
   - button "Review"
   - heading "Semifinals" [level=4]
-  - text: "Semifinals Score reached () 63 moves #1"
+  - text: "Semifinals Score reached () 46 moves #1"
   - img "aki"
   - link "aki (you)":
     - /url: /profile/aki
-  - text: "(1580) Won 10 #4"
+  - text: "(1580) Won 13 #4"
   - img "sora"
   - link "sora":
     - /url: /profile/sora
-  - text: (1529) 9
+  - text: (1529) 5
   - button "Review"
-  - text: "Semifinals Score reached () 54 moves #2"
+  - text: "Semifinals Score reached () 46 moves #2"
   - img "mira"
   - link "mira":
     - /url: /profile/mira
-  - text: "(1563) Won 12 #3"
+  - text: "(1563) Won 13 #3"
   - img "rowan"
   - link "rowan":
     - /url: /profile/rowan
@@ -84,11 +84,11 @@
   - img "aki"
   - link "aki (you)":
     - /url: /profile/aki
-  - text: "(1580) 3 #2"
+  - text: "(1580) 0 #2"
   - img "mira"
   - link "mira":
     - /url: /profile/mira
-  - text: (1563) 4
+  - text: (1563) 6
   - button "Play"
 - region "Notifications alt+T"
 - alert

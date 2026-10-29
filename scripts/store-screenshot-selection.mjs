@@ -1,5 +1,7 @@
 // The upload order is deliberate: three stages of play, plus the surrounding game.
 // Keep the raw captures for editors; this is the compact store/press selection.
+
+import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import {
   copyFileSync,
@@ -12,16 +14,16 @@ import {
 import { resolve } from "node:path";
 
 export const screenshotSelection = [
-  ["store-gameplay", "02-four-stone-chain", "A four-stone capture chain"],
+  ["store-gameplay", "02-ai-capture-chain", "An AI capture chain"],
   ["store-ui", "11-tutorial-chain", "Interactive chain-jump tutorial"],
   ["store-ui", "13-achievements", "Achievements"],
-  ["store-gameplay", "00-opening-position", "Opening play"],
+  ["store-gameplay", "00-ai-developed-position", "A developed AI game"],
   ["store-ui", "14-computer-setup", "Computer difficulty and game setup"],
   ["store-ui", "07-tournament-bracket", "Tournament bracket"],
   ["store-ui", "08-friends", "Friends and invitations"],
   ["store-ui", "15-board-themes", "Board themes and navigation"],
   ["store-ui", "10-game-review", "Review a capture with replay controls"],
-  ["store-gameplay", "05-comeback-victory", "Comeback victory"],
+  ["store-gameplay", "05-ai-victory", "AI match victory"],
 ];
 
 export function selectScreenshots(size) {
@@ -36,15 +38,31 @@ export function selectScreenshots(size) {
       `${scene}.${size.ext}`,
     );
     const bytes = readFileSync(source);
+    const hasGameBoard =
+      folder === "store-gameplay" || ["10-game-review", "15-board-themes"].includes(scene);
+    const gameplay = hasGameBoard
+      ? JSON.parse(readFileSync(resolve(source, "..", "capture-provenance.json"), "utf8"))[scene]
+      : null;
+    if (hasGameBoard) {
+      assert(
+        gameplay?.ledgerSha256 && gameplay.completedDecisions >= 20,
+        `Missing AI provenance: ${scene}`,
+      );
+      assert.equal(
+        createHash("sha256").update(readFileSync(gameplay.ledger)).digest("hex"),
+        gameplay.ledgerSha256,
+        "AI ledger changed after capture",
+      );
+    }
     return {
       file: `${String(index + 1).padStart(2, "0")}-${scene.slice(3)}.${size.ext}`,
       title,
       source,
       sha256: createHash("sha256").update(bytes).digest("hex"),
-      kind:
-        folder === "store-gameplay"
-          ? "engine-validated local gameplay"
-          : "shipped UI with isolated sample account data",
+      kind: gameplay
+        ? "shipped AI self-play rendered through actual game UI"
+        : "shipped UI with isolated sample account data",
+      ...(gameplay ? { gameplay } : {}),
     };
   });
   // A reordered selection must not leave older numbered images in the upload folder.
