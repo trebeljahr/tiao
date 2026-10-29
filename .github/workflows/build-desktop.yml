@@ -67,7 +67,7 @@ jobs:
         run: node scripts/release/version.mjs --check
       - name: Release tool tests
         working-directory: desktop
-        run: node --test 'scripts/release/*.test.mjs' '../scripts/ci/*.test.mjs'
+        run: node --test 'scripts/release/*.test.mjs' 'scripts/tauri/*.test.mjs' '../scripts/ci/*.test.mjs'
       - name: Validate Steam achievement API names
         # Steam silently discards unlocks for names it does not know.
         run: node scripts/steam-achievements.mjs --check
@@ -135,24 +135,21 @@ jobs:
         run: >-
           node -e "require('node:fs').cpSync('client/.next-desktop', 'desktop/client-bundle', { recursive: true })"
 
-      # windows-2025 ships Visual Studio 2026 (18.x). node-gyp only knows it
-      # from 13.0.1, and its PowerShell discovery overflows on this image, so
-      # a developer environment hands it VCINSTALLDIR directly.
-      - name: Enter the MSVC developer environment
-        if: matrix.platform == 'msstore'
-        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          arch: x64
+          targets: ${{ (matrix.platform == 'macos' || matrix.platform == 'mas') && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
-      - name: Build the Microsoft Store purchase addon
-        if: matrix.platform == 'msstore'
-        working-directory: desktop/native/msstore
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $electron = node -p "require('../../node_modules/electron/package.json').version"
-          npx --yes node-gyp@13.1.0 rebuild --target=$electron --arch=x64 --dist-url=https://electronjs.org/headers
-          if (-not (Test-Path build/Release/tiao_msstore.node)) { throw 'tiao_msstore.node was not built' }
+      - name: Install Linux WebView build dependencies
+        if: matrix.platform == 'linux'
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev libdbus-1-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-libav
+
+      - name: Check native desktop commands
+        working-directory: desktop
+        env:
+          TIAO_KEYCHAIN_ACCESS: deny
+          CARGO_TARGET_DIR: ${{ github.workspace }}/desktop/src-tauri/target
+          CARGO_BUILD_JOBS: '2'
+        run: cargo test --manifest-path src-tauri/Cargo.toml --locked
 
       - name: Install pinned Azure signing module
         if: matrix.platform == 'windows' && env.SIGNED == 'true'
@@ -184,16 +181,16 @@ jobs:
           umask 077
           printf '%s' "$MAS_PROVISIONING_PROFILE_BASE64" | base64 --decode > "$RUNNER_TEMP/tiao.provisionprofile"
           # The profile ships inside the app, and App Store Connect rejects
-          # files only root can read. scripts/release/after-pack.cjs also
-          # embeds it at 0644.
+          # files only root can read. Tauri copies this readable profile.
           chmod 644 "$RUNNER_TEMP/tiao.provisionprofile"
           echo "MAS_PROVISIONING_PROFILE=$RUNNER_TEMP/tiao.provisionprofile" >> "$GITHUB_ENV"
 
       - name: Package every channel of this leg
         working-directory: desktop
         env:
-          # electron-builder imports CSC_LINK into a throwaway keychain. Auto
-          # discovery must stay on for signed Apple legs or nothing is signed.
+          CARGO_TARGET_DIR: ${{ github.workspace }}/desktop/src-tauri/target
+          CARGO_BUILD_JOBS: '2'
+          # A temporary signing keychain is cleaned up by the packager.
           CSC_IDENTITY_AUTO_DISCOVERY: ${{ (env.SIGNED == 'true' && (matrix.platform == 'macos' || matrix.platform == 'mas')) && 'true' || 'false' }}
           CSC_LINK: ${{ env.SIGNED == 'true' && (matrix.platform == 'macos' && secrets.MAC_CSC_LINK || matrix.platform == 'mas' && secrets.MAS_CSC_LINK) || '' }}
           CSC_KEY_PASSWORD: ${{ env.SIGNED == 'true' && (matrix.platform == 'macos' && secrets.MAC_CSC_KEY_PASSWORD || matrix.platform == 'mas' && secrets.MAS_CSC_KEY_PASSWORD) || '' }}
@@ -241,7 +238,7 @@ jobs:
             $reader.Dispose()
             $steam = @($zip.Entries | Where-Object FullName -match 'steamworks|steam_api|steam_appid' | ForEach-Object FullName)
             if ($steam.Count) { $steam | ForEach-Object { "Steam entry: $_" }; throw 'The AppX contains Steam files' }
-            if (-not ($zip.Entries | Where-Object FullName -match 'tiao_msstore\.node$')) { throw 'The AppX lacks the Store purchase addon' }
+            if (-not ($zip.Entries | Where-Object FullName -eq 'Tiao.exe')) { throw 'The AppX lacks the native Tauri executable' }
           } finally { $zip.Dispose() }
           $identity = $manifest.Package.Identity
           "Identity $($identity.Name) / $($identity.Publisher) / $($identity.Version)"

@@ -13,7 +13,6 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { writeAsar } from "./fixtures.mjs";
 
 const script = fileURLToPath(new URL("./collect.mjs", import.meta.url));
 
@@ -21,14 +20,23 @@ function linuxFixture(meta = {}) {
   const fixture = mkdtempSync(join(tmpdir(), "tiao-collect-"));
   writeFileSync(join(fixture, "package.json"), '{"version":"1.2.3"}');
   for (const channel of ["direct", "itch", "steam", "steam-demo"]) {
-    const resources = join(fixture, "dist", channel, "linux-unpacked", "resources");
+    const resources = join(fixture, "dist", channel, "linux-unpacked");
     mkdirSync(resources, { recursive: true });
     const baked = {
+      runtime: "tauri",
+      steamBuild: false,
+      steamDemo: false,
       distributionChannel: channel,
-      ...(["steam", "steam-demo"].includes(channel) ? { steamBuild: true, steamAppId: channel === "steam-demo" ? 5491870 : 5035580, steamDemo: channel === "steam-demo" } : {}),
+      ...(["steam", "steam-demo"].includes(channel)
+        ? {
+            steamBuild: true,
+            steamAppId: channel === "steam-demo" ? 5491870 : 5035580,
+            steamDemo: channel === "steam-demo",
+          }
+        : {}),
       ...meta[channel],
     };
-    writeAsar(join(resources, "app.asar"), { "package.json": JSON.stringify(baked) });
+    writeFileSync(join(resources, "tiao-build.json"), JSON.stringify(baked));
     writeFileSync(join(fixture, "dist", channel, "linux-unpacked", "tiao"), "test executable");
     chmodSync(join(fixture, "dist", channel, "linux-unpacked", "tiao"), 0o755);
   }
@@ -63,7 +71,6 @@ test("Linux collection tags every file with its channel, keeps executables and d
         ["Tiao-1.2.3-linux-x64-steam-depot.tar.gz", "steam"],
         ["Tiao-1.2.3-linux-x86_64-itch.AppImage", "itch"],
         ["Tiao-1.2.3-linux-x86_64.AppImage", "direct"],
-        ["latest-linux.yml", "direct"],
       ],
     );
     const listing = execFileSync(
@@ -80,7 +87,7 @@ test("Linux collection tags every file with its channel, keeps executables and d
 test("collection refuses a build whose baked channel is wrong", () => {
   const fixture = linuxFixture({ itch: { distributionChannel: "direct" } });
   try {
-    assert.throws(() => collect(fixture), /baked as direct, expected itch/);
+    assert.throws(() => collect(fixture), /runtime\/channel/);
   } finally {
     rmSync(fixture, { recursive: true, force: true });
   }

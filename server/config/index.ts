@@ -3,26 +3,11 @@ import type { Express } from "express";
 import express from "express";
 import helmet from "helmet";
 import logger from "morgan";
-import { MOBILE_ORIGINS } from "../lib/wsOrigin";
+import { DESKTOP_ORIGINS, MOBILE_ORIGINS } from "../lib/wsOrigin";
 import { FRONTEND_URL } from "./envVars";
 
-/**
- * The desktop Electron app loads its static bundle from the custom
- * `app://tiao/` protocol, so every API request is cross-origin from
- * the server's perspective.  We add `app://tiao` to the CORS allow
- * list in every environment — the origin is stable and the bearer
- * token path (see auth/sessionHelper.ts) handles authentication
- * without needing cookie credentials to flow across origins.
- */
-const DESKTOP_ORIGIN = "app://tiao";
-
-/**
- * Build the CORS origin function.  Order of precedence:
- *   1. `app://tiao` — desktop Electron, accepted in all envs
- *   2. `FRONTEND_URL` — production web origin (or staging override)
- *   3. In dev (no FRONTEND_URL), also accept localhost origins so
- *      the rare case of cross-origin dev fetches (e.g. Storybook,
- *      Swagger UI on a different port) doesn't require code changes.
+/** Native clients authenticate with bearer tokens across their local origins.
+ * Preserve the previous Electron origin during the Tauri migration.
  */
 function corsOriginPredicate(
   requestOrigin: string | undefined,
@@ -36,7 +21,7 @@ function corsOriginPredicate(
     return;
   }
 
-  if (requestOrigin === DESKTOP_ORIGIN) {
+  if (DESKTOP_ORIGINS.includes(requestOrigin)) {
     callback(null, true);
     return;
   }

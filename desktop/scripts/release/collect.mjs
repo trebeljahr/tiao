@@ -56,15 +56,21 @@ const unpacked = {
   msstore: "win-unpacked",
   linux: "linux-unpacked",
 }[platform];
-const asarOf = (channel) => {
+const metadataOf = (channel) => {
   const root = join("dist", channel, unpacked);
   return platform === "macos" || platform === "mas"
-    ? join(root, channel === "steam-demo" ? "Tiao Demo.app" : "Tiao.app", "Contents", "Resources", "app.asar")
-    : join(root, "resources", "app.asar");
+    ? join(
+        root,
+        channel === "steam-demo" ? "Tiao Demo.app" : "Tiao.app",
+        "Contents",
+        "Resources",
+        "tiao-build.json",
+      )
+    : join(root, "tiao-build.json");
 };
 
 for (const channel of target.channels) {
-  assertPackagedChannel(asarOf(channel), channel);
+  assertPackagedChannel(metadataOf(channel), channel);
   const dir = join("dist", channel);
   if (channel === "direct") {
     const packages = {
@@ -76,8 +82,8 @@ for (const channel of target.channels) {
       for (const name of matching(dir, (n) => n.endsWith(suffix), 1))
         add(join(dir, name), name, channel);
     }
-    // Update feed metadata, for when the direct updater is switched on.
-    for (const name of matching(dir, (n) => /^latest.*\.yml$/.test(n) || n.endsWith(".blockmap"))) {
+    // Signed Tauri updater artifacts use a separate feed from Electron.
+    for (const name of matching(dir, (n) => n.endsWith(".sig") || n.endsWith(".tar.gz"))) {
       add(join(dir, name), name, channel);
     }
     if (platform === "windows" && mode === "signed") {

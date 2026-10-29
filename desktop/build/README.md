@@ -1,8 +1,8 @@
 # desktop/build/
 
-electron-builder's `buildResources` directory. Holds the per-platform icon
+Shared desktop packaging resources. Holds the per-platform icon
 masters and the macOS entitlements file used during signing/notarization.
-electron-builder picks these up automatically when packaging (mac → `icon.icns`,
+Tauri references these files in its bundle configuration (mac → `icon.icns`,
 win → `icon.ico`, linux → `icon.png`).
 
 ## Files
@@ -63,7 +63,7 @@ cp "$SRC" "$DST/icon.png"
 
 ## Microsoft Store tiles
 
-electron-builder's `appx` target reads `appx/*.png`. Regenerate from the master
+The AppX packaging script reads `appx/*.png`. Regenerate from the master
 after an icon change (the wide tile and splash pad the icon with `#1A0F06`):
 
 ```bash

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Tiao",
+  "version": "1.0.0",
+  "identifier": "com.ricoslabs.tiao",
+  "build": {
+    "beforeBuildCommand": "node scripts/tauri/stage.mjs",
+    "frontendDist": "../client-bundle"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost https: wss:; object-src 'none'; frame-src 'none'; worker-src 'self' blob:; base-uri 'self'; form-action 'self'",
+      "devCsp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: http: https:; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost http: https: ws: wss:; object-src 'none'; frame-src 'none'; worker-src 'self' blob:; base-uri 'self'"
+    }
+  },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": ["tiao"]
+      }
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": ["icon.icns", "icon.ico", "../assets/icon.png"],
+    "category": "Game",
+    "copyright": "Copyright \u00a9 2026 Ricos Labs LLC",
+    "publisher": "Ricos Labs LLC",
+    "macOS": {
+      "minimumSystemVersion": "11.0",
+      "entitlements": "../build/entitlements.mac.plist"
+    },
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["English", "German", "Spanish"]
+      }
+    },
+    "linux": {
+      "appimage": {
+        "bundleMediaFramework": true
+      }
+    }
+  },
+  "mainBinaryName": "Tiao"
+}

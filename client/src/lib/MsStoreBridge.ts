@@ -1,6 +1,6 @@
 /**
  * Renderer-side wrapper around the Microsoft Store purchase bridge exposed
- * by `desktop/preload.cjs` (`window.electron.msstore`). Functional only in
+ * by `desktop/bridge.js` (`window.electron.msstore`). Functional only in
  * the msstore (AppX) desktop build; see desktop/src/msstore.cjs.
  */
 

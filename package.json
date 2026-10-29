@@ -35,7 +35,7 @@
     "typecheck:client": "pnpm --dir ./client run typecheck",
     "typecheck:server": "pnpm --dir ./server run typecheck",
     "test": "pnpm test:unit && pnpm test:e2e",
-    "test:unit": "concurrently -n server,client,desktop -c green,blue,magenta \"pnpm --dir ./server test\" \"pnpm --dir ./client test\" \"pnpm --dir ./desktop test\"",
+    "test:unit": "concurrently -n server,client,desktop -c green,blue,magenta \"pnpm --dir ./server test\" \"pnpm --dir ./client test\" \"pnpm --dir ./desktop test:js\"",
     "test:integration": "pnpm --dir ./server run test:integration",
     "test:e2e": "EMIT_SOURCE_MAPS=1 pnpm --dir ./client run build && playwright test",
     "client": "pnpm --dir ./client run dev",

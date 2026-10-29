@@ -2,9 +2,9 @@
  * Which channel shipped the running client.
  *
  *   - `ios` / `android`  — Capacitor native app (App Store / Google Play)
- *   - `direct` / `itch` / `steam` / `mas` / `msstore` — Electron desktop,
+ *   - `direct` / `itch` / `steam` / `mas` / `msstore` — Tauri desktop,
  *     read from `window.electron.config.distributionChannel` (baked into
- *     the packaged desktop package.json, see desktop/src/distribution.cjs)
+ *     the packaged desktop package.json, see desktop/src-tauri/src/config.rs)
  *   - `web` — everything else (playtiao.com in a browser)
  *
  * App-store channels must not show external payment or donation links
@@ -12,7 +12,7 @@
  * Gate those with `isAppStoreChannel()`.
  *
  * Synchronous on purpose: callers run during render. Both the
- * Capacitor bridge (`window.Capacitor`) and the Electron preload
+ * Capacitor bridge (`window.Capacitor`) and the Tauri initialization script
  * (`window.electron`) are injected before any page script runs.
  */
 

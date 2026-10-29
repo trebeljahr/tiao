@@ -12,7 +12,7 @@ process.env.MONGODB_URI ??= "mongodb://127.0.0.1:27017/tiao-test";
 process.env.S3_BUCKET_NAME ??= "tiao-test-assets";
 process.env.S3_PUBLIC_URL ??= "https://assets.test.local";
 
-import { DESKTOP_ORIGIN, isAllowedOrigin, MOBILE_ORIGINS } from "../lib/wsOrigin";
+import { DESKTOP_ORIGIN, DESKTOP_ORIGINS, isAllowedOrigin, MOBILE_ORIGINS } from "../lib/wsOrigin";
 
 describe("isAllowedOrigin — web origin rules (unchanged)", () => {
   test("matches the configured FRONTEND_URL origin", () => {
@@ -38,6 +38,19 @@ describe("isAllowedOrigin — web origin rules (unchanged)", () => {
 });
 
 describe("isAllowedOrigin — desktop token exception", () => {
+  test("Tauri origins require a valid native token and exact host", () => {
+    for (const origin of DESKTOP_ORIGINS) {
+      assert.equal(isAllowedOrigin(origin, { hasValidDesktopToken: true }), true, origin);
+      assert.equal(isAllowedOrigin(origin), false, origin);
+    }
+    for (const origin of [
+      "tauri://evil",
+      "https://tauri.localhost.attacker.com",
+      "http://tauri.localhost:1234",
+    ]) {
+      assert.equal(isAllowedOrigin(origin, { hasValidDesktopToken: true }), false, origin);
+    }
+  });
   test("accepts app://tiao when a valid desktop token is present", () => {
     assert.equal(isAllowedOrigin(DESKTOP_ORIGIN, { hasValidDesktopToken: true }), true);
   });

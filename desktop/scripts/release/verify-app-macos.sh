@@ -43,14 +43,7 @@ verify_app() {
   # The Steam channels use a dedicated entitlement set. Verify the actual
   # signed artifact and unpacked native surface, rather than just its config.
   local steam
-  steam="$(node --input-type=module - "$app/Contents/Resources/app.asar" "$(dirname "$0")/lib.mjs" <<'JS'
-import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
-const { readAsarFile } = await import(pathToFileURL(resolve(process.argv[3])));
-const meta = JSON.parse(readAsarFile(process.argv[2], 'package.json'));
-console.log(meta.steamBuild === true);
-JS
-)"
+  steam="$(node -p 'JSON.parse(require("node:fs").readFileSync(process.argv[1],"utf8")).steamBuild' "$app/Contents/Resources/tiao-build.json")"
   if [[ "$steam" == true ]]; then
     local entitlements
     entitlements="$(codesign -d --entitlements - --xml "$app" 2>/dev/null)"
@@ -59,10 +52,10 @@ JS
         echo "Missing Steam entitlement: $key" >&2; exit 1;
       }
     done
-    local presenter="$app/Contents/Resources/app.asar.unpacked/src/steamOverlayMac.node"
-    [[ -f "$presenter" ]] || { echo 'Missing Steam Metal presenter.' >&2; exit 1; }
-    lipo "$presenter" -verify_arch arm64 x86_64
-    codesign --verify --strict "$presenter"
+    local sdk="$app/Contents/Frameworks/libsteam_api.dylib"
+    [[ -f "$sdk" ]] || { echo 'Missing Steam SDK.' >&2; exit 1; }
+    lipo "$sdk" -verify_arch arm64 x86_64
+    codesign --verify --strict "$sdk"
   fi
 }
 [[ $# -eq 1 ]] || { echo "Usage: verify-app-macos.sh <app>" >&2; exit 1; }

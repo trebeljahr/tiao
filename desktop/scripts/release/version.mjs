@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // One product version for Tiao releases.
 //
-// desktop/package.json "version" is what electron-builder, the packaged app
-// (app.getVersion()), artifact names, butler --userversion, the Steam build
+// desktop/package.json "version" is what Tauri, the packaged app
+// (CARGO_PKG_VERSION), artifact names, butler --userversion, the Steam build
 // description and the desktop-vX.Y.Z tag all read. The monorepo root
 // package.json mirrors it so the repository states one version.
 //
@@ -14,8 +14,13 @@ import { fileURLToPath } from "node:url";
 import { version } from "./lib.mjs";
 
 const desktop = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
-export const versionFiles = [join(desktop, "package.json"), join(desktop, "..", "package.json")];
-const pattern = /^(\s*"version"\s*:\s*")([^"]*)(")/m;
+export const versionFiles = [
+  join(desktop, "package.json"),
+  join(desktop, "..", "package.json"),
+  join(desktop, "src-tauri", "tauri.conf.json"),
+  join(desktop, "src-tauri", "Cargo.toml"),
+];
+const pattern = /^(\s*(?:"version"\s*:|version\s*=)\s*")([^"]*)(")/m;
 
 export function readVersion(text) {
   const match = pattern.exec(text);
@@ -42,7 +47,15 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   } else if (arg) {
     for (const file of versionFiles)
       writeFileSync(file, writeVersion(readFileSync(file, "utf8"), arg));
-    console.log("version set to " + arg + " in " + versionFiles.length + " files");
+    const lock = join(desktop, "src-tauri", "Cargo.lock");
+    writeFileSync(
+      lock,
+      readFileSync(lock, "utf8").replace(
+        /(name = "tiao"\nversion = ")[^"]+"/,
+        "$1" + version(arg) + '"',
+      ),
+    );
+    console.log("version set to " + arg + " in " + (versionFiles.length + 1) + " files");
   } else {
     throw new Error("Usage: version.mjs X.Y.Z | --check");
   }

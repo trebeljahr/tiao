@@ -11,6 +11,7 @@ process.env.S3_PUBLIC_URL ??= "https://assets.test.local";
 
 import mongoose from "mongoose";
 import * as authModule from "../auth/auth";
+import { DESKTOP_ORIGINS, MOBILE_ORIGINS } from "../lib/wsOrigin";
 import { nativeAuthCors } from "../middleware/nativeAuthCors";
 import GameAccount from "../models/GameAccount";
 
@@ -77,7 +78,7 @@ describe("native auth CORS on /api/auth", () => {
   });
   after(() => ctx.close());
 
-  for (const origin of ["capacitor://localhost", "https://localhost"]) {
+  for (const origin of [...DESKTOP_ORIGINS, ...MOBILE_ORIGINS]) {
     test(`allows ${origin} without credentials and exposes set-auth-token`, async () => {
       const pre = await fetch(`${ctx.url}/api/auth/sign-in/anonymous`, {
         method: "OPTIONS",

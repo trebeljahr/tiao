@@ -11,7 +11,7 @@ import {
 // ─── Bridge stubs ─────────────────────────────────────────────
 //
 // `window.electron.steam` is the contextBridge surface exposed by
-// desktop/preload.cjs. Web builds, mobile builds, and non-Steam
+// desktop/bridge.js. Web builds, mobile builds, and non-Steam
 // desktop builds all see `undefined` and the bridge wrappers must
 // fall back to safe defaults without throwing.
 //

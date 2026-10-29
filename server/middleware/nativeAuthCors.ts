@@ -1,9 +1,9 @@
 import cors from "cors";
 import type { NextFunction, Request, Response } from "express";
-import { MOBILE_ORIGINS } from "../lib/wsOrigin";
+import { DESKTOP_ORIGINS, MOBILE_ORIGINS } from "../lib/wsOrigin";
 
 /**
- * CORS for better-auth's endpoints, for the native mobile WebViews only.
+ * CORS for better-auth's endpoints in desktop and mobile WebViews.
  *
  * The web client reaches /api/auth/* same-origin through its proxy and
  * needs no CORS. The Capacitor apps call it cross-origin with
@@ -12,14 +12,14 @@ import { MOBILE_ORIGINS } from "../lib/wsOrigin";
  * Requests from any other origin pass through untouched, exactly as before.
  */
 const allowNative = cors({
-  origin: [...MOBILE_ORIGINS],
+  origin: [...DESKTOP_ORIGINS, ...MOBILE_ORIGINS],
   credentials: false,
   exposedHeaders: ["set-auth-token"],
 });
 
 export function nativeAuthCors(req: Request, res: Response, next: NextFunction): void {
   const origin = req.headers.origin;
-  if (!origin || !MOBILE_ORIGINS.includes(origin)) {
+  if (!origin || ![...DESKTOP_ORIGINS, ...MOBILE_ORIGINS].includes(origin)) {
     next();
     return;
   }

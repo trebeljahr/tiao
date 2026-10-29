@@ -4,7 +4,7 @@
 # macOS 26 draws an app icon from Assets.car (CFBundleIconName "Icon"); without
 # one it shrinks icon.icns into a grey placeholder squircle. The catalog is
 # compiled here once and committed, so CI runners need no Xcode 26: the
-# electron-builder config copies it into Contents/Resources and sets
+# The Mac App Store bundle copies it into Contents/Resources and sets
 # CFBundleIconName (package.json build.mac). icon.icns stays for macOS 11-15.
 #
 # Source: the full-bleed, opaque iOS store icon, so iOS and macOS match.

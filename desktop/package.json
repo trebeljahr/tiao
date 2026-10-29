@@ -2,192 +2,32 @@
   "name": "tiao-desktop",
   "version": "1.0.0",
   "private": true,
-  "description": "Electron wrapper for the Tiao desktop app.",
-  "main": "main.cjs",
+  "description": "Tauri wrapper for the Tiao desktop app.",
   "engines": {
     "node": ">=24"
   },
   "scripts": {
-    "dev": "npm run dev:ensure-bundle && electron .",
-    "dev:fresh": "npm run dev:rebuild-client && electron .",
-    "dev:prod": "TIAO_API_URL=https://api.playtiao.com npm run dev",
-    "dev:hmr": "TIAO_DEV_RENDERER_URL=${TIAO_DEV_RENDERER_URL:-http://localhost:3000/en/} electron .",
-    "dev:ensure-bundle": "test -f client-bundle/en/index.html || npm run dev:build-client",
-    "dev:build-client": "npm --prefix ../client run build:desktop && rm -rf client-bundle && cp -R ../client/.next-desktop/. client-bundle",
-    "dev:rebuild-client": "npm run dev:build-client",
-    "typecheck": "tsc --noEmit",
-    "test": "node --test 'src/**/*.test.cjs' 'scripts/release/*.test.mjs' ../scripts/steam-local.test.mjs",
-    "package": "electron-builder --config electron-builder.config.cjs --publish never",
-    "package:all": "electron-builder --config electron-builder.config.cjs -mwl --publish never",
-    "package:steam": "TIAO_DISTRIBUTION_CHANNEL=steam electron-builder --config electron-builder.config.cjs --publish never",
+    "dev": "node scripts/tauri/dev.mjs",
+    "dev:fresh": "node scripts/tauri/dev.mjs --fresh",
+    "dev:prod": "TIAO_API_URL=https://api.playtiao.com node scripts/tauri/dev.mjs",
+    "dev:build-client": "node scripts/tauri/stage.mjs",
+    "dev:rebuild-client": "node scripts/tauri/stage.mjs",
+    "typecheck": "cargo check --manifest-path src-tauri/Cargo.toml --locked",
+    "test": "pnpm test:js && pnpm test:native",
+    "package": "node scripts/tauri/package.mjs",
+    "package:steam": "TIAO_DISTRIBUTION_CHANNEL=steam node scripts/tauri/package.mjs",
+    "package:steam-demo": "TIAO_DISTRIBUTION_CHANNEL=steam-demo node scripts/tauri/package.mjs",
+    "package:mas": "TIAO_DISTRIBUTION_CHANNEL=mas node scripts/tauri/package.mjs",
+    "package:msstore": "TIAO_DISTRIBUTION_CHANNEL=msstore node scripts/tauri/package.mjs",
     "release": "./scripts/release.sh",
-    "release:tag": "bash scripts/release-tag.sh",
-    "release:tag:push": "bash scripts/release-tag.sh --push",
-    "package:mas": "TIAO_DISTRIBUTION_CHANNEL=mas electron-builder --config electron-builder.config.cjs --mac --universal --publish never",
-    "package:msstore": "TIAO_DISTRIBUTION_CHANNEL=msstore electron-builder --config electron-builder.config.cjs --win --x64 --publish never",
     "version:check": "node scripts/release/version.mjs --check",
     "version:set": "node scripts/release/version.mjs",
-    "release:check": "node --test 'scripts/release/*.test.mjs'",
-    "package:steam-demo": "TIAO_DISTRIBUTION_CHANNEL=steam-demo electron-builder --config electron-builder.config.cjs --publish never"
+    "release:check": "node --test 'scripts/tauri/*.test.mjs'",
+    "test:js": "node --test 'scripts/tauri/*.test.mjs' 'scripts/release/*.test.mjs' 'src/routes.test.cjs' '../scripts/steam-local.test.mjs'",
+    "test:native": "cargo test --manifest-path src-tauri/Cargo.toml --locked"
   },
-  "dependencies": {
-    "@sentry/node": "^10.75.3",
-    "electron-updater": "^6.8.9",
-    "steamworks.js": "^0.4.0"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "@electron/notarize": "^2.5.0",
-    "@types/node": "^22.20.4",
-    "electron": "^36.9.5",
-    "electron-builder": "^26.17.0",
-    "typescript": "^5.9.3"
-  },
-  "build": {
-    "appId": "com.ricoslabs.tiao",
-    "productName": "Tiao",
-    "copyright": "Copyright © 2026 Ricos Labs LLC",
-    "asar": true,
-    "directories": {
-      "output": "dist",
-      "buildResources": "build"
-    },
-    "extraMetadata": {
-      "distributionChannel": "direct"
-    },
-    "files": [
-      "main.cjs",
-      "preload.cjs",
-      "src/**/*.cjs",
-      "!src/**/*.test.cjs",
-      "package.json",
-      "!node_modules/.cache/**",
-      "!**/*.map"
-    ],
-    "asarUnpack": [
-      "**/node_modules/steamworks.js/**"
-    ],
-    "extraResources": [
-      {
-        "from": "client-bundle",
-        "to": "client-bundle",
-        "filter": [
-          "**/*"
-        ]
-      }
-    ],
-    "mac": {
-      "x64ArchFiles": "Contents/Resources/app.asar.unpacked/node_modules/steamworks.js/dist/osx/*.node",
-      "target": [
-        {
-          "target": "dmg",
-          "arch": [
-            "universal"
-          ]
-        },
-        {
-          "target": "zip",
-          "arch": [
-            "universal"
-          ]
-        }
-      ],
-      "category": "public.app-category.board-games",
-      "icon": "build/icon.icns",
-      "hardenedRuntime": true,
-      "gatekeeperAssess": false,
-      "entitlements": "build/entitlements.mac.plist",
-      "entitlementsInherit": "build/entitlements.mac.plist",
-      "artifactName": "Tiao-${version}-macos-${arch}.${ext}",
-      "extendInfo": {
-        "ITSAppUsesNonExemptEncryption": false,
-        "ElectronTeamID": "4BHY8H2J25",
-        "CFBundleIconName": "Icon"
-      },
-      "extraResources": [
-        {
-          "from": "build/Assets.car",
-          "to": "Assets.car"
-        }
-      ]
-    },
-    "dmg": {
-      "artifactName": "Tiao-${version}-macos-${arch}.${ext}"
-    },
-    "mas": {
-      "type": "distribution",
-      "hardenedRuntime": false,
-      "entitlements": "build/entitlements.mas.plist",
-      "entitlementsInherit": "build/entitlements.mas.inherit.plist",
-      "artifactName": "Tiao-${version}-mas-${arch}.${ext}"
-    },
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "portable",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "icon": "build/icon.ico",
-      "signtoolOptions": {
-        "signingHashAlgorithms": [
-          "sha256"
-        ]
-      }
-    },
-    "nsis": {
-      "artifactName": "Tiao-${version}-windows-${arch}-setup.${ext}"
-    },
-    "portable": {
-      "artifactName": "Tiao-${version}-windows-${arch}-portable.${ext}"
-    },
-    "appx": {
-      "applicationId": "Tiao",
-      "displayName": "Tiao",
-      "backgroundColor": "#1a0f06",
-      "languages": [
-        "en-US",
-        "de-DE",
-        "es-ES"
-      ],
-      "artifactName": "Tiao-${version}-msstore-${arch}.${ext}"
-    },
-    "linux": {
-      "target": [
-        {
-          "target": "AppImage",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "category": "Game",
-      "icon": "build/icon.png",
-      "synopsis": "A beautiful abstract strategy board game.",
-      "description": "Play Tiao online or offline — local 2-player, AI opponent, tutorial, and multiplayer when connected.",
-      "executableName": "tiao",
-      "artifactName": "Tiao-${version}-linux-${arch}.${ext}"
-    },
-    "protocols": [
-      {
-        "name": "Tiao",
-        "schemes": [
-          "tiao"
-        ]
-      }
-    ],
-    "publish": {
-      "provider": "github",
-      "owner": "trebeljahr",
-      "repo": "tiao",
-      "releaseType": "draft"
-    }
+    "@tauri-apps/cli": "^2.12.0"
   }
 }

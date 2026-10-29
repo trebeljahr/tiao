@@ -1,17 +1,13 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { writeAsar } from "./fixtures.mjs";
+
 import {
   assertPackagedChannel,
-  compareVersions,
   desktopTargets,
-  lockedBuilderVersions,
-  minElectronBuilder,
   optionalCredentials,
-  readAsarFile,
   releaseTag,
   repository,
   requireCredentials,
@@ -269,92 +265,51 @@ test("Steam settings refuse ambiguous depots and the default branch", () => {
   );
 });
 
-test("packaged channel metadata is read from app.asar and enforced", () => {
-  const directory = mkdtempSync(join(tmpdir(), "tiao-asar-test-"));
-  try {
-    const asar = (name, meta, unpacked = []) => {
-      const path = join(directory, name);
-      writeAsar(path, { "main.cjs": "//", "package.json": JSON.stringify(meta) }, unpacked);
-      return path;
-    };
-    const direct = asar("direct.asar", { distributionChannel: "direct" });
-    assert.equal(JSON.parse(readAsarFile(direct, "package.json")).distributionChannel, "direct");
-    assert.doesNotThrow(() => assertPackagedChannel(direct, "direct"));
-    assert.throws(() => assertPackagedChannel(direct, "itch"), /expected itch/);
-    const steam = asar("steam.asar", {
-      distributionChannel: "steam",
-      steamBuild: true,
-      steamAppId: 5035580,
-    });
-    assert.doesNotThrow(() => assertPackagedChannel(steam, "steam"));
-    assert.throws(
-      () =>
-        assertPackagedChannel(
-          asar("spacewar.asar", {
-            distributionChannel: "steam",
-            steamBuild: true,
-            steamAppId: 480,
-          }),
-          "steam",
-        ),
-      /appid/,
-    );
-    assert.throws(
-      () => assertPackagedChannel(asar("nosteam.asar", { distributionChannel: "steam" }), "steam"),
-      /steamBuild/,
-    );
-    assert.throws(
-      () =>
-        assertPackagedChannel(
-          asar("leak.asar", { distributionChannel: "itch", steamBuild: true }),
-          "itch",
-        ),
-      /steamBuild/,
-    );
-    const mas = asar("mas.asar", { distributionChannel: "mas" }, [
-      "node_modules/steamworks.js/dist/steam_api.dylib",
-    ]);
-    assert.throws(() => assertPackagedChannel(mas, "mas"), /steamworks/);
-    assert.doesNotThrow(() =>
-      assertPackagedChannel(asar("clean-mas.asar", { distributionChannel: "mas" }), "mas"),
-    );
-  } finally {
-    rmSync(directory, { recursive: true, force: true });
-  }
-});
-
-test("the locked electron-builder is past the macOS 26 keychain bug", () => {
-  assert.ok(compareVersions("26.15.3", minElectronBuilder) < 0);
-  assert.ok(compareVersions("26.9.0", "26.16.1") < 0);
-  assert.equal(compareVersions("26.16.1", minElectronBuilder), 0);
-  assert.ok(compareVersions("27.0.0-alpha.9", minElectronBuilder) > 0);
-
-  const lockfile = readFileSync(new URL("../../pnpm-lock.yaml", import.meta.url), "utf8");
-  const { electronBuilder, appBuilderLib } = lockedBuilderVersions(lockfile);
-  assert.ok(electronBuilder.length > 0 && appBuilderLib.length > 0, "no builder in the lockfile");
-  for (const locked of [...electronBuilder, ...appBuilderLib]) {
-    assert.ok(
-      compareVersions(locked, minElectronBuilder) >= 0,
-      "locked " + locked + " is below " + minElectronBuilder + ": signed mac and mas builds " +
-        "fail in `security set-key-partition-list` on macOS 26. Raise electron-builder.",
-    );
-  }
-});
-
 test("demo upload requires its own depot variables and app identity", () => {
-  const env = {STEAM_DEPOT_WINDOWS:"1", STEAM_DEPOT_LINUX:"2", STEAM_DEPOT_MACOS:"3"};
+  const env = { STEAM_DEPOT_WINDOWS: "1", STEAM_DEPOT_LINUX: "2", STEAM_DEPOT_MACOS: "3" };
   assert.throws(() => steamDepotIds(env, "steam-demo"));
-  const depots = steamDepotIds({...env, STEAM_DEMO_DEPOT_WINDOWS:"5491871", STEAM_DEMO_DEPOT_MACOS:"5491872", STEAM_DEMO_DEPOT_LINUX:"5491873"}, "steam-demo");
-  const vdf = steamBuildVdf({destination:"steam-demo", version:"1.2.3", commit:"abc", outputDir:"/out", roots:{windows:"/w",linux:"/l",macos:"/m"},depots,branch:""});
+  const depots = steamDepotIds(
+    {
+      ...env,
+      STEAM_DEMO_DEPOT_WINDOWS: "5491871",
+      STEAM_DEMO_DEPOT_MACOS: "5491872",
+      STEAM_DEMO_DEPOT_LINUX: "5491873",
+    },
+    "steam-demo",
+  );
+  const vdf = steamBuildVdf({
+    destination: "steam-demo",
+    version: "1.2.3",
+    commit: "abc",
+    outputDir: "/out",
+    roots: { windows: "/w", linux: "/l", macos: "/m" },
+    depots,
+    branch: "",
+  });
   assert.match(vdf, /"AppID" "5491870"/);
   assert.doesNotMatch(vdf, /5035580|SetLive/);
   const directory = mkdtempSync(join(tmpdir(), "tiao-demo-artifact-"));
   try {
-    const path = join(directory,"app.asar");
-    for (const [steamAppId,steamDemo,valid] of [[5491870,true,true],[5035580,true,false],[5491870,false,false]]) {
-      writeAsar(path,{"package.json":JSON.stringify({distributionChannel:"steam-demo",steamBuild:true,steamAppId,steamDemo})});
-      if(valid) assert.doesNotThrow(()=>assertPackagedChannel(path,"steam-demo"));
-      else assert.throws(()=>assertPackagedChannel(path,"steam-demo"));
+    const path = join(directory, "tiao-build.json");
+    for (const [steamAppId, steamDemo, valid] of [
+      [5491870, true, true],
+      [5035580, true, false],
+      [5491870, false, false],
+    ]) {
+      writeFileSync(
+        path,
+        JSON.stringify({
+          runtime: "tauri",
+          distributionChannel: "steam-demo",
+          steamBuild: true,
+          steamAppId,
+          steamDemo,
+        }),
+      );
+      if (valid) assert.doesNotThrow(() => assertPackagedChannel(path, "steam-demo"));
+      else assert.throws(() => assertPackagedChannel(path, "steam-demo"));
     }
-  } finally { rmSync(directory,{recursive:true,force:true}); }
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 });

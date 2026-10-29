@@ -7,7 +7,7 @@ import { MongoClient } from "mongodb";
 import { trackGoal } from "../analytics/plausible";
 import { FRONTEND_URL, MONGODB_URI, PORT, TOKEN_SECRET } from "../config/envVars";
 import { generateFunAnonymousName } from "../game/playerTokens";
-import { MOBILE_ORIGINS } from "../lib/wsOrigin";
+import { DESKTOP_ORIGINS, MOBILE_ORIGINS } from "../lib/wsOrigin";
 import GameAccount from "../models/GameAccount";
 import { APPLE_ORIGIN, buildAppleProviderOptions, readAppleConfig } from "./appleSignIn";
 import { sendPasswordResetEmail, sendVerificationEmail } from "./email";
@@ -132,7 +132,8 @@ export const auth = betterAuth({
     // token (see auth/bearerSession.ts). Trust their origin only for
     // requests that actually come from it.
     const requestOrigin = request?.headers.get("origin");
-    if (requestOrigin && MOBILE_ORIGINS.includes(requestOrigin)) origins.push(requestOrigin);
+    if (requestOrigin && [...DESKTOP_ORIGINS, ...MOBILE_ORIGINS].includes(requestOrigin))
+      origins.push(requestOrigin);
     // In dev, allow localhost and LAN IPs
     if (process.env.NODE_ENV !== "production") {
       const origin = request?.headers.get("origin");

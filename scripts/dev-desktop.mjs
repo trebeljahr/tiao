@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-// Dev orchestrator for the Electron desktop app.
+// Dev orchestrator for the Tauri desktop app.
 //
 // Spawns the Express backend on a random free port in 5100-5999 and
-// the desktop Electron shell with a freshly built client-bundle that
-// bakes in that same port. Ctrl+C (or closing the Electron window)
+// the desktop Tauri shell with a freshly built client-bundle that
+// bakes in that same port. Ctrl+C (or closing the Tauri window)
 // tears everything down via concurrently's -k flag.
 //
 // Usage:
@@ -56,22 +56,22 @@ let apiPort;
 if (process.env.PORT) {
   apiPort = Number.parseInt(process.env.PORT, 10);
 } else {
-  apiPort = await findRandomFreePort(5100, 5999);
+  apiPort = await findRandomFreePort(49152, 65535);
 }
 
-const apiUrl = `http://localhost:${apiPort}`;
+const apiUrl = `http://127.0.0.1:${apiPort}`;
 
 console.log("");
 console.log(`  Desktop dev orchestrator`);
 console.log(`  Server: ${apiUrl}`);
-console.log(`  Desktop: Electron (client-bundle baked against ${apiUrl})`);
+console.log(`  Desktop: Tauri (client-bundle baked against ${apiUrl})`);
 console.log(``);
 console.log(`  Redis-shared state: games and matchmaking are visible to`);
 console.log(`  any other 'npm run dev' instance on this machine.`);
 console.log("");
 
 // concurrently handles signal forwarding (SIGINT from Ctrl+C tears
-// down both children) and -k (--kill-others) means when Electron
+// down both children) and -k (--kill-others) means when Tauri
 // exits or the server crashes, the sibling is terminated too.
 const concurrentlyBin = new URL("../node_modules/.bin/concurrently", import.meta.url).pathname;
 
@@ -91,7 +91,7 @@ const serverCmd = `PORT=${apiPort} npm --prefix server run dev`;
 //     as a safety net).
 //
 //   - TIAO_API_URL is the one that ACTUALLY takes effect at runtime.
-//     desktop/main.cjs → resolveApiUrl() reads it and passes it to
+//     desktop/src-tauri/src/config.rs reads it and passes it to
 //     the renderer via window.electron.config.apiUrl, which
 //     client/src/lib/api.ts:getApiBaseUrl() prefers over every
 //     other source. Without this, resolveApiUrl() falls back to

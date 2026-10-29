@@ -9,14 +9,12 @@ import {
   symlinkSync,
   writeFileSync,
 } from "node:fs";
-import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
 const script = fileURLToPath(new URL("./verify-mas.sh", import.meta.url));
-const { prepareMasApp } = createRequire(import.meta.url)("./after-pack.cjs");
 
 const details = [
   "Identifier=com.ricoslabs.tiao",
@@ -30,7 +28,7 @@ const entitlements = [
   "com.apple.application-identifier",
 ].join("\n");
 
-const mode = (path) => statSync(path).mode & 0o777;
+const _mode = (path) => statSync(path).mode & 0o777;
 
 // A signed-looking dist/mas/mas-universal with codesign, lipo and pkgutil stubbed.
 function fixture(root) {
@@ -39,9 +37,9 @@ function fixture(root) {
   const app = join(dir, "Tiao.app");
   mkdirSync(bin);
   mkdirSync(join(app, "Contents/MacOS"), { recursive: true });
-  mkdirSync(join(app, "Contents/Resources/app.asar.unpacked"), { recursive: true });
+  mkdirSync(join(app, "Contents/Resources/native-resources"), { recursive: true });
   writeFileSync(join(app, "Contents/MacOS/Tiao"), "", { mode: 0o755 });
-  writeFileSync(join(app, "Contents/Resources/app.asar"), "", { mode: 0o644 });
+  writeFileSync(join(app, "Contents/Resources/tiao-build.json"), "", { mode: 0o644 });
   writeFileSync(join(app, "Contents/embedded.provisionprofile"), "profile", { mode: 0o644 });
   symlinkSync("MacOS/Tiao", join(app, "Contents/Current"));
   writeFileSync(join(dir, "Tiao-0.1.0-mas-universal.pkg"), "");
@@ -107,31 +105,9 @@ test("a profile only its owner can read fails, as App Store Connect does", () =>
 
 test("a directory other users cannot enter fails", () => {
   withFixture((root, { bin, app }) => {
-    chmodSync(join(app, "Contents/Resources/app.asar.unpacked"), 0o744);
+    chmodSync(join(app, "Contents/Resources/native-resources"), 0o744);
     const result = verify(root, bin);
     assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /app\.asar\.unpacked/);
-  });
-});
-
-test("the afterPack hook embeds a 0600 profile at 0644 and fixes owner-only modes", () => {
-  withFixture((root, { bin, app }) => {
-    const staged = join(root, "tiao.provisionprofile");
-    writeFileSync(staged, "store profile", { mode: 0o600 });
-    chmodSync(staged, 0o600);
-    rmSync(join(app, "Contents/embedded.provisionprofile"));
-    chmodSync(join(app, "Contents/Resources/app.asar"), 0o600);
-    chmodSync(join(app, "Contents/MacOS/Tiao"), 0o700);
-    chmodSync(join(app, "Contents/Resources/app.asar.unpacked"), 0o700);
-
-    prepareMasApp(app, staged);
-
-    assert.equal(mode(join(app, "Contents/embedded.provisionprofile")), 0o644);
-    assert.equal(mode(join(app, "Contents/Resources/app.asar")), 0o644);
-    assert.equal(mode(join(app, "Contents/MacOS/Tiao")), 0o755, "executables stay executable");
-    assert.equal(mode(join(app, "Contents/Resources/app.asar.unpacked")), 0o755);
-    assert.equal(mode(staged), 0o600, "the staged profile is left alone");
-    const result = verify(root, bin);
-    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stderr, /native-resources/);
   });
 });

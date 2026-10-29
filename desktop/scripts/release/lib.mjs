@@ -13,20 +13,12 @@ export const steamProducts = JSON.parse(
 );
 export const steamAppId = String(steamProducts.steam.appId);
 export function steamProduct(destination = "steam") {
-  if (!Object.hasOwn(steamProducts, destination)) throw new Error("Unknown Steam product: " + destination);
+  if (!Object.hasOwn(steamProducts, destination))
+    throw new Error("Unknown Steam product: " + destination);
   return steamProducts[destination];
 }
 export const buildWorkflow = "build-desktop.yml";
 export const channels = ["direct", "itch", "steam", "steam-demo", "mas", "msstore"];
-
-// The lowest electron-builder that may sign a macOS build. Through 26.16.0 its
-// throwaway keychain got a random password, but `security
-// set-key-partition-list -k` was handed the p12's password instead. macOS 14
-// and 15 ignore the mismatch; macOS 26 verifies it and fails with
-// "SecKeychainUnlock: The user name or passphrase you entered is not correct"
-// (electron-userland/electron-builder#10172, fixed in 26.16.1). npm's `latest`
-// dist-tag still points below the fix, so a routine update can walk back.
-export const minElectronBuilder = "26.16.1";
 
 /** Compare two x.y.z versions numerically, ignoring prerelease suffixes. */
 export function compareVersions(a, b) {
@@ -38,21 +30,6 @@ export function compareVersions(a, b) {
   const [x, y] = [parts(a), parts(b)];
   for (let i = 0; i < 3; i++) if ((x[i] ?? 0) !== (y[i] ?? 0)) return (x[i] ?? 0) - (y[i] ?? 0);
   return 0;
-}
-
-/**
- * The electron-builder and app-builder-lib versions a pnpm lockfile resolves.
- * Read from the lockfile, not node_modules, so the check runs before install.
- */
-export function lockedBuilderVersions(lockfileText) {
-  const found = (name) => [
-    ...new Set(
-      [...lockfileText.matchAll(new RegExp("^  " + name + "@([0-9][^(:\\s]*)", "gm"))].map(
-        (m) => m[1],
-      ),
-    ),
-  ];
-  return { electronBuilder: found("electron-builder"), appBuilderLib: found("app-builder-lib") };
 }
 
 // One build leg per target. macOS is universal: the Mac App Store takes one
@@ -130,8 +107,11 @@ export const credentials = {
     "STEAM_DEPOT_MACOS",
   ],
   "steam-demo": [
-    "STEAM_USERNAME", "STEAM_CONFIG_VDF", "STEAM_DEMO_DEPOT_WINDOWS",
-    "STEAM_DEMO_DEPOT_LINUX", "STEAM_DEMO_DEPOT_MACOS",
+    "STEAM_USERNAME",
+    "STEAM_CONFIG_VDF",
+    "STEAM_DEMO_DEPOT_WINDOWS",
+    "STEAM_DEMO_DEPOT_LINUX",
+    "STEAM_DEMO_DEPOT_MACOS",
   ],
   appstore: ["APPLE_API_KEY_BASE64", "APPLE_API_KEY_ID", "APPLE_API_ISSUER_ID"],
   "msstore-submission": [
@@ -303,7 +283,15 @@ export function steamBranch(value = "", fallback = "") {
   return branch;
 }
 
-export function steamBuildVdf({ version: appVersion, commit, outputDir, roots, depots, branch, destination = "steam" }) {
+export function steamBuildVdf({
+  version: appVersion,
+  commit,
+  outputDir,
+  roots,
+  depots,
+  branch,
+  destination = "steam",
+}) {
   const product = steamProduct(destination);
   const quote = (value) => JSON.stringify(String(value));
   const depot = (os) =>
@@ -326,55 +314,15 @@ export function steamBuildVdf({ version: appVersion, commit, outputDir, roots, d
   );
 }
 
-// Reads one file out of an app.asar without dependencies (Chromium pickle
-// header: [4][header pickle size] then [payload size][json length][json]).
-export function readAsarFile(asarPath, name) {
-  const buffer = readFileSync(asarPath);
-  const headerSize = buffer.readUInt32LE(4);
-  const jsonLength = buffer.readUInt32LE(12);
-  const header = JSON.parse(buffer.toString("utf8", 16, 16 + jsonLength));
-  let node = header;
-  for (const part of name.split("/")) {
-    node = node.files?.[part];
-    if (!node) throw new Error(name + " is not in " + asarPath);
-  }
-  if (node.unpacked) throw new Error(name + " is unpacked from " + asarPath);
-  const start = 8 + headerSize + Number(node.offset);
-  return buffer.subarray(start, start + node.size);
-}
-
-export function asarHas(asarPath, prefix) {
-  const buffer = readFileSync(asarPath);
-  const header = JSON.parse(buffer.toString("utf8", 16, 16 + buffer.readUInt32LE(12)));
-  let node = header;
-  for (const part of prefix.split("/")) {
-    node = node.files?.[part];
-    if (!node) return false;
-  }
-  return true;
-}
-
-// The baked channel decides updater, Steam and store behaviour at runtime;
-// a build with the wrong metadata runs fine and misbehaves silently.
-export function assertPackagedChannel(asarPath, channel) {
-  const meta = JSON.parse(readAsarFile(asarPath, "package.json").toString("utf8"));
-  if (meta.distributionChannel !== channel) {
-    throw new Error(
-      asarPath + " is baked as " + meta.distributionChannel + ", expected " + channel,
-    );
-  }
-  const steam = meta.steamBuild === true || meta.steamBuild === "true";
-  if (steam !== (channel === "steam" || channel === "steam-demo"))
-    throw new Error(asarPath + " has the wrong steamBuild flag for " + channel);
-  if (steam && String(meta.steamAppId) !== String(steamProduct(channel).appId))
-    throw new Error(asarPath + " has the wrong Steam appid");
-  if (steam && (meta.steamDemo === true) !== (channel === "steam-demo"))
-    throw new Error(asarPath + " has the wrong Steam demo flag");
-  if (
-    (channel === "mas" || channel === "msstore") &&
-    asarHas(asarPath, "node_modules/steamworks.js")
-  ) {
-    throw new Error(asarPath + " ships steamworks.js in a store build");
-  }
+// Verify the metadata bundled by Tauri. Artifact digests bind it to the source run.
+export function assertPackagedChannel(metadataPath, channel) {
+  const meta = JSON.parse(readFileSync(metadataPath, "utf8"));
+  if (meta.runtime !== "tauri" || meta.distributionChannel !== channel)
+    throw Error("Incorrect packaged runtime/channel");
+  const steam = channel === "steam" || channel === "steam-demo";
+  if (meta.steamBuild !== steam || meta.steamDemo !== (channel === "steam-demo"))
+    throw Error("Incorrect Steam flags");
+  if (steam && meta.steamAppId !== steamProduct(channel).appId)
+    throw Error("Incorrect Steam AppID");
   return meta;
 }

@@ -7,8 +7,8 @@
  *
  *   - `ios`: Capacitor + @capgo/native-purchases (StoreKit 2). A purchase
  *     yields a signed JWS (`jwsRepresentation`) the server verifies.
- *   - `mas`: Electron's inAppPurchase module (StoreKit 1, bridged in
- *     desktop/src/inAppPurchase.cjs). A purchase yields a transaction id
+ *   - `mas`: the native StoreKit bridge (StoreKit 1, bridged in
+ *     desktop/src-tauri/src/stores.rs). A purchase yields a transaction id
  *     the server resolves through the App Store Server API.
  *
  * Either way the server is the only party that grants anything; these
@@ -232,7 +232,7 @@ function createIosAdapter(plugin: NativePurchasesPlugin): StoreKitAdapter {
 }
 
 // ---------------------------------------------------------------------------
-// Mac App Store (StoreKit 1 via the Electron preload)
+// Mac App Store (StoreKit 1 via the Tauri initialization script)
 // ---------------------------------------------------------------------------
 
 /** SKErrorPaymentCancelled */

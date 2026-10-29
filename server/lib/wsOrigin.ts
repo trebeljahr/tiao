@@ -1,15 +1,17 @@
 import { FRONTEND_URL } from "../config/envVars";
 
-/**
- * Origin whitelist for the desktop Electron build.  The Electron
- * BrowserWindow loads the static client bundle from the `app://tiao/`
- * custom protocol, and some platforms (Linux in particular) send
- * WebSocket upgrades without an Origin header at all.  Both are
- * acceptable ONLY when the upgrade request carries a valid bearer
- * token in the `?token=` query param — the token is the actual
- * authentication.
+/** Native WebViews use stable local origins. WebSocket upgrades from those
+ * origins still require a verified native bearer token; an origin grants no
+ * authentication. Keep Electron origins while installed clients migrate.
  */
 export const DESKTOP_ORIGIN = "app://tiao";
+// Keep the Electron origin for already-installed releases during migration.
+export const DESKTOP_ORIGINS: readonly string[] = [
+  DESKTOP_ORIGIN,
+  "tauri://localhost",
+  "http://tauri.localhost",
+  "https://tauri.localhost",
+];
 
 /**
  * Origins of the Capacitor WebView: iOS serves the bundle from
@@ -31,7 +33,7 @@ export const MOBILE_ORIGINS: readonly string[] = ["capacitor://localhost", "http
  * a valid bearer token in the URL.  The token itself is the primary
  * authentication; origin is still enforced to prevent `origin: https://attacker.com`
  * from being accepted just because a stolen token leaks in the query.
- * Desktop is permitted to use `app://tiao` or no origin at all, and
+ * Desktop is permitted to use its registered native origins or no origin, and
  * nothing else.
  */
 export function isAllowedOrigin(
@@ -43,7 +45,7 @@ export function isAllowedOrigin(
   // explicit origin (attacker.com with a stolen token).
   if (options.hasValidDesktopToken) {
     if (!origin) return true;
-    if (origin === DESKTOP_ORIGIN) return true;
+    if (DESKTOP_ORIGINS.includes(origin)) return true;
     if (MOBILE_ORIGINS.includes(origin)) return true;
   }
 

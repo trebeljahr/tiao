@@ -1,7 +1,7 @@
 /**
  * Runtime resolver for dynamic route parameters in the static exports.
  *
- * The desktop (Electron) and mobile (Capacitor) apps ship a static
+ * The desktop (Tauri) and mobile (Capacitor) apps ship a static
  * export of the Next.js client. Static export can only pre-render
  * dynamic routes whose params are known at build time, so the
  * shareable routes — /game/[gameId], /profile/[username],
@@ -9,7 +9,7 @@
  * with the placeholder param `__spa__`. The native shell serves that
  * page for any real value:
  *
- *   app://tiao/en/game/ABC123/        →  en/game/__spa__/index.html  (desktop/src/protocol.cjs)
+ *   app://tiao/en/game/ABC123/        →  en/game/__spa__/index.html  (desktop/src-tauri/src/routes.rs)
  *   https://localhost/en/game/ABC123/ →  en/game/__spa__/index.html  (mobile TiaoRoutes, iOS + Android)
  *
  * Inside that page, useParams() returns the bake-time placeholder

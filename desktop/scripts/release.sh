@@ -27,7 +27,7 @@ if [ -f .env.release ]; then
 fi
 
 if [ "${TIAO_SIGNED:-0}" != "1" ]; then
-  # Unsigned: keep electron-builder away from any identity in the keychain.
+  # Unsigned: keep Tauri away from any identity in the keychain.
   export CSC_IDENTITY_AUTO_DISCOVERY=false
 fi
 
@@ -37,7 +37,7 @@ echo "[release] building tiao-desktop v$(node -p "require('./package.json').vers
 npm run dev:build-client
 
 if [ "${1:-}" = "--all" ]; then
-  npm run package:all
+  echo "Cross-platform builds require native runners." >&2; exit 1
 else
   npm run package
 fi

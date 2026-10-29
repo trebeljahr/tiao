@@ -1,7 +1,7 @@
 /**
  * Renderer-side wrapper around the Steamworks IPC surface exposed by
- * `desktop/preload.cjs`. The bridge only exists in the packaged
- * Electron desktop build with STEAM_BUILD=true at launch — every
+ * `desktop/bridge.js`. The bridge only exists in the packaged
+ * Tauri desktop build with STEAM_BUILD=true at launch — every
  * other context (web, mobile, non-Steam desktop) sees `undefined`.
  *
  * The functions below all return safe defaults when the bridge is
@@ -11,8 +11,8 @@
  *
  * For the IPC contract on the other side, see:
  *   - `desktop/src/steam.cjs`     — module implementation
- *   - `desktop/main.cjs`          — ipcMain handlers
- *   - `desktop/preload.cjs`       — contextBridge exposure
+ *   - `desktop/src-tauri/src/main.rs`          — validated native commands
+ *   - `desktop/bridge.js`       — frontend compatibility API
  */
 
 export type SteamOverlayDialog =
