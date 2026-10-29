@@ -1499,6 +1499,10 @@
     "skip": "Jugar sin vincular",
     "webAccess": "Usa Continuar con Steam en la web para acceder a esta misma cuenta. La contraseña es opcional.",
     "steamProfile": "Perfil de Steam: {username}",
-    "prefilledHint": "Nombre de Steam sugerido. Puedes cambiarlo."
+    "prefilledHint": "Nombre de Steam sugerido. Puedes cambiarlo.",
+    "linkExisting": "Vincular cuenta existente",
+    "linkExistingHint": "Inicia sesión una vez para combinar tu progreso, amigos y compras de Steam con tu cuenta web.",
+    "waitingBrowser": "Esperando el inicio de sesión en el navegador…",
+    "confirmExisting": "Vincular Steam con {username}"
   }
 }

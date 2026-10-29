@@ -10,8 +10,11 @@ const mocks = vi.hoisted(() => ({
   steamBuild: false,
   webSteam: vi.fn().mockResolvedValue(undefined),
   finishSteam: vi.fn().mockResolvedValue(undefined),
+  openAuth: vi.fn(),
 }));
-vi.mock("@/lib/AuthContext", () => ({ useAuth: () => ({ finishSteamSetup: mocks.finishSteam }) }));
+vi.mock("@/lib/AuthContext", () => ({
+  useAuth: () => ({ finishSteamSetup: mocks.finishSteam, onOpenAuth: mocks.openAuth }),
+}));
 vi.mock("@/lib/authProviders", async (original) => ({
   ...(await original<typeof import("@/lib/authProviders")>()),
   useAppleSignInEnabled: () => true,
@@ -37,6 +40,17 @@ beforeEach(() => {
 });
 
 describe("account linking choices", () => {
+  it("offers a one-time existing web account link for an automatic Steam account", () => {
+    mocks.steamBuild = true;
+    render(<LinkedAccounts {...props} providers={["steam"]} steamAutoCreated />);
+    fireEvent.click(screen.getByRole("button", { name: "Link existing account" }));
+    expect(mocks.openAuth).toHaveBeenCalledWith("login", { linkSteam: true });
+  });
+  it("does not offer a second account merge after web access is linked", () => {
+    mocks.steamBuild = true;
+    render(<LinkedAccounts {...props} providers={["steam", "google"]} steamAutoCreated />);
+    expect(screen.queryByRole("button", { name: "Link existing account" })).not.toBeInTheDocument();
+  });
   it("places Steam beside Apple and the other link options on web", async () => {
     render(<LinkedAccounts {...props} />);
     const steam = screen.getByRole("button", { name: "Steam" });

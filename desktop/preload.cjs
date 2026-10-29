@@ -110,15 +110,28 @@ contextBridge.exposeInMainWorld("electron", {
   },
 
   auth: {
+    confirmSteamLink: () => ipcRenderer.invoke("auth:confirmSteamLink"),
+    /** @param {(payload: { displayName: string }) => void} cb */
+    onSteamLinkReady: (cb) => {
+      const listener = (
+        /** @type {unknown} */ _event,
+        /** @type {{ displayName: string }} */ payload,
+      ) => cb(payload);
+      ipcRenderer.on("auth:steamLinkReady", listener);
+      return () => ipcRenderer.off("auth:steamLinkReady", listener);
+    },
+    cancelOAuth: () => ipcRenderer.invoke("auth:cancelOAuth"),
     /** @param {{ action: "check" | "create" | "link"; username?: string }} input */
     steam: (input) => ipcRenderer.invoke("auth:steam", input),
     /** @param {string} identifier @param {string} password */
-    login: (identifier, password) => ipcRenderer.invoke("auth:login", identifier, password),
+    login: (identifier, password, /** @type {{ linkSteam?: boolean } | undefined} */ options) =>
+      ipcRenderer.invoke("auth:login", identifier, password, options),
     /**
      * @param {"github"|"google"|"discord"|"apple"|"steam"} provider
      * @returns {Promise<{ ok: true } | { ok: false; reason: string }>}
      */
-    startOAuth: (provider) => ipcRenderer.invoke("auth:startOAuth", provider),
+    startOAuth: (provider, /** @type {{ linkSteam?: boolean } | undefined} */ options) =>
+      ipcRenderer.invoke("auth:startOAuth", provider, options),
     /**
      * @param {"github"|"google"|"discord"|"apple"|"steam"} provider
      * @returns {Promise<{ ok: boolean; reason?: string }>}

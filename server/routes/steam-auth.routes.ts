@@ -12,6 +12,7 @@ export function createSteamAuthRouter(
     link: steam.linkSteamAccount,
     mint: steam.mintSteamDesktopSession,
     requireAccount,
+    ensure: steam.ensureSteamAccount,
   },
 ) {
   const router = express.Router();
@@ -32,7 +33,7 @@ export function createSteamAuthRouter(
           ? await deps.link(steamId, target!.id)
           : action === "create"
             ? await deps.create(steamId, username)
-            : await deps.find(steamId);
+            : await deps.ensure(steamId);
       if (!account)
         return res.json({ status: "needs_setup", profile: await fetchSteamProfile(steamId) });
       return res.json({ status: "signed_in", ...(await deps.mint(account.id)) });

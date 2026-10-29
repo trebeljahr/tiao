@@ -445,6 +445,63 @@ test("standalone desktop Steam sign-in returns a revocable desktop session", asy
   }
 });
 
+test("PKCE polling completes browser login once without a working app redirect", async () => {
+  const server = await desktopServer();
+  try {
+    const browser = new Browser();
+    const verifier = "polling-secret-held-only-by-native-client-0123456789";
+    const challenge = (await import("node:crypto"))
+      .createHash("sha256")
+      .update(verifier)
+      .digest("base64url");
+    const state = "desktop-poll-steam-0123456789";
+    const start = await server.request(
+      `/api/auth/desktop/start?provider=steam&state=${state}&code_challenge=${challenge}&code_challenge_method=S256`,
+      browser,
+    );
+    const returnTo = new URL(start.headers.get("location")!).searchParams.get("openid.return_to")!;
+    const callback = await browser.callback(returnTo, "76561198000000101");
+    const next = new URL(callback.headers.get("location")!);
+    const complete = await server.request(next.pathname + next.search, browser);
+    assert.equal(complete.status, 302);
+    const wrong = await server.request("/api/auth/desktop/poll", browser, {
+      state,
+      code_verifier: "wrong-native-secret-0123456789-0123456789-0123456789",
+    });
+    assert.equal(wrong.status, 202);
+    const polled = await server.request("/api/auth/desktop/poll", browser, {
+      state,
+      code_verifier: verifier,
+    });
+    assert.equal(polled.status, 200, await polled.clone().text());
+    const { code } = await polled.json();
+    assert.equal(
+      (await server.request("/api/auth/desktop/poll", browser, { state, code_verifier: verifier }))
+        .status,
+      202,
+    );
+    const result = await server.request("/api/auth/desktop/exchange", browser, {
+      state,
+      code,
+      code_verifier: verifier,
+    });
+    assert.equal(result.status, 200, await result.clone().text());
+    assert.equal((await result.json()).userId, nativeUserId);
+    assert.equal(
+      (
+        await server.request("/api/auth/desktop/exchange", browser, {
+          state,
+          code,
+          code_verifier: verifier,
+        })
+      ).status,
+      401,
+    );
+  } finally {
+    await server.close();
+  }
+});
+
 test("new desktop Steam accounts finish username setup in the browser before returning to the app", async () => {
   const server = await desktopServer();
   try {

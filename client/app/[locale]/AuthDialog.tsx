@@ -16,6 +16,7 @@
  * Turbopack pull it in as a separate chunk via `next/dynamic`.
  */
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 // Barrel import is fine — Next.js's `optimizePackageImports` includes
 // `react-icons/*` by default and rewrites this into per-icon imports
@@ -35,9 +36,16 @@ import { isSteamBuild } from "@/lib/SteamBridge";
 import { startSteamWebSignIn } from "@/lib/steamWebAuth";
 
 export function OAuthButtons() {
-  const { handleOAuthSignIn, finishSteamSetup, setAuthDialogOpen, steamSetupRequired } = useAuth();
+  const {
+    handleOAuthSignIn,
+    finishSteamSetup,
+    setAuthDialogOpen,
+    steamSetupRequired,
+    steamLinkMode,
+    authBusy,
+  } = useAuth();
   const appleEnabled = useAppleSignInEnabled();
-  const showSteam = !isNativeMobileApp() && !steamSetupRequired;
+  const showSteam = !isNativeMobileApp() && !steamSetupRequired && !steamLinkMode;
 
   async function handleSteam() {
     try {
@@ -66,6 +74,7 @@ export function OAuthButtons() {
               type="button"
               variant="outline"
               className="gap-2"
+              disabled={authBusy}
               onClick={() => void handleOAuthSignIn(id)}
             >
               <Icon aria-hidden="true" className="h-4 w-4" />
@@ -92,6 +101,9 @@ export function OAuthButtons() {
 export function AuthDialog() {
   const {
     authDialogOpen,
+    steamLinkMode,
+    steamLinkCandidate,
+    confirmSteamLink,
     authDialogForced,
     authDialogMode,
     authBusy,
@@ -114,39 +126,67 @@ export function AuthDialog() {
     handleSignupSubmit,
     handleForgotPassword,
   } = useAuth();
+  const ts = useTranslations("steamAccount");
 
   const [forgotMode, setForgotMode] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotBusy, setForgotBusy] = useState(false);
   const [signupPasswordVisible, setSignupPasswordVisible] = useState(false);
 
-  const dialogTitle = forgotMode
-    ? "Reset password"
-    : authDialogForced
-      ? "Log in to join this custom game"
-      : authDialogMode === "login"
-        ? "Log in"
-        : "Create account";
+  const dialogTitle =
+    steamLinkMode && !forgotMode
+      ? ts("linkExisting")
+      : forgotMode
+        ? "Reset password"
+        : authDialogForced
+          ? "Log in to join this custom game"
+          : authDialogMode === "login"
+            ? "Log in"
+            : "Create account";
 
-  const dialogDescription = forgotMode
-    ? "Enter your email to receive a password reset link."
-    : authDialogForced
-      ? "Custom games are only open to registered players. Log in or create a free account to join."
-      : "Log in or create an account to save your profile.";
+  const dialogDescription =
+    steamLinkMode && !forgotMode
+      ? ts("linkExistingHint")
+      : forgotMode
+        ? "Enter your email to receive a password reset link."
+        : authDialogForced
+          ? "Custom games are only open to registered players. Log in or create a free account to join."
+          : "Log in or create an account to save your profile.";
 
   return (
     <Dialog
       open={authDialogOpen}
       onOpenChange={(open) => {
         setAuthDialogOpen(open);
-        if (!open) setForgotMode(false);
+        if (!open) {
+          setForgotMode(false);
+          void desktopAuthBridge()
+            ?.cancelOAuth?.()
+            .catch(() => {});
+        }
       }}
       closeable={!authDialogForced}
       title={dialogTitle}
       description={dialogDescription}
     >
       <div className="space-y-4">
-        {forgotMode ? (
+        {steamLinkCandidate ? (
+          <div className="space-y-4">
+            <p className="text-sm text-[#4e3d2c]">
+              {ts("signedInAs", { username: steamLinkCandidate.displayName })}
+            </p>
+            <Button
+              type="button"
+              disabled={authBusy}
+              className="w-full"
+              onClick={() => void confirmSteamLink?.()}
+            >
+              {authBusy
+                ? ts("working")
+                : ts("confirmExisting", { username: steamLinkCandidate.displayName })}
+            </Button>
+          </div>
+        ) : forgotMode ? (
           <form
             onSubmit={async (e) => {
               e.preventDefault();
@@ -191,21 +231,29 @@ export function AuthDialog() {
           </form>
         ) : (
           <>
-            <div className="flex flex-wrap gap-2">
-              {(["login", "signup"] as AuthDialogMode[]).map((item) => (
-                <Button
-                  key={item}
-                  type="button"
-                  variant={authDialogMode === item ? "default" : "outline"}
-                  onClick={() => {
-                    setAuthDialogMode(item);
-                    setAuthDialogError(null);
-                  }}
-                >
-                  {item === "signup" ? "Sign up" : item === "login" ? "Log in" : null}
-                </Button>
-              ))}
-            </div>
+            {!steamLinkMode && (
+              <div className="flex flex-wrap gap-2">
+                {(["login", "signup"] as AuthDialogMode[]).map((item) => (
+                  <Button
+                    key={item}
+                    type="button"
+                    variant={authDialogMode === item ? "default" : "outline"}
+                    onClick={() => {
+                      setAuthDialogMode(item);
+                      setAuthDialogError(null);
+                    }}
+                  >
+                    {item === "signup" ? "Sign up" : item === "login" ? "Log in" : null}
+                  </Button>
+                ))}
+              </div>
+            )}
+
+            {authBusy && desktopAuthBridge() && (
+              <p role="status" className="text-sm text-[#7b6550]">
+                {ts("waitingBrowser")}
+              </p>
+            )}
 
             {authDialogMode === "login" ? (
               <form

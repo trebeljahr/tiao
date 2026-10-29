@@ -1499,6 +1499,10 @@
     "skip": "Play without linking",
     "webAccess": "Use Continue with Steam on the web to sign in to this same account. A password login is optional.",
     "steamProfile": "Steam profile: {username}",
-    "prefilledHint": "Prefilled from Steam. You can change this name."
+    "prefilledHint": "Prefilled from Steam. You can change this name.",
+    "linkExisting": "Link existing account",
+    "linkExistingHint": "Sign in once to combine your Steam progress, friends and purchases with your web account.",
+    "waitingBrowser": "Waiting for browser sign-in…",
+    "confirmExisting": "Link Steam to {username}"
   }
 }

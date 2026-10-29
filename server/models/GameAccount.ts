@@ -24,6 +24,11 @@ export interface IGameAccount extends Document {
   steamId?: string;
   /** Distinguishes legacy links from Better Auth provider records. */
   steamProviderLinked?: boolean;
+  /** Native Steam signup can later be joined to an existing web identity. */
+  steamAutoCreated?: boolean;
+  /** Blocks the old identity while a retryable account migration is running. */
+  steamLinkTargetId?: string;
+  steamLinkSourceId?: string;
   profilePicture?: string;
   friends: Schema.Types.ObjectId[];
   receivedFriendRequests: Schema.Types.ObjectId[];
@@ -68,6 +73,9 @@ const GameAccountSchema = new Schema<IGameAccount>(
   {
     steamId: { type: String },
     steamProviderLinked: { type: Boolean },
+    steamAutoCreated: { type: Boolean },
+    steamLinkTargetId: { type: String },
+    steamLinkSourceId: { type: String },
     displayName: {
       type: String,
       required: true,

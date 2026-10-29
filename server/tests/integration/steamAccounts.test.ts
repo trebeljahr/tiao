@@ -59,6 +59,267 @@ test("concurrent full-game/demo signups converge on one account and valid revoca
   assert.equal(publicAccountEmail("player@example.com"), "player@example.com");
 });
 
+test("native Steam signup is automatic, survives name collisions, and is stable across launches", async () => {
+  await GameAccount.create({ displayName: "player-000050" });
+  const results = await Promise.all(
+    Array.from({ length: 4 }, () => steam.ensureSteamAccount("76561198000000050")),
+  );
+  assert.equal(new Set(results.map((row) => row.id)).size, 1);
+  assert.equal(results[0].steamAutoCreated, true);
+  assert.notEqual(results[0].displayName, "player-000050");
+  assert.equal((await steam.ensureSteamAccount("76561198000000050")).id, results[0].id);
+});
+
+test("automatic Steam account joins a proven web account without losing progress or purchases", async () => {
+  const db = mongoose.connection.getClient().db();
+  const source = await steam.ensureSteamAccount("76561198000000051");
+  const signup = await auth.api.signUpEmail({
+    body: { email: "merge-web@example.com", name: "merge-web", password: "test-password-123" },
+  });
+  const targetId = String(signup.user.id),
+    targetKey = new mongoose.Types.ObjectId(targetId);
+  const friend = await GameAccount.create({ displayName: "merge-friend", friends: [source._id] });
+  await GameAccount.updateOne(
+    { _id: source._id },
+    {
+      $set: {
+        badges: ["supporter"],
+        unlockedThemes: ["ocean"],
+        friends: [friend._id],
+        rating: { overall: { elo: 1650, gamesPlayed: 8 } },
+        hasSeenTutorial: true,
+      },
+    },
+  );
+  await GameAccount.updateOne(
+    { _id: targetId },
+    { $set: { badges: ["web-badge"], rating: { overall: { elo: 1700, gamesPlayed: 12 } } } },
+  );
+  await db.collection("achievements").insertMany([
+    { playerId: source._id, achievementId: "first-win", unlockedAt: new Date(1000) },
+    { playerId: targetKey, achievementId: "first-win", unlockedAt: new Date(2000) },
+    { playerId: source._id, achievementId: "steam-only", unlockedAt: new Date(3000) },
+  ]);
+  await db.collection("gamerooms").insertOne({
+    roomId: "MERGE",
+    status: "finished",
+    seats: {
+      white: { playerId: source.id, displayName: source.displayName },
+      black: { playerId: friend.id, displayName: friend.displayName },
+    },
+  });
+  await db.collection("storepurchases").insertOne({
+    provider: "steam",
+    playerId: source.id,
+    externalId: "merge-order",
+    itemId: "ocean",
+    status: "granted",
+  });
+  const oldSession = await steam.mintSteamDesktopSession(source.id);
+  const linked = await steam.linkSteamAccount("76561198000000051", targetId);
+  assert.equal(linked.id, targetId);
+  assert.equal((await steam.ensureSteamAccount("76561198000000051")).id, targetId);
+  assert.deepEqual(new Set(linked.badges), new Set(["supporter", "web-badge"]));
+  assert.deepEqual(linked.unlockedThemes, ["ocean"]);
+  assert.equal(linked.hasSeenTutorial, true);
+  assert.equal(linked.rating.overall.elo, 1700);
+  assert.equal(linked.rating.overall.gamesPlayed, 20);
+  assert.equal((await GameAccount.findById(friend.id)).friends[0].toString(), targetId);
+  assert.equal(await GameAccount.findById(source.id), null);
+  assert.equal(await verifySessionToken(oldSession.sessionToken), null);
+  assert.equal(
+    (await db.collection("storepurchases").findOne({ externalId: "merge-order" }))?.playerId,
+    targetId,
+  );
+  assert.equal(
+    (await db.collection("gamerooms").findOne({ roomId: "MERGE" }))?.seats.white.playerId,
+    targetId,
+  );
+  assert.equal(await db.collection("achievements").countDocuments({ playerId: targetKey }), 2);
+  assert.equal(
+    (
+      await db
+        .collection("achievements")
+        .findOne({ playerId: targetKey, achievementId: "first-win" })
+    )?.unlockedAt.getTime(),
+    1000,
+  );
+  assert.equal(
+    (await steam.linkSteamAccount("76561198000000051", targetId)).rating.overall.gamesPlayed,
+    20,
+  );
+});
+
+test("linking refuses active play and accounts with another login without changing either account", async () => {
+  const db = mongoose.connection.getClient().db();
+  const source = await steam.ensureSteamAccount("76561198000000052");
+  const signup = await auth.api.signUpEmail({
+    body: { email: "busy-web@example.com", name: "busy-web", password: "test-password-123" },
+  });
+  const targetId = String(signup.user.id);
+  await db.collection("gamerooms").insertOne({
+    roomId: "BUSY-MERGE",
+    status: "active",
+    seats: { white: { playerId: source.id } },
+  });
+  await assert.rejects(steam.linkSteamAccount("76561198000000052", targetId), {
+    code: "STEAM_LINK_BUSY",
+  });
+  assert.equal((await steam.findSteamAccount("76561198000000052")).id, source.id);
+  await db.collection("gamerooms").deleteOne({ roomId: "BUSY-MERGE" });
+  await db
+    .collection("account")
+    .insertOne({ userId: source._id, providerId: "google", accountId: "another-login" });
+  await assert.rejects(steam.linkSteamAccount("76561198000000052", targetId), {
+    code: "STEAM_LINK_CONFLICT",
+  });
+  assert.equal((await GameAccount.findById(targetId)).steamId, undefined);
+});
+
+test("native startup resumes a confirmed migration without adding game counts twice", async () => {
+  const db = mongoose.connection.getClient().db();
+  const source = await steam.ensureSteamAccount("76561198000000053");
+  const signup = await auth.api.signUpEmail({
+    body: { email: "retry-web@example.com", name: "retry-web", password: "test-password-123" },
+  });
+  const targetId = String(signup.user.id);
+  await GameAccount.updateOne(
+    { _id: source.id },
+    { $set: { steamLinkTargetId: targetId, "rating.overall.gamesPlayed": 4 } },
+  );
+  await db
+    .collection("steamAccountLinks")
+    .insertOne({ _id: source._id, targetId, steamId: "76561198000000053" });
+  await db
+    .collection("gameaccounts")
+    .updateOne(
+      { _id: new mongoose.Types.ObjectId(targetId) },
+      { $set: { mergedSteamSources: [source.id], "rating.overall.gamesPlayed": 7 } },
+    );
+  const linked = await steam.ensureSteamAccount("76561198000000053");
+  assert.equal(linked.id, targetId);
+  assert.equal(linked.rating.overall.gamesPlayed, 7);
+  assert.equal(await GameAccount.findById(source.id), null);
+});
+
+test("native startup recovers after reserving the target SteamID and before provider reassignment", async () => {
+  const db = mongoose.connection.getClient().db();
+  const source = await steam.ensureSteamAccount("76561198000000054");
+  const signup = await auth.api.signUpEmail({
+    body: { email: "late-retry@example.com", name: "late-retry", password: "test-password-123" },
+  });
+  const targetId = String(signup.user.id);
+  await GameAccount.updateOne(
+    { _id: source.id },
+    { $set: { steamLinkTargetId: targetId }, $unset: { steamId: 1 } },
+  );
+  await db
+    .collection("steamAccountLinks")
+    .insertOne({ _id: source._id, targetId, steamId: "76561198000000054" });
+  await db.collection("gameaccounts").updateOne(
+    { _id: new mongoose.Types.ObjectId(targetId) },
+    {
+      $set: {
+        steamId: "76561198000000054",
+        steamLinkSourceId: source.id,
+        mergedSteamSources: [source.id],
+        "rating.overall.gamesPlayed": 9,
+      },
+    },
+  );
+  const linked = await steam.ensureSteamAccount("76561198000000054");
+  assert.equal(linked.id, targetId);
+  assert.equal(linked.rating.overall.gamesPlayed, 9);
+  assert.equal(await GameAccount.findById(source.id), null);
+  assert.equal(await db.collection("steamAccountLinks").countDocuments({ _id: source._id }), 0);
+});
+
+test("a confirmed interrupted link cannot be redirected to a different web account", async () => {
+  const db = mongoose.connection.getClient().db();
+  const source = await steam.ensureSteamAccount("76561198000000055");
+  const original = await auth.api.signUpEmail({
+    body: { email: "bound-web@example.com", name: "bound-web", password: "test-password-123" },
+  });
+  const other = await auth.api.signUpEmail({
+    body: { email: "other-web@example.com", name: "other-web", password: "test-password-123" },
+  });
+  const targetId = String(original.user.id),
+    otherId = String(other.user.id);
+  await GameAccount.updateOne({ _id: source.id }, { $set: { steamLinkTargetId: targetId } });
+  await db
+    .collection("steamAccountLinks")
+    .insertOne({ _id: source._id, targetId, steamId: "76561198000000055" });
+  await assert.rejects(steam.linkSteamAccount("76561198000000055", otherId), {
+    code: "STEAM_LINK_CONFLICT",
+  });
+  assert.equal((await GameAccount.findById(otherId)).steamId, undefined);
+  assert.equal((await steam.ensureSteamAccount("76561198000000055")).id, targetId);
+});
+
+test("finished tournament identities follow the merged account without changing authored text", async () => {
+  const db = mongoose.connection.getClient().db();
+  const source = await steam.ensureSteamAccount("76561198000000056");
+  const signup = await auth.api.signUpEmail({
+    body: {
+      email: "tournament-web@example.com",
+      name: "tournament-web",
+      password: "test-password-123",
+    },
+  });
+  const targetId = String(signup.user.id);
+  await db.collection("tournaments").insertOne({
+    tournamentId: "MERGED-HISTORY",
+    revision: 0,
+    status: "finished",
+    creatorId: source.id,
+    description: source.id,
+    participants: [{ playerId: source.id }],
+    groups: [{ participantIds: [source.id], standings: [{ playerId: source.id }] }],
+    rounds: [
+      {
+        matches: [
+          { winner: source.id, players: [{ playerId: source.id }], playerColors: [source.id] },
+        ],
+      },
+    ],
+  });
+  await db.collection("tournamentmatches").insertOne({
+    tournamentId: "MERGED-HISTORY",
+    players: [{ playerId: source.id }],
+    winner: source.id,
+  });
+  await steam.linkSteamAccount("76561198000000056", targetId);
+  const history = await db.collection("tournaments").findOne({ tournamentId: "MERGED-HISTORY" });
+  assert.equal(history?.creatorId, targetId);
+  assert.equal(history?.participants[0].playerId, targetId);
+  assert.equal(history?.groups[0].participantIds[0], targetId);
+  assert.equal(history?.rounds[0].matches[0].winner, targetId);
+  assert.equal(history?.description, source.id);
+  assert.equal(
+    (await db.collection("tournamentmatches").findOne({ tournamentId: "MERGED-HISTORY" }))?.winner,
+    targetId,
+  );
+});
+
+test("overlapping tournament history refuses the merge before moving either identity", async () => {
+  const db = mongoose.connection.getClient().db();
+  const source = await steam.ensureSteamAccount("76561198000000057");
+  const signup = await auth.api.signUpEmail({
+    body: { email: "overlap-web@example.com", name: "overlap-web", password: "test-password-123" },
+  });
+  const targetId = String(signup.user.id);
+  await db.collection("tournaments").insertOne({
+    tournamentId: "OVERLAP",
+    status: "finished",
+    participants: [{ playerId: source.id }, { playerId: targetId }],
+  });
+  await assert.rejects(steam.linkSteamAccount("76561198000000057", targetId), {
+    code: "STEAM_LINK_CONFLICT",
+  });
+  assert.equal((await steam.findSteamAccount("76561198000000057")).id, source.id);
+  assert.equal((await GameAccount.findById(targetId)).steamId, undefined);
+});
+
 test("retry completes provisioning after interruption between game and auth user creation", async () => {
   const reserved = await GameAccount.create({
     steamId: "76561198000000002",
@@ -183,6 +444,7 @@ test("HTTP routes require both account and Steam proofs and return the original 
       link: steam.linkSteamAccount,
       mint: steam.mintSteamDesktopSession,
       requireAccount,
+      ensure: steam.ensureSteamAccount,
     }),
   );
   app.use("/desktop", desktopRoutes);
@@ -202,7 +464,7 @@ test("HTTP routes require both account and Steam proofs and return the original 
     assert.equal((await post("/steam/session", { action: "link", userId: "forged" })).status, 401);
     assert.equal((await post("/desktop/session", {})).status, 401);
     const check = await post("/steam/session", { action: "check" });
-    assert.equal(((await check.json()) as { status: string }).status, "needs_setup");
+    assert.equal(((await check.json()) as { status: string }).status, "signed_in");
     const signed = await steam.createSteamAccount("76561198000000011", "web-route-player");
     const original = await steam.mintSteamDesktopSession(signed.id);
     ticketValid = false;

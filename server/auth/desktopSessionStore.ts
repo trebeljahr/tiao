@@ -39,7 +39,12 @@ type AuthAccount = {
   accountId?: string;
   password?: string;
 };
-type GameAccountSecurity = { _id: AuthId; isAdmin?: boolean; steamId?: string };
+type GameAccountSecurity = {
+  _id: AuthId;
+  isAdmin?: boolean;
+  steamId?: string;
+  steamLinkTargetId?: string;
+};
 
 function db() {
   return mongoose.connection.getClient().db();
@@ -63,7 +68,10 @@ export const desktopSessionStore: DesktopSessionStore = {
         ),
       db()
         .collection<GameAccountSecurity>("gameaccounts")
-        .findOne({ _id: userFilter }, { projection: { isAdmin: 1, steamId: 1 } }),
+        .findOne(
+          { _id: userFilter },
+          { projection: { isAdmin: 1, steamId: 1, steamLinkTargetId: 1 } },
+        ),
       db()
         .collection<AuthSession>("session")
         .findOne({
@@ -76,7 +84,15 @@ export const desktopSessionStore: DesktopSessionStore = {
         .find({ userId: userFilter }, { projection: { providerId: 1, accountId: 1, password: 1 } })
         .toArray(),
     ]);
-    if (!user || !gameAccount || user.isAnonymous || user.banned || !session) return null;
+    if (
+      !user ||
+      !gameAccount ||
+      gameAccount.steamLinkTargetId ||
+      user.isAnonymous ||
+      user.banned ||
+      !session
+    )
+      return null;
     // Ignore OAuth access-token refreshes and profile edits. Credentials,
     // verified email, linked providers, and privilege changes revoke access.
     const credentials = accounts.map((a) => [

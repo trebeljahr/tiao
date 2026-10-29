@@ -32,7 +32,7 @@
 const { app, ipcMain, shell, safeStorage, BrowserWindow } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
-const { randomUUID } = require("node:crypto");
+const { randomUUID, randomBytes, createHash } = require("node:crypto");
 const { captureException: captureGlitchtipException } = require("./glitchtip.cjs");
 const { resolveApiUrl } = require("./config.cjs");
 const { DISTRIBUTION_CHANNEL } = require("./distribution.cjs");
@@ -51,13 +51,108 @@ const STATE_TTL_MS = 5 * 60 * 1000;
  * the server-facing `state` UUID we generated in `startOAuth`.
  * Expires after STATE_TTL_MS.
  *
- * @type {Map<string, { provider: string; createdAt: number }>}
+ * @type {Map<string, { provider: string; createdAt: number; verifier?: string; timer?: NodeJS.Timeout; linkSteam?: boolean }>}
  */
 const pendingAuth = new Map();
 
 let authGeneration = 0;
 /** In-memory cache of the current session token (or null). */
 let cachedToken = /** @type {string | null} */ (null);
+/** @type {{ getTicket: () => Promise<{ ticket: string; cancel: () => void } | null>; appId: number } | null} */
+let nativeSteam = null;
+/** Kept in the main process until the player confirms the destination by name. */
+let pendingSteamLink =
+  /** @type {{ token: string; displayName: string; createdAt: number } | null} */ (null);
+
+async function stageSteamLink(/** @type {string} */ token, generation = authGeneration) {
+  if (!nativeSteam) throw new Error("Open the Steam build to link a Steam account.");
+  const response = await fetch(`${resolveApiUrl()}/api/player/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+    redirect: "error",
+    signal: AbortSignal.timeout(10000),
+  });
+  const body = /** @type {{ player?: { kind?: string; displayName?: string } }} */ (
+    await response.json()
+  );
+  if (!response.ok || body.player?.kind !== "account" || !body.player.displayName)
+    throw new Error("Could not verify the web account.");
+  if (generation !== authGeneration) {
+    await revokeToken(token);
+    throw new Error("Sign-in cancelled.");
+  }
+  if (pendingSteamLink) await revokeToken(pendingSteamLink.token).catch(() => {});
+  pendingSteamLink = { token, displayName: body.player.displayName, createdAt: Date.now() };
+  broadcastToRenderer("auth:steamLinkReady", { displayName: body.player.displayName });
+}
+
+function cancelOAuth() {
+  for (const pending of pendingAuth.values()) clearTimeout(pending.timer);
+  pendingAuth.clear();
+}
+
+/** Link a proven web login to the active Steam player before replacing the app identity. */
+async function linkActiveSteam(/** @type {string} */ token) {
+  if (!nativeSteam) return token;
+  const ticket = await nativeSteam.getTicket();
+  if (!ticket) throw new Error("Steam is unavailable. Open Steam and try again.");
+  const response = await fetch(`${resolveApiUrl()}/api/auth/steam/session`, {
+    method: "POST",
+    redirect: "error",
+    signal: AbortSignal.timeout(30000),
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ action: "link", ticket: ticket.ticket, appId: nativeSteam.appId }),
+  }).finally(() => ticket.cancel());
+  const result = /** @type {{ sessionToken?: string; message?: string }} */ (await response.json());
+  if (!response.ok || typeof result.sessionToken !== "string")
+    throw new Error(result.message || "Could not link your existing account.");
+  return result.sessionToken;
+}
+
+/** Poll with a secret that never enters the browser URL. Deep links remain a fast path. */
+function schedulePoll(/** @type {string} */ state) {
+  const pending = pendingAuth.get(state);
+  if (!pending?.verifier) return;
+  pending.timer = setTimeout(async () => {
+    if (pendingAuth.get(state) !== pending) return;
+    if (Date.now() - pending.createdAt > STATE_TTL_MS) {
+      pendingAuth.delete(state);
+      broadcastToRenderer("auth:error", { reason: "expired" });
+      return;
+    }
+    try {
+      const response = await fetch(`${resolveApiUrl()}/api/auth/desktop/poll`, {
+        method: "POST",
+        redirect: "error",
+        signal: AbortSignal.timeout(10000),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ state, code_verifier: pending.verifier }),
+      });
+      if (response.ok && response.status !== 202) {
+        const result = /** @type {{ code?: string; reason?: string }} */ (await response.json());
+        if (result.reason) {
+          await handleAuthDeepLink(
+            new URL(
+              `tiao://auth/error?state=${encodeURIComponent(state)}&reason=${encodeURIComponent(result.reason)}`,
+            ),
+          );
+          return;
+        }
+        if (result.code) {
+          await handleAuthDeepLink(
+            new URL(
+              `tiao://auth/complete?state=${encodeURIComponent(state)}&code=${encodeURIComponent(result.code)}`,
+            ),
+          );
+          return;
+        }
+      }
+    } catch {
+      /* Transient network loss: retry within the bounded sign-in window. */
+    }
+    schedulePoll(state);
+  }, 2500);
+  pending.timer.unref?.();
+}
 
 /**
  * Return the absolute path to the encrypted token file under the
@@ -171,16 +266,20 @@ function evictStaleFlows() {
  *
  * @param {string} provider
  */
-async function startOAuth(provider) {
+async function startOAuth(provider, linkSteam = false) {
+  cancelOAuth();
   evictStaleFlows();
   const state = randomUUID();
-  pendingAuth.set(state, { provider, createdAt: Date.now() });
+  const verifier = randomBytes(32).toString("base64url");
+  const challenge = createHash("sha256").update(verifier).digest("base64url");
+  pendingAuth.set(state, { provider, createdAt: Date.now(), verifier, linkSteam });
   const url = `${resolveApiUrl()}/api/auth/desktop/start?provider=${encodeURIComponent(
     provider,
-  )}&state=${encodeURIComponent(state)}`;
+  )}&state=${encodeURIComponent(state)}&code_challenge=${challenge}&code_challenge_method=S256`;
   if (!isSafeExternalUrl(url)) throw new Error("Unsafe OAuth URL");
   try {
     await shell.openExternal(url);
+    schedulePoll(state);
   } catch (error) {
     pendingAuth.delete(state);
     throw error;
@@ -232,10 +331,10 @@ async function handleAuthDeepLink(parsedUrl) {
   evictStaleFlows();
   const pending = pendingAuth.get(state);
   if (!pending) {
-    console.warn(`[authBridge] deep link received for unknown or expired state: ${state}`);
-    broadcastToRenderer("auth:error", { reason: "state_mismatch" });
+    // A deep link can arrive after polling has already completed the same flow.
     return;
   }
+  clearTimeout(pending.timer);
   pendingAuth.delete(state);
   const generation = authGeneration;
 
@@ -253,7 +352,11 @@ async function handleAuthDeepLink(parsedUrl) {
     const res = await fetch(`${resolveApiUrl()}/api/auth/desktop/exchange`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ state, code }),
+      body: JSON.stringify({
+        state,
+        code,
+        ...(pending.verifier ? { code_verifier: pending.verifier } : {}),
+      }),
       signal: AbortSignal.timeout(10000),
       redirect: "error",
     });
@@ -269,15 +372,28 @@ async function handleAuthDeepLink(parsedUrl) {
       await revokeToken(payload.sessionToken);
       return;
     }
-    persistToken(payload.sessionToken);
-    broadcastToRenderer("auth:complete", payload);
+    if (pending.linkSteam) {
+      await stageSteamLink(payload.sessionToken, generation);
+      if (generation !== authGeneration) pendingSteamLink = null;
+      return;
+    }
+    const token = payload.sessionToken;
+    if (generation !== authGeneration) {
+      await revokeToken(token);
+      return;
+    }
+    persistToken(token);
+    broadcastToRenderer("auth:complete", { ...payload, sessionToken: token });
   } catch (err) {
     console.error("[authBridge] exchange request failed:", err);
     captureGlitchtipException(err, {
       location: "authBridge.handleAuthDeepLink.exchange",
       provider: pending.provider,
     });
-    broadcastToRenderer("auth:error", { reason: "network_error" });
+    broadcastToRenderer("auth:error", {
+      reason: "network_error",
+      message: err instanceof Error ? err.message : undefined,
+    });
   }
 }
 
@@ -302,6 +418,29 @@ async function revokeToken(token) {
  * @param {{ getTicket: () => Promise<{ ticket: string; cancel: () => void } | null>; appId: number; getUser?: () => { displayName: string } | null } | null} steam
  */
 function registerAuthIpc(steam = null) {
+  nativeSteam = steam;
+  handleTrustedIpc(ipcMain, "auth:cancelOAuth", async () => {
+    authGeneration++;
+    cancelOAuth();
+    const candidate = pendingSteamLink;
+    pendingSteamLink = null;
+    if (candidate) await revokeToken(candidate.token);
+  });
+  handleTrustedIpc(ipcMain, "auth:confirmSteamLink", async () => {
+    const candidate = pendingSteamLink;
+    if (!candidate || Date.now() - candidate.createdAt > STATE_TTL_MS)
+      throw new Error("Sign-in expired. Sign in to your web account again.");
+    const generation = authGeneration;
+    const token = await linkActiveSteam(candidate.token);
+    pendingSteamLink = null;
+    if (generation !== authGeneration) {
+      await revokeToken(token);
+      throw new Error("Sign-in cancelled.");
+    }
+    persistToken(token);
+    await revokeToken(candidate.token).catch(() => {});
+    broadcastToRenderer("auth:complete", { sessionToken: token });
+  });
   handleTrustedIpc(ipcMain, "auth:linkOAuth", async (_event, provider) => {
     if (!["google", "github", "discord", "apple", "steam"].includes(provider))
       return { ok: false, reason: "bad_provider" };
@@ -335,11 +474,11 @@ function registerAuthIpc(steam = null) {
       return { ok: false, reason: "link_start_failed" };
     }
   });
-  handleTrustedIpc(ipcMain, "auth:startOAuth", async (_event, provider) => {
+  handleTrustedIpc(ipcMain, "auth:startOAuth", async (_event, provider, options) => {
     if (!["google", "github", "discord", "apple", "steam"].includes(provider))
       return { ok: false, reason: "bad_provider" };
     try {
-      await startOAuth(provider);
+      await startOAuth(provider, options?.linkSteam === true);
       return { ok: true };
     } catch (err) {
       console.error("[authBridge] startOAuth failed:", err);
@@ -387,7 +526,7 @@ function registerAuthIpc(steam = null) {
     return { status: result.status, ...(profile ? { profile } : {}) };
   });
 
-  handleTrustedIpc(ipcMain, "auth:login", async (_event, identifier, password) => {
+  handleTrustedIpc(ipcMain, "auth:login", async (_event, identifier, password, options) => {
     if (
       typeof identifier !== "string" ||
       typeof password !== "string" ||
@@ -419,7 +558,20 @@ function registerAuthIpc(steam = null) {
       await revokeToken(result.sessionToken);
       throw new Error("Sign-in cancelled.");
     }
-    persistToken(result.sessionToken);
+    if (options?.linkSteam === true) {
+      await stageSteamLink(result.sessionToken, generation);
+      if (generation !== authGeneration) {
+        pendingSteamLink = null;
+        throw new Error("Sign-in cancelled.");
+      }
+      return { pendingSteamLink: true };
+    }
+    const linkedToken = result.sessionToken;
+    if (generation !== authGeneration) {
+      await revokeToken(linkedToken);
+      throw new Error("Sign-in cancelled.");
+    }
+    persistToken(linkedToken);
   });
 
   handleTrustedIpc(ipcMain, "auth:getToken", async () => {
@@ -428,7 +580,10 @@ function registerAuthIpc(steam = null) {
 
   handleTrustedIpc(ipcMain, "auth:logout", async () => {
     authGeneration++;
-    pendingAuth.clear();
+    cancelOAuth();
+    const candidate = pendingSteamLink;
+    pendingSteamLink = null;
+    if (candidate) await revokeToken(candidate.token);
     const token = cachedToken;
     // Keep the credential on failure so the user can retry server revocation.
     if (token) await revokeToken(token);

@@ -2,6 +2,7 @@ import { fromNodeHeaders } from "better-auth/node";
 import express from "express";
 import { auth } from "../auth/auth";
 import { signSessionToken } from "../auth/bearerSession";
+import { storeDesktopCompletion, storeDesktopFailure } from "../auth/desktopAuthCompletion";
 import {
   DEFAULT_EXCHANGE_TTL_SEC,
   generateCode,
@@ -158,6 +159,7 @@ router.get("/flow/callback", async (req, res) => {
       typeof req.query.error === "string" && /^[a-z0-9_]{1,64}$/.test(req.query.error)
         ? req.query.error
         : "link_failed";
+    await storeDesktopFailure(flow.state, reason, flow.codeChallenge);
     return res.redirect(errorLink(flow.state, reason));
   }
   try {
@@ -186,6 +188,7 @@ router.get("/flow/callback", async (req, res) => {
       }),
       DEFAULT_EXCHANGE_TTL_SEC,
     );
+    await storeDesktopCompletion(flow.state, code, flow.codeChallenge);
     return res.redirect(`tiao://auth/complete?${new URLSearchParams({ state: flow.state, code })}`);
   } catch {
     return res.redirect(errorLink(flow.state, "server_error"));

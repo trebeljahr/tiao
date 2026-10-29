@@ -51,6 +51,7 @@ async function toPlayerIdentity(
   }
 
   const account = await GameAccount.findById(user.id);
+  if (account?.steamLinkTargetId) return null;
   // Stash the account on the request so requireAccount/requireAdmin can
   // reuse it without re-querying.
   if (req) setRequestAccount(req, account);

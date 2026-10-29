@@ -800,6 +800,7 @@ export function ProfilePage() {
           </AnimatedCard>
 
           <LinkedAccounts
+            steamAutoCreated={profile?.steamAutoCreated}
             providers={providers}
             currentEmail={email}
             currentDisplayName={displayName}
@@ -808,6 +809,8 @@ export function ProfilePage() {
                 try {
                   const response = await getAccountProfile();
                   setProfile(response.profile);
+                  setDisplayName(response.profile.displayName);
+                  setEmail(response.profile.email ?? "");
                 } catch (error) {
                   toastError(readableError(error));
                 }

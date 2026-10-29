@@ -1,14 +1,26 @@
 import { ObjectId } from "mongodb";
 import mongoose from "mongoose";
 import { isValidUsername } from "../../shared/src";
+import { getRedisClient } from "../config/redisClient";
+import { InMemoryLockProvider, RedisLockProvider } from "../game/lockProvider";
 import GameAccount from "../models/GameAccount";
 import { SteamMicroTxnClient } from "../payments/steamMicroTxn";
 import { auth } from "./auth";
 import { createSessionToken } from "./desktopSessionManager";
 import { desktopSessionStore } from "./desktopSessionStore";
+import { finishSteamAccountMerge, mergeSteamAccount } from "./steamAccountMerge";
 import { fetchSteamProfile, type SteamProfile } from "./steamProfile";
 
 export const STEAM_AUTH_IDENTITY = "tiao-auth";
+const localSteamLocks = new InMemoryLockProvider();
+function withSteamLock<T>(steamId: string, operation: () => Promise<T>) {
+  const redis = getRedisClient();
+  return (redis ? new RedisLockProvider(redis) : localSteamLocks).withLock(
+    `steam-account:${steamId}`,
+    operation,
+  );
+}
+
 export { publicAccountEmail } from "./steamEmail";
 
 import { STEAM_EMAIL_DOMAIN } from "./steamEmail";
@@ -150,7 +162,17 @@ export async function findSteamAccount(steamId: string) {
   const provider = await accounts().findOne({ providerId: "steam", accountId: steamId });
   // Normal lookups never recreate a deleted provider or user. Only legacy
   // links that predate provider records need an idempotent backfill.
-  if (provider) return GameAccount.findById(provider.userId);
+  if (provider) {
+    const account = await GameAccount.findById(provider.userId);
+    if (account?.steamLinkTargetId)
+      throw new SteamAccountError(
+        409,
+        "STEAM_LINK_IN_PROGRESS",
+        "Finish linking your existing account to continue.",
+      );
+    if (account) await finishSteamAccountMerge(steamId, account.id);
+    return account;
+  }
   const account = await GameAccount.findOne({ steamId, steamProviderLinked: { $ne: true } });
   if (account) {
     await provisionSteamUser(account);
@@ -164,6 +186,7 @@ export async function createSteamAccount(
   steamId: string,
   username: unknown,
   profile?: SteamProfile,
+  automatic = false,
 ) {
   if (typeof username !== "string" || !isValidUsername(username)) {
     throw new SteamAccountError(
@@ -188,6 +211,7 @@ export async function createSteamAccount(
       {
         $setOnInsert: {
           steamId,
+          ...(automatic ? { steamAutoCreated: true } : {}),
           displayName: username,
           ...(defaults.avatarUrl ? { profilePicture: defaults.avatarUrl } : {}),
         },
@@ -207,29 +231,91 @@ export async function createSteamAccount(
   return account;
 }
 
-export async function linkSteamAccount(steamId: string, userId: string) {
-  await ensureSteamIndex();
-  const owner = await findSteamAccount(steamId);
-  if (owner && owner.id !== userId) throw linkConflict();
-  try {
-    const account = await GameAccount.findOneAndUpdate(
-      { _id: userId, $or: [{ steamId: { $exists: false } }, { steamId }] },
-      { $set: { steamId } },
-      { new: true },
-    );
-    if (account) {
-      await provisionSteamProvider(steamId, account.id);
-      return account;
+/** Native Steam players start playing immediately, even when names collide. */
+export async function ensureSteamAccount(steamId: string) {
+  return withSteamLock(steamId, async () => {
+    let linked;
+    try {
+      linked = await findSteamAccount(steamId);
+    } catch (error) {
+      if (!(error instanceof SteamAccountError) || error.code !== "STEAM_LINK_IN_PROGRESS")
+        throw error;
+      // Both proofs and the named confirmation preceded this durable binding.
+      // A fresh ticket for the same Steam player can safely finish that exact
+      // migration even if its old sessions were revoked or the app restarted.
+      const provider = await accounts().findOne({ providerId: "steam", accountId: steamId });
+      const pending =
+        provider &&
+        (await mongoose.connection
+          .getClient()
+          .db()
+          .collection("steamAccountLinks")
+          .findOne({ _id: new ObjectId(String(provider.userId)), steamId }));
+      if (!provider || !pending || typeof pending.targetId !== "string") throw error;
+      await mergeSteamAccount(steamId, String(provider.userId), pending.targetId);
+      linked = await findSteamAccount(steamId);
     }
-  } catch (error) {
-    if (!(error && typeof error === "object" && "code" in error && error.code === 11000))
-      throw error;
-  }
-  throw new SteamAccountError(
-    409,
-    "STEAM_LINK_CONFLICT",
-    "Steam or this Tiao account is already linked. Sign in to the linked account to keep your progress.",
-  );
+    if (linked) return linked;
+    const profile = await fetchSteamProfile(steamId);
+    const base = profile.suggestedUsername || "steam-player";
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const suffix =
+        attempt === 0 ? "" : `-${steamId.slice(-6)}${attempt === 1 ? "" : `-${attempt}`}`;
+      try {
+        return await createSteamAccount(
+          steamId,
+          `${base.slice(0, 32 - suffix.length)}${suffix}`,
+          profile,
+          true,
+        );
+      } catch (error) {
+        if (!(error instanceof SteamAccountError) || error.code !== "DUPLICATE_USERNAME")
+          throw error;
+      }
+    }
+    // The full verified SteamID also gives a stable fallback for adversarial name collisions.
+    return createSteamAccount(steamId, `steam-${steamId}`, profile, true);
+  });
+}
+
+export async function linkSteamAccount(steamId: string, userId: string) {
+  return withSteamLock(steamId, async () => {
+    await ensureSteamIndex();
+    // Read the provider directly so the same verified pair can resume a partial migration.
+    const provider = await accounts().findOne({ providerId: "steam", accountId: steamId });
+    const owner = provider
+      ? await GameAccount.findById(provider.userId)
+      : await findSteamAccount(steamId);
+    if (owner?.id === userId) await finishSteamAccountMerge(steamId, userId);
+    if (owner && owner.id !== userId) {
+      if (!owner.steamAutoCreated) throw linkConflict();
+      await mergeSteamAccount(steamId, owner.id, userId);
+      return GameAccount.findById(userId);
+    }
+    try {
+      const account = await GameAccount.findOneAndUpdate(
+        {
+          _id: userId,
+          steamLinkSourceId: { $exists: false },
+          $or: [{ steamId: { $exists: false } }, { steamId }],
+        },
+        { $set: { steamId } },
+        { new: true },
+      );
+      if (account) {
+        await provisionSteamProvider(steamId, account.id);
+        return account;
+      }
+    } catch (error) {
+      if (!(error && typeof error === "object" && "code" in error && error.code === 11000))
+        throw error;
+    }
+    throw new SteamAccountError(
+      409,
+      "STEAM_LINK_CONFLICT",
+      "Steam or this Tiao account is already linked. Sign in to the linked account to keep your progress.",
+    );
+  });
 }
 
 export async function mintSteamDesktopSession(userId: string) {

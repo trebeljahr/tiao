@@ -1499,6 +1499,10 @@
     "skip": "Ohne Verknüpfung spielen",
     "webAccess": "Melde dich im Web mit „Mit Steam fortfahren“ bei diesem Konto an. Eine Passwort-Anmeldung ist optional.",
     "steamProfile": "Steam-Profil: {username}",
-    "prefilledHint": "Aus Steam übernommen. Du kannst diesen Namen ändern."
+    "prefilledHint": "Aus Steam übernommen. Du kannst diesen Namen ändern.",
+    "linkExisting": "Bestehendes Konto verknüpfen",
+    "linkExistingHint": "Melde dich einmal an, um Steam-Fortschritt, Freunde und Käufe mit deinem Webkonto zusammenzuführen.",
+    "waitingBrowser": "Warte auf die Anmeldung im Browser…",
+    "confirmExisting": "Steam mit {username} verknüpfen"
   }
 }

@@ -124,6 +124,7 @@ export function buildPlayerIdentityFromAccount(
 
 function serializeAccountProfile(
   account: {
+    steamAutoCreated?: boolean;
     displayName: string;
     profilePicture?: string;
     badges?: string[];
@@ -138,6 +139,7 @@ function serializeAccountProfile(
   ratingPercentile?: number,
 ) {
   return {
+    ...(account.steamAutoCreated ? { steamAutoCreated: true } : {}),
     displayName: account.displayName,
     email: publicAccountEmail(email),
     profilePicture: account.profilePicture,

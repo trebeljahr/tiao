@@ -26,6 +26,9 @@ function harness({ steam = false, fetcher } = {}) {
   let credentialCalls = 0;
   let tokenReads = 0;
   let tokenWrites = 0;
+  const events = /** @type {any[]} */ ([]);
+  wc.send = (/** @type {string} */ channel, /** @type {any} */ payload) =>
+    events.push({ channel, payload });
   const electron = {
     app: { getPath: () => "/fake-only" },
     ipcMain: {
@@ -74,6 +77,8 @@ function harness({ steam = false, fetcher } = {}) {
     Buffer,
     URL,
     AbortSignal,
+    setTimeout,
+    clearTimeout,
     require: /** @param {string} name */ (name) => {
       if (name === "electron") return electron;
       if (name === "node:fs") return fakeFs;
@@ -116,6 +121,7 @@ function harness({ steam = false, fetcher } = {}) {
     bridge: module.exports,
     event,
     opened,
+    events,
     call: /** @param {string} name @param {unknown[]} args */ (name, ...args) =>
       handlers.get(name)?.(event, ...args),
     untrusted: /** @param {string} name */ (name) =>
@@ -130,6 +136,8 @@ function harness({ steam = false, fetcher } = {}) {
 test("auth IPC blocks other frames before touching mocked credentials", () => {
   const h = harness();
   for (const name of [
+    "auth:cancelOAuth",
+    "auth:confirmSteamLink",
     "auth:steam",
     "auth:login",
     "auth:getToken",
@@ -259,6 +267,123 @@ test("desktop password login exchanges the signed session and persists the revoc
   await h.call("auth:login", "web-player", "fake-password");
   assert.equal(calls[1].init.headers.Authorization, "Bearer signed-ba-token");
   assert.equal(await h.call("auth:getToken"), "desktop-password-token");
+});
+
+test("Steam onboarding proves the native player before replacing a password login", async () => {
+  const calls = /** @type {any[]} */ ([]);
+  const h = harness({
+    steam: true,
+    fetcher: async (url, init) => {
+      calls.push({ url, init });
+      if (url.endsWith("/login"))
+        return { ok: true, headers: new Map([["set-auth-token", "web-proof"]]) };
+      if (url.endsWith("/desktop/session"))
+        return { ok: true, json: async () => ({ sessionToken: "web-token" }) };
+      if (url.endsWith("/me"))
+        return {
+          ok: true,
+          json: async () => ({ player: { kind: "account", displayName: "existing-web-player" } }),
+        };
+      return {
+        ok: true,
+        json: async () => ({ status: "signed_in", sessionToken: "joined-token" }),
+      };
+    },
+  });
+  await h.call("auth:login", "existing-web-player", "fake-password", { linkSteam: true });
+  assert.equal(await h.call("auth:getToken"), null, "web identity remains pending until confirmed");
+  assert.equal(h.events[0].payload.displayName, "existing-web-player");
+  await h.call("auth:confirmSteamLink");
+  assert.equal(calls[3].init.headers.Authorization, "Bearer web-token");
+  assert.deepEqual(JSON.parse(calls[3].init.body), {
+    action: "link",
+    ticket: "fake-native-ticket",
+    appId: 5491870,
+  });
+  assert.equal(await h.call("auth:getToken"), "joined-token");
+  assert.equal(h.state().credentialCalls, 0);
+});
+
+test("a failed join keeps the Steam session instead of adopting an unrelated web identity", async () => {
+  let failed = false;
+  const h = harness({
+    steam: true,
+    fetcher: async (url) => {
+      if (url.endsWith("/login"))
+        return { ok: true, headers: new Map([["set-auth-token", "web-proof"]]) };
+      if (url.endsWith("/desktop/session"))
+        return { ok: true, json: async () => ({ sessionToken: "web-token" }) };
+      if (url.endsWith("/me"))
+        return {
+          ok: true,
+          json: async () => ({ player: { kind: "account", displayName: "existing-web-player" } }),
+        };
+      return {
+        ok: !failed,
+        json: async () =>
+          failed
+            ? { message: "Finish your current game." }
+            : { status: "signed_in", sessionToken: "steam-token" },
+      };
+    },
+  });
+  await h.call("auth:steam", { action: "check" });
+  failed = true;
+  await h.call("auth:login", "existing", "fake-password", { linkSteam: true });
+  await assert.rejects(h.call("auth:confirmSteamLink"), /Finish your current game/);
+  assert.equal(await h.call("auth:getToken"), "steam-token");
+});
+
+test("browser sign-in completes through secret polling when no deep link opens", async () => {
+  const calls = /** @type {any[]} */ ([]);
+  const h = harness({
+    steam: true,
+    fetcher: async (url, init) => {
+      calls.push({ url, init });
+      if (url.endsWith("/poll"))
+        return { ok: true, status: 200, json: async () => ({ code: "once" }) };
+      if (url.endsWith("/exchange"))
+        return { ok: true, json: async () => ({ sessionToken: "web-token" }) };
+      if (url.endsWith("/me"))
+        return {
+          ok: true,
+          json: async () => ({ player: { kind: "account", displayName: "existing-web-player" } }),
+        };
+      return {
+        ok: true,
+        json: async () => ({ status: "signed_in", sessionToken: "joined-token" }),
+      };
+    },
+  });
+  await h.call("auth:startOAuth", "google", { linkSteam: true });
+  await new Promise((resolve) => setTimeout(resolve, 2700));
+  assert.equal(await h.call("auth:getToken"), null);
+  assert.equal(h.events[0].payload.displayName, "existing-web-player");
+  await h.call("auth:confirmSteamLink");
+  assert.equal(await h.call("auth:getToken"), "joined-token");
+  assert.equal(calls.length, 5);
+  const poll = JSON.parse(calls[0].init.body),
+    exchange = JSON.parse(calls[1].init.body);
+  assert.equal(poll.code_verifier, exchange.code_verifier);
+  const challenge = require("node:crypto")
+    .createHash("sha256")
+    .update(poll.code_verifier)
+    .digest("base64url");
+  assert.equal(new URL(h.opened[0]).searchParams.get("code_challenge"), challenge);
+  assert.equal(h.opened[0].includes(poll.code_verifier), false);
+  await h.bridge.handleAuthDeepLink(new URL(`tiao://auth/complete?state=${poll.state}&code=once`));
+  assert.equal(calls.length, 5, "late browser redirect cannot exchange twice");
+  assert.equal(h.events.filter((e) => e.channel === "auth:complete").length, 1);
+});
+
+test("cancelling browser sign-in stops polling and rejects late callbacks", async () => {
+  const h = harness();
+  await h.call("auth:startOAuth", "google");
+  const state = new URL(h.opened[0]).searchParams.get("state");
+  await h.call("auth:cancelOAuth");
+  await h.bridge.handleAuthDeepLink(new URL(`tiao://auth/complete?state=${state}&code=once`));
+  assert.equal(await h.call("auth:getToken"), null);
+  assert.equal(h.events.length, 0);
 });
 
 test("Steam setup returns profile defaults without creating a renderer-chosen identity", async () => {

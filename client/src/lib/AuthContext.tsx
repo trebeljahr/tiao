@@ -64,6 +64,9 @@ export interface AuthContextValue {
   authBootstrapped: boolean;
   appError: string | null;
   authDialogOpen: boolean;
+  steamLinkMode?: boolean;
+  steamLinkCandidate?: { displayName: string } | null;
+  confirmSteamLink?: () => Promise<void>;
   authDialogMode: AuthDialogMode;
   authBusy: boolean;
   authDialogError: string | null;
@@ -85,7 +88,7 @@ export interface AuthContextValue {
   setSignupConfirmPassword: (password: string) => void;
   applyAuth: (nextAuth: AuthResponse) => void;
   authDialogForced: boolean;
-  onOpenAuth: (mode: AuthDialogMode, options?: { forced?: boolean }) => void;
+  onOpenAuth: (mode: AuthDialogMode, options?: { forced?: boolean; linkSteam?: boolean }) => void;
   handleLoginSubmit: () => Promise<void>;
   handleSignupSubmit: () => Promise<void>;
   handleForgotPassword: (email: string) => Promise<boolean>;
@@ -167,6 +170,10 @@ export function AuthProvider({
   }, []);
 
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const [steamLinkMode, setSteamLinkMode] = useState(false);
+  const [steamLinkCandidate, setSteamLinkCandidate] = useState<{ displayName: string } | null>(
+    null,
+  );
   const [authDialogForced, setAuthDialogForced] = useState(false);
   const [authDialogMode, setAuthDialogMode] = useState<AuthDialogMode>("login");
   const [authBusy, setAuthBusy] = useState(false);
@@ -367,7 +374,10 @@ export function AuthProvider({
           isElectron?: boolean;
           auth?: {
             onAuthComplete?: (cb: (payload: { sessionToken: string }) => void) => () => void;
-            onAuthError?: (cb: (payload: { reason: string }) => void) => () => void;
+            onAuthError?: (
+              cb: (payload: { reason: string; message?: string }) => void,
+            ) => () => void;
+            onSteamLinkReady?: (cb: (payload: { displayName: string }) => void) => () => void;
           };
         };
       }
@@ -375,8 +385,13 @@ export function AuthProvider({
     if (!electron?.isElectron || typeof electron.auth?.onAuthComplete !== "function") {
       return;
     }
-    const unsubscribeError = electron.auth.onAuthError?.(({ reason }) => {
-      toastError(getOAuthErrorMessage(reason, t));
+    const unsubscribeError = electron.auth.onAuthError?.(({ reason, message }) => {
+      setAuthBusy(false);
+      setAuthDialogError(message || getOAuthErrorMessage(reason, t));
+    });
+    const unsubscribeReady = electron.auth.onSteamLinkReady?.((candidate) => {
+      setSteamLinkCandidate(candidate);
+      setAuthBusy(false);
     });
     const unsubscribe = electron.auth.onAuthComplete(async (payload) => {
       // The main process has already exchanged the code and stored
@@ -390,6 +405,8 @@ export function AuthProvider({
           setAuth({ player });
           setAppError(null);
           setAuthDialogOpen(false);
+          setSteamLinkCandidate(null);
+          setAuthBusy(false);
         }
       } catch (error) {
         toastError(readableError(error));
@@ -399,6 +416,7 @@ export function AuthProvider({
       try {
         unsubscribe?.();
         unsubscribeError?.();
+        unsubscribeReady?.();
       } catch {
         /* best-effort cleanup */
       }
@@ -539,11 +557,28 @@ export function AuthProvider({
       void finishSteamWebAccount("cancel").catch(() => {});
   }, []);
 
-  const onOpenAuth = useCallback((mode: AuthDialogMode, options?: { forced?: boolean }) => {
-    setAuthDialogMode(mode);
-    setAuthDialogError(null);
-    setAuthDialogForced(options?.forced ?? false);
-    setAuthDialogOpen(true);
+  const onOpenAuth = useCallback(
+    (mode: AuthDialogMode, options?: { forced?: boolean; linkSteam?: boolean }) => {
+      setAuthBusy(false);
+      setSteamLinkCandidate(null);
+      setSteamLinkMode(options?.linkSteam ?? false);
+      setAuthDialogMode(mode);
+      setAuthDialogError(null);
+      setAuthDialogForced(options?.forced ?? false);
+      setAuthDialogOpen(true);
+    },
+    [],
+  );
+
+  const confirmSteamLink = useCallback(async () => {
+    setAuthBusy(true);
+    try {
+      await desktopAuthBridge()?.confirmSteamLink?.();
+    } catch (error) {
+      setAuthDialogError(readableError(error));
+    } finally {
+      setAuthBusy(false);
+    }
   }, []);
 
   const handleLoginSubmit = useCallback(async () => {
@@ -554,7 +589,8 @@ export function AuthProvider({
       // Use our custom login endpoint (supports username or email)
       const desktop = desktopAuthBridge();
       if (desktop?.login) {
-        await desktop.login(loginEmail, loginPassword);
+        const result = await desktop.login(loginEmail, loginPassword, { linkSteam: steamLinkMode });
+        if (result?.pendingSteamLink) return;
         await refreshElectronTokenFromBridge();
         applyAuth(await getPlayerIdentity());
       } else {
@@ -570,7 +606,7 @@ export function AuthProvider({
     } finally {
       setAuthBusy(false);
     }
-  }, [loginEmail, loginPassword, applyAuth]);
+  }, [loginEmail, loginPassword, applyAuth, steamLinkMode]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: fetchPlayerIdentity is a per-render closure (not a useCallback) — putting it in deps would re-create the submit callback every render
   const handleSignupSubmit = useCallback(async () => {
@@ -642,52 +678,62 @@ export function AuthProvider({
     }
   }, []);
 
-  const handleOAuthSignIn = useCallback(async (provider: SocialProvider) => {
-    try {
-      // Desktop Electron: route through the IPC bridge which opens the
-      // system browser, completes OAuth at api.playtiao.com, receives
-      // the tiao:// deep link, and exchanges the one-time code for a
-      // bearer token.  The actual session update arrives via the
-      // `onAuthComplete` subscription in the effect below.
-      const electron = (
-        window as unknown as {
-          electron?: {
-            isElectron?: boolean;
-            auth?: { startOAuth?: (p: string) => Promise<{ ok: boolean; reason?: string }> };
-          };
+  const handleOAuthSignIn = useCallback(
+    async (provider: SocialProvider) => {
+      try {
+        // Desktop Electron: route through the IPC bridge which opens the
+        // system browser, completes OAuth at api.playtiao.com, receives
+        // the tiao:// deep link, and exchanges the one-time code for a
+        // bearer token.  The actual session update arrives via the
+        // `onAuthComplete` subscription in the effect below.
+        const electron = (
+          window as unknown as {
+            electron?: {
+              isElectron?: boolean;
+              auth?: {
+                startOAuth?: (
+                  p: string,
+                  options?: { linkSteam?: boolean },
+                ) => Promise<{ ok: boolean; reason?: string }>;
+              };
+            };
+          }
+        ).electron;
+        if (electron?.isElectron && typeof electron.auth?.startOAuth === "function") {
+          setAuthBusy(true);
+          const result = await electron.auth.startOAuth(provider, { linkSteam: steamLinkMode });
+          if (!result.ok) throw new Error("Could not start sign-in. Please try again.");
+          return;
         }
-      ).electron;
-      if (electron?.isElectron && typeof electron.auth?.startOAuth === "function") {
-        const result = await electron.auth.startOAuth(provider);
-        if (!result.ok) throw new Error("Could not start sign-in. Please try again.");
-        return;
-      }
 
-      // Native mobile: Google blocks OAuth in embedded WebViews, so run
-      // the flow in the system browser and return via deep link. The
-      // session update arrives through subscribeMobileAuth above.
-      if (isNativeMobileApp()) {
-        await startMobileOAuth(provider);
-        return;
-      }
+        // Native mobile: Google blocks OAuth in embedded WebViews, so run
+        // the flow in the system browser and return via deep link. The
+        // session update arrives through subscribeMobileAuth above.
+        if (isNativeMobileApp()) {
+          await startMobileOAuth(provider);
+          return;
+        }
 
-      // Web: standard better-auth browser redirect flow.
-      // On both success and failure, return the user to the page they
-      // initiated OAuth from. On failure better-auth appends `?error=` to
-      // errorCallbackURL and OAuthErrorHandler surfaces it as a toast, so the
-      // user stays in context (e.g. inside a game) instead of being bounced
-      // to a separate error page.
-      const authClient = await getAuthClient();
-      const returnTo = window.location.origin + window.location.pathname;
-      await authClient.signIn.social({
-        provider,
-        callbackURL: returnTo,
-        errorCallbackURL: returnTo,
-      });
-    } catch (error) {
-      toastError(readableError(error));
-    }
-  }, []);
+        // Web: standard better-auth browser redirect flow.
+        // On both success and failure, return the user to the page they
+        // initiated OAuth from. On failure better-auth appends `?error=` to
+        // errorCallbackURL and OAuthErrorHandler surfaces it as a toast, so the
+        // user stays in context (e.g. inside a game) instead of being bounced
+        // to a separate error page.
+        const authClient = await getAuthClient();
+        const returnTo = window.location.origin + window.location.pathname;
+        await authClient.signIn.social({
+          provider,
+          callbackURL: returnTo,
+          errorCallbackURL: returnTo,
+        });
+      } catch (error) {
+        setAuthBusy(false);
+        toastError(readableError(error));
+      }
+    },
+    [steamLinkMode],
+  );
 
   const onLogout = useCallback(async () => {
     // Clear persistent per-browser flags that belong to the departing
@@ -782,6 +828,9 @@ export function AuthProvider({
       authBootstrapped,
       appError,
       authDialogOpen,
+      steamLinkMode,
+      steamLinkCandidate,
+      confirmSteamLink,
       authDialogForced,
       authDialogMode,
       authBusy,
@@ -820,6 +869,9 @@ export function AuthProvider({
       authBootstrapped,
       appError,
       authDialogOpen,
+      steamLinkMode,
+      steamLinkCandidate,
+      confirmSteamLink,
       authDialogForced,
       authDialogMode,
       authBusy,

@@ -1,9 +1,15 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { fromNodeHeaders } from "better-auth/node";
 import express, { type Request, type Response } from "express";
+import { rateLimit } from "express-rate-limit";
 import { auth } from "../auth/auth";
 import * as bearerSession from "../auth/bearerSession";
 import { normalizeAuthId } from "../auth/betterAuthIds";
+import {
+  consumeDesktopCompletion,
+  storeDesktopCompletion,
+  storeDesktopFailure,
+} from "../auth/desktopAuthCompletion";
 import {
   DEFAULT_EXCHANGE_TTL_SEC,
   generateCode,
@@ -142,6 +148,7 @@ router.get("/start", async (req: Request, res: Response) => {
             body: {
               provider: provider as "google" | "github" | "discord" | "apple",
               callbackURL,
+              errorCallbackURL: new URL(callbackURL, (await auth.$context).baseURL).href,
             },
             asResponse: true,
           });
@@ -194,27 +201,30 @@ router.get("/callback", async (req: Request, res: Response) => {
     return res.redirect(`tiao://auth/error?state=${encodeURIComponent(state)}&reason=bad_request`);
   }
   const codeChallenge = typeof rawChallenge === "string" ? rawChallenge : undefined;
+  const fail = async (reason: string) => {
+    await storeDesktopFailure(state, reason, codeChallenge);
+    return res.redirect(`tiao://auth/error?${new URLSearchParams({ state, reason })}`);
+  };
 
   try {
     const session = await auth.api.getSession({
       headers: fromNodeHeaders(req.headers),
     });
 
-    if (!session) {
+    if (!session || req.query.error) {
       // OAuth flow failed or cookie didn't stick — bounce the desktop
       // app back to an error handler URL it can parse.
-      return res.redirect(`tiao://auth/error?state=${encodeURIComponent(state)}&reason=no_session`);
+      return await fail("no_session");
     }
 
     const userId = normalizeAuthId(session.user.id);
     if (!userId) {
-      return res.redirect(`tiao://auth/error?state=${encodeURIComponent(state)}&reason=no_session`);
+      return await fail("no_session");
     }
 
     const sourceSessionId = session.session.id;
     const securityState = await desktopSessionStore.securityState(userId, sourceSessionId);
-    if (!securityState)
-      return res.redirect(`tiao://auth/error?state=${encodeURIComponent(state)}&reason=no_session`);
+    if (!securityState) return await fail("no_session");
     const code = generateCode();
     await getExchangeCodeStore().put(
       state,
@@ -223,11 +233,14 @@ router.get("/callback", async (req: Request, res: Response) => {
       DEFAULT_EXCHANGE_TTL_SEC,
     );
 
+    await storeDesktopCompletion(state, code, codeChallenge);
+
     return res.redirect(
       `tiao://auth/complete?state=${encodeURIComponent(state)}&code=${encodeURIComponent(code)}`,
     );
   } catch (err) {
     console.error("[desktop-auth] /callback failed:", err);
+    await storeDesktopFailure(state, "server_error", codeChallenge).catch(() => {});
     return res.redirect(`tiao://auth/error?state=${encodeURIComponent(state)}&reason=server_error`);
   }
 });
@@ -239,6 +252,30 @@ router.get("/callback", async (req: Request, res: Response) => {
 // Called by Electron main over HTTPS after receiving the tiao:// URL.
 // Atomically consumes the code and mints a real bearer token.
 // -----------------------------------------------------------------------------
+router.post(
+  "/poll",
+  rateLimit({ windowMs: 300_000, limit: 300, validate: process.env.NODE_ENV !== "test" }),
+  async (req, res) => {
+    res.setHeader("Cache-Control", "no-store");
+    const { state, code_verifier: verifier } = req.body ?? {};
+    if (
+      typeof state !== "string" ||
+      !/^[A-Za-z0-9_-]{16,128}$/.test(state) ||
+      typeof verifier !== "string" ||
+      !CODE_VERIFIER_RE.test(verifier)
+    )
+      return res.status(400).json({ message: "Invalid sign-in request." });
+    try {
+      const result = await consumeDesktopCompletion(state, verifier);
+      return result
+        ? res.json({ code: result.code, reason: result.reason })
+        : res.status(202).json({ status: "pending" });
+    } catch {
+      return res.status(503).json({ message: "Sign-in is temporarily unavailable." });
+    }
+  },
+);
+
 router.post("/exchange", async (req: Request, res: Response) => {
   try {
     const {

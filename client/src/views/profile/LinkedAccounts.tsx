@@ -29,6 +29,7 @@ type LinkedAccountsProps = {
   onProvidersChange: () => void;
   currentEmail: string;
   currentDisplayName: string;
+  steamAutoCreated?: boolean;
 };
 
 export function LinkedAccounts({
@@ -36,10 +37,11 @@ export function LinkedAccounts({
   onProvidersChange,
   currentEmail,
   currentDisplayName,
+  steamAutoCreated,
 }: LinkedAccountsProps) {
   const t = useTranslations("profile");
   const ts = useTranslations("steamAccount");
-  const { applyAuth, finishSteamSetup } = useAuth();
+  const { applyAuth, finishSteamSetup, onOpenAuth } = useAuth();
   const [steamError, setSteamError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [setPasswordOpen, setSetPasswordOpen] = useState(false);
@@ -222,6 +224,21 @@ export function LinkedAccounts({
             <CardDescription>{t("linkedAccountsDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {isSteamBuild() &&
+              steamAutoCreated &&
+              providers.length === 1 &&
+              providers[0] === "steam" && (
+                <div className="space-y-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => onOpenAuth("login", { linkSteam: true })}
+                  >
+                    {ts("linkExisting")}
+                  </Button>
+                  <p className="text-sm text-[#7b6550]">{ts("linkExistingHint")}</p>
+                </div>
+              )}
             {providers.includes("steam") && !hasCredential && (
               <p className="text-sm text-[#7b6550]">{ts("webAccess")}</p>
             )}

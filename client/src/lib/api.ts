@@ -22,6 +22,7 @@ import { getNativeMobilePlatform } from "./distributionChannel";
 type JsonBody = Record<string, unknown> | undefined;
 
 export type AccountProfile = {
+  steamAutoCreated?: boolean;
   displayName: string;
   email?: string;
   profilePicture?: string;

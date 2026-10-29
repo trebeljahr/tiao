@@ -6,14 +6,23 @@ import type { SteamProfileDefaults } from "./steamWebAuth";
 
 type DesktopProvider = "github" | "google" | "discord" | "apple" | "steam";
 type DesktopAuth = {
-  startOAuth?: (provider: DesktopProvider) => Promise<{ ok: boolean; reason?: string }>;
+  startOAuth?: (
+    provider: DesktopProvider,
+    options?: { linkSteam?: boolean },
+  ) => Promise<{ ok: boolean; reason?: string }>;
   linkOAuth?: (provider: DesktopProvider) => Promise<{ ok: boolean; reason?: string }>;
   onAuthComplete?: (cb: () => void) => () => void;
+  cancelOAuth?: () => Promise<void>;
+  confirmSteamLink?: () => Promise<void>;
   steam?: (input: { action: "check" | "create" | "link"; username?: string }) => Promise<{
     status: "signed_in" | "needs_setup" | "unavailable";
     profile?: SteamProfileDefaults;
   }>;
-  login?: (identifier: string, password: string) => Promise<void>;
+  login?: (
+    identifier: string,
+    password: string,
+    options?: { linkSteam?: boolean },
+  ) => Promise<{ pendingSteamLink?: boolean } | undefined>;
 };
 export function desktopAuthBridge(): DesktopAuth | null {
   if (typeof window === "undefined") return null;
