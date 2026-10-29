@@ -57,6 +57,27 @@ describe("Desktop window controls", () => {
     expect(unsubscribe).toHaveBeenCalledOnce();
   });
 
+  it("shows only fullscreen controls in settings", async () => {
+    installBridge();
+    render(<DesktopWindowControls mode="fullscreen" />);
+    expect(await screen.findByRole("button", { name: "Exit fullscreen" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Quit Tiao" })).not.toBeInTheDocument();
+  });
+
+  it("quits without reading or subscribing to fullscreen state", async () => {
+    const { controls } = installBridge();
+    controls.isFullScreen.mockRejectedValue(new Error("Unavailable"));
+    render(<DesktopWindowControls mode="quit" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Quit Tiao" }));
+    await waitFor(() => expect(controls.quit).toHaveBeenCalledOnce());
+    expect(controls.isFullScreen).not.toHaveBeenCalled();
+    expect(controls.onFullScreenChanged).not.toHaveBeenCalled();
+    expect(
+      screen.queryByText("Fullscreen is remembered for your next launch."),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /fullscreen/ })).not.toBeInTheDocument();
+  });
+
   it("reports a failed action without falsely changing fullscreen state", async () => {
     const { controls } = installBridge();
     controls.setFullScreen.mockRejectedValue(new Error("IPC failed"));

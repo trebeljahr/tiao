@@ -441,3 +441,26 @@ describe("ProfilePage OAuth linking (#98, #100)", () => {
     expect(await screen.findByRole("button", { name: /^github$/i })).toBeInTheDocument();
   });
 });
+
+describe("ProfilePage desktop display settings", () => {
+  afterEach(() => {
+    Reflect.deleteProperty(window, "electron");
+  });
+
+  it("offers fullscreen in settings without a Quit action in the page", async () => {
+    Object.defineProperty(window, "electron", {
+      configurable: true,
+      value: {
+        windowControls: {
+          isFullScreen: async () => false,
+          onFullScreenChanged: () => () => {},
+          setFullScreen: vi.fn(),
+          quit: vi.fn(),
+        },
+      },
+    });
+    render(<ProfilePage />);
+    expect(await screen.findByRole("button", { name: "Enter fullscreen" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Quit Tiao" })).not.toBeInTheDocument();
+  });
+});

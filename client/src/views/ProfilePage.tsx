@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { BackButton } from "@/components/BackButton";
 import { BadgeSelector } from "@/components/BadgeSelector";
+import { DesktopWindowControls } from "@/components/DesktopWindowControls";
 import { PageLayout } from "@/components/PageLayout";
 import { AnimatedCard } from "@/components/ui/animated-card";
 import { Button } from "@/components/ui/button";
@@ -442,6 +443,7 @@ export function ProfilePage() {
   return (
     <PageLayout>
       <BackButton />
+      <DesktopWindowControls mode="fullscreen" />
 
       {auth?.player.kind !== "account" ? (
         <AnimatedCard delay={0}>

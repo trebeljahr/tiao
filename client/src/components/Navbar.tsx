@@ -487,7 +487,7 @@ export function Navbar({
   const drawerContent = (
     // biome-ignore lint/a11y/useKeyWithClickEvents: event interceptor on container, not interactive (keyboard handled separately)
     <aside
-      className="animate-nav-drawer-in absolute left-0 top-0 h-full w-full max-w-[20.6rem] overflow-y-auto border-r border-[#b69261]/24 bg-[linear-gradient(180deg,rgba(251,238,210,0.985),rgba(239,213,161,0.975))] px-4 py-3 text-[#2b1a10] shadow-[0_30px_80px_-28px_rgba(95,59,21,0.34)]"
+      className="animate-nav-drawer-in flex flex-col [&>*]:shrink-0 absolute left-0 top-0 h-full w-full max-w-[20.6rem] overflow-y-auto border-r border-[#b69261]/24 bg-[linear-gradient(180deg,rgba(251,238,210,0.985),rgba(239,213,161,0.975))] px-4 py-3 text-[#2b1a10] shadow-[0_30px_80px_-28px_rgba(95,59,21,0.34)]"
       onClick={(event) => event.stopPropagation()}
     >
       <div className="flex min-h-11 items-center pl-[4.15rem] pr-2 sm:pl-[4.2rem]">
@@ -531,8 +531,6 @@ export function Navbar({
         ))}
       </div>
 
-      <DesktopWindowControls />
-
       <div className="mt-6 rounded-3xl border border-[#b69261]/22 bg-[rgba(255,248,232,0.94)] p-4 text-left">
         <div className="flex items-center gap-3 text-left">
           <PlayerIdentityRow
@@ -549,32 +547,30 @@ export function Navbar({
           />
         </div>
         <div className="mt-4 grid gap-2">
+          <Link
+            href="/settings"
+            className={cn(
+              "inline-flex h-10 items-center rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200",
+              "bg-secondary text-secondary-foreground shadow-[0_16px_28px_-22px_rgba(92,66,35,0.42)] hover:-translate-y-0.5 hover:bg-secondary/92 active:translate-y-0",
+              "w-full justify-start",
+            )}
+            onClick={onCloseNav}
+          >
+            {settingsIcon}
+            {t("settings")}
+          </Link>
           {player?.kind === "account" ? (
-            <>
-              <Link
-                href="/settings"
-                className={cn(
-                  "inline-flex h-10 items-center rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200",
-                  "bg-secondary text-secondary-foreground shadow-[0_16px_28px_-22px_rgba(92,66,35,0.42)] hover:-translate-y-0.5 hover:bg-secondary/92 active:translate-y-0",
-                  "w-full justify-start",
-                )}
-                onClick={onCloseNav}
-              >
-                {settingsIcon}
-                {t("settings")}
-              </Link>
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-[#28170e]"
-                onClick={() => {
-                  onCloseNav();
-                  onLogout();
-                }}
-              >
-                {logoutIcon}
-                {t("logout")}
-              </Button>
-            </>
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-[#28170e]"
+              onClick={() => {
+                onCloseNav();
+                onLogout();
+              }}
+            >
+              {logoutIcon}
+              {t("logout")}
+            </Button>
           ) : (
             <>
               <Button
@@ -662,6 +658,8 @@ export function Navbar({
 
         <p className="tracking-wide">v{process.env.APP_VERSION}</p>
       </div>
+
+      <DesktopWindowControls mode="quit" />
     </aside>
   );
 
