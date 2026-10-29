@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { safeLocalStorage } from "@/lib/safeLocalStorage";
-import { UI_CLICK_KEY } from "@/lib/uiClickAudio";
+import { playUiFeedback } from "@/lib/uiClickAudio";
 import { useSoundEnabled } from "@/lib/useSoundPreference";
 
 /** A sound is opt-in through the audition lab; board moves keep their own audio. */
@@ -24,8 +23,13 @@ export function UiClickFeedback() {
         control.matches(":disabled, [aria-disabled='true']")
       )
         return;
-      const id = safeLocalStorage.getItem(UI_CLICK_KEY);
-      if (id) void import("@/lib/uiClickAudio").then((audio) => audio.playUiClick(id));
+      const feedback = control.closest("[data-ui-feedback]")?.getAttribute("data-ui-feedback");
+      if (feedback === "manual") return;
+      if (feedback === "success" || feedback === "error") {
+        void playUiFeedback(feedback);
+        return;
+      }
+      void playUiFeedback("click");
     };
     document.addEventListener("click", handleClick, true);
     return () => document.removeEventListener("click", handleClick, true);

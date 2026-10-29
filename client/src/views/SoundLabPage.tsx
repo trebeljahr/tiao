@@ -1,141 +1,131 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { SoundPlayground } from "@/components/SoundPlayground";
+import { UiClickFeedback } from "@/components/UiClickFeedback";
 import { Button } from "@/components/ui/button";
-import { Link } from "@/i18n/navigation";
 import { safeLocalStorage } from "@/lib/safeLocalStorage";
 import {
-  getClickVolume,
+  getUiSoundSelection,
+  getUiSoundVolume,
   playUiClick,
+  soundVolumeKey,
   stopUiClicks,
-  UI_CLICK_KEY,
-  UI_CLICK_VOLUME_KEY,
+  UI_SOUND_KEYS,
 } from "@/lib/uiClickAudio";
-import { UI_CLICKS } from "@/lib/uiClickSynth";
+import {
+  UI_SOUND_CATEGORIES,
+  UI_SOUND_LABELS,
+  UI_SOUNDS,
+  type UiSoundCategory,
+} from "@/lib/uiClickSynth";
 import { useToggleSound } from "@/lib/useSoundPreference";
 import styles from "./SoundLabPage.module.css";
 
-const FAVOURITES_KEY = "tiao:uiClickFavourites";
-const TAP_OFFSETS = [0, 290, 670];
-const SOUND_INTERVAL = 1450;
-
+type Selections = Record<UiSoundCategory, string | null>;
+type Volumes = Record<UiSoundCategory, number>;
 export function SoundLabPage() {
   const [enabled, toggleSound] = useToggleSound();
-  const [volume, setVolume] = useState(0.65);
-  const [selected, setSelected] = useState<string | null>(null);
-  const [favourites, setFavourites] = useState<string[]>([]);
+  const [category, setCategory] = useState<UiSoundCategory>("click");
+  const [selected, setSelected] = useState<Selections>({ click: null, success: null, error: null });
+  const [volumes, setVolumes] = useState<Volumes>({ click: 0.5, success: 0.5, error: 0.5 });
   const [active, setActive] = useState<string | null>(null);
-  const [tap, setTap] = useState(0);
-  const [playing, setPlaying] = useState(false);
+  const [lastFeedback, setLastFeedback] = useState<UiSoundCategory | null>(null);
   const [error, setError] = useState("");
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const run = useRef(0);
-  const mounted = useRef(true);
-
+  const generation = useRef(0);
   const stop = useCallback(() => {
-    run.current++;
-    for (const timer of timers.current) clearTimeout(timer);
+    generation.current++;
+    timers.current.forEach(clearTimeout);
     timers.current = [];
     stopUiClicks();
-    setPlaying(false);
     setActive(null);
   }, []);
-
   useEffect(() => {
-    mounted.current = true;
-    setVolume(getClickVolume());
-    const saved = safeLocalStorage.getItem(UI_CLICK_KEY);
-    setSelected(UI_CLICKS.some((sound) => sound.id === saved) ? saved : null);
-    const savedFavourites = safeLocalStorage.getJson<unknown>(FAVOURITES_KEY, []);
-    setFavourites(
-      Array.isArray(savedFavourites)
-        ? savedFavourites.filter(
-            (id): id is string =>
-              typeof id === "string" && UI_CLICKS.some((sound) => sound.id === id),
-          )
-        : [],
-    );
-    const onVisibility = () => {
+    setSelected({
+      click: getUiSoundSelection("click"),
+      success: getUiSoundSelection("success"),
+      error: getUiSoundSelection("error"),
+    });
+    setVolumes({
+      click: getUiSoundVolume("click"),
+      success: getUiSoundVolume("success"),
+      error: getUiSoundVolume("error"),
+    });
+    const hide = () => {
       if (document.hidden) stop();
     };
-    document.addEventListener("visibilitychange", onVisibility);
+    const feedback = (event: Event) =>
+      setLastFeedback((event as CustomEvent<UiSoundCategory>).detail);
+    document.addEventListener("visibilitychange", hide);
+    window.addEventListener("tiao:ui-feedback", feedback);
     return () => {
-      mounted.current = false;
-      run.current++;
-      for (const timer of timers.current) clearTimeout(timer);
+      generation.current++;
+      timers.current.forEach(clearTimeout);
       stopUiClicks();
-      document.removeEventListener("visibilitychange", onVisibility);
+      document.removeEventListener("visibilitychange", hide);
+      window.removeEventListener("tiao:ui-feedback", feedback);
     };
   }, [stop]);
-
   useEffect(() => {
     if (!enabled) stop();
   }, [enabled, stop]);
-
-  const play = (ids: string[]) => {
+  const preview = (id: string, kind: UiSoundCategory) => {
     stop();
-    if (!enabled || ids.length === 0) return;
-    const current = run.current;
-    setPlaying(true);
+    if (!enabled) return;
+    const current = generation.current;
+    setActive(id);
     setError("");
-    const strike = (id: string, index: number) => {
-      if (run.current !== current) return;
+    void playUiClick(id, volumes[kind]).then((success) => {
+      if (!success && current === generation.current) {
+        stop();
+        setError("Audio unavailable. Try again with sound enabled.");
+      }
+    });
+    timers.current.push(
+      setTimeout(() => {
+        if (current === generation.current) setActive(null);
+      }, 500),
+    );
+  };
+  const choose = (id: string | null) => {
+    stop();
+    setSelected((values) => ({ ...values, [category]: id }));
+    if (id) {
+      safeLocalStorage.setItem(UI_SOUND_KEYS[category], id);
+      preview(id, category);
+    } else safeLocalStorage.removeItem(UI_SOUND_KEYS[category]);
+  };
+  const playCategory = () => {
+    stop();
+    if (!enabled) return;
+    setError("");
+    const current = generation.current;
+    const sounds = UI_SOUNDS.filter((sound) => sound.category === category);
+    const strike = (id: string) => {
+      if (current !== generation.current) return;
       setActive(id);
-      setTap(index);
-      void playUiClick(id, volume).then((success) => {
-        if (!success && mounted.current && run.current === current) {
+      void playUiClick(id, volumes[category]).then((ok) => {
+        if (!ok && current === generation.current) {
           stop();
-          setError("Audio unavailable. Try again in a browser with sound enabled.");
+          setError("Audio unavailable. Try again with sound enabled.");
         }
       });
     };
-    // First strike stays inside the click gesture so browsers can unlock audio.
-    strike(ids[0], 1);
-    ids.forEach((id, soundIndex) => {
-      TAP_OFFSETS.forEach((offset, tapIndex) => {
-        if (soundIndex === 0 && tapIndex === 0) return;
-        timers.current.push(
-          setTimeout(() => strike(id, tapIndex + 1), soundIndex * SOUND_INTERVAL + offset),
-        );
-      });
+    strike(sounds[0].id);
+    sounds.slice(1).forEach((sound, index) => {
+      timers.current.push(setTimeout(() => strike(sound.id), (index + 1) * 1000));
     });
-    timers.current.push(setTimeout(stop, (ids.length - 1) * SOUND_INTERVAL + 1100));
+    timers.current.push(setTimeout(stop, sounds.length * 1000));
   };
-
-  const favourite = (id: string) => {
-    const next = favourites.includes(id)
-      ? favourites.filter((value) => value !== id)
-      : [...favourites, id];
-    setFavourites(next);
-    safeLocalStorage.setJson(FAVOURITES_KEY, next);
-  };
-
-  const choose = (id: string | null) => {
-    stop();
-    setSelected(id);
-    if (id) {
-      safeLocalStorage.setItem(UI_CLICK_KEY, id);
-      if (enabled) play([id]);
-    } else safeLocalStorage.removeItem(UI_CLICK_KEY);
-  };
-
-  const activeSound = UI_CLICKS.find((sound) => sound.id === active);
-  const selectedSound = UI_CLICKS.find((sound) => sound.id === selected);
-
   return (
-    <div className={styles.lab} data-ui-sound="off">
+    <div className={styles.lab}>
+      <UiClickFeedback />
       <div className={styles.sheet}>
-        <header className={styles.header}>
-          <Link href="/play" className={styles.brand}>
+        <header className={styles.header} data-ui-sound="off">
+          <span className={styles.brand}>
             跳 <span>Tiao</span>
-          </Link>
-          <span className={styles.eyebrow}>Sound studies / 01</span>
-        </header>
-        <div className={styles.titleRow}>
-          <div>
-            <h1>UI sound lab</h1>
-            <p>16 sounds. Three taps each.</p>
-          </div>
+          </span>
           <button
             type="button"
             className={styles.mute}
@@ -144,126 +134,131 @@ export function SoundLabPage() {
           >
             {enabled ? "Mute" : "Unmute"}
           </button>
+        </header>
+        <div className={styles.titleRow}>
+          <h1>UI sound lab</h1>
+          <span className={styles.eyebrow}>Soft sounds / 02</span>
         </div>
-        <section className={styles.transport} aria-label="Montage controls">
-          <div className={styles.controls}>
-            <Button
-              disabled={!enabled}
-              onClick={() => (playing ? stop() : play(UI_CLICKS.map((sound) => sound.id)))}
-            >
-              {playing ? "Stop montage" : "Play montage"}
-            </Button>
-            <Button
-              variant="outline"
-              disabled={!enabled || favourites.length === 0}
-              onClick={() =>
-                play(
-                  UI_CLICKS.filter((sound) => favourites.includes(sound.id)).map(
-                    (sound) => sound.id,
-                  ),
-                )
-              }
-            >
-              Play favourites{favourites.length > 0 ? ` (${favourites.length})` : ""}
-            </Button>
-          </div>
-          <label className={styles.volume}>
-            Volume{" "}
-            <input
-              aria-label="Preview and UI volume"
-              type="range"
-              min="0"
-              max="100"
-              value={Math.round(volume * 100)}
-              onChange={(event) => {
-                stop();
-                const next = Number(event.target.value) / 100;
-                setVolume(next);
-                safeLocalStorage.setItem(UI_CLICK_VOLUME_KEY, String(next));
-              }}
-            />
-            <output>{Math.round(volume * 100)}%</output>
-          </label>
-        </section>
-        <div className={styles.stage}>
-          <div className={styles.stageLabel} aria-live="polite">
-            {!enabled ? "Sound muted" : activeSound ? activeSound.name : "Ready to listen"}
-          </div>
-          <fieldset className={styles.demoButtons} aria-label="Button click montage">
-            {["Play", "Confirm", "Back"].map((label, index) => (
-              <button
-                type="button"
-                key={label}
-                className={`${styles.demo} ${active && tap === index + 1 ? styles.struck : ""}`}
-                onClick={() => play([selected ?? active ?? UI_CLICKS[0].id])}
-                disabled={!enabled}
-              >
-                {label}
-              </button>
-            ))}
-          </fieldset>
-          <span className={styles.tapCount}>{active ? `${tap} / 3` : "—"}</span>
-        </div>
-        {error && (
-          <p role="alert" className={styles.error}>
-            {error}
-          </p>
-        )}
-        <div className={styles.list}>
-          {UI_CLICKS.map((sound, index) => (
-            <div
-              key={sound.id}
-              className={`${styles.row} ${active === sound.id ? styles.active : ""}`}
-            >
-              <button
-                type="button"
-                className={styles.audition}
-                disabled={!enabled}
-                onClick={() => play([sound.id])}
-                aria-label={`Preview ${sound.name}`}
-              >
-                <span className={styles.number}>{String(index + 1).padStart(2, "0")}</span>
-                <span className={styles.soundName}>
-                  {sound.name}
-                  <span className={styles.material}>{sound.material}</span>
-                </span>
-                <span className={styles.duration}>{Math.round(sound.duration * 1000)} ms</span>
-                <span className={styles.playIcon} aria-hidden="true">
-                  ▶
-                </span>
-              </button>
-              <button
-                type="button"
-                className={styles.favourite}
-                aria-label={`Favourite ${sound.name}`}
-                aria-pressed={favourites.includes(sound.id)}
-                onClick={() => favourite(sound.id)}
-              >
-                {favourites.includes(sound.id) ? "★" : "☆"}
-              </button>
-              <button
-                type="button"
-                className={styles.use}
-                aria-label={`Use ${sound.name} in game`}
-                aria-pressed={selected === sound.id}
-                onClick={() => choose(selected === sound.id ? null : sound.id)}
-              >
-                {selected === sound.id ? "In game ✓" : "Use in game"}
-              </button>
+        <div className={styles.workspace}>
+          <section className={styles.soundSettings} aria-label="Sound choices" data-ui-sound="off">
+            <div className={styles.tabs} role="tablist" aria-label="Sound category">
+              {UI_SOUND_CATEGORIES.map((kind) => (
+                <button
+                  type="button"
+                  role="tab"
+                  key={kind}
+                  id={`tab-${kind}`}
+                  aria-controls="sound-options"
+                  aria-selected={category === kind}
+                  onClick={() => {
+                    stop();
+                    setCategory(kind);
+                  }}
+                  onKeyDown={(event) => {
+                    const index = UI_SOUND_CATEGORIES.indexOf(kind);
+                    const next =
+                      event.key === "ArrowRight"
+                        ? (index + 1) % 3
+                        : event.key === "ArrowLeft"
+                          ? (index + 2) % 3
+                          : event.key === "Home"
+                            ? 0
+                            : event.key === "End"
+                              ? 2
+                              : null;
+                    if (next === null) return;
+                    event.preventDefault();
+                    stop();
+                    setCategory(UI_SOUND_CATEGORIES[next]);
+                    document.getElementById(`tab-${UI_SOUND_CATEGORIES[next]}`)?.focus();
+                  }}
+                >
+                  {UI_SOUND_LABELS[kind]}
+                  <span>
+                    {UI_SOUNDS.find((sound) => sound.id === selected[kind])?.name ?? "Off"}
+                  </span>
+                </button>
+              ))}
             </div>
-          ))}
+            <div id="sound-options" role="tabpanel" aria-labelledby={`tab-${category}`}>
+              <label className={styles.volume}>
+                Volume{" "}
+                <input
+                  aria-label={`${UI_SOUND_LABELS[category]} volume`}
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={Math.round(volumes[category] * 100)}
+                  onChange={(event) => {
+                    stop();
+                    const value = Number(event.target.value) / 100;
+                    setVolumes((current) => ({ ...current, [category]: value }));
+                    safeLocalStorage.setItem(soundVolumeKey(category), String(value));
+                  }}
+                />
+                <output>{Math.round(volumes[category] * 100)}%</output>
+              </label>
+              <fieldset className={styles.list} aria-label={`${UI_SOUND_LABELS[category]} sound`}>
+                {UI_SOUNDS.filter((sound) => sound.category === category).map((sound) => (
+                  <label
+                    className={`${styles.option} ${active === sound.id ? styles.active : ""}`}
+                    key={sound.id}
+                  >
+                    <input
+                      type="radio"
+                      name={`sound-${category}`}
+                      aria-label={`Select ${sound.name}`}
+                      checked={selected[category] === sound.id}
+                      onChange={() => choose(sound.id)}
+                    />
+                    <span className={styles.soundName}>
+                      {sound.name}
+                      <span className={styles.material}>{sound.material}</span>
+                    </span>
+                    <button
+                      type="button"
+                      className={styles.preview}
+                      disabled={!enabled}
+                      aria-label={`Preview ${sound.name}`}
+                      onClick={() => preview(sound.id, category)}
+                    >
+                      ▶
+                    </button>
+                  </label>
+                ))}
+                <label className={styles.option}>
+                  <input
+                    type="radio"
+                    name={`sound-${category}`}
+                    aria-label={`Turn off ${UI_SOUND_LABELS[category].toLowerCase()} sound`}
+                    checked={selected[category] === null}
+                    onChange={() => choose(null)}
+                  />
+                  <span>Off</span>
+                </label>
+              </fieldset>
+              <Button
+                variant="outline"
+                className="mt-4 w-full"
+                disabled={!enabled}
+                onClick={playCategory}
+              >
+                Play {UI_SOUND_LABELS[category].toLowerCase()} options
+              </Button>
+            </div>
+            {error && (
+              <p className={styles.error} role="alert">
+                {error}
+              </p>
+            )}
+            <p className={styles.lastFeedback} role="status">
+              {lastFeedback
+                ? `${UI_SOUND_LABELS[lastFeedback]} · ${UI_SOUNDS.find((sound) => sound.id === selected[lastFeedback])?.name ?? "Off"}`
+                : "Choose a sound, then try the playground."}
+            </p>
+          </section>
+          <SoundPlayground />
         </div>
-        <footer className={styles.footer}>
-          <span>
-            UI sound: <strong>{selectedSound?.name ?? "Off"}</strong>
-          </span>
-          {selected && (
-            <button type="button" onClick={() => choose(null)}>
-              Turn off UI sound
-            </button>
-          )}
-          <Link href="/play">Try in game</Link>
-        </footer>
       </div>
     </div>
   );

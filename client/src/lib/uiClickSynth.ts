@@ -1,240 +1,261 @@
-/** Deterministic mono synthesis shared by the browser and WAV export. No samples. */
+/** Deterministic, sample-free synthesis shared by browser playback and WAV export. */
+export type UiSoundCategory = "click" | "success" | "error";
 export type ClickRecipe = {
   id: string;
   name: string;
   material: string;
+  category: UiSoundCategory;
   duration: number;
   frequency: number;
   decay: number;
   partials: readonly number[];
   noise: number;
   smoothing: number;
-  sweep?: number;
+  attack: number;
+  cutoff: number;
+  level: number;
   secondTap?: number;
+  secondFrequency?: number;
 };
 
+const felt = {
+  duration: 0.12,
+  frequency: 160,
+  decay: 48,
+  partials: [1],
+  noise: 0.35,
+  smoothing: 0.96,
+  attack: 0.009,
+  cutoff: 500,
+  level: 0.22,
+} as const;
+
 export const UI_CLICKS: readonly ClickRecipe[] = [
+  { ...felt, category: "click", id: "felt", name: "Felt", material: "Soft · short" },
   {
-    id: "bamboo",
-    name: "Bamboo",
-    material: "Hollow · dry",
-    duration: 0.09,
-    frequency: 780,
-    decay: 55,
-    partials: [1, 2.73, 4.8],
-    noise: 0.18,
-    smoothing: 0.35,
+    ...felt,
+    category: "click",
+    id: "velvet",
+    name: "Velvet",
+    material: "Low · cushioned",
+    frequency: 105,
+    cutoff: 340,
+    noise: 0.6,
+    level: 0.19,
+    attack: 0.012,
   },
   {
-    id: "walnut",
-    name: "Walnut",
-    material: "Low · woody",
+    ...felt,
+    category: "click",
+    id: "linen",
+    name: "Linen",
+    material: "Airy · muted",
+    frequency: 190,
+    cutoff: 580,
+    noise: 1.7,
+    smoothing: 0.94,
+    level: 0.18,
     duration: 0.1,
-    frequency: 390,
-    decay: 48,
-    partials: [1, 2.4, 4.1],
+  },
+  {
+    ...felt,
+    category: "click",
+    id: "cork",
+    name: "Cork",
+    material: "Dry · rounded",
+    frequency: 220,
+    cutoff: 650,
     noise: 0.25,
-    smoothing: 0.65,
-  },
-  {
-    id: "woodblock",
-    name: "Woodblock",
-    material: "Bright · hollow",
-    duration: 0.1,
-    frequency: 1050,
-    decay: 48,
-    partials: [1, 1.53, 3.7],
-    noise: 0.08,
-    smoothing: 0.25,
-  },
-  {
-    id: "paper",
-    name: "Paper",
-    material: "Soft · textured",
-    duration: 0.055,
-    frequency: 1800,
-    decay: 95,
-    partials: [1],
-    noise: 2.2,
-    smoothing: 0.2,
-  },
-  {
-    id: "felt",
-    name: "Felt",
-    material: "Muted · warm",
-    duration: 0.09,
-    frequency: 240,
+    duration: 0.085,
     decay: 65,
-    partials: [1, 2],
-    noise: 0.7,
-    smoothing: 0.92,
+    attack: 0.007,
+    level: 0.2,
   },
   {
-    id: "pebble",
-    name: "Pebble",
-    material: "Small · stony",
-    duration: 0.075,
-    frequency: 1450,
-    decay: 75,
-    partials: [1, 1.47, 2.09],
-    noise: 0.32,
-    smoothing: 0.4,
-  },
-  {
-    id: "ceramic",
-    name: "Ceramic",
-    material: "Rounded · resonant",
-    duration: 0.15,
-    frequency: 1250,
-    decay: 35,
-    partials: [1, 2.71, 4.34],
-    noise: 0.03,
-    smoothing: 0.3,
-  },
-  {
-    id: "glass",
-    name: "Glass",
-    material: "Clear · delicate",
-    duration: 0.19,
-    frequency: 2200,
-    decay: 28,
-    partials: [1, 2.32, 3.83],
-    noise: 0.01,
-    smoothing: 0.1,
-  },
-  {
-    id: "drop",
-    name: "Water drop",
-    material: "Liquid · falling",
-    duration: 0.12,
-    frequency: 1550,
-    decay: 48,
-    partials: [1, 2],
-    noise: 0.015,
-    smoothing: 0.6,
-    sweep: -1050,
-  },
-  {
-    id: "bubble",
-    name: "Bubble",
-    material: "Round · playful",
+    ...felt,
+    category: "click",
+    id: "brush",
+    name: "Brush",
+    material: "Texture · no tone",
+    partials: [],
+    noise: 1,
+    smoothing: 0.94,
+    cutoff: 600,
     duration: 0.11,
-    frequency: 420,
-    decay: 45,
-    partials: [1, 2],
-    noise: 0.02,
-    smoothing: 0.6,
-    sweep: 500,
+    level: 0.16,
   },
   {
-    id: "soft-pop",
-    name: "Soft pop",
-    material: "Warm · springy",
-    duration: 0.085,
-    frequency: 680,
-    decay: 60,
-    partials: [1, 2.01],
-    noise: 0.06,
-    smoothing: 0.75,
-    sweep: -460,
-  },
-  {
-    id: "switch",
-    name: "Switch",
-    material: "Mechanical · double",
-    duration: 0.07,
-    frequency: 1750,
-    decay: 130,
-    partials: [1, 1.8],
-    noise: 0.9,
-    smoothing: 0.25,
-    secondTap: 0.022,
-  },
-  {
-    id: "snap",
-    name: "Snap",
-    material: "Crisp · short",
-    duration: 0.045,
-    frequency: 2400,
-    decay: 150,
-    partials: [1, 2.7],
-    noise: 1.6,
-    smoothing: 0.1,
-  },
-  {
-    id: "pixel",
-    name: "Pixel",
-    material: "Digital · tiny",
-    duration: 0.065,
-    frequency: 920,
-    decay: 75,
-    partials: [1, 3, 5, 7],
-    noise: 0,
-    smoothing: 0,
-    sweep: -160,
-  },
-  {
-    id: "chime",
-    name: "Chime",
-    material: "Musical · light",
-    duration: 0.2,
-    frequency: 1320,
-    decay: 27,
-    partials: [1, 1.5, 2],
-    noise: 0,
-    smoothing: 0,
-  },
-  {
-    id: "blip",
-    name: "Blip",
-    material: "Clean · rising",
-    duration: 0.085,
-    frequency: 600,
-    decay: 65,
-    partials: [1],
-    noise: 0,
-    smoothing: 0,
-    sweep: 1100,
+    ...felt,
+    category: "click",
+    id: "low-felt",
+    name: "Low felt",
+    material: "Deep · barely there",
+    frequency: 130,
+    cutoff: 380,
+    noise: 0.25,
+    level: 0.13,
   },
 ];
 
+export const UI_SUCCESSES: readonly ClickRecipe[] = [
+  {
+    ...felt,
+    category: "success",
+    id: "settle",
+    name: "Settle",
+    material: "One soft landing",
+    frequency: 195,
+    duration: 0.19,
+    decay: 30,
+    attack: 0.015,
+    level: 0.24,
+  },
+  {
+    ...felt,
+    category: "success",
+    id: "warm-confirm",
+    name: "Warm confirm",
+    material: "Two gentle taps",
+    frequency: 170,
+    secondFrequency: 220,
+    secondTap: 0.085,
+    duration: 0.26,
+    decay: 38,
+    attack: 0.012,
+    level: 0.23,
+  },
+  {
+    ...felt,
+    category: "success",
+    id: "soft-open",
+    name: "Soft open",
+    material: "Light · rounded",
+    frequency: 245,
+    duration: 0.18,
+    decay: 32,
+    cutoff: 680,
+    attack: 0.018,
+    level: 0.19,
+  },
+  {
+    ...felt,
+    category: "success",
+    id: "quiet-confirm",
+    name: "Quiet confirm",
+    material: "Low · understated",
+    frequency: 145,
+    secondFrequency: 170,
+    secondTap: 0.075,
+    duration: 0.22,
+    cutoff: 400,
+    level: 0.17,
+  },
+];
+
+export const UI_ERRORS: readonly ClickRecipe[] = [
+  {
+    ...felt,
+    category: "error",
+    id: "soft-pause",
+    name: "Soft pause",
+    material: "Low · single tap",
+    frequency: 115,
+    duration: 0.19,
+    decay: 32,
+    cutoff: 330,
+    attack: 0.014,
+    level: 0.23,
+  },
+  {
+    ...felt,
+    category: "error",
+    id: "low-double",
+    name: "Low double",
+    material: "Two muffled taps",
+    frequency: 145,
+    secondFrequency: 115,
+    secondTap: 0.085,
+    duration: 0.25,
+    cutoff: 400,
+    attack: 0.012,
+    level: 0.22,
+  },
+  {
+    ...felt,
+    category: "error",
+    id: "soft-close",
+    name: "Soft close",
+    material: "Damped · brief",
+    frequency: 180,
+    duration: 0.15,
+    cutoff: 480,
+    noise: 0.7,
+    attack: 0.012,
+    level: 0.18,
+  },
+  {
+    ...felt,
+    category: "error",
+    id: "quiet-pause",
+    name: "Quiet pause",
+    material: "Soft texture · no tone",
+    partials: [],
+    noise: 1,
+    smoothing: 0.97,
+    duration: 0.18,
+    cutoff: 420,
+    attack: 0.018,
+    decay: 32,
+    level: 0.17,
+  },
+];
+
+export const UI_SOUNDS = [...UI_CLICKS, ...UI_SUCCESSES, ...UI_ERRORS];
+export const UI_SOUND_CATEGORIES: readonly UiSoundCategory[] = ["click", "success", "error"];
+export const UI_SOUND_LABELS = { click: "Click", success: "Success", error: "Error" } as const;
+
 export function synthesizeClick(recipe: ClickRecipe, sampleRate = 44100): Float32Array {
   const samples = new Float32Array(Math.ceil(recipe.duration * sampleRate));
+  const starts = recipe.secondTap ? [0, recipe.secondTap] : [0];
+  const coefficient = 1 - Math.exp((-2 * Math.PI * recipe.cutoff) / sampleRate);
   let seed = 0x1234abcd;
-  let filtered = 0;
+  let filteredNoise = 0;
+  let lowPass = 0;
+  let lowPass2 = 0;
   let energy = 0;
   let peak = 0;
   for (let i = 0; i < samples.length; i++) {
     const t = i / sampleRate;
     seed = (Math.imul(seed, 1664525) + 1013904223) | 0;
-    const noise = seed / 2147483648;
-    filtered = recipe.smoothing * filtered + (1 - recipe.smoothing) * noise;
+    filteredNoise = recipe.smoothing * filteredNoise + (1 - recipe.smoothing) * (seed / 2147483648);
     let value = 0;
-    for (const start of recipe.secondTap ? [0, recipe.secondTap] : [0]) {
+    starts.forEach((start, pulse) => {
       const elapsed = t - start;
-      if (elapsed < 0) continue;
-      const phase =
-        2 *
-        Math.PI *
-        (recipe.frequency * elapsed +
-          ((recipe.sweep ?? 0) * elapsed * elapsed) / (2 * recipe.duration));
+      if (elapsed < 0) return;
+      const frequency = pulse ? (recipe.secondFrequency ?? recipe.frequency) : recipe.frequency;
+      const phase = 2 * Math.PI * frequency * elapsed;
       const tone = recipe.partials.reduce(
         (sum, ratio, index) => sum + Math.sin(phase * ratio) / (1 + index * 2.8),
         0,
       );
-      const attack = Math.min(1, elapsed / 0.0015);
+      const attack = Math.sin((Math.min(1, elapsed / recipe.attack) * Math.PI) / 2) ** 2;
       value +=
         attack *
         (tone * Math.exp(-elapsed * recipe.decay) +
-          recipe.noise * filtered * Math.exp(-elapsed * recipe.decay * 1.6));
-    }
-    value *= Math.min(1, (recipe.duration - t) / 0.008);
+          recipe.noise * filteredNoise * Math.exp(-elapsed * recipe.decay * 1.6));
+    });
+    lowPass += coefficient * (value - lowPass);
+    lowPass2 += coefficient * (lowPass - lowPass2);
+    value = lowPass2 * Math.min(1, (recipe.duration - t) / 0.015);
     samples[i] = value;
     energy += value * value;
     peak = Math.max(peak, Math.abs(value));
   }
-  // Match energy over a fixed listening window, capped to leave headroom.
-  const gain = Math.min(0.6 / peak, 0.045 / Math.sqrt(energy / (sampleRate * 0.2)));
+  // Preserve the quieter recipe levels; never normalize them back to full volume.
+  const gain =
+    peak > 0
+      ? Math.min(0.6 / peak, 0.045 / Math.sqrt(energy / (sampleRate * 0.2))) * recipe.level
+      : 0;
   for (let i = 0; i < samples.length; i++) samples[i] *= gain;
   samples[0] = 0;
   samples[samples.length - 1] = 0;

@@ -1,7 +1,7 @@
 /** Usage: node --experimental-strip-types scripts/export-ui-clicks.ts /absolute/output/directory */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { synthesizeClick, UI_CLICKS } from "../client/src/lib/uiClickSynth.ts";
+import { synthesizeClick, UI_SOUNDS } from "../client/src/lib/uiClickSynth.ts";
 
 const destination = process.argv[2];
 if (!destination) throw new Error("Pass an output directory.");
@@ -26,18 +26,18 @@ function wav(samples: Float32Array) {
   });
   return file;
 }
-const montage = new Float32Array(Math.ceil(UI_CLICKS.length * 1.45 * sampleRate));
-UI_CLICKS.forEach((recipe, index) => {
+const montage = new Float32Array(Math.ceil(UI_SOUNDS.length * 1.0 * sampleRate));
+UI_SOUNDS.forEach((recipe, index) => {
   const samples = synthesizeClick(recipe, sampleRate);
   const filename = `${String(index + 1).padStart(2, "0")}-${recipe.id}.wav`;
   writeFileSync(resolve(destination, filename), wav(samples));
-  for (const offset of [0, 0.29, 0.67]) {
-    const start = Math.round((index * 1.45 + offset) * sampleRate);
+  for (const offset of [0]) {
+    const start = Math.round((index * 1.0 + offset) * sampleRate);
     samples.forEach((value, i) => {
-      montage[start + i] += value * 0.65;
+      montage[start + i] += value * 0.5;
     });
   }
 });
-writeFileSync(resolve(destination, "ui-click-montage.wav"), wav(montage));
-writeFileSync(resolve(destination, "sounds.json"), JSON.stringify(UI_CLICKS, null, 2));
-console.log(`Exported ${UI_CLICKS.length} sounds and montage to ${destination}`);
+writeFileSync(resolve(destination, "ui-sound-montage.wav"), wav(montage));
+writeFileSync(resolve(destination, "sounds.json"), JSON.stringify(UI_SOUNDS, null, 2));
+console.log(`Exported ${UI_SOUNDS.length} sounds and montage to ${destination}`);

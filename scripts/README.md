@@ -131,14 +131,25 @@ mailer or Coolify's task status will flag a broken run.
 Check the result with `mongosh <uri> --eval 'db.getCollectionNames()'` before
 pointing the server at it.
 
-### UI click audition
+### UI sound audition
 
-In development, open `/sound-lab` (also linked in the game menu). Each of the 16
-procedural candidates plays three times. Favourites, volume and the optional
-“Use in game” selection stay in local storage. The game mute control applies to
-both the lab and UI feedback. The lab route is excluded from production builds.
+Run `node scripts/preview-sound-lab.mjs` for the standalone workbench (uses an
+available high loopback port; accepts `PORT`). Or open `/sound-lab` in development.
+The route is excluded from production builds.
 
-Export mono 44.1 kHz PCM WAVs and the montage with the same deterministic synth:
+Choose Click, Success or Error, then select a sound and volume for that category.
+The playground uses the production board, local rules engine, setup dialog,
+theme picker and input controls. No account, backend or multiplayer actions run.
+Border-rule failures play Error; game setup/reset and valid ID checks play Success.
+Other enabled controls play Click. Mute applies to all categories. Choices persist
+locally and are opt-in in the rest of the game.
+
+Use `playUiFeedback("success")` / `playUiFeedback("error")` for action results.
+Controls may declare `data-ui-feedback="success"` or `"error"` for immediate,
+known outcomes, or `"manual"` when their handler determines the result. These
+replace the generic click cue so a single action does not stack two sounds.
+
+Export the 14 mono 44.1 kHz PCM WAVs and the one-cue-per-option montage:
 
 ```sh
 node --experimental-strip-types scripts/export-ui-clicks.ts /absolute/output/directory

@@ -25,6 +25,7 @@ type GameConfigPanelProps = {
   // Action
   submitLabel: string;
   onSubmit: () => void;
+  submitFeedback?: "success" | "error" | "manual";
   busy?: boolean;
 };
 
@@ -85,6 +86,7 @@ export function GameConfigPanel({
   onColorChange,
   submitLabel,
   onSubmit,
+  submitFeedback,
   busy,
 }: GameConfigPanelProps) {
   const t = useTranslations("config");
@@ -188,7 +190,12 @@ export function GameConfigPanel({
 
       {submitLabel && (
         <div className="border-t border-[#dbc6a2] pt-4">
-          <Button className="w-full" onClick={onSubmit} disabled={busy}>
+          <Button
+            className="w-full"
+            onClick={onSubmit}
+            disabled={busy}
+            data-ui-feedback={submitFeedback}
+          >
             {busy ? tCommon("creating") : submitLabel}
           </Button>
         </div>

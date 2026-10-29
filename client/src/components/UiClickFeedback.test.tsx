@@ -1,27 +1,33 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { playUiClick } from "@/lib/uiClickAudio";
+import { playUiFeedback } from "@/lib/uiClickAudio";
 import { UiClickFeedback } from "./UiClickFeedback";
 
 vi.mock("@/lib/uiClickAudio", () => ({
-  UI_CLICK_KEY: "tiao:uiClick",
-  playUiClick: vi.fn().mockResolvedValue(true),
+  playUiFeedback: vi.fn().mockResolvedValue(true),
   stopUiClicks: vi.fn(),
 }));
-
 beforeEach(() => {
   localStorage.clear();
   vi.clearAllMocks();
 });
 afterEach(cleanup);
-
-describe("UI click feedback", () => {
+describe("semantic UI feedback", () => {
   function fixture() {
     render(
       <>
         <UiClickFeedback />
         <button type="button">
           <span>Menu</span>
+        </button>
+        <button type="button" data-ui-feedback="success">
+          Confirm
+        </button>
+        <button type="button" data-ui-feedback="error">
+          Reject
+        </button>
+        <button type="button" data-ui-feedback="manual">
+          Manual
         </button>
         <button type="button" disabled>
           Disabled
@@ -35,27 +41,27 @@ describe("UI click feedback", () => {
       </>,
     );
   }
-  it("stays silent until a choice is saved, then handles nested click targets", async () => {
+  it("routes nested controls and success/error actions to one matching category each", async () => {
     fixture();
-    fireEvent.click(screen.getByText("Menu"));
+    for (const label of ["Menu", "Confirm", "Reject"]) fireEvent.click(screen.getByText(label));
     await act(async () => {});
-    expect(playUiClick).not.toHaveBeenCalled();
-    localStorage.setItem("tiao:uiClick", "walnut");
-    fireEvent.click(screen.getByText("Menu"));
-    await act(async () => {});
-    expect(playUiClick).toHaveBeenCalledExactlyOnceWith("walnut");
+    expect(vi.mocked(playUiFeedback).mock.calls.map(([kind]) => kind)).toEqual([
+      "click",
+      "success",
+      "error",
+    ]);
   });
-  it("respects mute and skips disabled controls, auditions and board stones", async () => {
-    localStorage.setItem("tiao:uiClick", "walnut");
+  it("skips manual, disabled, audition and stone controls, and respects mute", async () => {
     fixture();
-    for (const label of ["Disabled", "Audition", "Stone"]) fireEvent.click(screen.getByText(label));
+    for (const label of ["Manual", "Disabled", "Audition", "Stone"])
+      fireEvent.click(screen.getByText(label));
     await act(async () => {});
-    expect(playUiClick).not.toHaveBeenCalled();
+    expect(playUiFeedback).not.toHaveBeenCalled();
     cleanup();
     localStorage.setItem("tiao:soundEnabled", "0");
     fixture();
     fireEvent.click(screen.getByText("Menu"));
     await act(async () => {});
-    expect(playUiClick).not.toHaveBeenCalled();
+    expect(playUiFeedback).not.toHaveBeenCalled();
   });
 });

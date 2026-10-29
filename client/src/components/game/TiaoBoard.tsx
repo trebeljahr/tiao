@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { useBoardInput } from "@/hooks/useBoardInput";
 import { usePinchZoom } from "@/hooks/usePinchZoom";
 import { IS_TOUCH_DEVICE } from "@/lib/isTouchDevice";
+import { playUiFeedback } from "@/lib/uiClickAudio";
 import { useBoardTheme } from "@/lib/useBoardTheme";
 import { cn } from "@/lib/utils";
 import { BoardArrowsLayer } from "./BoardArrowsLayer";
@@ -169,6 +170,7 @@ export function TiaoBoard({
 
   const showPlacementError = useCallback(
     (code: RuleFailureCode) => {
+      void playUiFeedback("error");
       toast.error(t(PLACEMENT_ERROR_KEYS[code] ?? "invalidPlacementToast"));
     },
     [t],
