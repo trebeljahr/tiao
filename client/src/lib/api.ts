@@ -632,17 +632,31 @@ export type Subscription = {
   currentPeriodEnd: string;
   /** Which store bills it. Older servers omit it (Stripe). */
   provider?: "stripe" | "google_play" | "apple";
+  accessSuspended?: boolean;
 };
 
 export function getShopCatalog() {
   return request<{ catalog: ShopCatalogItem[] }>("/api/shop/catalog");
 }
 
-export function createCheckoutSession(itemType: string, itemId: string) {
-  return request<{ url: string }>("/api/shop/checkout", {
-    method: "POST",
-    body: { itemType, itemId },
-  });
+export type StripeCheckoutStatus = {
+  status: "open" | "pending" | "granted" | "failed" | "expired" | "revoked";
+  itemType: "badge" | "theme";
+  itemId: string;
+};
+
+export function createCheckoutSession(itemType: string, itemId: string, desktop = false) {
+  return request<{ url: string | null; sessionId: string; status: StripeCheckoutStatus["status"] }>(
+    "/api/shop/checkout",
+    {
+      method: "POST",
+      body: { itemType, itemId, desktop },
+    },
+  );
+}
+
+export function getCheckoutStatus(sessionId: string) {
+  return request<StripeCheckoutStatus>(`/api/shop/checkout/${encodeURIComponent(sessionId)}`);
 }
 
 export function getSubscriptions() {

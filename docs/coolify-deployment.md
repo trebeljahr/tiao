@@ -187,9 +187,15 @@ Before enabling payments on the production backend:
 2. Configure a live Stripe key in `STRIPE_SECRET_KEY`. Prefer a restricted key
    with permissions for Customers, Checkout Sessions, and Subscriptions, plus
    the product/price creation permissions required by inline `price_data`.
+   Reconciliation also needs read access to PaymentIntents, Invoices,
+   Invoice Payments, and Disputes. Refunds are initiated in Stripe; the app
+   updates access when Stripe reports them.
 3. Register a live webhook at `https://playtiao.com/api/shop/webhook` for
-   `checkout.session.completed`, `customer.subscription.updated`,
-   `customer.subscription.deleted`, and `invoice.payment_failed`.
+   `checkout.session.completed`, `checkout.session.async_payment_succeeded`,
+   `checkout.session.async_payment_failed`, `checkout.session.expired`,
+   `customer.subscription.updated`, `customer.subscription.deleted`,
+   `invoice.paid`, `invoice.payment_failed`, `charge.refunded`,
+   `charge.dispute.created`, `charge.dispute.updated`, and `charge.dispute.closed`.
 4. Store that endpoint's signing secret in `STRIPE_WEBHOOK_SECRET` and set
    `FRONTEND_URL=https://playtiao.com` on the backend.
 5. Redeploy the backend and verify webhook delivery and fulfillment.
@@ -198,6 +204,33 @@ Production rejects sandbox keys and missing webhook secrets with
 `STRIPE_NOT_CONFIGURED`. Catalog browsing remains available. Local development
 can continue using test keys. No pre-created Stripe product IDs are required:
 checkout uses the server catalog to supply inline prices.
+
+Checkout attempts are stored in `StripePurchase`. Its unique partial index
+permits one active attempt per player/item across API workers. The application
+waits for that index before creating a session; allow MongoDB index creation
+on deployment. Keep these records across restarts, and do not delete pending
+attempts to unblock a payment: first reconcile the recorded session in Stripe.
+Completed unpaid sessions remain pending until Stripe reports success/failure.
+Checkout creation retries use the attempt's stable Stripe idempotency key.
+
+The authenticated `GET /api/shop/checkout/:sessionId` endpoint checks ownership
+and reconciles current Stripe payment state. Web and direct desktop clients
+retain a pending session hint per account and resume checking after a reload,
+focus or reconnect. Direct/itch desktop checkouts offer a `Return to Tiao`
+link; the `tiao://checkout` callback only routes to the shop and never grants
+access itself. Store builds continue to use their native purchase paths.
+
+Full refunds revoke the refunded entitlement; partial refunds retain it.
+Disputes suspend access until won or closed without a loss. A refunded older
+subscription invoice does not revoke a newer paid period. Other valid store
+purchases and subscriptions retain access. All changes reconcile Stripe's
+current state, so replaying an old checkout event cannot undo a refund.
+Refunds do not cancel future subscription billing. Suspended access remains
+visible alongside the subscription's renewal/cancellation controls, and an
+existing billing subscription blocks buying another one. A later paid period
+or a won dispute restores access.
+Do not mark an event delivered when entitlement updates fail: HTTP 500 asks
+Stripe to retry, including failed revocations.
 
 Sandbox customer and subscription IDs cannot be used in live mode. If production
 accounts contain sandbox purchase records from admin testing, reconcile those

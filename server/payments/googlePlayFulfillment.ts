@@ -77,6 +77,7 @@ export function otherSubscriptionEntitles(
   now: number,
 ): boolean {
   return subscriptions.some((s) => {
+    if (s.accessSuspended) return false;
     if (s.badgeId !== badgeId || s.subscriptionId === exceptId) return false;
     if (s.status === "active") return true;
     if (s.status === "canceled") return new Date(s.currentPeriodEnd).getTime() > now;

@@ -17,6 +17,7 @@ import AppStorePurchase, {
   type IAppStorePurchase,
 } from "../models/AppStorePurchase";
 import GameAccount, { type ISubscription } from "../models/GameAccount";
+import { otherSubscriptionEntitles } from "../payments/googlePlayFulfillment";
 import { type AppStoreGateway, AppStoreGatewayError } from "./appStoreGateway";
 
 /**
@@ -171,7 +172,7 @@ async function syncAccountEntitlement(
     } else {
       // Another subscription row for the same badge (a Stripe Patron
       // subscription) keeps it until that row is removed in turn.
-      const stillCovered = others.some((s: ISubscription) => s.badgeId === item.id);
+      const stillCovered = otherSubscriptionEntitles(others, item.id, undefined, Date.now());
       if (!stillCovered) await revokeBadge(playerId, item.id);
     }
     return;

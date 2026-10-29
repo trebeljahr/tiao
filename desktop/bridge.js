@@ -36,6 +36,7 @@
     platform: config.platform,
     version: config.version,
     config: Object.freeze(config),
+    checkout: { onReturn: subscribe("checkout:return") },
     auth: {
       ...methods("auth", [
         "steam",

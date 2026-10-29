@@ -16,6 +16,8 @@ export interface ISubscription {
   currentPeriodEnd: Date;
   /** Which store bills this subscription. Missing on rows written before Play billing. */
   provider?: "stripe" | "google_play" | "apple";
+  /** Billing may continue while a refunded/disputed period no longer grants access. */
+  accessSuspended?: boolean;
 }
 
 export interface IGameAccount extends Document {
@@ -155,6 +157,7 @@ const GameAccountSchema = new Schema<IGameAccount>(
           status: { type: String, enum: ["active", "past_due", "canceled"], default: "active" },
           currentPeriodEnd: { type: Date, required: true },
           provider: { type: String, enum: ["stripe", "google_play", "apple"] },
+          accessSuspended: { type: Boolean },
         },
       ],
       default: [],

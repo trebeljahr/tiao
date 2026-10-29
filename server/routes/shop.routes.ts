@@ -1,11 +1,12 @@
 import express, { type Request, type Response } from "express";
-import { trackGoal } from "../analytics/plausible";
 import { getPlayerFromRequest } from "../auth/sessionHelper";
 import { FRONTEND_URL } from "../config/envVars";
 import { appStoreProductId, findShopItem, SHOP_ITEMS } from "../config/shopCatalog";
 import { handleRouteError } from "../error-handling/routeError";
-import { grantBadge, grantTheme, revokeBadge } from "../game/badgeService";
 import GameAccount, { type ISubscription } from "../models/GameAccount";
+
+import { mongoStripeShop } from "../payments/mongoStripeShop";
+import { StripeShop } from "../payments/stripeShop";
 
 const router = express.Router();
 
@@ -25,20 +26,8 @@ function getStripe(): any {
   return new Stripe(key);
 }
 
-/**
- * Pull `current_period_end` from a Stripe Subscription. In API version
- * 2025-08-27.basil this field was removed from the Subscription object and
- * lives on each subscription item instead. Be defensive across both shapes
- * and surface a clear error if neither is present so we don't store an
- * Invalid Date in Mongo.
- */
-function subscriptionPeriodEnd(subscription: any): Date {
-  const raw =
-    subscription?.current_period_end ?? subscription?.items?.data?.[0]?.current_period_end;
-  if (typeof raw !== "number" || !Number.isFinite(raw)) {
-    throw new Error(`Stripe subscription ${subscription?.id ?? "?"} is missing current_period_end`);
-  }
-  return new Date(raw * 1000);
+function shop(stripe: any) {
+  return new StripeShop(stripe, mongoStripeShop, FRONTEND_URL || "http://127.0.0.1:3000");
 }
 
 // ---------------------------------------------------------------------------
@@ -115,7 +104,10 @@ router.post("/checkout", async (req: Request, res: Response) => {
     if (item.recurring && account) {
       const existing = account.activeSubscriptions?.find(
         (s: ISubscription) =>
-          s.badgeId === item.id && (s.status === "active" || s.status === "past_due"),
+          s.badgeId === item.id &&
+          (s.status === "active" ||
+            s.status === "past_due" ||
+            (s.status === "canceled" && new Date(s.currentPeriodEnd).getTime() > Date.now())),
       );
       if (existing) {
         return res.status(409).json({
@@ -139,83 +131,57 @@ router.post("/checkout", async (req: Request, res: Response) => {
       }
     }
 
-    // In dev, the frontend runs on a different port than the backend.
-    // Use localhost (not 127.0.0.1) to match Next.js dev server origin.
-    const origin = FRONTEND_URL || "http://localhost:3000";
-
     // Ensure Stripe customer exists for subscription items
     let customerId: string | undefined;
     if (item.recurring && account) {
       if (account.stripeCustomerId) {
         customerId = account.stripeCustomerId;
       } else {
-        const customer = await stripe.customers.create({
-          metadata: { playerId: player.playerId },
-        });
+        const customer = await stripe.customers.create(
+          {
+            metadata: { playerId: player.playerId },
+          },
+          { idempotencyKey: `shop-customer:${player.playerId}` },
+        );
         account.stripeCustomerId = customer.id;
         await account.save();
         customerId = customer.id;
       }
     }
 
-    if (item.recurring) {
-      const session = await stripe.checkout.sessions.create({
-        mode: "subscription",
-        customer: customerId,
-        line_items: [
-          {
-            price_data: {
-              currency: item.currency,
-              unit_amount: item.price,
-              recurring: { interval: item.recurring.interval },
-              product_data: { name: `${item.stripeName} (monthly)` },
-            },
-            quantity: 1,
-          },
-        ],
-        metadata: {
-          playerId: player.playerId,
-          itemType: item.type,
-          itemId: item.id,
-        },
-        subscription_data: {
-          metadata: {
-            playerId: player.playerId,
-            itemType: item.type,
-            itemId: item.id,
-          },
-        },
-        success_url: `${origin}/shop?success=true&item=${item.type}-${item.id}`,
-        cancel_url: `${origin}/shop?cancelled=true`,
-      });
-
-      return res.json({ url: session.url });
-    }
-
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      line_items: [
-        {
-          price_data: {
-            currency: item.currency,
-            unit_amount: item.price,
-            product_data: { name: item.stripeName },
-          },
-          quantity: 1,
-        },
-      ],
-      metadata: {
-        playerId: player.playerId,
-        itemType: item.type,
-        itemId: item.id,
-      },
-      success_url: `${origin}/shop?success=true&item=${item.type}-${item.id}`,
-      cancel_url: `${origin}/shop?cancelled=true`,
-    });
-
-    return res.json({ url: session.url });
+    if (!account) return res.status(404).json({ message: "Account not found." });
+    const result = await shop(stripe).checkout(
+      player.playerId,
+      item,
+      req.body.desktop === true,
+      customerId,
+    );
+    return res.json(result);
   } catch (error) {
     return handleRouteError(res, error, "Unable to create checkout session.", req);
+  }
+});
+
+// Authenticated reconciliation also repairs a paid purchase if its webhook is delayed.
+router.get("/checkout/:sessionId", async (req: Request, res: Response) => {
+  try {
+    const player = await getPlayerFromRequest(req);
+    if (!player || player.kind !== "account")
+      return res.status(401).json({ code: "ACCOUNT_REQUIRED" });
+    const sessionId = req.params.sessionId;
+    if (
+      typeof sessionId !== "string" ||
+      !/^cs_(?:test_|live_)?[A-Za-z0-9_]{1,240}$/.test(sessionId)
+    ) {
+      return res.status(400).json({ message: "Invalid checkout session." });
+    }
+    const stripe = getStripe();
+    if (!stripe) return res.status(503).json({ code: "STRIPE_NOT_CONFIGURED" });
+    const result = await shop(stripe).status(sessionId, player.playerId);
+    if (!result) return res.status(404).json({ message: "Checkout not found." });
+    return res.json(result);
+  } catch (error) {
+    return handleRouteError(res, error, "Unable to check purchase.", req);
   }
 });
 
@@ -237,6 +203,7 @@ router.get("/subscriptions", async (req: Request, res: Response) => {
     const subscriptions = (account?.activeSubscriptions ?? []).map((s: ISubscription) => ({
       subscriptionId: s.subscriptionId,
       provider: s.provider ?? "stripe",
+      accessSuspended: s.accessSuspended ?? false,
       badgeId: s.badgeId,
       status: s.status,
       currentPeriodEnd: s.currentPeriodEnd,
@@ -315,8 +282,7 @@ router.post("/cancel-subscription", async (req: Request, res: Response) => {
       cancel_at_period_end: true,
     });
 
-    sub.status = "canceled";
-    await account!.save();
+    await shop(stripe).syncSubscription(subscriptionId);
 
     console.info(
       `[shop] Subscription ${subscriptionId} canceled by ${player.playerId}, active until ${sub.currentPeriodEnd}`,
@@ -359,148 +325,7 @@ router.post(
         return res.status(400).json({ message: "Invalid signature." });
       }
 
-      switch (event.type) {
-        case "checkout.session.completed": {
-          const session = event.data.object;
-          const { playerId, itemType, itemId } = session.metadata ?? {};
-
-          if (!playerId || !itemType || !itemId) {
-            console.warn("[shop] Webhook missing metadata:", session.metadata);
-            break;
-          }
-
-          // Validate metadata values before using them in DB queries
-          if (!/^[a-f0-9]{24}$/i.test(playerId)) {
-            console.warn(`[shop] Invalid playerId format in webhook metadata: ${playerId}`);
-            break;
-          }
-          if (itemType !== "badge" && itemType !== "theme") {
-            console.warn(`[shop] Invalid itemType in webhook metadata: ${itemType}`);
-            break;
-          }
-          if (!findShopItem(itemType, itemId)) {
-            console.warn(`[shop] Unknown item in webhook metadata: ${itemType}/${itemId}`);
-            break;
-          }
-
-          try {
-            if (session.mode === "subscription") {
-              const subscriptionId = session.subscription;
-              if (subscriptionId) {
-                const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-                const account = await GameAccount.findById(playerId);
-                if (account) {
-                  const existingIdx = account.activeSubscriptions?.findIndex(
-                    (s: ISubscription) => s.subscriptionId === subscriptionId,
-                  );
-                  const subRecord = {
-                    subscriptionId,
-                    badgeId: itemId,
-                    status: "active" as const,
-                    currentPeriodEnd: subscriptionPeriodEnd(subscription),
-                    provider: "stripe" as const,
-                  };
-                  if (existingIdx !== undefined && existingIdx >= 0) {
-                    account.activeSubscriptions[existingIdx] = subRecord;
-                  } else {
-                    account.activeSubscriptions.push(subRecord);
-                  }
-                  await account.save();
-                }
-                await grantBadge(playerId, itemId);
-                console.info(`[shop] Subscription badge "${itemId}" granted to ${playerId}`);
-                trackGoal("subscription_started", { badge_id: itemId, store: "stripe" });
-              }
-            } else {
-              if (itemType === "badge") {
-                await grantBadge(playerId, itemId);
-                console.info(`[shop] Granted badge "${itemId}" to ${playerId}`);
-              } else if (itemType === "theme") {
-                await grantTheme(playerId, itemId);
-                console.info(`[shop] Granted theme "${itemId}" to ${playerId}`);
-              }
-            }
-          } catch (grantErr) {
-            // Return 500 so Stripe retries — the user paid but didn't get
-            // their item, and a retry will likely succeed once the transient
-            // issue (DB hiccup, etc.) resolves.
-            console.error("[shop] Failed to grant item, returning 500 for Stripe retry:", grantErr);
-            return res.status(500).json({ message: "Fulfillment failed." });
-          }
-          break;
-        }
-
-        case "customer.subscription.updated": {
-          const subscription = event.data.object;
-          const { playerId, itemId } = subscription.metadata ?? {};
-          if (!playerId || !itemId) break;
-
-          const account = await GameAccount.findById(playerId);
-          if (!account) break;
-
-          const sub = account.activeSubscriptions?.find(
-            (s: ISubscription) => s.subscriptionId === subscription.id,
-          );
-          if (sub) {
-            sub.currentPeriodEnd = subscriptionPeriodEnd(subscription);
-
-            if (subscription.status === "active") {
-              sub.status = "active";
-            } else if (subscription.status === "past_due") {
-              sub.status = "past_due";
-            } else if (subscription.status === "canceled" || subscription.cancel_at_period_end) {
-              sub.status = "canceled";
-            }
-
-            await account.save();
-            console.info(`[shop] Subscription ${subscription.id} updated: status=${sub.status}`);
-          }
-          break;
-        }
-
-        case "customer.subscription.deleted": {
-          const subscription = event.data.object;
-          const { playerId, itemId } = subscription.metadata ?? {};
-          if (!playerId || !itemId) break;
-
-          const account = await GameAccount.findById(playerId);
-          if (account) {
-            account.activeSubscriptions = (account.activeSubscriptions ?? []).filter(
-              (s: ISubscription) => s.subscriptionId !== subscription.id,
-            );
-            await account.save();
-          }
-
-          try {
-            await revokeBadge(playerId, itemId);
-            console.info(`[shop] Subscription badge "${itemId}" revoked from ${playerId}`);
-          } catch (err) {
-            console.error("[shop] Failed to revoke badge:", err);
-          }
-          break;
-        }
-
-        case "invoice.payment_failed": {
-          const invoice = event.data.object;
-          const subscriptionId = invoice.subscription;
-          if (!subscriptionId) break;
-
-          const account = await GameAccount.findOne({
-            "activeSubscriptions.subscriptionId": subscriptionId,
-          });
-          if (account) {
-            const sub = account.activeSubscriptions?.find(
-              (s: ISubscription) => s.subscriptionId === subscriptionId,
-            );
-            if (sub) {
-              sub.status = "past_due";
-              await account.save();
-              console.warn(`[shop] Payment failed for subscription ${subscriptionId}`);
-            }
-          }
-          break;
-        }
-      }
+      await shop(stripe).webhook(event.type, event.data.object);
 
       return res.status(200).json({ received: true });
     } catch (error) {

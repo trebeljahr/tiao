@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { deepLinkToPath, dispatchAuthDeepLink, isAuthDeepLink } from "@/lib/nativeDeepLinks";
+import { isCheckoutSessionId } from "@/lib/useStripeCheckout";
 
 type ListenerHandle = { remove: () => Promise<void> | void };
 type CapacitorWindow = {
@@ -28,6 +29,27 @@ type CapacitorWindow = {
  */
 export function NativeDeepLinkHandler() {
   const router = useRouter();
+
+  useEffect(() => {
+    const desktop = (
+      window as unknown as {
+        electron?: {
+          checkout?: {
+            onReturn: (
+              listener: (event: { sessionId?: string; cancelled?: boolean }) => void,
+            ) => () => void;
+          };
+        };
+      }
+    ).electron;
+    return desktop?.checkout?.onReturn(({ sessionId, cancelled }) => {
+      const locale = window.location.pathname.match(/^\/(en|de|es)(?:\/|$)/)?.[1] ?? "en";
+      if (cancelled === true && sessionId === undefined)
+        router.push(`/${locale}/shop?cancelled=true`);
+      else if (isCheckoutSessionId(sessionId) && !cancelled)
+        router.push(`/${locale}/shop?session_id=${encodeURIComponent(sessionId)}`);
+    });
+  }, [router]);
 
   useEffect(() => {
     const capacitor = (window as unknown as CapacitorWindow).Capacitor;

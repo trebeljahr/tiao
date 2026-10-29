@@ -8,6 +8,7 @@ import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, test } from "node:test";
 import type { Request, Response, Router } from "express";
 import mongoose from "mongoose";
+import Stripe from "stripe";
 import GameAccount from "../models/GameAccount";
 import {
   createTestAccount,
@@ -93,7 +94,7 @@ async function invokeRoute<T = unknown>(
   router: TestRouter,
   method: string,
   path: string,
-  options: { cookie?: string; body?: unknown } = {},
+  options: { cookie?: string; body?: unknown; params?: Record<string, string> } = {},
 ): Promise<RouteResult<T>> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const stack = (router as any).stack as any[];
@@ -106,7 +107,7 @@ async function invokeRoute<T = unknown>(
     method: method.toUpperCase(),
     path,
     url: path,
-    params: {},
+    params: options.params ?? {},
     query: {},
     body: options.body ?? {},
     headers: {
@@ -160,6 +161,8 @@ function createMockAccount(
 
 describe("Shop routes", () => {
   let router: TestRouter;
+  const stripeModule = require.cache[require.resolve("stripe")]!;
+  const realStripe = stripeModule.exports;
 
   beforeEach(async () => {
     resetTestSessions();
@@ -202,6 +205,7 @@ describe("Shop routes", () => {
   });
 
   afterEach(() => {
+    stripeModule.exports = realStripe;
     process.env.NODE_ENV = "test";
     resetTestSessions();
   });
@@ -373,6 +377,139 @@ describe("Shop routes", () => {
   });
 
   // ── POST /cancel-subscription ──
+
+  describe("checkout reconciliation and signed webhooks", () => {
+    function fakeStripe(overrides: Record<string, unknown>) {
+      const real = new Stripe("sk_test_fake");
+      stripeModule.exports = class {
+        webhooks = real.webhooks;
+        constructor() {
+          Object.assign(this, overrides);
+        }
+      };
+      process.env.STRIPE_SECRET_KEY = "sk_test_fake";
+      process.env.STRIPE_WEBHOOK_SECRET = "whsec_test_fake";
+      return real;
+    }
+
+    async function webhook(real: Stripe, type: string, object: unknown, signature?: string) {
+      const body = JSON.stringify({ id: "evt_test", type, data: { object } });
+      const layer = router.stack.find((l) => l.route?.path === "/webhook")!;
+      const handler = layer.route!.stack.at(-1)!.handle;
+      const res = createMockResponse();
+      await handler(
+        {
+          body: Buffer.from(body),
+          headers: {
+            "stripe-signature":
+              signature ??
+              real.webhooks.generateTestHeaderString({ payload: body, secret: "whsec_test_fake" }),
+          },
+        } as unknown as Request,
+        res as unknown as Response,
+        () => {},
+      );
+      return res._result;
+    }
+
+    test("status requires an account and rejects malformed session identifiers", async () => {
+      assert.equal((await invokeRoute(router, "GET", "/checkout/:sessionId")).status, 401);
+      const buyer = createTestAccount("buyer", "buyer@test.com");
+      const response = await invokeRoute(router, "GET", "/checkout/:sessionId", {
+        cookie: buyer.cookie,
+        params: { sessionId: "https://example.com" },
+      });
+      assert.equal(response.status, 400);
+    });
+
+    test("status refuses a checkout belonging to another account", async () => {
+      const buyer = createTestAccount("buyer", "buyer@test.com");
+      fakeStripe({
+        checkout: {
+          sessions: { retrieve: async () => ({ metadata: { playerId: "another-account" } }) },
+        },
+      });
+      const response = await invokeRoute(router, "GET", "/checkout/:sessionId", {
+        cookie: buyer.cookie,
+        params: { sessionId: "cs_test_other" },
+      });
+      assert.equal(response.status, 404);
+    });
+
+    test("invalid signatures cannot execute fulfillment", async () => {
+      let touched = false;
+      const real = fakeStripe({
+        subscriptions: {
+          retrieve: async () => {
+            touched = true;
+          },
+        },
+      });
+      const response = await webhook(real, "customer.subscription.deleted", {}, "bad-signature");
+      assert.equal(response.status, 400);
+      assert.equal(touched, false);
+    });
+
+    test("a signed revocation that fails returns 500 for Stripe to retry", async () => {
+      const playerId = "64b000000000000000000001";
+      createMockAccount(playerId, "buyer", ["patron"]);
+      const sub = {
+        id: "sub_test",
+        status: "canceled",
+        metadata: { playerId, itemType: "badge", itemId: "patron" },
+      };
+      const real = fakeStripe({ subscriptions: { retrieve: async () => sub } });
+      const original = GameAccount.updateOne;
+      (GameAccount as unknown as Record<string, unknown>).updateOne = async () => {
+        throw new Error("DB unavailable");
+      };
+      try {
+        assert.equal((await webhook(real, "customer.subscription.deleted", sub)).status, 500);
+      } finally {
+        GameAccount.updateOne = original;
+      }
+    });
+
+    test("a canceled subscription that still covers the paid period blocks duplicate billing", async () => {
+      process.env.STRIPE_SECRET_KEY = "sk_test_fake";
+      const buyer = createTestAccount("buyer", "buyer@test.com");
+      const account = createMockAccount(buyer.player.playerId, "buyer", ["patron"]);
+      Object.assign(account, {
+        activeSubscriptions: [
+          {
+            subscriptionId: "sub_existing",
+            badgeId: "patron",
+            provider: "stripe",
+            status: "canceled",
+            currentPeriodEnd: new Date(Date.now() + 86400000),
+          },
+        ],
+      });
+      const response = await invokeRoute(router, "POST", "/checkout", {
+        cookie: buyer.cookie,
+        body: { itemType: "badge", itemId: "patron" },
+      });
+      assert.equal(response.status, 409);
+      assert.equal((response.body as { code: string }).code, "ALREADY_SUBSCRIBED");
+      Object.assign(account, {
+        activeSubscriptions: [
+          {
+            subscriptionId: "sub_suspended",
+            badgeId: "patron",
+            provider: "stripe",
+            status: "active",
+            accessSuspended: true,
+            currentPeriodEnd: new Date(Date.now() + 86400000),
+          },
+        ],
+      });
+      const suspended = await invokeRoute(router, "POST", "/checkout", {
+        cookie: buyer.cookie,
+        body: { itemType: "badge", itemId: "patron" },
+      });
+      assert.equal(suspended.status, 409);
+    });
+  });
 
   describe("POST /cancel-subscription", () => {
     test("refuses App Store subscriptions, which only Apple can cancel", async () => {

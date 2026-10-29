@@ -30,12 +30,14 @@ import {
   cancelSubscription,
   createCheckoutSession,
   getMyAchievements,
+  getPlayerIdentity,
   getShopCatalog,
   getSubscriptions,
   reconcileSteamPurchases,
   type ShopCatalogItem,
   type Subscription,
 } from "@/lib/api";
+import { getDistributionChannel } from "@/lib/distributionChannel";
 import { toastError } from "@/lib/errors";
 import { isAdmin } from "@/lib/featureGate";
 import { getGooglePlayPrices, openGooglePlaySubscriptions } from "@/lib/GooglePlayBridge";
@@ -57,6 +59,7 @@ import {
   useStorePurchaseChannel,
   watchAppStorePurchases,
 } from "@/lib/storePurchases";
+import { isCheckoutSessionId, useStripeCheckout } from "@/lib/useStripeCheckout";
 import { cn } from "@/lib/utils";
 
 // Achievement IDs that auto-grant a corresponding badge (must match server/config/badgeRewards.ts)
@@ -199,6 +202,9 @@ export function ShopPage() {
   const [cancelTarget, setCancelTarget] = useState<Subscription | null>(null);
 
   const isAccount = auth?.player.kind === "account";
+  const returnedSessionId = searchParams?.get("session_id") ?? null;
+  const desktopReturn =
+    searchParams?.get("desktop") === "true" && getDistributionChannel() === "web";
 
   const fetchCatalog = useCallback(
     async (silent = false) => {
@@ -241,6 +247,27 @@ export function ShopPage() {
 
   // Handle Stripe redirect — track the purchased item for confetti after load
   const [purchasedItem, setPurchasedItem] = useState<string | null>(null);
+
+  const { trackCheckout, stopTrackingCheckout, checkoutPending } = useStripeCheckout(
+    !desktopReturn && !authLoading && isAccount ? auth.player.playerId : null,
+    desktopReturn ? null : returnedSessionId,
+    (result) => {
+      void fetchCatalog(true);
+      void getPlayerIdentity()
+        .then(({ player }) => applyAuth({ player }))
+        .catch(() => {});
+      if (result.status === "granted") {
+        if (result.itemType === "badge" && BADGE_DEFINITIONS[result.itemId as BadgeId]) {
+          toast.success(
+            <BadgeToast badge={result.itemId as BadgeId} title={t("purchaseComplete")} />,
+          );
+        } else toast.success(t("purchaseComplete"));
+        setPurchasedItem(`${result.itemType}-${result.itemId}`);
+      } else if (result.status === "expired") toast(t("purchaseCancelled"));
+      else toast.error(t(result.status === "revoked" ? "purchaseReversed" : "purchaseFailed"));
+      window.history.replaceState({}, "", window.location.pathname);
+    },
+  );
 
   // Verify the Stripe webhook actually granted the item before celebrating.
   // Stripe redirects the player back here as soon as Checkout completes, but
@@ -290,26 +317,32 @@ export function ShopPage() {
         await new Promise((r) => setTimeout(r, 1000));
       }
 
-      // Webhook never landed — clean error, no confetti.
-      toast.error(t("purchaseFailed"));
+      // Older Checkout links have no session ID. A slow webhook is pending,
+      // never evidence that the payment itself failed.
+      toast(t("purchasePending"));
     },
     [isAccount, t],
   );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Stripe redirect handler — read params once on mount; clearing them via history.replaceState would otherwise loop the effect
+  const handledRedirect = useRef<string | null>(null);
   useEffect(() => {
+    if (authLoading) return;
     const success = searchParams?.get("success");
     const cancelled = searchParams?.get("cancelled");
     const item = searchParams?.get("item");
+    const key = searchParams?.toString() ?? "";
+    if (handledRedirect.current === key || (success !== "true" && cancelled !== "true")) return;
+    handledRedirect.current = key;
 
     if (success === "true") {
       window.history.replaceState({}, "", window.location.pathname);
       void verifyPurchase(item);
     } else if (cancelled === "true") {
+      stopTrackingCheckout();
       toast(t("purchaseCancelled"));
-      window.history.replaceState({}, "", window.location.pathname);
+      if (!desktopReturn) window.history.replaceState({}, "", window.location.pathname);
     }
-  }, []);
+  }, [authLoading, searchParams, verifyPurchase, stopTrackingCheckout, desktopReturn, t]);
 
   // Fire confetti + scroll once the purchased item element appears in the DOM
   useEffect(() => {
@@ -574,7 +607,9 @@ export function ShopPage() {
       return;
     }
     try {
-      const { url } = await createCheckoutSession(item.type, item.id);
+      const desktop = ["direct", "itch"].includes(getDistributionChannel());
+      const { url, sessionId } = await createCheckoutSession(item.type, item.id, desktop);
+      trackCheckout(sessionId);
       if (url) {
         window.location.href = url;
       }
@@ -630,6 +665,24 @@ export function ShopPage() {
   return (
     <PageLayout mainClassName="gap-6 pb-12">
       <BackButton />
+      {desktopReturn &&
+        (isCheckoutSessionId(returnedSessionId) || searchParams?.get("cancelled") === "true") && (
+          <a
+            className="self-start font-medium underline underline-offset-2"
+            href={
+              isCheckoutSessionId(returnedSessionId)
+                ? `tiao://checkout?session_id=${encodeURIComponent(returnedSessionId)}`
+                : "tiao://checkout?cancelled=true"
+            }
+          >
+            {t("returnToApp")}
+          </a>
+        )}
+      {checkoutPending && (
+        <p role="status" className="text-sm text-[#6e5b48]">
+          {t("purchasePending")}
+        </p>
+      )}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-4xl text-[#2b1e14]">{t("title")}</h1>
@@ -764,12 +817,14 @@ export function ShopPage() {
                             </Button>
                           )}
                         </div>
-                        {sub?.status === "active" && (
+                        {sub && (sub.status === "active" || sub.status === "past_due") && (
                           <div className="flex items-center justify-between text-xs">
                             <span className="text-emerald-700">
-                              {t("activeSubscription", {
-                                date: new Date(sub.currentPeriodEnd).toLocaleDateString(),
-                              })}
+                              {sub.status === "past_due"
+                                ? t("pastDueSubscription")
+                                : t("activeSubscription", {
+                                    date: new Date(sub.currentPeriodEnd).toLocaleDateString(),
+                                  })}
                             </span>
                             {sub.provider === "google_play" ? (
                               <ManageInGooglePlay label={t("manageInGooglePlay")} />
@@ -795,8 +850,8 @@ export function ShopPage() {
                             })}
                           </span>
                         )}
-                        {sub?.status === "past_due" && (
-                          <span className="text-xs text-red-600">{t("pastDueSubscription")}</span>
+                        {sub?.accessSuspended && (
+                          <span className="text-xs text-red-600">{t("subscriptionSuspended")}</span>
                         )}
                         {sub?.provider === "apple" && (
                           <span className="text-xs text-[#6e5b48]">

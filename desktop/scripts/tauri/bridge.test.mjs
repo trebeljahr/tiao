@@ -64,6 +64,18 @@ test("event subscriptions can unsubscribe and preserve payloads", async () => {
   assert.deepEqual(received, [{ orderId: "123" }]);
 });
 
+test("checkout return survives frontend mounting after native ready", async () => {
+  const { api, emit } = await bridge();
+  const received = [];
+  emit("checkout:return", { sessionId: "cs_test_123" });
+  const unsubscribe = api.checkout.onReturn((value) => received.push(value));
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.deepEqual(received, [{ sessionId: "cs_test_123" }]);
+  unsubscribe();
+  emit("checkout:return", { sessionId: "cs_test_other" });
+  assert.equal(received.length, 1);
+});
+
 test("startup auth delivery survives frontend mounting after native ready", async () => {
   const { api } = await bridge();
   await new Promise((resolve) => setImmediate(resolve));

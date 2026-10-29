@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod auth;
+mod checkout;
 mod config;
 mod events;
 mod routes;
@@ -109,6 +110,20 @@ fn trusted_url(url: &url::Url) -> bool {
 }
 fn links(app: &tauri::AppHandle, args: Vec<String>) {
     for arg in args.iter().filter(|arg| arg.starts_with("tiao:")) {
+        if matches!(config::CHANNEL, "direct" | "itch") {
+            if let Some(returned) = checkout::parse(arg) {
+                let payload = match returned {
+                    checkout::Return::Session(id) => json!({"sessionId":id}),
+                    checkout::Return::Cancelled => json!({"cancelled":true}),
+                };
+                events::send(app, "checkout:return", payload);
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.show();
+                    let _ = window.set_focus();
+                }
+                continue;
+            }
+        }
         tauri::async_runtime::spawn(auth::deep_link(app.clone(), arg.clone()));
     }
     steam::join_from_args(app, args);
