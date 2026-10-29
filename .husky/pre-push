@@ -1,14 +1,22 @@
 command -v git-lfs >/dev/null 2>&1 && git lfs pre-push "$@"
 
-printf "\n[pre-push] Typechecking client + server (parallel)...\n"
-npm run typecheck || { printf >&2 "\n[pre-push] Typecheck failed.\n"; exit 1; }
+printf "\n[pre-push] Typechecking client...\n"
+npm run typecheck:client || exit 1
+npm run typecheck:server || exit 1
 
-printf "[pre-push] Building client + running server tests (parallel)...\n"
-concurrently --kill-others-on-fail \
-  -n build,test -c blue,green \
-  "npm --prefix client run build" \
-  "npm --prefix server test" \
-  || { printf >&2 "\n[pre-push] Build or server tests failed.\n"; exit 1; }
+printf "[pre-push] Building client...\n"
+# Next uses this CPU budget for static-generation workers.
+CIRCLE_NODE_TOTAL=2 npm --prefix client run build || exit 1
+
+printf "[pre-push] Building server and running its tests...\n"
+npm --prefix server run build || exit 1
+(
+  cd server || exit 1
+  NODE_ENV=test NODE_OPTIONS='--no-deprecation' node --test \
+    --test-concurrency=1 --test-reporter=spec dist/server/tests/*.test.js
+) || exit 1
 
 printf "[pre-push] Running client tests...\n"
-npm --prefix client test || { printf >&2 "\n[pre-push] Client tests failed.\n"; exit 1; }
+# Allow cold imports on a busy machine without changing assertion timeouts.
+npm --prefix client test -- --maxWorkers=1 --testTimeout=60000 \
+  || { printf >&2 "\n[pre-push] Client tests failed.\n"; exit 1; }
