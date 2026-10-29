@@ -494,7 +494,7 @@ function AchievementAdminRow({
   return (
     <div className="flex items-center justify-between rounded-lg border border-[#d0bb94]/50 bg-white/40 px-4 py-2">
       <div className="flex items-center gap-3">
-        <AchievementIcon id={def.id} tier={def.tier} unlocked={hasIt} className="h-5 w-5" />
+        <AchievementIcon id={def.id} tier={def.tier} unlocked={hasIt} className="h-10 w-10" />
         <div className="min-w-0">
           <span className="text-sm text-[#5c4a32]">
             {name}

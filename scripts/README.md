@@ -13,6 +13,7 @@ root.
 | `measure-cold-compile.mjs` | Measure client cold-compile time for a Next.js route. |
 | `seed-tournament.mjs` | Dev-only: create bot accounts and drive a tournament. |
 | `steam-achievements.mjs` | Turn `shared/src/achievements.ts` into Partner Portal shapes. |
+| `export-achievement-artwork.mjs` | Build in-game achievement WebP assets from the selected artwork masters. |
 | `steam-achievement-icons.mjs` | Render the achievement icons Steam wants. |
 | `store-art.mjs` | Export Steam capsules/library art, Apple header, and Google Play icon/feature graphic to `build/store-media/`. Run `pnpm store:art`. Uses existing board artwork and a recorded legal position; outputs promotional graphics, not screenshots. |
 | `app-store-screenshots.mjs` | Capture gameplay and UI, then export a varied ten-image selection with an HTML gallery and checksums under `output/playwright/store-overview/<size>/`. Run `pnpm store:screenshots http://127.0.0.1:<port>` for Apple sizes, or add `--only=steam-1080p` for Steam/press. Local client only; sample API data stays isolated. |

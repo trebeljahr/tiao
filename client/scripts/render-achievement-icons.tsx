@@ -2,11 +2,8 @@
  * Emit the raw SVG markup for every achievement icon, in both locked
  * and unlocked states, as JSON on stdout.
  *
- * Exists so `scripts/steam-achievement-icons.mjs` can build Steam's
- * PNG icons from the *same* components the in-game achievements page
- * renders. Redrawing them for Steam would guarantee the two drift
- * apart, and the drift would be invisible until someone compared a
- * Steam overlay against the web app side by side.
+ * Preserves the original SVG set for the Steam exporter's optional
+ * --source app mode. Production UI uses the selected raster artwork.
  *
  * Lives in client/ rather than the repo-root scripts/ because module
  * resolution for react-dom is relative to the file, and the icon
@@ -17,7 +14,7 @@
 
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { AchievementIcon } from "../src/components/AchievementIcon";
+import { LegacyAchievementIcon } from "./LegacyAchievementIcon";
 
 type Tier = "bronze" | "silver" | "gold" | "platinum";
 type Request = { id: string; tier: Tier };
@@ -32,10 +29,10 @@ const out: Record<string, { locked: string; unlocked: string }> = {};
 for (const { id, tier } of requests) {
   out[id] = {
     unlocked: renderToStaticMarkup(
-      createElement(AchievementIcon, { id, tier, unlocked: true, className: "" }),
+      createElement(LegacyAchievementIcon, { id, tier, unlocked: true, className: "" }),
     ),
     locked: renderToStaticMarkup(
-      createElement(AchievementIcon, { id, tier, unlocked: false, className: "" }),
+      createElement(LegacyAchievementIcon, { id, tier, unlocked: false, className: "" }),
     ),
   };
 }

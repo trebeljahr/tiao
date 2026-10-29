@@ -88,7 +88,7 @@ export function AchievementCard({
       <div className="flex items-start gap-3">
         {/* Icon */}
         <div
-          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-xl ${
+          className={`flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md text-xl ${
             unlocked ? `bg-white/40 ${tier.icon}` : "bg-[#c8b99a]/20 text-[#a89a7e]"
           }`}
         >

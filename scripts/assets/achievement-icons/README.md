@@ -1,6 +1,8 @@
-# Steam achievement icon sources
+# Achievement icon sources
 
-Selected open-line artwork with Tiao's bronze, silver, gold and cyan palette. `masters/` holds the 30 selected PNG source crops. These are Steam artwork sources; the web app's SVG renderer is separate.
+Selected open-line artwork with Tiao's bronze, silver, gold and cyan palette. `masters/` holds the 30 selected PNG source crops. These masters supply both Steam and the in-game achievement UI.
+
+Run `node scripts/export-achievement-artwork.mjs` to rebuild the checked-in 128px WebP runtime assets and ID mapping. The mapping uses content-hashed filenames so artwork updates invalidate cached icons. Locked states use grayscale; unrevealed secrets keep their lock placeholder.
 
 Run `node scripts/steam-achievement-icons.mjs` from the repository root to rebuild the upload assets. ImageMagick is required. The exporter validates all IDs and source checksums before rendering.
 

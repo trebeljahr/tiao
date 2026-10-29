@@ -24,6 +24,7 @@
     "steam:local:serve": "node scripts/steam-local.mjs serve",
     "steam:achievements": "node scripts/steam-achievements.mjs",
     "steam:achievements:check": "node scripts/steam-achievements.mjs --check",
+    "achievements:artwork": "node scripts/export-achievement-artwork.mjs",
     "steam:icons": "node scripts/steam-achievement-icons.mjs",
     "store:screenshots": "node scripts/app-store-screenshots.mjs",
     "store:art": "node scripts/store-art.mjs",
