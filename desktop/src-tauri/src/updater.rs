@@ -5,7 +5,8 @@
 use std::sync::Mutex;
 
 use serde::Serialize;
-use tauri::{AppHandle, Emitter, Runtime, State};
+use tauri::{AppHandle, Emitter, Manager, Runtime, State};
+use tauri_plugin_dialog::{DialogExt, MessageDialogButtons};
 use tauri_plugin_updater::{Update, UpdaterExt};
 
 pub const PROGRESS_EVENT: &str = "updater://download-progress";
@@ -188,6 +189,40 @@ pub(crate) async fn updater_install<R: Runtime>(
     app.restart();
 }
 
+/// Preserve the direct release's opt-in startup check and explicit restart.
+/// Development builds and Steam installs must never contact an update feed.
+pub fn start(app: AppHandle) {
+    if cfg!(debug_assertions) || app.try_state::<PendingUpdate>().is_none() {
+        return;
+    }
+    tauri::async_runtime::spawn(async move {
+        let result = async {
+            if updater_check(app.clone(), app.state()).await?.is_none() {
+                return Ok::<_, String>(());
+            }
+            updater_download(app.clone(), app.state()).await?;
+            let handle = app.clone();
+            app.dialog()
+                .message("A new version of Tiao is ready to install. The app will restart to apply the update.")
+                .title("Update ready")
+                .buttons(MessageDialogButtons::OkCancelCustom("Restart now".into(), "Later".into()))
+                .show(move |restart| {
+                    if restart {
+                        tauri::async_runtime::spawn(async move {
+                            if let Err(error) = updater_install(handle.clone(), handle.state()).await {
+                                eprintln!("Could not install update: {error}");
+                            }
+                        });
+                    }
+                });
+            Ok(())
+        }.await;
+        if let Err(error) = result {
+            eprintln!("Could not check or download update: {error}");
+        }
+    });
+}
+
 /// Registers updater state and its plugin outside Steam installs. App commands
 /// are registered together in main.rs.
 pub fn register<R: Runtime>(builder: tauri::Builder<R>) -> tauri::Builder<R> {
@@ -198,5 +233,6 @@ pub fn register<R: Runtime>(builder: tauri::Builder<R>) -> tauri::Builder<R> {
 
     builder
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_dialog::init())
         .manage(PendingUpdate::default())
 }

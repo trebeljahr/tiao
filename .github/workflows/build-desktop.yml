@@ -156,7 +156,9 @@ jobs:
           TIAO_KEYCHAIN_ACCESS: deny
           CARGO_TARGET_DIR: ${{ github.workspace }}/desktop/src-tauri/target
           CARGO_BUILD_JOBS: '2'
-        run: cargo test --manifest-path src-tauri/Cargo.toml --locked
+        run: |
+          cargo test --manifest-path src-tauri/Cargo.toml --locked
+          cargo test --manifest-path src-tauri/Cargo.toml --locked --features updater
 
       - name: Install pinned Azure signing module
         if: matrix.platform == 'windows' && env.SIGNED == 'true'

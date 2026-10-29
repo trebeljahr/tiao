@@ -70,7 +70,9 @@ first Tauri launch requires a new sign-in; Chromium storage is not imported.
 Self-updates are off by default. Only direct builds may compile the `updater`
 feature. Enabling it also requires `TIAO_ENABLE_UPDATER=1`, a Tauri public key
 and HTTPS feed (`TIAO_UPDATER_PUBLIC_KEY`, `TIAO_UPDATER_ENDPOINT`). Electron
-update feeds and signatures are incompatible. Store channels own their updates.
+update feeds and signatures are incompatible. Enabled direct release builds check
+at startup, verify the download, then offer Restart now or Later. Debug builds
+skip the startup check. Store channels own their updates.
 
 Store purchases still require server verification before entitlement grants and
 transaction completion. Real purchase, signed distribution and other-platform

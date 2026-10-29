@@ -228,6 +228,8 @@ fn main() {
             }
             stores::install(app.handle());
             steam::start_pump(app.handle());
+            #[cfg(feature = "updater")]
+            updater::start(app.handle().clone());
             let handle = app.handle().clone();
             app.deep_link().on_open_url(move |event| {
                 links(
