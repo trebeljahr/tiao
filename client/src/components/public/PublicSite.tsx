@@ -19,7 +19,7 @@ export async function PublicHeader({ pathname = "/" }: { pathname?: string }) {
           {t("navAbout")}
         </Link>
         <Link href="/play" className={styles.headerPlay}>
-          {t("play")} <span aria-hidden="true">↗</span>
+          {t("play")}
         </Link>
       </nav>
       <nav className={styles.languages} aria-label="Language">

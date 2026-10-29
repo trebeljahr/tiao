@@ -46,23 +46,16 @@ export default async function Page({ params }: Props) {
           <h1 id="tiao-title" className={styles.wordmark}>
             <span className={styles.wordmarkText}>Tiao</span>
             <span className={styles.wordmarkBadge} lang="zh-Hans">
-              跳
+              <span>跳</span>
             </span>
           </h1>
           <h2>{t("headline")}</h2>
           <p className={styles.intro}>{t("intro")}</p>
           <div className={styles.actions}>
             <Link className={styles.primary} href="/play">
-              {t("play")} <span aria-hidden="true">→</span>
-            </Link>
-            <Link className={styles.textLink} href="/rules">
-              {t("tutorial")}
+              {t("play")}
             </Link>
           </div>
-          <a className={styles.openSourceLink} href="https://github.com/trebeljahr/tiao">
-            <FaGithub size={20} aria-hidden="true" />
-            {t("openSourceNote")}
-          </a>
         </div>
         <div className={styles.heroArt}>
           <BoardIllustration title={t("boardAlt")} />
@@ -91,7 +84,6 @@ export default async function Page({ params }: Props) {
                     <h3>{t(`${feature}Title`)}</h3>
                     <p>{t(`${feature}Body`)}</p>
                   </div>
-                  <span aria-hidden="true">↗</span>
                 </Link>
               ))}
             </div>
@@ -109,21 +101,18 @@ export default async function Page({ params }: Props) {
               <strong>{t("computer")}</strong>
               <small>{t("computerDetail")}</small>
             </span>
-            <span aria-hidden="true">→</span>
           </Link>
           <Link href="/local">
             <span>
               <strong>{t("local")}</strong>
               <small>{t("localDetail")}</small>
             </span>
-            <span aria-hidden="true">→</span>
           </Link>
           <Link href="/play">
             <span>
               <strong>{t("online")}</strong>
               <small>{t("onlineDetail")}</small>
             </span>
-            <span aria-hidden="true">→</span>
           </Link>
         </div>
       </section>

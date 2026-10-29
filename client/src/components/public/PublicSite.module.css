@@ -28,23 +28,21 @@
 .header nav:not(.languages) a { transition: color 180ms; }
 .header nav:not(.languages) a:hover, .footer a:hover { color: var(--accent); }
 .headerPlay { font-weight: 700; }
-.headerPlay span { display: inline-block; margin-left: 8px; }
 .languages { display: flex; gap: 10px; font-size: 11px; letter-spacing: 0.04em; }
 .languages a { opacity: 0.55; }
 .languages a[aria-current], .languages a:hover { opacity: 1; text-decoration: underline; text-underline-offset: 5px; }
 .hero { position: relative; min-height: min(780px, calc(100svh - 88px)); display: flex; align-items: center; padding: 58px 5vw 72px; isolation: isolate; }
 .heroCopy { position: relative; z-index: 1; width: 46%; max-width: 600px; animation: rise-in 700ms ease-out both; }
 .eyebrow { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.19em; margin-bottom: 24px; }
-.wordmark { display: flex; align-items: center; gap: 0.09em; font-size: clamp(100px, 12.4vw, 190px); line-height: 0.95; letter-spacing: -0.08em; margin: 0 0 30px -0.06em; }
+.wordmark { display: flex; align-items: center; gap: 0.18em; font-size: clamp(100px, 12.4vw, 190px); line-height: 0.95; letter-spacing: -0.08em; margin: 0 0 30px -0.06em; }
 .wordmarkBadge { color: #25170d; font-size: 0.5em; display: inline-flex; align-items: center; justify-content: center; width: 1.6em; height: 1.6em; flex: none; border: 2px solid #f6e8cf8c; border-radius: 50%; background: linear-gradient(180deg, #faefd8, #ecd4a6); box-shadow: 0 32px 64px -24px #25170dd9; line-height: 1; letter-spacing: 0; }
+.wordmarkBadge > span { transform: translateY(-0.08em); }
 .wordmarkText { display: block; text-box: trim-both cap alphabetic; }
 .heroCopy h2 { font-size: clamp(25px, 2.5vw, 38px); max-width: 480px; line-height: 1.25; }
 .intro { max-width: 460px; margin-top: 22px; font-size: 16px; color: #615c50; }
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 20px 28px; margin-top: 30px; }
-.primary { display: inline-flex; justify-content: space-between; align-items: center; gap: 32px; background: var(--accent); color: #fffaf0; padding: 14px 22px; font-size: 14px; font-weight: 600; transition: background 180ms, transform 180ms; }
+.primary { display: inline-flex; justify-content: center; align-items: center; background: var(--accent); color: #fffaf0; padding: 14px 22px; font-size: 14px; font-weight: 600; transition: background 180ms, transform 180ms; }
 .primary:hover { background: #743023; transform: translateY(-2px); }
-.primary span { transition: transform 180ms; }
-.primary:hover span { transform: translate(2px, -2px); }
 .textLink { display: inline-block; font-size: 14px; border-bottom: 1px solid currentColor; padding: 8px 0; text-underline-offset: 6px; transition: color 180ms; }
 .textLink:hover { color: var(--accent); }
 .note { font-size: 12px; line-height: 1.6; margin-top: 20px; max-width: 350px; color: #6c6659; }
@@ -180,9 +178,7 @@
 .featureLinks a { display: flex; justify-content: space-between; gap: 24px; padding: 24px 0; border-top: 1px solid #302d2526; }
 .featureLinks h3 { font-size: 25px; line-height: 1.25; transition: color 180ms; }
 .featureLinks p { margin-top: 10px; font-size: 14px; color: #615c50; }
-.featureLinks a > span { transition: transform 180ms; }
 .featureLinks a:hover h3 { color: var(--accent); }
-.featureLinks a:hover > span { transform: translate(3px, -3px); }
 @media (max-width: 700px) {
   .features { padding: 48px 6vw; }
   .featuresHeading { margin-bottom: 28px; }
@@ -191,8 +187,6 @@
   .playerPreview { max-width: 454px; }
 }
 
-.openSourceLink { display: inline-flex; align-items: center; gap: 10px; margin-top: 24px; font-size: 13px; color: #615c50; }
-.openSourceLink:hover { color: var(--accent); }
 .contribute { display: inline-flex; align-items: center; gap: 12px; padding: 14px 22px; background: var(--ink); color: var(--paper); font-size: 14px; font-weight: 600; }
 .contribute:hover { background: #4b4538; }
 
