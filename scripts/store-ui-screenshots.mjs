@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { chromium } from "@playwright/test";
+import { ACHIEVEMENTS } from "../shared/src/achievements.ts";
 import {
   confirmPendingJump,
   createInitialGameState,
@@ -83,7 +84,7 @@ const people = names.map((displayName, i) => ({
   activeBadges: [],
   seed: i + 1,
 }));
-const me = people[0];
+const me = { ...people[0], unlockedThemes: ["night", "sakura", "ocean", "marble"] };
 const slot = (p, online = true) => ({ player: p, online });
 const now = new Date().toISOString();
 const earlier = (h) => new Date(Date.now() - h * 3600000).toISOString();
@@ -289,6 +290,23 @@ const responses = {
     },
   },
   "/api/player/me": { player: me },
+  "/api/auth/steam/pending": { status: "none" },
+  "/api/_e": {},
+  "/api/player/achievements/progress": { gamesPlayed: 12, gamesLost: 3, friendCount: 4 },
+  "/api/player/achievements": {
+    definitions: ACHIEVEMENTS,
+    achievements: [
+      "first-move",
+      "getting-started",
+      "regular",
+      "first-fall",
+      "ai-easy",
+      "ai-medium",
+      "first-friend",
+      "tutorial-complete",
+      "chain-reaction",
+    ].map((achievementId, i) => ({ achievementId, unlockedAt: earlier(24 + i * 6) })),
+  },
   "/api/health": { ok: true },
   "/api/player/social/overview": { overview: social },
   "/api/player/social/search": {
@@ -322,6 +340,8 @@ try {
     ({ me, req }) => {
       localStorage.setItem("tiao:analytics-consent", "denied");
       localStorage.setItem("tiao:knowsHowToPlay", "true");
+      localStorage.setItem("tiao:soundEnabled", "0");
+      localStorage.setItem("tiao:boardTheme", "classic");
       localStorage.setItem("tiao:auth-cache", JSON.stringify({ player: me }));
       sessionStorage.setItem(
         `tiao:toasted-notifs:${me.playerId}`,
@@ -344,7 +364,7 @@ try {
       body: readFileSync(resolve(shared, "avatars", name)),
     });
   });
-  await context.routeWebSocket(/\/api\/ws/, (socket) => {
+  await context.routeWebSocket(/\/(api\/)?ws/, (socket) => {
     socket.onMessage(() => {});
   });
   const page = await context.newPage();
@@ -360,8 +380,7 @@ try {
     // Store sets need the exact device size; tall captures are press-only.
     if (fullPage && size.store) return;
     const avatarImages = page.locator('img[src^="/sample-avatars/"]');
-    if (name !== "06-tournaments") {
-      assert((await avatarImages.count()) > 0, `${name}: missing profile images`);
+    if (await avatarImages.count()) {
       await avatarImages.evaluateAll(async (images) => {
         await Promise.all(images.map((img) => img.decode()));
         if (images.some((img) => img.naturalWidth === 0)) throw new Error("Broken profile image");
@@ -393,10 +412,49 @@ try {
     .getByText("Match History", { exact: true })
     .evaluate((el) => el.scrollIntoView({ block: "start", behavior: "instant" }));
   await shoot("09-game-history");
-  await open("/game/Q7K2MP", "mira");
+  // Review a different match and stop on a capture, with the native move controls visible.
+  await open("/game/H3R8VN", "rowan");
   await page.getByTestId("review-nav-buttons").waitFor({ timeout: 30000 });
+  const captures = page.getByRole("table").getByRole("button").filter({ hasText: /×/ });
+  await captures.nth(Math.floor((await captures.count()) / 2)).click();
+  await page.evaluate(() => window.scrollTo(0, 0));
   await shoot("10-game-review");
+  await page.getByRole("button", { name: "Open navigation", exact: true }).click();
+  const nightTheme = page.getByRole("button", { name: "Night board theme", exact: true });
+  await nightTheme.click();
+  await nightTheme.evaluate((el) => el.scrollIntoView({ block: "center", behavior: "instant" }));
+  await shoot("15-board-themes");
+
+  await open("/tutorial", "Welcome to Tiao");
+  await page.getByRole("button", { name: "Go to step 4", exact: true }).click();
+  await page.getByRole("heading", { name: "Chain Jumps", exact: true }).waitFor();
+  await page.getByText("Tap anywhere to start", { exact: true }).click();
+  // Select the tutorial's white stone through its native board button.
+  // The mini-board is a 7×7 row-major button grid, followed by the progress dots.
+  await page
+    .locator("button.group.absolute")
+    .nth(5 * 7 + 1)
+    .click();
+  await page
+    .locator("button.group.absolute")
+    .nth(3 * 7 + 1)
+    .click();
+  await page.waitForTimeout(700);
+  await shoot("11-tutorial-chain");
+  await page.getByRole("button", { name: "Go to step 6", exact: true }).click();
+  await page.getByRole("heading", { name: "The Border Rule", exact: true }).waitFor();
+  await page.waitForTimeout(700);
+  await shoot("12-tutorial-border");
+
+  await open("/achievements", "Achievements");
+  await page.getByText("Table Regular", { exact: true }).waitFor();
+  await shoot("13-achievements");
+
+  await open("/computer", "Difficulty");
+  await page.getByRole("button", { name: "Hard", exact: true }).click();
+  await shoot("14-computer-setup");
   assert.deepEqual(errors, [], "Browser runtime errors");
+  assert.deepEqual([...unexpected], [], "Missing sample API responses");
   console.log("Unexpected API paths:", [...unexpected]);
 } finally {
   await browser.close();

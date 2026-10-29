@@ -1,0 +1,78 @@
+{
+  "size": "steam-1080p",
+  "width": 1920,
+  "height": 1080,
+  "publication": "Local selection; not uploaded or published",
+  "captures": [
+    {
+      "file": "01-four-stone-chain.png",
+      "title": "A four-stone capture chain",
+      "sha256": "6a0064881e229b2387b223caa212a5645a1bcb69314477a19a24bf7189deb553",
+      "kind": "engine-validated local gameplay",
+      "source": "output/playwright/store-gameplay/02-four-stone-chain.png"
+    },
+    {
+      "file": "02-tutorial-chain.png",
+      "title": "Interactive chain-jump tutorial",
+      "sha256": "b93dd2a93b545c0fad0fb14d5c35ca7ba87a5a206a057308e52b1dce48714ef0",
+      "kind": "shipped UI with isolated sample account data",
+      "source": "output/playwright/store-ui/11-tutorial-chain.png"
+    },
+    {
+      "file": "03-achievements.png",
+      "title": "Achievements",
+      "sha256": "b9034191eca663ece668d903eaa07b289245e33a37bd9fd22b068646fff11c79",
+      "kind": "shipped UI with isolated sample account data",
+      "source": "output/playwright/store-ui/13-achievements.png"
+    },
+    {
+      "file": "04-opening-position.png",
+      "title": "Opening play",
+      "sha256": "bbe3dfa394f48b6bf7847f2136d4e7ce2a29d9c975b5d2e3f23df78239ed298f",
+      "kind": "engine-validated local gameplay",
+      "source": "output/playwright/store-gameplay/00-opening-position.png"
+    },
+    {
+      "file": "05-computer-setup.png",
+      "title": "Computer difficulty and game setup",
+      "sha256": "03a3f0bf29e93670f08a62b34bc405f0b566b396748095094b6626af57cce472",
+      "kind": "shipped UI with isolated sample account data",
+      "source": "output/playwright/store-ui/14-computer-setup.png"
+    },
+    {
+      "file": "06-tournament-bracket.png",
+      "title": "Tournament bracket",
+      "sha256": "7fac2ba87b3ee2f7b8c4d0966417dbd652759f673bcaba25ac996b8dfb280cd0",
+      "kind": "shipped UI with isolated sample account data",
+      "source": "output/playwright/store-ui/07-tournament-bracket.png"
+    },
+    {
+      "file": "07-friends.png",
+      "title": "Friends and invitations",
+      "sha256": "1634aba6fe9c368c020436a4cb9cd3966ddd6be755dd59a7dc163eb5dea0d964",
+      "kind": "shipped UI with isolated sample account data",
+      "source": "output/playwright/store-ui/08-friends.png"
+    },
+    {
+      "file": "08-board-themes.png",
+      "title": "Board themes and navigation",
+      "sha256": "9859086192faaf13362ad5c2b7202d23b94c5765ca38842bbd01bc54f4f51673",
+      "kind": "shipped UI with isolated sample account data",
+      "source": "output/playwright/store-ui/15-board-themes.png"
+    },
+    {
+      "file": "09-game-review.png",
+      "title": "Review a capture with replay controls",
+      "sha256": "7f14b4697e584040a058caa38254ced126dffffc91248770d3495f6de0390c09",
+      "kind": "shipped UI with isolated sample account data",
+      "source": "output/playwright/store-ui/10-game-review.png"
+    },
+    {
+      "file": "10-comeback-victory.png",
+      "title": "Comeback victory",
+      "sha256": "2aa0671230f45ba9e14cc258ea1c2f039db885d6c462710992be5d4ac1d31fed",
+      "kind": "engine-validated local gameplay",
+      "source": "output/playwright/store-gameplay/05-comeback-victory.png"
+    }
+  ]
+}

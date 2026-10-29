@@ -15,6 +15,8 @@ root.
 | `steam-achievements.mjs` | Turn `shared/src/achievements.ts` into Partner Portal shapes. |
 | `steam-achievement-icons.mjs` | Render the achievement icons Steam wants. |
 | `store-art.mjs` | Export Steam capsules/library art, Apple header, and Google Play icon/feature graphic to `build/store-media/`. Run `pnpm store:art`. Uses existing board artwork and a recorded legal position; outputs promotional graphics, not screenshots. |
+| `app-store-screenshots.mjs` | Capture gameplay and UI, then export a varied ten-image selection with an HTML gallery and checksums under `output/playwright/store-overview/<size>/`. Run `pnpm store:screenshots http://127.0.0.1:<port>` for Apple sizes, or add `--only=steam-1080p` for Steam/press. Local client only; sample API data stays isolated. |
+| `store-screenshot-selection.mjs` | Defines the store upload order: capture chain, tutorial, achievements, opening, computer setup, bracket, friends, themes, replay, victory. Raw captures also include match history and border rules; the overview is the current selection. |
 | `store-trailer.mjs` | Encode actual replay UI captures into a muted, captioned 30-second H.264 trailer. Run `pnpm store:trailer [capture-folder]`; requires `ffmpeg`, `capture.json` and its original JPEG frames. Removes pauses between takes, plays the replay at 1.75×, and holds the winning frame. The current capture bundle is preserved in the Tiao vault's 2026-10-23 store-readiness materials. |
 | `wait-for-port.mjs` | Block until a TCP port accepts connections. |
 

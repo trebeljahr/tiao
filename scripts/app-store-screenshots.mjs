@@ -4,12 +4,14 @@
 // and inner, 13" iPad, Mac). Output: output/playwright/store-*/<size>/*.jpg.
 //
 //   node scripts/app-store-screenshots.mjs http://localhost:<port> [--only=ipad-13,mac]
+//   Add --only=steam-1080p for desktop/press, or --select-only to reorder existing captures.
 //
 // Start an isolated local client first (no API needed: gameplay is local and
 // the UI scenes use sample data). Check sizes with `sips -g pixelWidth -g
 // pixelHeight` before uploading; App Store Connect rejects any other size.
 import { execFileSync } from "node:child_process";
-import { storeSizes } from "./store-sizes.mjs";
+import { selectScreenshots } from "./store-screenshot-selection.mjs";
+import { storeSize, storeSizes } from "./store-sizes.mjs";
 
 const baseURL = process.argv[2];
 if (!/^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(baseURL ?? "")) {
@@ -19,15 +21,23 @@ const only = process.argv
   .find((arg) => arg.startsWith("--only="))
   ?.slice(7)
   .split(",");
+if (only?.some((name) => !Object.hasOwn(storeSizes, name))) {
+  throw new Error(`Unknown size in --only; pick from ${Object.keys(storeSizes).join(", ")}`);
+}
 const sizes = Object.entries(storeSizes)
-  .filter(([name, size]) => size.ascType && (!only || only.includes(name)))
+  .filter(
+    ([name, size]) => (size.ascType || only?.includes(name)) && (!only || only.includes(name)),
+  )
   .map(([name]) => name);
 if (!sizes.length) throw new Error("No App Store sizes selected");
 
 for (const name of sizes) {
-  for (const script of ["scripts/store-screenshots.mjs", "scripts/store-ui-screenshots.mjs"]) {
-    console.log(`\n== ${name}: ${script}`);
-    execFileSync(process.execPath, [script, baseURL, `--size=${name}`], { stdio: "inherit" });
+  if (!process.argv.includes("--select-only")) {
+    for (const script of ["scripts/store-screenshots.mjs", "scripts/store-ui-screenshots.mjs"]) {
+      console.log(`\n== ${name}: ${script}`);
+      execFileSync(process.execPath, [script, baseURL, `--size=${name}`], { stdio: "inherit" });
+    }
   }
+  selectScreenshots(storeSize([`--size=${name}`]));
 }
 console.log(`\nDone: ${sizes.join(", ")}`);

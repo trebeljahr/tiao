@@ -10,7 +10,7 @@
     "session": {
       "id": "sample-session",
       "userId": "sample-aki",
-      "expiresAt": "2026-10-01T23:32:11.425Z"
+      "expiresAt": "2026-10-30T01:31:02.469Z"
     }
   },
   "/api/player/me": {
@@ -22,8 +22,384 @@
       "rating": 1580,
       "hasSeenTutorial": true,
       "activeBadges": [],
-      "seed": 1
+      "seed": 1,
+      "unlockedThemes": [
+        "night",
+        "sakura",
+        "ocean",
+        "marble"
+      ]
     }
+  },
+  "/api/auth/steam/pending": {
+    "status": "none"
+  },
+  "/api/_e": {},
+  "/api/player/achievements/progress": {
+    "gamesPlayed": 12,
+    "gamesLost": 3,
+    "friendCount": 4
+  },
+  "/api/player/achievements": {
+    "definitions": [
+      {
+        "id": "first-move",
+        "steamKey": "ACH_FIRST_MOVE",
+        "name": "First Move",
+        "description": "Make your first move in a multiplayer game.",
+        "category": "games",
+        "tier": "bronze",
+        "secret": false,
+        "order": 0
+      },
+      {
+        "id": "getting-started",
+        "steamKey": "ACH_GETTING_STARTED",
+        "name": "Getting the Hang of It",
+        "description": "Play 5 games.",
+        "category": "games",
+        "tier": "bronze",
+        "secret": false,
+        "threshold": 5,
+        "progressStat": "STAT_GAMES_PLAYED",
+        "order": 1
+      },
+      {
+        "id": "regular",
+        "steamKey": "ACH_REGULAR",
+        "name": "Table Regular",
+        "description": "Play 10 games.",
+        "category": "games",
+        "tier": "silver",
+        "secret": false,
+        "threshold": 10,
+        "progressStat": "STAT_GAMES_PLAYED",
+        "order": 2
+      },
+      {
+        "id": "centurion",
+        "steamKey": "ACH_CENTURION",
+        "name": "Centurion",
+        "description": "Play 100 games.",
+        "category": "games",
+        "tier": "gold",
+        "secret": false,
+        "threshold": 100,
+        "progressStat": "STAT_GAMES_PLAYED",
+        "order": 3
+      },
+      {
+        "id": "veteran",
+        "steamKey": "ACH_VETERAN",
+        "name": "Grizzled Veteran",
+        "description": "Play 1,000 games.",
+        "category": "games",
+        "tier": "platinum",
+        "secret": false,
+        "threshold": 1000,
+        "progressStat": "STAT_GAMES_PLAYED",
+        "order": 4
+      },
+      {
+        "id": "first-fall",
+        "steamKey": "ACH_FIRST_FALL",
+        "name": "Everybody Falls",
+        "description": "Lose your first game.",
+        "category": "combat",
+        "tier": "bronze",
+        "secret": false,
+        "threshold": 1,
+        "progressStat": "STAT_GAMES_LOST",
+        "order": 10
+      },
+      {
+        "id": "tough-luck",
+        "steamKey": "ACH_TOUGH_LUCK",
+        "name": "Tough Luck",
+        "description": "Lose 5 games.",
+        "category": "combat",
+        "tier": "silver",
+        "secret": false,
+        "threshold": 5,
+        "progressStat": "STAT_GAMES_LOST",
+        "order": 11
+      },
+      {
+        "id": "punching-bag",
+        "steamKey": "ACH_PUNCHING_BAG",
+        "name": "Human Punching Bag",
+        "description": "Lose 10 games.",
+        "category": "combat",
+        "tier": "gold",
+        "secret": false,
+        "threshold": 10,
+        "progressStat": "STAT_GAMES_LOST",
+        "order": 12
+      },
+      {
+        "id": "speed-demon",
+        "steamKey": "ACH_SPEED_DEMON",
+        "name": "Speed Demon",
+        "description": "Win a timed game.",
+        "category": "speed",
+        "tier": "bronze",
+        "secret": false,
+        "order": 20
+      },
+      {
+        "id": "buzzer-beater",
+        "steamKey": "ACH_BUZZER_BEATER",
+        "name": "Buzzer Beater",
+        "description": "Win a timed game with less than 10 seconds on your clock.",
+        "category": "speed",
+        "tier": "gold",
+        "secret": false,
+        "order": 21
+      },
+      {
+        "id": "one-second-glory",
+        "steamKey": "ACH_ONE_SECOND_GLORY",
+        "name": "Living on the Edge",
+        "description": "Win a timed game with 1 second or less on your clock.",
+        "category": "speed",
+        "tier": "platinum",
+        "secret": false,
+        "order": 22
+      },
+      {
+        "id": "ai-easy",
+        "steamKey": "ACH_AI_EASY",
+        "name": "Baby Steps",
+        "description": "Beat an Easy AI.",
+        "category": "combat",
+        "tier": "bronze",
+        "secret": false,
+        "order": 30
+      },
+      {
+        "id": "ai-medium",
+        "steamKey": "ACH_AI_MEDIUM",
+        "name": "Holding My Own",
+        "description": "Beat a Medium AI.",
+        "category": "combat",
+        "tier": "silver",
+        "secret": false,
+        "order": 31
+      },
+      {
+        "id": "ai-hard",
+        "steamKey": "ACH_AI_HARD",
+        "name": "Skynet Who?",
+        "description": "Beat a Hard AI.",
+        "category": "combat",
+        "tier": "gold",
+        "secret": false,
+        "order": 32
+      },
+      {
+        "id": "first-friend",
+        "steamKey": "ACH_FIRST_FRIEND",
+        "name": "New Kid on the Block",
+        "description": "Make your first friend.",
+        "category": "social",
+        "tier": "bronze",
+        "secret": false,
+        "threshold": 1,
+        "progressStat": "STAT_FRIENDS",
+        "order": 40
+      },
+      {
+        "id": "social-butterfly",
+        "steamKey": "ACH_SOCIAL_BUTTERFLY",
+        "name": "Social Butterfly",
+        "description": "Make 10 friends.",
+        "category": "social",
+        "tier": "gold",
+        "secret": false,
+        "threshold": 10,
+        "progressStat": "STAT_FRIENDS",
+        "order": 41
+      },
+      {
+        "id": "top-one-percent",
+        "steamKey": "ACH_TOP_ONE_PERCENT",
+        "name": "The One Percent",
+        "description": "Reach the top 1% of players.",
+        "category": "ranking",
+        "tier": "platinum",
+        "secret": false,
+        "order": 50
+      },
+      {
+        "id": "tournament-champion",
+        "steamKey": "ACH_TOURNAMENT_CHAMPION",
+        "name": "Tournament Champion",
+        "description": "Win a tournament.",
+        "category": "tournament",
+        "tier": "gold",
+        "secret": false,
+        "order": 60
+      },
+      {
+        "id": "tutorial-complete",
+        "steamKey": "ACH_TUTORIAL_COMPLETE",
+        "name": "Star Student",
+        "description": "Complete the tutorial.",
+        "category": "learning",
+        "tier": "bronze",
+        "secret": false,
+        "order": 70
+      },
+      {
+        "id": "spectator",
+        "steamKey": "ACH_SPECTATOR",
+        "name": "Armchair General",
+        "description": "Spectate a game.",
+        "category": "social",
+        "tier": "bronze",
+        "secret": false,
+        "order": 80
+      },
+      {
+        "id": "first-blood",
+        "steamKey": "ACH_FIRST_BLOOD",
+        "name": "First Blood",
+        "description": "Capture your first piece.",
+        "category": "combat",
+        "tier": "bronze",
+        "secret": false,
+        "order": 33
+      },
+      {
+        "id": "chain-reaction",
+        "steamKey": "ACH_CHAIN_REACTION",
+        "name": "Chain Reaction",
+        "description": "Capture 5 or more pieces in a single chain jump.",
+        "category": "combat",
+        "tier": "gold",
+        "secret": false,
+        "threshold": 5,
+        "order": 34
+      },
+      {
+        "id": "one-jump-wonder",
+        "steamKey": "ACH_ONE_JUMP_WONDER",
+        "name": "One Jump Wonder",
+        "description": "Win an entire game from a single chain jump.",
+        "category": "combat",
+        "tier": "platinum",
+        "secret": false,
+        "order": 35
+      },
+      {
+        "id": "rage-quit",
+        "steamKey": "ACH_RAGE_QUIT",
+        "name": "Rage Quit",
+        "description": "Forfeit a game within the first 3 moves.",
+        "category": "secret",
+        "tier": "bronze",
+        "secret": true,
+        "order": 100
+      },
+      {
+        "id": "night-owl",
+        "steamKey": "ACH_NIGHT_OWL",
+        "name": "Night Owl",
+        "description": "Play a game between 2 AM and 5 AM.",
+        "category": "secret",
+        "tier": "silver",
+        "secret": true,
+        "order": 101
+      },
+      {
+        "id": "speedrun",
+        "steamKey": "ACH_SPEEDRUN",
+        "name": "Speedrun Any%",
+        "description": "Win a game in under 30 seconds.",
+        "category": "secret",
+        "tier": "gold",
+        "secret": true,
+        "order": 102
+      },
+      {
+        "id": "comeback-kid",
+        "steamKey": "ACH_COMEBACK_KID",
+        "name": "Comeback Kid",
+        "description": "Win after being down by 3 or more points.",
+        "category": "secret",
+        "tier": "gold",
+        "secret": true,
+        "order": 103
+      },
+      {
+        "id": "flawless-victory",
+        "steamKey": "ACH_FLAWLESS_VICTORY",
+        "name": "Flawless Victory",
+        "description": "Win a game without losing a single piece to capture.",
+        "category": "secret",
+        "tier": "platinum",
+        "secret": true,
+        "order": 104
+      },
+      {
+        "id": "david-vs-goliath",
+        "steamKey": "ACH_DAVID_VS_GOLIATH",
+        "name": "David vs. Goliath",
+        "description": "Beat a player rated 300+ points above you.",
+        "category": "secret",
+        "tier": "gold",
+        "secret": true,
+        "order": 105
+      },
+      {
+        "id": "checkered-past",
+        "steamKey": "ACH_CHECKERED_PAST",
+        "name": "Checkered Past",
+        "description": "Play on every board size.",
+        "category": "secret",
+        "tier": "silver",
+        "secret": true,
+        "order": 106
+      }
+    ],
+    "achievements": [
+      {
+        "achievementId": "first-move",
+        "unlockedAt": "2026-10-28T01:31:02.469Z"
+      },
+      {
+        "achievementId": "getting-started",
+        "unlockedAt": "2026-10-27T19:31:02.469Z"
+      },
+      {
+        "achievementId": "regular",
+        "unlockedAt": "2026-10-27T13:31:02.469Z"
+      },
+      {
+        "achievementId": "first-fall",
+        "unlockedAt": "2026-10-27T07:31:02.469Z"
+      },
+      {
+        "achievementId": "ai-easy",
+        "unlockedAt": "2026-10-27T01:31:02.469Z"
+      },
+      {
+        "achievementId": "ai-medium",
+        "unlockedAt": "2026-10-26T19:31:02.469Z"
+      },
+      {
+        "achievementId": "first-friend",
+        "unlockedAt": "2026-10-26T13:31:02.469Z"
+      },
+      {
+        "achievementId": "tutorial-complete",
+        "unlockedAt": "2026-10-26T07:31:02.469Z"
+      },
+      {
+        "achievementId": "chain-reaction",
+        "unlockedAt": "2026-10-26T01:31:02.469Z"
+      }
+    ]
   },
   "/api/health": {
     "ok": true
@@ -951,8 +1327,8 @@
           },
           "roomType": "tournament",
           "status": "active",
-          "createdAt": "2026-09-30T22:32:11.416Z",
-          "updatedAt": "2026-09-30T23:32:11.416Z",
+          "createdAt": "2026-10-29T00:31:02.411Z",
+          "updatedAt": "2026-10-29T01:31:02.411Z",
           "players": [
             {
               "player": {
@@ -963,7 +1339,13 @@
                 "rating": 1580,
                 "hasSeenTutorial": true,
                 "activeBadges": [],
-                "seed": 1
+                "seed": 1,
+                "unlockedThemes": [
+                  "night",
+                  "sakura",
+                  "ocean",
+                  "marble"
+                ]
               },
               "online": true
             },
@@ -992,7 +1374,13 @@
                 "rating": 1580,
                 "hasSeenTutorial": true,
                 "activeBadges": [],
-                "seed": 1
+                "seed": 1,
+                "unlockedThemes": [
+                  "night",
+                  "sakura",
+                  "ocean",
+                  "marble"
+                ]
               },
               "online": true
             },
@@ -2214,8 +2602,8 @@
           },
           "roomType": "direct",
           "status": "finished",
-          "createdAt": "2026-09-30T21:32:11.410Z",
-          "updatedAt": "2026-09-30T22:32:11.410Z",
+          "createdAt": "2026-10-28T23:31:02.380Z",
+          "updatedAt": "2026-10-29T00:31:02.380Z",
           "players": [
             {
               "player": {
@@ -2226,7 +2614,13 @@
                 "rating": 1580,
                 "hasSeenTutorial": true,
                 "activeBadges": [],
-                "seed": 1
+                "seed": 1,
+                "unlockedThemes": [
+                  "night",
+                  "sakura",
+                  "ocean",
+                  "marble"
+                ]
               },
               "online": true
             },
@@ -2255,7 +2649,13 @@
                 "rating": 1580,
                 "hasSeenTutorial": true,
                 "activeBadges": [],
-                "seed": 1
+                "seed": 1,
+                "unlockedThemes": [
+                  "night",
+                  "sakura",
+                  "ocean",
+                  "marble"
+                ]
               },
               "online": true
             },
@@ -3189,8 +3589,8 @@
           },
           "roomType": "direct",
           "status": "finished",
-          "createdAt": "2026-09-30T19:32:11.414Z",
-          "updatedAt": "2026-09-30T20:32:11.414Z",
+          "createdAt": "2026-10-28T21:31:02.399Z",
+          "updatedAt": "2026-10-28T22:31:02.399Z",
           "players": [
             {
               "player": {
@@ -3201,7 +3601,13 @@
                 "rating": 1580,
                 "hasSeenTutorial": true,
                 "activeBadges": [],
-                "seed": 1
+                "seed": 1,
+                "unlockedThemes": [
+                  "night",
+                  "sakura",
+                  "ocean",
+                  "marble"
+                ]
               },
               "online": true
             },
@@ -3230,7 +3636,13 @@
                 "rating": 1580,
                 "hasSeenTutorial": true,
                 "activeBadges": [],
-                "seed": 1
+                "seed": 1,
+                "unlockedThemes": [
+                  "night",
+                  "sakura",
+                  "ocean",
+                  "marble"
+                ]
               },
               "online": true
             },
@@ -4448,8 +4860,8 @@
           },
           "roomType": "direct",
           "status": "finished",
-          "createdAt": "2026-09-29T23:32:11.416Z",
-          "updatedAt": "2026-09-30T00:32:11.416Z",
+          "createdAt": "2026-10-28T01:31:02.411Z",
+          "updatedAt": "2026-10-28T02:31:02.411Z",
           "players": [
             {
               "player": {
@@ -4460,7 +4872,13 @@
                 "rating": 1580,
                 "hasSeenTutorial": true,
                 "activeBadges": [],
-                "seed": 1
+                "seed": 1,
+                "unlockedThemes": [
+                  "night",
+                  "sakura",
+                  "ocean",
+                  "marble"
+                ]
               },
               "online": true
             },
@@ -4489,7 +4907,13 @@
                 "rating": 1580,
                 "hasSeenTutorial": true,
                 "activeBadges": [],
-                "seed": 1
+                "seed": 1,
+                "unlockedThemes": [
+                  "night",
+                  "sakura",
+                  "ocean",
+                  "marble"
+                ]
               },
               "online": true
             },
@@ -4538,7 +4962,7 @@
         "boardSize": 19,
         "scoreToWin": 10,
         "isFeatured": false,
-        "createdAt": "2026-09-29T23:32:11.425Z",
+        "createdAt": "2026-10-28T01:31:02.468Z",
         "name": "Autumn Cup",
         "tournamentId": "AUTUMN8",
         "status": "active",
@@ -4554,7 +4978,7 @@
         "boardSize": 19,
         "scoreToWin": 10,
         "isFeatured": false,
-        "createdAt": "2026-09-29T23:32:11.425Z",
+        "createdAt": "2026-10-28T01:31:02.468Z",
         "name": "Weekend Round Robin",
         "tournamentId": "WEEKEND",
         "status": "registration",
@@ -4573,7 +4997,7 @@
         "boardSize": 19,
         "scoreToWin": 10,
         "isFeatured": false,
-        "createdAt": "2026-09-29T23:32:11.425Z",
+        "createdAt": "2026-10-28T01:31:02.468Z",
         "name": "Evening Blitz",
         "tournamentId": "BLITZ08",
         "status": "registration",
@@ -4589,7 +5013,7 @@
         "boardSize": 19,
         "scoreToWin": 10,
         "isFeatured": false,
-        "createdAt": "2026-09-29T23:32:11.425Z",
+        "createdAt": "2026-10-28T01:31:02.468Z",
         "name": "September Open",
         "tournamentId": "SEPT026",
         "status": "finished",
@@ -4609,7 +5033,7 @@
         "boardSize": 19,
         "scoreToWin": 10,
         "isFeatured": false,
-        "createdAt": "2026-09-29T23:32:11.425Z",
+        "createdAt": "2026-10-28T01:31:02.468Z",
         "name": "Autumn Cup",
         "tournamentId": "AUTUMN8",
         "status": "active",
@@ -4625,7 +5049,7 @@
         "boardSize": 19,
         "scoreToWin": 10,
         "isFeatured": false,
-        "createdAt": "2026-09-29T23:32:11.425Z",
+        "createdAt": "2026-10-28T01:31:02.468Z",
         "name": "Weekend Round Robin",
         "tournamentId": "WEEKEND",
         "status": "registration",
@@ -4782,11 +5206,17 @@
               ],
               "roomId": "T00CUP",
               "winner": "sample-aki",
-              "score": [10, 8],
+              "score": [
+                10,
+                8
+              ],
               "status": "finished",
               "finishReason": "captured",
               "historyLength": 65,
-              "playerColors": ["black", "white"]
+              "playerColors": [
+                "black",
+                "white"
+              ]
             },
             {
               "matchId": "r0m1",
@@ -4816,11 +5246,17 @@
               ],
               "roomId": "T01CUP",
               "winner": "sample-sora",
-              "score": [11, 7],
+              "score": [
+                11,
+                7
+              ],
               "status": "finished",
               "finishReason": "captured",
               "historyLength": 62,
-              "playerColors": ["white", "black"]
+              "playerColors": [
+                "white",
+                "black"
+              ]
             },
             {
               "matchId": "r0m2",
@@ -4850,11 +5286,17 @@
               ],
               "roomId": "T02CUP",
               "winner": "sample-mira",
-              "score": [10, 2],
+              "score": [
+                10,
+                2
+              ],
               "status": "finished",
               "finishReason": "captured",
               "historyLength": 54,
-              "playerColors": ["white", "black"]
+              "playerColors": [
+                "white",
+                "black"
+              ]
             },
             {
               "matchId": "r0m3",
@@ -4884,11 +5326,17 @@
               ],
               "roomId": "T03CUP",
               "winner": "sample-rowan",
-              "score": [11, 2],
+              "score": [
+                11,
+                2
+              ],
               "status": "finished",
               "finishReason": "captured",
               "historyLength": 38,
-              "playerColors": ["white", "black"]
+              "playerColors": [
+                "white",
+                "black"
+              ]
             }
           ]
         },
@@ -4925,11 +5373,17 @@
               ],
               "roomId": "T10CUP",
               "winner": "sample-aki",
-              "score": [10, 9],
+              "score": [
+                10,
+                9
+              ],
               "status": "finished",
               "finishReason": "captured",
               "historyLength": 63,
-              "playerColors": ["black", "white"]
+              "playerColors": [
+                "black",
+                "white"
+              ]
             },
             {
               "matchId": "r1m1",
@@ -4959,11 +5413,17 @@
               ],
               "roomId": "T11CUP",
               "winner": "sample-mira",
-              "score": [12, 5],
+              "score": [
+                12,
+                5
+              ],
               "status": "finished",
               "finishReason": "captured",
               "historyLength": 54,
-              "playerColors": ["white", "black"]
+              "playerColors": [
+                "white",
+                "black"
+              ]
             }
           ]
         },
@@ -5000,10 +5460,16 @@
               ],
               "roomId": "W6N3RX",
               "winner": null,
-              "score": [3, 4],
+              "score": [
+                3,
+                4
+              ],
               "status": "active",
               "finishReason": null,
-              "playerColors": ["black", "white"]
+              "playerColors": [
+                "black",
+                "white"
+              ]
             }
           ]
         }
@@ -5094,8 +5560,8 @@
           "seed": 8
         }
       },
-      "createdAt": "2026-09-29T23:32:11.425Z",
-      "updatedAt": "2026-09-30T23:32:11.409Z"
+      "createdAt": "2026-10-28T01:31:02.468Z",
+      "updatedAt": "2026-10-29T01:31:02.379Z"
     }
   },
   "/api/games/W6N3RX": {
@@ -5926,8 +6392,8 @@
       },
       "roomType": "tournament",
       "status": "active",
-      "createdAt": "2026-09-30T22:32:11.416Z",
-      "updatedAt": "2026-09-30T23:32:11.416Z",
+      "createdAt": "2026-10-29T00:31:02.411Z",
+      "updatedAt": "2026-10-29T01:31:02.411Z",
       "players": [
         {
           "player": {
@@ -5938,7 +6404,13 @@
             "rating": 1580,
             "hasSeenTutorial": true,
             "activeBadges": [],
-            "seed": 1
+            "seed": 1,
+            "unlockedThemes": [
+              "night",
+              "sakura",
+              "ocean",
+              "marble"
+            ]
           },
           "online": true
         },
@@ -5967,7 +6439,13 @@
             "rating": 1580,
             "hasSeenTutorial": true,
             "activeBadges": [],
-            "seed": 1
+            "seed": 1,
+            "unlockedThemes": [
+              "night",
+              "sakura",
+              "ocean",
+              "marble"
+            ]
           },
           "online": true
         },
@@ -6821,8 +7299,8 @@
       },
       "roomType": "tournament",
       "status": "active",
-      "createdAt": "2026-09-30T22:32:11.416Z",
-      "updatedAt": "2026-09-30T23:32:11.416Z",
+      "createdAt": "2026-10-29T00:31:02.411Z",
+      "updatedAt": "2026-10-29T01:31:02.411Z",
       "players": [
         {
           "player": {
@@ -6833,7 +7311,13 @@
             "rating": 1580,
             "hasSeenTutorial": true,
             "activeBadges": [],
-            "seed": 1
+            "seed": 1,
+            "unlockedThemes": [
+              "night",
+              "sakura",
+              "ocean",
+              "marble"
+            ]
           },
           "online": true
         },
@@ -6862,7 +7346,13 @@
             "rating": 1580,
             "hasSeenTutorial": true,
             "activeBadges": [],
-            "seed": 1
+            "seed": 1,
+            "unlockedThemes": [
+              "night",
+              "sakura",
+              "ocean",
+              "marble"
+            ]
           },
           "online": true
         },
@@ -8072,8 +8562,8 @@
       },
       "roomType": "direct",
       "status": "finished",
-      "createdAt": "2026-09-30T21:32:11.410Z",
-      "updatedAt": "2026-09-30T22:32:11.410Z",
+      "createdAt": "2026-10-28T23:31:02.380Z",
+      "updatedAt": "2026-10-29T00:31:02.380Z",
       "players": [
         {
           "player": {
@@ -8084,7 +8574,13 @@
             "rating": 1580,
             "hasSeenTutorial": true,
             "activeBadges": [],
-            "seed": 1
+            "seed": 1,
+            "unlockedThemes": [
+              "night",
+              "sakura",
+              "ocean",
+              "marble"
+            ]
           },
           "online": true
         },
@@ -8113,7 +8609,13 @@
             "rating": 1580,
             "hasSeenTutorial": true,
             "activeBadges": [],
-            "seed": 1
+            "seed": 1,
+            "unlockedThemes": [
+              "night",
+              "sakura",
+              "ocean",
+              "marble"
+            ]
           },
           "online": true
         },
@@ -9322,8 +9824,8 @@
       },
       "roomType": "direct",
       "status": "finished",
-      "createdAt": "2026-09-30T21:32:11.410Z",
-      "updatedAt": "2026-09-30T22:32:11.410Z",
+      "createdAt": "2026-10-28T23:31:02.380Z",
+      "updatedAt": "2026-10-29T00:31:02.380Z",
       "players": [
         {
           "player": {
@@ -9334,7 +9836,13 @@
             "rating": 1580,
             "hasSeenTutorial": true,
             "activeBadges": [],
-            "seed": 1
+            "seed": 1,
+            "unlockedThemes": [
+              "night",
+              "sakura",
+              "ocean",
+              "marble"
+            ]
           },
           "online": true
         },
@@ -9363,7 +9871,13 @@
             "rating": 1580,
             "hasSeenTutorial": true,
             "activeBadges": [],
-            "seed": 1
+            "seed": 1,
+            "unlockedThemes": [
+              "night",
+              "sakura",
+              "ocean",
+              "marble"
+            ]
           },
           "online": true
         },
@@ -10287,8 +10801,8 @@
       },
       "roomType": "direct",
       "status": "finished",
-      "createdAt": "2026-09-30T19:32:11.414Z",
-      "updatedAt": "2026-09-30T20:32:11.414Z",
+      "createdAt": "2026-10-28T21:31:02.399Z",
+      "updatedAt": "2026-10-28T22:31:02.399Z",
       "players": [
         {
           "player": {
@@ -10299,7 +10813,13 @@
             "rating": 1580,
             "hasSeenTutorial": true,
             "activeBadges": [],
-            "seed": 1
+            "seed": 1,
+            "unlockedThemes": [
+              "night",
+              "sakura",
+              "ocean",
+              "marble"
+            ]
           },
           "online": true
         },
@@ -10328,7 +10848,13 @@
             "rating": 1580,
             "hasSeenTutorial": true,
             "activeBadges": [],
-            "seed": 1
+            "seed": 1,
+            "unlockedThemes": [
+              "night",
+              "sakura",
+              "ocean",
+              "marble"
+            ]
           },
           "online": true
         },
@@ -11252,8 +11778,8 @@
       },
       "roomType": "direct",
       "status": "finished",
-      "createdAt": "2026-09-30T19:32:11.414Z",
-      "updatedAt": "2026-09-30T20:32:11.414Z",
+      "createdAt": "2026-10-28T21:31:02.399Z",
+      "updatedAt": "2026-10-28T22:31:02.399Z",
       "players": [
         {
           "player": {
@@ -11264,7 +11790,13 @@
             "rating": 1580,
             "hasSeenTutorial": true,
             "activeBadges": [],
-            "seed": 1
+            "seed": 1,
+            "unlockedThemes": [
+              "night",
+              "sakura",
+              "ocean",
+              "marble"
+            ]
           },
           "online": true
         },
@@ -11293,7 +11825,13 @@
             "rating": 1580,
             "hasSeenTutorial": true,
             "activeBadges": [],
-            "seed": 1
+            "seed": 1,
+            "unlockedThemes": [
+              "night",
+              "sakura",
+              "ocean",
+              "marble"
+            ]
           },
           "online": true
         },
@@ -12501,8 +13039,8 @@
       },
       "roomType": "direct",
       "status": "finished",
-      "createdAt": "2026-09-29T23:32:11.416Z",
-      "updatedAt": "2026-09-30T00:32:11.416Z",
+      "createdAt": "2026-10-28T01:31:02.411Z",
+      "updatedAt": "2026-10-28T02:31:02.411Z",
       "players": [
         {
           "player": {
@@ -12513,7 +13051,13 @@
             "rating": 1580,
             "hasSeenTutorial": true,
             "activeBadges": [],
-            "seed": 1
+            "seed": 1,
+            "unlockedThemes": [
+              "night",
+              "sakura",
+              "ocean",
+              "marble"
+            ]
           },
           "online": true
         },
@@ -12542,7 +13086,13 @@
             "rating": 1580,
             "hasSeenTutorial": true,
             "activeBadges": [],
-            "seed": 1
+            "seed": 1,
+            "unlockedThemes": [
+              "night",
+              "sakura",
+              "ocean",
+              "marble"
+            ]
           },
           "online": true
         },
@@ -13750,8 +14300,8 @@
       },
       "roomType": "direct",
       "status": "finished",
-      "createdAt": "2026-09-29T23:32:11.416Z",
-      "updatedAt": "2026-09-30T00:32:11.416Z",
+      "createdAt": "2026-10-28T01:31:02.411Z",
+      "updatedAt": "2026-10-28T02:31:02.411Z",
       "players": [
         {
           "player": {
@@ -13762,7 +14312,13 @@
             "rating": 1580,
             "hasSeenTutorial": true,
             "activeBadges": [],
-            "seed": 1
+            "seed": 1,
+            "unlockedThemes": [
+              "night",
+              "sakura",
+              "ocean",
+              "marble"
+            ]
           },
           "online": true
         },
@@ -13791,7 +14347,13 @@
             "rating": 1580,
             "hasSeenTutorial": true,
             "activeBadges": [],
-            "seed": 1
+            "seed": 1,
+            "unlockedThemes": [
+              "night",
+              "sakura",
+              "ocean",
+              "marble"
+            ]
           },
           "online": true
         },
@@ -14987,8 +15549,8 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T20:32:11.418Z",
-      "updatedAt": "2026-09-30T21:32:11.418Z",
+      "createdAt": "2026-10-28T22:31:02.416Z",
+      "updatedAt": "2026-10-28T23:31:02.416Z",
       "players": [
         {
           "player": {
@@ -16225,8 +16787,8 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T20:32:11.418Z",
-      "updatedAt": "2026-09-30T21:32:11.418Z",
+      "createdAt": "2026-10-28T22:31:02.416Z",
+      "updatedAt": "2026-10-28T23:31:02.416Z",
       "players": [
         {
           "player": {
@@ -17447,8 +18009,8 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T20:32:11.421Z",
-      "updatedAt": "2026-09-30T21:32:11.421Z",
+      "createdAt": "2026-10-28T22:31:02.435Z",
+      "updatedAt": "2026-10-28T23:31:02.435Z",
       "players": [
         {
           "player": {
@@ -18669,8 +19231,8 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T20:32:11.421Z",
-      "updatedAt": "2026-09-30T21:32:11.421Z",
+      "createdAt": "2026-10-28T22:31:02.435Z",
+      "updatedAt": "2026-10-28T23:31:02.435Z",
       "players": [
         {
           "player": {
@@ -19743,8 +20305,8 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T20:32:11.422Z",
-      "updatedAt": "2026-09-30T21:32:11.422Z",
+      "createdAt": "2026-10-28T22:31:02.437Z",
+      "updatedAt": "2026-10-28T23:31:02.437Z",
       "players": [
         {
           "player": {
@@ -20817,8 +21379,8 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T20:32:11.422Z",
-      "updatedAt": "2026-09-30T21:32:11.422Z",
+      "createdAt": "2026-10-28T22:31:02.437Z",
+      "updatedAt": "2026-10-28T23:31:02.437Z",
       "players": [
         {
           "player": {
@@ -21780,8 +22342,8 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T20:32:11.423Z",
-      "updatedAt": "2026-09-30T21:32:11.423Z",
+      "createdAt": "2026-10-28T22:31:02.442Z",
+      "updatedAt": "2026-10-28T23:31:02.442Z",
       "players": [
         {
           "player": {
@@ -22743,8 +23305,8 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T20:32:11.423Z",
-      "updatedAt": "2026-09-30T21:32:11.423Z",
+      "createdAt": "2026-10-28T22:31:02.442Z",
+      "updatedAt": "2026-10-28T23:31:02.442Z",
       "players": [
         {
           "player": {
@@ -23986,8 +24548,8 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T19:32:11.424Z",
-      "updatedAt": "2026-09-30T20:32:11.424Z",
+      "createdAt": "2026-10-28T21:31:02.466Z",
+      "updatedAt": "2026-10-28T22:31:02.466Z",
       "players": [
         {
           "player": {
@@ -25229,8 +25791,8 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T19:32:11.424Z",
-      "updatedAt": "2026-09-30T20:32:11.424Z",
+      "createdAt": "2026-10-28T21:31:02.466Z",
+      "updatedAt": "2026-10-28T22:31:02.466Z",
       "players": [
         {
           "player": {
@@ -26372,8 +26934,8 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T19:32:11.425Z",
-      "updatedAt": "2026-09-30T20:32:11.425Z",
+      "createdAt": "2026-10-28T21:31:02.468Z",
+      "updatedAt": "2026-10-28T22:31:02.468Z",
       "players": [
         {
           "player": {
@@ -27515,8 +28077,8 @@
       },
       "roomType": "tournament",
       "status": "finished",
-      "createdAt": "2026-09-30T19:32:11.425Z",
-      "updatedAt": "2026-09-30T20:32:11.425Z",
+      "createdAt": "2026-10-28T21:31:02.468Z",
+      "updatedAt": "2026-10-28T22:31:02.468Z",
       "players": [
         {
           "player": {

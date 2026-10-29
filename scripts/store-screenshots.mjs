@@ -129,7 +129,13 @@ try {
     localStorage.setItem("tiao:analytics-consent", "denied");
     localStorage.setItem("tiao:knowsHowToPlay", "true");
     localStorage.setItem("tiao:boardTheme", "classic");
+    localStorage.setItem("tiao:soundEnabled", "0");
   });
+  // Captures never contact a live API, even if the client has one configured.
+  await page.route("**/api/**", (route) =>
+    route.fulfill({ status: 200, json: { player: null, user: null, session: null } }),
+  );
+  await page.routeWebSocket(/\/(api\/)?ws/, (socket) => socket.onMessage(() => {}));
   const cell = (p) => page.getByTestId(`cell-${p.x}-${p.y}`);
   async function checkBoard(state) {
     const rendered = await page
@@ -164,6 +170,7 @@ try {
         state = unwrap(confirmPendingJump(state));
       }
       await checkBoard(state);
+      if (scene === scenes.combo && index === 15) await shot("00-opening-position", state);
       if ((index + 1) % 20 === 0) console.log("Replayed", index + 1, "legal turns");
     }
     assert.deepEqual(state.positions, scene.before.positions);

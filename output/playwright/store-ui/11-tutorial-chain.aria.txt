@@ -1,0 +1,73 @@
+- main:
+  - button "Open navigation"
+  - text: 4 / 13
+  - heading "Chain Jumps" [level=2]
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button "Undo last jump"
+  - text: Click to jump here
+  - button "Go to step 1"
+  - button "Go to step 2"
+  - button "Go to step 3"
+  - button "Go to step 4"
+  - button "Go to step 5"
+  - button "Go to step 6"
+  - button "Go to step 7"
+  - button "Go to step 8"
+  - button "Go to step 9"
+  - button "Go to step 10"
+  - button "Go to step 11"
+  - button "Go to step 12"
+  - button "Go to step 13"
+  - button "← Back"
+  - button "Skip Tutorial"
+  - text: Complete the challenge ↑
+- region "Notifications alt+T"
+- alert

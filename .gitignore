@@ -108,6 +108,8 @@ SECURITY-AUDIT.md
 output/playwright/store-gameplay/*/
 output/playwright/store-ui/*/
 !output/playwright/store-ui/avatars/
+output/playwright/store-overview/*/
+!output/playwright/store-overview/steam-1080p/
 
 # wrangler dev state (client/serve-export.mjs)
 **/.wrangler/

@@ -1,0 +1,49 @@
+- main:
+  - button "Open navigation"
+  - text: 6 / 13
+  - heading "The Border Rule" [level=2]
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - button
+  - paragraph: The thick edge is the board's border. You can't place on the edge unless an enemy could jump there. Try the corner — it's blocked! Then defend by placing on the spot on the border where White threatens to jump you.
+  - text: Tap anywhere to start
+  - button "Go to step 1"
+  - button "Go to step 2"
+  - button "Go to step 3"
+  - button "Go to step 4"
+  - button "Go to step 5"
+  - button "Go to step 6"
+  - button "Go to step 7"
+  - button "Go to step 8"
+  - button "Go to step 9"
+  - button "Go to step 10"
+  - button "Go to step 11"
+  - button "Go to step 12"
+  - button "Go to step 13"
+  - button "← Back"
+  - button "Skip Tutorial"
+  - text: Complete the challenge ↑
+- region "Notifications alt+T"
+- alert

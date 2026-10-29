@@ -1,0 +1,81 @@
+- main:
+  - button "Open navigation"
+  - main:
+    - button "← Back"
+    - heading "Achievements" [level=1]
+    - paragraph: 9 of 30 unlocked
+    - heading "♟︎ Games 3/5" [level=2]
+    - text: Bronze
+    - heading "First Move" [level=3]
+    - paragraph: Make your first move in a multiplayer game.
+    - paragraph: Unlocked 28/10/2026
+    - text: Bronze
+    - heading "Getting the Hang of It" [level=3]
+    - paragraph: Play 5 games.
+    - paragraph: Unlocked 28/10/2026
+    - text: Silver
+    - heading "Table Regular" [level=3]
+    - paragraph: Play 10 games.
+    - paragraph: Unlocked 28/10/2026
+    - heading "Centurion" [level=3]
+    - paragraph: Play 100 games.
+    - heading "Grizzled Veteran" [level=3]
+    - paragraph: Play 1,000 games.
+    - heading "⚔︎ Combat 4/9" [level=2]
+    - text: Bronze
+    - heading "Everybody Falls" [level=3]
+    - paragraph: Lose your first game.
+    - paragraph: Unlocked 27/10/2026
+    - heading "Tough Luck" [level=3]
+    - paragraph: Lose 5 games.
+    - heading "Human Punching Bag" [level=3]
+    - paragraph: Lose 10 games.
+    - text: Bronze
+    - heading "Baby Steps" [level=3]
+    - paragraph: Beat an Easy AI.
+    - paragraph: Unlocked 27/10/2026
+    - text: Silver
+    - heading "Holding My Own" [level=3]
+    - paragraph: Beat a Medium AI.
+    - paragraph: Unlocked 27/10/2026
+    - heading "Skynet Who?" [level=3]
+    - paragraph: Beat a Hard AI.
+    - heading "First Blood" [level=3]
+    - paragraph: Capture your first piece.
+    - text: Gold
+    - heading "Chain Reaction" [level=3]
+    - paragraph: Capture 5 or more pieces in a single chain jump.
+    - paragraph: Unlocked 26/10/2026
+    - heading "One Jump Wonder" [level=3]
+    - paragraph: Win an entire game from a single chain jump.
+    - heading "⚡ Speed 0/3" [level=2]
+    - heading "Speed Demon" [level=3]
+    - paragraph: Win a timed game.
+    - heading "Buzzer Beater" [level=3]
+    - paragraph: Win a timed game with less than 10 seconds on your clock.
+    - heading "Living on the Edge" [level=3]
+    - paragraph: Win a timed game with 1 second or less on your clock.
+    - heading "🤝 Social 1/3" [level=2]
+    - text: Bronze
+    - heading "New Kid on the Block" [level=3]
+    - paragraph: Make your first friend.
+    - paragraph: Unlocked 27/10/2026
+    - heading "Social Butterfly" [level=3]
+    - paragraph: Make 10 friends.
+    - heading "Armchair General" [level=3]
+    - paragraph: Spectate a game.
+    - heading "🏆 Ranking 0/1" [level=2]
+    - heading "The One Percent" [level=3]
+    - paragraph: Reach the top 1% of players.
+    - heading "🏅 Tournament 0/1" [level=2]
+    - heading "Tournament Champion" [level=3]
+    - paragraph: Win a tournament.
+    - heading "🎓 Learning 1/1" [level=2]
+    - text: Bronze
+    - heading "Star Student" [level=3]
+    - paragraph: Complete the tutorial.
+    - paragraph: Unlocked 26/10/2026
+    - heading "❓ Secret ?/7" [level=2]
+    - paragraph: There are hidden achievements waiting to be discovered...
+- region "Notifications alt+T"
+- alert

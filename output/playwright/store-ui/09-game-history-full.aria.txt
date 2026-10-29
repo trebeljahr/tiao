@@ -24,7 +24,7 @@
     - img "aki"
     - link "aki (you)":
       - /url: /profile/aki
-    - text: (1580) ∞ 10 /10 Winner Oct 1, 8:32 AM | 63 moves Custom Game | 19x19 | 10pts | Unlimited Lost Opponent reached score target
+    - text: (1580) ∞ 10 /10 Winner Oct 29, 11:31 AM | 63 moves Custom Game | 19x19 | 10pts | Unlimited Lost Opponent reached score target
     - button "H3R8VN"
     - button "Review"
     - img "rowan"
@@ -34,7 +34,7 @@
     - img "aki"
     - link "aki (you)":
       - /url: /profile/aki
-    - text: (1580) ∞ 2 /10 Loser Oct 1, 6:32 AM | 40 moves Custom Game | 19x19 | 10pts | Unlimited Lost Opponent reached score target
+    - text: (1580) ∞ 2 /10 Loser Oct 29, 9:31 AM | 40 moves Custom Game | 19x19 | 10pts | Unlimited Lost Opponent reached score target
     - button "D9S4LA"
     - button "Review"
     - img "sora"
@@ -44,6 +44,6 @@
     - img "aki"
     - link "aki (you)":
       - /url: /profile/aki
-    - text: (1580) ∞ 8 /10 Loser Sep 30, 10:32 AM | 66 moves Custom Game | 19x19 | 10pts | Unlimited
+    - text: (1580) ∞ 8 /10 Loser Oct 28, 1:31 PM | 66 moves Custom Game | 19x19 | 10pts | Unlimited
 - region "Notifications alt+T"
 - alert

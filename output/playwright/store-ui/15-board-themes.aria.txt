@@ -1,0 +1,571 @@
+- main:
+  - button "Open navigation" [expanded]
+  - complementary:
+    - link "Go to lobby":
+      - /url: /play
+      - text: 跳 Tiao
+    - button "Change language"
+    - button "Unmute sounds"
+    - link "Lobby":
+      - /url: /play
+    - 'link "Friends Friends: 1 new — view"':
+      - /url: /friends
+      - text: Friends
+      - 'button "Friends: 1 new — view"': "1"
+    - link "My Games":
+      - /url: /games
+    - link "Tournaments":
+      - /url: /tournaments
+    - link "Achievements":
+      - /url: /achievements
+    - link "Shop":
+      - /url: /shop
+    - link "Tutorial":
+      - /url: /tutorial
+    - link "About":
+      - /url: /about
+    - img "aki"
+    - link "aki":
+      - /url: /profile/aki
+    - text: (1580)
+    - link "Settings":
+      - /url: /settings
+    - button "Logout"
+    - heading "Board theme" [level=3]
+    - button "Classic board theme": Classic
+    - button "Night board theme" [pressed]: Night
+    - button "Sakura board theme": Sakura
+    - button "Ocean board theme": Ocean
+    - button "Marble board theme": Marble
+    - link "Report an Issue":
+      - /url: https://github.com/trebeljahr/tiao/issues/new/choose
+    - navigation:
+      - link "About":
+        - /url: /about
+      - link "Press":
+        - /url: /press
+      - link "Imprint":
+        - /url: /impressum
+      - link "Privacy policy":
+        - /url: /privacy
+    - paragraph: v1.0.0-build.1207+5b9da9b7
+  - main:
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - button [disabled]
+    - text: 跳 Tiao Multiplayer
+    - button "Go to start": ⏮
+    - button "Previous move": ◀
+    - button "Next move": ▶
+    - button "Go to end": ⏭
+    - button "Copy game ID H3R8VN": H3R8VN
+    - button "Copy share link"
+    - button "Copy embed code"
+    - button "Copy spectate link"
+    - heading "White wins" [level=3]
+    - status "Player is online"
+    - img "aki"
+    - link "aki (you)":
+      - /url: /profile/aki
+    - text: (1580)
+    - paragraph: Black
+    - paragraph: 2 / 10
+    - status "Player is online"
+    - img "rowan"
+    - link "rowan":
+      - /url: /profile/rowan
+    - text: (1546) Friend
+    - button "Report player"
+    - paragraph: White
+    - paragraph: 6 / 10
+    - button "Rematch"
+    - button "Lobby"
+    - paragraph: Move History
+    - table:
+      - rowgroup:
+        - row "# White Black":
+          - columnheader "#"
+          - columnheader "White"
+          - columnheader "Black"
+      - rowgroup:
+        - row "1 g6 f9":
+          - cell "1"
+          - cell "g6":
+            - button "g6"
+          - cell "f9":
+            - button "f9"
+        - row "2 h8 j15":
+          - cell "2"
+          - cell "h8":
+            - button "h8"
+          - cell "j15":
+            - button "j15"
+        - row "3 f14 h5":
+          - cell "3"
+          - cell "f14":
+            - button "f14"
+          - cell "h5":
+            - button "h5"
+        - row "4 g6×j4 g16":
+          - cell "4"
+          - cell "g6×j4":
+            - button "g6×j4"
+          - cell "g16":
+            - button "g16"
+        - row "5 m12 g4":
+          - cell "5"
+          - cell "m12":
+            - button "m12"
+          - cell "g4":
+            - button "g4"
+        - row "6 h10 n10":
+          - cell "6"
+          - cell "h10":
+            - button "h10"
+          - cell "n10":
+            - button "n10"
+        - row "7 l11 n9":
+          - cell "7"
+          - cell "l11":
+            - button "l11"
+          - cell "n9":
+            - button "n9"
+        - row "8 e12 g11":
+          - cell "8"
+          - cell "e12":
+            - button "e12"
+          - cell "g11":
+            - button "g11"
+        - row "9 h10×f12 l9":
+          - cell "9"
+          - cell "h10×f12":
+            - button "h10×f12"
+          - cell "l9":
+            - button "l9"
+        - row "10 o12 l13":
+          - cell "10"
+          - cell "o12":
+            - button "o12"
+          - cell "l13":
+            - button "l13"
+        - row "11 m12×k14×h16×f16 d11":
+          - cell "11"
+          - cell "m12×k14×h16×f16":
+            - button "m12×k14×h16×f16"
+          - cell "d11":
+            - button "d11"
+        - row "12 f6 p12":
+          - cell "12"
+          - cell "f6":
+            - button "f6"
+          - cell "p12":
+            - button "p12"
+        - row "13 o12×q12 d11×f13×f11":
+          - cell "13"
+          - cell "o12×q12":
+            - button "o12×q12"
+          - cell "d11×f13×f11":
+            - button "d11×f13×f11"
+        - row "14 e13 g5":
+          - cell "14"
+          - cell "e13":
+            - button "e13"
+          - cell "g5":
+            - button "g5"
+        - row "15 f6×h4×f4 q13":
+          - cell "15"
+          - cell "f6×h4×f4":
+            - button "f6×h4×f4"
+          - cell "q13":
+            - button "q13"
+        - row "16 g4 n7":
+          - cell "16"
+          - cell "g4":
+            - button "g4"
+          - cell "n7":
+            - button "n7"
+        - row "17 q12×q14 m6":
+          - cell "17"
+          - cell "q12×q14":
+            - button "q12×q14"
+          - cell "m6":
+            - button "m6"
+        - row "18 j6 d15":
+          - cell "18"
+          - cell "j6":
+            - button "j6"
+          - cell "d15":
+            - button "d15"
+        - row "19 o8 p8":
+          - cell "19"
+          - cell "o8":
+            - button "o8"
+          - cell "p8":
+            - button "p8"
+        - row "20 o8×q8 wins":
+          - cell "20"
+          - cell "o8×q8":
+            - button "o8×q8"
+          - cell "wins":
+            - button "wins"
+    - button "Copy game notation"
+- region "Notifications alt+T"
+- alert
