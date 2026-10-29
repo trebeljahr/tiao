@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { useGameConfig } from "@/lib/hooks/useGameConfig";
 import { useLocalGame } from "@/lib/hooks/useLocalGame";
 import { playUiFeedback } from "@/lib/uiClickAudio";
+import { useStonePlacementSound } from "@/lib/useStonePlacementSound";
 import styles from "@/views/SoundLabPage.module.css";
 
 /** Uses the production controls and local rules engine. No network actions. */
@@ -25,6 +26,7 @@ export function SoundPlayground() {
   const [validation, setValidation] = useState("");
   const validId = /^[A-Z0-9]{6}$/i.test(gameId);
   const game = local.localGame;
+  useStonePlacementSound(game);
   return (
     <section className={styles.playground} aria-label="Game UI playground">
       <div className={styles.playgroundHeading}>
@@ -68,15 +70,9 @@ export function SoundPlayground() {
           selectedPiece={local.localSelection}
           jumpTargets={local.localJumpTargets}
           showCoordinates
-          onPointClick={(point) => {
-            local.handleLocalBoardClick(point);
-            void playUiFeedback("click");
-          }}
+          onPointClick={local.handleLocalBoardClick}
           onUndoLastJump={local.handleLocalUndoPendingJump}
-          onConfirmJump={() => {
-            local.handleLocalConfirmPendingJump();
-            void playUiFeedback("success");
-          }}
+          onConfirmJump={local.handleLocalConfirmPendingJump}
         />
       </div>
       <p className={styles.hint}>

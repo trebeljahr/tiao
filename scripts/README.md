@@ -141,18 +141,25 @@ Choose Click, Success or Error, then select a sound and volume for that category
 The playground uses the production board, local rules engine, setup dialog,
 theme picker and input controls. No account, backend or multiplayer actions run.
 Border-rule failures play Error; game setup/reset and valid ID checks play Success.
-Other enabled controls play Click. Mute applies to all categories. Choices persist
-locally and are opt-in in the rest of the game.
+Other enabled controls play Click. The production defaults are Linen, Warm confirm
+(the two-tap confirm) and Low double. Each category supports a saved override or
+explicit Off; the game mute control silences all audio. The curated cues are
+matched to the same 200ms energy window and receive a 1.3× UI output gain.
+The original board placement MP3 and playback level remain unchanged.
 
 Use `playUiFeedback("success")` / `playUiFeedback("error")` for action results.
 Controls may declare `data-ui-feedback="success"` or `"error"` for immediate,
 known outcomes, or `"manual"` when their handler determines the result. These
 replace the generic click cue so a single action does not stack two sounds.
+Success/error toasts also produce their corresponding cue once; initial toast
+history and rerenders are silent. Outcome playback clears pending UI clicks.
 
-Export the 14 mono 44.1 kHz PCM WAVs and the one-cue-per-option montage:
+Export mono 44.1 kHz PCM WAVs and the one-cue-per-option montage at the calibrated
+50% UI mix. Add `--selected` for the three curated production sounds. The
+`mix-settings.json` export records gains, peaks and 200ms RMS measurements:
 
 ```sh
-node --experimental-strip-types scripts/export-ui-clicks.ts /absolute/output/directory
+node --experimental-strip-types scripts/export-ui-clicks.ts /absolute/output/directory --selected
 ```
 
 Recipes and synthesis live in `client/src/lib/uiClickSynth.ts`. No external

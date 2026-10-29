@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { playUiFeedback } from "@/lib/uiClickAudio";
 import { cn } from "@/lib/utils";
 
 type CopyGameIdButtonProps = {
@@ -24,9 +25,19 @@ export function CopyGameIdButton({ gameId, variant = "ghost", className }: CopyG
     // (http://) and when the user denies permission. We optimistically
     // flip to "copied" and roll back on failure so the button never
     // leaves a half-confused state if the copy didn't land.
-    navigator.clipboard.writeText(gameId).catch(() => {
-      setCopied(false);
-    });
+    if (!navigator.clipboard?.writeText) {
+      void playUiFeedback("error");
+      return;
+    }
+    navigator.clipboard
+      .writeText(gameId)
+      .then(() => {
+        void playUiFeedback("success");
+      })
+      .catch(() => {
+        setCopied(false);
+        void playUiFeedback("error");
+      });
     setCopied(true);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => setCopied(false), 1800);
@@ -36,6 +47,7 @@ export function CopyGameIdButton({ gameId, variant = "ghost", className }: CopyG
     <button
       type="button"
       onClick={handleCopy}
+      data-ui-feedback="manual"
       title={`Copy game ID: ${gameId}`}
       className={cn(
         "rounded-md px-1.5 py-0.5 font-mono text-[10px] transition-colors",

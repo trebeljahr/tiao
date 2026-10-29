@@ -1,4 +1,5 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { playUiFeedback } from "@/lib/uiClickAudio";
 import { UiClickFeedback } from "./UiClickFeedback";
@@ -11,7 +12,10 @@ beforeEach(() => {
   localStorage.clear();
   vi.clearAllMocks();
 });
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
 describe("semantic UI feedback", () => {
   function fixture() {
     render(
@@ -63,5 +67,42 @@ describe("semantic UI feedback", () => {
     fireEvent.click(screen.getByText("Menu"));
     await act(async () => {});
     expect(playUiFeedback).not.toHaveBeenCalled();
+  });
+});
+
+describe("outcome feedback", () => {
+  it("plays new success/error toasts once, ignores history and stays silent while muted", async () => {
+    vi.useFakeTimers();
+    toast.success("Existing message", { id: "existing" });
+    const { rerender } = render(<UiClickFeedback />);
+    await act(async () => {
+      await vi.runOnlyPendingTimersAsync();
+    });
+    expect(playUiFeedback).not.toHaveBeenCalled();
+    await act(async () => {
+      toast.success("Copied", { id: "copied" });
+      await vi.runOnlyPendingTimersAsync();
+    });
+    expect(playUiFeedback).toHaveBeenCalledExactlyOnceWith("success");
+    rerender(<UiClickFeedback />);
+    await act(async () => {
+      await vi.runOnlyPendingTimersAsync();
+    });
+    expect(playUiFeedback).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      toast.error("Could not save", { id: "save-error" });
+      await vi.runOnlyPendingTimersAsync();
+    });
+    expect(playUiFeedback).toHaveBeenLastCalledWith("error");
+    expect(playUiFeedback).toHaveBeenCalledTimes(2);
+    cleanup();
+    localStorage.setItem("tiao:soundEnabled", "0");
+    render(<UiClickFeedback />);
+    await act(async () => {
+      toast.success("Muted result", { id: "muted-result" });
+      await vi.runOnlyPendingTimersAsync();
+    });
+    expect(playUiFeedback).toHaveBeenCalledTimes(2);
+    toast.dismiss();
   });
 });

@@ -2,6 +2,11 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { synthesizeClick, UI_SOUNDS } from "../client/src/lib/uiClickSynth.ts";
+import {
+  DEFAULT_UI_SOUNDS,
+  UI_OUTPUT_GAIN,
+  uiPlaybackGain,
+} from "../client/src/lib/uiSoundPresets.ts";
 
 const destination = process.argv[2];
 if (!destination) throw new Error("Pass an output directory.");
@@ -26,18 +31,38 @@ function wav(samples: Float32Array) {
   });
   return file;
 }
-const montage = new Float32Array(Math.ceil(UI_SOUNDS.length * 1.0 * sampleRate));
-UI_SOUNDS.forEach((recipe, index) => {
+const selectedOnly = process.argv.includes("--selected");
+const recipes = selectedOnly
+  ? UI_SOUNDS.filter((sound) => Object.values(DEFAULT_UI_SOUNDS).includes(sound.id))
+  : UI_SOUNDS;
+const montage = new Float32Array(recipes.length * sampleRate);
+const metrics: Record<string, { gain: number; peak: number; rms200ms: number }> = {};
+recipes.forEach((recipe, index) => {
   const samples = synthesizeClick(recipe, sampleRate);
+  const gain = uiPlaybackGain(recipe.id, 0.5);
+  let peak = 0;
+  let energy = 0;
+  for (let i = 0; i < samples.length; i++) {
+    samples[i] *= gain;
+    peak = Math.max(peak, Math.abs(samples[i]));
+    energy += samples[i] ** 2;
+  }
+  metrics[recipe.id] = { gain, peak, rms200ms: Math.sqrt(energy / (sampleRate * 0.2)) };
   const filename = `${String(index + 1).padStart(2, "0")}-${recipe.id}.wav`;
   writeFileSync(resolve(destination, filename), wav(samples));
-  for (const offset of [0]) {
-    const start = Math.round((index * 1.0 + offset) * sampleRate);
-    samples.forEach((value, i) => {
-      montage[start + i] += value * 0.5;
-    });
-  }
+  montage.set(samples, index * sampleRate);
 });
-writeFileSync(resolve(destination, "ui-sound-montage.wav"), wav(montage));
-writeFileSync(resolve(destination, "sounds.json"), JSON.stringify(UI_SOUNDS, null, 2));
-console.log(`Exported ${UI_SOUNDS.length} sounds and montage to ${destination}`);
+writeFileSync(
+  resolve(destination, selectedOnly ? "selected-ui-sounds.wav" : "ui-sound-montage.wav"),
+  wav(montage),
+);
+writeFileSync(resolve(destination, "sounds.json"), JSON.stringify(recipes, null, 2));
+writeFileSync(
+  resolve(destination, "mix-settings.json"),
+  JSON.stringify(
+    { defaults: DEFAULT_UI_SOUNDS, volume: 0.5, outputGain: UI_OUTPUT_GAIN, metrics },
+    null,
+    2,
+  ),
+);
+console.log(`Exported ${recipes.length} sounds and montage to ${destination}`);

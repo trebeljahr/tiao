@@ -233,6 +233,7 @@ export function LocalGamePage() {
           </Button>
           <Button
             variant="secondary"
+            data-ui-feedback="success"
             onClick={() => {
               setGameOverDialogOpen(false);
               handleRematchSameSettings();

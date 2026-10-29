@@ -94,7 +94,7 @@ export function SoundLabPage() {
     if (id) {
       safeLocalStorage.setItem(UI_SOUND_KEYS[category], id);
       preview(id, category);
-    } else safeLocalStorage.removeItem(UI_SOUND_KEYS[category]);
+    } else safeLocalStorage.setItem(UI_SOUND_KEYS[category], "off");
   };
   const playCategory = () => {
     stop();

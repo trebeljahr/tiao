@@ -44,7 +44,7 @@ describe("three-category sound lab", () => {
     expect(screen.getByRole("radio", { name: "Select Settle" })).toBeChecked();
     expect(screen.getByLabelText("Success volume")).toHaveValue("45");
     fireEvent.click(screen.getByRole("radio", { name: "Turn off success sound" }));
-    expect(localStorage.getItem("tiao:uiSuccess")).toBeNull();
+    expect(localStorage.getItem("tiao:uiSuccess")).toBe("off");
     expect(localStorage.getItem("tiao:uiError")).toBe("soft-pause");
   });
   it("plays the six click options once each, and cancels on mute or unmount", async () => {

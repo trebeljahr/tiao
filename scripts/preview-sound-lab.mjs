@@ -73,6 +73,7 @@ writeFileSync(
   path.join(directory, "vite.config.mjs"),
   `export default {
  define: { "process.env": JSON.stringify({ NODE_ENV: "development", APP_VERSION: "sound-lab" }) },
+ publicDir: ${source("public")},
  esbuild: {jsx: "automatic"}, css: {postcss: ${JSON.stringify(client)}},
  resolve: {alias: [...${JSON.stringify(aliases)}, {find: /^react$/, replacement: ${source("node_modules/react/index.js")}}]},
  server: {fs: {allow: [${JSON.stringify(directory)}, ${JSON.stringify(root)}, ${JSON.stringify(realpathSync(path.join(client, "node_modules")))}]}}

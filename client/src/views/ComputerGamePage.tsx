@@ -269,7 +269,11 @@ export function ComputerGamePage() {
             gameOver={gameOver}
             gameOverActions={
               <>
-                <Button variant="secondary" onClick={() => computer.resetLocalGame()}>
+                <Button
+                  variant="secondary"
+                  data-ui-feedback="success"
+                  onClick={() => computer.resetLocalGame()}
+                >
                   {t("restartBoard")}
                 </Button>
                 <Button variant="secondary" onClick={handleChangeDifficulty}>
@@ -302,6 +306,7 @@ export function ComputerGamePage() {
       >
         <div className="grid gap-2">
           <Button
+            data-ui-feedback="success"
             onClick={() => {
               setGameOverDialogOpen(false);
               computer.resetLocalGame();

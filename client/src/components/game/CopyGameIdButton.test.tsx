@@ -1,7 +1,9 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { playUiFeedback } from "@/lib/uiClickAudio";
 import { CopyGameIdButton } from "./CopyGameIdButton";
 
+vi.mock("@/lib/uiClickAudio", () => ({ playUiFeedback: vi.fn().mockResolvedValue(true) }));
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
 }));
@@ -9,6 +11,7 @@ vi.mock("next-intl", () => ({
 describe("CopyGameIdButton", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    vi.clearAllMocks();
     Object.assign(navigator, {
       clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
     });
@@ -59,4 +62,23 @@ describe("CopyGameIdButton", () => {
     render(<CopyGameIdButton gameId="abc-123" className="custom-class" />);
     expect(screen.getByText("abc-123").className).toContain("custom-class");
   });
+});
+
+it("plays the outcome cue after clipboard success or failure", async () => {
+  Object.assign(navigator, { clipboard: { writeText: vi.fn().mockResolvedValue(undefined) } });
+  const { unmount } = render(<CopyGameIdButton gameId="ABC123" />);
+  await act(async () => {
+    fireEvent.click(screen.getByText("ABC123"));
+  });
+  expect(playUiFeedback).toHaveBeenLastCalledWith("success");
+  unmount();
+  vi.mocked(playUiFeedback).mockClear();
+  Object.assign(navigator, {
+    clipboard: { writeText: vi.fn().mockRejectedValue(new Error("Denied")) },
+  });
+  render(<CopyGameIdButton gameId="XYZ789" />);
+  await act(async () => {
+    fireEvent.click(screen.getByText("XYZ789"));
+  });
+  expect(playUiFeedback).toHaveBeenCalledExactlyOnceWith("error");
 });

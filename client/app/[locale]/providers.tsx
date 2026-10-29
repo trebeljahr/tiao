@@ -255,6 +255,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     return (
       <ErrorBoundary>
         <InputNavigation />
+        <UiClickFeedback />
         {children}
       </ErrorBoundary>
     );

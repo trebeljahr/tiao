@@ -38,6 +38,7 @@ import { useLobbyMessage } from "@/lib/LobbySocketContext";
 import { useSocialNotifications } from "@/lib/SocialNotificationsContext";
 import { safeLocalStorage } from "@/lib/safeLocalStorage";
 import { scrollToAndWiggle } from "@/lib/scroll-to-and-wiggle";
+import { playUiFeedback } from "@/lib/uiClickAudio";
 import { cn } from "@/lib/utils";
 
 /**
@@ -284,6 +285,7 @@ function OnlineLobbyPage() {
     try {
       const response = await createMultiplayerGame(multiplayerConfig.buildMultiplayerSettings());
       setShowCreateDialog(false);
+      void playUiFeedback("success");
       router.push(`/game/${response.snapshot.gameId}`);
     } catch (error) {
       toastError(error);
@@ -313,6 +315,7 @@ function OnlineLobbyPage() {
     setMultiplayerBusy(true);
     try {
       const response = await joinMultiplayerGame(joinGameId.trim().toUpperCase());
+      void playUiFeedback("success");
       router.push(`/game/${response.snapshot.gameId}`);
     } catch (error) {
       toastError(error);
@@ -328,6 +331,7 @@ function OnlineLobbyPage() {
     clearRematchNotification(gameId);
     try {
       const { newGameId } = await requestRematchRest(gameId);
+      void playUiFeedback("success");
       router.push(`/game/${newGameId}`);
     } catch (error) {
       toastError(error);

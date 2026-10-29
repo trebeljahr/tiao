@@ -1,5 +1,6 @@
 import { safeLocalStorage } from "./safeLocalStorage";
 import { synthesizeClick, UI_SOUNDS, type UiSoundCategory } from "./uiClickSynth";
+import { DEFAULT_UI_SOUNDS, uiPlaybackGain } from "./uiSoundPresets";
 
 export const UI_CLICK_KEY = "tiao:uiClick";
 export const UI_SOUND_KEYS = {
@@ -29,6 +30,8 @@ export async function playUiClick(id: string, volume = getClickVolume()): Promis
   if (safeLocalStorage.getItem("tiao:soundEnabled") === "0") return false;
   const recipe = UI_SOUNDS.find((sound) => sound.id === id);
   if (!recipe || typeof window === "undefined" || !window.AudioContext) return false;
+  // Do not queue unsolicited pre-gesture outcomes for the next interaction.
+  if (!context && navigator.userActivation && !navigator.userActivation.hasBeenActive) return false;
   const request = generation;
   try {
     context ??= new AudioContext();
@@ -47,7 +50,7 @@ export async function playUiClick(id: string, volume = getClickVolume()): Promis
     }
     const source = context.createBufferSource();
     const gain = context.createGain();
-    gain.gain.value = Math.max(0, Math.min(1, volume));
+    gain.gain.value = uiPlaybackGain(id, volume);
     source.buffer = buffer;
     source.connect(gain).connect(context.destination);
     sources.add(source);
@@ -80,13 +83,18 @@ export function getUiSoundVolume(category: UiSoundCategory): number {
 
 export function getUiSoundSelection(category: UiSoundCategory): string | null {
   const id = safeLocalStorage.getItem(UI_SOUND_KEYS[category]);
-  return UI_SOUNDS.some((sound) => sound.id === id && sound.category === category) ? id : null;
+  if (id === "off") return null;
+  return UI_SOUNDS.some((sound) => sound.id === id && sound.category === category)
+    ? id
+    : DEFAULT_UI_SOUNDS[category];
 }
 
-/** Call only for an actual user action result; saved categories are opt-in. */
+/** Play the selected or curated default cue, respecting mute and explicit category Off. */
 export function playUiFeedback(category: UiSoundCategory): Promise<boolean> {
   const id = getUiSoundSelection(category);
   if (typeof window !== "undefined")
     window.dispatchEvent(new CustomEvent("tiao:ui-feedback", { detail: category }));
-  return id ? playUiClick(id, getUiSoundVolume(category)) : Promise.resolve(false);
+  if (!id) return Promise.resolve(false);
+  if (category !== "click") stopUiClicks();
+  return playUiClick(id, getUiSoundVolume(category));
 }

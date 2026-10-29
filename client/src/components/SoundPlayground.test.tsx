@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { playUiFeedback } from "@/lib/uiClickAudio";
 import { SoundPlayground } from "./SoundPlayground";
@@ -12,7 +12,10 @@ beforeEach(() => {
   localStorage.clear();
   vi.clearAllMocks();
 });
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 describe("real game sound playground", () => {
   it("uses the real setup dialog and emits only success when starting a game", async () => {
     render(
@@ -47,6 +50,32 @@ describe("real game sound playground", () => {
     vi.mocked(playUiFeedback).mockClear();
     fireEvent.click(screen.getByTestId("cell-0-0"));
     await act(async () => {});
-    expect(playUiFeedback).toHaveBeenCalledExactlyOnceWith("error");
+    await waitFor(() => expect(playUiFeedback).toHaveBeenCalledExactlyOnceWith("error"));
   });
+});
+
+it("keeps the original placement sound and does not add a UI click to board taps", async () => {
+  const play = vi.fn().mockResolvedValue(undefined);
+  const created: string[] = [];
+  class TestAudio {
+    currentTime = 0;
+    play = play;
+    constructor(source: string) {
+      created.push(source);
+    }
+  }
+  vi.stubGlobal("Audio", TestAudio);
+  render(
+    <>
+      <UiClickFeedback />
+      <SoundPlayground />
+    </>,
+  );
+  vi.mocked(playUiFeedback).mockClear();
+  await act(async () => {
+    fireEvent.click(screen.getByTestId("cell-4-4"));
+  });
+  expect(created).toEqual(["/move.mp3"]);
+  expect(play).toHaveBeenCalledTimes(1);
+  expect(playUiFeedback).not.toHaveBeenCalled();
 });

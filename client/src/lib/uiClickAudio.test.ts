@@ -11,11 +11,15 @@ afterEach(() => {
   localStorage.clear();
 });
 describe("category sound preferences and playback", () => {
-  it("keeps categories silent until selected, rejects wrong-category IDs and clamps volume", async () => {
+  it("uses the curated defaults, preserves explicit Off, rejects wrong-category IDs and clamps volume", async () => {
     localStorage.clear();
+    expect(getUiSoundSelection("click")).toBe("linen");
+    expect(getUiSoundSelection("success")).toBe("warm-confirm");
+    expect(getUiSoundSelection("error")).toBe("low-double");
+    localStorage.setItem(UI_SOUND_KEYS.success, "off");
     expect(await playUiFeedback("success")).toBe(false);
     localStorage.setItem(UI_SOUND_KEYS.success, "felt");
-    expect(getUiSoundSelection("success")).toBeNull();
+    expect(getUiSoundSelection("success")).toBe("warm-confirm");
     localStorage.setItem("tiao:uiSuccessVolume", "100");
     expect(getUiSoundVolume("success")).toBe(1);
     localStorage.setItem("tiao:uiSuccessVolume", "garbage");
@@ -59,7 +63,7 @@ describe("category sound preferences and playback", () => {
     for (const category of ["click", "success", "error"] as const)
       expect(await playUiFeedback(category)).toBe(true);
     expect(start).toHaveBeenCalledTimes(3);
-    expect(gainValues).toEqual([0.3, 0.4, 0.2]);
+    expect(gainValues).toEqual([0.3 * 1.3, 0.4 * 1.3, 0.2 * 1.3]);
     localStorage.setItem("tiao:soundEnabled", "0");
     expect(await playUiFeedback("error")).toBe(false);
     expect(start).toHaveBeenCalledTimes(3);

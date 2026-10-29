@@ -42,6 +42,11 @@ export function GameConfigDialog({
       <GameConfigPanel
         {...config.configPanelProps}
         submitLabel={submitLabel}
+        submitFeedback={
+          config.configPanelProps.mode === "local" || config.configPanelProps.mode === "computer"
+            ? "success"
+            : undefined
+        }
         onSubmit={onSubmit}
         busy={busy}
       />
