@@ -198,6 +198,18 @@ export class BullMQTimerScheduler implements TimerScheduler {
     attachWorkerErrorHandler(this.firstMoveWorker, FIRST_MOVE_QUEUE);
   }
 
+  /** Wait for queue and blocking worker connections before using the scheduler. */
+  async waitUntilReady(): Promise<void> {
+    await Promise.all([
+      this.clockQueue.waitUntilReady(),
+      this.abandonQueue.waitUntilReady(),
+      this.firstMoveQueue.waitUntilReady(),
+      this.clockWorker.waitUntilReady(),
+      this.abandonWorker.waitUntilReady(),
+      this.firstMoveWorker.waitUntilReady(),
+    ]);
+  }
+
   async scheduleClockTimer(roomId: string, delayMs: number, expectedTurn: string): Promise<void> {
     const jobId = `clock-${roomId}`;
     // Remove any existing timer for this room, then add with new delay
