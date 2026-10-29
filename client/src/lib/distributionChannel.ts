@@ -107,3 +107,15 @@ export function useIsAppStoreChannel(): boolean {
     () => process.env.NEXT_PUBLIC_PLATFORM === "mobile",
   );
 }
+
+/** Keep support, legal links and credits in Settings in Steam and mobile apps. */
+export function useAppInfoInSettings(): boolean {
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => {
+      const channel = getDistributionChannel();
+      return channel === "steam" || channel === "ios" || channel === "android";
+    },
+    () => process.env.NEXT_PUBLIC_PLATFORM === "mobile",
+  );
+}

@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { AppInfoSettings } from "@/components/AppInfoSettings";
 import { BackButton } from "@/components/BackButton";
 import { BadgeSelector } from "@/components/BadgeSelector";
 import { DesktopWindowControls } from "@/components/DesktopWindowControls";
@@ -851,6 +852,7 @@ export function ProfilePage() {
           </Card>
         </div>
       ) : null}
+      <AppInfoSettings />
       <Dialog
         open={deleteModalOpen}
         onOpenChange={setDeleteModalOpen}
