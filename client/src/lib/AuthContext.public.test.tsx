@@ -1,6 +1,8 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import type { PlayerIdentity } from "@shared";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthProvider, useAuth } from "./AuthContext";
+import { useBoardTheme } from "./useBoardTheme";
 
 const mocks = vi.hoisted(() => ({
   getSession: vi.fn(),
@@ -23,11 +25,14 @@ vi.mock("@/lib/api", () => ({
 }));
 vi.mock("@/lib/glitchtip", () => ({ setUser: vi.fn() }));
 vi.mock("@/lib/useActiveBadge", () => ({ resetActiveBadges: vi.fn() }));
-vi.mock("@/lib/useBoardTheme", () => ({ resetBoardTheme: vi.fn() }));
 
 function Identity() {
   const { auth, authBootstrapped } = useAuth();
   return <output>{authBootstrapped ? (auth?.player.kind ?? "visitor") : "checking"}</output>;
+}
+
+function BoardTheme() {
+  return <span data-testid="board-theme">{useBoardTheme().id}</span>;
 }
 
 describe("public page session bootstrap", () => {
@@ -73,17 +78,77 @@ describe("public page session bootstrap", () => {
   });
 
   it("discards an expired cached account on public pages", async () => {
+    localStorage.setItem("tiao:boardTheme", "night");
     localStorage.setItem(
       "tiao:auth-cache",
-      JSON.stringify({ player: { kind: "account", playerId: "expired" } }),
+      JSON.stringify({
+        player: { kind: "account", playerId: "expired", unlockedThemes: ["night"] },
+      }),
     );
     render(
       <AuthProvider createGuestSession={false}>
         <Identity />
+        <BoardTheme />
       </AuthProvider>,
     );
     await screen.findByText("visitor");
     expect(localStorage.getItem("tiao:auth-cache")).toBeNull();
+    expect(screen.getByTestId("board-theme")).toHaveTextContent("classic");
+  });
+
+  it.each([
+    { kind: "guest", themes: ["night"], expected: "classic" },
+    { kind: "account", themes: [], expected: "classic" },
+    { kind: "account", themes: ["night"], expected: "night" },
+  ] as const)("resolves saved themes using the current $kind's access ($expected)", async ({
+    kind,
+    themes,
+    expected,
+  }) => {
+    localStorage.setItem("tiao:boardTheme", "night");
+    const player: PlayerIdentity = {
+      kind,
+      playerId: "current-player",
+      displayName: "Player",
+      unlockedThemes: [...themes],
+    };
+    mocks.getSession.mockResolvedValue({ data: { user: { id: player.playerId } } });
+    mocks.getPlayerIdentity.mockResolvedValue({ player });
+    render(
+      <AuthProvider>
+        <Identity />
+        <BoardTheme />
+      </AuthProvider>,
+    );
+    await screen.findByText(kind);
+    expect(screen.getByTestId("board-theme")).toHaveTextContent(expected);
+  });
+
+  it("does not apply a cached owner's skin while session verification is pending", async () => {
+    localStorage.setItem("tiao:boardTheme", "night");
+    localStorage.setItem(
+      "tiao:auth-cache",
+      JSON.stringify({
+        player: { kind: "account", playerId: "expired", unlockedThemes: ["night"] },
+      }),
+    );
+    let finishSessionCheck!: (value: { data: null }) => void;
+    mocks.getSession.mockReturnValue(
+      new Promise((resolve) => {
+        finishSessionCheck = resolve;
+      }),
+    );
+    render(
+      <AuthProvider>
+        <Identity />
+        <BoardTheme />
+      </AuthProvider>,
+    );
+    await waitFor(() => expect(mocks.getSession).toHaveBeenCalled());
+    expect(screen.getByTestId("board-theme")).toHaveTextContent("classic");
+    await act(async () => finishSessionCheck({ data: null }));
+    await screen.findByText("guest");
+    expect(screen.getByTestId("board-theme")).toHaveTextContent("classic");
   });
 
   it("does not treat an unverifiable cached identity as signed in", async () => {

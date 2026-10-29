@@ -42,6 +42,7 @@ import {
   getPendingSteamWebAccount,
   type SteamProfileDefaults,
 } from "@/lib/steamWebAuth";
+import { UnlockedBoardThemesContext } from "@/lib/UnlockedBoardThemesContext";
 import { resetActiveBadges } from "@/lib/useActiveBadge";
 import { resetBoardTheme } from "@/lib/useBoardTheme";
 
@@ -887,7 +888,19 @@ export function AuthProvider({
     ],
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      <UnlockedBoardThemesContext.Provider
+        value={
+          authBootstrapped && auth?.player.kind === "account"
+            ? auth.player.unlockedThemes
+            : undefined
+        }
+      >
+        {children}
+      </UnlockedBoardThemesContext.Provider>
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth(): AuthContextValue {
