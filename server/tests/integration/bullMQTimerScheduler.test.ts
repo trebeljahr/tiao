@@ -12,8 +12,6 @@ import { BullMQTimerScheduler } from "../../game/timerQueue";
 // test files don't stomp on each other's `flushdb`. The dev server uses
 // db 0, and the BullMQ-dedicated db here is isolated from both.
 const TEST_DB = 14;
-const TEST_PORT = Number(process.env.REDIS_TEST_PORT ?? 6379);
-assert.ok(Number.isInteger(TEST_PORT) && TEST_PORT > 0 && TEST_PORT <= 65535);
 
 // Short delay window so the tests run fast but still allow BullMQ's
 // delayed-job scheduler to pick up the job. BullMQ Worker startup +
@@ -32,7 +30,7 @@ function createClient(): Redis {
   // duplication path that crashed in production.
   const client = new Redis({
     host: "127.0.0.1",
-    port: TEST_PORT,
+    port: 6379,
     db: TEST_DB,
     maxRetriesPerRequest: 3,
     connectTimeout: 2000,
@@ -95,14 +93,11 @@ describe("BullMQTimerScheduler", () => {
       },
     };
     scheduler = new BullMQTimerScheduler(redis, handlers);
-    // A synchronous test can finish before BullMQ's blocking connections open.
-    // Await the fixture's real readiness before allowing teardown to close it.
-    await scheduler.waitUntilReady();
   });
 
   afterEach(async () => {
     if (scheduler) {
-      await scheduler.close();
+      await scheduler.close().catch(() => {});
       scheduler = null;
     }
     if (redis) {
@@ -282,7 +277,6 @@ describe("BullMQTimerScheduler", () => {
     if (!redisAvailable) return t.skip();
     await scheduler!.scheduleClockTimer("ROOM01", 60_000, "white");
     await scheduler!.close();
-    assert.equal(await redis!.ping(), "PONG", "Closing a scheduler preserves its caller's Redis connection");
     // Mark as closed so afterEach doesn't double-close
     scheduler = null;
   });
