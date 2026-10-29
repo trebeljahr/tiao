@@ -1,12 +1,12 @@
 import type {
   AuthResponse,
   LobbyServerMessage,
+  MatchmakingQueueStatus,
   MatchmakingState,
   MultiplayerSnapshot,
   TimeControl,
 } from "@shared";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { toastError } from "../errors";
 import { useLobbyMessage, useLobbySocket } from "../LobbySocketContext";
 
 function createSearchId(): string {
@@ -104,7 +104,11 @@ export function useMatchmakingData(
   // this to suppress its auto-re-enter effect so the two tabs don't
   // ping-pong the queue.
   const [preempted, setPreempted] = useState(false);
-  const { sendMessage } = useLobbySocket();
+  const { sendMessage, connectionStatus, reconnect } = useLobbySocket();
+  const [queue, setQueue] = useState<MatchmakingQueueStatus | null>(null);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [responseTimedOut, setResponseTimedOut] = useState(false);
+  const [requestVersion, setRequestVersion] = useState(0);
   // One search identity survives socket loss. The server persists it with the
   // room so replaying a lost matched reply cannot create another game.
   const searchRef = useRef<{ attemptId: string; timeControl: TimeControl } | null>(null);
@@ -144,10 +148,19 @@ export function useMatchmakingData(
   useLobbyMessage((payload: Record<string, unknown>) => {
     if (payload.type === "lobby:open") {
       const search = searchRef.current;
-      if (search) sendMessageRef.current({ type: "matchmaking:enter-v2", ...search });
+      if (search) {
+        setMatchmakingBusy(true);
+        setResponseTimedOut(false);
+        setRequestVersion((version) => version + 1);
+        sendMessageRef.current({ type: "matchmaking:enter-v2", ...search });
+      }
       return;
     }
     const msg = payload as LobbyServerMessage;
+    if (msg.type === "matchmaking:queue-status") {
+      if (msg.attemptId === searchRef.current?.attemptId) setQueue(msg.queue);
+      return;
+    }
     const cancelled = cancelledSearchRef.current;
     if (
       msg.type === "matchmaking:matched" &&
@@ -182,6 +195,8 @@ export function useMatchmakingData(
     )
       return;
     if (msg.type === "matchmaking:state") {
+      setSearchError(null);
+      setResponseTimedOut(false);
       if (msg.state.status !== "idle") errorStreakRef.current = 0;
       setMatchmaking(msg.state);
       setMatchmakingBusy(false);
@@ -234,7 +249,7 @@ export function useMatchmakingData(
         searchRef.current = null;
         clearSavedSearch();
       }
-      toastError(new Error(msg.message));
+      setSearchError(msg.message);
       setMatchmaking({ status: "idle" });
       // Stay busy for a growing delay so the page's auto-enter cannot spin on
       // a persistent error (lock timeout, presence not yet visible).
@@ -249,6 +264,10 @@ export function useMatchmakingData(
     async (timeControl?: TimeControl) => {
       if (!auth || searchOwnerRef.current !== auth.player.playerId) return;
       setMatchmakingBusy(true);
+      setSearchError(null);
+      setResponseTimedOut(false);
+      setQueue(null);
+      setRequestVersion((version) => version + 1);
       if (!searchRef.current) {
         cancelledSearchRef.current = null;
         const requested = timeControl ?? null;
@@ -264,6 +283,40 @@ export function useMatchmakingData(
     },
     [auth],
   );
+
+  // A socket can remain connected without the server acknowledging the search.
+  // Give the player a recovery action instead of an endless spinner.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: each explicit retry restarts the acknowledgement deadline
+  useEffect(() => {
+    if (
+      searchError ||
+      (!matchmakingBusy && !(matchmaking.status === "searching" && connectionStatus !== "open"))
+    )
+      return;
+    const timer = setTimeout(() => setResponseTimedOut(true), 15_000);
+    return () => clearTimeout(timer);
+  }, [matchmakingBusy, searchError, requestVersion, matchmaking.status, connectionStatus]);
+
+  useEffect(() => {
+    setQueue(null);
+    if (matchmaking.status !== "searching" || connectionStatus !== "open") return;
+    const refresh = () => {
+      const search = searchRef.current;
+      if (!search) return;
+      sendMessageRef.current({ type: "matchmaking:queue-status", attemptId: search.attemptId });
+    };
+    refresh();
+    const timer = setInterval(refresh, 5_000);
+    return () => {
+      clearInterval(timer);
+    };
+  }, [matchmaking.status, connectionStatus]);
+
+  useEffect(() => {
+    if (!queue) return;
+    const expiry = setTimeout(() => setQueue(null), 12_000);
+    return () => clearTimeout(expiry);
+  }, [queue]);
 
   const handleCancelMatchmaking = useCallback(async () => {
     if (searchRef.current)
@@ -295,6 +348,11 @@ export function useMatchmakingData(
 
   return {
     matchmaking,
+    queue,
+    searchError,
+    responseTimedOut,
+    connectionStatus,
+    reconnect,
     setMatchmaking,
     matchmakingBusy,
     preempted,

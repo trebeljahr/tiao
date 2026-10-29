@@ -1,7 +1,7 @@
 import type { AuthResponse } from "@shared";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { LobbySocketProvider, useLobbyMessage } from "./LobbySocketContext";
+import { LobbySocketProvider, useLobbyMessage, useLobbySocket } from "./LobbySocketContext";
 
 class MockWebSocket {
   static instances: MockWebSocket[] = [];
@@ -222,4 +222,42 @@ describe("LobbySocketProvider", () => {
     expect(handler1).toHaveBeenCalledWith(payload);
     expect(handler2).toHaveBeenCalledWith(payload);
   });
+});
+
+it("keeps the lobby connection when only the player's profile changes", () => {
+  MockWebSocket.instances = [];
+  vi.stubGlobal("WebSocket", MockWebSocket);
+  let auth = mockAccountAuth;
+  const { rerender, unmount } = renderHook(() => useLobbySocket(), {
+    wrapper: ({ children }) => <LobbySocketProvider auth={auth}>{children}</LobbySocketProvider>,
+  });
+  auth = { player: { ...mockAccountAuth.player, displayName: "Updated" } };
+  rerender();
+  expect(MockWebSocket.instances).toHaveLength(1);
+  unmount();
+  vi.unstubAllGlobals();
+});
+
+it("reports transport loss and supports an immediate retry", () => {
+  vi.useFakeTimers();
+  MockWebSocket.instances = [];
+  vi.stubGlobal("WebSocket", MockWebSocket);
+  const { result, unmount } = renderHook(() => useLobbySocket(), {
+    wrapper: createWrapper(mockAccountAuth),
+  });
+  expect(result.current.connectionStatus).toBe("connecting");
+  act(() => MockWebSocket.instances[0].simulateOpen());
+  expect(result.current.connectionStatus).toBe("open");
+  act(() => MockWebSocket.instances[0].close());
+  expect(result.current.connectionStatus).toBe("reconnecting");
+  act(() => result.current.reconnect());
+  expect(MockWebSocket.instances).toHaveLength(2);
+  expect(result.current.connectionStatus).toBe("connecting");
+  act(() => MockWebSocket.instances[1].simulateOpen());
+  expect(result.current.connectionStatus).toBe("open");
+  unmount();
+  act(() => vi.advanceTimersByTime(20_000));
+  expect(MockWebSocket.instances).toHaveLength(2);
+  vi.useRealTimers();
+  vi.unstubAllGlobals();
 });

@@ -519,3 +519,88 @@ test("a delayed ownership notice cannot preempt a newer owner", async () => {
     await fixture.close();
   }
 });
+
+test("queue status counts live searchers across replicas, excluding self and stale owners", async () => {
+  const fixture = replicas();
+  const [a, b] = fixture.services;
+  const alice = { ...player("alice"), rating: 1000 };
+  const bob = { ...player("bob"), rating: 3000 };
+  const carol = player("carol");
+  const first = new Socket(),
+    second = new Socket(),
+    third = new Socket();
+  const attemptId = randomUUID();
+  try {
+    await a.connectLobby(alice, first.ws);
+    await b.connectLobby(bob, second.ws);
+    await b.connectLobby(carol, third.ws);
+    await a.enterMatchmakingViaSocket(alice, null, first.ws, attemptId);
+    await b.enterMatchmakingViaSocket(bob, null, second.ws, randomUUID());
+    await b.enterMatchmakingViaSocket(
+      carol,
+      { initialMs: 600_000, incrementMs: 0 },
+      third.ws,
+      randomUUID(),
+    );
+    await fixture.matchmaking.addToQueue({
+      player: player("stale"),
+      queuedAt: Date.now(),
+      timeControl: null,
+      rating: 1000,
+      ownerId: "expired-owner",
+      attemptId: randomUUID(),
+    });
+    first.emit(
+      "message",
+      Buffer.from(JSON.stringify({ type: "matchmaking:queue-status", attemptId })),
+    );
+    await tick();
+    await tick();
+    assert.deepEqual(
+      [...first.sent].reverse().find((m) => m.type === "matchmaking:queue-status"),
+      {
+        type: "matchmaking:queue-status",
+        attemptId,
+        queue: { otherPlayers: 2, sameTimeControl: 1 },
+      },
+    );
+    third.close();
+    await tick();
+    await tick();
+    first.emit(
+      "message",
+      Buffer.from(JSON.stringify({ type: "matchmaking:queue-status", attemptId })),
+    );
+    await tick();
+    await tick();
+    assert.deepEqual(
+      [...first.sent].reverse().find((m) => m.type === "matchmaking:queue-status")?.queue,
+      {
+        otherPlayers: 1,
+        sameTimeControl: 1,
+      },
+    );
+    first.sent = [];
+    first.emit(
+      "message",
+      Buffer.from(JSON.stringify({ type: "matchmaking:queue-status", attemptId: randomUUID() })),
+    );
+    await tick();
+    await tick();
+    assert.equal(first.sent.length, 0);
+    await a.leaveMatchmakingViaSocket(alice, first.ws);
+    first.sent = [];
+    first.emit(
+      "message",
+      Buffer.from(JSON.stringify({ type: "matchmaking:queue-status", attemptId })),
+    );
+    await tick();
+    await tick();
+    assert.equal(first.sent.length, 0);
+  } finally {
+    first.close();
+    second.close();
+    third.close();
+    await fixture.close();
+  }
+});

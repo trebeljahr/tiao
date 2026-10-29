@@ -179,6 +179,12 @@ export type FriendActiveGameSummary = {
   ratingBefore?: { white: number; black: number } | null;
 };
 
+/** Other connected searchers; counts exclude the requesting player. */
+export type MatchmakingQueueStatus = {
+  otherPlayers: number;
+  sameTimeControl: number;
+};
+
 export type MatchmakingState =
   | {
       status: "idle";
@@ -334,9 +340,11 @@ export type AuthResponse = {
 export type LobbyClientMessage =
   | { type: "matchmaking:enter-v2"; timeControl: TimeControl; attemptId: string }
   | { type: "matchmaking:enter"; timeControl: TimeControl; attemptId?: string }
-  | { type: "matchmaking:leave" };
+  | { type: "matchmaking:leave" }
+  | { type: "matchmaking:queue-status"; attemptId: string };
 
 export type LobbyServerMessage =
+  | { type: "matchmaking:queue-status"; attemptId: string; queue: MatchmakingQueueStatus }
   | { type: "matchmaking:state"; state: MatchmakingState; attemptId?: string }
   | { type: "matchmaking:matched"; snapshot: MultiplayerSnapshot; attemptId?: string }
   | { type: "matchmaking:error"; code: string; message: string; attemptId?: string }

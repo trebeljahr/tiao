@@ -359,10 +359,10 @@
   "matchmaking": {
     "title": "Buscar rival",
     "description": "Encuentra un rival en línea y empieza a construir tu historial de partidas.",
-    "signInRequired": "Inicia sesión para buscar rivales en línea.",
+    "signInRequired": "Inicia sesión para encontrar un rival en línea.",
     "searching": "Buscando rival...",
     "cancelSearch": "Cancelar búsqueda",
-    "initializing": "Iniciando búsqueda...",
+    "initializing": "Conectando al emparejamiento…",
     "unlimited": "Sin límite",
     "minPerPlayer": "min por jugador",
     "secAddedPerMove": "s por jugada",
@@ -370,7 +370,17 @@
     "noTimeLimit": "Sin límite de tiempo",
     "preemptedTitle": "Búsqueda tomada por otra pestaña",
     "preemptedBody": "Otra pestaña o navegador con la misma cuenta ha iniciado la búsqueda. Solo puede haber una búsqueda activa por cuenta a la vez.",
-    "backToLobby": "Volver al lobby"
+    "backToLobby": "Volver al lobby",
+    "signIn": "Iniciar sesión",
+    "reconnecting": "Reconectando al emparejamiento…",
+    "connectionFailed": "No se pudo conectar al emparejamiento. Inténtalo de nuevo.",
+    "retry": "Reintentar",
+    "elapsed": "Esperando {time}",
+    "otherPlayers": "{count, plural, =0 {No hay otros jugadores buscando} one {# jugador más buscando} other {# jugadores más buscando}}",
+    "sameTimeControl": "{count, plural, =0 {Ninguno con este control de tiempo} one {# con este control de tiempo} other {# con este control de tiempo}}",
+    "emptyQueue": "Esperando a otro jugador. Tiempo de espera desconocido.",
+    "waitUnknown": "Tiempo de espera desconocido. Los rivales se emparejan por control de tiempo y puntuación.",
+    "queueUnavailable": "Estado de la cola no disponible."
   },
   "games": {
     "title": "Mis partidas",

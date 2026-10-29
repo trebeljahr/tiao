@@ -491,6 +491,57 @@ export class GameService {
       return;
     }
 
+    if (parsed.type === "matchmaking:queue-status") {
+      const attemptId = parsed.attemptId;
+      if (
+        typeof attemptId !== "string" ||
+        this.socketSearchIds.get(socket) !== `${player.playerId}:${attemptId}`
+      )
+        return;
+      try {
+        const queue = await this.withLock(this.matchmakingLockKey(), async () => {
+          const entry = await this.matchmaking.findEntry(player.playerId);
+          if (
+            !entry ||
+            entry.attemptId !== `${player.playerId}:${attemptId}` ||
+            entry.ownerId !== this.presenceIds.get(socket)
+          )
+            return null;
+          let otherPlayers = 0;
+          let sameTimeControl = 0;
+          for (const other of await this.matchmaking.getAllEntries()) {
+            if (other.player.playerId === player.playerId) continue;
+            // Presence leases are shared across replicas. Do not count stale
+            // owners or another tab of this player as available opponents.
+            if (
+              !other.ownerId ||
+              !(await this.presence.hasConnection(`lobby:${other.player.playerId}`, other.ownerId))
+            )
+              continue;
+            otherPlayers++;
+            const a = entry.timeControl,
+              b = other.timeControl;
+            if (
+              a === null || b === null
+                ? a === b
+                : a.initialMs === b.initialMs && a.incrementMs === b.incrementMs
+            )
+              sameTimeControl++;
+          }
+          return { otherPlayers, sameTimeControl };
+        });
+        if (queue)
+          this.sendLobbyMessage(socket, {
+            type: "matchmaking:queue-status",
+            attemptId,
+            queue,
+          });
+      } catch {
+        // Queue statistics are optional. A failed read must not cancel a search.
+      }
+      return;
+    }
+
     if (parsed.type === "matchmaking:leave") {
       try {
         await this.leaveMatchmakingViaSocket(player, socket, undefined, true);

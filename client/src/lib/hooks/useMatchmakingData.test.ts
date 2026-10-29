@@ -6,12 +6,16 @@ import { useMatchmakingData } from "./useMatchmakingData";
 // Shared handles + state used by the mock below. The mock of
 // ./../LobbySocketContext is hoisted by vitest, so we reach into these refs
 // from inside tests to drive inbound messages and inspect outbound sends.
+let connectionStatus = "connecting";
+const reconnectMock = vi.fn();
 const sendMessageMock = vi.fn<(message: LobbyClientMessage) => void>();
 let lobbyHandler: ((payload: Record<string, unknown>) => void) | null = null;
 
 vi.mock("../LobbySocketContext", () => ({
   useLobbySocket: () => ({
     sendMessage: sendMessageMock,
+    connectionStatus,
+    reconnect: reconnectMock,
     subscribe: (handler: (payload: Record<string, unknown>) => void) => {
       lobbyHandler = handler;
       return () => {
@@ -225,7 +229,7 @@ describe("useMatchmakingData (lobby socket)", () => {
     expect(sendMessageMock).not.toHaveBeenCalled();
   });
 
-  it("matchmaking:error pops a toast, resets to idle and backs off before retrying", async () => {
+  it("matchmaking:error exposes an inline error, resets to idle and backs off before retrying", async () => {
     vi.useFakeTimers();
     const onMatched = vi.fn();
     const { result } = renderHook(() => useMatchmakingData(mockAuth, onMatched));
@@ -242,6 +246,7 @@ describe("useMatchmakingData (lobby socket)", () => {
     });
 
     expect(result.current.matchmaking.status).toBe("idle");
+    expect(result.current.searchError).toBe("Something broke");
     // Busy holds the page's auto-enter back so a persistent error cannot spin.
     expect(result.current.matchmakingBusy).toBe(true);
     act(() => {
@@ -625,5 +630,83 @@ describe("lobby greeting and cancel races", () => {
     vi.setSystemTime(Date.now() + 16_000);
     act(() => pushMessage({ type: "matchmaking:matched", snapshot: mockSnapshot, attemptId }));
     expect(onMatched).not.toHaveBeenCalled();
+  });
+});
+
+describe("matchmaking connection recovery and queue status", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    connectionStatus = "open";
+    sendMessageMock.mockReset();
+    window.sessionStorage.clear();
+  });
+  afterEach(() => {
+    connectionStatus = "connecting";
+    vi.useRealTimers();
+  });
+
+  it("exposes a retry after an unacknowledged search and reuses its identity", async () => {
+    const { result } = renderHook(() => useMatchmakingData(mockAuth, vi.fn()));
+    await act(async () => result.current.handleEnterMatchmaking());
+    const request = sendMessageMock.mock.calls[0][0];
+    act(() => vi.advanceTimersByTime(15_000));
+    expect(result.current.responseTimedOut).toBe(true);
+    await act(async () => result.current.handleEnterMatchmaking());
+    expect(result.current.responseTimedOut).toBe(false);
+    expect(sendMessageMock.mock.calls[1][0]).toEqual(request);
+    act(() => vi.advanceTimersByTime(15_000));
+    expect(result.current.responseTimedOut).toBe(true);
+    act(() =>
+      pushMessage({
+        type: "matchmaking:state",
+        state: { status: "searching", queuedAt: new Date().toISOString() },
+      }),
+    );
+    expect(result.current.responseTimedOut).toBe(false);
+  });
+
+  it("refreshes only an active search and discards stale statistics", async () => {
+    const { result, rerender, unmount } = renderHook(() => useMatchmakingData(mockAuth, vi.fn()));
+    await act(async () => result.current.handleEnterMatchmaking());
+    const { attemptId } = sendMessageMock.mock.calls[0][0] as { attemptId: string };
+    act(() =>
+      pushMessage({
+        type: "matchmaking:state",
+        attemptId,
+        state: { status: "searching", queuedAt: new Date().toISOString() },
+      }),
+    );
+    expect(sendMessageMock).toHaveBeenLastCalledWith({
+      type: "matchmaking:queue-status",
+      attemptId,
+    });
+    act(() =>
+      pushMessage({
+        type: "matchmaking:queue-status",
+        attemptId: "old-search",
+        queue: { otherPlayers: 99, sameTimeControl: 99 },
+      }),
+    );
+    expect(result.current.queue).toBeNull();
+    act(() =>
+      pushMessage({
+        type: "matchmaking:queue-status",
+        attemptId,
+        queue: { otherPlayers: 2, sameTimeControl: 1 },
+      }),
+    );
+    expect(result.current.queue).toEqual({ otherPlayers: 2, sameTimeControl: 1 });
+    act(() => vi.advanceTimersByTime(12_000));
+    expect(result.current.queue).toBeNull();
+    connectionStatus = "reconnecting";
+    rerender();
+    sendMessageMock.mockClear();
+    act(() => vi.advanceTimersByTime(15_000));
+    expect(sendMessageMock).not.toHaveBeenCalled();
+    expect(result.current.responseTimedOut).toBe(true);
+    unmount();
+    sendMessageMock.mockClear();
+    act(() => vi.advanceTimersByTime(20_000));
+    expect(sendMessageMock).not.toHaveBeenCalled();
   });
 });

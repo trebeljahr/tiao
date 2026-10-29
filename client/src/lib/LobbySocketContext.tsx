@@ -1,5 +1,13 @@
 import type { AuthResponse, LobbyClientMessage } from "@shared";
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { buildWebSocketUrl } from "./api";
 import { createReconnectScheduler } from "./reconnect";
 
@@ -10,12 +18,18 @@ import { createReconnectScheduler } from "./reconnect";
 // shared/src/protocol.ts for the subset that is formally typed.
 type LobbyMessageHandler = (payload: Record<string, unknown>) => void;
 
+export type LobbyConnectionStatus = "connecting" | "open" | "reconnecting";
+
 type LobbySocketContextValue = {
+  connectionStatus: LobbyConnectionStatus;
+  reconnect: () => void;
   subscribe: (handler: LobbyMessageHandler) => () => void;
   sendMessage: (message: LobbyClientMessage) => void;
 };
 
 const LobbySocketContext = createContext<LobbySocketContextValue>({
+  connectionStatus: "connecting",
+  reconnect: () => {},
   subscribe: () => () => {},
   sendMessage: () => {},
 });
@@ -41,6 +55,10 @@ export function LobbySocketProvider({
   auth: AuthResponse | null;
   children: React.ReactNode;
 }) {
+  const [connectionStatus, setConnectionStatus] = useState<LobbyConnectionStatus>("connecting");
+  const reconnectRef = useRef<() => void>(() => {});
+  const reconnectNow = useCallback(() => reconnectRef.current(), []);
+  const playerId = auth?.player.playerId;
   const subscribersRef = useRef<Set<LobbyMessageHandler>>(new Set());
   const socketRef = useRef<WebSocket | null>(null);
   // Queue of outbound messages sent while the socket is closed/reconnecting.
@@ -81,7 +99,8 @@ export function LobbySocketProvider({
   useEffect(() => {
     // Lobby socket now supports both accounts and guests: matchmaking relies on
     // socket lifetime for queue cleanup, so guests need a channel too.
-    if (!auth) return;
+    if (!playerId) return;
+    setConnectionStatus("connecting");
     let disposed = false;
 
     const reconnect = createReconnectScheduler(connect, {
@@ -104,6 +123,7 @@ export function LobbySocketProvider({
           return;
         }
         reconnect.reset();
+        setConnectionStatus("open");
         // Flush any messages that were enqueued while the socket was down.
         // Same try/catch wrapping as sendMessage — one bad message in the
         // queue shouldn't poison the whole flush loop.
@@ -164,6 +184,7 @@ export function LobbySocketProvider({
       socket.onclose = () => {
         if (disposed || socketRef.current !== socket) return;
         socketRef.current = null;
+        setConnectionStatus("reconnecting");
         reconnect.schedule();
       };
 
@@ -172,19 +193,31 @@ export function LobbySocketProvider({
       };
     }
 
+    reconnectRef.current = () => {
+      reconnect.clear();
+      const previous = socketRef.current;
+      socketRef.current = null;
+      previous?.close();
+      setConnectionStatus("connecting");
+      connect();
+    };
     connect();
 
     return () => {
+      reconnectRef.current = () => {};
       disposed = true;
       reconnect.clear();
       socketRef.current?.close();
       socketRef.current = null;
       pendingRef.current = [];
     };
-  }, [auth]);
+  }, [playerId]);
 
   // Memoize so consumers of useLobbyMessage don't re-subscribe every render.
-  const value = useMemo(() => ({ subscribe, sendMessage }), [subscribe, sendMessage]);
+  const value = useMemo(
+    () => ({ subscribe, sendMessage, connectionStatus, reconnect: reconnectNow }),
+    [subscribe, sendMessage, connectionStatus, reconnectNow],
+  );
 
   return <LobbySocketContext.Provider value={value}>{children}</LobbySocketContext.Provider>;
 }

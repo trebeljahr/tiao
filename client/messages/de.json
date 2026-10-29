@@ -359,10 +359,10 @@
   "matchmaking": {
     "title": "Matchmaking",
     "description": "Finde online einen Gegner und bau dir eine Spielhistorie auf.",
-    "signInRequired": "Melde dich an, um am Matchmaking teilzunehmen.",
+    "signInRequired": "Melde dich an, um online einen Gegner zu finden.",
     "searching": "Suche nach Gegner...",
     "cancelSearch": "Suche abbrechen",
-    "initializing": "Matchmaking wird gestartet...",
+    "initializing": "Verbindung zur Spielersuche…",
     "unlimited": "Unbegrenzt",
     "minPerPlayer": "Min. pro Spieler",
     "secAddedPerMove": "s pro Zug",
@@ -370,7 +370,17 @@
     "noTimeLimit": "Kein Zeitlimit",
     "preemptedTitle": "Suche übernommen",
     "preemptedBody": "Ein anderer Tab oder Browser, der im selben Konto angemeldet ist, hat das Matchmaking gestartet. Pro Konto kann immer nur eine Suche aktiv sein.",
-    "backToLobby": "Zurück zur Lobby"
+    "backToLobby": "Zurück zur Lobby",
+    "signIn": "Anmelden",
+    "reconnecting": "Verbindung zur Spielersuche wird wiederhergestellt…",
+    "connectionFailed": "Keine Verbindung zur Spielersuche. Versuche es erneut.",
+    "retry": "Erneut versuchen",
+    "elapsed": "Wartezeit {time}",
+    "otherPlayers": "{count, plural, =0 {Keine anderen Spieler suchen} one {# anderer Spieler sucht} other {# andere Spieler suchen}}",
+    "sameTimeControl": "{count, plural, =0 {Niemand mit dieser Bedenkzeit} one {# mit dieser Bedenkzeit} other {# mit dieser Bedenkzeit}}",
+    "emptyQueue": "Warte auf einen weiteren Spieler. Wartezeit unbekannt.",
+    "waitUnknown": "Wartezeit unbekannt. Bedenkzeit und Wertung bestimmen die Paarung.",
+    "queueUnavailable": "Warteschlangenstatus nicht verfügbar."
   },
   "games": {
     "title": "Meine Spiele",

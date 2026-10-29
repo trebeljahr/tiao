@@ -359,10 +359,10 @@
   "matchmaking": {
     "title": "Matchmaking",
     "description": "Find an opponent online and start building your game history.",
-    "signInRequired": "Please log in to enter the global matchmaking queue.",
+    "signInRequired": "Sign in to find an opponent online.",
     "searching": "Searching for opponent...",
     "cancelSearch": "Cancel Search",
-    "initializing": "Initializing matchmaking...",
+    "initializing": "Connecting to matchmaking…",
     "unlimited": "Unlimited",
     "minPerPlayer": "min per player",
     "secAddedPerMove": "s added per move",
@@ -370,7 +370,17 @@
     "noTimeLimit": "No time limit",
     "preemptedTitle": "Search taken over",
     "preemptedBody": "Another tab or browser signed in to the same account started matchmaking. Only one search can be active per account at a time.",
-    "backToLobby": "Back to lobby"
+    "backToLobby": "Back to lobby",
+    "signIn": "Sign in",
+    "reconnecting": "Reconnecting to matchmaking…",
+    "connectionFailed": "Could not connect to matchmaking. Try again.",
+    "retry": "Try again",
+    "elapsed": "Waiting {time}",
+    "otherPlayers": "{count, plural, =0 {No other players searching} one {# other player searching} other {# other players searching}}",
+    "sameTimeControl": "{count, plural, =0 {None with this time control} one {# with this time control} other {# with this time control}}",
+    "emptyQueue": "Waiting for another player to join. Wait time unknown.",
+    "waitUnknown": "Wait time unknown. Players are paired by time control and rating.",
+    "queueUnavailable": "Queue status unavailable."
   },
   "games": {
     "title": "My Games",

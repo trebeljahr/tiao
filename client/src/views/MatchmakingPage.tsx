@@ -29,7 +29,8 @@ export function MatchmakingPage() {
   })();
   const [navOpen, setNavOpen] = useState(false);
   const cancelledRef = useRef(false);
-  const failedRef = useRef(false);
+  const [initializationFailed, setInitializationFailed] = useState(false);
+  const [now, setNow] = useState(Date.now);
 
   const onMatched = useCallback(
     (snapshot: MultiplayerSnapshot) => {
@@ -41,6 +42,11 @@ export function MatchmakingPage() {
   const {
     matchmaking,
     matchmakingBusy,
+    queue,
+    searchError,
+    responseTimedOut,
+    connectionStatus,
+    reconnect,
     preempted,
     handleEnterMatchmaking,
     handleCancelMatchmaking,
@@ -64,22 +70,40 @@ export function MatchmakingPage() {
       matchmaking.status === "idle" &&
       !matchmakingBusy &&
       !cancelledRef.current &&
-      !failedRef.current &&
+      !initializationFailed &&
       !preempted
     ) {
       void handleEnterMatchmaking(locationTimeControl).catch(() => {
-        failedRef.current = true;
+        setInitializationFailed(true);
       });
     }
   }, [
     auth,
     matchmaking.status,
     matchmakingBusy,
+    initializationFailed,
     preempted,
     handleEnterMatchmaking,
     locationTimeControl,
     router,
   ]);
+
+  useEffect(() => {
+    if (matchmaking.status !== "searching") return;
+    setNow(Date.now());
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [matchmaking.status]);
+
+  const cancelSearch = async () => {
+    cancelledRef.current = true;
+    await handleCancelMatchmaking();
+    router.push("/play");
+  };
+  const waitingSeconds =
+    matchmaking.status === "searching"
+      ? Math.max(0, Math.floor((now - Date.parse(matchmaking.queuedAt)) / 1000))
+      : 0;
 
   if (authLoading) {
     return <SkeletonPage />;
@@ -106,7 +130,15 @@ export function MatchmakingPage() {
               <CardDescription className="text-[#6e5b48]">{t("description")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 flex flex-col items-center py-8">
-              {preempted ? (
+              {!auth ? (
+                <div className="flex flex-col items-center gap-4 text-center">
+                  <p className="text-[#6e5b48]">{t("signInRequired")}</p>
+                  <Button onClick={() => onOpenAuth("login")}>{t("signIn")}</Button>
+                  <Button variant="outline" onClick={() => router.push("/play")}>
+                    {t("backToLobby")}
+                  </Button>
+                </div>
+              ) : preempted ? (
                 // Another tab/browser of the same account took over the
                 // search. Don't show the spinner (we aren't searching) and
                 // don't auto-re-enter — just tell the user and offer them a
@@ -120,13 +152,41 @@ export function MatchmakingPage() {
                     {t("backToLobby")}
                   </Button>
                 </div>
-              ) : matchmaking.status === "searching" || matchmakingBusy ? (
+              ) : initializationFailed || searchError || responseTimedOut ? (
+                <div className="flex flex-col items-center gap-4 text-center">
+                  <p role="alert" className="text-[#6e5b48]">
+                    {searchError ?? t("connectionFailed")}
+                  </p>
+                  <Button
+                    onClick={() => {
+                      setInitializationFailed(false);
+                      reconnect();
+                      void handleEnterMatchmaking(locationTimeControl).catch(() =>
+                        setInitializationFailed(true),
+                      );
+                    }}
+                  >
+                    {t("retry")}
+                  </Button>
+                  <Button variant="outline" onClick={cancelSearch}>
+                    {t("cancelSearch")}
+                  </Button>
+                </div>
+              ) : (
                 <div className="flex flex-col items-center gap-4">
                   <div className="relative">
                     <HourglassSpinner className="h-16 w-16 text-[#a6824d]" />
                     <div className="absolute inset-0 rounded-full border-4 border-[#a6824d]/20 animate-ping-slow" />
                   </div>
-                  <p className="text-lg font-semibold text-[#5d4732]">{t("searching")}</p>
+                  <p role="status" className="text-lg font-semibold text-[#5d4732]">
+                    {t(
+                      connectionStatus === "reconnecting"
+                        ? "reconnecting"
+                        : matchmaking.status === "searching" && connectionStatus === "open"
+                          ? "searching"
+                          : "initializing",
+                    )}
+                  </p>
                   <p
                     className="text-sm text-[#7a6656]"
                     title={
@@ -139,22 +199,29 @@ export function MatchmakingPage() {
                       ? `${Math.floor(locationTimeControl.initialMs / 60000)}+${Math.floor(locationTimeControl.incrementMs / 1000)}`
                       : t("unlimited")}
                   </p>
-                  <Button
-                    variant="outline"
-                    onClick={async () => {
-                      cancelledRef.current = true;
-                      await handleCancelMatchmaking();
-                      router.push("/play");
-                    }}
-                    disabled={matchmakingBusy}
-                  >
+                  {matchmaking.status === "searching" && connectionStatus === "open" && (
+                    <div className="space-y-2 text-center text-sm text-[#7a6656]">
+                      <p>
+                        {t("elapsed", {
+                          time: `${Math.floor(waitingSeconds / 60)}:${String(waitingSeconds % 60).padStart(2, "0")}`,
+                        })}
+                      </p>
+                      {queue ? (
+                        <>
+                          <p>{t("otherPlayers", { count: queue.otherPlayers })}</p>
+                          {queue.otherPlayers > 0 && (
+                            <p>{t("sameTimeControl", { count: queue.sameTimeControl })}</p>
+                          )}
+                          <p>{t(queue.otherPlayers === 0 ? "emptyQueue" : "waitUnknown")}</p>
+                        </>
+                      ) : (
+                        <p>{t("queueUnavailable")}</p>
+                      )}
+                    </div>
+                  )}
+                  <Button variant="outline" onClick={cancelSearch}>
                     {t("cancelSearch")}
                   </Button>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-4">
-                  <HourglassSpinner className="h-16 w-16 text-[#a6824d] opacity-50" />
-                  <p className="text-[#6e5b48]">{t("initializing")}</p>
                 </div>
               )}
             </CardContent>
