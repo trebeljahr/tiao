@@ -233,8 +233,10 @@ const waitTimeout = parallelMode ? 120 : 30;
 // that relative filesystem paths (the server's .env loader, the
 // client's public/ dir resolver) continue to find the right files.
 const SERVER_NODE_OPTS = "NODE_ENV=development NODE_OPTIONS='--no-deprecation --no-warnings'";
-const serverCmd = (sPort) =>
-  `cd server && ${SERVER_NODE_OPTS} PORT=${sPort} node --watch --import tsx index.ts`;
+// Auth callbacks and the final browser redirect must use this instance's
+// client origin, overriding stale URLs loaded from server/.env.
+const serverCmd = (cPort, sPort) =>
+  `cd server && ${SERVER_NODE_OPTS} PORT=${sPort} FRONTEND_URL=http://localhost:${cPort} BETTER_AUTH_URL=http://localhost:${cPort} node --watch --import tsx index.ts`;
 const clientCmd = (cPort, sPort) =>
   `cd client && PORT=${cPort} API_PORT=${sPort} NEXT_PUBLIC_API_PORT=${sPort} node server.mjs`;
 
@@ -247,7 +249,7 @@ for (let i = 0; i < clientPorts.length; i++) {
   processes.push(
     `"node scripts/wait-for-port.mjs ${sPort} ${waitTimeout} && ${stagger}${clientCmd(cPort, sPort)}"`,
   );
-  processes.push(`"${serverCmd(sPort)}"`);
+  processes.push(`"${serverCmd(cPort, sPort)}"`);
 
   names.push(`client${suffix}`);
   names.push(`server${suffix}`);
