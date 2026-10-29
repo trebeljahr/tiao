@@ -205,10 +205,10 @@
       "secret": false,
       "existingIcon": "RobotIcon",
       "master": "masters/ACH_AI_MEDIUM.png",
-      "sha256": "e73a25be820a35f6a70800d607c80bdab342bbaa62aad29ba0f5087e97e82aa8",
-      "sourcePanel": "exec-de9e6502-886a-49b8-a212-e8e9ced033f5.png",
-      "quadrant": 3,
-      "crop": "627x627+627+627"
+      "sha256": "570900dc8fb6ec60cdec7f27bb5198ddd4454ff35199f4aeb4071012c288c737",
+      "sourcePanel": "exec-0195ab20-a047-4b14-bce7-d9ff6a3bcf86.png",
+      "quadrant": 0,
+      "crop": "627x627+0+0"
     },
     {
       "id": "ai-hard",
@@ -252,10 +252,10 @@
       "threshold": 10,
       "existingIcon": "ButterflyIcon",
       "master": "masters/ACH_SOCIAL_BUTTERFLY.png",
-      "sha256": "b5b8b8a1af5943aa6d3a51553d7a67be782f548fd8abc22453673290a9bb2a6f",
-      "sourcePanel": "exec-d222d65a-63f5-4e4d-a3f8-be2bc6e920c2.png",
-      "quadrant": 2,
-      "crop": "627x627+0+627"
+      "sha256": "34e5f879a52938a41fd27d3efc49d23dc5036c24daa431d1e6809173410a4c0b",
+      "sourcePanel": "exec-0195ab20-a047-4b14-bce7-d9ff6a3bcf86.png",
+      "quadrant": 1,
+      "crop": "627x627+627+0"
     },
     {
       "id": "top-one-percent",
@@ -388,10 +388,10 @@
       "secret": true,
       "existingIcon": "MoonIcon",
       "master": "masters/ACH_NIGHT_OWL.png",
-      "sha256": "6c9aa64729ce1b6ad2bdd959bb7e1a99c81d310985a66c22367b154ea2fa1022",
-      "sourcePanel": "exec-d222d65a-63f5-4e4d-a3f8-be2bc6e920c2.png",
-      "quadrant": 0,
-      "crop": "627x627+0+0"
+      "sha256": "2f54d430973227da61a7a17fd606576bda65dbd697de42fbef4509a30b9db713",
+      "sourcePanel": "exec-0195ab20-a047-4b14-bce7-d9ff6a3bcf86.png",
+      "quadrant": 2,
+      "crop": "627x627+0+627"
     },
     {
       "id": "speedrun",
@@ -403,10 +403,10 @@
       "secret": true,
       "existingIcon": "RocketIcon",
       "master": "masters/ACH_SPEEDRUN.png",
-      "sha256": "ae8b4631e29eca45d3c7a8d40803970730522b623c172b2f43f1be9bc0349968",
-      "sourcePanel": "exec-b2deabc4-2465-4136-8000-5afc5ba7a6ae.png",
-      "quadrant": 1,
-      "crop": "627x627+627+0"
+      "sha256": "d7dbc5d75cb697e136e5f48d255cc425190dda14c8bfae4cd0d60a1c37013aab",
+      "sourcePanel": "exec-0195ab20-a047-4b14-bce7-d9ff6a3bcf86.png",
+      "quadrant": 3,
+      "crop": "627x627+627+627"
     },
     {
       "id": "comeback-kid",
@@ -468,5 +468,6 @@
       "quadrant": 1,
       "crop": "627x627+627+0"
     }
-  ]
+  ],
+  "palettePolicy": "Use only each achievement tier\u2019s color family plus white; no unrelated accent hues."
 }

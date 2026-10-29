@@ -10,4 +10,8 @@ Run `node scripts/steam-achievement-icons.mjs` from the repository root to rebui
 
 Steam's bulk editor accepts the achieved files and can generate grayscale unachieved icons automatically. When supplying both states, turn that option off so the explicit files are used.
 
+For the established achievement-row editor, upload the 256x256 JPG pair. Save the existing row, reopen Edit, upload each state separately, wait for its success response, then Save. Verify the resulting CDN filenames against each local JPG's SHA-1 before publishing. Both states use the same square white matte; Steam supplies its own frame. Do not round the artwork's tile corners or invert the locked background.
+
+Keep every drawing within its tier's color family. The robot and owl use slate accents; butterfly and rocket use gold accents. Check the actual 64px JPG exports in color and grayscale against white, black and gray surroundings.
+
 `manifest.json` maps every source crop to its unchanged achievement ID/API name and records SHA-256 provenance. Original generated panels, exact prompts, rejected iterations, design comparisons and upload evidence are retained in the Tiao project vault under `assets/design-history/2026-10-29/achievement-line-set/`.
