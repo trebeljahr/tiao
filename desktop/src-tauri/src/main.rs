@@ -189,12 +189,15 @@ fn main() {
                 .and_then(|value| value["fullscreen"].as_bool())
                 .unwrap_or(false);
             let title = if config::CHANNEL == "steam-demo" {
-                "Tiao Demo"
+                "Tiao 跳 Demo"
             } else {
-                "Tiao"
+                "Tiao 跳"
             };
             let window = WebviewWindowBuilder::new(app, "main", WebviewUrl::App(start.into()))
                 .title(title)
+                .on_document_title_changed(move |window, _| {
+                    let _ = window.set_title(title);
+                })
                 .background_color(tauri::window::Color(26, 15, 6, 255))
                 .visible(!cfg!(debug_assertions) || std::env::var_os("TIAO_SMOKE_REPORT").is_none())
                 .inner_size(1280., 800.)
