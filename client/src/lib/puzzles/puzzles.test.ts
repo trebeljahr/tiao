@@ -9,6 +9,7 @@ import {
 import { describe, expect, it } from "vitest";
 import {
   canForcePuzzleWin,
+  PuzzleSearchLimit,
   playPuzzleMove,
   puzzleMoveKey,
   puzzleTurns,
@@ -17,6 +18,11 @@ import {
 import { createPuzzleState, PUZZLES } from "./puzzles";
 
 describe("composed puzzle proofs", () => {
+  it("aborts an exhausted mining budget instead of returning a false proof", () => {
+    expect(() => winningPuzzleTurns(createPuzzleState(PUZZLES[0]), 1, { remaining: 0 })).toThrow(
+      PuzzleSearchLimit,
+    );
+  });
   for (const puzzle of PUZZLES) {
     it(`${puzzle.id}: unique first turn and a win against every legal reply`, () => {
       expect(puzzle.rows).toHaveLength(9);

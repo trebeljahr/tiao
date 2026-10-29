@@ -4,7 +4,7 @@ import type { PuzzleMove } from "./puzzleRules";
 export type Puzzle = {
   id: string;
   title: string;
-  difficulty: "Study" | "Tactic" | "Challenge";
+  difficulty: "Study" | "Tactic" | "Challenge" | "Puzzle";
   player: PlayerColor;
   turns: number;
   score: { white: number; black: number };
