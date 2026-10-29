@@ -25,7 +25,7 @@ export function PracticeLayout({
         onOpenAuth={onOpenAuth}
         onLogout={onLogout}
       />
-      <main className="mx-auto max-w-7xl px-4 pb-12 pt-20 sm:px-6 sm:pt-8">
+      <main className="mx-auto max-w-7xl px-4 pb-12 pt-20 sm:px-6 sm:pt-10">
         <div className="mb-6 flex items-center justify-between gap-3 border-b border-border">
           <nav aria-label="Practice sections" className="flex gap-6">
             {[

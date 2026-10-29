@@ -43,7 +43,12 @@ export function PuzzlePlayer({
 
   return (
     <section className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_21rem] xl:gap-12">
-      <div className="mx-auto w-full max-w-[min(100%,calc(100dvh-9rem))]">
+      <div
+        className={cn(
+          "mx-auto w-full",
+          learning ? "max-w-[min(100%,calc(100dvh-9rem))]" : "max-w-[min(100%,calc(100dvh-13rem))]",
+        )}
+      >
         <TiaoBoard
           key={attempt}
           state={session.game}
