@@ -10,6 +10,13 @@ const mockGetSocialOverview = vi.fn();
 const mockAcceptFriendRequest = vi.fn();
 const mockDeclineFriendRequest = vi.fn();
 const mockDeclineGameInvitation = vi.fn();
+const mockIsSteamBuild = vi.fn();
+const mockUnlockSteamAchievement = vi.fn();
+
+vi.mock("./SteamBridge", () => ({
+  isSteamBuild: () => mockIsSteamBuild(),
+  unlockSteamAchievement: (...args: unknown[]) => mockUnlockSteamAchievement(...args),
+}));
 
 vi.mock("./api", () => ({
   getSocialOverview: (...args: unknown[]) => mockGetSocialOverview(...args),
@@ -104,6 +111,56 @@ describe("SocialNotificationsContext", () => {
     lobbyMessageHandlers.length = 0;
     sessionStorage.clear();
     mockGetSocialOverview.mockResolvedValue({ overview: emptyOverview });
+    mockIsSteamBuild.mockReturnValue(false);
+    mockUnlockSteamAchievement.mockResolvedValue(true);
+  });
+
+  it("shows achievement toasts outside Steam builds", async () => {
+    renderHook(() => useSocialNotifications(), { wrapper });
+    await flushHydration();
+
+    simulateLobbyMessage({
+      type: "achievement-unlocked",
+      achievement: { id: "first-move", tier: "bronze", secret: false },
+    });
+
+    expect(toast).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ id: "achievement-first-move" }),
+    );
+    expect(mockUnlockSteamAchievement).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    true,
+    false,
+  ])("forwards unlocks to Steam without an in-game toast when the bridge returns %s", async (synced) => {
+    mockIsSteamBuild.mockReturnValue(true);
+    mockUnlockSteamAchievement.mockResolvedValue(synced);
+    renderHook(() => useSocialNotifications(), { wrapper });
+    await flushHydration();
+
+    simulateLobbyMessage({
+      type: "achievement-unlocked",
+      achievement: { id: "first-move", tier: "bronze", secret: false },
+    });
+
+    expect(mockUnlockSteamAchievement).toHaveBeenCalledWith("ACH_FIRST_MOVE");
+    expect(toast).not.toHaveBeenCalled();
+  });
+
+  it("skips unknown Steam achievements without showing an in-game toast", async () => {
+    mockIsSteamBuild.mockReturnValue(true);
+    renderHook(() => useSocialNotifications(), { wrapper });
+    await flushHydration();
+
+    simulateLobbyMessage({
+      type: "achievement-unlocked",
+      achievement: { id: "unknown-achievement", tier: "bronze", secret: false },
+    });
+
+    expect(mockUnlockSteamAchievement).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
   });
 
   it("provides pending friend request count from overview", async () => {

@@ -20,6 +20,7 @@ import {
 } from "./api";
 import { toastError } from "./errors";
 import { useLobbyMessage } from "./LobbySocketContext";
+import { isSteamBuild, unlockSteamAchievement } from "./SteamBridge";
 
 // ---------------------------------------------------------------------------
 // sessionStorage helpers — track which notification IDs have been toasted so
@@ -587,6 +588,13 @@ export function SocialNotificationsProvider({
     if (!achievement) return;
 
     const def = getAchievementById(achievement.id);
+    // Steam owns unlock notifications in Steam builds. Forward the event here
+    // so players do not have to open the achievements page to sync an unlock.
+    if (isSteamBuild()) {
+      if (def) void unlockSteamAchievement(def.steamKey);
+      return;
+    }
+
     const nameKey = `${achievement.id}_name`;
     const descKey = `${achievement.id}_desc`;
     const typedTextT = tAchievementText as unknown as {
