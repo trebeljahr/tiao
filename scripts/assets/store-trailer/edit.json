@@ -1,7 +1,7 @@
 {
-  "title": "Tiao \u2014 friends, clear captures and piano cadence",
+  "title": "Tiao \u2014 faster capture example and accelerating finale",
   "source": "Shipped Tiao UI; legal local match replays and isolated sample social/tournament accounts",
-  "duration": 53.0,
+  "duration": 48.166666666666664,
   "style": {
     "intertitleBackground": "#17120f",
     "ink": "#f4ede1",
@@ -53,20 +53,21 @@
     },
     {
       "kind": "footage",
-      "duration": 4.8,
+      "duration": 3.2,
       "file": "counter-hq",
       "sequence": true,
       "sourceSize": [3840, 2160],
       "start": 0,
       "crop": [600, 550, 1920, 1080],
       "name": "White captures first; Black captures both Whites in reply",
-      "timelineStart": 10.5
+      "timelineStart": 10.5,
+      "speed": 1.5
     },
     {
       "kind": "intertitle",
       "duration": 1.2,
       "title": "Play with friends.",
-      "timelineStart": 15.3
+      "timelineStart": 13.7
     },
     {
       "kind": "footage",
@@ -78,7 +79,7 @@
       "crop": [960, 0, 1920, 1080],
       "name": "Scroll through a long friend list",
       "moveSounds": false,
-      "timelineStart": 16.5
+      "timelineStart": 14.9
     },
     {
       "kind": "footage",
@@ -90,7 +91,7 @@
       "crop": [1720, 480, 1920, 1080],
       "name": "Receive a game invitation and accept",
       "moveSounds": false,
-      "timelineStart": 18.9
+      "timelineStart": 17.3
     },
     {
       "kind": "footage",
@@ -103,13 +104,13 @@
       "framing": "native",
       "name": "Join the actual friend game route",
       "moveSounds": false,
-      "timelineStart": 20.7
+      "timelineStart": 19.1
     },
     {
       "kind": "intertitle",
       "duration": 1.1,
       "title": "Win tournaments.",
-      "timelineStart": 21.8
+      "timelineStart": 20.2
     },
     {
       "kind": "footage",
@@ -120,7 +121,7 @@
       "crop": [920, 380, 2000, 1126],
       "name": "Follow the bracket",
       "moveSounds": false,
-      "timelineStart": 22.9
+      "timelineStart": 21.3
     },
     {
       "kind": "footage",
@@ -131,13 +132,13 @@
       "crop": [1500, 300, 1920, 1080],
       "name": "Win the final",
       "moveSounds": false,
-      "timelineStart": 24.5
+      "timelineStart": 22.9
     },
     {
       "kind": "intertitle",
       "duration": 1.1,
       "title": "Make it yours.",
-      "timelineStart": 25.8
+      "timelineStart": 24.2
     },
     {
       "kind": "footage",
@@ -148,7 +149,7 @@
       "crop": [0, 0, 1920, 1080],
       "framing": "native",
       "name": "Night board",
-      "timelineStart": 26.9
+      "timelineStart": 25.3
     },
     {
       "kind": "footage",
@@ -159,7 +160,7 @@
       "crop": [0, 0, 1920, 1080],
       "framing": "native",
       "name": "Sakura board",
-      "timelineStart": 27.7
+      "timelineStart": 26.1
     },
     {
       "kind": "footage",
@@ -170,7 +171,7 @@
       "crop": [0, 0, 1920, 1080],
       "framing": "native",
       "name": "Ocean board",
-      "timelineStart": 28.4
+      "timelineStart": 26.8
     },
     {
       "kind": "footage",
@@ -181,17 +182,17 @@
       "crop": [0, 0, 1920, 1080],
       "framing": "native",
       "name": "Marble board",
-      "timelineStart": 29.0
+      "timelineStart": 27.4
     },
     {
       "kind": "intertitle",
       "duration": 1.2,
       "title": "Capture ten.\nWin the game.",
-      "timelineStart": 29.5
+      "timelineStart": 27.9
     },
     {
       "kind": "footage",
-      "duration": 17.5,
+      "duration": 14.266666666666667,
       "file": "ai-hq",
       "sequence": true,
       "sourceSize": [3840, 2160],
@@ -200,11 +201,11 @@
       "name": "Complete real AI match \u2014 continuously accelerating",
       "framing": "native",
       "acceleration": {
-        "strength": 3,
+        "strength": 2.5,
         "sourceDuration": 37.4
       },
       "fadeOut": false,
-      "timelineStart": 30.7
+      "timelineStart": 29.1
     },
     {
       "kind": "footage",
@@ -217,7 +218,7 @@
       "name": "Winning capture on the piano cadence and native confetti",
       "framing": "native",
       "fadeOut": false,
-      "timelineStart": 48.2
+      "timelineStart": 43.36666666666667
     },
     {
       "kind": "endcard",
@@ -229,29 +230,29 @@
         "start": 1.9666666666666668
       },
       "name": "Approved Steam artwork \u2014 Free to Play on Steam",
-      "timelineStart": 49.5
+      "timelineStart": 44.666666666666664
     }
   ],
   "sounds": [
     {
       "type": "whoosh",
-      "time": 4
+      "time": 4.0
     },
     {
       "type": "whoosh",
-      "time": 15.3
+      "time": 13.7
     },
     {
       "type": "whoosh",
-      "time": 21.8
+      "time": 20.2
     },
     {
       "type": "whoosh",
-      "time": 25.8
+      "time": 24.2
     },
     {
       "type": "whoosh",
-      "time": 29.5
+      "time": 27.9
     }
   ],
   "music": {
@@ -261,14 +262,14 @@
     "method": "Explicit MIDI composition rendered locally with installed Apple Yamaha piano multisamples; no text-to-audio service",
     "key": "D major",
     "tempoBpm": 99.58506224066389,
-    "in": 0,
+    "in": 4.8333333333,
     "targetLufs": -18,
     "fadeIn": 0.12,
     "fadeOut": 1.5,
-    "resolveAt": 48.2,
+    "resolveAt": 43.36666666666667,
     "licence": "Original arrangement; Apple sample content used in finished soundtrack under Logic Pro licence",
     "licenceUrl": "https://www.apple.com/legal/sla/docs/LogicPro.pdf",
-    "ending": "Original D-major ninth lands on the genuine final capture and confetti at 48.2 seconds; its tail continues under the store-art end card."
+    "ending": "The original piano excerpt starts at 4.8333 seconds, near the third bar. Pitch and tempo are unchanged. Its final D-major ninth meets the genuine final capture at 43.3667 seconds; the tail continues under the store-art end card."
   },
   "transition": {
     "file": "scripts/assets/store-trailer/audio/clean-woosh-8.mp3",
@@ -286,12 +287,12 @@
     "fadeOut": 1.2,
     "targetPeakDb": -8
   },
-  "outputName": "tiao-friends-cadence.mp4",
-  "audioDescription": "Original Next Move piano; final winning capture and native confetti hit its 48.2-second cadence. Five restrained transition accents; committed moves only.",
+  "outputName": "tiao-faster-pacing.mp4",
+  "audioDescription": "Original Next Move piano excerpt at its original pitch and tempo; winning capture and native confetti land on the final cadence. Five restrained transition accents and committed move sounds.",
   "moveSounds": {
     "file": "scripts/assets/store-trailer/move-events.json",
     "gain": 0.5,
     "timing": "Committed native source frames mapped through trims and linear or logarithmic time maps, rounded to output frames.",
-    "ending": "All 45 genuine engine-chosen turns replay with evenly spaced source actions and a continuous logarithmic acceleration. Winning confirmation and native confetti meet the piano cadence at 48.2 seconds."
+    "ending": "All 45 genuine engine-chosen turns accelerate smoothly from 1.31\u00d7 to 4.60\u00d7; the winning confirmation and native confetti meet the piano cadence at 43.3667 seconds."
   }
 }

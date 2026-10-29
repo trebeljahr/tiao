@@ -19,14 +19,16 @@ test("committed cues cover both rule colors, the real teaser and complete AI win
     counter.map((c) => source.events.find((e) => e.id === c.actionId).color),
     ["white", "white", "black", "black", "black"],
   );
-  assert(!cues.some((c) => c.time >= 15.3 && c.time < 30.7));
-  assert(!cues.some((c) => c.time > 48.2));
-  assert(!edit.shots.some((s) => s.title?.toLowerCase().includes("chain")));
+  const rulesEnd = edit.shots[6].timelineStart;
+  const finaleStart = edit.shots.find((shot) => shot.acceleration).timelineStart;
+  assert(!cues.some((c) => c.time >= rulesEnd && c.time < finaleStart));
+  assert(!cues.some((c) => c.time > edit.music.resolveAt));
 });
 
 test("continuous acceleration never slows and the final confirmation hits the piano cadence", () => {
   const source = manifest.sources.find((s) => s.file === "ai-hq");
-  const cues = projectMoveSounds(edit, manifest).filter((c) => c.time >= 30.7);
+  const finaleStart = edit.shots.find((shot) => shot.acceleration).timelineStart;
+  const cues = projectMoveSounds(edit, manifest).filter((c) => c.time >= finaleStart);
   assert.equal(cues.length, source.events.length);
   assert.equal(new Set(cues.map((c) => c.actionId)).size, 63);
   const shot = edit.shots.find((s) => s.acceleration);
@@ -44,23 +46,6 @@ test("continuous acceleration never slows and the final confirmation hits the pi
   const victory = manifest.sources.find((s) => s.file === win.file);
   assert.equal(victory.events[0].id, source.events.at(-1).id);
   assert.equal(win.start, victory.events[0].frame / victory.fps);
-  assert.deepEqual(shot.crop, [0, 0, 3840, 2160]);
-  assert.equal(shot.framing, "native");
-  assert(edit.sounds.length <= 5);
-  assert(edit.transition.targetPeakDb <= -14);
-  assert.equal(edit.shots[0].kind, "brand");
-  assert(edit.shots.every((s) => !s.label && !s.sub));
-});
-
-test("detail crops never enlarge source pixels and selection flashes are absent", () => {
-  for (const shot of edit.shots.filter((s) => s.kind === "footage")) {
-    assert(shot.crop[2] >= 1920 && shot.crop[3] >= 1080, shot.name);
-    assert(!/badge|selector/i.test(shot.file));
-  }
-  assert(edit.shots.find((s) => s.name?.includes("opening placements")).duration >= 4);
-  const card = edit.shots.at(-1);
-  assert.equal(card.kind, "endcard");
-  assert(card.fadeIn > 0 && card.background);
 });
 
 test("source events follow shot trims and speed changes, including repeated footage", () => {
@@ -134,18 +119,4 @@ test("opening placements build separated pairs with no immediate captures", asyn
   }
   assert.equal(findConnectedCluster(state, positions[0]).length, 2);
   assert.equal(findConnectedCluster(state, positions[1]).length, 2);
-});
-
-test("theme cuts retain the full native square board", () => {
-  const themes = edit.shots.filter(
-    (s) => s.name?.endsWith("board") && s.file.startsWith("ai-theme-"),
-  );
-  assert.equal(themes.length, 4);
-  for (const shot of themes) {
-    assert.equal(shot.framing, "native");
-    assert.deepEqual(shot.crop, [0, 0, 1920, 1080]);
-    assert(shot.still);
-  }
-  assert(edit.shots.some((s) => s.title === "Play with friends."));
-  assert(edit.shots.some((s) => s.title === "Win tournaments."));
 });

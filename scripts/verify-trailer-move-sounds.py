@@ -31,6 +31,11 @@ checks = []
 for i, c in enumerate(cues):
     shot = e['shots'][c['shotIndex']]
     event = events[c['actionId']]
+    # A faster replay can commit the next hop before the fixed +3 frame probe.
+    # Inspect this move only while it is still the active committed action.
+    next_frame = cues[i + 1]['frame'] if i + 1 < len(cues) else round(e['duration'] * 30)
+    last_probe = min(c['frame'] + 4, next_frame - 2)
+    assert last_probe >= c['frame'], ('Moves too close to inspect', i, c)
     crop = shot['crop']
     scale = min(1920 / crop[2], 1080 / crop[3]) if shot.get('framing') == 'native' else max(1920 / crop[2], 1080 / crop[3])
     grid = grids[c['sourceFile']]
@@ -58,11 +63,12 @@ for i, c in enumerate(cues):
         return np.median(values, axis=0)
     if event['kind'] in ['place', 'jump']:
         destination = event['position'] if event['kind'] == 'place' else event['to']
-        red, green, blue = color(c['frame'] + 3, [destination])
-        assert (blue > 205 and green > 210 if event['color'] == 'white' else red < 100), ('Committed mover is invisible', i, c, [red, green, blue])
+        colors = [color(frame, [destination]) for frame in range(c['frame'], last_probe + 1)]
+        assert any(blue > 205 and green > 210 if event['color'] == 'white' else red < 100
+                   for red, green, blue in colors), ('Committed mover is invisible', i, c, colors)
     first = max(round(shot['timelineStart'] * 30), c['frame'] - 3)
     before = color(first)
-    delta = [float(np.linalg.norm(color(frame) - before)) for frame in range(first, c['frame'] + 5)]
+    delta = [float(np.linalg.norm(color(frame) - before)) for frame in range(first, last_probe + 1)]
     method = 'origin vacancy'
     if event['kind'] == 'place':
         # The blue last-move ring mounts with a committed stone. A hover ghost
@@ -77,7 +83,7 @@ for i, c in enumerate(cues):
                 patch = saved[frame][max(0, yy-1):yy+2, max(0, xx-1):xx+2].astype(float).reshape(-1, 3)
                 count += bool(np.any((patch[:,2]-patch[:,0] > -30) & (patch[:,1]-patch[:,0] > -10)))
             return count / 64
-        scores = [(frame, blue_ring(frame)) for frame in range(first, c['frame']+5)]
+        scores = [(frame, blue_ring(frame)) for frame in range(first, last_probe + 1)]
         ring_frames = [frame for frame, fraction in scores if fraction >= .35]
         assert ring_frames, (i, c, scores)
         # Committed stones start their opacity animation at zero. This removes
@@ -91,7 +97,7 @@ for i, c in enumerate(cues):
         method = 'committed opacity reset followed by last-move ring; hover excluded'
     elif event['kind'] == 'confirm':
         changed = []
-        for frame in range(first, c['frame']+5):
+        for frame in range(first, last_probe + 1):
             red, green, blue = color(frame)
             if (red > 200 and red-blue > 60 if event['color'] == 'white' else blue < 155): changed.append(frame)
         method = 'captured-stone removal; pending fade excluded'
@@ -114,7 +120,7 @@ for i, c in enumerate(cues):
     y = max(0, min(540 - h, cy - h / 2))
     row = Image.new('RGB', (1200, 250), '#17120f')
     draw = ImageDraw.Draw(row)
-    for j, (label, frame) in enumerate([('before', c['frame'] - 2), ('cue', c['frame']), ('after', c['frame'] + 3)]):
+    for j, (label, frame) in enumerate([('before', c['frame'] - 2), ('cue', c['frame']), ('after', min(c['frame'] + 3, last_probe))]):
         im = Image.fromarray(saved[frame]).crop((round(x), round(y), round(x + w), round(y + h))).resize((400, 225))
         row.paste(im, (j * 400, 0))
         draw.text((j * 400 + 8, 230), f"{i:02} {c['time']:.3f}s {event['kind']} / {label} f{frame}", fill='white')

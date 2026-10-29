@@ -1,0 +1,105 @@
+{
+  "title": "Tiao — clear rules, friends and piano finale",
+  "selectedOn": "2026-10-24",
+  "duration": 53,
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "shotCount": 22,
+  "output": "build/store-trailer/tiao-gameplay-current.mp4",
+  "candidate": "build/store-trailer/tiao-friends-cadence.mp4",
+  "sha256": "ec75915ae923ffd9db1a1ae9da82b73d8aa81dc95a7c2fce56f6f166e5ea8426",
+  "bytes": 87454302,
+  "videoBitrate": "14 Mbps CBR target",
+  "audio": true,
+  "audioDescription": "Original Next Move piano; final winning capture and native confetti hit its 48.2-second cadence. Five restrained transition accents; committed moves only.",
+  "approval": "Local review revision; not approved or uploaded",
+  "source": "Actual Intermediate-versus-Hard engine decisions replayed through the shipped UI, captured as lossless 2× PNG sequences. Separate legal instructional example. Social/tournament UI uses isolated fictional fixtures.",
+  "note": "Six real opening placements; White capture before Black double reply; long friend list, received invitation and acceptance. Badge/selector shots removed. No enlarged source pixels. Continuous logarithmic acceleration has no slow patch; actual winning confirmation and native confetti land on the original piano cadence at 48.2 seconds. A 0.6-second crossfade leads into approved Steam artwork and Free to Play on Steam.",
+  "uploadState": {
+    "steam": "New cut is local only. Previous 30-second cut remains uploaded in the store draft.",
+    "googlePlay": "not uploaded",
+    "apple": "not uploaded"
+  },
+  "previousSteamUpload": {
+    "sha256": "f2257223a6ba8364a998327943549dc262473a876866abf231de3ed1488a94ae",
+    "uploadedOn": "2026-10-23",
+    "entryId": 1399906,
+    "assetId": 1404839554,
+    "viewUrl": "https://store.steampowered.com/trailer/assets/?trailer=5035580/1404839554/ba4083cc48118e0606d0f31b62bda4648f06af6e/1792682318",
+    "category": "Gameplay",
+    "language": "English",
+    "suitableForAllAges": true,
+    "countryRestrictions": []
+  },
+  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-24/friends-cadence-trailer/",
+  "files": "Renderer, capture and frame-fingerprint scripts, complete AI ledger, per-frame hashes, sound projection/tests, production audio and approved store-art vectors tracked. Lossless PNG sources, video, stems and QA are local-only in the vault; the preceding selection is preserved.",
+  "intertitleCount": 6,
+  "brandCardCount": 1,
+  "reviewCopy": "build/store-trailer/tiao-friends-cadence.mp4",
+  "music": {
+    "file": "scripts/assets/store-trailer/audio/next-move-original.mp3",
+    "title": "Next Move",
+    "creator": "Original composition made for Tiao in this chat",
+    "method": "Explicit MIDI composition rendered locally with installed Apple Yamaha piano multisamples; no text-to-audio service",
+    "key": "D major",
+    "tempoBpm": 99.58506224066389,
+    "in": 0,
+    "targetLufs": -18,
+    "fadeIn": 0.12,
+    "fadeOut": 1.5,
+    "resolveAt": 48.2,
+    "licence": "Original arrangement; Apple sample content used in finished soundtrack under Logic Pro licence",
+    "licenceUrl": "https://www.apple.com/legal/sla/docs/LogicPro.pdf",
+    "ending": "Original D-major ninth lands on the genuine final capture and confetti at 48.2 seconds; its tail continues under the store-art end card."
+  },
+  "audioMeasurements": {
+    "integratedLufs": -16.7,
+    "truePeakDbfs": -2.1
+  },
+  "previousLocalSelection": {
+    "duration": 50.2,
+    "sha256": "f8811139f873d80514aa72fca492ace56a70003b4525751b7c8034c974b2a249",
+    "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/ai-match-trailer/"
+  },
+  "audioValidation": {
+    "transitionCount": 5,
+    "transitionPeakDb": -14,
+    "musicDuckDb": 2,
+    "allMusicSecondsPresent": true
+  },
+  "moveSoundValidation": {
+    "cueCount": 77,
+    "fullAiMatchActions": 63,
+    "maximumVisualOffsetFrames": 1,
+    "silentPreviewsAndHolds": true,
+    "winningConfirmation": 48.2
+  },
+  "pictureValidation": {
+    "completeAiTurns": 45,
+    "engineLevels": {
+      "white": 2,
+      "black": 3
+    },
+    "replayBoardHashesVerified": true,
+    "finalScore": {
+      "white": 13,
+      "black": 5
+    },
+    "fullNativeThemeFrames": 4,
+    "aspectRatioPreserved": true,
+    "staticFootageCamera": true,
+    "minimumCropPixels": [1920, 1080],
+    "newCapturePixels": [3840, 2160],
+    "openingPlacements": 6,
+    "openingSeconds": 4.1,
+    "friendListEntries": 16,
+    "receivedInvitationAccepted": true,
+    "nativeVictoryConfetti": true,
+    "pianoWinSeconds": 48.2,
+    "endCardCrossfadeSeconds": 0.6,
+    "victoryCapturePixels": [1920, 1080],
+    "allAiActionsStoneVisibilityVerified": true
+  },
+  "storeArtworkEndCardCount": 1
+}

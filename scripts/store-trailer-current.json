@@ -1,23 +1,23 @@
 {
-  "title": "Tiao — clear rules, friends and piano finale",
-  "selectedOn": "2026-10-24",
-  "duration": 53,
+  "title": "Tiao — faster capture example and finale",
+  "selectedOn": "2026-10-29",
+  "duration": 48.1667,
   "width": 1920,
   "height": 1080,
   "fps": 30,
   "shotCount": 22,
   "output": "build/store-trailer/tiao-gameplay-current.mp4",
-  "candidate": "build/store-trailer/tiao-friends-cadence.mp4",
-  "sha256": "ec75915ae923ffd9db1a1ae9da82b73d8aa81dc95a7c2fce56f6f166e5ea8426",
-  "bytes": 87454302,
+  "candidate": "build/store-trailer/tiao-faster-pacing.mp4",
+  "sha256": "e201f68eb13a655997ecb1e12356b5e54869e932d4fafdb8042c97863045d38f",
+  "bytes": 78830569,
   "videoBitrate": "14 Mbps CBR target",
   "audio": true,
-  "audioDescription": "Original Next Move piano; final winning capture and native confetti hit its 48.2-second cadence. Five restrained transition accents; committed moves only.",
-  "approval": "Local review revision; not approved or uploaded",
+  "audioDescription": "Original Next Move piano excerpt at its original pitch and tempo; winning capture and native confetti land on the final cadence. Five restrained transition accents and committed move sounds.",
+  "approval": "Local pacing revision requested by Rico; pending review, not uploaded",
   "source": "Actual Intermediate-versus-Hard engine decisions replayed through the shipped UI, captured as lossless 2× PNG sequences. Separate legal instructional example. Social/tournament UI uses isolated fictional fixtures.",
-  "note": "Six real opening placements; White capture before Black double reply; long friend list, received invitation and acceptance. Badge/selector shots removed. No enlarged source pixels. Continuous logarithmic acceleration has no slow patch; actual winning confirmation and native confetti land on the original piano cadence at 48.2 seconds. A 0.6-second crossfade leads into approved Steam artwork and Free to Play on Steam.",
+  "note": "Jump-to-capture example plays at 1.5× over 3.2 seconds. Full finale retains all 45 turns and 63 actions, accelerating from 1.31× to 4.60× over 14.2667 seconds. Original piano excerpt starts near its third bar, retaining pitch and tempo; genuine winning capture and confetti meet its cadence at 43.3667 seconds. Other shots and their durations are unchanged.",
   "uploadState": {
-    "steam": "New cut is local only. Previous 30-second cut remains uploaded in the store draft.",
+    "steam": "Original silent 30-second cut remains on the live Coming Soon page. This revised cut is local only.",
     "googlePlay": "not uploaded",
     "apple": "not uploaded"
   },
@@ -32,11 +32,11 @@
     "suitableForAllAges": true,
     "countryRestrictions": []
   },
-  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-24/friends-cadence-trailer/",
-  "files": "Renderer, capture and frame-fingerprint scripts, complete AI ledger, per-frame hashes, sound projection/tests, production audio and approved store-art vectors tracked. Lossless PNG sources, video, stems and QA are local-only in the vault; the preceding selection is preserved.",
+  "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-29/faster-trailer-pacing/",
+  "files": "Tracked recipe, AI ledger, source-frame manifest, move projection/tests, production audio, approved store-art vectors and selection metadata. Rendered video, audio stems and visual QA are local-only in the vault; original sources and previous selection remain in the 2026-10-24 archive.",
   "intertitleCount": 6,
   "brandCardCount": 1,
-  "reviewCopy": "build/store-trailer/tiao-friends-cadence.mp4",
+  "reviewCopy": "build/store-trailer/tiao-faster-pacing.mp4",
   "music": {
     "file": "scripts/assets/store-trailer/audio/next-move-original.mp3",
     "title": "Next Move",
@@ -44,23 +44,24 @@
     "method": "Explicit MIDI composition rendered locally with installed Apple Yamaha piano multisamples; no text-to-audio service",
     "key": "D major",
     "tempoBpm": 99.58506224066389,
-    "in": 0,
+    "in": 4.8333333333,
     "targetLufs": -18,
     "fadeIn": 0.12,
     "fadeOut": 1.5,
-    "resolveAt": 48.2,
+    "resolveAt": 43.36666666666667,
     "licence": "Original arrangement; Apple sample content used in finished soundtrack under Logic Pro licence",
     "licenceUrl": "https://www.apple.com/legal/sla/docs/LogicPro.pdf",
-    "ending": "Original D-major ninth lands on the genuine final capture and confetti at 48.2 seconds; its tail continues under the store-art end card."
+    "ending": "The original piano excerpt starts at 4.8333 seconds, near the third bar. Pitch and tempo are unchanged. Its final D-major ninth meets the genuine final capture at 43.3667 seconds; the tail continues under the store-art end card."
   },
   "audioMeasurements": {
-    "integratedLufs": -16.7,
-    "truePeakDbfs": -2.1
+    "integratedLufs": -16.5,
+    "truePeakDbfs": -2
   },
   "previousLocalSelection": {
-    "duration": 50.2,
-    "sha256": "f8811139f873d80514aa72fca492ace56a70003b4525751b7c8034c974b2a249",
-    "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-23/ai-match-trailer/"
+    "duration": 53,
+    "sha256": "ec75915ae923ffd9db1a1ae9da82b73d8aa81dc95a7c2fce56f6f166e5ea8426",
+    "archive": "/Users/rico/projects/ai-work-notes/projects/tiao/assets/design-history/2026-10-24/friends-cadence-trailer/",
+    "metadata": "scripts/assets/store-trailer/friends-cadence-current.json"
   },
   "audioValidation": {
     "transitionCount": 5,
@@ -73,7 +74,7 @@
     "fullAiMatchActions": 63,
     "maximumVisualOffsetFrames": 1,
     "silentPreviewsAndHolds": true,
-    "winningConfirmation": 48.2
+    "winningConfirmation": 43.36666666666667
   },
   "pictureValidation": {
     "completeAiTurns": 45,
@@ -89,17 +90,29 @@
     "fullNativeThemeFrames": 4,
     "aspectRatioPreserved": true,
     "staticFootageCamera": true,
-    "minimumCropPixels": [1920, 1080],
-    "newCapturePixels": [3840, 2160],
+    "minimumCropPixels": [
+      1920,
+      1080
+    ],
+    "newCapturePixels": [
+      3840,
+      2160
+    ],
     "openingPlacements": 6,
     "openingSeconds": 4.1,
     "friendListEntries": 16,
     "receivedInvitationAccepted": true,
     "nativeVictoryConfetti": true,
-    "pianoWinSeconds": 48.2,
+    "pianoWinSeconds": 43.36666666666667,
     "endCardCrossfadeSeconds": 0.6,
-    "victoryCapturePixels": [1920, 1080],
-    "allAiActionsStoneVisibilityVerified": true
+    "victoryCapturePixels": [
+      1920,
+      1080
+    ],
+    "allAiActionsStoneVisibilityVerified": true,
+    "captureExampleSpeed": 1.5,
+    "finaleStartSpeed": 1.3136449071512175,
+    "finaleEndSpeed": 4.597757175029261
   },
   "storeArtworkEndCardCount": 1
 }

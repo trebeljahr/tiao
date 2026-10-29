@@ -1,6 +1,6 @@
 # Trailer build recipe
 
-`scripts/store-trailer-current.json` records the selected local export, checksum, archive and upload state. Stable export: `build/store-trailer/tiao-gameplay-current.mp4`; distinct review copy: `build/store-trailer/tiao-friends-cadence.mp4`. This is a local review cut.
+`scripts/store-trailer-current.json` records the selected local export, checksum, archive and upload state. Stable export: `build/store-trailer/tiao-gameplay-current.mp4`; distinct review copy: `build/store-trailer/tiao-faster-pacing.mp4`. This is a local review cut.
 
 ## Rebuild
 
@@ -12,7 +12,7 @@ SHARP_MODULE=/absolute/path/to/sharp node scripts/store-trailer.mjs /absolute/pa
 
 `edit.json` contains cards, crops, source dimensions and time maps. `raw/` holds actual UI frames and screenshots. `--edit=<archived-edit.json>` selects another recipe; `--audio-only` remixes an existing picture; `--shot=N[,M]` replaces selected shots before reassembly. None uploads or selects the candidate. Preserve the previous selection first.
 
-The selected 53-second edit uses 22 shots. The opening teaser shows White's first genuine two-capture AI exchange. “Take turns.” gets six alternating decisions over 4.1 seconds. The complete legal instructional example follows “Jump to capture.”: White captures first, then Black captures both Whites. The separate chain card is absent.
+The selected 48.1667-second edit uses 22 shots. The opening teaser shows White's first genuine two-capture AI exchange. “Take turns.” gets six alternating decisions over 4.1 seconds. The complete legal instructional example follows “Jump to capture.”: White captures first, then Black captures both Whites. The rule example plays at 1.5× speed over 3.2 seconds.
 
 “Play with friends.” shows an actual long list, a received game invitation, acceptance, and the resulting multiplayer route. These use isolated fictional fixtures and native WebSocket/UI handlers. No live invitation or account write occurs. Tournament stills show the real bracket and completed-result UI with sample data. “Make it yours.” cuts directly among four full native board themes; badge and theme-selector shots are absent.
 
@@ -24,7 +24,7 @@ The selected 53-second edit uses 22 shots. The opening teaser shows White's firs
 
 The match is clicked through the real UI and the final DOM board is checked against the ledger. Every committed action has an equal 18-frame source interval, including jump selection and confirmation. This removes the extra selection/hover waits around the earlier recording's first capture.
 
-The full replay begins at 30.7 seconds. A continuous logarithmic time map accelerates from approximately 1× to 4×, with no step changes or slowing. The last confirmation lands exactly on the original piano cadence at 48.2 seconds. Native victory confetti continues into a 0.6-second crossfade at 49.5 seconds. The closing card reuses the approved vector Steam artwork with “Free to Play on Steam,” holding through 53 seconds. The original piano's tail continues beneath it.
+The full replay begins at 29.1 seconds and lasts 14.2667 seconds. A continuous logarithmic time map accelerates from 1.31× to 4.60×, with no step changes or slowing. The last confirmation lands on the piano cadence at 43.3667 seconds. Native victory confetti continues into a 0.6-second crossfade at 44.6667 seconds. The closing card reuses the approved vector Steam artwork with “Free to Play on Steam,” holding through 48.1667 seconds. The original piano excerpt starts at 4.8333 seconds, near the third bar, preserving its pitch, tempo and tail.
 
 ## Capture quality and sound
 
@@ -41,7 +41,7 @@ node --test scripts/store-trailer-ai-match.test.mjs scripts/store-trailer-move-s
 python3 scripts/verify-trailer-move-sounds.py /absolute/path/to/bundle
 ```
 
-The verifier checks committed pixel changes independently of scheduled inputs, exports every before/cue/after contact sheet, and verifies exact move-track silence between cues. Tests cover continuous acceleration, the final cadence, both rule colors, complete replay, and minimum crop resolution. Decode the final video/audio and inspect FFprobe, native theme geometry, invitation acceptance and end-card transition too.
+The verifier checks committed pixel changes independently of scheduled inputs, exports every before/cue/after contact sheet, and verifies exact move-track silence between cues. Tests cover continuous acceleration, the final cadence, both rule colors, complete replay, source trims and off-screen cue exclusion. Decode the final video/audio and inspect FFprobe, native theme geometry, invitation acceptance and end-card transition too.
 
 ## Preservation
 
