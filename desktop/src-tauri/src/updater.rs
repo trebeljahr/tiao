@@ -1,5 +1,5 @@
 //! Desktop updates are downloaded and signature-verified before installation.
-//! The frontend pauses gameplay and durably flushes saves between those commands.
+//! Installation remains separate from download so the frontend controls restart.
 //! Steam installs keep this plugin disabled and update through Steam instead.
 
 use std::sync::Mutex;
@@ -38,11 +38,8 @@ struct DownloadProgress {
 
 /// True when this process looks like it was launched from a Steam install.
 ///
-/// Second layer behind the `updater` Cargo feature. It is load-bearing rather
-/// than decorative here: `steam.yml` does not build anything, it reuses the
-/// `*-portable` artifacts produced by the same `tauri build` runs that produce
-/// the installers, so the depot binary and the installer binary are the same
-/// binary. The compile-time feature cannot tell them apart; this can.
+/// Defense in depth behind the direct-only `updater` Cargo feature: even a
+/// direct binary copied into a Steam installation must leave updates to Steam.
 fn is_steam_runtime() -> bool {
     // Set by the Steam client for every process it launches.
     for key in [
@@ -158,7 +155,7 @@ pub(crate) async fn updater_download<R: Runtime>(
 }
 
 /// Install only a payload already verified by updater_download. The frontend
-/// invokes this after its final durable save, with gameplay and input blocked.
+/// controls when it is safe to restart.
 #[tauri::command]
 pub(crate) async fn updater_install<R: Runtime>(
     app: AppHandle<R>,
@@ -192,7 +189,7 @@ pub(crate) async fn updater_install<R: Runtime>(
 }
 
 /// Registers updater state and its plugin outside Steam installs. App commands
-/// are registered together in lib.rs so enabling updates retains save commands.
+/// are registered together in main.rs.
 pub fn register<R: Runtime>(builder: tauri::Builder<R>) -> tauri::Builder<R> {
     if crate::config::CHANNEL != "direct" || is_steam_runtime() {
         eprintln!("tiao: Steam runtime detected — in-app updater disabled");

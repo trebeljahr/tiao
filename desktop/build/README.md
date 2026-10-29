@@ -15,7 +15,6 @@ win → `icon.ico`, linux → `icon.png`).
 | `icon.iconset/`           | Intermediate folder used by `iconutil` to produce `icon.icns`.          |
 | `entitlements.mac.plist`  | macOS hardened-runtime entitlements (JIT, library validation, network). |
 | `entitlements.mas.plist`  | Mac App Store main-app entitlements (sandbox, app group, network client, file picker). |
-| `entitlements.mas.inherit.plist` | Mac App Store helper entitlements (inherit the sandbox).       |
 | `appx/`                   | Microsoft Store tiles, generated from `icon.png` (see below).           |
 
 ## Regenerating the icons
@@ -53,7 +52,11 @@ magick "$TMP/icon_16.png" "$TMP/icon_32.png" "$TMP/icon_48.png" \
        "$TMP/icon_64.png" "$TMP/icon_128.png" "$TMP/icon_256.png" \
        "$DST/icon.ico"
 
-# 4. Update the 1024 master used by Linux.
+# 4. Update the Tauri icon copies.
+cp "$DST/icon.icns" desktop/src-tauri/icon.icns
+cp "$DST/icon.ico" desktop/src-tauri/icon.ico
+
+# 5. Update the 1024 master used by Linux.
 cp "$SRC" "$DST/icon.png"
 ```
 

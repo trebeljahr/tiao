@@ -52,7 +52,7 @@ export const desktopTargets = [
   {
     platform: "linux",
     arch: "x64",
-    runner: "ubuntu-24.04",
+    runner: "ubuntu-22.04",
     flag: "linux",
     channels: ["direct", "itch", "steam", "steam-demo"],
   },

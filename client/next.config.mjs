@@ -6,12 +6,12 @@ import withSerwistInit from "@serwist/next";
 import { PHASE_DEVELOPMENT_SERVER, PHASE_PRODUCTION_BUILD } from "next/constants.js";
 import createNextIntlPlugin from "next-intl/plugin";
 
-// Desktop Electron static-export build is selected via the env var.
+// Desktop Tauri static-export build is selected via the env var.
 // Next.js 16 has no --config CLI option, so we branch inside this one
 // config file: `NEXT_PUBLIC_PLATFORM=desktop next build --webpack`
 // switches output mode, distDir, image optimization, trailing slashes,
-// and disables Serwist (which can't precache from a file:// / app://
-// origin and is redundant when the bundle already lives on disk).
+// and disables Serwist (which is redundant for bundled assets served at a local
+// origin).
 const IS_DESKTOP_BUILD = process.env.NEXT_PUBLIC_PLATFORM === "desktop";
 
 // Capacitor Android / iOS build. Same static-export shape as desktop
@@ -174,6 +174,7 @@ const createNextConfig = (isWebExport, isDevelopment) => ({
     ? { distDir: `.next-${process.env.PORT}` }
     : {}),
   experimental: {
+    ...(IS_DESKTOP_BUILD ? { cpus: 2 } : {}),
     // The locale segment owns the root layout; unmatched routes need their own document.
     globalNotFound: true,
     lockDistDir: process.env.DEV_PARALLEL !== "1",

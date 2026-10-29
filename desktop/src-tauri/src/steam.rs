@@ -398,25 +398,40 @@ pub fn cancel_ticket(handle: u32) {
 }
 fn join_lobby(app: AppHandle, id: u64) {
     tauri::async_runtime::spawn(async move {
-        let result=async{
-        let (version,receiver)={let mut lock=SESSION.lock().unwrap();let s=lock.as_mut().ok_or("Steam unavailable")?;
-            s.join_version+=1;let version=s.join_version;
-            let call=api!(s,"SteamAPI_ISteamMatchmaking_JoinLobby",(s.matchmaking()?,id):(Ptr,u64)->u64);
-            let(sender,receiver)=mpsc::channel();s.calls.insert(call,(504,sender));(version,receiver)};
-        let data=receive(receiver).await?;
-        let mut lock=SESSION.lock().unwrap();let s=lock.as_mut().ok_or("Steam unavailable")?;
-        if number32(&data,16)!=Some(1){return Err("Could not enter invite lobby".into());}
-        let ptr=api!(s,"SteamAPI_ISteamMatchmaking_GetLobbyData",(s.matchmaking()?,id,c"tiao_game_id".as_ptr()):(Ptr,u64,*const c_char)->*const c_char);
-        let game=string(ptr);s.leave(id)?;
-        if s.join_version==version{s.pending_join=json!({"id":version,"gameId":if valid_game(&game){Some(game)}else{None}});}
-        Ok::<_,String>(())
-    }.await;
+        let start = (|| -> Result<_, String> {
+            let mut lock = SESSION.lock().unwrap();
+            let s = lock.as_mut().ok_or("Steam unavailable")?;
+            s.join_version = s.join_version.wrapping_add(1);
+            let call =
+                api!(s,"SteamAPI_ISteamMatchmaking_JoinLobby",(s.matchmaking()?,id):(Ptr,u64)->u64);
+            let (sender, receiver) = mpsc::channel();
+            s.calls.insert(call, (504, sender));
+            Ok((s.join_version, receiver))
+        })();
+        let Ok((version, receiver)) = start else {
+            return;
+        };
+        let result = async {
+            let data = receive(receiver).await?;
+            let mut lock = SESSION.lock().unwrap();
+            let s = lock.as_mut().ok_or("Steam unavailable")?;
+            if number32(&data, 16) != Some(1) { return Err("Could not enter invite lobby".into()); }
+            let ptr = api!(s,"SteamAPI_ISteamMatchmaking_GetLobbyData",(s.matchmaking()?,id,c"tiao_game_id".as_ptr()):(Ptr,u64,*const c_char)->*const c_char);
+            let game = string(ptr);
+            // The lobby only carries the room code; keep a hosting lobby intact.
+            if s.lobby != Some(id) { s.leave(id)?; }
+            if s.join_version == version {
+                s.pending_join = json!({"id":version,"gameId":if valid_game(&game){Some(game)}else{None}});
+            }
+            Ok::<_, String>(())
+        }.await;
         if let Err(error) = result {
             eprintln!("Steam invite failed: {error}");
-            let mut lock = SESSION.lock().unwrap();
-            if let Some(s) = lock.as_mut() {
-                let _ = s.leave(id);
-                s.pending_join = json!({"id":s.join_version,"gameId":null});
+            if let Some(s) = SESSION.lock().unwrap().as_mut() {
+                // An old failed join must not replace a newer accepted invite.
+                if s.join_version == version {
+                    s.pending_join = json!({"id":version,"gameId":null});
+                }
             }
         }
         events::send(&app, "steam:joinRequested", Value::Null);

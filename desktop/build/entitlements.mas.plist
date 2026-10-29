@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-  Mac App Store build, main app only. Helpers use entitlements.mas.inherit.plist.
-  - application-groups: Electron names its sandboxed IPC after <team>.<bundle id>.
+  Mac App Store sandbox for the native Tauri application.
+  - application-groups: retain the signed app group from existing store builds.
   - network.client: HTTPS + WebSocket to api.playtiao.com. No server: OAuth
     returns through the tiao:// URL scheme (CFBundleURLTypes), not a loopback port.
   - files.user-selected.read-only: the profile picture file picker.

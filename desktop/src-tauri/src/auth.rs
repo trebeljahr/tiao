@@ -38,6 +38,17 @@ fn entry() -> Result<keyring::Entry, String> {
     keyring::Entry::new("com.ricoslabs.tiao", "desktop-session").map_err(|e| e.to_string())
 }
 impl Auth {
+    fn cancel(&mut self) -> Option<Candidate> {
+        self.generation = self.generation.wrapping_add(1);
+        self.flows.clear();
+        self.pending_link.take()
+    }
+    fn consume(&mut self, state: &str) -> Option<(u64, Flow)> {
+        self.flows
+            .remove(state)
+            .filter(|flow| flow.created.elapsed() <= Duration::from_secs(300))
+            .map(|flow| (self.generation, flow))
+    }
     fn load(&mut self) {
         if self.loaded {
             return;
@@ -298,12 +309,7 @@ pub async fn call(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Valu
         "auth:getToken" => Ok(json!(token)),
         "auth:getPersistenceStatus" => Ok(json!({"available": state.lock().unwrap().persistence})),
         "auth:cancelOAuth" => {
-            let candidate = {
-                let mut auth = state.lock().unwrap();
-                auth.generation += 1;
-                auth.flows.clear();
-                auth.pending_link.take()
-            };
+            let candidate = state.lock().unwrap().cancel();
             if let Some(candidate) = candidate {
                 revoke(&candidate.token).await?;
             }
@@ -334,12 +340,7 @@ pub async fn call(app: &AppHandle, channel: &str, args: &[Value]) -> Result<Valu
             Ok(Value::Null)
         }
         "auth:logout" => {
-            let candidate = {
-                let mut auth = state.lock().unwrap();
-                auth.generation += 1;
-                auth.flows.clear();
-                auth.pending_link.take()
-            };
+            let candidate = state.lock().unwrap().cancel();
             if let Some(candidate) = candidate {
                 revoke(&candidate.token).await?;
             }
@@ -511,14 +512,10 @@ pub async fn deep_link(app: AppHandle, raw: String) {
     let (generation, pending) = {
         let state = app.state::<Mutex<Auth>>();
         let mut auth = state.lock().unwrap();
-        let Some(pending) = auth
-            .flows
-            .remove(&flow)
-            .filter(|flow| flow.created.elapsed() <= Duration::from_secs(300))
-        else {
+        let Some(pending) = auth.consume(&flow) else {
             return;
         };
-        (auth.generation, pending)
+        pending
     };
     if kind == "auth/error" {
         events::send(&app, "auth:error", json!({"reason":params.get("reason")}));
@@ -552,6 +549,31 @@ pub async fn deep_link(app: AppHandle, raw: String) {
 mod tests {
     use super::*;
     #[test]
+    fn callback_and_polling_can_consume_a_flow_only_once() {
+        let mut auth = Auth::default();
+        let state = auth.state();
+        assert!(auth.consume("unrequested").is_none());
+        let (generation, _) = auth.consume(&state).unwrap();
+        assert_eq!(generation, 0);
+        assert!(auth.consume(&state).is_none());
+    }
+    #[test]
+    fn cancellation_invalidates_callbacks_and_returns_staged_proof_for_revocation() {
+        let mut auth = Auth::default();
+        let state = auth.state();
+        auth.pending_link = Some(Candidate {
+            token: "fake web proof".into(),
+            display_name: "Player".into(),
+            created: Instant::now(),
+        });
+        let (generation, _) = auth.consume(&state).unwrap();
+        let next_state = auth.state();
+        assert_eq!(auth.cancel().unwrap().token, "fake web proof");
+        assert_ne!(auth.generation, generation);
+        assert!(auth.consume(&next_state).is_none());
+        assert!(auth.pending_link.is_none());
+    }
+    #[test]
     fn pkce_uses_the_standard_s256_base64url_challenge() {
         assert_eq!(
             challenge("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"),
@@ -572,6 +594,7 @@ mod tests {
                 link_steam: false,
             },
         );
+        assert!(auth.consume("expired").is_none());
         auth.state();
         assert!(!auth.flows.contains_key("expired"));
         for _ in 0..300 {

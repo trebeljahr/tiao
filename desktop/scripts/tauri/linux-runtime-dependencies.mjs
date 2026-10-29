@@ -170,7 +170,7 @@ export function prepareLinuxDependencies(
   for (const [file, needed] of dynamic) {
     // Check relocations too for the game and its complete linked dependency
     // tree. Plugins can intentionally import symbols from their loading process.
-    const args = basename(file) === "Tiao" ? ["-r", file] : [file];
+    const args = ["Tiao", "Tiao Demo"].includes(basename(file)) ? ["-r", file] : [file];
     const output = run("ldd", args, env);
     if (/not found|undefined symbol:|symbol lookup error:/.test(output))
       throw new Error(`Linux runtime link check failed for ${file}\n${output}`);

@@ -1,7 +1,6 @@
 import { execFileSync } from "node:child_process";
 import {
   cpSync,
-  existsSync,
   mkdirSync,
   readdirSync,
   readFileSync,
@@ -270,14 +269,18 @@ try {
     }
   }
   if (process.env.TIAO_ENABLE_UPDATER === "1") {
-    for (const kind of ["macos", "nsis", "appimage"]) {
-      const directory = join(release, "bundle", kind);
-      if (!existsSync(directory)) continue;
-      for (const name of readdirSync(directory).filter(
-        (name) => name.endsWith(".sig") || name.endsWith(".app.tar.gz"),
-      ))
-        copy(join(directory, name), join(output, name));
-    }
+    const kind = mac ? "macos" : host === "windows" ? "nsis" : "appimage";
+    const directory = join(release, "bundle", kind);
+    const payload = find(
+      directory,
+      mac ? ".app.tar.gz" : host === "windows" ? ".exe" : ".AppImage",
+    );
+    const name = mac
+      ? meta.productName + ".app.tar.gz"
+      : base + (host === "windows" ? "-setup.exe" : ".AppImage");
+    // Signature and payload must use the same published filename.
+    copy(payload, join(output, name));
+    copy(payload + ".sig", join(output, name + ".sig"));
   }
   console.log(`Packaged ${channel}: ${output}`);
 } finally {

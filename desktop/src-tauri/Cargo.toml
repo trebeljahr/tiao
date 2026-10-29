@@ -24,7 +24,7 @@ open = "5"
 hex = "0.4"
 base64 = "0.23"
 sha2 = "0.10"
-tokio = {version="1",features=["time"]}
+tokio = { version = "1", features = ["time"] }
 keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }
 
 [target.'cfg(windows)'.dependencies]

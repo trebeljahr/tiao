@@ -92,3 +92,17 @@ test("collection refuses a build whose baked channel is wrong", () => {
     rmSync(fixture, { recursive: true, force: true });
   }
 });
+
+test("updater signatures retain their payload filename and exact bytes", () => {
+  const fixture = linuxFixture();
+  const name = "Tiao-1.2.3-linux-x86_64.AppImage";
+  try {
+    writeFileSync(join(fixture, "dist/direct", name + ".sig"), "verified signature");
+    collect(fixture);
+    const output = join(fixture, "dist/upload");
+    assert.equal(readFileSync(join(output, name), "utf8"), "direct image");
+    assert.equal(readFileSync(join(output, name + ".sig"), "utf8"), "verified signature");
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});

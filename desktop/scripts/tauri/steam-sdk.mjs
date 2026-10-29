@@ -119,7 +119,7 @@ async function downloadSdk() {
 
 // The verified archive, from `cachePath` when a copy with the pinned digest is
 // there, otherwise downloaded once and written to `cachePath` for the next
-// call (steam.yml stages two depots; CI caches the file by its digest).
+// call (full and demo builds share the pinned cached archive).
 export async function loadArchive(
   cachePath,
   { download = downloadSdk, expected = SDK_SOURCE.sha256 } = {},

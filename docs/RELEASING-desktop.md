@@ -83,7 +83,8 @@ The new app leaves Electron storage intact. Native sessions use the OS
 credential store; Steam sessions remain memory-only and reauthenticate with
 fresh native tickets. Players must sign in again on the first Tauri launch.
 The server accepts both old Electron origins and Tauri origins during migration;
-its native WebSocket exceptions still require a valid bearer token.
+its native WebSocket exceptions still require a valid bearer token. Deploy these
+API origin changes before distributing the first Tauri build.
 
 ## Validation
 

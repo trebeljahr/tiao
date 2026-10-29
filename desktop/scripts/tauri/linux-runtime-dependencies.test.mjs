@@ -93,6 +93,22 @@ function fixture(t) {
   };
 }
 
+test("demo executables reject unresolved relocation symbols", (t) => {
+  const f = fixture(t);
+  renameSync(f.main, join(dirname(f.main), "Tiao Demo"));
+  assert.throws(
+    () =>
+      prepareLinuxDependencies(f.root, {
+        ...f.options,
+        run: (command, args, env) =>
+          command === "ldd" && args.includes("-r") && basename(args.at(-1)) === "Tiao Demo"
+            ? "undefined symbol: missing_demo_dependency"
+            : f.run(command, args, env),
+      }),
+    /Linux runtime link check failed/,
+  );
+});
+
 test("repairs the font closure, prunes drivers and preserves only platform dependencies", (t) => {
   const f = fixture(t);
   const report = prepareLinuxDependencies(f.root, f.options);
@@ -220,7 +236,7 @@ test("launcher sets the renderer fallback, preserves overrides, arguments and ex
 // Small real ELF integration, executed by the Linux build workflow. No GUI/game
 // launch: exercise patchelf + ld.so across relocation.
 test("real ELF closure still resolves after moving the AppDir", {
-  skip: process.env.MESOZOIC_LINUX_LINK_TEST !== "1",
+  skip: process.env.TIAO_LINUX_LINK_TEST !== "1",
 }, (t) => {
   const work = mkdtempSync(join(tmpdir(), "steam elf "));
   t.after(() => rmSync(work, { recursive: true, force: true }));
@@ -260,7 +276,7 @@ test("real ELF closure still resolves after moving the AppDir", {
 });
 
 test("real WebKit/font closure resolves both reported symbols without bundled drivers", {
-  skip: process.env.MESOZOIC_LINUX_LINK_TEST !== "1",
+  skip: process.env.TIAO_LINUX_LINK_TEST !== "1",
 }, (t) => {
   const work = mkdtempSync(join(tmpdir(), "steam webkit "));
   t.after(() => rmSync(work, { recursive: true, force: true }));

@@ -141,7 +141,14 @@ jobs:
 
       - name: Install Linux WebView build dependencies
         if: matrix.platform == 'linux'
-        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev libdbus-1-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-libav
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libssl-dev libdbus-1-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-libav
+
+      - name: Check Linux runtime dependency repair against real ELF files
+        if: matrix.platform == 'linux'
+        working-directory: desktop
+        env:
+          TIAO_LINUX_LINK_TEST: '1'
+        run: node --test --test-concurrency=1 scripts/tauri/linux-runtime-dependencies.test.mjs scripts/tauri/linux-steam-runtime.test.mjs
 
       - name: Check native desktop commands
         working-directory: desktop

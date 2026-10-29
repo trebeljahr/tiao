@@ -1,10 +1,8 @@
 //! The Windows build renders in the Microsoft Edge WebView2 Runtime. Windows
-//! 10 and 11 ship it, but a Proton or Wine prefix does not, and Tauri's own
+//! installers can supply it, but a Proton or Wine prefix does not, and Tauri's own
 //! "Could not find the WebView2 Runtime" dialog does not tell a Linux player
 //! what to do. Under Wine, show the two ways out instead: the native Linux
 //! build, or installing the runtime into the prefix.
-
-const STEAM_APP_ID: &str = "5035580";
 
 /// Wine currently fails UI Automation COM initialization and does not
 /// implement the DirectComposition call WebView2 uses for this window. Apply
@@ -77,6 +75,7 @@ pub(crate) fn exit_if_missing_under_wine() {
     if tauri::webview_version().is_ok() || !running_under_wine() {
         return;
     }
+    let steam_app_id = crate::config::app_id();
     show_error(&format!(
         "Tiao could not find the Microsoft Edge WebView2 Runtime.\n\n\
          This is the Windows version running through Proton or Wine, which do not \
@@ -87,7 +86,7 @@ pub(crate) fn exit_if_missing_under_wine() {
          To keep using Proton, install the WebView2 Runtime into the game's prefix: \
          download the Evergreen Standalone Installer (x64) from \
          https://developer.microsoft.com/microsoft-edge/webview2/ and run\n\n\
-         protontricks-launch --appid {STEAM_APP_ID} MicrosoftEdgeWebView2RuntimeInstallerX64.exe"
+         protontricks-launch --appid {steam_app_id} MicrosoftEdgeWebView2RuntimeInstallerX64.exe"
     ));
     std::process::exit(1);
 }

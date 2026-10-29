@@ -46,11 +46,14 @@ pnpm --dir desktop package:steam-demo
 Packaging builds the frontend and writes `dist/<channel>/`. macOS defaults to
 universal Intel + ARM; `TIAO_TARGET=aarch64-apple-darwin` selects a local ARM
 build. Windows and Linux builds run on their respective native hosts.
+The macOS WebView uses system WebKit; older Macs need Safari 16.4 or newer
+for the current Next.js frontend.
 
 Steam and Steam Demo have separate baked AppIDs and bundle identifiers. The
 packager downloads only SDK 1.64 redistributables from a SHA-256-pinned archive.
 `STEAM_SDK_ARCHIVE` can point to a cached copy. The SDK initializes before the
 WebView; the native Metal surface and Wine workarounds follow Mesozoic Protocol.
+Linux releases build on Ubuntu 22.04 to keep its glibc 2.35 baseline.
 Linux Steam depots contain an extracted AppImage runtime and launcher, including
 its WebKit/font dependency closure.
 

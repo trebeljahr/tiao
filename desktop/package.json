@@ -23,7 +23,7 @@
     "version:check": "node scripts/release/version.mjs --check",
     "version:set": "node scripts/release/version.mjs",
     "release:check": "node --test 'scripts/tauri/*.test.mjs'",
-    "test:js": "node --test 'scripts/tauri/*.test.mjs' 'scripts/release/*.test.mjs' 'src/routes.test.cjs' '../scripts/steam-local.test.mjs'",
+    "test:js": "node --test --test-concurrency=1 'scripts/tauri/*.test.mjs' 'scripts/release/*.test.mjs' 'src/routes.test.cjs' '../scripts/steam-local.test.mjs'",
     "test:native": "cargo test --manifest-path src-tauri/Cargo.toml --locked"
   },
   "dependencies": {},
