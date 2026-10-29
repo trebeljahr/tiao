@@ -27,6 +27,9 @@ function createSteamInvites({ getClient, notify }) {
   /** @type {{ id: number; gameId: string | null } | null} */
   let pendingJoin = null;
   let opening = false;
+  let lobbyVersion = 0;
+  /** @type {{ version: number; promise: Promise<any> } | null} */
+  let preparing = null;
   let joinVersion = 0;
 
   /** @param {any} value */
@@ -38,44 +41,82 @@ function createSteamInvites({ getClient, notify }) {
     }
   }
 
-  /** @param {unknown} value */
-  function setGame(value) {
-    const next = typeof value === "string" && GAME_ID.test(value) ? value : null;
-    if (next === gameId) return;
-    gameId = next;
-    if (lobby) {
-      try {
-        lobby.setJoinable(false);
-      } catch (error) {
-        console.warn("[steam] closing invite lobby failed:", error);
-      }
-      leave(lobby);
-      lobby = null;
+  /** @param {any} value */
+  function closeLobby(value) {
+    try {
+      value.setJoinable(false);
+    } catch (error) {
+      console.warn("[steam] closing invite lobby failed:", error);
     }
+    leave(value);
   }
 
-  async function openInviteDialog() {
+  /** @returns {Promise<any>} */
+  function prepareLobby() {
     const client = getClient();
     const target = gameId;
-    if (!client || !target || opening) return false;
-    opening = true;
-    try {
-      if (!lobby) {
+    if (!client || !target) return Promise.resolve(null);
+    if (lobby) return Promise.resolve(lobby);
+    const version = lobbyVersion;
+    if (preparing) {
+      if (preparing.version === version) return preparing.promise;
+      // Steam permits one regular lobby per player. Finish leaving the old
+      // pending lobby before creating one for the latest room.
+      return preparing.promise.then(() => {
+        if (lobbyVersion !== version || getClient() !== client) return null;
+        return prepareLobby();
+      });
+    }
+    const task = (async () => {
+      try {
         // Private: people join through an explicit Steam invitation.
         const created = await client.matchmaking.createLobby(0, 2);
-        if (gameId !== target || getClient() !== client) {
-          leave(created);
-          return false;
+        if (lobbyVersion !== version || getClient() !== client) {
+          closeLobby(created);
+          return null;
         }
         try {
           if (!created.setData("tiao_game_id", target)) throw new Error("Lobby metadata refused");
         } catch (error) {
-          leave(created);
+          closeLobby(created);
           throw error;
         }
         lobby = created;
+        return created;
+      } catch (error) {
+        console.warn("[steam] preparing invite lobby failed:", error);
+        return null;
       }
-      lobby.openInviteDialog();
+    })().finally(() => {
+      // A late result from an old room must not clear the new room's task.
+      if (preparing?.promise === task) preparing = null;
+    });
+    preparing = { version, promise: task };
+    return task;
+  }
+
+  /** @param {unknown} value */
+  function setGame(value) {
+    const next = typeof value === "string" && GAME_ID.test(value) ? value : null;
+    if (next !== gameId) {
+      gameId = next;
+      ++lobbyVersion;
+      if (lobby) closeLobby(lobby);
+      lobby = null;
+    }
+    // Prepare silently so Steam's own overlay can invite without our button.
+    if (gameId) void prepareLobby();
+  }
+
+  async function openInviteDialog() {
+    if (opening) return false;
+    opening = true;
+    const version = lobbyVersion;
+    const client = getClient();
+    try {
+      const ready = await prepareLobby();
+      if (!ready || lobbyVersion !== version || getClient() !== client) return false;
+      ready.openInviteDialog();
       return true;
     } catch (error) {
       console.warn("[steam] opening invite dialog failed:", error);

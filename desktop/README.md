@@ -157,12 +157,16 @@ wins.
 
 ### Steam game invites
 
-In a waiting multiplayer room, choose **Invite Steam friends** to open Steam's
-friend picker. Accepting an invite opens that Tiao room, including when Steam
-first launches the game. Account setup finishes before the room opens.
+Entering a waiting multiplayer room with an empty seat automatically prepares
+Steam invites. Open the Steam overlay (Shift+Tab by default), select a friend,
+and choose **Invite to Game**, or use Tiao's **Invite Steam friends** button to
+open Steam's friend picker. Accepting an invite opens that Tiao room, including
+when Steam first launches the game. Account setup finishes before the room opens.
 
-`src/steamInvites.cjs` creates a private two-member Steam lobby on demand,
-with the room code in `tiao_game_id`. It uses the installed `steamworks.js`
+`src/steamInvites.cjs` creates a private two-member Steam lobby when the renderer
+registers an eligible room, with the room code in `tiao_game_id`. Preparation
+does not open the overlay or send invitations. The in-game picker shares any
+pending preparation and can retry after a Steam failure. It uses the installed `steamworks.js`
 lobby APIs and `GameLobbyJoinRequested` callback. Cold launches and second
 instances accept only `+connect_lobby <unsigned-64-bit-id>` arguments.
 See [Valve's lobby invite lifecycle](https://partner.steamgames.com/doc/features/multiplayer/matchmaking#5).
@@ -170,7 +174,9 @@ See [Valve's lobby invite lifecycle](https://partner.steamgames.com/doc/features
 The recipient reads the room code and leaves the Steam lobby immediately.
 Gameplay continues through Tiao's existing API and WebSocket connection.
 The sender closes the invite lobby when the room fills, the page changes,
-or the window closes. Tournament rooms and spectators cannot send these invites.
+or the window closes. Late lobby-creation results are closed too, even if the
+player has already returned to the same room. Tournament rooms and spectators
+cannot send these invites.
 The full game and demo use their respective Steam AppIDs.
 
 Pending invites remain in the main process until the authenticated renderer

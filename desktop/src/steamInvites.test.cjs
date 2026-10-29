@@ -99,7 +99,22 @@ test("standalone and inactive Steam clients safely decline invites", async () =>
   invites.stop();
 });
 
-test("opens the native picker with room metadata and reuses its private lobby", async () => {
+test("prepares a private lobby on room entry without opening the overlay", async () => {
+  const { invites, calls, data } = fixture();
+  invites.setGame("ABC234");
+  invites.setGame("ABC234");
+  await new Promise(setImmediate);
+  assert.equal(data.get("tiao_game_id"), "ABC234");
+  assert.equal(calls.created, 1);
+  assert.equal(calls.opened, 0);
+  invites.setGame("ABC234");
+  assert.equal(calls.created, 1);
+  invites.stop();
+  assert.equal(calls.closed, 1);
+  assert.equal(calls.left, 1);
+});
+
+test("opens the native picker with room metadata and reuses the prepared lobby", async () => {
   const { invites, calls, data } = fixture();
   invites.setGame("ABC234");
   assert.equal(await invites.openInviteDialog(), true);
@@ -113,8 +128,29 @@ test("opens the native picker with room metadata and reuses its private lobby", 
   assert.equal(await invites.openInviteDialog(), false);
 });
 
-test("leaving or changing rooms invalidates in-flight lobby creation", async () => {
+test("the native picker waits for automatic preparation without creating a second lobby", async () => {
   const { invites, client, lobby, calls } = fixture();
+  /** @type {(value: typeof lobby) => void} */
+  let resolve = () => {};
+  client.matchmaking.createLobby = () => {
+    ++calls.created;
+    return new Promise((r) => {
+      resolve = r;
+    });
+  };
+  invites.setGame("ABC234");
+  const opening = invites.openInviteDialog();
+  assert.equal(await invites.openInviteDialog(), false);
+  assert.equal(calls.created, 1);
+  assert.equal(calls.opened, 0);
+  resolve(lobby);
+  assert.equal(await opening, true);
+  assert.equal(calls.created, 1);
+  assert.equal(calls.opened, 1);
+});
+
+test("leaving a room invalidates in-flight lobby creation and picker requests", async () => {
+  const { invites, client, lobby, calls, data } = fixture();
   /** @type {(value: typeof lobby) => void} */
   let resolve = () => {};
   client.matchmaking.createLobby = () =>
@@ -123,9 +159,84 @@ test("leaving or changing rooms invalidates in-flight lobby creation", async () 
     });
   invites.setGame("ABC234");
   const opening = invites.openInviteDialog();
-  invites.setGame("DEF567");
+  invites.setGame(null);
   resolve(lobby);
   assert.equal(await opening, false);
+  assert.equal(calls.closed, 1);
+  assert.equal(calls.left, 1);
+  assert.equal(calls.opened, 0);
+  assert.equal(data.size, 0);
+});
+
+test("switching rooms closes pending preparation before creating the latest lobby", async () => {
+  const { invites, client, lobby, calls } = fixture();
+  /** @type {Array<(value: typeof lobby) => void>} */
+  const pending = [];
+  client.matchmaking.createLobby = () => {
+    ++calls.created;
+    return new Promise((resolve) => pending.push(resolve));
+  };
+  invites.setGame("ABC234");
+  invites.setGame("DEF567");
+  assert.equal(calls.created, 1);
+  pending[0](lobby);
+  await new Promise(setImmediate);
+  // The old lobby was closed before Steam is asked to create a new one.
+  assert.equal(calls.closed, 1);
+  assert.equal(calls.left, 1);
+  const opening = invites.openInviteDialog();
+  assert.equal(calls.created, 2);
+  const newData = new Map();
+  pending[1]({
+    ...lobby,
+    id: 456n,
+    setData: (key, value) => {
+      newData.set(key, value);
+      return true;
+    },
+  });
+  assert.equal(await opening, true);
+  assert.equal(newData.get("tiao_game_id"), "DEF567");
+  assert.equal(calls.closed, 1);
+  assert.equal(calls.left, 1);
+  assert.equal(calls.opened, 1);
+});
+
+test("returning to the same room cannot revive its earlier pending lobby", async () => {
+  const { invites, client, lobby, calls } = fixture();
+  /** @type {(value: typeof lobby) => void} */
+  let resolve = () => {};
+  client.matchmaking.createLobby = () =>
+    new Promise((r) => {
+      resolve = r;
+    });
+  invites.setGame("ABC234");
+  const oldOpening = invites.openInviteDialog();
+  invites.setGame(null);
+  client.matchmaking.createLobby = async () => ({ ...lobby, id: 456n });
+  invites.setGame("ABC234");
+  await new Promise(setImmediate);
+  resolve(lobby);
+  assert.equal(await oldOpening, false);
+  assert.equal(calls.closed, 1);
+  assert.equal(calls.left, 1);
+  assert.equal(await invites.openInviteDialog(), true);
+  assert.equal(calls.opened, 1);
+});
+
+test("shutdown closes a lobby that finishes preparing late", async () => {
+  const { invites, client, lobby, calls } = fixture();
+  /** @type {(value: typeof lobby) => void} */
+  let resolve = () => {};
+  client.matchmaking.createLobby = () =>
+    new Promise((r) => {
+      resolve = r;
+    });
+  invites.setGame("ABC234");
+  invites.stop();
+  resolve(lobby);
+  await new Promise(setImmediate);
+  assert.equal(calls.closed, 1);
   assert.equal(calls.left, 1);
   assert.equal(calls.opened, 0);
 });
@@ -137,8 +248,26 @@ test("failed metadata writes leave the lobby and allow retry", async () => {
   assert.equal(await invites.openInviteDialog(), false);
   assert.equal(calls.left, 1);
   assert.equal(calls.opened, 0);
+  lobby.setData = () => true;
+  assert.equal(await invites.openInviteDialog(), true);
+  assert.equal(calls.created, 2);
+  assert.equal(calls.opened, 1);
   invites.setGame("https://example.com");
   assert.equal(await invites.openInviteDialog(), false);
+});
+
+test("automatic preparation failures stay recoverable through the invite button", async () => {
+  const { invites, client, calls } = fixture();
+  const create = client.matchmaking.createLobby;
+  client.matchmaking.createLobby = async () => {
+    throw new Error("Steam unavailable");
+  };
+  invites.setGame("ABC234");
+  await new Promise(setImmediate);
+  assert.equal(calls.opened, 0);
+  client.matchmaking.createLobby = create;
+  assert.equal(await invites.openInviteDialog(), true);
+  assert.equal(calls.opened, 1);
 });
 
 test("accepted and cold-start invites wait for renderer acknowledgement", async () => {
