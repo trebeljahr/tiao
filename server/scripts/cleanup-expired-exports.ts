@@ -49,7 +49,18 @@ async function main() {
   await mongoose.disconnect();
 }
 
-main().catch((err) => {
-  console.error("[cleanup-exports] Fatal error:", err);
-  process.exit(1);
-});
+// Imported service modules keep handles open after mongoose.disconnect(), so
+// node never exits on its own and every daily run stayed alive forever.
+// Exit explicitly, and give up if a run hangs.
+const RUN_TIMEOUT_MS = 10 * 60 * 1000;
+setTimeout(() => {
+  console.error(`[cleanup-exports] Timed out after ${RUN_TIMEOUT_MS / 1000}s`);
+  process.exit(2);
+}, RUN_TIMEOUT_MS).unref();
+
+main()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    console.error("[cleanup-exports] Fatal error:", err);
+    process.exit(1);
+  });
