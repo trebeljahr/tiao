@@ -1071,7 +1071,7 @@
   "privacy": {
     "policyTitle": "Datenschutzerklärung",
     "policyMetaDescription": "Wie Tiao mit deinen Daten umgeht, was wir erfassen, warum, und welche Rechte du nach der DSGVO hast.",
-    "policyLastUpdated": "Zuletzt aktualisiert: 2026-10-19",
+    "policyLastUpdated": "Zuletzt aktualisiert: 2026-11-06",
     "controllerTitle": "1. Verantwortlicher",
     "controllerIntro": "Verantwortlich für die über Tiao verarbeiteten Daten ist:",
     "controllerAddress": "Rico Trebeljahr\nc/o Block Services\nStuttgarter Str. 106\n70736 Fellbach\nDeutschland",
@@ -1083,7 +1083,7 @@
     "dataAnalytics": "Nutzungsstatistik — Seitenadresse, Referrer, Browser, Betriebssystem, Gerätetyp und Land, gezählt von Plausible Analytics. Plausible setzt keine Cookies und legt kein Profil an. Deine IP-Adresse dient nur dazu, das Land und eine anonyme tägliche Besucherzahl zu bestimmen; sie wird nie gespeichert. Der Server zählt außerdem Registrierungen, beendete Partien, beendete Turniere und neue Abos, ohne deine Konto-ID oder IP-Adresse.",
     "dataPerformance": "Ladezeit-Messungen — Seitenadresse, Referrer und die Ladezeit der Seite, gemessen von Cloudflare Web Analytics. Das Skript setzt keine Cookies, speichert nichts in deinem Browser und behält keine Kennung von einem Seitenaufruf zum nächsten. Cloudflare fügt es nicht ein, wenn du dich über ein Cloudflare-Rechenzentrum in der EU, im EWR, im Vereinigten Königreich oder in der Schweiz verbindest.",
     "dataPayment": "Zahlungsdaten — werden von Stripe verarbeitet. Wir speichern nur das Minimum, um einen Kauf deinem Konto zuzuordnen (Stripe-Kunden-ID, Abo-ID, Produkt, Währung, Betrag). Wir sehen oder speichern keine Kartennummern.",
-    "dataLogs": "Serverprotokolle — Anfragepfade, Statuscodes, Zeitstempel, anonymisierte IP. Dient der Fehlersuche und Missbrauchsverhinderung.",
+    "dataLogs": "Serverprotokolle — Anfragepfade einschließlich Query-Strings, Statuscodes, Zeitstempel, deine vollständige IP-Adresse, Land, Browserkennung (User-Agent) und verweisende Seite. Dient der Fehlersuche und dem Erkennen von Angriffen und Missbrauch.",
     "legalBasisTitle": "3. Rechtsgrundlagen",
     "legalBasisIntro": "Wir verarbeiten deine Daten auf folgenden DSGVO-Rechtsgrundlagen:",
     "legalContract": "Vertragserfüllung (Art. 6 Abs. 1 lit. b) — für Kontoverwaltung, Matchmaking, Spielverlauf und Zahlungsabwicklung. Ohne diese Daten können wir das Spiel nicht bereitstellen.",

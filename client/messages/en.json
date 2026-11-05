@@ -1071,7 +1071,7 @@
   "privacy": {
     "policyTitle": "Privacy policy",
     "policyMetaDescription": "How Tiao handles your data, what we collect, why, and your rights under GDPR.",
-    "policyLastUpdated": "Last updated: 2026-10-19",
+    "policyLastUpdated": "Last updated: 2026-11-06",
     "controllerTitle": "1. Who is responsible for your data",
     "controllerIntro": "The data controller responsible for the information processed through Tiao is:",
     "controllerAddress": "Rico Trebeljahr\nc/o Block Services\nStuttgarter Str. 106\n70736 Fellbach\nGermany",
@@ -1083,7 +1083,7 @@
     "dataAnalytics": "Usage statistics — page address, referrer, browser, operating system, device type and country, counted by Plausible Analytics. Plausible sets no cookies and builds no profile. Your IP address is used only to derive the country and an anonymous daily visitor count; it is never stored. The server also counts sign-ups, finished games, finished tournaments and new subscriptions, without your account id or IP address.",
     "dataPerformance": "Page load measurements — page address, referrer and how long the page took to load, measured by Cloudflare Web Analytics. The script sets no cookies, stores nothing in your browser and keeps no ID from one page view to the next. Cloudflare does not add it for visitors who connect through a Cloudflare data center in the EU, the EEA, the United Kingdom or Switzerland.",
     "dataPayment": "Payment data — handled by Stripe. We store only the minimum needed to link a purchase to your account (Stripe customer id, subscription id, product, currency, amount). We never see or store card numbers.",
-    "dataLogs": "Server logs — request paths, response codes, timestamps, anonymised IP. Used to diagnose outages and abuse.",
+    "dataLogs": "Server logs — request paths including query strings, response codes, timestamps, your full IP address, country, browser identifier (user agent) and referring page. Used to diagnose outages and to find attacks and abuse.",
     "legalBasisTitle": "3. Legal basis",
     "legalBasisIntro": "We process your data on the following GDPR legal bases:",
     "legalContract": "Performance of contract (art. 6 §1 b) — for account management, matchmaking, game history, and payment processing. Without this data we cannot deliver the game.",

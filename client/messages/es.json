@@ -1071,7 +1071,7 @@
   "privacy": {
     "policyTitle": "Política de privacidad",
     "policyMetaDescription": "Cómo Tiao gestiona tus datos, qué recogemos, por qué, y tus derechos bajo el RGPD.",
-    "policyLastUpdated": "Última actualización: 2026-10-19",
+    "policyLastUpdated": "Última actualización: 2026-11-06",
     "controllerTitle": "1. Responsable del tratamiento",
     "controllerIntro": "El responsable del tratamiento de los datos procesados a través de Tiao es:",
     "controllerAddress": "Rico Trebeljahr\nc/o Block Services\nStuttgarter Str. 106\n70736 Fellbach\nAlemania",
@@ -1083,7 +1083,7 @@
     "dataAnalytics": "Estadísticas de uso — dirección de la página, referente, navegador, sistema operativo, tipo de dispositivo y país, contados por Plausible Analytics. Plausible no usa cookies ni crea perfiles. Tu dirección IP solo sirve para obtener el país y un recuento anónimo diario de visitantes; nunca se guarda. El servidor también cuenta registros, partidas terminadas, torneos terminados y nuevas suscripciones, sin tu id de cuenta ni tu dirección IP.",
     "dataPerformance": "Mediciones de carga — dirección de la página, referente y cuánto tardó la página en cargar, medidos por Cloudflare Web Analytics. El script no usa cookies, no guarda nada en tu navegador y no conserva ningún identificador de una visita de página a la siguiente. Cloudflare no lo añade si te conectas a través de un centro de datos de Cloudflare en la UE, el EEE, el Reino Unido o Suiza.",
     "dataPayment": "Datos de pago — procesados por Stripe. Solo guardamos lo mínimo para vincular una compra a tu cuenta (id de cliente de Stripe, id de suscripción, producto, moneda, importe). No vemos ni guardamos los números de tarjeta.",
-    "dataLogs": "Registros del servidor — rutas de las peticiones, códigos de estado, marcas de tiempo, IP anonimizada. Para diagnóstico y prevención de abuso.",
+    "dataLogs": "Registros del servidor — rutas de las peticiones con sus parámetros de consulta, códigos de estado, marcas de tiempo, tu dirección IP completa, país, identificador del navegador (user agent) y página de origen. Para diagnosticar fallos y detectar ataques y abusos.",
     "legalBasisTitle": "3. Base legal",
     "legalBasisIntro": "Tratamos tus datos sobre las siguientes bases legales del RGPD:",
     "legalContract": "Ejecución de contrato (art. 6 §1 b) — para gestión de cuenta, emparejamiento, historial de partidas y procesamiento de pagos. Sin estos datos no podemos ofrecer el juego.",
