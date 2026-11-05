@@ -11,7 +11,7 @@ async function startMatchmaking(page: Page) {
   await page.goto("/matchmaking", { waitUntil: "domcontentloaded" });
   await waitForAppReady(page);
   // Wait for matchmaking API to respond (moves from "Initializing" to "Searching")
-  await expect(page.locator("text=Searching")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText("Searching for opponent")).toBeVisible({ timeout: 15000 });
 }
 
 // The second player is paired the moment the server sees them in the queue,
@@ -19,7 +19,9 @@ async function startMatchmaking(page: Page) {
 async function joinOpponent(page: Page, path = "/matchmaking") {
   await page.goto(path, { waitUntil: "domcontentloaded" });
   await waitForAppReady(page);
-  await expect(page.locator("text=Searching").or(page.locator("text=Live match"))).toBeVisible({
+  await expect(
+    page.getByText("Searching for opponent").or(page.locator("text=Live match")),
+  ).toBeVisible({
     timeout: 15000,
   });
 }
@@ -29,7 +31,7 @@ async function startTimedMatchmaking(page: Page, initialMs: number, incrementMs:
     waitUntil: "domcontentloaded",
   });
   await waitForAppReady(page);
-  await expect(page.locator("text=Searching")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText("Searching for opponent")).toBeVisible({ timeout: 15000 });
 }
 
 test("matchmaking pairs two players into a game", async ({ browser }) => {
@@ -46,7 +48,7 @@ test("matchmaking pairs two players into a game", async ({ browser }) => {
 
   await startMatchmaking(alicePage);
   await expect(alicePage).toHaveURL(/\/matchmaking/);
-  await expect(alicePage.locator("text=Searching")).toBeVisible();
+  await expect(alicePage.getByText("Searching for opponent")).toBeVisible();
 
   await joinOpponent(bobPage);
 
@@ -132,7 +134,7 @@ test("timed matchmaking (30+0) pairs two players", async ({ browser }) => {
 
   await startTimedMatchmaking(alicePage, 1_800_000, 0);
   await expect(alicePage).toHaveURL(/\/matchmaking/);
-  await expect(alicePage.locator("text=Searching")).toBeVisible();
+  await expect(alicePage.getByText("Searching for opponent")).toBeVisible();
   // Verify time control label is shown
   await expect(alicePage.locator("text=30+0")).toBeVisible();
 
@@ -154,7 +156,7 @@ test("cancel matchmaking returns to lobby", async ({ page }) => {
   await signUpViaAPI(page, username, "password123");
   await startMatchmaking(page);
   await expect(page).toHaveURL(/\/matchmaking/);
-  await expect(page.locator("text=Searching")).toBeVisible();
+  await expect(page.getByText("Searching for opponent")).toBeVisible();
 
   await page.locator('button:has-text("Cancel Search")').click();
   await expect(page).toHaveURL(/\/play$/, { timeout: 5000 });
@@ -182,8 +184,8 @@ test("different time controls do not match each other", async ({ browser }) => {
   // Wait — neither should be matched (different time controls)
   await alicePage.waitForTimeout(6000);
   // Both should still be searching, not redirected to a game
-  await expect(alicePage.locator("text=Searching")).toBeVisible();
-  await expect(bobPage.locator("text=Searching")).toBeVisible();
+  await expect(alicePage.getByText("Searching for opponent")).toBeVisible();
+  await expect(bobPage.getByText("Searching for opponent")).toBeVisible();
 
   await aliceContext.close();
   await bobContext.close();
