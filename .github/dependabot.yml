@@ -1,7 +1,8 @@
 # npm dependency updates. Minor and patch updates arrive as one grouped PR a
-# week; .github/workflows/dependency-updates.yml tests it, squash-merges it and
-# deploys. Security fixes arrive as one grouped PR too, as soon as GitHub knows
-# about them. Major updates are left out on purpose: they need a person.
+# week; .github/workflows/dependency-updates.yml tests it, and a person
+# squash-merges it (the main ruleset admits no workflow token). Security fixes
+# arrive as one grouped PR too, as soon as GitHub knows about them. Major
+# updates are left out on purpose: they need a person.
 version: 2
 updates:
   - package-ecosystem: npm

@@ -1,14 +1,13 @@
 name: dependency-updates
 
-# Lands Dependabot's grouped minor/patch and security PRs (see
-# .github/dependabot.yml): runs the same checks as the push pipeline on the PR,
-# squash-merges it, and starts build-and-deploy on main. A merge made with
-# GITHUB_TOKEN does not trigger push workflows, so the deploy is started
-# explicitly. One PR per run; the next run takes the next one after Dependabot
-# rebases it.
+# Tests Dependabot's grouped minor/patch and security PRs (see
+# .github/dependabot.yml) with the same jobs as tests.yml, the oldest one a
+# day. It does not merge: the "Main Protection" ruleset lets only admins
+# update main, so the workflow token cannot. A green grouped PR waits for a
+# person to squash-merge it; the push to main then deploys it.
 #
-# Never lands: a major update, an ungrouped PR, a PR with a commit that is not
-# Dependabot's, or a PR whose checks fail. Those stay open for a person.
+# Never tested: a major update, an ungrouped PR, or a PR with a commit that
+# is not Dependabot's.
 
 on:
   schedule:
@@ -226,23 +225,3 @@ jobs:
           CI: "true"
           MONGODB_URI: mongodb://127.0.0.1:27018/tiao-e2e
           TOKEN_SECRET: e2e-secret
-
-  land:
-    needs: [pick, unit, integration, e2e]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-      actions: write
-    steps:
-      - name: Squash-merge the tested commit and deploy main
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-          NUMBER: ${{ needs.pick.outputs.number }}
-          SHA: ${{ needs.pick.outputs.sha }}
-        run: |
-          # --match-head-commit refuses if Dependabot pushed again after the tests.
-          gh pr merge "$NUMBER" --repo "$REPO" --squash --delete-branch --match-head-commit "$SHA"
-          gh workflow run build-and-deploy.yml --repo "$REPO" --ref main
-          echo "merged #$NUMBER and started build-and-deploy on main"
