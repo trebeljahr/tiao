@@ -1,0 +1,162 @@
+{
+  "description": "Tiao marketing assets: real screenshots and GitHub social preview cards. See README.md in this folder.",
+  "screenshots": [
+    {
+      "path": "screenshots/desktop-capture-chain.jpg",
+      "title": "An AI capture chain",
+      "purpose": "README hero; social preview A, B",
+      "width": 2880,
+      "height": 1800,
+      "bytes": 201764,
+      "sha256": "05916c1cf24b56c6c064431ba65a7981bdedaa56fa62432de93810d38d4be2c0",
+      "made": "Real app capture (mac store size) by scripts/app-store-screenshots.mjs; shipped AI self-play rendered through actual game UI. Re-encoded as JPEG q84 by scripts/marketing/capture-screenshots.mjs.",
+      "source": "output/playwright/store-overview/mac/01-ai-capture-chain.jpg",
+      "sourceSha256": "b3d83a625c8bb31ec47afd049a9c251b0aa80f80eb79d825fdd14817ba271ff8",
+      "gameplay": {
+        "ledger": "scripts/assets/store-screenshots/compact-match.json",
+        "ledgerSha256": "c77a6cbe7029e8a2d2737b8c677b2c24344cf5502c68b835ef28d9be56978cae",
+        "completedDecisions": 28,
+        "boardSize": 13,
+        "scoreToWin": 15,
+        "score": {
+          "black": 1,
+          "white": 7
+        }
+      },
+      "date": "2026-11-06"
+    },
+    {
+      "path": "screenshots/desktop-tutorial-chain.jpg",
+      "title": "Interactive chain-jump tutorial",
+      "purpose": "README rules section",
+      "width": 2880,
+      "height": 1800,
+      "bytes": 98558,
+      "sha256": "467406cdeb1fedfc8034a9f044ac17d2cd328fced373c581d9e001daf9fe30e3",
+      "made": "Real app capture (mac store size) by scripts/app-store-screenshots.mjs; shipped UI with isolated sample account data. Re-encoded as JPEG q84 by scripts/marketing/capture-screenshots.mjs.",
+      "source": "output/playwright/store-overview/mac/02-tutorial-chain.jpg",
+      "sourceSha256": "292ae977d0540d7e8a13a8a2f942b1c32f9024857c6c73518ff44853cdfd5a74",
+      "date": "2026-11-06"
+    },
+    {
+      "path": "screenshots/desktop-game-review.jpg",
+      "title": "Review a capture with replay controls",
+      "purpose": "README rules section; social preview C",
+      "width": 2880,
+      "height": 1800,
+      "bytes": 264895,
+      "sha256": "bd0f34da81bc9a13d9a28809078dd50b1a40c4b0ad0a2132737c64bcb252b1b3",
+      "made": "Real app capture (mac store size) by scripts/app-store-screenshots.mjs; shipped AI self-play rendered through actual game UI. Re-encoded as JPEG q84 by scripts/marketing/capture-screenshots.mjs.",
+      "source": "output/playwright/store-overview/mac/09-game-review.jpg",
+      "sourceSha256": "2dbec493e1514ef271e8841dfce9e01d3cb2258a2c0582ba93c2f2b7249101cb",
+      "gameplay": {
+        "ledger": "scripts/assets/store-screenshots/long-match.json",
+        "ledgerSha256": "bacb2ed32d4fa0712dbbf986407856d4868ef32374f659ab53d7e2f377c109ac",
+        "completedDecisions": 43,
+        "boardSize": 19,
+        "scoreToWin": 20,
+        "score": {
+          "black": 4,
+          "white": 17
+        }
+      },
+      "date": "2026-11-06"
+    },
+    {
+      "path": "screenshots/desktop-computer-setup.jpg",
+      "title": "Computer difficulty and game setup",
+      "purpose": "press and posts",
+      "width": 2880,
+      "height": 1800,
+      "bytes": 134608,
+      "sha256": "f47283f9f453f5f3d5c5295999641966c1d1919556b777f881d2ec4d94fe20a0",
+      "made": "Real app capture (mac store size) by scripts/app-store-screenshots.mjs; shipped UI with isolated sample account data. Re-encoded as JPEG q84 by scripts/marketing/capture-screenshots.mjs.",
+      "source": "output/playwright/store-overview/mac/05-computer-setup.jpg",
+      "sourceSha256": "6980d1447a5db2460ef8a37d313af013ded6f8eb05b46a25759d5d64f34eda4f",
+      "date": "2026-11-06"
+    },
+    {
+      "path": "screenshots/mobile-capture-chain.jpg",
+      "title": "An AI capture chain",
+      "purpose": "README apps section; social preview C",
+      "width": 1320,
+      "height": 2868,
+      "bytes": 176098,
+      "sha256": "82dc248e51f4ed9eedffbb27c31f8cbcacbd694d531bc11fd0313ef01799776c",
+      "made": "Real app capture (iphone-69 store size) by scripts/app-store-screenshots.mjs; shipped AI self-play rendered through actual game UI. Re-encoded as JPEG q84 by scripts/marketing/capture-screenshots.mjs.",
+      "source": "output/playwright/store-overview/iphone-69/01-ai-capture-chain.jpg",
+      "sourceSha256": "2b1e9675c5118f84edd6efb97dd70c55c292844b807a2808a22c76c7fc8349c3",
+      "gameplay": {
+        "ledger": "scripts/assets/store-screenshots/compact-match.json",
+        "ledgerSha256": "c77a6cbe7029e8a2d2737b8c677b2c24344cf5502c68b835ef28d9be56978cae",
+        "completedDecisions": 28,
+        "boardSize": 13,
+        "scoreToWin": 15,
+        "score": {
+          "black": 1,
+          "white": 7
+        }
+      },
+      "date": "2026-11-06"
+    },
+    {
+      "path": "screenshots/mobile-game-review.jpg",
+      "title": "Review a capture with replay controls",
+      "purpose": "press and posts",
+      "width": 1320,
+      "height": 2868,
+      "bytes": 201379,
+      "sha256": "00af6045b0d7feb100040d3cb2d30cfe3c1dfd386896b7d3a46e9fb14c1a97b2",
+      "made": "Real app capture (iphone-69 store size) by scripts/app-store-screenshots.mjs; shipped AI self-play rendered through actual game UI. Re-encoded as JPEG q84 by scripts/marketing/capture-screenshots.mjs.",
+      "source": "output/playwright/store-overview/iphone-69/09-game-review.jpg",
+      "sourceSha256": "3118d3dc87994d79f535fb4f652f193ffd650002c420a22d9d11cecc8e3fe328",
+      "gameplay": {
+        "ledger": "scripts/assets/store-screenshots/long-match.json",
+        "ledgerSha256": "bacb2ed32d4fa0712dbbf986407856d4868ef32374f659ab53d7e2f377c109ac",
+        "completedDecisions": 43,
+        "boardSize": 19,
+        "scoreToWin": 20,
+        "score": {
+          "black": 4,
+          "white": 17
+        }
+      },
+      "date": "2026-11-06"
+    }
+  ],
+  "socialPreview": [
+    {
+      "path": "social-preview/social-preview-a.png",
+      "variant": "A",
+      "purpose": "Screenshot-led: brand, headline and a real capture-chain board crop on cream",
+      "width": 1280,
+      "height": 640,
+      "bytes": 407693,
+      "sha256": "8f7a4a4d359ee0036e8fce2b7f8694446f950277addd151ced6bfa4e4872b30b",
+      "made": "social-preview/template.html rendered by scripts/marketing/render-social-preview.mjs (Playwright Chromium)",
+      "date": "2026-11-06"
+    },
+    {
+      "path": "social-preview/social-preview-b.png",
+      "variant": "B",
+      "purpose": "Brand-led: large icon and wordmark, rules in one line, tilted board crop fading in",
+      "width": 1280,
+      "height": 640,
+      "bytes": 329346,
+      "sha256": "e09f4166ac2e858db341ad33800e9bd51cd0f49f949f58a7cec953e3c53fde11",
+      "made": "social-preview/template.html rendered by scripts/marketing/render-social-preview.mjs (Playwright Chromium)",
+      "date": "2026-11-06"
+    },
+    {
+      "path": "social-preview/social-preview-c.png",
+      "variant": "C",
+      "purpose": "Dark: brand on the night palette with a desktop game review and a phone capture",
+      "width": 1280,
+      "height": 640,
+      "bytes": 452817,
+      "sha256": "043507e5318d11aba08b2d2c48d889c8741bc27bc500d06b38a67323bb1b67a0",
+      "made": "social-preview/template.html rendered by scripts/marketing/render-social-preview.mjs (Playwright Chromium)",
+      "date": "2026-11-06"
+    }
+  ]
+}

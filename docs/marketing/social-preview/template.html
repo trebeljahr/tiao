@@ -1,0 +1,369 @@
+<!doctype html>
+<!--
+  GitHub social preview cards, 1280×640. Render with
+  `pnpm marketing:social` (scripts/marketing/render-social-preview.mjs),
+  which serves the repo root over HTTP and opens ?variant=a|b|c.
+  Key content stays inside the 64 px safe margin.
+  Screenshots come from ../screenshots/ (real captures, see ../README.md).
+  Fonts are the website's own Zen Old Mincho and Zen Kaku Gothic New;
+  the icon and wordmark are the approved store-art SVGs.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Tiao social preview</title>
+    <style>
+      @font-face {
+        font-family: "Zen Old Mincho";
+        src: url("../../../client/app/fonts/ZenOldMincho-Medium.woff2") format("woff2");
+        font-weight: 500;
+      }
+      @font-face {
+        font-family: "Zen Old Mincho";
+        src: url("../../../client/app/fonts/ZenOldMincho-Bold.woff2") format("woff2");
+        font-weight: 700;
+      }
+      @font-face {
+        font-family: "Zen Kaku Gothic New";
+        src: url("../../../client/app/fonts/ZenKakuGothicNew-Regular.woff2") format("woff2");
+        font-weight: 400;
+      }
+      @font-face {
+        font-family: "Zen Kaku Gothic New";
+        src: url("../../../client/app/fonts/ZenKakuGothicNew-Medium.woff2") format("woff2");
+        font-weight: 500;
+      }
+      @font-face {
+        font-family: "Zen Kaku Gothic New";
+        src: url("../../../client/app/fonts/ZenKakuGothicNew-Bold.woff2") format("woff2");
+        font-weight: 700;
+      }
+
+      :root {
+        --cream: #f4eddd;
+        --cream-deep: #eadcc0;
+        --ink: #28170e;
+        --ink-soft: #6b5440;
+        --night: #1c1510;
+        --gold: #d9a75c;
+        --safe: 64px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+
+      html,
+      body {
+        width: 1280px;
+        height: 640px;
+        overflow: hidden;
+        background: var(--cream);
+      }
+
+      body {
+        font-family: "Zen Kaku Gothic New", system-ui, sans-serif;
+        color: var(--ink);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .card {
+        position: relative;
+        width: 1280px;
+        height: 640px;
+        overflow: hidden;
+        display: none;
+      }
+
+      body[data-variant="a"] #a,
+      body[data-variant="b"] #b,
+      body[data-variant="c"] #c {
+        display: block;
+      }
+
+      /* Brand lockup: framed glyph icon left of the outlined wordmark. */
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: calc(var(--size) * 0.18);
+      }
+
+      .brand .icon {
+        width: var(--size);
+        height: var(--size);
+        border-radius: calc(var(--size) * 0.22);
+        box-shadow: 0 6px 18px rgba(40, 23, 14, 0.18);
+      }
+
+      .brand .wordmark {
+        /* tiao-wordmark.svg viewBox is 1728×738 */
+        height: calc(var(--size) * 0.86);
+        aspect-ratio: 1728 / 738;
+        background: var(--brand-color, var(--ink));
+        -webkit-mask: url("../../../scripts/assets/tiao-wordmark.svg") center / contain no-repeat;
+        mask: url("../../../scripts/assets/tiao-wordmark.svg") center / contain no-repeat;
+      }
+
+      .headline {
+        font-family: "Zen Old Mincho", serif;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        line-height: 1.12;
+      }
+
+      .footer {
+        position: absolute;
+        left: var(--safe);
+        bottom: var(--safe);
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        font-size: 24px;
+        font-weight: 500;
+      }
+
+      .pill {
+        padding: 10px 22px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: var(--cream);
+        font-weight: 700;
+        letter-spacing: 0.01em;
+      }
+
+      .muted {
+        color: var(--ink-soft);
+      }
+
+      /* Crop of the 2880×1800 desktop capture to the board frame (CSS px ×2). */
+      .board-crop {
+        position: absolute;
+        overflow: hidden;
+        border-radius: 34px;
+        box-shadow:
+          0 30px 60px rgba(40, 23, 14, 0.22),
+          0 8px 18px rgba(40, 23, 14, 0.12);
+      }
+
+      .board-crop img {
+        position: absolute;
+        width: calc(var(--w) * 2880 / 1640);
+        left: calc(var(--w) * -216 / 1640);
+        top: calc(var(--w) * -64 / 1640);
+      }
+
+      /* A: screenshot-led */
+      #a {
+        background: radial-gradient(circle at 78% 50%, #fbf5e9 0%, var(--cream) 55%, var(--cream-deep) 100%);
+      }
+
+      #a .brand {
+        position: absolute;
+        left: var(--safe);
+        top: var(--safe);
+        --size: 76px;
+      }
+
+      #a .headline {
+        position: absolute;
+        left: var(--safe);
+        top: 200px;
+        width: 600px;
+        font-size: 56px;
+      }
+
+      #a .sub {
+        position: absolute;
+        left: var(--safe);
+        top: 352px;
+        width: 560px;
+        font-size: 28px;
+        line-height: 1.45;
+        color: var(--ink-soft);
+      }
+
+      #a .board-crop {
+        --w: 512px;
+        width: var(--w);
+        height: var(--w);
+        right: var(--safe);
+        top: var(--safe);
+      }
+
+      /* B: typographic, brand-led */
+      #b {
+        background: var(--cream);
+      }
+
+      #b .tilt {
+        position: absolute;
+        right: -110px;
+        top: -40px;
+        transform: rotate(-9deg);
+        opacity: 0.95;
+      }
+
+      #b .tilt .board-crop {
+        position: relative;
+        --w: 640px;
+        width: var(--w);
+        height: var(--w);
+      }
+
+      #b .fade {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, var(--cream) 0%, var(--cream) 52%, rgba(244, 237, 221, 0.8) 62%, rgba(244, 237, 221, 0) 76%);
+      }
+
+      #b .brand {
+        position: absolute;
+        left: var(--safe);
+        top: 96px;
+        --size: 132px;
+      }
+
+      #b .headline {
+        position: absolute;
+        left: var(--safe);
+        top: 286px;
+        width: 760px;
+        font-size: 60px;
+      }
+
+      #b .sub {
+        position: absolute;
+        left: var(--safe);
+        top: 390px;
+        width: 740px;
+        font-size: 28px;
+        line-height: 1.4;
+        color: var(--ink-soft);
+      }
+
+      /* C: dark, desktop and phone */
+      #c {
+        background:
+          radial-gradient(circle at 80% 30%, rgba(217, 167, 92, 0.32) 0%, rgba(217, 167, 92, 0) 55%),
+          radial-gradient(circle at 10% 100%, rgba(93, 59, 31, 0.6) 0%, rgba(93, 59, 31, 0) 60%),
+          var(--night);
+        color: var(--cream);
+      }
+
+      #c .brand {
+        position: absolute;
+        left: var(--safe);
+        top: var(--safe);
+        --size: 76px;
+        --brand-color: var(--cream);
+      }
+
+      #c .brand .icon {
+        box-shadow: 0 0 0 2px rgba(244, 237, 221, 0.35);
+      }
+
+      #c .headline {
+        position: absolute;
+        left: var(--safe);
+        top: 200px;
+        width: 470px;
+        font-size: 50px;
+      }
+
+      #c .sub {
+        position: absolute;
+        left: var(--safe);
+        top: 334px;
+        width: 450px;
+        font-size: 26px;
+        line-height: 1.45;
+        color: rgba(244, 237, 221, 0.78);
+      }
+
+      #c .footer {
+        color: rgba(244, 237, 221, 0.78);
+      }
+
+      #c .pill {
+        background: var(--cream);
+        color: var(--night);
+      }
+
+      #c .desktop {
+        position: absolute;
+        right: 120px;
+        top: 96px;
+        width: 620px;
+        border-radius: 18px;
+        box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
+      }
+
+      #c .phone {
+        position: absolute;
+        right: var(--safe);
+        bottom: 40px;
+        width: 236px;
+        border-radius: 30px;
+        border: 8px solid #0d0a07;
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.55);
+      }
+    </style>
+  </head>
+  <body>
+    <section class="card" id="a" aria-label="Variant A: screenshot-led">
+      <div class="brand">
+        <img class="icon" src="../../../scripts/assets/tiao-icon.svg" alt="" />
+        <div class="wordmark" role="img" aria-label="Tiao"></div>
+      </div>
+      <h1 class="headline">One capture can chain into the next.</h1>
+      <p class="sub">A free two-player strategy board game.<br />Play it in your browser.</p>
+      <div class="footer">
+        <span class="pill">playtiao.com</span>
+        <span class="muted">Open source · AGPL-3.0</span>
+      </div>
+      <div class="board-crop">
+        <img src="../screenshots/desktop-capture-chain.jpg" alt="" />
+      </div>
+    </section>
+
+    <section class="card" id="b" aria-label="Variant B: brand-led">
+      <div class="tilt">
+        <div class="board-crop">
+          <img src="../screenshots/desktop-capture-chain.jpg" alt="" />
+        </div>
+      </div>
+      <div class="fade"></div>
+      <div class="brand">
+        <img class="icon" src="../../../scripts/assets/tiao-icon.svg" alt="" />
+        <div class="wordmark" role="img" aria-label="Tiao"></div>
+      </div>
+      <h1 class="headline">Place a stone, or jump one.</h1>
+      <p class="sub">A jump can chain into the next. First to 10 captures wins.</p>
+      <div class="footer">
+        <span class="pill">playtiao.com</span>
+        <span class="muted">Free two-player strategy game · open source</span>
+      </div>
+    </section>
+
+    <section class="card" id="c" aria-label="Variant C: dark, desktop and phone">
+      <div class="brand">
+        <img class="icon" src="../../../scripts/assets/tiao-icon.svg" alt="" />
+        <div class="wordmark" role="img" aria-label="Tiao"></div>
+      </div>
+      <h1 class="headline">One capture can chain into the next.</h1>
+      <p class="sub">A free two-player strategy board game for big and small screens.</p>
+      <div class="footer">
+        <span class="pill">playtiao.com</span>
+        <span>Open source · AGPL-3.0</span>
+      </div>
+      <img class="desktop" src="../screenshots/desktop-game-review.jpg" alt="" />
+      <img class="phone" src="../screenshots/mobile-capture-chain.jpg" alt="" />
+    </section>
+
+    <script>
+      const variant = new URLSearchParams(location.search).get("variant") || "a";
+      document.body.dataset.variant = variant;
+    </script>
+  </body>
+</html>
