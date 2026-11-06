@@ -1,15 +1,17 @@
 # Tiao
 
-Tiao (跳, "jump") is an open-source multiplayer board game platform. Two players place and jump pieces on a 19x19 board, competing to be the first to capture 10 enemy stones. Think of it as the [Lichess](https://lichess.org) for Tiao — free, open-source, and community-driven.
+**Tiao** (跳, "jump") is a two-player strategy board game where one capture can chain into the next. Play it free in your browser at **[playtiao.com](https://playtiao.com)**.
 
-![Tiao mid-game: a 19x19 board with black and white stones, the last capture jump highlighted, and the match panel showing both players and the score](docs/images/board.png)
+Each turn you do one thing: place a stone on an empty point, or jump one of your stones over an enemy stone to capture it. If the stone can jump again from where it lands, it keeps going, so one move can capture several stones. The first player to capture 10 stones wins. There is no luck and no hidden information. Andreas Edmeier designed the game.
 
-## The Game
+Play against the computer on three levels, with a friend on one screen, or online against people near your rating. You need no account to start, and you can sign up later to keep your rating, game history, friends and achievements. This repository holds all of it: the web game, the game server, the shared rules engine, and the desktop and mobile apps.
 
-Players take turns placing pieces or jumping over enemy pieces to capture them:
+![Tiao on a 13×13 board: green arrows trace one white stone's four-jump chain, the four captured black stones are faded, and the side panel shows the score, White 7 and Black 1 out of 15](docs/marketing/screenshots/desktop-capture-chain.jpg)
+
+## How to play
 
 ```
-  Place a piece:          Jump to capture:
+  Place a stone:          Jump to capture:
 
   . . . . .              . . . . .         . . . . .
   . . . . .              . W . . .         . . . . .
@@ -18,167 +20,122 @@ Players take turns placing pieces or jumping over enemy pieces to capture them:
   . . . . .              . . . . .         . . . . .
 ```
 
-Jumps can chain — keep jumping with the same piece if more captures are available. First to 10 captures wins.
+Jumps go in any of eight directions. After a jump, the same stone may jump again, and you confirm the chain to end your turn. Two placement rules keep stones exposed: a connected group can't grow past 10 stones, and you can place on the edge only where an enemy stone could jump to it. The [complete rules](docs/GAME_RULES.md) have diagrams for each case.
 
-For the complete rulebook, see [docs/GAME_RULES.md](docs/GAME_RULES.md).
+<p>
+  <img src="docs/marketing/screenshots/desktop-tutorial-chain.jpg" width="49%" alt="The interactive tutorial's chain-jump lesson: a white stone has made its first jump over a faded black stone, and a marker shows where to jump next">
+  <img src="docs/marketing/screenshots/desktop-game-review.jpg" width="49%" alt="A finished online game in review: the last capture is drawn on the board, and the side panel shows both players, the score, replay buttons and the move history">
+</p>
 
-## Features
+## What is in the game
 
-- **Local play** — two players on the same device
-- **Computer opponent** — play against an AI with multiple difficulty levels
-- **Online multiplayer** — real-time games over WebSocket
-- **Matchmaking** — automatic opponent pairing
-- **Tournaments** — create and join tournaments with bracket play
-- **Friends and invitations** — add friends, invite them to games
-- **Game history** — browse your past matches with move-by-move review
-- **Public profiles** — player stats, ratings, and badges
-- **Accounts** — sign up with email/password or OAuth (GitHub, Google, Discord), or play as a guest
-- **Tutorial** — interactive tutorial to learn the game rules
+- **Computer opponent** on Easy, Intermediate or Hard. Choose your colour, a 9×9, 13×13 or 19×19 board, and a target of 5, 10, 15 or 20 captures.
+- **Same-screen games** for two people on one device.
+- **Online games** with matchmaking that pairs players by Elo rating, private invite links, spectators, takebacks and rematches.
+- **Tournaments** with brackets.
+- **Friends**: find players by name, send requests, invite friends to a game.
+- **Game history** with move-by-move replay and copyable game notation.
+- **Profiles** with rating, badges and 30 achievements.
+- **Board themes**: Classic for everyone, plus Night, Sakura, Ocean and Marble in the optional shop.
+- **An interactive tutorial** that teaches the rules on small boards.
+- **English, German and Spanish.**
+- **Accounts** with email and password or GitHub, Google, Discord or Apple sign-in. Guests can play without one.
 
-## Quick Start
+## Run it locally
 
-**Prerequisites:** Node.js 22.x, Docker, npm
+You need Node.js 24 (see `.nvmrc`), pnpm 10 and Docker.
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/tiao.git
+git clone https://github.com/trebeljahr/tiao.git
 cd tiao
-npm install
-
-# Start local infrastructure (MongoDB + RustFS for S3-compatible storage)
-npm run dev:infra
-
-# Start development servers
-npm run dev
+corepack enable                          # provides the pnpm version from package.json
+SKIP_DESKTOP=1 SKIP_MOBILE=1 pnpm install   # leave out the two variables to also install the desktop and mobile apps
+pnpm dev:infra                           # MongoDB, Redis and RustFS (S3-compatible storage) in Docker
+pnpm dev                                 # client and server with hot reload
 ```
 
-No `.env` file needed — `server/.env.development` ships with defaults that point at the local Docker containers. If you need custom settings (e.g. real AWS credentials), create `server/.env` and it will take precedence.
+`pnpm dev` picks free random ports and prints the URLs. It starts MongoDB and Redis itself if they are not running. You need no `.env` file: `server/.env.development` points at the local Docker containers. To override a value, create `server/.env`. The RustFS console is at `http://localhost:9001/rustfs/console/` (user and password: `minioadmin`).
 
-By default, the dev script picks random free ports (printed on startup) to avoid conflicts. Use `npm run dev:fixed` for fixed ports (client on `http://localhost:3000`, server on `http://localhost:5005`). The Next.js dev server proxies API and WebSocket requests to the Express backend automatically. Uploaded files go to local RustFS (S3-compatible), browsable at `http://localhost:9001/rustfs/console/` (user: `minioadmin`, password: `minioadmin`).
+| Command                 | What it does                                                 |
+| ----------------------- | ------------------------------------------------------------ |
+| `pnpm dev`              | Client and server with hot reload, on random ports           |
+| `pnpm dev:fixed`        | The same on fixed ports (client 3000, server 5005)           |
+| `pnpm dev:lan`          | Fixed ports, reachable from other devices on your network    |
+| `pnpm dev:docs`         | Client, server and the Docusaurus docs site                  |
+| `pnpm dev:infra`        | Start MongoDB, Redis and RustFS containers                   |
+| `pnpm dev:infra:stop`   | Stop the containers and keep their data                      |
+| `pnpm dev:infra:reset`  | Stop the containers and delete their data                    |
+| `pnpm dev:desktop`      | Local server plus the native desktop app                     |
+| `pnpm test:unit`        | Unit tests for server, client and desktop scripts            |
+| `pnpm test:e2e`         | Build the client and run the Playwright end-to-end tests     |
+| `pnpm typecheck`        | TypeScript checks for client and server                      |
+| `pnpm lint`             | Biome lint                                                   |
+| `pnpm format`           | Biome format                                                 |
 
-### Available Commands
+[docs/TESTING.md](docs/TESTING.md) explains the test harnesses.
 
-```bash
-npm run dev              # Start client + server with hot reload (random ports)
-npm run dev:fixed        # Same, with fixed ports (3000 + 5005)
-npm run dev:lan          # Same, accessible from local network
-npm run dev:infra        # Start local MongoDB + RustFS + Redis containers
-npm run dev:infra:stop   # Stop containers (data preserved)
-npm run dev:infra:reset  # Stop containers and wipe all data (clean slate)
-npm run client           # Start only the Next.js frontend
-npm run server           # Start only the Express backend
-npm run test:unit        # Run unit tests (server + client)
-npm run test:e2e         # Run Playwright end-to-end tests
-npm run typecheck        # TypeScript type checking
-npm run eslint           # Lint both client and server
+## Desktop and mobile apps
+
+<img src="docs/marketing/screenshots/mobile-capture-chain.jpg" width="240" align="right" alt="Tiao on a phone: the board fills the top of the screen with a capture chain in progress, and the score panel sits below it">
+
+The desktop app uses Tauri 2 to host the same static web build on Windows, macOS and Linux. Rust handles sign-in, deep links, stored credentials, Steam and store purchases. API calls go to `TIAO_API_URL` (default `https://api.playtiao.com`).
+
+```sh
+pnpm dev:desktop          # local server on a free port plus the native app
+pnpm dev:desktop:prod     # native app against the production API
+pnpm --dir desktop package   # unsigned packages for your platform
 ```
 
-## Project Structure
+Each distribution channel (direct download, Steam, Mac App Store, Microsoft Store) builds into its own binary, and store builds never update themselves. See [desktop/README.md](desktop/README.md) and [docs/RELEASING-desktop.md](docs/RELEASING-desktop.md).
+
+The iOS and Android apps wrap the same client with Capacitor. See [mobile/README.md](mobile/README.md) and [docs/releasing-mobile.md](docs/releasing-mobile.md).
+
+<br clear="right">
+
+## Project structure
 
 ```
 tiao/
-├── client/          React + Next.js + Tailwind frontend
-├── server/          Express + WebSocket backend
-├── shared/          Pure TypeScript game engine + protocol types
-├── desktop/         Tauri desktop app (standalone + stores + Steam)
-├── e2e/             Playwright end-to-end tests
-├── docs/            Markdown documentation
-└── docs-site/       Docusaurus documentation site
+├── client/      Next.js + React + Tailwind web client
+├── server/      Express + WebSocket game server
+├── shared/      Rules engine, protocol types and achievement definitions
+├── desktop/     Tauri desktop app (direct download, stores, Steam)
+├── mobile/      Capacitor iOS and Android apps
+├── e2e/         Playwright end-to-end tests
+├── scripts/     Dev server, screenshot, store-media and release scripts
+├── docs/        Rules, architecture, API, testing and release guides
+└── docs-site/   Docusaurus documentation site
 ```
 
-The game engine (`shared/src/tiao.ts`) is a set of pure functions with no side effects — both the server and client use it to validate and apply moves.
+The rules engine (`shared/src/tiao.ts`) is a set of pure functions. The server and the client both use it to validate and apply moves.
 
-## Desktop app
+## Tech stack
 
-Tauri 2 hosts the Next.js static export on macOS, Windows and Linux. Rust
-handles authentication, deep links, native credentials, Steam and store
-purchases. API calls use `TIAO_API_URL` (default `https://api.playtiao.com`).
-
-```sh
-pnpm dev:desktop                 # local backend on a free port + native app
-pnpm dev:desktop:prod            # native app against the production API
-pnpm --dir desktop package      # unsigned host-platform packages
-pnpm --dir desktop package:steam
-pnpm --dir desktop package:steam-demo
-```
-
-Distribution channels are compiled into separate binaries. Store builds never
-self-update. Direct self-updates remain opt-in and require a Tauri signing key
-and feed. The renderer retains `window.electron` as a compatibility API; the
-application contains no Electron or Node runtime.
-
-See [desktop/README.md](desktop/README.md) for development and validation, and
-[docs/RELEASING-desktop.md](docs/RELEASING-desktop.md) for packaging and signing.
+TypeScript throughout. Next.js 16 with React 19, Tailwind CSS 4 and next-intl on the client. Express 5, `ws`, Mongoose and better-auth on the server, with Redis optional. Tauri 2 (Rust) for desktop, Capacitor 8 for mobile. Vitest, the Node.js test runner and Playwright for tests, Biome for linting and formatting.
 
 ## Documentation
 
-| Document                                                 | Description                                       |
-| -------------------------------------------------------- | ------------------------------------------------- |
-| [docs/GAME_RULES.md](docs/GAME_RULES.md)                 | Complete game rules with diagrams                 |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)             | System design, data flow, and technical decisions |
-| [docs/API.md](docs/API.md)                               | REST and WebSocket API reference                  |
-| [docs/TESTING.md](docs/TESTING.md)                       | Testing guide, harnesses, and how to add tests    |
-| [CONTRIBUTING.md](CONTRIBUTING.md)                       | How to contribute                                 |
-| [docs/coolify-deployment.md](docs/coolify-deployment.md) | Coolify/Docker deployment guide                   |
-
-## Testing
-
-```bash
-# All unit tests (server + client)
-npm run test:unit
-
-# E2E tests (spawns isolated test infrastructure)
-npm run test:e2e
-
-# Everything
-npm test
-```
-
-See [docs/TESTING.md](docs/TESTING.md) for the full guide.
-
-## Deployment
-
-Production runs as two Docker containers:
-
-- **client** — Node.js serving the Next.js app, proxying `/api` and `/ws` to the backend
-- **server** — Express + WebSocket on a single Node.js process
-
-### Required Environment Variables
-
-**Backend:**
-
-- `MONGODB_URI` — MongoDB connection string
-- `TOKEN_SECRET` — secret for session token hashing (also used as `BETTER_AUTH_SECRET` fallback)
-- `S3_BUCKET_NAME`, `S3_PUBLIC_URL` — for profile picture uploads
-- `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
-
-**Optional:**
-
-- `FRONTEND_URL` — for CORS and better-auth base URL
-- `S3_ENDPOINT`, `S3_FORCE_PATH_STYLE` — for S3-compatible providers (MinIO, etc.)
-- `REDIS_URL` — enables distributed matchmaking, locks, and rate limiting (falls back to in-memory)
-- `PORT` — server port (defaults to 5005 in dev)
-- `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` — GitHub OAuth
-- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` — Google OAuth
-- `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET` — Discord OAuth
-
-See `.env.example` files in `server/` and `client/` for templates.
-
-### CI/CD
-
-The GitHub Actions workflow (`build-and-deploy.yml`) builds and tests on every push to `main`, then pushes Docker images to GHCR. Optional Coolify deployment is triggered via API if the secrets are configured.
-
-See [docs/coolify-deployment.md](docs/coolify-deployment.md) for the full deployment guide.
+| Document                                         | What it covers                                     |
+| ------------------------------------------------ | -------------------------------------------------- |
+| [docs/GAME_RULES.md](docs/GAME_RULES.md)         | Complete rules with diagrams                       |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)     | System design, data flow and technical decisions   |
+| [docs/API.md](docs/API.md)                       | REST and WebSocket API                             |
+| [docs/TESTING.md](docs/TESTING.md)               | Test harnesses and how to add tests                |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)         | Production shape, environment variables and CI/CD  |
+| [docs/coolify-deployment.md](docs/coolify-deployment.md) | Self-hosting the game server with Coolify  |
+| [docs/marketing/README.md](docs/marketing/README.md) | Screenshots, social preview and how to regenerate them |
+| [CONTRIBUTING.md](CONTRIBUTING.md)               | Setup, conventions and pull requests               |
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions, coding conventions, and how to submit changes.
+Bug reports, ideas and pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers setup, coding conventions and how to submit a change. Questions go to [Discussions](https://github.com/trebeljahr/tiao/discussions), and security reports go through [SECURITY.md](.github/SECURITY.md).
+
+## Support
+
+Tiao is free and has no ads. If you want to support its development, you can [donate here](https://ricos.site/donate?from=tiao).
 
 ## License
 
-[GNU Affero General Public License v3.0](LICENSE), with one additional
-permission: the desktop build may be linked against the proprietary
-Steamworks SDK. See [LICENSE-EXCEPTIONS.md](LICENSE-EXCEPTIONS.md) for
-the grant and the reasoning.
+The code is licensed under the [GNU Affero General Public License v3.0](LICENSE), with one additional permission: the desktop build may be linked against the proprietary Steamworks SDK. [LICENSE-EXCEPTIONS.md](LICENSE-EXCEPTIONS.md) has the grant and the reasoning. Contributions are accepted under the AGPL-3.0 and that exception together.
 
-Contributions are accepted under the AGPL-3.0 and that exception
-together.
+The license covers the code. The game rules are Andreas Edmeier's work. The interface fonts, Zen Old Mincho and Zen Kaku Gothic New, are under the SIL Open Font License 1.1. The trailer audio in `scripts/assets/store-trailer/audio/` lists its sources and licenses in [credits.json](scripts/assets/store-trailer/audio/credits.json).
