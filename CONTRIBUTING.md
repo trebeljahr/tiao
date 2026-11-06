@@ -4,10 +4,10 @@ Thanks for your interest in contributing to Tiao! This guide will help you get s
 
 ## Prerequisites
 
-- **Node.js 22.x** (see `.nvmrc` or `engines` in `package.json`)
-- **MongoDB** running locally (for account features and game persistence)
-- **npm** (comes with Node.js)
-- **Redis** (optional — for distributed matchmaking and rate limiting; the server falls back to in-memory stores)
+- **Node.js 24** (see `.nvmrc` or `engines` in `package.json`)
+- **pnpm 10** (`corepack enable` provides the version pinned in `package.json`)
+- **Docker** for the local MongoDB, Redis and RustFS containers (`pnpm dev:infra`). A natively installed MongoDB works too.
+- **Redis** is optional: the server falls back to in-memory stores for matchmaking and rate limiting.
 
 ## Getting Started
 
@@ -21,27 +21,21 @@ cd tiao
 2. Install dependencies:
 
 ```bash
-npm install
+pnpm install
 ```
 
-The root `postinstall` script automatically installs dependencies for `client/`, `server/`, and `docs-site/`.
+The root `postinstall` script also installs dependencies for `client/`, `server/`, `docs-site/`, `desktop/` and `mobile/`. Set `SKIP_DESKTOP=1 SKIP_MOBILE=1` to leave out the desktop and mobile apps.
 
-3. Set up environment variables:
-
-```bash
-cp server/.env.example server/.env
-cp client/.env.example client/.env
-```
-
-Edit `server/.env` with your MongoDB connection string and a random token secret. S3/CloudFront variables are optional for local development (profile picture uploads won't work without them).
+3. Environment variables are optional. `server/.env.development` ships defaults that point at the local Docker containers. To override a value, create `server/.env` (see `server/.env.example`); it takes precedence.
 
 4. Start the development servers:
 
 ```bash
-npm run dev
+pnpm dev:infra   # MongoDB, Redis and RustFS (S3-compatible storage)
+pnpm dev
 ```
 
-By default this picks random free ports for the client and server to avoid conflicts. The chosen URLs are printed on startup. Use `npm run dev:fixed` for fixed ports (client on `http://localhost:3000`, server on `http://localhost:5005`). The Next.js dev server proxies `/api` and `/ws` to the backend automatically.
+By default this picks random free ports for the client and server to avoid conflicts. The chosen URLs are printed on startup. Use `pnpm dev:fixed` for fixed ports (client on `http://localhost:3000`, server on `http://localhost:5005`). The Next.js dev server proxies `/api` and `/ws` to the backend automatically.
 
 5. Open the URL printed in the terminal.
 
@@ -52,6 +46,8 @@ tiao/
 ├── client/          React + Next.js + Tailwind frontend
 ├── server/          Express + WebSocket backend
 ├── shared/          Pure TypeScript game engine + protocol types
+├── desktop/         Tauri desktop app
+├── mobile/          Capacitor iOS and Android apps
 ├── e2e/             Playwright end-to-end tests
 ├── docs/            Markdown documentation
 └── docs-site/       Docusaurus documentation site
@@ -75,13 +71,13 @@ git checkout -b your-feature-name
 
 ```bash
 # Server unit tests
-npm --prefix server test
+pnpm --dir server test
 
 # Client unit tests
-cd client && npx vitest run
+pnpm --dir client test
 
-# E2E tests (servers must be running)
-npx playwright test
+# E2E tests (builds the client and starts isolated test servers)
+pnpm test:e2e
 ```
 
 4. Commit your changes with a clear, lowercase message:

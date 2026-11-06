@@ -12,7 +12,7 @@ body:
     attributes:
       label: Which page or section?
       description: Link to the doc page or describe which section needs work.
-      placeholder: "e.g. https://docs.tiao.ricos.site/docs/architecture or CONTRIBUTING.md"
+      placeholder: "e.g. docs/ARCHITECTURE.md or CONTRIBUTING.md"
     validations:
       required: true
 
