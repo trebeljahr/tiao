@@ -1,0 +1,47 @@
+# npm dependency updates. Minor and patch updates arrive as one grouped PR a
+# week; .github/workflows/dependency-updates.yml tests it, squash-merges it and
+# deploys. Security fixes arrive as one grouped PR too, as soon as GitHub knows
+# about them. Major updates are left out on purpose: they need a person.
+version: 2
+updates:
+  - package-ecosystem: npm
+    # Three separate pnpm projects, each with its own lockfile: the root
+    # (tooling and tests), the web client and the game server. Each gets its
+    # own grouped PR. desktop/, mobile/ and docs-site/ ship through their own
+    # release workflows and stay manual.
+    directories:
+      - /
+      - /client
+      - /server
+    schedule:
+      interval: weekly
+      day: monday
+      time: "05:00"
+      timezone: Etc/UTC
+    # A new release waits a week before it is proposed, so a hijacked or broken
+    # version has time to be pulled first. Security updates skip the wait.
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+      # 0.x packages: a "minor" bump is a breaking release under semver.
+      # satori renders the link-preview images.
+      - dependency-name: "satori"
+        update-types: ["version-update:semver-minor"]
+      - dependency-name: "@tailwindcss/typography"
+        update-types: ["version-update:semver-minor"]
+      # Biome minors change its config schema and rules; they need
+      # `biome migrate` and a lint pass by a person.
+      - dependency-name: "@biomejs/biome"
+        update-types: ["version-update:semver-minor"]
+    groups:
+      npm-minor-patch:
+        applies-to: version-updates
+        update-types: [minor, patch]
+      npm-security:
+        applies-to: security-updates
+        update-types: [minor, patch]
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"

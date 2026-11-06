@@ -1,0 +1,248 @@
+name: dependency-updates
+
+# Lands Dependabot's grouped minor/patch and security PRs (see
+# .github/dependabot.yml): runs the same checks as the push pipeline on the PR,
+# squash-merges it, and starts build-and-deploy on main. A merge made with
+# GITHUB_TOKEN does not trigger push workflows, so the deploy is started
+# explicitly. One PR per run; the next run takes the next one after Dependabot
+# rebases it.
+#
+# Never lands: a major update, an ungrouped PR, a PR with a commit that is not
+# Dependabot's, or a PR whose checks fail. Those stay open for a person.
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: dependency-updates
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  pick:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      number: ${{ steps.pick.outputs.number }}
+      sha: ${{ steps.pick.outputs.sha }}
+    steps:
+      - name: Pick the oldest grouped Dependabot PR
+        id: pick
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          pr=$(gh pr list --repo "$REPO" --state open --author app/dependabot --base main \
+                 --json number,headRefName,headRefOid,createdAt \
+                 --jq '[.[] | select(.headRefName | test("^dependabot/npm_and_yarn/((client|server)/)?npm-(minor-patch|security)-"))] | sort_by(.createdAt) | first // empty')
+          if [ -z "$pr" ]; then echo "no grouped Dependabot PR is open"; exit 0; fi
+          number=$(jq -r .number <<<"$pr"); sha=$(jq -r .headRefOid <<<"$pr")
+          others=$(gh pr view "$number" --repo "$REPO" --json commits \
+                     --jq '[.commits[].authors[].login | select(. != "dependabot[bot]")] | length')
+          if [ "$others" != "0" ]; then
+            echo "::warning::PR #$number has commits that are not Dependabot's: left for a person"; exit 0
+          fi
+          echo "PR #$number at $sha"
+          echo "number=$number" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+  # The same gates as tests.yml, which runs on every push to main: unit,
+  # integration and e2e (a dependency update always counts as e2e-affected).
+  # They run the PR's code with a read-only token and no secrets.
+  unit:
+    needs: [pick]
+    if: needs.pick.outputs.number != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the PR
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.pick.outputs.sha }}
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            client/pnpm-lock.yaml
+            server/pnpm-lock.yaml
+
+      - name: Install dependencies
+        env:
+          SKIP_DESKTOP: "1"
+        run: pnpm install --frozen-lockfile
+
+      - name: Build repo
+        run: pnpm run build
+
+      - name: Run unit tests
+        run: pnpm run test:unit
+
+      - name: Install gitleaks
+        env:
+          GITLEAKS_VERSION: 8.30.1
+          GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          set -euo pipefail
+          curl -sSfL -o /tmp/gitleaks.tgz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  /tmp/gitleaks.tgz" | sha256sum -c -
+          mkdir -p "$HOME/.local/bin"
+          tar -xzf /tmp/gitleaks.tgz -C "$HOME/.local/bin" gitleaks
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Scan working tree for secrets
+        run: pnpm run scan:secrets
+
+      - name: Validate Steam achievement API names
+        run: pnpm run steam:achievements:check
+
+  integration:
+    needs: [pick]
+    if: needs.pick.outputs.number != ''
+    runs-on: ubuntu-latest
+    services:
+      mongo-integration:
+        image: mongo:7.0.45
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'quit(db.adminCommand({ping:1}).ok ? 0 : 1)'"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+      redis-integration:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Check out the PR
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.pick.outputs.sha }}
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            server/pnpm-lock.yaml
+
+      - name: Install dependencies
+        env:
+          SKIP_DESKTOP: "1"
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Install server dependencies
+        run: pnpm --dir server install --frozen-lockfile
+
+      - name: Run integration tests
+        run: pnpm run test:integration
+        env:
+          MONGODB_TEST_URI: mongodb://127.0.0.1:27017
+
+  e2e:
+    needs: [pick]
+    if: needs.pick.outputs.number != ''
+    runs-on: ubuntu-latest
+    services:
+      mongo-e2e:
+        image: mongo:7
+        ports:
+          - 27018:27017
+      redis-e2e:
+        image: redis:7-alpine
+        ports:
+          - 6380:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Check out the PR
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.pick.outputs.sha }}
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            client/pnpm-lock.yaml
+            server/pnpm-lock.yaml
+
+      - name: Install dependencies
+        env:
+          SKIP_DESKTOP: "1"
+        run: pnpm install --frozen-lockfile
+
+      - name: Start S3 storage and install Playwright
+        run: |
+          docker run -d --name tiao-e2e-s3 \
+            -p 9002:9000 \
+            -e RUSTFS_ACCESS_KEY=minioadmin \
+            -e RUSTFS_SECRET_KEY=minioadmin \
+            --tmpfs /data:mode=1777 \
+            rustfs/rustfs:1.0.1
+
+          pnpm exec playwright install --with-deps chromium
+
+          for _ in $(seq 1 15); do
+            if curl -sf http://127.0.0.1:9002/health; then break; fi
+            sleep 1
+          done
+          bash scripts/init-s3-bucket.sh http://127.0.0.1:9002 tiao-e2e
+
+      - name: Run e2e tests
+        run: pnpm run test:e2e
+        env:
+          CI: "true"
+          MONGODB_URI: mongodb://127.0.0.1:27018/tiao-e2e
+          TOKEN_SECRET: e2e-secret
+
+  land:
+    needs: [pick, unit, integration, e2e]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+    steps:
+      - name: Squash-merge the tested commit and deploy main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          NUMBER: ${{ needs.pick.outputs.number }}
+          SHA: ${{ needs.pick.outputs.sha }}
+        run: |
+          # --match-head-commit refuses if Dependabot pushed again after the tests.
+          gh pr merge "$NUMBER" --repo "$REPO" --squash --delete-branch --match-head-commit "$SHA"
+          gh workflow run build-and-deploy.yml --repo "$REPO" --ref main
+          echo "merged #$NUMBER and started build-and-deploy on main"

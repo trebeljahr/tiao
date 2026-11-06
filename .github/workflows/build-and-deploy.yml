@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  # dependency-updates.yml starts it after merging a Dependabot PR: a merge
+  # made with GITHUB_TOKEN does not trigger the push event.
+  workflow_dispatch:
 
 concurrency:
   group: tiao-main-deploy
