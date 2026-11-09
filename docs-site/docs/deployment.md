@@ -502,7 +502,7 @@ docker compose exec mongo mongosh tiao
 docker exec -it <mongo-container-name> mongosh tiao
 ```
 
-See the [API reference](/docs/api-reference/tiao-api) for common database admin queries (granting badges, making users admin).
+See the [API reference](/api-reference/tiao-api) for common database admin queries (granting badges, making users admin).
 
 ### Further reading
 
@@ -534,32 +534,29 @@ These are good candidates for the reusable ops repo later via:
 
 ## Documentation Site
 
-The documentation site (this site) is deployed separately from the app via **GitHub Pages**. It does not use Coolify.
+The documentation site (this site) ships with the web client. Production serves it at `https://playtiao.com/docs`, from the same Cloudflare Worker as the app.
 
 ### How it works
 
-A GitHub Actions workflow (`.github/workflows/docs.yml`) runs on every push to `main` that touches `docs/`, `docs-site/`, `shared/src/`, or `server/routes/`. The pipeline:
+The `build-web` job in `.github/workflows/build-and-deploy.yml` runs on every push to `main`:
 
 1. Installs server and docs-site dependencies
-2. Generates the OpenAPI spec from server route annotations (`npx tsx server/scripts/generate-openapi.ts`)
-3. Generates API reference pages from the spec (`npm --prefix docs-site run generate:api-docs`)
-4. Builds the Docusaurus site (`npm --prefix docs-site run build`)
-5. Deploys to GitHub Pages via `actions/deploy-pages`
+2. Generates the OpenAPI spec from server route annotations (`pnpm dlx tsx server/scripts/generate-openapi.ts`)
+3. Generates API reference pages from the spec (`pnpm --dir docs-site run generate:api-docs`)
+4. Builds the Docusaurus site (`pnpm --dir docs-site run build`) with `baseUrl: "/docs/"`
+5. Builds the client with `DOCS_BUILD_DIR` pointing at `docs-site/build`. `client/scripts/finalize-web-export.mjs` copies the docs to `out/docs`, and the Worker version goes live with the app
 
-The docs site is available at `https://docs.your-domain-example.com`.
+A docs build error stops the web deploy, the same as a client build error.
 
-### When docs are rebuilt
+### Local preview
 
-The workflow triggers when any of these paths change:
+`pnpm docs` serves the docs at `http://localhost:3001/docs/`. To check them inside the finished web export:
 
-- `docs/**` — markdown source
-- `docs-site/**` — Docusaurus config, CSS, plugins
-- `shared/src/**` — game engine (source links may change)
-- `server/routes/**` — API routes (OpenAPI spec may change)
-
-### Custom domain
-
-The docs domain (`docs.your-domain-example.com`) is configured as a GitHub Pages custom domain. DNS points a CNAME to the GitHub Pages URL.
+```bash
+pnpm --dir docs-site run build
+DOCS_BUILD_DIR=../docs-site/build pnpm --dir client run build
+pnpm --dir client start
+```
 
 ## Realtime Limitation
 

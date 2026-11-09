@@ -5,11 +5,12 @@
  * Cloudflare Workers static assets serves at playtiao.com.
  *
  *   node scripts/finalize-web-export.mjs [--out out] [--commit <sha>]
- *        [--app-version <v>] [--carried <dir>]
+ *        [--app-version <v>] [--carried <dir>] [--docs <dir>]
  *
  * Defaults: --commit from BUILD_COMMIT, else `git rev-parse HEAD`;
  * --app-version from APP_VERSION; --carried from RELEASE_CARRY_DIR, else
- * release-carry/ when it holds a releases.json. `pnpm build` runs it.
+ * release-carry/ when it holds a releases.json; --docs from DOCS_BUILD_DIR,
+ * else no docs. `pnpm build` runs it.
  *
  * 1. Default locale at the root. Next writes every locale into its own
  *    folder (`en.html`, `en/play.html`, `de/play.html`). The app uses
@@ -30,7 +31,9 @@
  *    `carry-release-static.mjs fetch`), checked for collisions, and
  *    `release-assets.json`, which lists every release this upload serves so
  *    the next build can carry them.
- * 5. `version.json`, and the Workers Free limits.
+ * 5. The documentation site (docs-site/build, built with baseUrl `/docs/`)
+ *    at `/docs`, when --docs names it. The deploy workflow builds it first.
+ * 6. `version.json`, and the Workers Free limits.
  */
 
 import { execFileSync } from "node:child_process";
@@ -200,6 +203,23 @@ export function mergeCarried(out, commit, carried) {
   return releases.map((release) => release.sha);
 }
 
+/**
+ * Copies the built documentation site to `<out>/docs`, so playtiao.com/docs
+ * ships in the same upload as the app. Refuses a build made for another base
+ * path and an export that has a `/docs` route of its own.
+ */
+export function addDocs(out, docs) {
+  const index = join(docs, "index.html");
+  if (!existsSync(index)) throw new Error(`${docs} has no index.html; build docs-site first`);
+  if (!/(?:href|src)=["']?\/docs\/assets\//.test(readFileSync(index, "utf8")))
+    throw new Error(`${docs} was not built with baseUrl /docs/`);
+  if (existsSync(join(out, "docs")) || existsSync(join(out, "docs.html")))
+    throw new Error("Export already has a /docs route");
+  const files = listFiles(docs);
+  cpSync(docs, join(out, "docs"), { recursive: true });
+  return files.length;
+}
+
 /** Fails when the upload would break a Workers Free limit or a root-served page. */
 export function checkLimits(out) {
   const files = listFiles(out);
@@ -229,10 +249,11 @@ export function checkLimits(out) {
   return { files: files.length, dynamicRedirects: dynamic.length };
 }
 
-export function finalize({ out, commit, appVersion, carried, builtAt = new Date() }) {
+export function finalize({ out, commit, appVersion, carried, docs, builtAt = new Date() }) {
   if (!SHA.test(commit ?? "")) throw new Error("--commit must be a full git SHA");
   if (existsSync(join(out, "index.html"))) throw new Error(`${out} is already finalized`);
   moveLocaleToRoot(out);
+  const docsFiles = docs ? addDocs(out, docs) : 0;
   const routes = placeholderRoutes(out);
   writeFileSync(join(out, "_redirects"), redirectsFile(routes));
   writeFileSync(join(out, "_headers"), headersFile());
@@ -241,7 +262,7 @@ export function finalize({ out, commit, appVersion, carried, builtAt = new Date(
     join(out, "version.json"),
     `${JSON.stringify({ commit, version: appVersion ?? null, builtAt: builtAt.toISOString() })}\n`,
   );
-  return { routes, releases, ...checkLimits(out) };
+  return { routes, releases, docsFiles, ...checkLimits(out) };
 }
 
 function args(argv) {
@@ -268,6 +289,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     commit,
     appVersion: options["app-version"] ?? process.env.APP_VERSION,
     carried,
+    docs: options.docs ?? process.env.DOCS_BUILD_DIR,
   });
   console.log(JSON.stringify(result));
 }

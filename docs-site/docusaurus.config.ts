@@ -14,8 +14,14 @@ const config: Config = {
     v4: true,
   },
 
-  url: "https://docs.tiao.ricos.site",
-  baseUrl: "/",
+  // Served by the playtiao.com Worker with the app: client/scripts/
+  // finalize-web-export.mjs copies build/ to /docs. Docs live at the base
+  // (routeBasePath "/"), so /docs/game-rules is game-rules.md. Without
+  // trailing slashes each page is <slug>.html, which the Worker serves at
+  // the bare path.
+  url: "https://playtiao.com",
+  baseUrl: "/docs/",
+  trailingSlash: false,
 
   organizationName: "trebeljahr",
   projectName: "tiao",
@@ -33,6 +39,7 @@ const config: Config = {
       "classic",
       {
         docs: {
+          routeBasePath: "/",
           sidebarPath: "./sidebars.ts",
           editUrl: "https://github.com/trebeljahr/tiao/tree/main/docs-site/",
           docItemComponent: "@theme/ApiItem",
@@ -43,7 +50,6 @@ const config: Config = {
           lastmod: "date",
           changefreq: "weekly",
           priority: 0.7,
-          ignorePatterns: ["/markdown-page"],
         },
         theme: {
           customCss: "./src/css/custom.css",
@@ -111,6 +117,12 @@ const config: Config = {
           label: "API Reference",
         },
         {
+          href: "https://playtiao.com/",
+          label: "Play",
+          position: "right",
+          target: "_self",
+        },
+        {
           href: "https://github.com/trebeljahr/tiao",
           label: "GitHub",
           position: "right",
@@ -123,17 +135,17 @@ const config: Config = {
         {
           title: "Documentation",
           items: [
-            { label: "Game Rules", to: "/docs/game-rules" },
-            { label: "Architecture", to: "/docs/architecture" },
-            { label: "API Reference", to: "/docs/api-reference/tiao-api" },
+            { label: "Game Rules", to: "/game-rules" },
+            { label: "Architecture", to: "/architecture" },
+            { label: "API Reference", to: "/api-reference/tiao-api" },
           ],
         },
         {
           title: "Developers",
           items: [
-            { label: "Contributing", to: "/docs/contributing" },
-            { label: "Testing", to: "/docs/testing" },
-            { label: "Deployment", to: "/docs/deployment" },
+            { label: "Contributing", to: "/contributing" },
+            { label: "Testing", to: "/testing" },
+            { label: "Deployment", to: "/deployment" },
           ],
         },
         {

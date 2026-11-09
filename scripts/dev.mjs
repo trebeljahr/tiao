@@ -174,7 +174,7 @@ if (parallelMode) {
 } else {
   console.log(`  Client: http://localhost:${clientPorts[0]}`);
   if (includeDocs) {
-    console.log(`  Docs:   http://localhost:${docsPort}`);
+    console.log(`  Docs:   http://localhost:${docsPort}/docs/`);
   }
   console.log(`  Server: http://localhost:${apiPorts[0]}`);
   if (lanMode) {

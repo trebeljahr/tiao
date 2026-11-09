@@ -159,6 +159,44 @@ test("adds carried releases' files and lists them for the next build", () => {
   assert.throws(() => finalize({ out: clash, commit: COMMIT, carried: other }), /collision/);
 });
 
+/** A docs-site build made with baseUrl /docs/; Docusaurus minifies away the quotes. */
+function docsFixture(base = "/docs/") {
+  const docs = mkdtempSync(join(tmpdir(), "tiao-docs-"));
+  write(docs, "index.html", `<link rel=stylesheet href=${base}assets/css/styles.css>`);
+  write(docs, "game-rules.html", "rules");
+  write(docs, "404.html", "not found");
+  write(docs, "assets/css/styles.css", "css");
+  return docs;
+}
+
+test("serves the docs site under /docs", () => {
+  const out = exportFixture();
+  const result = finalize({ out, commit: COMMIT, docs: docsFixture() });
+  assert.equal(result.docsFiles, 4);
+  for (const path of ["docs/index.html", "docs/game-rules.html", "docs/404.html"])
+    assert.ok(existsSync(join(out, path)), path);
+  assert.ok(existsSync(join(out, "index.html")), "the app still owns the root");
+  assert.equal(finalize({ out: exportFixture(), commit: COMMIT }).docsFiles, 0);
+});
+
+test("refuses docs built for another base path, or a /docs route in the export", () => {
+  assert.throws(
+    () => finalize({ out: exportFixture(), commit: COMMIT, docs: docsFixture("/") }),
+    /baseUrl \/docs\//,
+  );
+  const empty = mkdtempSync(join(tmpdir(), "tiao-docs-"));
+  assert.throws(
+    () => finalize({ out: exportFixture(), commit: COMMIT, docs: empty }),
+    /no index\.html/,
+  );
+  const clash = exportFixture();
+  write(clash, "en/docs.html", "a docs page in the app");
+  assert.throws(
+    () => finalize({ out: clash, commit: COMMIT, docs: docsFixture() }),
+    /\/docs route/,
+  );
+});
+
 test("headers deny framing except for the embed routes", () => {
   const text = headersFile();
   assert.match(text, /^\/\*\n {2}X-Frame-Options: DENY\n/m);

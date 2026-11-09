@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import { SITE_URL } from "@/lib/metadata";
 import styles from "./PublicSite.module.css";
 
 export async function PublicHeader({ pathname = "/" }: { pathname?: string }) {
@@ -47,6 +48,11 @@ export async function PublicHeader({ pathname = "/" }: { pathname?: string }) {
   );
 }
 
+// The docs (docs-site/) are a separate English-only site that the web export
+// serves at /docs. The installed apps do not bundle them.
+const isNativeApp =
+  process.env.NEXT_PUBLIC_PLATFORM === "desktop" || process.env.NEXT_PUBLIC_PLATFORM === "mobile";
+
 export async function PublicFooter() {
   const t = await getTranslations("landing");
   return (
@@ -69,6 +75,13 @@ export async function PublicFooter() {
         <Link href="/about">{t("navAbout")}</Link>
         <Link href="/privacy">{t("privacy")}</Link>
         <Link href="/impressum">{t("impressum")}</Link>
+        <a
+          href={isNativeApp ? `${SITE_URL}/docs/` : "/docs/"}
+          hrefLang="en"
+          {...(isNativeApp && { target: "_blank", rel: "noopener noreferrer" })}
+        >
+          {t("docs")}
+        </a>
       </div>
     </footer>
   );

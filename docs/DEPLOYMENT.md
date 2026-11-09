@@ -46,8 +46,9 @@ comments.
 
 `.github/workflows/build-and-deploy.yml` runs on every push to `main`:
 
-1. `build-web` builds the static client and uploads a new Cloudflare Worker
-   version that serves no traffic yet.
+1. `build-web` builds the documentation site (`docs-site/`) and the static
+   client, copies the docs to `/docs` in the export, and uploads a new
+   Cloudflare Worker version that serves no traffic yet.
 2. `build-server` builds the server image, pushes it to
    `ghcr.io/trebeljahr/tiao-server`, and triggers a Coolify deployment when the
    Coolify secrets are set.
@@ -55,7 +56,7 @@ comments.
    `/health`, then makes the new Worker version live.
 
 `.github/workflows/tests.yml` runs the unit and integration tests on the same
-push, plus the end-to-end tests when the change can affect them. `.github/workflows/docs.yml` builds the Docusaurus site when docs change.
+push, plus the end-to-end tests when the change can affect them.
 Desktop and mobile builds and store uploads run only when started by hand; see
 [RELEASING-desktop.md](RELEASING-desktop.md) and
 [releasing-mobile.md](releasing-mobile.md).

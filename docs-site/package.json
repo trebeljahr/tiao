@@ -12,7 +12,6 @@
     "generate:api-docs": "docusaurus gen-api-docs tiao",
     "clean:api-docs": "docusaurus clean-api-docs tiao",
     "swizzle": "docusaurus swizzle",
-    "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
     "serve": "docusaurus serve",
     "write-translations": "docusaurus write-translations",

@@ -1,4 +1,39 @@
-@import url("https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@500;600;700&display=swap");
+/* The app's own font files (client/app/fonts), bundled with the docs: no font host. */
+@font-face {
+  font-family: "Zen Kaku Gothic New";
+  src: url("../../../client/app/fonts/ZenKakuGothicNew-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Zen Kaku Gothic New";
+  src: url("../../../client/app/fonts/ZenKakuGothicNew-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Zen Kaku Gothic New";
+  src: url("../../../client/app/fonts/ZenKakuGothicNew-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Zen Old Mincho";
+  src: url("../../../client/app/fonts/ZenOldMincho-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Zen Old Mincho";
+  src: url("../../../client/app/fonts/ZenOldMincho-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
   --ifm-color-primary: #5c3d1a;

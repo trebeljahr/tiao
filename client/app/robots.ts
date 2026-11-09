@@ -23,7 +23,8 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: [...localizedPrivatePaths(), ...infrastructurePaths],
     },
-    sitemap: `${SITE_URL}/sitemap.xml`,
+    // The docs site (docs-site/, served at /docs) writes its own sitemap.
+    sitemap: [`${SITE_URL}/sitemap.xml`, `${SITE_URL}/docs/sitemap.xml`],
     host: SITE_URL,
   };
 }

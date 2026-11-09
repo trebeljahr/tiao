@@ -8,8 +8,8 @@ updates:
   - package-ecosystem: npm
     # Three separate pnpm projects, each with its own lockfile: the root
     # (tooling and tests), the web client and the game server. Each gets its
-    # own grouped PR. desktop/, mobile/ and docs-site/ ship through their own
-    # release workflows and stay manual.
+    # own grouped PR. desktop/ and mobile/ ship through their own release
+    # workflows, docs-site/ builds with the web client; all three stay manual.
     directories:
       - /
       - /client

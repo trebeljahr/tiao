@@ -52,10 +52,26 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-          cache-dependency-path: client/pnpm-lock.yaml
+          cache-dependency-path: |
+            client/pnpm-lock.yaml
+            docs-site/pnpm-lock.yaml
+            server/pnpm-lock.yaml
 
-      - name: Install client dependencies
-        run: pnpm --dir client install --frozen-lockfile
+      - name: Install dependencies
+        run: |
+          pnpm --dir client install --frozen-lockfile
+          pnpm --dir server install --frozen-lockfile
+          pnpm --dir docs-site install --frozen-lockfile --ignore-scripts
+
+      # playtiao.com/docs is the Docusaurus site in docs-site/, built with
+      # baseUrl /docs/. The client build copies it into the export
+      # (DOCS_BUILD_DIR), so the docs ship in the same Worker version. The
+      # server is only needed for the OpenAPI spec.
+      - name: Build the documentation site
+        run: |
+          pnpm dlx tsx server/scripts/generate-openapi.ts
+          pnpm --dir docs-site run generate:api-docs
+          pnpm --dir docs-site run build
 
       # Open tabs keep requesting the chunks of the release they loaded, and a
       # Worker version serves only its own files. Carry the live release and
@@ -72,6 +88,7 @@ jobs:
         env:
           APP_VERSION: ${{ steps.version.outputs.app_version }}
           BUILD_COMMIT: ${{ github.sha }}
+          DOCS_BUILD_DIR: ${{ github.workspace }}/docs-site/build
           NEXT_PUBLIC_CREATOR_RICO_ID: 69c80a6cb5edd849e485b970
           NEXT_PUBLIC_CREATOR_ANDREAS_ID: 69c8193de40bacfe753a2472
           NEXT_PUBLIC_GLITCHTIP_DSN: https://e44c9bfbc30546e19f875b55b4429b97@glitchtip.trebeljahr.com/1
@@ -251,7 +268,7 @@ jobs:
             echo "::error::playtiao.com/version.json reports ${commit:-nothing}, not ${GITHUB_SHA::12}"
             exit 1
           fi
-          for path in / /de /play /game/ABCDEF /api/health; do
+          for path in / /de /play /game/ABCDEF /api/health /docs/ /docs/game-rules; do
             status=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "https://playtiao.com$path")
             echo "$path $status"
             [ "$status" = 200 ] || { echo "::error::$path answered $status"; exit 1; }

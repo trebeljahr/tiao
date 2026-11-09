@@ -115,6 +115,8 @@ TypeScript throughout. Next.js 16 with React 19, Tailwind CSS 4 and next-intl on
 
 ## Documentation
 
+The documentation site is at [playtiao.com/docs](https://playtiao.com/docs). Its source is in `docs-site/`.
+
 | Document                                         | What it covers                                     |
 | ------------------------------------------------ | -------------------------------------------------- |
 | [docs/GAME_RULES.md](docs/GAME_RULES.md)         | Complete rules with diagrams                       |

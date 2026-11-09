@@ -13,7 +13,7 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: "https://tiao.ricos.site/api",
+        url: "https://playtiao.com/api",
         description: "Production server",
       },
       {
