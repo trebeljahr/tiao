@@ -120,15 +120,15 @@ Tiao uses a coordinate-based notation system for recording moves:
 Each intersection is identified by a letter (column) and number (row):
 
 - **Columns**: `a` through `t` (left to right, skipping `i` to avoid confusion with `1`)
-- **Rows**: `1` through `19` (bottom to top)
+- **Rows**: `1` through `19` (top to bottom, as the board is drawn)
 
-Examples: `a1` (bottom-left corner), `t19` (top-right corner), `j10` (center)
+Examples: `a1` (top-left corner), `t19` (bottom-right corner), `k10` (center)
 
 ### Move Format
 
 Each move is recorded as: `<number>. <color> <notation>`
 
-- **Placement**: `1. W j10` — White places a piece at j10
+- **Placement**: `1. W k10` — White places a piece at k10
 - **Jump**: `2. B d4×f6` — Black jumps from d4, capturing to land at f6
 - **Chain jump**: `3. W d4×f6×h8` — White chain-jumps through two captures
 
