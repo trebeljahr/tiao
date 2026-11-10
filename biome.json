@@ -78,7 +78,9 @@
         "noUnknownProperty": "warn",
         "noEmptyPattern": "warn",
         "noInnerDeclarations": "warn",
-        "noVoidTypeReturn": "warn"
+        "noVoidTypeReturn": "warn",
+        "noComponentHookFactories": "warn",
+        "noUnsafeOptionalChaining": "warn"
       },
       "a11y": {
         "useGenericFontNames": "off",
