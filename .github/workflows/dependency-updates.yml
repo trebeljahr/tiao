@@ -59,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the PR
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ needs.pick.outputs.sha }}
           persist-credentials: false
@@ -67,7 +67,7 @@ jobs:
       - uses: pnpm/action-setup@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -131,7 +131,7 @@ jobs:
           --health-retries 5
     steps:
       - name: Check out the PR
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ needs.pick.outputs.sha }}
           persist-credentials: false
@@ -139,7 +139,7 @@ jobs:
       - uses: pnpm/action-setup@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -180,7 +180,7 @@ jobs:
           --health-retries 5
     steps:
       - name: Check out the PR
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ needs.pick.outputs.sha }}
           persist-credentials: false
@@ -188,7 +188,7 @@ jobs:
       - uses: pnpm/action-setup@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: pnpm

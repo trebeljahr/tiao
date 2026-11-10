@@ -49,10 +49,10 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
       - name: Check Play credentials and rollout
@@ -92,12 +92,12 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       APPLE_RUNNER: ${{ vars.APPLE_RUNNER }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Select the Apple toolchain
         run: bash ../scripts/ci/apple-xcode.sh
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
       - name: Verify iOS source artifacts

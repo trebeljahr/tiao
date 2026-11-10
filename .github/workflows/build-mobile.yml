@@ -50,10 +50,10 @@ jobs:
       build_number: ${{ steps.plan.outputs.build_number }}
       mode: ${{ steps.plan.outputs.mode }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
       - id: plan
@@ -81,10 +81,10 @@ jobs:
       ANDROID_KEY_ALIAS: ${{ needs.plan.outputs.mode == 'signed' && secrets.ANDROID_KEY_ALIAS || '' }}
       ANDROID_KEY_PASSWORD: ${{ needs.plan.outputs.mode == 'signed' && secrets.ANDROID_KEY_PASSWORD || '' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
       # Fail by name before anything decodes an empty secret.
@@ -95,7 +95,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
         with:
           packages: platform-tools
           log-accepted-android-sdk-licenses: false
@@ -158,12 +158,12 @@ jobs:
     env:
       RELEASE_BUILD_NUMBER: ${{ needs.plan.outputs.build_number }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Select the Apple toolchain
         run: bash ../scripts/ci/apple-xcode.sh
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
       - name: Import and validate distribution identity
