@@ -130,6 +130,8 @@ Each intersection is identified by a letter (column) and number (row):
 
 Examples: `a1` (top-left corner), `t19` (bottom-right corner), `k10` (center)
 
+Boards that show coordinates use the same scheme in capitals: columns `A`–`H` and `J`–`T`, rows counted from `1` at the top. The board's `J4` is the notation's `j4`. Smaller boards use the first letters: 9×9 ends at `j`, 13×13 at `n`.
+
 ### Move Format
 
 Each move is recorded as: `<number>. <color> <notation>`

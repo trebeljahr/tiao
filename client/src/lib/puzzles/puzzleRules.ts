@@ -1,5 +1,6 @@
 import {
   confirmPendingJump,
+  formatPosition,
   type GameState,
   getJumpTargets,
   getSelectableJumpOrigins,
@@ -119,9 +120,9 @@ export function playPuzzleMove(state: GameState, move: PuzzleMove): GameState {
   return confirmed.value;
 }
 
-/** Columns A–S (no skipped letters), rows counted down from the top. */
+/** Move notation in capitals: columns skip I, rows count down from the top. */
 export function puzzleCoordinate(position: Position): string {
-  return `${String.fromCharCode(65 + position.x)}${position.y + 1}`;
+  return formatPosition(position).toUpperCase();
 }
 
 export function describePuzzleMove(move: PuzzleMove): string {

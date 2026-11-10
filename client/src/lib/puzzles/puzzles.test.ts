@@ -9,8 +9,10 @@ import {
 import { describe, expect, it } from "vitest";
 import {
   canForcePuzzleWin,
+  describePuzzleMove,
   PuzzleSearchLimit,
   playPuzzleMove,
+  puzzleCoordinate,
   puzzleMoveKey,
   puzzleTurns,
   winningPuzzleTurns,
@@ -109,5 +111,20 @@ describe("composed puzzle proofs", () => {
     const start = createPuzzleState(PUZZLES[4]);
     expect(canPlacePiece(start, { x: 8, y: 3 }).ok).toBe(true);
     expect(canPlacePiece(start, { x: 0, y: 0 }).ok).toBe(false);
+  });
+});
+
+describe("puzzle coordinates", () => {
+  it("use move notation in capitals, skipping column I", () => {
+    expect(puzzleCoordinate({ x: 7, y: 0 })).toBe("H1");
+    expect(puzzleCoordinate({ x: 8, y: 3 })).toBe("J4");
+  });
+
+  it("match each written explanation that opens with a placement", () => {
+    const placements = PUZZLES.filter((puzzle) => puzzle.explanation.startsWith("Place "));
+    expect(placements.length).toBeGreaterThan(0);
+    for (const puzzle of placements) {
+      expect(puzzle.explanation.split(".")[0]).toBe(describePuzzleMove(puzzle.line[0]));
+    }
   });
 });

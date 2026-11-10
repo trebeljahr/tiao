@@ -2,6 +2,8 @@ import {
   arePositionsEqual,
   BOARD_SIZE,
   canPlacePiece,
+  formatColumn,
+  formatPosition,
   type GameState,
   getPendingJumpDestination,
   getSelectableJumpOrigins,
@@ -519,7 +521,7 @@ export function TiaoBoard({
                 className="absolute top-1.5 -translate-x-1/2 text-[10px] font-semibold"
                 style={{ left: coordinate, color: theme.gridLineColor }}
               >
-                {String.fromCharCode(65 + index)}
+                {formatColumn(index).toUpperCase()}
               </span>
               <span
                 className="absolute left-2 -translate-y-1/2 text-[10px] font-semibold"
@@ -655,7 +657,7 @@ export function TiaoBoard({
               {...input.cellProps(position)}
               type="button"
               data-testid={`cell-${position.x}-${position.y}`}
-              aria-label={`${String.fromCharCode(65 + position.x)}${position.y + 1}: ${piece ? t(piece) : t("emptyIntersection")}`}
+              aria-label={`${formatPosition(position).toUpperCase()}: ${piece ? t(piece) : t("emptyIntersection")}`}
               data-piece={piece ?? undefined}
               data-last-move={isLastMove || undefined}
               disabled={disabled}

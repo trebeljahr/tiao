@@ -5,6 +5,7 @@ import {
   canPlacePiece,
   confirmPendingJump,
   createInitialGameState,
+  formatColumn,
   formatPosition,
   formatTurnRecord,
   getSelectableJumpOrigins,
@@ -332,6 +333,12 @@ describe("Tiao core rules", () => {
     assert.equal(formatPosition({ x: 18, y: 18 }), "t19");
     assert.equal(formatPosition({ x: 3, y: 5 }), "d6");
     assert.equal(formatPosition({ x: 8, y: 0 }), "j1"); // 'i' is skipped, so h=7, j=8
+  });
+
+  test("formatColumn skips i across a 19x19 board", () => {
+    const columns = Array.from({ length: 19 }, (_, x) => formatColumn(x)).join("");
+    assert.equal(columns, "abcdefghjklmnopqrst");
+    assert.equal(formatColumn(19), "?");
   });
 
   test("formatTurnRecord formats put and jump moves", () => {

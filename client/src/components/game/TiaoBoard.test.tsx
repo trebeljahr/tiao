@@ -1,4 +1,4 @@
-import { BOARD_SIZE, createInitialGameState, getJumpTargets } from "@shared";
+import { BOARD_SIZE, createInitialGameState, formatPosition, getJumpTargets } from "@shared";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { touchToGridPosition } from "./TiaoBoard";
@@ -167,6 +167,42 @@ describe("TiaoBoard – board testid", () => {
     );
 
     expect(screen.getByTestId("tiao-board")).toBeTruthy();
+  });
+});
+
+describe("TiaoBoard – coordinates", () => {
+  it("labels columns with the move-notation letters, skipping I", async () => {
+    const { TiaoBoard } = await import("./TiaoBoard");
+    const state = createInitialGameState();
+
+    const { container } = render(
+      <TiaoBoard
+        state={state}
+        selectedPiece={null}
+        jumpTargets={[]}
+        onPointClick={() => {}}
+        showCoordinates
+      />,
+    );
+
+    const columns = Array.from(
+      container.querySelectorAll('[aria-hidden="true"] > span:first-child'),
+      (label) => label.textContent,
+    ).join("");
+    expect(columns).toBe("ABCDEFGHJKLMNOPQRST");
+  });
+
+  it("names cells in move notation for screen readers", async () => {
+    const { TiaoBoard } = await import("./TiaoBoard");
+    const state = createInitialGameState();
+
+    render(
+      <TiaoBoard state={state} selectedPiece={null} jumpTargets={[]} onPointClick={() => {}} />,
+    );
+
+    const label = screen.getByTestId("cell-8-3").getAttribute("aria-label");
+    expect(label?.split(": ")[0]).toBe(formatPosition({ x: 8, y: 3 }).toUpperCase());
+    expect(label?.split(": ")[0]).toBe("J4");
   });
 });
 

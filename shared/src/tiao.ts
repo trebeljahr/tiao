@@ -879,12 +879,17 @@ export function getSelectableJumpOrigins(
   return origins;
 }
 
+// Go convention: columns skip "i" so it is never confused with "1" or "l".
 const POSITION_LETTERS = "abcdefghjklmnopqrst";
 
+/** Lowercase column letter for a zero-based x. Board labels show it uppercase. */
+export function formatColumn(x: number): string {
+  return POSITION_LETTERS[x] ?? "?";
+}
+
+/** Rows count from the top as the board is drawn: y=0 is row 1. */
 export function formatPosition(pos: Position): string {
-  const letter = POSITION_LETTERS[pos.x] ?? "?";
-  const number = pos.y + 1;
-  return `${letter}${number}`;
+  return `${formatColumn(pos.x)}${pos.y + 1}`;
 }
 
 export function formatTurnRecord(record: TurnRecord, index: number): string {

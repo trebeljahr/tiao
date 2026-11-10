@@ -1,3 +1,4 @@
+import { formatPosition } from "@shared";
 import confetti from "canvas-confetti";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -569,7 +570,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
                   key={key}
                   {...input.cellProps(pos)}
                   type="button"
-                  aria-label={`${String.fromCharCode(65 + pos.x)}${pos.y + 1}: ${cell ?? "empty"}`}
+                  aria-label={`${formatPosition(pos).toUpperCase()}: ${cell ?? "empty"}`}
                   disabled={!active || completed}
                   onClick={() => handleClick(pos)}
                   onPointerEnter={() => {

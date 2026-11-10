@@ -159,11 +159,11 @@ export const PUZZLES: Puzzle[] = [
     ],
     hints: [
       "An edge placement is legal when an enemy chain can reach that intersection.",
-      "Black at G2 can reach I4 over H3. That makes I4 available to White.",
-      "Place I4. It creates two chains, through G4 and through G6.",
+      "Black at G2 can reach J4 over H3. That makes J4 available to White.",
+      "Place J4. It creates two chains, through G4 and through G6.",
     ],
     explanation:
-      "Place I4. The border rule allows it because Black at G2 can reach I4 over H3. White threatens I4 → G4 → I6 and I4 → G6 → E6. Black cannot block both routes in one turn. If Black captures H3 with H4 → H2, the lower chain still wins.",
+      "Place J4. The border rule allows it because Black at G2 can reach J4 over H3. White threatens J4 → G4 → J6 and J4 → G6 → E6. Black cannot block both routes in one turn. If Black captures H3 with H4 → H2, the lower chain still wins.",
     line: [place(8, 3), jump([7, 3], [7, 1]), jump([8, 3], [6, 5], [4, 5])],
   },
   {
