@@ -267,7 +267,10 @@ function TutorialPageInner() {
         onLogout={onLogout}
       />
 
-      <div className="flex w-full max-w-lg flex-col items-center gap-5">
+      {/* Portrait tablets have room to spare: grow the card with the screen
+          height (staying clear of the controls below), up to 48rem. Phones,
+          landscape screens and desktops keep the 32rem card. */}
+      <div className="flex w-full max-w-lg flex-col items-center gap-5 sm:portrait:max-w-[max(32rem,min(48rem,calc(100dvh_-_22rem)))]">
         {/* Step counter */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -292,7 +295,7 @@ function TutorialPageInner() {
               transition={{ duration: 0.25, ease: "easeInOut" }}
             >
               <div className="rounded-3xl border border-[#d0bb94]/75 bg-[linear-gradient(180deg,rgba(255,250,242,0.97),rgba(244,231,207,0.95))] p-4 sm:p-7 shadow-xl">
-                <h2 className="mb-4 text-center font-display text-3xl tracking-tight text-[#2b1e14]">
+                <h2 className="mb-4 text-center font-display text-3xl tracking-tight text-[#2b1e14] sm:portrait:text-4xl">
                   {step.title}
                 </h2>
 
@@ -307,6 +310,7 @@ function TutorialPageInner() {
                       config={step.board}
                       onComplete={handleStepComplete}
                       presentation="guided"
+                      boardClassName="sm:portrait:max-w-none"
                       resetKey={resetKeys[currentStep]}
                       t={t}
                     />

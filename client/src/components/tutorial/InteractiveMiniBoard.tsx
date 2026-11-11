@@ -45,6 +45,8 @@ type Props = {
   active: boolean;
   resetKey: number;
   t: (key: string) => string;
+  /** Extra classes for the board wrapper, e.g. a larger width cap. */
+  className?: string;
 };
 
 // --- Grid math (matches TiaoBoard's coordinate system) ---
@@ -92,7 +94,14 @@ const ERROR_MESSAGE_DURATION_MS = 5000;
 
 // --- Component ---
 
-export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }: Props) {
+export function InteractiveMiniBoard({
+  config,
+  onComplete,
+  active,
+  resetKey,
+  t,
+  className,
+}: Props) {
   const theme = useBoardTheme();
   const boardRef = useRef<HTMLDivElement>(null);
   const {
@@ -483,7 +492,14 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
 
   return (
     <div className="flex w-full flex-col items-center gap-3">
-      <div className={cn("relative w-full", size <= 5 ? "max-w-[340px]" : "max-w-[420px]")}>
+      {/* A size container, so the nudge label can grow with a larger board. */}
+      <div
+        className={cn(
+          "@container relative w-full",
+          size <= 5 ? "max-w-[340px]" : "max-w-[420px]",
+          className,
+        )}
+      >
         {/* Board container — matches TiaoBoard styling */}
         <div
           ref={boardRef}
@@ -977,7 +993,7 @@ export function InteractiveMiniBoard({ config, onComplete, active, resetKey, t }
                 key={`nudge-label-${nudge.pos.x}-${nudge.pos.y}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="pointer-events-none absolute z-96 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#d7c39e] bg-[#fffaf3] px-2.5 py-0.5 text-[10px] font-semibold text-[#6c543c] shadow-md"
+                className="pointer-events-none absolute z-96 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#d7c39e] bg-[#fffaf3] px-2.5 py-0.5 text-[clamp(10px,2.35cqw,14px)] font-semibold text-[#6c543c] shadow-md"
                 style={{
                   left: `${outerLeftPct}%`,
                   top: `${outerTopPct}%`,

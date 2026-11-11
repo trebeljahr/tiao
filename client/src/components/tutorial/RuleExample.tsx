@@ -11,18 +11,27 @@ export function RuleExample({
   resetKey,
   t,
   presentation = "inline",
+  boardClassName,
 }: {
   config: StepBoardConfig;
   onComplete: () => void;
   resetKey: number;
   t: (key: string) => string;
   presentation?: "inline" | "guided";
+  boardClassName?: string;
 }) {
   const board = useMemo(
     () => (presentation === "inline" ? { ...config, overlayHint: undefined } : config),
     [config, presentation],
   );
   return (
-    <InteractiveMiniBoard config={board} active resetKey={resetKey} onComplete={onComplete} t={t} />
+    <InteractiveMiniBoard
+      config={board}
+      active
+      resetKey={resetKey}
+      onComplete={onComplete}
+      t={t}
+      className={boardClassName}
+    />
   );
 }
