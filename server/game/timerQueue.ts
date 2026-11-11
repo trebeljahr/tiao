@@ -358,14 +358,10 @@ export class BullMQMatchmakingSweepScheduler implements MatchmakingSweepSchedule
         console.error("[sweep] startup drain failed:", err);
       }
       try {
-        await this.queue.add(
+        await this.queue.upsertJobScheduler(
           "sweep",
-          {},
-          {
-            repeat: { every: intervalMs },
-            removeOnComplete: true,
-            removeOnFail: true,
-          },
+          { every: intervalMs },
+          { name: "sweep", data: {}, opts: { removeOnComplete: true, removeOnFail: true } },
         );
       } catch (err) {
         console.error("[sweep] failed to arm repeat schedule:", err);
