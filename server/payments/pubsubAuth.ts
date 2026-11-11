@@ -1,4 +1,4 @@
-import { createPublicKey, type JsonWebKey, timingSafeEqual, verify } from "node:crypto";
+import { createPublicKey, timingSafeEqual, verify, type webcrypto } from "node:crypto";
 
 /**
  * Authenticates Pub/Sub push deliveries (Google Play Real-time Developer
@@ -18,7 +18,7 @@ const GOOGLE_ISSUERS = new Set(["accounts.google.com", "https://accounts.google.
 const CLOCK_SKEW_SECONDS = 300;
 
 type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
-type Jwk = JsonWebKey & { kid?: string };
+type Jwk = webcrypto.JsonWebKey & { kid?: string };
 
 export type PushAuthConfig = {
   /** Audience set on the push subscription. Enables OIDC verification. */
