@@ -48,6 +48,6 @@
     "serwist": "^9.5.13",
     "tailwindcss": "^4.3.4",
     "typescript-eslint": "^8.72.1",
-    "vitest": "^4.1.12"
+    "vitest": "^5.1.0"
   }
 }
