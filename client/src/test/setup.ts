@@ -1,6 +1,14 @@
 import "@testing-library/jest-dom";
+import type { TestingLibraryMatchers } from "@testing-library/jest-dom/matchers";
 import { vi } from "vitest";
 import enMessages from "../../messages/en.json";
+
+// Vitest 5 takes custom matcher types through its Matchers interface;
+// jest-dom 7 still only augments the jest namespace and vitest 4's Assertion.
+declare module "vitest" {
+  interface Matchers<R extends void | Promise<void> = void | Promise<void>, T = unknown>
+    extends TestingLibraryMatchers<unknown, R> {}
+}
 
 // jsdom doesn't implement window.scrollTo (nor Element.scrollTo), so any
 // component that calls it during mount — e.g. MultiplayerGamePage's
