@@ -345,21 +345,24 @@ try {
     writeFileSync(resolve(output, `${name}.aria.txt`), await page.locator("body").ariaSnapshot());
     console.log("Captured", name);
   }
+  // Scroll a heading to the top, but keep it clear of the fixed menu button:
+  // on short screens (iPhone Duo outer) it would otherwise sit underneath.
+  const scrollBelowMenu = (el) => {
+    el.scrollIntoView({ block: "start", behavior: "instant" });
+    const top = el.getBoundingClientRect().top;
+    if (top < 84) window.scrollBy({ top: top - 84, behavior: "instant" });
+  };
   await open("/tournaments", "Autumn Cup");
   await shoot("06-tournaments");
   await open("/tournament/AUTUMN8", "Bracket");
   await shoot("07-tournament-bracket-full", true);
-  await page
-    .getByText("Bracket", { exact: true })
-    .evaluate((el) => el.scrollIntoView({ block: "start", behavior: "instant" }));
+  await page.getByText("Bracket", { exact: true }).evaluate(scrollBelowMenu);
   await shoot("07-tournament-bracket");
   await open("/friends", "mira");
   await shoot("08-friends");
   await open("/games", "Match History");
   await shoot("09-game-history-full", true);
-  await page
-    .getByText("Match History", { exact: true })
-    .evaluate((el) => el.scrollIntoView({ block: "start", behavior: "instant" }));
+  await page.getByText("Match History", { exact: true }).evaluate(scrollBelowMenu);
   await shoot("09-game-history");
   // Review a different match and stop on a capture, with the native move controls visible.
   await open("/game/H3R8VN", "rowan");
