@@ -4,7 +4,7 @@ import { PublicFooter, PublicHeader } from "@/components/public/PublicSite";
 import styles from "@/components/public/PublicSite.module.css";
 import { RuleSection } from "@/components/public/RuleSection";
 import { Link } from "@/i18n/navigation";
-import { localizedAlternates, OG_IMAGES } from "@/lib/metadata";
+import { localizedAlternates, OG_IMAGES, TWITTER_IMAGES } from "@/lib/metadata";
 
 type Props = { params: Promise<{ locale: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -15,7 +15,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: t("metaDescription"),
     alternates: localizedAlternates(locale, "/rules"),
     openGraph: { title: t("metaTitle"), description: t("metaDescription"), images: OG_IMAGES },
-    twitter: { title: t("metaTitle"), description: t("metaDescription") },
+    twitter: {
+      card: "summary_large_image",
+      title: t("metaTitle"),
+      description: t("metaDescription"),
+      images: TWITTER_IMAGES,
+    },
   };
 }
 export default async function RulesPage({ params }: Props) {

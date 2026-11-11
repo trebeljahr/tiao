@@ -4,10 +4,14 @@ import { defaultLocale, type Locale, locales } from "@/i18n/routing";
 // Page-level `openGraph` declarations replace (not deep-merge) the layout's,
 // so every page that overrides `openGraph` must re-declare `images` or the
 // share image goes missing for that URL.
+// The og:image is docs/marketing/social-preview/og-wordmark.png as JPEG.
+const OG_ALT = "Tiao icon and wordmark beside a board at an angle with black and white stones";
 export const OG_IMAGES = [
-  { url: "/opengraph-image", width: 1200, height: 630, alt: "Tiao online board game" },
+  { url: "/og-card.jpg", width: 1200, height: 630, type: "image/jpeg", alt: OG_ALT },
 ];
-export const TWITTER_IMAGES = ["/twitter-image"];
+// Page-level `twitter` declarations replace the layout's too: re-declare
+// `card` and `images`, or the page falls back to a small "summary" card.
+export const TWITTER_IMAGES = [{ url: "/og-card.jpg", alt: OG_ALT }];
 
 export const SITE_URL = "https://playtiao.com";
 

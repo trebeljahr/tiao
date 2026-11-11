@@ -161,9 +161,6 @@ export function headersFile() {
     ["/:locale/embed/*", FRAME_ALLOW],
     // The browser checks for a new worker on navigation; always revalidate.
     ["/sw.js", ["Cache-Control: no-cache"]],
-    // Next's file-based metadata images have no extension to type them by.
-    ["/opengraph-image", ["Content-Type: image/png"]],
-    ["/twitter-image", ["Content-Type: image/png"]],
     ["/version.json", ["Cache-Control: no-store"]],
     ["/release-assets.json", ["Cache-Control: no-store"]],
   ];

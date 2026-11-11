@@ -8,7 +8,7 @@ import { PlatformDownloads } from "@/components/public/PlatformDownloads";
 import { PublicFooter, PublicHeader } from "@/components/public/PublicSite";
 import styles from "@/components/public/PublicSite.module.css";
 import { Link } from "@/i18n/navigation";
-import { localizedAlternates, OG_IMAGES } from "@/lib/metadata";
+import { localizedAlternates, OG_IMAGES, TWITTER_IMAGES } from "@/lib/metadata";
 import { LobbyPage } from "@/views/LobbyPage";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -21,7 +21,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: t("metaDescription"),
     alternates: localizedAlternates(locale, "/"),
     openGraph: { title: t("metaTitle"), description: t("metaDescription"), images: OG_IMAGES },
-    twitter: { title: t("metaTitle"), description: t("metaDescription") },
+    twitter: {
+      card: "summary_large_image",
+      title: t("metaTitle"),
+      description: t("metaDescription"),
+      images: TWITTER_IMAGES,
+    },
   };
 }
 
