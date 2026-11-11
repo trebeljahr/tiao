@@ -31,7 +31,7 @@
     "ioredis": "^5.11.1",
     "jimp": "^1.6.0",
     "mongodb": "^6.21.0",
-    "mongoose": "^8.24.4",
+    "mongoose": "^8.24.7",
     "morgan": "^1.12.1",
     "multer": "^2.5.0",
     "rate-limit-redis": "^4.3.1",
