@@ -34,7 +34,12 @@ describe("UserBadge", () => {
   it("applies gradient background from badge definition", () => {
     const { container } = render(<UserBadge badge="supporter" />);
     const el = container.firstElementChild as HTMLElement;
-    expect(el.style.background).toBe(BADGE_DEFINITIONS.supporter.gradient);
+    // jsdom normalizes hex to rgb, and React clearing backgroundSize leaves
+    // the `background` shorthand unserializable, so read the longhand.
+    expect(BADGE_DEFINITIONS.supporter.gradient).toBe("linear-gradient(135deg, #d4a644, #c4912e)");
+    expect(el.style.backgroundImage).toBe(
+      "linear-gradient(135deg, rgb(212, 166, 68), rgb(196, 145, 46))",
+    );
   });
 
   it("applies text color from badge definition", () => {
