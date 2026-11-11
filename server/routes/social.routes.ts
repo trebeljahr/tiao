@@ -16,7 +16,7 @@ import { gameService } from "../game/gameService";
 import { userSearchRateLimiter } from "../middleware/rateLimiter";
 import GameAccount, { type IGameAccount } from "../models/GameAccount";
 import GameInvitation from "../models/GameInvitation";
-import GameRoom from "../models/GameRoom";
+import GameRoom, { type IGameRoom } from "../models/GameRoom";
 
 const router = express.Router();
 
@@ -185,14 +185,14 @@ async function loadInvitationSummaries(
   const gameRooms = await GameRoom.find(
     { roomId: { $in: gameIds } },
     { roomId: 1, "state.boardSize": 1, "state.scoreToWin": 1, timeControl: 1, seats: 1 },
-  ).lean();
+  ).lean<Pick<IGameRoom, "roomId" | "state" | "timeControl" | "seats">[]>();
   const gameRoomMap = new Map(gameRooms.map((r) => [r.roomId, r]));
 
   return valid.map((invitation) => {
     const sender = invitation.senderId as unknown as IGameAccount;
     const recipient = invitation.recipientId as unknown as IGameAccount;
-    const senderId = sender.id ?? String(sender._id);
-    const recipientId = recipient.id ?? String(recipient._id);
+    const senderId = String(sender._id);
+    const recipientId = String(recipient._id);
 
     const room = gameRoomMap.get(invitation.gameId);
     // Determine which color the recipient would play as

@@ -1,7 +1,7 @@
-import { type Document, type Model, model, models, Schema } from "mongoose";
+import { type Document, type Model, model, models, Schema, type Types } from "mongoose";
 
 export interface IAchievement extends Document {
-  playerId: Schema.Types.ObjectId;
+  playerId: Types.ObjectId;
   achievementId: string;
   unlockedAt: Date;
 }

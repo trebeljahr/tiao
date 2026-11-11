@@ -22,7 +22,7 @@ import { profilePictureUpload } from "../middleware/multerUploadMiddleware";
 import { authRateLimiter } from "../middleware/rateLimiter";
 import GameAccount from "../models/GameAccount";
 import GameInvitation from "../models/GameInvitation";
-import GameRoom from "../models/GameRoom";
+import GameRoom, { type IGameRoom } from "../models/GameRoom";
 import {
   deleteExport,
   enqueueExport,
@@ -529,7 +529,7 @@ router.get("/profile/:username", async (req: Request, res: Response) => {
           ratingAfter: 1,
         },
       )
-        .lean()
+        .lean<Pick<IGameRoom, "seats" | "state" | "timeControl" | "ratingBefore" | "ratingAfter">[]>()
         .limit(1000);
 
       const boardCounts: Record<number, number> = {};
