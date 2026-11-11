@@ -78,8 +78,8 @@ importers:
         specifier: 0.33.5
         version: 0.33.5
       stripe:
-        specifier: ^22.6.2
-        version: 22.6.2(@types/node@22.20.5)
+        specifier: ^23.1.0
+        version: 23.1.0(@types/node@22.20.5)
       ws:
         specifier: ^8.22.1
         version: 8.22.1
@@ -2175,11 +2175,11 @@ packages:
   string.prototype.codepointat@0.2.1:
     resolution: {integrity: sha512-2cBVCj6I4IOvEnjgO/hWqXjqBGsY+zwPmHl12Srk9IXSZ56Jwwmy+66XO5Iut/oQVR7t5ihYdLB0GMa4alEUcg==}
 
-  stripe@22.6.2:
-    resolution: {integrity: sha512-PwRE2scocvXqDKPiskMa5vRJEAEkq46W69XyUYmAwrNSLr675lQnfqLwnsndAWizwgihOWw/irLmoFRo3ez7ew==}
-    engines: {node: '>=18'}
+  stripe@23.1.0:
+    resolution: {integrity: sha512-fVUfMSfTPoukfoV//MUKAx2+YxyKmYaYtnAL9VkfnHfaPNQylFdWZMD+zgUFerI8rjbaiER8Vzj2XEUQ2AhAsQ==}
+    engines: {node: '>=20'}
     peerDependencies:
-      '@types/node': '>=18'
+      '@types/node': '>=20'
     peerDependenciesMeta:
       '@types/node':
         optional: true
@@ -4528,7 +4528,7 @@ snapshots:
 
   string.prototype.codepointat@0.2.1: {}
 
-  stripe@22.6.2(@types/node@22.20.5):
+  stripe@23.1.0(@types/node@22.20.5):
     optionalDependencies:
       '@types/node': 22.20.5
 

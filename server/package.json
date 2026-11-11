@@ -36,7 +36,7 @@
     "multer": "^2.5.0",
     "rate-limit-redis": "^4.3.1",
     "satori": "0.33.5",
-    "stripe": "^22.6.2",
+    "stripe": "^23.1.0",
     "ws": "^8.22.1"
   },
   "devDependencies": {
