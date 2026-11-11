@@ -194,7 +194,7 @@ export class RedisMatchmakingStore implements MatchmakingStore {
   }
 
   async findEntry(playerId: string): Promise<MatchmakingQueueEntry | null> {
-    const members = await this.redis.zrange(QUEUE_KEY, 0, -1);
+    const members = await this.redis.zrange(QUEUE_KEY, 0, "-1");
     for (const raw of members) {
       const entry = JSON.parse(raw) as MatchmakingQueueEntry;
       if (entry.player.playerId === playerId) return entry;
@@ -223,7 +223,7 @@ export class RedisMatchmakingStore implements MatchmakingStore {
     remove: boolean,
   ): Promise<MatchmakingQueueEntry | null> {
     const now = Date.now();
-    const members = await this.redis.zrange(QUEUE_KEY, 0, -1);
+    const members = await this.redis.zrange(QUEUE_KEY, 0, "-1");
 
     let bestRaw: string | null = null;
     let bestEntry: MatchmakingQueueEntry | null = null;
@@ -266,7 +266,7 @@ export class RedisMatchmakingStore implements MatchmakingStore {
   }
 
   async removeFromQueue(playerId: string, ownerId?: string): Promise<boolean> {
-    const members = await this.redis.zrange(QUEUE_KEY, 0, -1);
+    const members = await this.redis.zrange(QUEUE_KEY, 0, "-1");
     for (const raw of members) {
       const entry = JSON.parse(raw) as MatchmakingQueueEntry;
       if (
@@ -301,7 +301,7 @@ export class RedisMatchmakingStore implements MatchmakingStore {
   }
 
   async getAllEntries(): Promise<MatchmakingQueueEntry[]> {
-    const members = await this.redis.zrange(QUEUE_KEY, 0, -1);
+    const members = await this.redis.zrange(QUEUE_KEY, 0, "-1");
     return members.map((raw) => JSON.parse(raw) as MatchmakingQueueEntry);
   }
 
