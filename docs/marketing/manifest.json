@@ -162,11 +162,11 @@
   "ogImage": [
     {
       "path": "social-preview/og-wordmark.png",
-      "purpose": "og:image with brand: variant B laid out at 1280×672, brand, headline and rules line",
+      "purpose": "og:image with brand: variant B laid out at 1280×672, icon and wordmark only, over the tilted board",
       "width": 1200,
       "height": 630,
-      "bytes": 337317,
-      "sha256": "ccef4dcd23930f18cbfe17b747e9b1e60790a07c4d56cc217fb45bc15dc07167",
+      "bytes": 276087,
+      "sha256": "d9cc88a8daf4bc1fef643bd2994350bd7c4afbec974e145aa25ce9f022c96ac7",
       "made": "social-preview/template.html?variant=b at 1280×672 and 2×, rendered by scripts/marketing/render-social-preview.mjs (Playwright Chromium), scaled to 1200×630 with ImageMagick",
       "date": "2026-11-11"
     },

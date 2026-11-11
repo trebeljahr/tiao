@@ -3,8 +3,8 @@
 // docs/marketing/social-preview/template.html: A screenshot-led, B brand-led,
 // C dark with desktop and phone. Run `pnpm marketing:screenshots` first; the
 // cards use those screenshots. It also renders the two og:image cards
-// (1200×630 PNG) from variant B: og-wordmark.png with brand, headline and rules
-// line, og-clean.png with only the tilted board. They are laid out at 1280×672,
+// (1200×630 PNG) from variant B: og-wordmark.png with only the icon and
+// wordmark, og-clean.png with only the tilted board. They are laid out at 1280×672,
 // the 1.905:1 shape of 1200×630, shot at 2× and scaled to exactly 1200×630
 // with ImageMagick (`magick` on the PATH).
 //
@@ -42,12 +42,11 @@ const ogTall = "html, body, .card { height: 672px !important; }";
 export const ogCards = [
   [
     "og-wordmark",
-    "og:image with brand: variant B laid out at 1280×672, brand, headline and rules line",
-    // Brand, headline and rules line move down 16 px, the footer stays 64 px
-    // from the bottom, the tilted board moves down 16 px.
-    `#b .brand { top: 112px !important; }
-     #b .headline { top: 302px !important; }
-     #b .sub { top: 406px !important; }
+    "og:image with brand: variant B laid out at 1280×672, icon and wordmark only, over the tilted board",
+    // Headline, rules line and footer (URL pill) gone; the icon and wordmark,
+    // a little larger, centred vertically. The tilted board moves down 16 px.
+    `#b .headline, #b .sub, #b .footer { display: none !important; }
+     #b .brand { top: 252px !important; --size: 168px !important; }
      #b .tilt { top: -24px !important; }`,
   ],
   [

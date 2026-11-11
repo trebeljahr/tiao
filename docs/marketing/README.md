@@ -63,7 +63,7 @@ Upload the chosen card in the repository's Settings → Social preview.
 
 | File | Pixels | Composition |
 | --- | --- | --- |
-| `og-wordmark.png` | 1200×630 | Variant B laid out at 1.91:1: icon and wordmark, headline, rules line, footer, tilted board crop |
+| `og-wordmark.png` | 1200×630 | Variant B laid out at 1.91:1: only the icon and wordmark, centred on the left, over the tilted board crop. No headline, rules line or URL |
 | `og-clean.png` | 1200×630 | No text: the whole tilted board of variant B, centred on cream |
 
 The Open Graph size. The same script renders them from `template.html?variant=b`
