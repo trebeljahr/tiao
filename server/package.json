@@ -21,7 +21,7 @@
     "@resvg/resvg-js": "2.6.2",
     "@sentry/node": "^10.78.0",
     "bcrypt": "^6.0.0",
-    "better-auth": "^1.7.15",
+    "better-auth": "^1.7.16",
     "bullmq": "^5.81.5",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
