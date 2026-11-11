@@ -158,5 +158,27 @@
       "made": "social-preview/template.html rendered by scripts/marketing/render-social-preview.mjs (Playwright Chromium)",
       "date": "2026-11-06"
     }
+  ],
+  "ogImage": [
+    {
+      "path": "social-preview/og-wordmark.png",
+      "purpose": "og:image with brand: variant B laid out at 1280×672, brand, headline and rules line",
+      "width": 1200,
+      "height": 630,
+      "bytes": 337317,
+      "sha256": "ccef4dcd23930f18cbfe17b747e9b1e60790a07c4d56cc217fb45bc15dc07167",
+      "made": "social-preview/template.html?variant=b at 1280×672 and 2×, rendered by scripts/marketing/render-social-preview.mjs (Playwright Chromium), scaled to 1200×630 with ImageMagick",
+      "date": "2026-11-11"
+    },
+    {
+      "path": "social-preview/og-clean.png",
+      "purpose": "og:image without text: the whole tilted board of variant B, centred on cream",
+      "width": 1200,
+      "height": 630,
+      "bytes": 241212,
+      "sha256": "18d07b38da5542a5877c201311220a73a945c2757951e68d9fc2fd6eb6dd0b6b",
+      "made": "social-preview/template.html?variant=b at 1280×672 and 2×, rendered by scripts/marketing/render-social-preview.mjs (Playwright Chromium), scaled to 1200×630 with ImageMagick",
+      "date": "2026-11-11"
+    }
   ]
 }

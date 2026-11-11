@@ -59,6 +59,22 @@ pnpm marketing:social --review-dir <folder> # also writes copies and a labelled 
 
 Upload the chosen card in the repository's Settings → Social preview.
 
+## og:image cards (`social-preview/`)
+
+| File | Pixels | Composition |
+| --- | --- | --- |
+| `og-wordmark.png` | 1200×630 | Variant B laid out at 1.91:1: icon and wordmark, headline, rules line, footer, tilted board crop |
+| `og-clean.png` | 1200×630 | No text: the whole tilted board of variant B, centred on cream |
+
+The Open Graph size. The same script renders them from `template.html?variant=b`
+laid out at 1280×672 (the same shape as 1200×630), shot at 2× and scaled to
+exactly 1200×630 with ImageMagick, which must be installed (`magick`).
+`manifest.json` lists them under `ogImage`.
+
+```sh
+pnpm marketing:social --og   # only the two og:image cards
+```
+
 ## Other Tiao media in this repository
 
 Reuse these before making new ones.

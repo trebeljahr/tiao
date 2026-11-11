@@ -16,6 +16,11 @@ export function updateManifest(section, entries) {
         description:
           "Tiao marketing assets: real screenshots and GitHub social preview cards. See README.md in this folder.",
       };
-  manifest[section] = entries;
+  // A file whose bytes have not changed keeps its date.
+  const before = new Map((manifest[section] ?? []).map((entry) => [entry.path, entry]));
+  manifest[section] = entries.map((entry) => {
+    const old = before.get(entry.path);
+    return old?.sha256 === entry.sha256 && old.date ? { ...entry, date: old.date } : entry;
+  });
   writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 }
