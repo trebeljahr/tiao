@@ -208,6 +208,16 @@ jobs:
           SKIP_DESKTOP: "1"
         run: pnpm install --frozen-lockfile
 
+      - name: Use Ubuntu's own mirror when Azure's does not resolve
+        # GitHub's runners list azure.archive.ubuntu.com first in apt's mirror file, and
+        # apt does not move to the next mirror when a name fails to resolve. During an
+        # Azure DNS outage (2026-11-11, hours) every package download failed.
+        if: runner.os == 'Linux'
+        run: |
+          if ! getent hosts azure.archive.ubuntu.com >/dev/null && [ -f /etc/apt/apt-mirrors.txt ]; then
+            sudo sed -i '/azure\.archive\.ubuntu\.com/d' /etc/apt/apt-mirrors.txt
+            echo "azure.archive.ubuntu.com does not resolve; apt uses the next mirror"
+          fi
       - name: Start S3 storage and install Playwright
         run: |
           docker run -d --name tiao-e2e-s3 \

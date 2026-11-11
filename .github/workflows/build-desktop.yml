@@ -139,6 +139,16 @@ jobs:
         with:
           targets: ${{ (matrix.platform == 'macos' || matrix.platform == 'mas') && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
+      - name: Use Ubuntu's own mirror when Azure's does not resolve
+        # GitHub's runners list azure.archive.ubuntu.com first in apt's mirror file, and
+        # apt does not move to the next mirror when a name fails to resolve. During an
+        # Azure DNS outage (2026-11-11, hours) every package download failed.
+        if: runner.os == 'Linux'
+        run: |
+          if ! getent hosts azure.archive.ubuntu.com >/dev/null && [ -f /etc/apt/apt-mirrors.txt ]; then
+            sudo sed -i '/azure\.archive\.ubuntu\.com/d' /etc/apt/apt-mirrors.txt
+            echo "azure.archive.ubuntu.com does not resolve; apt uses the next mirror"
+          fi
       - name: Install Linux WebView build dependencies
         if: matrix.platform == 'linux'
         run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libssl-dev libdbus-1-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-libav
