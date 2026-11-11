@@ -45,7 +45,7 @@ jobs:
           SHORT=$(git rev-parse --short HEAD)
           echo "app_version=${BASE}-build.${COUNT}+${SHORT}" >> "$GITHUB_OUTPUT"
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
       - name: Set up Node.js
         uses: actions/setup-node@v7

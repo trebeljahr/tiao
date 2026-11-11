@@ -1,4 +1,6 @@
 overrides:
+  glob@13: ^14.0.2
+  minimatch@10: ^11.0.1
   postcss-selector-parser@6: ^6.1.5
   vite@7: ^7.3.7
   zod@4: ^4.6.6
