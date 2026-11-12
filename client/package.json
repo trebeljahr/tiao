@@ -20,7 +20,7 @@
     "@capacitor/browser": "^8.0.5",
     "@capacitor/core": "^8.6.0",
     "@capacitor/preferences": "^8.0.1",
-    "@sentry/browser": "^10.78.0",
+    "@sentry/browser": "^11.10.0",
     "better-auth": "^1.7.17",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
