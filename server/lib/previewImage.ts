@@ -30,7 +30,10 @@ type Style = Record<string, string | number>;
 type Node = { type: string; props: { style?: Style; children?: Child | Child[] } };
 type Child = Node | string;
 
-function h(type: string, style: Style, ...children: Child[]): Node {
+function h(type: string, ownStyle: Style, ...children: Child[]): Node {
+  // satori 0.63 sizes boxes as content-box, like CSS; the card's sizes are
+  // border-box (padding and borders inside width and height).
+  const style = { boxSizing: "border-box", ...ownStyle };
   // satori counts an empty children array as several children.
   if (!children.length) return { type, props: { style } };
   return { type, props: { style, children: children.length === 1 ? children[0] : children } };
