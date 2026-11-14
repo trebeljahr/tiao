@@ -5,9 +5,6 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  glob@9: ^14.0.2
-  sharp@0.32: ^0.35.0
-  tar@6: ^7.5.3
   uuid@7: ^11.1.1
 
 importers:
@@ -52,8 +49,8 @@ importers:
         specifier: ^8.3.1
         version: 8.6.0(@capacitor/core@8.6.0)
       '@capacitor/assets':
-        specifier: ^3.0.5
-        version: 3.0.5(@types/node@26.6.6)
+        specifier: ^4.0.0
+        version: 4.0.0(@types/node@26.6.6)
       '@capacitor/cli':
         specifier: ^8.3.1
         version: 8.6.0
@@ -79,20 +76,15 @@ packages:
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
 
-  '@capacitor/assets@3.0.5':
-    resolution: {integrity: sha512-ohz/OUq61Y1Fc6aVSt0uDrUdeOA7oTH4pkWDbv/8I3UrPjH7oPkzYhShuDRUjekNp9RBi198VSFdt0CetpEOzw==}
-    engines: {node: '>=10.3.0'}
+  '@capacitor/assets@4.0.0':
+    resolution: {integrity: sha512-6fi6bYunaawAZ9kkbJheB1Kon7AbqS3AYblQ2ocAnHGyO7YQX3gsgcH7hptklrpbcLT8B6KMyuBZqfDgChCyrw==}
+    engines: {node: '>=20.9.0'}
     hasBin: true
 
   '@capacitor/browser@8.0.5':
     resolution: {integrity: sha512-qqcEjUqs9kG1naF+tsD8rERuZ3wuIfXzvoIJEERHI4RNWwNSUqAHHduaKhkyb+t01VyVPa0ydx0mZ/eOskk2Ug==}
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
-
-  '@capacitor/cli@5.7.8':
-    resolution: {integrity: sha512-qN8LDlREMhrYhOvVXahoJVNkP8LP55/YPRJrzTAFrMqlNJC18L3CzgWYIblFPnuwfbH/RxbfoZT/ydkwgVpMrw==}
-    engines: {node: '>=16.0.0'}
-    hasBin: true
 
   '@capacitor/cli@8.6.0':
     resolution: {integrity: sha512-TyLo1v6AqK39inlB5Edm7eFc+dyk4r+Du5bbyD+cRm/u/3b+LkNIeyp5wwYp3ToO3rWiLs4T/PabXGADO0Rlxg==}
@@ -590,10 +582,6 @@ packages:
     resolution: {integrity: sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww==}
     engines: {node: '>= 12'}
 
-  commander@9.5.0:
-    resolution: {integrity: sha512-KRs7WVDKg86PWiuAqhDrAQnTXZKraVcCc6vFdL14qrZ/DcWwuRo7VoiYXalXO7S5GKpqYiVEwCbgFDfxNHKJBQ==}
-    engines: {node: ^12.20.0 || >=14}
-
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
@@ -828,11 +816,6 @@ packages:
     resolution: {integrity: sha512-fGxEI7+wsG9xrvdjsrlmL22OMTTiHRwAMroiEeMgq8gzoLC/PQr7RsRDSTLUg/bZAZtF+TVIkHc6/4RIKrui+Q==}
     engines: {node: '>=0.10.0'}
 
-  rimraf@4.4.1:
-    resolution: {integrity: sha512-Gk8NlF062+T9CqNGn6h4tls3k6T1+/nXdOcSZVikNVtlRdYpA7wRJJMoXmuvOnLW844rPjdQ7JgXCYM6PPC/og==}
-    engines: {node: '>=14'}
-    hasBin: true
-
   rimraf@6.1.4:
     resolution: {integrity: sha512-Fk3reQDVPZUMbEm7Zwxz03BWQMW3V5buSk9aU8OckTrO8A1nQtbqvYsAantGNermwsIsXcuOBqcoJ3HuMELctw==}
     engines: {node: 20 || >=22}
@@ -972,10 +955,6 @@ packages:
     resolution: {integrity: sha512-7rVi2KMfwfWFl+GpPg6m80IVMWXLRjO+PxTq7V2CDhoGak0wzYzFgUY2m4XJ47OGdXd8eLE8EmwfAmdjw7lC1g==}
     hasBin: true
 
-  xml2js@0.5.0:
-    resolution: {integrity: sha512-drPFnkQJik/O+uPKpqSgr22mpuFHqKdbS835iAQrUC73L2F5WkboIRd63ai/2Yg6I1jzifPFKH2NTK+cfglkIA==}
-    engines: {node: '>=4.0.0'}
-
   xml2js@0.6.2:
     resolution: {integrity: sha512-T4rieHaC1EXcES0Kxxj4JWgaUQHDk+qwHcYOCFHfiwKz7tOVPLq7Hjq9dM1WCMhylqMEfP7hMcOIChvotiZegA==}
     engines: {node: '>=4.0.0'}
@@ -1021,9 +1000,9 @@ snapshots:
     dependencies:
       '@capacitor/core': 8.6.0
 
-  '@capacitor/assets@3.0.5(@types/node@26.6.6)':
+  '@capacitor/assets@4.0.0(@types/node@26.6.6)':
     dependencies:
-      '@capacitor/cli': 5.7.8
+      '@ionic/cli-framework-output': 2.2.8
       '@ionic/utils-array': 2.1.6
       '@ionic/utils-fs': 3.1.7
       '@trapezedev/project': 7.1.11
@@ -1043,28 +1022,6 @@ snapshots:
   '@capacitor/browser@8.0.5(@capacitor/core@8.6.0)':
     dependencies:
       '@capacitor/core': 8.6.0
-
-  '@capacitor/cli@5.7.8':
-    dependencies:
-      '@ionic/cli-framework-output': 2.2.8
-      '@ionic/utils-fs': 3.1.7
-      '@ionic/utils-subprocess': 2.1.14
-      '@ionic/utils-terminal': 2.3.5
-      commander: 9.5.0
-      debug: 4.4.3
-      env-paths: 2.2.1
-      kleur: 4.1.5
-      native-run: 2.1.0
-      open: 8.4.2
-      plist: 3.1.1
-      prompts: 2.4.2
-      rimraf: 4.4.1
-      semver: 7.8.6
-      tar: 7.5.22
-      tslib: 2.9.1
-      xml2js: 0.5.0
-    transitivePeerDependencies:
-      - supports-color
 
   '@capacitor/cli@8.6.0':
     dependencies:
@@ -1532,8 +1489,6 @@ snapshots:
 
   commander@8.3.0: {}
 
-  commander@9.5.0: {}
-
   cross-spawn@7.0.6:
     dependencies:
       path-key: 3.1.1
@@ -1749,10 +1704,6 @@ snapshots:
 
   require-directory@2.1.1: {}
 
-  rimraf@4.4.1:
-    dependencies:
-      glob: 14.0.4
-
   rimraf@6.1.4:
     dependencies:
       glob: 14.0.4
@@ -1921,11 +1872,6 @@ snapshots:
   xml-js@1.6.11:
     dependencies:
       sax: 1.6.1
-
-  xml2js@0.5.0:
-    dependencies:
-      sax: 1.6.1
-      xmlbuilder: 11.0.1
 
   xml2js@0.6.2:
     dependencies:
