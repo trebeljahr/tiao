@@ -394,7 +394,7 @@ describe("TiaoBoard – selectable glow only during pending jump", () => {
     const cell = screen.getByTestId("cell-9-9");
     const piece = cell.querySelector('[class*="rounded-full"][class*="z-10"]') as HTMLElement;
     expect(piece).toBeTruthy();
-    expect(piece.style.boxShadow).not.toContain("0 0 0 4px");
+    expect(piece.style.boxShadow).not.toContain("0px 0px 0px 4px");
   });
 
   it("applies selectable glow during a pending jump", async () => {
@@ -422,7 +422,7 @@ describe("TiaoBoard – selectable glow only during pending jump", () => {
     const cell = screen.getByTestId("cell-9-7");
     const piece = cell.querySelector('[class*="rounded-full"][class*="z-10"]') as HTMLElement;
     expect(piece).toBeTruthy();
-    expect(piece.style.boxShadow).toContain("0 0 0 4px");
+    expect(piece.style.boxShadow).toContain("0px 0px 0px 4px");
   });
 });
 
