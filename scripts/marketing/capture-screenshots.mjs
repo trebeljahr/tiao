@@ -107,7 +107,6 @@ async function startClient() {
       ...process.env,
       PORT: String(port),
       API_PORT: String(apiPort),
-      HATCHKIT_LOCAL_DEV: "0",
       NEXT_TELEMETRY_DISABLED: "1",
     },
     stdio: ["ignore", "inherit", "inherit"],
