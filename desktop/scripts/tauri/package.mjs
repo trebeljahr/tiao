@@ -90,7 +90,8 @@ try {
       ...(bundles ? ["--bundles", bundles] : ["--no-bundle"]),
       ...(process.env.TIAO_ENABLE_UPDATER === "1" ? ["--features", "updater"] : []),
     ],
-    { stdio: "inherit", env },
+    // pnpm is pnpm.cmd on Windows, which Node only starts through a shell.
+    { stdio: "inherit", env, shell: process.platform === "win32" },
   );
   const output = resolve("dist", channel);
   rmSync(output, { recursive: true, force: true });
